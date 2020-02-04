@@ -1,0 +1,10 @@
+version: 2
+cli:
+  fetcher: custom
+  project: git@github.com:fastly/cli.git
+analyze:
+  modules:
+  - name: github.com/fastly/cli/cmd/fastly
+    type: go
+    target: github.com/fastly/cli/cmd/fastly
+    path: cmd/fastly

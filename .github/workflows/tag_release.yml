@@ -1,0 +1,114 @@
+on:
+  push:
+    tags:
+      - 'v*'
+name: Release
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create GitHub release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        draft: true
+        prerelease: false
+    - name: Output upload URL to file
+      env:
+        UPLOAD_URL: ${{ steps.create_release.outputs.upload_url }}
+      run: |
+        echo $UPLOAD_URL > upload_url.txt
+    - name: Persist release upload URL
+      uses: actions/upload-artifact@v1
+      with:
+        name: release
+        path: upload_url.txt
+  upload:
+    needs: release
+    strategy:
+      matrix:
+        pair: [linux-amd64, linux-386, darwin-amd64, windows-amd64, windows-386]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: '1.13.x'
+    - name: Checkout code
+      uses: actions/checkout@v1
+    - name: Get version
+      run: |
+        echo ::set-env name=VERSION::${GITHUB_REF/refs\/tags\//}
+    - name: Build release binaries
+      env:
+        PAIR: ${{ matrix.pair }}
+      shell: bash
+      run: |
+        GOOS=$(echo $PAIR | cut -d'-' -f1)
+        GOARCH=$(echo $PAIR | cut -d'-' -f2)
+        if [[ $GOOS =~ "windows" ]]
+        then
+          env VERSION=$VERSION GOOS=$GOOS GOARCH=$GOARCH make release-exe
+        else
+          env VERSION=$VERSION GOOS=$GOOS GOARCH=$GOARCH make release
+        fi
+    - name: Get upload URL
+      uses: actions/download-artifact@v1
+      with:
+        name: release
+    - name: Set upload URL env var
+      run: |
+        value=`cat release/upload_url.txt`
+        echo ::set-env name=UPLOAD_URL::$value
+    - name: Upload release asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: "${{ env.UPLOAD_URL }}"
+        asset_path: "./fastly_${{ env.VERSION }}_${{ matrix.pair }}.tar.gz"
+        asset_name: "fastly_${{ env.VERSION }}_${{ matrix.pair }}.tar.gz"
+        asset_content_type: application/gzip
+    - name: Persist binary
+      uses: actions/upload-artifact@v1
+      with:
+        name: bin
+        path: ./fastly_${{ env.VERSION }}_${{ matrix.pair }}.tar.gz
+  checksums:
+    needs: upload
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get binaries
+      uses: actions/download-artifact@v1
+      with:
+        name: bin
+    - name: Set version env var
+      run: |
+        echo ::set-env name=VERSION::${GITHUB_REF/refs\/tags\//}
+    - name: Get upload URL
+      uses: actions/download-artifact@v1
+      with:
+        name: release
+    - name: Set upload URL env var
+      run: |
+        value=`cat release/upload_url.txt`
+        echo ::set-env name=UPLOAD_URL::$value
+    - name: Generate checksums
+      run: |
+        cd bin
+        for filename in *; do
+          echo -e "$(sha256sum $filename)" >> fastly_${{ env.VERSION }}_SHA256SUMS
+        done
+    - name: Upload checksums asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ env.UPLOAD_URL }}
+        asset_path: ./bin/fastly_${{ env.VERSION }}_SHA256SUMS
+        asset_name: fastly_${{ env.VERSION }}_SHA256SUMS
+        asset_content_type: text/plain

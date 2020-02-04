@@ -1,0 +1,36 @@
+fastly
+!cmd/fastly
+
+# Fastly package format files
+**/fastly.toml
+!pkg/packag/testdata/build/fastly.toml
+**/Cargo.toml
+!pkg/packag/testdata/build/Cargo.toml
+**/Cargo.lock
+!pkg/packag/testdata/build/Cargo.lock
+**/*.tar.gz
+!pkg/packag/testdata/deploy/pkg/package.tar.gz
+**/bin
+**/src
+!pkg/packag/testdata/build/src
+**/target
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Ignore IDEs
+.idea
+
+# Ignore binaries
+build/
+!pkg/packag/testdata/build/
