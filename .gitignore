@@ -3,16 +3,16 @@ fastly
 
 # Fastly package format files
 **/fastly.toml
-!pkg/packag/testdata/build/fastly.toml
+!pkg/compute/testdata/build/fastly.toml
 **/Cargo.toml
-!pkg/packag/testdata/build/Cargo.toml
+!pkg/compute/testdata/build/Cargo.toml
 **/Cargo.lock
-!pkg/packag/testdata/build/Cargo.lock
+!pkg/compute/testdata/build/Cargo.lock
 **/*.tar.gz
-!pkg/packag/testdata/deploy/pkg/package.tar.gz
+!pkg/compute/testdata/deploy/pkg/package.tar.gz
 **/bin
 **/src
-!pkg/packag/testdata/build/src
+!pkg/compute/testdata/build/src
 **/target
 
 # Binaries for programs and plugins
@@ -33,4 +33,4 @@ fastly
 
 # Ignore binaries
 build/
-!pkg/packag/testdata/build/
+!pkg/compute/testdata/build/
