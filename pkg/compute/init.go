@@ -19,7 +19,7 @@ import (
 const defaultTemplate = "https://github.com/fastly/fastly-template-rust-default"
 
 var (
-	fastlyOrgRegEx            = regexp.MustCompile(`github\.com\/fastly`)
+	fastlyOrgRegEx            = regexp.MustCompile(`^https:\/\/github\.com\/fastly`)
 	fastlyFileIgnoreListRegEx = regexp.MustCompile(`\.github|LICENSE|SECURITY\.md`)
 )
 
