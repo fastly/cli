@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/fastly/cli/pkg/common"
@@ -13,6 +14,13 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
 	"gopkg.in/src-d/go-git.v4"
+)
+
+const defaultTemplate = "https://github.com/fastly/fastly-template-rust-default"
+
+var (
+	fastlyOrgRegEx            = regexp.MustCompile(`^https:\/\/github\.com\/fastly`)
+	fastlyFileIgnoreListRegEx = regexp.MustCompile(`\.github|LICENSE|SECURITY\.md`)
 )
 
 // InitCommand initializes a Compute@Edge project package on the local machine.
@@ -30,7 +38,7 @@ func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
 	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.name)
-	c.CmdClause.Flag("from", "Git repository containing package template").Short('f').Default("https://github.com/fastly/fastly-template-rust-default").StringVar(&c.from)
+	c.CmdClause.Flag("from", "Git repository containing package template").Short('f').Default(defaultTemplate).StringVar(&c.from)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
 	c.CmdClause.Flag("service-id", "Optional Fastly service ID written to the package manifest, where this package will be deployed").Short('s').StringVar(&c.serviceID)
 	return &c
@@ -102,6 +110,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		rel, err := filepath.Rel(tempdir, path)
 		if err != nil {
 			return err
+		}
+		// Filter any files we want to ignore in Fastly-owned templates.
+		if fastlyOrgRegEx.MatchString(c.from) && fastlyFileIgnoreListRegEx.MatchString(rel) {
+			return nil
 		}
 		dst := filepath.Join(c.path, rel)
 		if err := os.MkdirAll(filepath.Dir(dst), 0750); err != nil {

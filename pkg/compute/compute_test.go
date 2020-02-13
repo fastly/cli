@@ -30,19 +30,81 @@ func TestInit(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_INIT to run this test")
 	}
 
-	if err := os.Chdir("testdata/init"); err != nil {
-		t.Fatal(err)
-	}
-
 	for _, testcase := range []struct {
-		name       string
-		args       []string
-		wantError  string
-		wantOutput string
+		name             string
+		args             []string
+		wantFiles        []string
+		unwantedFiles    []string
+		wantError        string
+		wantOutput       []string
+		manifestIncludes string
 	}{
-		// TODO(pb): wait until package template repo is public
+		{
+			name:      "unkown repository",
+			args:      []string{"compute", "init", "--from", "https://example.com/template"},
+			wantError: "error fetching package template: repository not found",
+		},
+		{
+			name: "with name",
+			args: []string{"compute", "init", "--name", "test"},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest..",
+			},
+			manifestIncludes: `name = "test"`,
+		},
+		{
+			name: "with service",
+			args: []string{"compute", "init", "--service-id", "test"},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest..",
+			},
+			manifestIncludes: `service_id = "test"`,
+		},
+		{
+			name: "default",
+			args: []string{"compute", "init"},
+			wantFiles: []string{
+				"cargo.toml",
+				"fastly.toml",
+				"src/main.rs",
+			},
+			unwantedFiles: []string{
+				"SECURITY.md",
+			},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest..",
+			},
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			// We're going to chdir to an init environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Create our init environment in a temp dir.
+			// Defer a call to clean it up.
+			rootdir := makeInitEnvironment(t)
+			defer os.RemoveAll(rootdir)
+
+			t.Logf("Temporary init environment: %s", rootdir)
+
+			// Before running the test, chdir into the init environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably assert file structure.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(pwd)
+
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
@@ -55,9 +117,28 @@ func TestInit(t *testing.T) {
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
+			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, buf.String())
+			for _, file := range testcase.wantFiles {
+				if _, err := os.Stat(filepath.Join(rootdir, file)); err != nil {
+					t.Errorf("wanted file %s not found", file)
+				}
+			}
+			for _, file := range testcase.unwantedFiles {
+				if _, err := os.Stat(filepath.Join(rootdir, file)); !errors.Is(err, os.ErrNotExist) {
+					t.Errorf("unwanted file %s found", file)
+				}
+			}
+			for _, s := range testcase.wantOutput {
+				testutil.AssertStringContains(t, buf.String(), s)
+			}
+			if testcase.manifestIncludes != "" {
+				content, err := ioutil.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
+				if err != nil {
+					t.Fatal(err)
+				}
+				testutil.AssertStringContains(t, string(content), testcase.manifestIncludes)
+			}
 		})
 	}
 }
@@ -624,6 +705,27 @@ func TestUploadPackage(t *testing.T) {
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 		})
 	}
+}
+
+func makeInitEnvironment(t *testing.T) (rootdir string) {
+	t.Helper()
+
+	p := make([]byte, 8)
+	n, err := rand.Read(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rootdir = filepath.Join(
+		os.TempDir(),
+		fmt.Sprintf("fastly-build-%x", p[:n]),
+	)
+
+	if err := os.MkdirAll(rootdir, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	return rootdir
 }
 
 func makeBuildEnvironment(t *testing.T, manifestContent string) (rootdir string) {
