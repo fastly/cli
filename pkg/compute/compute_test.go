@@ -125,7 +125,7 @@ func TestInit(t *testing.T) {
 				}
 			}
 			for _, file := range testcase.unwantedFiles {
-				if _, err := os.Stat(filepath.Join(rootdir, file)); err == nil {
+				if _, err := os.Stat(filepath.Join(rootdir, file)); !errors.Is(err, os.ErrNotExist) {
 					t.Errorf("found unwanted file %s found", file)
 				}
 			}
