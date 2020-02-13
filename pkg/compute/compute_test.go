@@ -95,7 +95,7 @@ func TestInit(t *testing.T) {
 			rootdir := makeInitEnvironment(t)
 			defer os.RemoveAll(rootdir)
 
-			fmt.Printf("TEMP DIRECTORY %s", rootdir)
+			t.Logf("Temporary init environment: %s", rootdir)
 
 			// Before running the test, chdir into the init environment.
 			// When we're done, chdir back to our original location.
