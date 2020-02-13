@@ -31,13 +31,13 @@ func TestInit(t *testing.T) {
 	}
 
 	for _, testcase := range []struct {
-		name            string
-		args            []string
-		wantFiles       []string
-		unwantedFiles   []string
-		wantError       string
-		wantOutput      []string
-		manifestContent string
+		name             string
+		args             []string
+		wantFiles        []string
+		unwantedFiles    []string
+		wantError        string
+		wantOutput       []string
+		manifestIncludes string
 	}{
 		{
 			name:      "unkown repository",
@@ -52,7 +52,7 @@ func TestInit(t *testing.T) {
 				"Fetching package template...",
 				"Updating package manifest..",
 			},
-			manifestContent: `name = "test"`,
+			manifestIncludes: `name = "test"`,
 		},
 		{
 			name: "with service",
@@ -62,7 +62,7 @@ func TestInit(t *testing.T) {
 				"Fetching package template...",
 				"Updating package manifest..",
 			},
-			manifestContent: `service_id = "test"`,
+			manifestIncludes: `service_id = "test"`,
 		},
 		{
 			name: "default",
@@ -132,12 +132,12 @@ func TestInit(t *testing.T) {
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, buf.String(), s)
 			}
-			if testcase.manifestContent != "" {
+			if testcase.manifestIncludes != "" {
 				content, err := ioutil.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
 				if err != nil {
 					t.Fatal(err)
 				}
-				testutil.AssertStringContains(t, string(content), testcase.manifestContent)
+				testutil.AssertStringContains(t, string(content), testcase.manifestIncludes)
 			}
 		})
 	}
