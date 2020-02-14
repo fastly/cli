@@ -20,8 +20,8 @@ Fastly CLI version vX.Y.Z (abc0001)
 Built with go version go1.13.1 linux/amd64
 ```
 
-In the near future, the Fastly CLI will notify you if a new version is
-available, and be able to update itself via `fastly update`.
+The Fastly CLI will notify you if a new version is available, and can update
+itself via `fastly update`.
 
 ## Use
 
