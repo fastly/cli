@@ -14,6 +14,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/text"
 )
 
 const (
@@ -62,7 +63,7 @@ func (r Rust) Verify(out io.Writer) error {
 	if err != nil {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`rustup` not found in $PATH"),
-			Remediation: "Please install rustup via e.g.\n\n\tcurl https://sh.rustup.rs -sSf | sh\n\tbrew install rustup-init ; rustup-init\n",
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("curl https://sh.rustup.rs -sSf | sh")),
 		}
 	}
 
@@ -94,7 +95,7 @@ func (r Rust) Verify(out io.Writer) error {
 	if !found {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rust toolchain %s not found", RustToolchainVersion),
-			Remediation: fmt.Sprintf("Please install via\n\n\trustup toolchain install %s\n", RustToolchainVersion),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("rustup toolchain install "+RustToolchainVersion)),
 		}
 	}
 
@@ -125,7 +126,7 @@ func (r Rust) Verify(out io.Writer) error {
 	if !found {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rust target %s not found", WasmWasiTarget),
-			Remediation: fmt.Sprintf("Please install via\n\n\trustup target add %s --toolchain %s\n", WasmWasiTarget, RustToolchainVersion),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", WasmWasiTarget, RustToolchainVersion))),
 		}
 	}
 
