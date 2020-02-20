@@ -44,7 +44,7 @@ func (re RemediationError) Print(w io.Writer) {
 		fmt.Fprintln(w) // additional "\n" to allow breathing room
 	}
 	if re.Remediation != "" {
-		text.Output(w, "%s\n", strings.TrimRight(re.Remediation, "\r\n"))
+		fmt.Fprintf(w, "%s\n", strings.TrimRight(re.Remediation, "\r\n"))
 	}
 }
 
