@@ -7,7 +7,7 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/fastly/go-fastly v1.3.0
+	github.com/fastly/go-fastly v1.7.0
 	github.com/fatih/color v1.7.0
 	github.com/frankban/quicktest v1.5.0 // indirect
 	github.com/google/go-cmp v0.3.1
