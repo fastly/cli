@@ -351,9 +351,8 @@ COMMANDS
         --shield=SHIELD            The shield POP designated to reduce inbound
                                    load on this origin by serving the cached
                                    data to the rest of the network
-        --use-ssl                  The shield POP designated to reduce inbound
-                                   load on this origin by serving the cached
-                                   data to the rest of the network
+        --use-ssl                  Whether or not to use SSL to reach the 
+                                   backend
         --ssl-check-cert           Be strict on checking SSL certs
         --ssl-ca-cert=SSL-CA-CERT  CA certificate attached to origin
         --ssl-client-cert=SSL-CLIENT-CERT
@@ -426,9 +425,8 @@ COMMANDS
         --shield=SHIELD            The shield POP designated to reduce inbound
                                    load on this origin by serving the cached
                                    data to the rest of the network
-        --use-ssl                  The shield POP designated to reduce inbound
-                                   load on this origin by serving the cached
-                                   data to the rest of the network
+        --use-ssl                  Whether or not to use SSL to reach the 
+                                   backend
         --ssl-check-cert           Be strict on checking SSL certs
         --ssl-ca-cert=SSL-CA-CERT  CA certificate attached to origin
         --ssl-client-cert=SSL-CLIENT-CERT
