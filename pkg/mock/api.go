@@ -48,6 +48,8 @@ type API struct {
 	GetBigQueryFn    func(*fastly.GetBigQueryInput) (*fastly.BigQuery, error)
 	UpdateBigQueryFn func(*fastly.UpdateBigQueryInput) (*fastly.BigQuery, error)
 	DeleteBigQueryFn func(*fastly.DeleteBigQueryInput) error
+
+	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 }
 
 // GetTokenSelf implements Interface.
@@ -218,4 +220,9 @@ func (m API) UpdateBigQuery(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, er
 // DeleteBigQuery implements Interface.
 func (m API) DeleteBigQuery(i *fastly.DeleteBigQueryInput) error {
 	return m.DeleteBigQueryFn(i)
+}
+
+// GetUser implements Interface.
+func (m API) GetUser(i *fastly.GetUserInput) (*fastly.User, error) {
+	return m.GetUserFn(i)
 }

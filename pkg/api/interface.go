@@ -57,6 +57,8 @@ type Interface interface {
 	GetBigQuery(*fastly.GetBigQueryInput) (*fastly.BigQuery, error)
 	UpdateBigQuery(*fastly.UpdateBigQueryInput) (*fastly.BigQuery, error)
 	DeleteBigQuery(*fastly.DeleteBigQueryInput) error
+
+	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 }
 
 // Interface assertion, to catch mismatches early.

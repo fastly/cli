@@ -33,20 +33,86 @@ func TestInit(t *testing.T) {
 	for _, testcase := range []struct {
 		name             string
 		args             []string
+		configFile       config.File
+		api              mock.API
 		wantFiles        []string
 		unwantedFiles    []string
+		stdin            string
 		wantError        string
 		wantOutput       []string
 		manifestIncludes string
 	}{
 		{
-			name:      "unkown repository",
-			args:      []string{"compute", "init", "--from", "https://example.com/template"},
+			name:      "no token",
+			args:      []string{"compute", "init"},
+			wantError: "no token provided",
+		},
+		{
+			name:       "unkown repository",
+			args:       []string{"compute", "init", "--from", "https://example.com/template"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+				DeleteServiceFn: deleteServiceOK,
+				DeleteBackendFn: deleteBackendOK,
+				DeleteDomainFn:  deleteDomainOK,
+			},
 			wantError: "error fetching package template: repository not found",
 		},
 		{
-			name: "with name",
-			args: []string{"compute", "init", "--name", "test"},
+			name:       "create service error",
+			args:       []string{"compute", "init"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceError,
+			},
+			wantError: "error creating service: fixture error",
+		},
+		{
+			name:       "create domain error",
+			args:       []string{"compute", "init"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainError,
+				DeleteServiceFn: deleteServiceOK,
+			},
+			wantError: "error creating domain: fixture error",
+		},
+		{
+			name:       "create backend error",
+			args:       []string{"compute", "init"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendError,
+				DeleteServiceFn: deleteServiceOK,
+				DeleteDomainFn:  deleteDomainOK,
+			},
+			wantError: "error creating backend: fixture error",
+		},
+		{
+			name:       "with name",
+			args:       []string{"compute", "init", "--name", "test"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
 			wantOutput: []string{
 				"Initializing...",
 				"Fetching package template...",
@@ -55,20 +121,54 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "test"`,
 		},
 		{
-			name: "with service",
-			args: []string{"compute", "init", "--service-id", "test"},
+			name:       "with description",
+			args:       []string{"compute", "init", "--description", "test"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
 			wantOutput: []string{
 				"Initializing...",
 				"Fetching package template...",
 				"Updating package manifest..",
 			},
-			manifestIncludes: `service_id = "test"`,
+			manifestIncludes: `description = "test"`,
 		},
 		{
-			name: "default",
-			args: []string{"compute", "init"},
+			name:       "with author",
+			args:       []string{"compute", "init", "--author", "test@example.com"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest..",
+			},
+			manifestIncludes: `authors = ["test@example.com"]`,
+		},
+		{
+			name:       "default",
+			args:       []string{"compute", "init"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
 			wantFiles: []string{
-				"cargo.toml",
+				"Cargo.toml",
 				"fastly.toml",
 				"src/main.rs",
 			},
@@ -108,12 +208,12 @@ func TestInit(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.File{}
+				file                           = testcase.configFile
 				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(mock.API{})
+				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
 				versioner     update.Versioner = nil
-				in            io.Reader        = nil
+				in            io.Reader        = bytes.NewBufferString(testcase.stdin)
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
@@ -835,6 +935,60 @@ func copyFile(t *testing.T, fromFilename, toFilename string) {
 }
 
 var errTest = errors.New("fixture error")
+
+func tokenOK() (*fastly.Token, error) { return &fastly.Token{}, nil }
+
+func getUserOk(i *fastly.GetUserInput) (*fastly.User, error) {
+	return &fastly.User{Login: "test@example.com"}, nil
+}
+
+func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
+	return &fastly.Service{
+		ID:   "12345",
+		Name: i.Name,
+		Type: i.Type,
+	}, nil
+}
+
+func createServiceError(*fastly.CreateServiceInput) (*fastly.Service, error) {
+	return nil, errTest
+}
+
+func deleteServiceOK(i *fastly.DeleteServiceInput) error {
+	return nil
+}
+
+func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
+	return &fastly.Domain{
+		ServiceID: i.Service,
+		Version:   i.Version,
+		Name:      i.Name,
+	}, nil
+}
+
+func createDomainError(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
+	return nil, errTest
+}
+
+func deleteDomainOK(i *fastly.DeleteDomainInput) error {
+	return nil
+}
+
+func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+	return &fastly.Backend{
+		ServiceID: i.Service,
+		Version:   i.Version,
+		Name:      i.Name,
+	}, nil
+}
+
+func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+	return nil, errTest
+}
+
+func deleteBackendOK(i *fastly.DeleteBackendInput) error {
+	return nil
+}
 
 func latestVersionInactiveOk(i *fastly.LatestVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{ServiceID: i.Service, Number: 1, Active: false}, nil

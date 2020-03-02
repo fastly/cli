@@ -61,7 +61,7 @@ func (d *Data) ServiceID() (string, Source) {
 // File represents all of the configuration parameters in the fastly.toml
 // manifest file schema.
 type File struct {
-	Version     string   `toml:"version"`
+	Version     int      `toml:"version"`
 	Name        string   `toml:"name"`
 	Description string   `toml:"description"`
 	Authors     []string `toml:"authors"`

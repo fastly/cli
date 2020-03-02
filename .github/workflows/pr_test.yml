@@ -93,6 +93,7 @@ jobs:
       run: make test
       shell: bash
       env:
+        TEST_COMPUTE_INIT: true
         TEST_COMPUTE_BUILD: true
   scan:
     runs-on: ubuntu-latest
