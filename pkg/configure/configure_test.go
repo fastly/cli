@@ -25,6 +25,12 @@ func TestConfigure(t *testing.T) {
 	var (
 		goodToken = func() (*fastly.Token, error) { return &fastly.Token{}, nil }
 		badToken  = func() (*fastly.Token, error) { return nil, errors.New("bad token") }
+		goodUser  = func(*fastly.GetUserInput) (*fastly.User, error) {
+			return &fastly.User{
+				Login: "test@example.com",
+			}, nil
+		}
+		badUser = func(*fastly.GetUserInput) (*fastly.User, error) { return nil, errors.New("bad user") }
 	)
 
 	for _, testcase := range []struct {
@@ -32,17 +38,20 @@ func TestConfigure(t *testing.T) {
 		args           []string
 		env            config.Environment
 		file           config.File
+		api            mock.API
 		configFileData string
-		tokenfn        func() (*fastly.Token, error)
 		stdin          string
 		wantError      string
 		wantOutput     []string
-		wantFile       string
+		wantFile       []string
 	}{
 		{
-			name:    "endpoint from flag",
-			args:    []string{"configure", "--endpoint=http://local.dev", "--token=abcdef"},
-			tokenfn: goodToken,
+			name: "endpoint from flag",
+			args: []string{"configure", "--endpoint=http://local.dev", "--token=abcdef"},
+			api: mock.API{
+				GetTokenSelfFn: goodToken,
+				GetUserFn:      goodUser,
+			},
 			wantOutput: []string{
 				"Fastly API endpoint (via --endpoint): http://local.dev",
 				"Fastly API token (via --token): abcdef",
@@ -50,14 +59,22 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: "token = \"abcdef\"\nendpoint = \"http://local.dev\"\nlast_version_check = \"\"\n",
+			wantFile: []string{
+				`token = "abcdef"`,
+				`email = "test@example.com"`,
+				`endpoint = "http://local.dev"`,
+				`last_version_check = ""`,
+			},
 		},
 		{
 			name:           "endpoint already in file should be replaced by flag",
 			args:           []string{"configure", "--endpoint=http://staging.dev", "--token=abcdef"},
 			configFileData: "endpoint = \"https://api.fastly.com\"",
 			stdin:          "new_token\n",
-			tokenfn:        goodToken,
+			api: mock.API{
+				GetTokenSelfFn: goodToken,
+				GetUserFn:      goodUser,
+			},
 			wantOutput: []string{
 				"Fastly API endpoint (via --endpoint): http://staging.dev",
 				"Fastly API token (via --token): abcdef",
@@ -65,25 +82,41 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: "token = \"abcdef\"\nendpoint = \"http://staging.dev\"\nlast_version_check = \"\"\n",
+			wantFile: []string{
+				`token = "abcdef"`,
+				`email = "test@example.com"`,
+				`endpoint = "http://staging.dev"`,
+				`last_version_check = ""`,
+			},
 		},
 		{
-			name:    "token from flag",
-			args:    []string{"configure", "--token=abcdef"},
-			tokenfn: goodToken,
+			name: "token from flag",
+			args: []string{"configure", "--token=abcdef"},
+			api: mock.API{
+				GetTokenSelfFn: goodToken,
+				GetUserFn:      goodUser,
+			},
 			wantOutput: []string{
 				"Fastly API token (via --token): abcdef",
 				"Validating token...",
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: "token = \"abcdef\"\nendpoint = \"https://api.fastly.com\"\nlast_version_check = \"\"\n",
+			wantFile: []string{
+				`token = "abcdef"`,
+				`email = "test@example.com"`,
+				`endpoint = "https://api.fastly.com"`,
+				`last_version_check = ""`,
+			},
 		},
 		{
-			name:    "token from interactive input",
-			args:    []string{"configure"},
-			stdin:   "1234\n",
-			tokenfn: goodToken,
+			name:  "token from interactive input",
+			args:  []string{"configure"},
+			stdin: "1234\n",
+			api: mock.API{
+				GetTokenSelfFn: goodToken,
+				GetUserFn:      goodUser,
+			},
 			wantOutput: []string{
 				"An API token is used to authenticate requests to the Fastly API. To create a token, visit",
 				"https://manage.fastly.com/account/personal/tokens",
@@ -92,27 +125,43 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: "token = \"1234\"\nendpoint = \"https://api.fastly.com\"\nlast_version_check = \"\"\n",
+			wantFile: []string{
+				`token = "1234"`,
+				`email = "test@example.com"`,
+				`endpoint = "https://api.fastly.com"`,
+				`last_version_check = ""`,
+			},
 		},
 		{
-			name:    "token from flag",
-			args:    []string{"configure"},
-			env:     config.Environment{Token: "hello"},
-			tokenfn: goodToken,
+			name: "token from flag",
+			args: []string{"configure"},
+			env:  config.Environment{Token: "hello"},
+			api: mock.API{
+				GetTokenSelfFn: goodToken,
+				GetUserFn:      goodUser,
+			},
 			wantOutput: []string{
 				"Fastly API token (via FASTLY_API_TOKEN): hello",
 				"Validating token...",
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: "token = \"hello\"\nendpoint = \"https://api.fastly.com\"\nlast_version_check = \"\"\n",
+			wantFile: []string{
+				`token = "hello"`,
+				`email = "test@example.com"`,
+				`endpoint = "https://api.fastly.com"`,
+				`last_version_check = ""`,
+			},
 		},
 		{
 			name:           "token already in file should trigger interactive input",
 			args:           []string{"configure"},
 			configFileData: "token = \"old_token\"",
 			stdin:          "new_token\n",
-			tokenfn:        goodToken,
+			api: mock.API{
+				GetTokenSelfFn: goodToken,
+				GetUserFn:      goodUser,
+			},
 			wantOutput: []string{
 				"An API token is used to authenticate requests to the Fastly API. To create a token, visit",
 				"https://manage.fastly.com/account/personal/tokens",
@@ -121,12 +170,20 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: "token = \"new_token\"\nendpoint = \"https://api.fastly.com\"\nlast_version_check = \"\"\n",
+			wantFile: []string{
+				`token = "new_token"`,
+				`email = "test@example.com"`,
+				`endpoint = "https://api.fastly.com"`,
+				`last_version_check = ""`,
+			},
 		},
 		{
-			name:    "invalid token",
-			args:    []string{"configure", "--token=abcdef"},
-			tokenfn: badToken,
+			name: "invalid token",
+			args: []string{"configure", "--token=abcdef"},
+			api: mock.API{
+				GetTokenSelfFn: badToken,
+				GetUserFn:      badUser,
+			},
 			wantOutput: []string{
 				"Fastly API token (via --token): abcdef",
 				"Validating token...",
@@ -142,7 +199,7 @@ func TestConfigure(t *testing.T) {
 				args                           = testcase.args
 				env                            = testcase.env
 				file                           = testcase.file
-				clientFactory                  = mock.APIClient(mock.API{GetTokenSelfFn: testcase.tokenfn})
+				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
 				versioner     update.Versioner = nil
 				in            io.Reader        = strings.NewReader(testcase.stdin)
@@ -156,7 +213,7 @@ func TestConfigure(t *testing.T) {
 			if testcase.wantError == "" {
 				p, err := ioutil.ReadFile(configFilePath)
 				testutil.AssertNoError(t, err)
-				testutil.AssertString(t, testcase.wantFile, string(p))
+				testutil.AssertString(t, strings.Join(testcase.wantFile, "\n")+"\n", string(p))
 			}
 		})
 	}

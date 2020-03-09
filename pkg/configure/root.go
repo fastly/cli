@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/go-fastly/fastly"
 )
 
 // APIClientFactory allows the configure command to regenerate the global Fastly
@@ -78,12 +79,20 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("error regenerating Fastly API client: %w", err)
 	}
-	if _, err := client.GetTokenSelf(); err != nil {
+	t, err := client.GetTokenSelf()
+	if err != nil {
 		return fmt.Errorf("error validating token: %w", err)
+	}
+	user, err := client.GetUser(&fastly.GetUserInput{
+		ID: t.UserID,
+	})
+	if err != nil {
+		return fmt.Errorf("error fetching token user: %w", err)
 	}
 
 	// Set everything in the File struct based on provided user input.
 	c.Globals.File.Token = token
+	c.Globals.File.Email = user.Login
 	c.Globals.File.Endpoint = endpoint
 
 	// Make sure the config file directory exists.
