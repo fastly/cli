@@ -55,7 +55,7 @@ func CopyFile(src, dst string) (err error) {
 	if err != nil {
 		return fmt.Errorf("error reading source file: %w", err)
 	}
-	defer in.Close()
+	defer in.Close() // #nosec G307
 
 	// Create destination file for writing.
 	out, err := os.Create(dst)
