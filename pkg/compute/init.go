@@ -95,21 +95,14 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// Use a null progress writer whilst gathering input.
 		progress = text.NewNullProgress()
 	}
-
-	undoStack := common.NewUndoStack()
-
 	defer func() {
 		if err != nil {
 			progress.Fail() // progress.Done is handled inline
-			// Unwind the undo stack
-			for undoStack.Len() != 0 {
-				if err := undoStack.Pop()(); err != nil {
-					// TODO(phamann): What should we do with the error?!
-					break
-				}
-			}
 		}
 	}()
+
+	undoStack := common.NewUndoStack()
+	defer undoStack.RunIfError(out, err)
 
 	if c.path == "" {
 		fmt.Fprintf(progress, "--path not specified, using current directory\n")
@@ -164,7 +157,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.from == "" {
 		text.Output(out, "%s", text.Bold("Template:"))
 		for i, template := range defaultTemplates {
-			text.Output(out, "[%d] %s", i, template.Name)
+			text.Output(out, "[%d] %s (%s)", i, template.Name, template.Path)
 		}
 		template, err := text.Input(out, "Choose option or type URL: [1] ", in, validateTemplateOptionOrURL)
 		if err != nil {
@@ -337,10 +330,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
-	fmt.Fprintf(out, "Initialized package %s to:\n\t%s\n\n", text.Bold(m.Name), text.Bold(abspath))
-	fmt.Fprintf(out, "Manage this service at:\n\t%s\n\n", text.Bold(fmt.Sprintf("%s%s", manageServiceBaseURL, service.ID)))
-	fmt.Fprintf(out, "To compile the package, run:\n\t%s\n\n", text.Bold("fastly compute build"))
-	fmt.Fprintf(out, "To deploy the package, run:\n\t%s\n\n", text.Bold("fastly compute deploy"))
+	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
+	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, service.ID))
+	text.Description(out, "To compile the package, run", "fastly compute build")
+	text.Description(out, "To deploy the package, run", "fastly compute deploy")
 
 	text.Success(out, "Initialized service %s", service.ID)
 	return nil
