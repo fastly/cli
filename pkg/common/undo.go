@@ -1,5 +1,10 @@
 package common
 
+import (
+	"fmt"
+	"io"
+)
+
 // UndoFn is a function with no arguments which returns an error or nil.
 type UndoFn func() error
 
@@ -40,4 +45,22 @@ func (s *UndoStack) Push(elem UndoFn) {
 // Len method returns the number of elements in the UndoStack.
 func (s *UndoStack) Len() int {
 	return len(s.states)
+}
+
+// RunIfError unwinds the stack if a non-nil error is passed, by serially
+// calling each UndoFn function state in FIFO order. If any UndoFn returns an
+// error, it gets logged to the provided writer. Should be deferrerd, such as:
+//
+//     undoStack := common.NewUndoStack()
+//     defer undoStack.RunIfError(w, err)
+//
+func (s *UndoStack) RunIfError(w io.Writer, err error) {
+	if err == nil {
+		return
+	}
+	for i := len(s.states) - 1; i >= 0; i-- {
+		if err := s.states[i](); err != nil {
+			fmt.Fprintf(w, "%w", err)
+		}
+	}
 }
