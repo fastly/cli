@@ -150,3 +150,14 @@ func Success(w io.Writer, format string, args ...interface{}) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
 	fmt.Fprintf(w, "\n"+BoldGreen("SUCCESS: ")+format, args...)
 }
+
+// Description formats the output of a description item. A description item
+// consists of a `term` and a `description`. Emphasis is placed on the
+// `description` using Bold(). For example:
+//
+//     To compile the package, run:
+//         fastly compute build
+//
+func Description(w io.Writer, term, description string) {
+	fmt.Fprintf(w, "%s:\n\t%s\n\n", term, Bold(description))
+}

@@ -234,3 +234,33 @@ func (p *VerboseProgress) Done() {}
 
 // Fail implements the Progress interface. It's a no-op.
 func (p *VerboseProgress) Fail() {}
+
+//
+//
+//
+
+// NullProgress is an implementation of Progress which discards everything
+// written into it and produces no output.
+type NullProgress struct{}
+
+// NewNullProgress returns a NullProgress.
+func NewNullProgress() *NullProgress {
+	return &NullProgress{}
+}
+
+// Tick implements the Progress interface. It's a no-op.
+func (p *NullProgress) Tick(r rune) {}
+
+// Tick implements the Progress interface.
+func (p *NullProgress) Write(buf []byte) (int, error) {
+	return 0, nil
+}
+
+// Step implements the Progress interface.
+func (p *NullProgress) Step(msg string) {}
+
+// Done implements the Progress interface. It's a no-op.
+func (p *NullProgress) Done() {}
+
+// Fail implements the Progress interface. It's a no-op.
+func (p *NullProgress) Fail() {}

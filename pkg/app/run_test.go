@@ -245,15 +245,17 @@ COMMANDS
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
 
-    -n, --name=NAME              Name of package, defaulting to directory name
-                                 of the --path destination
-    -f, --from="https://github.com/fastly/fastly-template-rust-default"
-                                 Git repository containing package template
-    -p, --path=PATH              Destination to write the new package,
-                                 defaulting to the current directory
-    -s, --service-id=SERVICE-ID  Optional Fastly service ID written to the
-                                 package manifest, where this package will be
-                                 deployed
+    -n, --name=NAME                Name of package, defaulting to directory name
+                                   of the --path destination
+    -d, --description=DESCRIPTION  Description of the package
+    -a, --author=AUTHOR            Author of the package
+    -f, --from=FROM                Git repository containing package template
+    -p, --path=PATH                Destination to write the new package,
+                                   defaulting to the current directory
+        --domain=DOMAIN            The name of the domain associated to the
+                                   package
+        --backend=BACKEND          A hostname, IPv4, or IPv6 address for the
+                                   package backend
 
   compute build [<flags>]
     Build a Compute@Edge package locally

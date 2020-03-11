@@ -158,7 +158,7 @@ func (c *Client) UpdatePackage(serviceID string, v int, path string) error {
 	if err != nil {
 		return fmt.Errorf("error reading package: %w", err)
 	}
-	defer file.Close()
+	defer file.Close() // #nosec G307
 
 	var body bytes.Buffer
 	w := multipart.NewWriter(&body)

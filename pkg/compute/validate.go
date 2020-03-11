@@ -22,7 +22,7 @@ func validate(path string) error {
 	if err != nil {
 		return fmt.Errorf("error reading package: %w", err)
 	}
-	defer file.Close()
+	defer file.Close() // #nosec G307
 
 	tar := archiver.NewTarGz()
 	err = tar.Open(file, 0)

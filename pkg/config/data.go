@@ -114,6 +114,7 @@ const DefaultEndpoint = "https://api.fastly.com"
 // config file. At some point, it may expand to include e.g. user profiles.
 type File struct {
 	Token            string `toml:"token"`
+	Email            string `toml:"email"`
 	Endpoint         string `toml:"endpoint"`
 	LastVersionCheck string `toml:"last_version_check"`
 }
