@@ -44,7 +44,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("request-condition", "Condition, which if met, will select this backend during a request").StringVar(&c.Input.RequestCondition)
 	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").StringVar(&c.Input.HealthCheck)
 	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").StringVar(&c.Input.Shield)
-	c.CmdClause.Flag("use-ssl", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").BoolVar(&c.UseSSL)
+	c.CmdClause.Flag("use-ssl", "Whether or not to use SSL to reach the backend").BoolVar(&c.UseSSL)
 	c.CmdClause.Flag("ssl-check-cert", "Be strict on checking SSL certs").BoolVar(&c.SSLCheckCert)
 	c.CmdClause.Flag("ssl-ca-cert", "CA certificate attached to origin").StringVar(&c.Input.SSLCACert)
 	c.CmdClause.Flag("ssl-client-cert", "Client certificate attached to origin").StringVar(&c.Input.SSLClientCert)
