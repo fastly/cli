@@ -126,6 +126,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error activating version: %w", err)
 	}
 
+	progress.Step("Updating package manifest...")
+
+	fmt.Fprintf(progress, "Setting version in manifest to %d...\n", c.version)
+	c.manifest.File.Version = c.version
+
+	if err := c.manifest.File.Write(ManifestFilename); err != nil {
+		return fmt.Errorf("error saving package manifest: %w", err)
+	}
+
 	progress.Done()
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, c.version)
 	return nil
