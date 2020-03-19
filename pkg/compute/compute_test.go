@@ -330,13 +330,14 @@ func TestBuild(t *testing.T) {
 
 func TestDeploy(t *testing.T) {
 	for _, testcase := range []struct {
-		name       string
-		args       []string
-		manifest   string
-		api        mock.API
-		client     api.HTTPClient
-		wantError  string
-		wantOutput []string
+		name             string
+		args             []string
+		manifest         string
+		api              mock.API
+		client           api.HTTPClient
+		wantError        string
+		wantOutput       []string
+		manifestIncludes string
 	}{
 		{
 			name:      "no fastly.toml manifest",
@@ -538,6 +539,22 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 1)",
 			},
 		},
+		{
+			name: "success with version",
+			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+			},
+			client:           codeClient{http.StatusOK},
+			manifestIncludes: "version = 2",
+			wantOutput: []string{
+				"Validating package...",
+				"Uploading package...",
+				"Activating version...",
+				"Updating package manifest...",
+				"Deployed package (service 123, version 2)",
+			},
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// We're going to chdir to a deploy environment,
@@ -577,6 +594,14 @@ func TestDeploy(t *testing.T) {
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, buf.String(), s)
 			}
+			if testcase.manifestIncludes != "" {
+				content, err := ioutil.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
+				if err != nil {
+					t.Fatal(err)
+				}
+				testutil.AssertStringContains(t, string(content), testcase.manifestIncludes)
+			}
+
 		})
 	}
 }
