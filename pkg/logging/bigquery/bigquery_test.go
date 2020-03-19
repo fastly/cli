@@ -115,7 +115,7 @@ func TestBigQueryList(t *testing.T) {
 	}
 }
 
-func TestBiogQueryDescribe(t *testing.T) {
+func TestBigQueryDescribe(t *testing.T) {
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
