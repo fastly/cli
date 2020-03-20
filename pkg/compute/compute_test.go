@@ -485,12 +485,13 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success",
+			name: "list domains error",
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
 				LatestVersionFn:   latestVersionActiveOk,
 				CloneVersionFn:    cloneVersionOk,
 				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsError,
 			},
 			client:   codeClient{http.StatusOK},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
@@ -501,6 +502,33 @@ func TestDeploy(t *testing.T) {
 				"Cloning latest version...",
 				"Uploading package...",
 				"Activating version...",
+				"Manage this service at:",
+				"https://manage.fastly.com/configure/services/123",
+				"Deployed package (service 123, version 2)",
+			},
+		},
+		{
+			name: "success",
+			args: []string{"compute", "deploy", "-t", "123"},
+			api: mock.API{
+				LatestVersionFn:   latestVersionActiveOk,
+				CloneVersionFn:    cloneVersionOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			client:   codeClient{http.StatusOK},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
+			wantOutput: []string{
+				"Reading package manifest...",
+				"Validating package...",
+				"Fetching latest version...",
+				"Cloning latest version...",
+				"Uploading package...",
+				"Activating version...",
+				"Manage this service at:",
+				"https://manage.fastly.com/configure/services/123",
+				"View this service at:",
+				"https://directly-careful-coyote.edgecompute.app",
 				"Deployed package (service 123, version 2)",
 			},
 		},
@@ -511,6 +539,7 @@ func TestDeploy(t *testing.T) {
 				LatestVersionFn:   latestVersionActiveOk,
 				CloneVersionFn:    cloneVersionOk,
 				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
 			},
 			client: codeClient{http.StatusOK},
 			wantOutput: []string{
@@ -529,6 +558,7 @@ func TestDeploy(t *testing.T) {
 				LatestVersionFn:   latestVersionInactiveOk,
 				CloneVersionFn:    cloneVersionOk,
 				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
 			},
 			client: codeClient{http.StatusOK},
 			wantOutput: []string{
@@ -544,6 +574,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
 			},
 			client:           codeClient{http.StatusOK},
 			manifestIncludes: "version = 2",
@@ -1040,6 +1071,16 @@ func activateVersionOk(i *fastly.ActivateVersionInput) (*fastly.Version, error) 
 }
 
 func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+	return nil, errTest
+}
+
+func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+	return []*fastly.Domain{
+		&fastly.Domain{Name: "https://directly-careful-coyote.edgecompute.app"},
+	}, nil
+}
+
+func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, errTest
 }
 

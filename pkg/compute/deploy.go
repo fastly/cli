@@ -136,6 +136,18 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	progress.Done()
+
+	text.Break(out)
+
+	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
+
+	if domains, err := c.Globals.Client.ListDomains(&fastly.ListDomainsInput{
+		Service: serviceID,
+		Version: c.version,
+	}); err == nil {
+		text.Description(out, "View this service at", fmt.Sprintf("https://%s", domains[0].Name))
+	}
+
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, c.version)
 	return nil
 }
