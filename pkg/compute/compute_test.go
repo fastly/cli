@@ -527,7 +527,7 @@ func TestDeploy(t *testing.T) {
 				"Activating version...",
 				"Manage this service at:",
 				"https://manage.fastly.com/configure/services/123",
-				"View the service at:",
+				"View this service at:",
 				"https://directly-careful-coyote.edgecompute.app",
 				"Deployed package (service 123, version 2)",
 			},
@@ -574,6 +574,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
 			},
 			client:           codeClient{http.StatusOK},
 			manifestIncludes: "version = 2",
