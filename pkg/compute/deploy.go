@@ -145,7 +145,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		Service: serviceID,
 		Version: c.version,
 	}); err == nil {
-		text.Description(out, "View the service at", fmt.Sprintf("https://%s", domains[0].Name))
+		text.Description(out, "View this service at", fmt.Sprintf("https://%s", domains[0].Name))
 	}
 
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, c.version)
