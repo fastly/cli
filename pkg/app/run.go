@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/healthcheck"
 	"github.com/fastly/cli/pkg/logging"
 	"github.com/fastly/cli/pkg/logging/bigquery"
+	"github.com/fastly/cli/pkg/logging/s3"
 	"github.com/fastly/cli/pkg/service"
 	"github.com/fastly/cli/pkg/serviceversion"
 	"github.com/fastly/cli/pkg/text"
@@ -126,6 +127,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	bigQueryUpdate := bigquery.NewUpdateCommand(bigQueryRoot.CmdClause, &globals)
 	bigQueryDelete := bigquery.NewDeleteCommand(bigQueryRoot.CmdClause, &globals)
 
+	s3Root := s3.NewRootCommand(loggingRoot.CmdClause, &globals)
+	s3Create := s3.NewCreateCommand(s3Root.CmdClause, &globals)
+	s3List := s3.NewListCommand(s3Root.CmdClause, &globals)
+	s3Describe := s3.NewDescribeCommand(s3Root.CmdClause, &globals)
+	s3Update := s3.NewUpdateCommand(s3Root.CmdClause, &globals)
+	s3Delete := s3.NewDeleteCommand(s3Root.CmdClause, &globals)
+
 	commands := []common.Command{
 		configureRoot,
 		whoamiRoot,
@@ -183,6 +191,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		bigQueryDescribe,
 		bigQueryUpdate,
 		bigQueryDelete,
+
+		s3Root,
+		s3Create,
+		s3List,
+		s3Describe,
+		s3Update,
+		s3Delete,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs

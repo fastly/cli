@@ -58,6 +58,12 @@ type Interface interface {
 	UpdateBigQuery(*fastly.UpdateBigQueryInput) (*fastly.BigQuery, error)
 	DeleteBigQuery(*fastly.DeleteBigQueryInput) error
 
+	CreateS3(*fastly.CreateS3Input) (*fastly.S3, error)
+	ListS3s(*fastly.ListS3sInput) ([]*fastly.S3, error)
+	GetS3(*fastly.GetS3Input) (*fastly.S3, error)
+	UpdateS3(*fastly.UpdateS3Input) (*fastly.S3, error)
+	DeleteS3(*fastly.DeleteS3Input) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 }
 

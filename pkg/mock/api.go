@@ -49,6 +49,12 @@ type API struct {
 	UpdateBigQueryFn func(*fastly.UpdateBigQueryInput) (*fastly.BigQuery, error)
 	DeleteBigQueryFn func(*fastly.DeleteBigQueryInput) error
 
+	CreateS3Fn func(*fastly.CreateS3Input) (*fastly.S3, error)
+	ListS3sFn  func(*fastly.ListS3sInput) ([]*fastly.S3, error)
+	GetS3Fn    func(*fastly.GetS3Input) (*fastly.S3, error)
+	UpdateS3Fn func(*fastly.UpdateS3Input) (*fastly.S3, error)
+	DeleteS3Fn func(*fastly.DeleteS3Input) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 }
 
@@ -220,6 +226,31 @@ func (m API) UpdateBigQuery(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, er
 // DeleteBigQuery implements Interface.
 func (m API) DeleteBigQuery(i *fastly.DeleteBigQueryInput) error {
 	return m.DeleteBigQueryFn(i)
+}
+
+// CreateS3 implements Interface.
+func (m API) CreateS3(i *fastly.CreateS3Input) (*fastly.S3, error) {
+	return m.CreateS3Fn(i)
+}
+
+// ListS3s implements Interface.
+func (m API) ListS3s(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
+	return m.ListS3sFn(i)
+}
+
+// GetS3 implements Interface.
+func (m API) GetS3(i *fastly.GetS3Input) (*fastly.S3, error) {
+	return m.GetS3Fn(i)
+}
+
+// UpdateS3 implements Interface.
+func (m API) UpdateS3(i *fastly.UpdateS3Input) (*fastly.S3, error) {
+	return m.UpdateS3Fn(i)
+}
+
+// DeleteS3 implements Interface.
+func (m API) DeleteS3(i *fastly.DeleteS3Input) error {
+	return m.DeleteS3Fn(i)
 }
 
 // GetUser implements Interface.

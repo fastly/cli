@@ -618,6 +618,115 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the BigQuery logging object
 
+  logging s3 create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --secret-key=SECRET-KEY [<flags>]
+    Create an Amazon S3 logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the S3 logging object. Used as a
+                                 primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --bucket=BUCKET          Your S3 bucket name
+        --access-key=ACCESS-KEY  Your S3 account access key
+        --secret-key=SECRET-KEY  Your S3 account secret key
+        --domain=DOMAIN          The domain of the S3 endpoint
+        --path=PATH              The path to upload logs to
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --message-type=MESSAGE-TYPE
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --redundancy=REDUNDANCY  The S3 redundancy level. Can be either standard
+                                 or reduced_redundancy
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+        --server-side-encryption=SERVER-SIDE-ENCRYPTION
+                                 Set to enable S3 Server Side Encryption. Can be
+                                 either AES256 or aws:kms
+        --server-side-encryption-kms-key-id=SERVER-SIDE-ENCRYPTION-KMS-KEY-ID
+                                 Server-side KMS Key ID. Must be set if
+                                 server-side-encryption is set to aws:kms
+
+  logging s3 list --version=VERSION [<flags>]
+    List S3 endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging s3 describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a S3 logging endpoint on a Fastly service
+    version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the S3 logging object
+
+  logging s3 update --version=VERSION --name=NAME [<flags>]
+    Update a S3 logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the S3 logging object
+        --new-name=NEW-NAME      New name of the S3 logging object
+        --bucket=BUCKET          Your S3 bucket name
+        --access-key=ACCESS-KEY  Your S3 account access key
+        --secret-key=SECRET-KEY  Your S3 account secret key
+        --domain=DOMAIN          The domain of the S3 endpoint
+        --path=PATH              The path to upload logs to
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --message-type=MESSAGE-TYPE
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --redundancy=REDUNDANCY  The S3 redundancy level. Can be either standard
+                                 or reduced_redundancy
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+        --server-side-encryption=SERVER-SIDE-ENCRYPTION
+                                 Set to enable S3 Server Side Encryption. Can be
+                                 either AES256 or aws:kms
+        --server-side-encryption-kms-key-id=SERVER-SIDE-ENCRYPTION-KMS-KEY-ID
+                                 Server-side KMS Key ID. Must be set if
+                                 server-side-encryption is set to aws:kms
+
+  logging s3 delete --version=VERSION --name=NAME [<flags>]
+    Delete a S3 logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the S3 logging object
+
 For help on a specific command, try e.g.
 
 	fastly help configure
