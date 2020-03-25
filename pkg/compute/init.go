@@ -102,7 +102,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}()
 
 	undoStack := common.NewUndoStack()
-	defer undoStack.RunIfError(out, err)
+	defer func() { undoStack.RunIfError(out, err) }()
 
 	if c.path == "" {
 		fmt.Fprintf(progress, "--path not specified, using current directory\n")

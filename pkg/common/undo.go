@@ -52,7 +52,7 @@ func (s *UndoStack) Len() int {
 // error, it gets logged to the provided writer. Should be deferrerd, such as:
 //
 //     undoStack := common.NewUndoStack()
-//     defer undoStack.RunIfError(w, err)
+//     defer func() { undoStack.RunIfError(w, err) }()
 //
 func (s *UndoStack) RunIfError(w io.Writer, err error) {
 	if err == nil {
@@ -60,7 +60,7 @@ func (s *UndoStack) RunIfError(w io.Writer, err error) {
 	}
 	for i := len(s.states) - 1; i >= 0; i-- {
 		if err := s.states[i](); err != nil {
-			fmt.Fprintf(w, "%w", err)
+			fmt.Fprintln(w, err)
 		}
 	}
 }
