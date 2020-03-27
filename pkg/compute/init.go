@@ -140,12 +140,14 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if c.author == "" {
+		label := "Author: "
 		var defaultEmail string
 		if email := c.Globals.File.Email; email != "" {
-			defaultEmail = fmt.Sprintf(" [%s]", email)
+			defaultEmail = email
+			label = fmt.Sprintf("%s [%s]", label, email)
 		}
 
-		c.author, err = text.Input(out, fmt.Sprintf("Author:%s ", defaultEmail), in)
+		c.author, err = text.Input(out, label, in)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
 		}

@@ -157,9 +157,12 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `authors = ["test@example.com"]`,
 		},
 		{
-			name:       "default",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "default",
+			args: []string{"compute", "init"},
+			configFile: config.File{
+				Token: "123",
+				Email: "test@example.com",
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -167,6 +170,7 @@ func TestInit(t *testing.T) {
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendOK,
 			},
+			manifestIncludes: `authors = ["test@example.com"]`,
 			wantFiles: []string{
 				"Cargo.toml",
 				"fastly.toml",
