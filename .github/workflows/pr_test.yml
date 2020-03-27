@@ -9,7 +9,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.13.x
+        go-version: 1.14.x
     - name: Set GOPATH
       # Temporary fix, see: https://github.com/actions/setup-go/issues/14
       run: |
@@ -60,7 +60,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.13.x]
+        go-version: [1.14.x]
         rust-toolchain: [1.40.0]
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
@@ -101,7 +101,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.13.x
+        go-version: 1.14.x
     - name: Install fossa
       run: |
         curl --proto '=https' --tlsv1.2 -sSf -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | bash
