@@ -61,7 +61,7 @@ func TestInit(t *testing.T) {
 				DeleteBackendFn: deleteBackendOK,
 				DeleteDomainFn:  deleteDomainOK,
 			},
-			wantError: "error fetching package template: repository not found",
+			wantError: "error fetching package template:",
 		},
 		{
 			name:       "create service error",
@@ -116,7 +116,7 @@ func TestInit(t *testing.T) {
 			wantOutput: []string{
 				"Initializing...",
 				"Fetching package template...",
-				"Updating package manifest..",
+				"Updating package manifest...",
 			},
 			manifestIncludes: `name = "test"`,
 		},
@@ -134,7 +134,7 @@ func TestInit(t *testing.T) {
 			wantOutput: []string{
 				"Initializing...",
 				"Fetching package template...",
-				"Updating package manifest..",
+				"Updating package manifest...",
 			},
 			manifestIncludes: `description = "test"`,
 		},
@@ -152,9 +152,26 @@ func TestInit(t *testing.T) {
 			wantOutput: []string{
 				"Initializing...",
 				"Fetching package template...",
-				"Updating package manifest..",
+				"Updating package manifest...",
 			},
 			manifestIncludes: `authors = ["test@example.com"]`,
+		},
+		{
+			name:       "with from repository and branch",
+			args:       []string{"compute", "init", "--from", "https://github.com/fastly/fastly-template-rust-default.git", "--from-branch", "master"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest...",
+			},
 		},
 		{
 			name: "default",
@@ -181,8 +198,11 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Initializing...",
+				"Creating service...",
+				"Creating domain...",
+				"Creating backend...",
 				"Fetching package template...",
-				"Updating package manifest..",
+				"Updating package manifest...",
 			},
 		},
 	} {
