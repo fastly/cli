@@ -21,6 +21,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/fastly"
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 type template struct {
@@ -30,6 +31,7 @@ type template struct {
 
 const (
 	defaultTemplate       = "https://github.com/fastly/fastly-template-rust-default.git"
+	defaultTemplateBranch = "0.2.0-alpha3"
 	defaultTopLevelDomain = "edgecompute.app"
 	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
 )
@@ -54,6 +56,7 @@ type InitCommand struct {
 	description string
 	author      string
 	from        string
+	branch      string
 	path        string
 	domain      string
 	backend     string
@@ -68,6 +71,7 @@ func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.description)
 	c.CmdClause.Flag("author", "Author of the package").Short('a').StringVar(&c.author)
 	c.CmdClause.Flag("from", "Git repository containing package template").Short('f').StringVar(&c.from)
+	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.path)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.path)
@@ -144,7 +148,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		var defaultEmail string
 		if email := c.Globals.File.Email; email != "" {
 			defaultEmail = email
-			label = fmt.Sprintf("%s [%s]", label, email)
+			label = fmt.Sprintf("%s[%s]", label, email)
 		}
 
 		c.author, err = text.Input(out, label, in)
@@ -259,10 +263,19 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	defer os.RemoveAll(tempdir)
 
+	var ref plumbing.ReferenceName
+	if c.from == defaultTemplate {
+		ref = plumbing.NewBranchReferenceName(defaultTemplateBranch)
+	}
+	if c.branch != "" {
+		ref = plumbing.NewBranchReferenceName(c.branch)
+	}
+
 	if _, err := git.PlainClone(tempdir, false, &git.CloneOptions{
-		URL:      c.from,
-		Depth:    1,
-		Progress: progress,
+		URL:           c.from,
+		ReferenceName: ref,
+		Depth:         1,
+		Progress:      progress,
 	}); err != nil {
 		return fmt.Errorf("error fetching package template: %w", err)
 	}
