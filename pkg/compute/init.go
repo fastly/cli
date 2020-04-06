@@ -56,7 +56,7 @@ type InitCommand struct {
 	description string
 	author      string
 	from        string
-	fromBranch  string
+	branch      string
 	path        string
 	domain      string
 	backend     string
@@ -71,7 +71,7 @@ func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.description)
 	c.CmdClause.Flag("author", "Author of the package").Short('a').StringVar(&c.author)
 	c.CmdClause.Flag("from", "Git repository containing package template").Short('f').StringVar(&c.from)
-	c.CmdClause.Flag("from-branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.fromBranch)
+	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.path)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.path)
@@ -267,8 +267,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.from == defaultTemplate {
 		ref = plumbing.NewBranchReferenceName(defaultTemplateBranch)
 	}
-	if c.fromBranch != "" {
-		ref = plumbing.NewBranchReferenceName(c.fromBranch)
+	if c.branch != "" {
+		ref = plumbing.NewBranchReferenceName(c.branch)
 	}
 
 	if _, err := git.PlainClone(tempdir, false, &git.CloneOptions{

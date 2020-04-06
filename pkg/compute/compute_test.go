@@ -158,7 +158,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "with from repository and branch",
-			args:       []string{"compute", "init", "--from", "https://github.com/fastly/fastly-template-rust-default.git", "--from-branch", "master"},
+			args:       []string{"compute", "init", "--from", "https://github.com/fastly/fastly-template-rust-default.git", "--branch", "master"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
