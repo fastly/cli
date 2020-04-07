@@ -887,6 +887,31 @@ func TestUploadPackage(t *testing.T) {
 	}
 }
 
+func TestNormalizeBackendName(t *testing.T) {
+	for _, testcase := range []struct {
+		input      string
+		wantOutput string
+	}{
+		{
+			input:      "www.example.com",
+			wantOutput: "www_example_com",
+		},
+		{
+			input:      "sub.domain.example.com",
+			wantOutput: "sub_domain_example_com",
+		},
+		{
+			input:      "127.0.0.1",
+			wantOutput: "F_127_0_0_1",
+		},
+	} {
+		t.Run(testcase.input, func(t *testing.T) {
+			output := compute.NormalizeBackendName(testcase.input)
+			testutil.AssertString(t, output, testcase.wantOutput)
+		})
+	}
+}
+
 func makeInitEnvironment(t *testing.T) (rootdir string) {
 	t.Helper()
 

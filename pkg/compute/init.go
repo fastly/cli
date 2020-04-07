@@ -39,6 +39,7 @@ const (
 var (
 	gitRepositoryRegEx        = regexp.MustCompile(`((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)?`)
 	domainNameRegEx           = regexp.MustCompile(`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`)
+	startsWithNumberRegEx     = regexp.MustCompile(`^[0-9]`)
 	fastlyOrgRegEx            = regexp.MustCompile(`^https:\/\/github\.com\/fastly`)
 	fastlyFileIgnoreListRegEx = regexp.MustCompile(`\.github|LICENSE|SECURITY\.md`)
 	defaultTemplates          = map[int]template{
@@ -242,7 +243,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	_, err = c.Globals.Client.CreateBackend(&fastly.CreateBackendInput{
 		Service: service.ID,
 		Version: 1,
-		Name:    c.backend,
+		Name:    NormalizeBackendName(c.backend),
 		Address: c.backend,
 	})
 	if err != nil {
@@ -461,4 +462,20 @@ func validateDomain(input string) error {
 		return fmt.Errorf("must be valid domain name")
 	}
 	return nil
+}
+
+// NormalizeBackendName normalizes a backend address input (IP or hostname) to
+// a valid Fastly API backend name. I.e. it must conform to these rules:
+//   - Backend name cannot start with a number.
+//   - Backend name can only contain alpha numeric ASCII characters or
+//     underscores (^[a-zA-Z][a-zA-Z0-9_]*$).
+//
+// Note: If the input address is an IP address and therefore starts with a
+// number, we prefix the string with "F_" which follows historic naming
+// convention for backends in Fastly VCL services.
+func NormalizeBackendName(input string) string {
+	if startsWithNumberRegEx.MatchString(input) {
+		input = "F_" + input
+	}
+	return strings.ReplaceAll(input, ".", "_")
 }
