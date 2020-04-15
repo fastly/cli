@@ -40,21 +40,3 @@ build:
 .PHONY: install
 install:
 	go install ./cmd/fastly
-
-LDFLAGS = -ldflags "\
- -X 'github.com/fastly/cli/pkg/version.AppVersion=${VERSION}' \
- -X 'github.com/fastly/cli/pkg/version.GitRevision=$(shell git rev-parse --short HEAD || echo unknown)' \
- -X 'github.com/fastly/cli/pkg/version.GoVersion=$(shell go version)' \
- "
-
-.PHONY: release
-release:
-	go build -o fastly $(LDFLAGS) ./cmd/fastly
-	tar czf fastly_${VERSION}_$(shell go env GOOS)-$(shell go env GOARCH).tar.gz fastly
-	rm fastly
-
-.PHONY: release-exe
-release-exe:
-	go build -o fastly.exe $(LDFLAGS) ./cmd/fastly
-	tar czf fastly_${VERSION}_$(shell go env GOOS)-$(shell go env GOARCH).tar.gz fastly.exe
-	rm fastly.exe
