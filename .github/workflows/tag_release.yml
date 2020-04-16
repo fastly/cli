@@ -18,13 +18,10 @@ jobs:
     - name: Set GOVERSION
       run: |
         echo "::set-env name=GOVERSION::$(go version)"
-    - name: Set GIT_TAG
-      run: |
-        echo "::set-env name=GIT_TAG::${GITHUB_REF/refs\/tags\//}"
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v1
       with:
-        version: ${{ env.GIT_TAG }}
+        version: "v0.131.1"
         args: release --rm-dist
       env:
         GOVERSION: ${{ env.GOVERSION }}
