@@ -32,5 +32,6 @@ fastly
 .idea
 
 # Ignore binaries
+dist/
 build/
 !pkg/compute/testdata/build/
