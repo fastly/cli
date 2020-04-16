@@ -24,7 +24,7 @@ jobs:
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v1
       with:
-        version: ${{ .env.GIT_TAG }}
+        version: ${{ env.GIT_TAG }}
         args: release --rm-dist
         env:
           GOVERSION: ${{ env.GOVERSION }}
