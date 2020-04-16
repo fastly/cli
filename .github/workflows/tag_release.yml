@@ -26,6 +26,6 @@ jobs:
       with:
         version: ${{ env.GIT_TAG }}
         args: release --rm-dist
-        env:
-          GOVERSION: ${{ env.GOVERSION }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GOVERSION: ${{ env.GOVERSION }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
