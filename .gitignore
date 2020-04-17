@@ -1,6 +1,8 @@
 fastly
 !cmd/fastly
 
+RELEASE_CHANGELOG.md
+
 # Fastly package format files
 **/fastly.toml
 !pkg/compute/testdata/build/fastly.toml

@@ -18,11 +18,39 @@ jobs:
     - name: Set GOVERSION
       run: |
         echo "::set-env name=GOVERSION::$(go version)"
+    - name: Install Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.7'
+    - name: Install github_changelog_generator
+      run: gem install github_changelog_generator -v 1.15.0
+    - name: Generate changelogs
+      run: make changelog release-changelog
+      env:
+        CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v1
       with:
-        version: "v0.131.1"
-        args: release --rm-dist
+        version: 'v0.131.1'
+        args: release --rm-dist --release-notes=RELEASE_CHANGELOG.md
       env:
         GOVERSION: ${{ env.GOVERSION }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Set GIT_TAG
+      run: |
+        echo "::set-env name=GIT_TAG::${GITHUB_REF/refs\/tags\//}"
+    - name: Commit CHANGELOG.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_token }}
+        COMMIT_MSG: |
+          Release ${GIT_TAG}
+
+
+          skip-checks: true
+      run: |
+        git config user.email "oss@fastly.com"
+        git config user.name "Release bot"
+        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+        git checkout master
+        git add CHANGELOG.md
+        git diff --quiet && git diff --staged --quiet || (git commit -m "${COMMIT_MSG}"; git push origin master)
