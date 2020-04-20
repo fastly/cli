@@ -148,7 +148,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		var defaultEmail string
 		if email := c.Globals.File.Email; email != "" {
 			defaultEmail = email
-			label = fmt.Sprintf("%s[%s]", label, email)
+			label = fmt.Sprintf("%s[%s] ", label, email)
 		}
 
 		c.author, err = text.Input(out, label, in)
