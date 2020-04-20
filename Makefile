@@ -1,6 +1,15 @@
 SHELL := /bin/bash -o pipefail
 
 PREVIOUS_SEMVER_TAG := $(shell git tag | sort -r --version-sort | egrep '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$$' | head -n2 | tail -n1)
+VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
+LDFLAGS = -ldflags "\
+ -X 'github.com/fastly/cli/pkg/version.AppVersion=${VERSION}' \
+ -X 'github.com/fastly/cli/pkg/version.GitRevision=$(shell git rev-parse --short HEAD || echo unknown)' \
+ -X 'github.com/fastly/cli/pkg/version.GoVersion=$(shell go version)' \
+ "
+
+fastly:
+	@go build -trimpath $(LDFLAGS) -o "$@" ./cmd/fastly
 
 .PHONY: all
 all: fmt vet staticcheck lint gosec test build install
