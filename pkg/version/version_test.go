@@ -32,11 +32,5 @@ func TestVersion(t *testing.T) {
 		"Fastly CLI version v0.0.0-unknown (unknown)",
 		"Built with go version unknown",
 		"",
-		"A new version of the Fastly CLI is available.",
-		"Current version: 0.0.0-unknown",
-		"Latest version: 1.2.3",
-		"Run `fastly update` to get the latest version.",
-		"",
-		"",
 	}, "\n"), out.String())
 }
