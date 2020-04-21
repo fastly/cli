@@ -26,9 +26,12 @@ var (
 	UserAgent string
 )
 
+// None is the AppVersion string for local (unversioned) builds.
+const None = "v0.0.0-unknown"
+
 func init() {
 	if AppVersion == "" {
-		AppVersion = "v0.0.0-unknown"
+		AppVersion = None
 	}
 	if GitRevision == "" {
 		GitRevision = "unknown"
