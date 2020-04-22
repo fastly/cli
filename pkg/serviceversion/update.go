@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/fastly"
 )
 
-// UpdateCommand calls the Fastly API to clone a service version.
+// UpdateCommand calls the Fastly API to update a service version.
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
@@ -25,7 +25,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to clone").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of version you wish to update").Required().IntVar(&c.Input.Version)
 	c.CmdClause.Flag("comment", "Human-readable comment").Required().StringVar(&c.Input.Comment)
 	return &c
 }

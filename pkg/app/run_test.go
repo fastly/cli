@@ -221,7 +221,7 @@ COMMANDS
     Update a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of version you wish to clone
+        --version=VERSION        Number of version you wish to update
         --comment=COMMENT        Human-readable comment
 
   service-version activate --version=VERSION [<flags>]
