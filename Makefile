@@ -1,6 +1,6 @@
 SHELL := /bin/bash -o pipefail
 
-LAST_SEMVER_TAG := $(shell git tag | sort -r --version-sort | egrep '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$$' | head -n1)
+PREVIOUS_SEMVER_TAG := $(shell git tag | sort -r --version-sort | egrep '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$$' | head -n2 | tail -n1)
 
 .PHONY: all
 all: fmt vet staticcheck lint gosec test build install
@@ -65,4 +65,4 @@ release-changelog:
 		--release-url "https://github.com/fastly/cli/releases/tag/%s" \
 		--exclude-labels documentation \
 		--output RELEASE_CHANGELOG.md \
-		--since-tag $(LAST_SEMVER_TAG)
+		--since-tag $(PREVIOUS_SEMVER_TAG)
