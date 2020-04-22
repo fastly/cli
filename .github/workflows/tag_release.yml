@@ -24,8 +24,8 @@ jobs:
         ruby-version: '2.7'
     - name: Install github_changelog_generator
       run: gem install github_changelog_generator -v 1.15.0
-    - name: Generate changelogs
-      run: make changelog release-changelog
+    - name: Generate Release changelog
+      run: make release-changelog
       env:
         CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Run GoReleaser
@@ -36,6 +36,10 @@ jobs:
       env:
         GOVERSION: ${{ env.GOVERSION }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Generate changelog
+      run: make changelog
+      env:
+        CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Set GIT_TAG
       run: |
         echo "::set-env name=GIT_TAG::${GITHUB_REF/refs\/tags\//}"
