@@ -31,7 +31,7 @@ type template struct {
 
 const (
 	defaultTemplate       = "https://github.com/fastly/fastly-template-rust-default.git"
-	defaultTemplateBranch = "0.2.0-alpha4"
+	defaultTemplateBranch = "0.3.0"
 	defaultTopLevelDomain = "edgecompute.app"
 	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
 )
