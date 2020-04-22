@@ -56,9 +56,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	token, source := c.Globals.Token()
 	switch source { // TODO(pb): this can be duplicate output if --verbose is passed
 	case config.SourceFlag:
-		text.Output(out, "Fastly API token (via --token): %s", token)
+		text.Output(out, "Fastly API token provided via --token")
 	case config.SourceEnvironment:
-		text.Output(out, "Fastly API token (via %s): %s", config.EnvVarToken, token)
+		text.Output(out, "Fastly API token provided via %s", config.EnvVarToken)
 	default:
 		text.Output(out, `
 			An API token is used to authenticate requests to the Fastly API.
@@ -70,10 +70,12 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		if err != nil {
 			return err
 		}
+		text.Break(out)
 	}
-	text.Break(out)
 
-	text.Output(out, "Validating token...")
+	text.Break(out)
+	progress := text.NewQuietProgress(out)
+	progress.Step("Validating token...")
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
@@ -89,6 +91,8 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("error fetching token user: %w", err)
 	}
+
+	progress.Step("Persisting configuration...")
 
 	// Set everything in the File struct based on provided user input.
 	c.Globals.File.Token = token
@@ -117,8 +121,12 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// Escape any spaces in filepath before output.
 	filePath := strings.ReplaceAll(c.configFilePath, " ", `\ `)
 
+	progress.Done()
+	text.Break(out)
+	text.Description(out, "You can find your configuration file at", filePath)
+
 	text.Success(out, "Configured the Fastly CLI")
-	fmt.Fprintf(out, "\nYou can find your configuration file at\n\n  %s\n\n", filePath)
+
 	return nil
 }
 

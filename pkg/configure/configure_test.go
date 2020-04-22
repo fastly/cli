@@ -54,8 +54,9 @@ func TestConfigure(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fastly API endpoint (via --endpoint): http://local.dev",
-				"Fastly API token (via --token): abcdef",
+				"Fastly API token provided via --token",
 				"Validating token...",
+				"Persisting configuration...",
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
@@ -77,8 +78,9 @@ func TestConfigure(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fastly API endpoint (via --endpoint): http://staging.dev",
-				"Fastly API token (via --token): abcdef",
+				"Fastly API token provided via --token",
 				"Validating token...",
+				"Persisting configuration...",
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
@@ -97,8 +99,9 @@ func TestConfigure(t *testing.T) {
 				GetUserFn:      goodUser,
 			},
 			wantOutput: []string{
-				"Fastly API token (via --token): abcdef",
+				"Fastly API token provided via --token",
 				"Validating token...",
+				"Persisting configuration...",
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
@@ -122,6 +125,7 @@ func TestConfigure(t *testing.T) {
 				"https://manage.fastly.com/account/personal/tokens",
 				"Fastly API token: ",
 				"Validating token...",
+				"Persisting configuration...",
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
@@ -133,7 +137,7 @@ func TestConfigure(t *testing.T) {
 			},
 		},
 		{
-			name: "token from flag",
+			name: "token from environment",
 			args: []string{"configure"},
 			env:  config.Environment{Token: "hello"},
 			api: mock.API{
@@ -141,8 +145,9 @@ func TestConfigure(t *testing.T) {
 				GetUserFn:      goodUser,
 			},
 			wantOutput: []string{
-				"Fastly API token (via FASTLY_API_TOKEN): hello",
+				"Fastly API token provided via FASTLY_API_TOKEN",
 				"Validating token...",
+				"Persisting configuration...",
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
@@ -167,6 +172,7 @@ func TestConfigure(t *testing.T) {
 				"https://manage.fastly.com/account/personal/tokens",
 				"Fastly API token: ",
 				"Validating token...",
+				"Persisting configuration...",
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
@@ -185,7 +191,7 @@ func TestConfigure(t *testing.T) {
 				GetUserFn:      badUser,
 			},
 			wantOutput: []string{
-				"Fastly API token (via --token): abcdef",
+				"Fastly API token provided via --token",
 				"Validating token...",
 			},
 			wantError: "error validating token: bad token",
