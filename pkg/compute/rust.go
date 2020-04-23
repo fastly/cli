@@ -20,7 +20,7 @@ import (
 const (
 	// RustToolchainVersion is the `rustup` toolchain string for the compiler
 	// that we support
-	RustToolchainVersion = "1.40.0"
+	RustToolchainVersion = "1.43.0"
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
 	WasmWasiTarget = "wasm32-wasi"
 )
@@ -69,7 +69,7 @@ func (r Rust) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found rustup at %s\n", p)
 
-	// 2) Check that the `1.40.0` toolchain is installed
+	// 2) Check that the `1.43.0` toolchain is installed
 	//
 	// We use rustup to assert that the toolchain is installed by streaming the output of
 	// `rustup toolchain list` and looking for a toolchain whose prefix matches our desired
