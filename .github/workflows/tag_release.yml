@@ -54,7 +54,7 @@ jobs:
       run: |
         git config user.email "oss@fastly.com"
         git config user.name "Release bot"
-        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+        git remote set-url origin https://x-access-token:${RELEASE_GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
         git checkout master
         git add CHANGELOG.md
         git diff --quiet && git diff --staged --quiet || (git commit -m "${COMMIT_MSG}"; git push origin master)
