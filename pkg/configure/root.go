@@ -40,6 +40,8 @@ func NewRootCommand(parent common.Registerer, configFilePath string, cf APIClien
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+	var err error
+
 	// Get the endpoint provided by the user, if it was explicitly provided. If
 	// it wasn't provided use default.
 	endpoint, source := c.Globals.Endpoint()
@@ -65,7 +67,6 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 			To create a token, visit https://manage.fastly.com/account/personal/tokens
 		`)
 		text.Break(out)
-		var err error
 		token, err = text.InputSecure(out, "Fastly API token: ", in, validateTokenNotEmpty)
 		if err != nil {
 			return err
@@ -74,7 +75,14 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Break(out)
+
 	progress := text.NewQuietProgress(out)
+	defer func() {
+		if err != nil {
+			progress.Fail() // progress.Done is handled inline
+		}
+	}()
+
 	progress.Step("Validating token...")
 
 	client, err := c.clientFactory(token, endpoint)
