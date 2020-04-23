@@ -39,9 +39,7 @@ func NewRootCommand(parent common.Registerer, configFilePath string, cf APIClien
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	var err error
-
+func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Get the endpoint provided by the user, if it was explicitly provided. If
 	// it wasn't provided use default.
 	endpoint, source := c.Globals.Endpoint()
