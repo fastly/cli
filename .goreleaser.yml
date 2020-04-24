@@ -35,6 +35,29 @@ archives:
     <<: *archive_defaults
     wrap_in_directory: false
     format: zip
+brews:
+  - name: fastly
+    ids: [nix]
+    github:
+      owner: fastly
+      name: homebrew-tap
+    skip_upload: auto
+    description: Fastly CLI
+    homepage: https://github.com/fastly/cli
+    folder: Formula
+    custom_block: |
+      head do
+        url "https://github.com/fastly/cli.git"
+        depends_on "go"
+      end
+    install: |
+      system "make" if build.head?
+      bin.install "fastly"
+      (bash_completion/"fastly.sh").write `#{bin}/fastly --completion-script-bash`
+      (zsh_completion/"_fastly").write `#{bin}/fastly --completion-script-zsh`
+    test: |
+      help_text = shell_output("#{bin}/fastly --help")
+      assert_includes help_text, "Usage:"
 checksum:
   name_template: "{{ .ProjectName }}_v{{ .Version }}_SHA256SUMS"
 snapshot:

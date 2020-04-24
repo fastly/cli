@@ -4,6 +4,13 @@ A CLI for interacting with the Fastly platform.
 
 ## Install
 
+### Homebrew
+
+Install: `brew install fastly/tap/fastly`
+
+Upgrade: `brew upgrade fastly`
+
+### From a prebuilt binary
 [Download the latest release][latest] from the [releases page][releases].
 Unarchive the binary and place it in your $PATH. You can verify the integrity
 of the binary using the SHA256 checksums file `fastly_x.x.x_SHA256SUMS` provided 
