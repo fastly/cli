@@ -28,7 +28,9 @@ archives:
     builds: [macos, linux]
     <<: &archive_defaults
       name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    wrap_in_directory: true
+      files:
+        - none*
+    wrap_in_directory: false
     format: tar.gz
   - id: windows
     builds: [windows]
