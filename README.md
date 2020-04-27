@@ -1,6 +1,13 @@
-# Fastly CLI
-
-A CLI for interacting with the Fastly platform.
+<div align="center">
+  <img alt="Fastly CLI logo" src="https://raw.githubusercontent.com/fastly/cli/phamann/update-readme/docs/img/cli-logo.svg?sanitize=true" height="140" />
+  <h3 align="center">Fastly CLI</h3>
+  <p align="center">A CLI for interacting with the Fastly platform.</p>
+  <p align="center">
+      <a href="https://github.com/fastly/cli/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/fastly/cli" /></a>
+      <a href="#License"><img alt="Apache 2.0 License" src="https://img.shields.io/github/license/fastly/cli" /></a>
+      <a href="https://goreportcard.com/report/github.com/fastly/cli"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/fastly/cli" /></a>
+  </p>
+</div>
 
 ## Quick links
 - [Installation](#Installation)
