@@ -60,6 +60,14 @@ brews:
     test: |
       help_text = shell_output("#{bin}/fastly --help")
       assert_includes help_text, "Usage:"
+nfpms:
+  - license: Apache 2.0
+    maintainer: Fastly
+    homepage: https://github.com/fastly/cli
+    bindir: /usr/local
+    formats:
+      - deb
+      - rpm
 checksum:
   name_template: "{{ .ProjectName }}_v{{ .Version }}_SHA256SUMS"
 snapshot:
