@@ -17,28 +17,39 @@ Install: `brew install fastly/tap/fastly`
 
 Upgrade: `brew upgrade fastly`
 
-### Debian/Ubuntu Linux
+### Windows
+#### scoop
+Install:
+
+```
+scoop bucket add fastly-cli https://github.com/fastly/scoop-cli.git
+scoop install fastly
+```
+Upgrade: `scoop update fastly`
+
+### Linux
+#### Debian/Ubuntu Linux
 
 Install and upgrade:
 
 1. Download the `.deb` file from the [releases page][releases]
 2. `sudo apt install ./fastly_*_linux_amd64.deb` install the downloaded file
 
-### Fedora Linux
+#### Fedora Linux
 
 Install and upgrade:
 
 1. Download the `.rpm` file from the [releases page][releases]
 2. `sudo dnf install fastly_*_linux_amd64.rpm` install the downloaded file
 
-### Centos Linux
+#### Centos Linux
 
 Install and upgrade:
 
 1. Download the `.rpm` file from the [releases page][releases]
 2. `sudo yum localinstall fastly_*_linux_amd64.rpm` install the downloaded file
 
-### openSUSE/SUSE Linux
+#### openSUSE/SUSE Linux
 
 Install and upgrade:
 
