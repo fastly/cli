@@ -27,16 +27,57 @@ archives:
   - id: nix
     builds: [macos, linux]
     <<: &archive_defaults
-      name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    wrap_in_directory: true
+      name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+      files:
+        - none*
+    wrap_in_directory: false
     format: tar.gz
   - id: windows
     builds: [windows]
     <<: *archive_defaults
     wrap_in_directory: false
     format: zip
+brews:
+  - name: fastly
+    ids: [nix]
+    github:
+      owner: fastly
+      name: homebrew-tap
+    skip_upload: auto
+    description: Fastly CLI
+    homepage: https://github.com/fastly/cli
+    folder: Formula
+    custom_block: |
+      head do
+        url "https://github.com/fastly/cli.git"
+        depends_on "go"
+      end
+    install: |
+      system "make" if build.head?
+      bin.install "fastly"
+      (bash_completion/"fastly.sh").write `#{bin}/fastly --completion-script-bash`
+      (zsh_completion/"_fastly").write `#{bin}/fastly --completion-script-zsh`
+    test: |
+      help_text = shell_output("#{bin}/fastly --help")
+      assert_includes help_text, "Usage:"
+nfpms:
+  - license: Apache 2.0
+    maintainer: Fastly
+    homepage: https://github.com/fastly/cli
+    bindir: /usr/local
+    formats:
+      - deb
+      - rpm
+scoop:
+  bucket:
+    owner: fastly
+    name: scoop-cli
+  homepage: https://github.com/fastly/cli
+  skip_upload: auto
+  description: Fastly CLI
+  license: Apache 2.0
 checksum:
-  name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
+  name_template: "{{ .ProjectName }}_v{{ .Version }}_SHA256SUMS"
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:

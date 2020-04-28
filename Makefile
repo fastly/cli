@@ -1,6 +1,16 @@
 SHELL := /bin/bash -o pipefail
 
+GITHUB_CHANGELOG_GENERATOR := $(shell command -v github_changelog_generator 2> /dev/null)
 PREVIOUS_SEMVER_TAG := $(shell git tag | sort -r --version-sort | egrep '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$$' | head -n2 | tail -n1)
+VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
+LDFLAGS = -ldflags "\
+ -X 'github.com/fastly/cli/pkg/version.AppVersion=${VERSION}' \
+ -X 'github.com/fastly/cli/pkg/version.GitRevision=$(shell git rev-parse --short HEAD || echo unknown)' \
+ -X 'github.com/fastly/cli/pkg/version.GoVersion=$(shell go version)' \
+ "
+
+fastly:
+	@go build -trimpath $(LDFLAGS) -o "$@" ./cmd/fastly
 
 .PHONY: all
 all: fmt vet staticcheck lint gosec test build install
@@ -45,6 +55,14 @@ install:
 
 .PHONY:
 changelog:
+ifndef GITHUB_CHANGELOG_GENERATOR
+	$(error "No github_changelog_generator in $$PATH, install via `gem install github_changelog_generator`.")
+endif
+ifndef CHANGELOG_GITHUB_TOKEN
+	@echo ""
+	@echo "WARNING: No \$$CHANGELOG_GITHUB_TOKEN in environment, set one to avoid hitting rate limit."
+	@echo ""
+endif
 	github_changelog_generator -u fastly -p cli \
 		--no-pr-wo-labels \
 		--no-author \
