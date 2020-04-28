@@ -4,6 +4,12 @@
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.6.0...HEAD)
 
+**Enhancements:**
+
+- Publish scoop package manifest during release process [\#45](https://github.com/fastly/cli/pull/45)
+- Generate dep and rpm packages during release process [\#44](https://github.com/fastly/cli/pull/44)
+- 🦀 🆙date to Rust 1.43.0 [\#40](https://github.com/fastly/cli/pull/40)
+
 **Closed issues:**
 
 - README's build instructions do not work without additional dependencies met [\#35](https://github.com/fastly/cli/issues/35)
