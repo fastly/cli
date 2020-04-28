@@ -1,5 +1,30 @@
 # Changelog
 
+## [Unreleased](https://github.com/fastly/cli/releases/tag/HEAD)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.6.0...HEAD)
+
+**Closed issues:**
+
+- README's build instructions do not work without additional dependencies met [\#35](https://github.com/fastly/cli/issues/35)
+
+## [v0.6.0](https://github.com/fastly/cli/releases/tag/v0.6.0) (2020-04-24)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.5.0...v0.6.0)
+
+**Enhancements:**
+
+- Bump default Rust template to v0.3.0 [\#32](https://github.com/fastly/cli/pull/32)
+- Publish to homebrew [\#26](https://github.com/fastly/cli/pull/26)
+
+**Bug fixes:**
+
+- Don't display the fastly token in the terminal when doing `fastly configure` [\#27](https://github.com/fastly/cli/issues/27)
+- Documentation typo in `fastly service-version update` [\#22](https://github.com/fastly/cli/issues/22)
+- Fix typo in service-version update command [\#31](https://github.com/fastly/cli/pull/31)
+- Tidy up `fastly configure` text output [\#30](https://github.com/fastly/cli/pull/30)
+- compute/init: make space after Author prompt match other prompts [\#25](https://github.com/fastly/cli/pull/25)
+
 ## [v0.5.0](https://github.com/fastly/cli/releases/tag/v0.5.0) (2020-04-08)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.4.1...v0.5.0)
