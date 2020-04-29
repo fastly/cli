@@ -30,6 +30,28 @@ func NewRootCommand(parent common.Registerer, v Versioner, client api.HTTPClient
 	return &c
 }
 
+// copy a file called `src` to `dst`. This is useful if os.Rename fails because the two paths
+// are on different filesystems
+func copyFile(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, in)
+	if err != nil {
+		return err
+	}
+	return out.Close()
+}
+
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	progress := text.NewQuietProgress(out)
@@ -68,8 +90,10 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if err := os.Rename(latestPath, currentPath); err != nil {
-		progress.Fail()
-		return fmt.Errorf("error moving latest binary in place: %w", err)
+		if err := copyFile(latestPath, currentPath); err != nil {
+			progress.Fail()
+			return fmt.Errorf("error moving latest binary in place: %w", err)
+		}
 	}
 
 	progress.Done()
