@@ -13,7 +13,13 @@ fastly:
 	@go build -trimpath $(LDFLAGS) -o "$@" ./cmd/fastly
 
 .PHONY: all
-all: fmt vet staticcheck lint gosec test build install
+all: dependencies fmt vet staticcheck lint gosec test build install
+
+.PHONY: dependencies
+dependencies:
+	go get -v -u github.com/securego/gosec/cmd/gosec
+	go get -v -u honnef.co/go/tools/cmd/staticcheck
+	go get -v -u golang.org/x/lint/golint
 
 .PHONY: fmt
 fmt:

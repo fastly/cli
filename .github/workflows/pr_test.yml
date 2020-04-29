@@ -31,17 +31,9 @@ jobs:
         key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-mod-
-    - name: Install staticcheck
+    - name: Install dependencies
       if: steps.cache.outputs.cache-hit != 'true'
-      run: go get -v -u honnef.co/go/tools/cmd/staticcheck
-      shell: bash
-    - name: Install golint
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: go get -v -u golang.org/x/lint/golint
-      shell: bash
-    - name: Install gosec
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: go get github.com/securego/gosec/cmd/gosec
+      run: make dependencies
       shell: bash
     - name: Fmt
       run: make fmt
