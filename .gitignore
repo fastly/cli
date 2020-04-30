@@ -33,6 +33,9 @@ RELEASE_CHANGELOG.md
 # Ignore IDEs
 .idea
 
+# Ignore OS files
+.DS_Store
+
 # Ignore binaries
 dist/
 build/
