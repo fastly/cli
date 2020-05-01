@@ -86,6 +86,8 @@ type API struct {
 	DeleteGCSFn func(*fastly.DeleteGCSInput) error
 
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
+
+	GetRegionsFn func() (*fastly.RegionsResponse, error)
 }
 
 // GetTokenSelf implements Interface.
@@ -411,4 +413,9 @@ func (m API) DeleteGCS(i *fastly.DeleteGCSInput) error {
 // GetUser implements Interface.
 func (m API) GetUser(i *fastly.GetUserInput) (*fastly.User, error) {
 	return m.GetUserFn(i)
+}
+
+// GetRegions implements Interface.
+func (m API) GetRegions() (*fastly.RegionsResponse, error) {
+	return m.GetRegionsFn()
 }

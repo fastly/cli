@@ -95,6 +95,8 @@ type Interface interface {
 	DeleteGCS(*fastly.DeleteGCSInput) error
 
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
+
+	GetRegions() (*fastly.RegionsResponse, error)
 }
 
 // Interface assertion, to catch mismatches early.
