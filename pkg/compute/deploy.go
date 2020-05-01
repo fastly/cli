@@ -88,7 +88,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Service: serviceID,
 		})
 		if err != nil {
-			return fmt.Errorf("error getting listing service versions: %w", err)
+			return fmt.Errorf("error listing service versions: %w", err)
 		}
 
 		version, err := GetLatestIdealVersion(versions)
