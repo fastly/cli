@@ -232,7 +232,7 @@ func (c *Client) UpdatePackage(serviceID string, v int, path string) error {
 // - If no active version, find the latest locked version and return
 // - Otherwise return the latest version
 //
-// Note: assumes that the provided list is chronoligically sorted, such as that
+// Note: assumes that the provided list is chronologically sorted, such as that
 // provided from fastly.ListVersions().
 func GetLatestIdealVersion(versions []*fastly.Version) (*fastly.Version, error) {
 	var active, locked, latest *fastly.Version
