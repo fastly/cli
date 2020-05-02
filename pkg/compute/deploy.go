@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
@@ -231,10 +232,11 @@ func (c *Client) UpdatePackage(serviceID string, v int, path string) error {
 // - Find the active version and return
 // - If no active version, find the latest locked version and return
 // - Otherwise return the latest version
-//
-// Note: assumes that the provided list is chronologically sorted, such as that
-// provided from fastly.ListVersions().
 func GetLatestIdealVersion(versions []*fastly.Version) (*fastly.Version, error) {
+	sort.Slice(versions, func(i, j int) bool {
+		return versions[i].UpdatedAt.Before(*versions[j].UpdatedAt)
+	})
+
 	var active, locked, latest *fastly.Version
 	for i := 0; i < len(versions); i++ {
 		v := versions[i]

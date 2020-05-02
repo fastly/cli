@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
@@ -395,7 +396,7 @@ func TestDeploy(t *testing.T) {
 			args:      []string{"compute", "deploy"},
 			api:       mock.API{ListVersionsFn: listVersionsError},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error getting listing service versions: fixture error",
+			wantError: "error listing service versions: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
 				"Validating package...",
@@ -896,53 +897,52 @@ func TestGetIdealPackage(t *testing.T) {
 		{
 			name: "active",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false},
-				{Number: 2, Active: true},
-				{Number: 3, Active: false},
+				{Number: 1, Active: false, UpdatedAt: makeDate(2000, 1, 1)},
+				{Number: 2, Active: true, UpdatedAt: makeDate(2001, 1, 2)},
 			},
 			wantVersion: 2,
 		},
 		{
 			name: "active not latest",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false},
-				{Number: 2, Active: true},
-				{Number: 3, Active: false},
+				{Number: 1, Active: false, UpdatedAt: makeDate(2000, 1, 1)},
+				{Number: 2, Active: true, UpdatedAt: makeDate(2001, 1, 2)},
+				{Number: 3, Active: false, UpdatedAt: makeDate(2001, 1, 3)},
 			},
 			wantVersion: 2,
 		},
 		{
 			name: "active and locked",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false},
-				{Number: 2, Active: true},
-				{Number: 3, Active: false, Locked: true},
+				{Number: 1, Active: false, UpdatedAt: makeDate(2000, 1, 1)},
+				{Number: 2, Active: true, UpdatedAt: makeDate(2001, 1, 2)},
+				{Number: 3, Active: false, Locked: true, UpdatedAt: makeDate(2001, 1, 3)},
 			},
 			wantVersion: 2,
 		},
 		{
 			name: "locked",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false},
-				{Number: 2, Active: false, Locked: true},
+				{Number: 1, Active: false, UpdatedAt: makeDate(2000, 1, 1)},
+				{Number: 2, Active: false, Locked: true, UpdatedAt: makeDate(2001, 1, 2)},
 			},
 			wantVersion: 2,
 		},
 		{
 			name: "locked not latest",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false},
-				{Number: 2, Active: false, Locked: true},
-				{Number: 3, Active: false},
+				{Number: 1, Active: false, UpdatedAt: makeDate(2000, 1, 1)},
+				{Number: 2, Active: false, Locked: true, UpdatedAt: makeDate(2001, 1, 2)},
+				{Number: 3, Active: false, UpdatedAt: makeDate(2001, 1, 3)},
 			},
 			wantVersion: 2,
 		},
 		{
 			name: "no active or locked",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false},
-				{Number: 2, Active: false},
-				{Number: 3, Active: false},
+				{Number: 1, Active: false, UpdatedAt: makeDate(2000, 1, 1)},
+				{Number: 2, Active: false, UpdatedAt: makeDate(2001, 1, 2)},
+				{Number: 3, Active: false, UpdatedAt: makeDate(2001, 1, 3)},
 			},
 			wantVersion: 3,
 		},
@@ -955,6 +955,11 @@ func TestGetIdealPackage(t *testing.T) {
 			}
 		})
 	}
+}
+
+func makeDate(year, month, day int) *time.Time {
+	t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+	return &t
 }
 
 func makeInitEnvironment(t *testing.T) (rootdir string) {
@@ -1142,15 +1147,15 @@ func deleteBackendOK(i *fastly.DeleteBackendInput) error {
 
 func listVersionsInactiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
-		{ServiceID: i.Service, Number: 1, Active: false},
-		{ServiceID: i.Service, Number: 2, Active: false},
+		{ServiceID: i.Service, Number: 1, Active: false, UpdatedAt: makeDate(2001, 1, 1)},
+		{ServiceID: i.Service, Number: 2, Active: false, UpdatedAt: makeDate(2001, 1, 2)},
 	}, nil
 }
 
 func listVersionsActiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
-		{ServiceID: i.Service, Number: 1, Active: true},
-		{ServiceID: i.Service, Number: 2, Active: false, Locked: true},
+		{ServiceID: i.Service, Number: 1, Active: true, UpdatedAt: makeDate(2001, 1, 1)},
+		{ServiceID: i.Service, Number: 2, Active: false, Locked: true, UpdatedAt: makeDate(2001, 1, 2)},
 	}, nil
 }
 
