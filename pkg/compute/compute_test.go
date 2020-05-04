@@ -393,9 +393,9 @@ func TestDeploy(t *testing.T) {
 		{
 			name:      "latest version error",
 			args:      []string{"compute", "deploy"},
-			api:       mock.API{LatestVersionFn: latestVersionError},
+			api:       mock.API{ListVersionsFn: listVersionsError},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error getting latest service version: fixture error",
+			wantError: "error listing service versions: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
 				"Validating package...",
@@ -406,8 +406,8 @@ func TestDeploy(t *testing.T) {
 			name: "clone version error",
 			args: []string{"compute", "deploy"},
 			api: mock.API{
-				LatestVersionFn: latestVersionActiveOk,
-				CloneVersionFn:  cloneVersionError,
+				ListVersionsFn: listVersionsActiveOk,
+				CloneVersionFn: cloneVersionError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error cloning latest service version: fixture error",
@@ -422,8 +422,8 @@ func TestDeploy(t *testing.T) {
 			name: "no token",
 			args: []string{"compute", "deploy"},
 			api: mock.API{
-				LatestVersionFn: latestVersionActiveOk,
-				CloneVersionFn:  cloneVersionOk,
+				ListVersionsFn: listVersionsActiveOk,
+				CloneVersionFn: cloneVersionOk,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "no token provided",
@@ -438,8 +438,8 @@ func TestDeploy(t *testing.T) {
 			name: "package API error",
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
-				LatestVersionFn: latestVersionActiveOk,
-				CloneVersionFn:  cloneVersionOk,
+				ListVersionsFn: listVersionsActiveOk,
+				CloneVersionFn: cloneVersionOk,
 			},
 			client:    errorClient{err: errors.New("some network failure")},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
@@ -456,8 +456,8 @@ func TestDeploy(t *testing.T) {
 			name: "package API error",
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
-				LatestVersionFn: latestVersionActiveOk,
-				CloneVersionFn:  cloneVersionOk,
+				ListVersionsFn: listVersionsActiveOk,
+				CloneVersionFn: cloneVersionOk,
 			},
 			client:    errorClient{err: errors.New("some network failure")},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
@@ -474,8 +474,8 @@ func TestDeploy(t *testing.T) {
 			name: "package API server error",
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
-				LatestVersionFn: latestVersionActiveOk,
-				CloneVersionFn:  cloneVersionOk,
+				ListVersionsFn: listVersionsActiveOk,
+				CloneVersionFn: cloneVersionOk,
 			},
 			client:    codeClient{http.StatusInternalServerError},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
@@ -492,7 +492,7 @@ func TestDeploy(t *testing.T) {
 			name: "activate error",
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
-				LatestVersionFn:   latestVersionActiveOk,
+				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
 				ActivateVersionFn: activateVersionError,
 			},
@@ -512,7 +512,7 @@ func TestDeploy(t *testing.T) {
 			name: "list domains error",
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
-				LatestVersionFn:   latestVersionActiveOk,
+				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsError,
@@ -535,7 +535,7 @@ func TestDeploy(t *testing.T) {
 			name: "success",
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
-				LatestVersionFn:   latestVersionActiveOk,
+				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
@@ -560,7 +560,7 @@ func TestDeploy(t *testing.T) {
 			name: "success with path",
 			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
 			api: mock.API{
-				LatestVersionFn:   latestVersionActiveOk,
+				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
@@ -579,7 +579,7 @@ func TestDeploy(t *testing.T) {
 			name: "success with inactive version",
 			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
 			api: mock.API{
-				LatestVersionFn:   latestVersionInactiveOk,
+				ListVersionsFn:    listVersionsInactiveOk,
 				CloneVersionFn:    cloneVersionOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
@@ -590,7 +590,7 @@ func TestDeploy(t *testing.T) {
 				"Fetching latest version...",
 				"Uploading package...",
 				"Activating version...",
-				"Deployed package (service 123, version 1)",
+				"Deployed package (service 123, version 2)",
 			},
 		},
 		{
@@ -887,6 +887,84 @@ func TestUploadPackage(t *testing.T) {
 	}
 }
 
+func TestGetIdealPackage(t *testing.T) {
+	for _, testcase := range []struct {
+		name          string
+		inputVersions []*fastly.Version
+		wantVersion   int
+	}{
+		{
+			name: "active",
+			inputVersions: []*fastly.Version{
+				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: 2, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+			},
+			wantVersion: 2,
+		},
+		{
+			name: "active not latest",
+			inputVersions: []*fastly.Version{
+				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: 2, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
+			},
+			wantVersion: 2,
+		},
+		{
+			name: "active and locked",
+			inputVersions: []*fastly.Version{
+				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: 2, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: 3, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")}},
+			wantVersion: 2,
+		},
+		{
+			name: "locked",
+			inputVersions: []*fastly.Version{
+				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: 2, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+			},
+			wantVersion: 2,
+		},
+		{
+			name: "locked not latest",
+			inputVersions: []*fastly.Version{
+				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: 2, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
+			},
+			wantVersion: 2,
+		},
+		{
+			name: "no active or locked",
+			inputVersions: []*fastly.Version{
+				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: 2, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
+			},
+			wantVersion: 3,
+		},
+		{
+			name: "not sorted",
+			inputVersions: []*fastly.Version{
+				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
+				{Number: 2, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: 4, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-04T01:00:00Z")},
+				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+			},
+			wantVersion: 4,
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			v, err := compute.GetLatestIdealVersion(testcase.inputVersions)
+			testutil.AssertNoError(t, err)
+			if v.Number != testcase.wantVersion {
+				t.Errorf("wanted version %d, got %d", testcase.wantVersion, v.Number)
+			}
+		})
+	}
+}
+
 func makeInitEnvironment(t *testing.T) (rootdir string) {
 	t.Helper()
 
@@ -1070,15 +1148,42 @@ func deleteBackendOK(i *fastly.DeleteBackendInput) error {
 	return nil
 }
 
-func latestVersionInactiveOk(i *fastly.LatestVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.Service, Number: 1, Active: false}, nil
+func listVersionsInactiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.Service,
+			Number:    1,
+			Active:    false,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.Service,
+			Number:    2,
+			Active:    false,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
 }
 
-func latestVersionActiveOk(i *fastly.LatestVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.Service, Number: 1, Active: true}, nil
+func listVersionsActiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.Service,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.Service,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
 }
 
-func latestVersionError(i *fastly.LatestVersionInput) (*fastly.Version, error) {
+func listVersionsError(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return nil, errTest
 }
 

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
@@ -84,14 +85,19 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if c.version == 0 {
 		progress.Step("Fetching latest version...")
-		version, err := c.Globals.Client.LatestVersion(&fastly.LatestVersionInput{
+		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
 			Service: serviceID,
 		})
 		if err != nil {
-			return fmt.Errorf("error getting latest service version: %w", err)
+			return fmt.Errorf("error listing service versions: %w", err)
 		}
 
-		if version.Active {
+		version, err := GetLatestIdealVersion(versions)
+		if err != nil {
+			return fmt.Errorf("error finding latest service version")
+		}
+
+		if version.Active || version.Locked {
 			progress.Step("Cloning latest version...")
 			version, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
 				Service: serviceID,
@@ -220,4 +226,41 @@ func (c *Client) UpdatePackage(serviceID string, v int, path string) error {
 	}
 
 	return nil
+}
+
+// GetLatestIdealVersion gets the most ideal service version using the following logic:
+// - Find the active version and return
+// - If no active version, find the latest locked version and return
+// - Otherwise return the latest version
+func GetLatestIdealVersion(versions []*fastly.Version) (*fastly.Version, error) {
+	sort.Slice(versions, func(i, j int) bool {
+		return versions[i].UpdatedAt.Before(*versions[j].UpdatedAt)
+	})
+
+	var active, locked, latest *fastly.Version
+	for i := 0; i < len(versions); i++ {
+		v := versions[i]
+		if v.Active {
+			active = v
+		}
+		if v.Locked {
+			locked = v
+		}
+		latest = v
+	}
+
+	var version *fastly.Version
+	if active != nil {
+		version = active
+	} else if locked != nil {
+		version = locked
+	} else {
+		version = latest
+	}
+
+	if version == nil {
+		return nil, fmt.Errorf("error finding latest service version")
+	}
+
+	return version, nil
 }
