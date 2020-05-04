@@ -2,7 +2,17 @@
 
 ## [Unreleased](https://github.com/fastly/cli/releases/tag/HEAD)
 
-[Full Changelog](https://github.com/fastly/cli/compare/v0.6.0...HEAD)
+## [v0.7.1](https://github.com/fastly/cli/releases/tag/v0.7.1) (2020-05-04)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.7.0...v0.7.1)
+
+**Bug fixes:**
+
+- Ensure compute deploy selects the most ideal version to clone/activate  [\#50](https://github.com/fastly/cli/pull/50)
+
+## [v0.7.0](https://github.com/fastly/cli/releases/tag/v0.7.0) (2020-04-28)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.6.0...v0.7.0)
 
 **Enhancements:**
 
