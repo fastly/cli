@@ -55,6 +55,12 @@ type API struct {
 	UpdateS3Fn func(*fastly.UpdateS3Input) (*fastly.S3, error)
 	DeleteS3Fn func(*fastly.DeleteS3Input) error
 
+	CreateSyslogFn func(*fastly.CreateSyslogInput) (*fastly.Syslog, error)
+	ListSyslogsFn  func(*fastly.ListSyslogsInput) ([]*fastly.Syslog, error)
+	GetSyslogFn    func(*fastly.GetSyslogInput) (*fastly.Syslog, error)
+	UpdateSyslogFn func(*fastly.UpdateSyslogInput) (*fastly.Syslog, error)
+	DeleteSyslogFn func(*fastly.DeleteSyslogInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 }
 
@@ -251,6 +257,31 @@ func (m API) UpdateS3(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 // DeleteS3 implements Interface.
 func (m API) DeleteS3(i *fastly.DeleteS3Input) error {
 	return m.DeleteS3Fn(i)
+}
+
+// CreateSyslog implements Interface.
+func (m API) CreateSyslog(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
+	return m.CreateSyslogFn(i)
+}
+
+// ListSyslogs implements Interface.
+func (m API) ListSyslogs(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
+	return m.ListSyslogsFn(i)
+}
+
+// GetSyslog implements Interface.
+func (m API) GetSyslog(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
+	return m.GetSyslogFn(i)
+}
+
+// UpdateSyslog implements Interface.
+func (m API) UpdateSyslog(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
+	return m.UpdateSyslogFn(i)
+}
+
+// DeleteSyslog implements Interface.
+func (m API) DeleteSyslog(i *fastly.DeleteSyslogInput) error {
+	return m.DeleteSyslogFn(i)
 }
 
 // GetUser implements Interface.

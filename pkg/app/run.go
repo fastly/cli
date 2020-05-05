@@ -21,6 +21,7 @@ import (
 	"github.com/fastly/cli/pkg/logging"
 	"github.com/fastly/cli/pkg/logging/bigquery"
 	"github.com/fastly/cli/pkg/logging/s3"
+	"github.com/fastly/cli/pkg/logging/syslog"
 	"github.com/fastly/cli/pkg/service"
 	"github.com/fastly/cli/pkg/serviceversion"
 	"github.com/fastly/cli/pkg/text"
@@ -134,6 +135,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	s3Update := s3.NewUpdateCommand(s3Root.CmdClause, &globals)
 	s3Delete := s3.NewDeleteCommand(s3Root.CmdClause, &globals)
 
+	syslogRoot := syslog.NewRootCommand(loggingRoot.CmdClause, &globals)
+	syslogCreate := syslog.NewCreateCommand(syslogRoot.CmdClause, &globals)
+	syslogList := syslog.NewListCommand(syslogRoot.CmdClause, &globals)
+	syslogDescribe := syslog.NewDescribeCommand(syslogRoot.CmdClause, &globals)
+	syslogUpdate := syslog.NewUpdateCommand(syslogRoot.CmdClause, &globals)
+	syslogDelete := syslog.NewDeleteCommand(syslogRoot.CmdClause, &globals)
+
 	commands := []common.Command{
 		configureRoot,
 		whoamiRoot,
@@ -198,6 +206,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		s3Describe,
 		s3Update,
 		s3Delete,
+
+		syslogRoot,
+		syslogCreate,
+		syslogList,
+		syslogDescribe,
+		syslogUpdate,
+		syslogDelete,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs
