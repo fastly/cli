@@ -64,7 +64,7 @@ nfpms:
   - license: Apache 2.0
     maintainer: Fastly
     homepage: https://github.com/fastly/cli
-    bindir: /usr/local
+    bindir: /usr/local/bin
     formats:
       - deb
       - rpm
