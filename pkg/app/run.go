@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/healthcheck"
 	"github.com/fastly/cli/pkg/logging"
 	"github.com/fastly/cli/pkg/logging/bigquery"
+	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/s3"
 	"github.com/fastly/cli/pkg/logging/syslog"
 	"github.com/fastly/cli/pkg/service"
@@ -142,6 +143,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	syslogUpdate := syslog.NewUpdateCommand(syslogRoot.CmdClause, &globals)
 	syslogDelete := syslog.NewDeleteCommand(syslogRoot.CmdClause, &globals)
 
+	logentriesRoot := logentries.NewRootCommand(loggingRoot.CmdClause, &globals)
+	logentriesCreate := logentries.NewCreateCommand(logentriesRoot.CmdClause, &globals)
+	logentriesList := logentries.NewListCommand(logentriesRoot.CmdClause, &globals)
+	logentriesDescribe := logentries.NewDescribeCommand(logentriesRoot.CmdClause, &globals)
+	logentriesUpdate := logentries.NewUpdateCommand(logentriesRoot.CmdClause, &globals)
+	logentriesDelete := logentries.NewDeleteCommand(logentriesRoot.CmdClause, &globals)
+
 	commands := []common.Command{
 		configureRoot,
 		whoamiRoot,
@@ -213,6 +221,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		syslogDescribe,
 		syslogUpdate,
 		syslogDelete,
+
+		logentriesRoot,
+		logentriesCreate,
+		logentriesList,
+		logentriesDescribe,
+		logentriesUpdate,
+		logentriesDelete,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs

@@ -70,6 +70,12 @@ type Interface interface {
 	UpdateSyslog(*fastly.UpdateSyslogInput) (*fastly.Syslog, error)
 	DeleteSyslog(*fastly.DeleteSyslogInput) error
 
+	CreateLogentries(*fastly.CreateLogentriesInput) (*fastly.Logentries, error)
+	ListLogentries(*fastly.ListLogentriesInput) ([]*fastly.Logentries, error)
+	GetLogentries(*fastly.GetLogentriesInput) (*fastly.Logentries, error)
+	UpdateLogentries(*fastly.UpdateLogentriesInput) (*fastly.Logentries, error)
+	DeleteLogentries(*fastly.DeleteLogentriesInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 }
 
