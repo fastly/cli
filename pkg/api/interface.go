@@ -76,6 +76,12 @@ type Interface interface {
 	UpdateLogentries(*fastly.UpdateLogentriesInput) (*fastly.Logentries, error)
 	DeleteLogentries(*fastly.DeleteLogentriesInput) error
 
+	CreatePapertrail(*fastly.CreatePapertrailInput) (*fastly.Papertrail, error)
+	ListPapertrails(*fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error)
+	GetPapertrail(*fastly.GetPapertrailInput) (*fastly.Papertrail, error)
+	UpdatePapertrail(*fastly.UpdatePapertrailInput) (*fastly.Papertrail, error)
+	DeletePapertrail(*fastly.DeletePapertrailInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 }
 

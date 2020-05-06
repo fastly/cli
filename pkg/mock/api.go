@@ -67,6 +67,12 @@ type API struct {
 	UpdateLogentriesFn func(*fastly.UpdateLogentriesInput) (*fastly.Logentries, error)
 	DeleteLogentriesFn func(*fastly.DeleteLogentriesInput) error
 
+	CreatePapertrailFn func(*fastly.CreatePapertrailInput) (*fastly.Papertrail, error)
+	ListPapertrailsFn  func(*fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error)
+	GetPapertrailFn    func(*fastly.GetPapertrailInput) (*fastly.Papertrail, error)
+	UpdatePapertrailFn func(*fastly.UpdatePapertrailInput) (*fastly.Papertrail, error)
+	DeletePapertrailFn func(*fastly.DeletePapertrailInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 }
 
@@ -313,6 +319,31 @@ func (m API) UpdateLogentries(i *fastly.UpdateLogentriesInput) (*fastly.Logentri
 // DeleteLogentries implements Interface.
 func (m API) DeleteLogentries(i *fastly.DeleteLogentriesInput) error {
 	return m.DeleteLogentriesFn(i)
+}
+
+// CreatePapertrail implements Interface.
+func (m API) CreatePapertrail(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
+	return m.CreatePapertrailFn(i)
+}
+
+// ListPapertrails implements Interface.
+func (m API) ListPapertrails(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
+	return m.ListPapertrailsFn(i)
+}
+
+// GetPapertrail implements Interface.
+func (m API) GetPapertrail(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
+	return m.GetPapertrailFn(i)
+}
+
+// UpdatePapertrail implements Interface.
+func (m API) UpdatePapertrail(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
+	return m.UpdatePapertrailFn(i)
+}
+
+// DeletePapertrail implements Interface.
+func (m API) DeletePapertrail(i *fastly.DeletePapertrailInput) error {
+	return m.DeletePapertrailFn(i)
 }
 
 // GetUser implements Interface.
