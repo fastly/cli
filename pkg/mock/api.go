@@ -61,6 +61,12 @@ type API struct {
 	UpdateSyslogFn func(*fastly.UpdateSyslogInput) (*fastly.Syslog, error)
 	DeleteSyslogFn func(*fastly.DeleteSyslogInput) error
 
+	CreateLogentriesFn func(*fastly.CreateLogentriesInput) (*fastly.Logentries, error)
+	ListLogentriesFn   func(*fastly.ListLogentriesInput) ([]*fastly.Logentries, error)
+	GetLogentriesFn    func(*fastly.GetLogentriesInput) (*fastly.Logentries, error)
+	UpdateLogentriesFn func(*fastly.UpdateLogentriesInput) (*fastly.Logentries, error)
+	DeleteLogentriesFn func(*fastly.DeleteLogentriesInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 }
 
@@ -282,6 +288,31 @@ func (m API) UpdateSyslog(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 // DeleteSyslog implements Interface.
 func (m API) DeleteSyslog(i *fastly.DeleteSyslogInput) error {
 	return m.DeleteSyslogFn(i)
+}
+
+// CreateLogentries implements Interface.
+func (m API) CreateLogentries(i *fastly.CreateLogentriesInput) (*fastly.Logentries, error) {
+	return m.CreateLogentriesFn(i)
+}
+
+// ListLogentries implements Interface.
+func (m API) ListLogentries(i *fastly.ListLogentriesInput) ([]*fastly.Logentries, error) {
+	return m.ListLogentriesFn(i)
+}
+
+// GetLogentries implements Interface.
+func (m API) GetLogentries(i *fastly.GetLogentriesInput) (*fastly.Logentries, error) {
+	return m.GetLogentriesFn(i)
+}
+
+// UpdateLogentries implements Interface.
+func (m API) UpdateLogentries(i *fastly.UpdateLogentriesInput) (*fastly.Logentries, error) {
+	return m.UpdateLogentriesFn(i)
+}
+
+// DeleteLogentries implements Interface.
+func (m API) DeleteLogentries(i *fastly.DeleteLogentriesInput) error {
+	return m.DeleteLogentriesFn(i)
 }
 
 // GetUser implements Interface.
