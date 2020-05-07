@@ -1066,6 +1066,110 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Sumologic logging object
 
+  logging gcs create --name=NAME --version=VERSION --user=USER --bucket=BUCKET --secret-key=SECRET-KEY [<flags>]
+    Create a GCS logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the GCS logging object. Used as a
+                                 primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --user=USER              Your GCS service account email address. The
+                                 client_email field in your service account
+                                 authentication JSON
+        --bucket=BUCKET          The bucket of the GCS bucket
+        --secret-key=SECRET-KEY  Your GCS account secret key. The private_key
+                                 field in your service account authentication
+                                 JSON
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --path=PATH              The path to upload logs to (default '/')
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION  
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (the default, version 2 log format) or 1 (the
+                                 version 1 log format). The logging call gets
+                                 placed by default in vcl_log if format_version
+                                 is set to 2 and in vcl_deliver if
+                                 format_version is set to 1
+        --message-type=MESSAGE-TYPE  
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
+        --response-condition=RESPONSE-CONDITION  
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT  
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging gcs list --version=VERSION [<flags>]
+    List GCS endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging gcs describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a GCS logging endpoint on a Fastly service
+    version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the GCS logging object
+
+  logging gcs update --version=VERSION --name=NAME [<flags>]
+    Update a GCS logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the GCS logging object
+        --new-name=NEW-NAME      New name of the GCS logging object
+        --bucket=BUCKET          The bucket of the GCS bucket
+        --user=USER              Your GCS service account email address. The
+                                 client_email field in your service account
+                                 authentication JSON
+        --secret-key=SECRET-KEY  Your GCS account secret key. The private_key
+                                 field in your service account authentication
+                                 JSON
+        --path=PATH              The path to upload logs to (default '/')
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --format-version=FORMAT-VERSION  
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (the default, version 2 log format) or 1 (the
+                                 version 1 log format). The logging call gets
+                                 placed by default in vcl_log if format_version
+                                 is set to 2 and in vcl_deliver if
+                                 format_version is set to 1
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --response-condition=RESPONSE-CONDITION  
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT  
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging gcs delete --version=VERSION --name=NAME [<flags>]
+    Delete a GCS logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the GCS logging object
+
 For help on a specific command, try e.g.
 
 	fastly help configure

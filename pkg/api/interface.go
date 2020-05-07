@@ -88,6 +88,12 @@ type Interface interface {
 	UpdateSumologic(*fastly.UpdateSumologicInput) (*fastly.Sumologic, error)
 	DeleteSumologic(*fastly.DeleteSumologicInput) error
 
+	CreateGCS(*fastly.CreateGCSInput) (*fastly.GCS, error)
+	ListGCSs(*fastly.ListGCSsInput) ([]*fastly.GCS, error)
+	GetGCS(*fastly.GetGCSInput) (*fastly.GCS, error)
+	UpdateGCS(*fastly.UpdateGCSInput) (*fastly.GCS, error)
+	DeleteGCS(*fastly.DeleteGCSInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 }
 

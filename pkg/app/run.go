@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/healthcheck"
 	"github.com/fastly/cli/pkg/logging"
 	"github.com/fastly/cli/pkg/logging/bigquery"
+	"github.com/fastly/cli/pkg/logging/gcs"
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/papertrail"
 	"github.com/fastly/cli/pkg/logging/s3"
@@ -166,6 +167,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	sumologicUpdate := sumologic.NewUpdateCommand(sumologicRoot.CmdClause, &globals)
 	sumologicDelete := sumologic.NewDeleteCommand(sumologicRoot.CmdClause, &globals)
 
+	gcsRoot := gcs.NewRootCommand(loggingRoot.CmdClause, &globals)
+	gcsCreate := gcs.NewCreateCommand(gcsRoot.CmdClause, &globals)
+	gcsList := gcs.NewListCommand(gcsRoot.CmdClause, &globals)
+	gcsDescribe := gcs.NewDescribeCommand(gcsRoot.CmdClause, &globals)
+	gcsUpdate := gcs.NewUpdateCommand(gcsRoot.CmdClause, &globals)
+	gcsDelete := gcs.NewDeleteCommand(gcsRoot.CmdClause, &globals)
+
 	commands := []common.Command{
 		configureRoot,
 		whoamiRoot,
@@ -258,6 +266,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		sumologicDescribe,
 		sumologicUpdate,
 		sumologicDelete,
+
+		gcsRoot,
+		gcsCreate,
+		gcsList,
+		gcsDescribe,
+		gcsUpdate,
+		gcsDelete,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs

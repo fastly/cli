@@ -79,6 +79,12 @@ type API struct {
 	UpdateSumologicFn func(*fastly.UpdateSumologicInput) (*fastly.Sumologic, error)
 	DeleteSumologicFn func(*fastly.DeleteSumologicInput) error
 
+	CreateGCSFn func(*fastly.CreateGCSInput) (*fastly.GCS, error)
+	ListGCSsFn  func(*fastly.ListGCSsInput) ([]*fastly.GCS, error)
+	GetGCSFn    func(*fastly.GetGCSInput) (*fastly.GCS, error)
+	UpdateGCSFn func(*fastly.UpdateGCSInput) (*fastly.GCS, error)
+	DeleteGCSFn func(*fastly.DeleteGCSInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 }
 
@@ -375,6 +381,31 @@ func (m API) UpdateSumologic(i *fastly.UpdateSumologicInput) (*fastly.Sumologic,
 // DeleteSumologic implements Interface.
 func (m API) DeleteSumologic(i *fastly.DeleteSumologicInput) error {
 	return m.DeleteSumologicFn(i)
+}
+
+// CreateGCS implements Interface.
+func (m API) CreateGCS(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
+	return m.CreateGCSFn(i)
+}
+
+// ListGCSs implements Interface.
+func (m API) ListGCSs(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
+	return m.ListGCSsFn(i)
+}
+
+// GetGCS implements Interface.
+func (m API) GetGCS(i *fastly.GetGCSInput) (*fastly.GCS, error) {
+	return m.GetGCSFn(i)
+}
+
+// UpdateGCS implements Interface.
+func (m API) UpdateGCS(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
+	return m.UpdateGCSFn(i)
+}
+
+// DeleteGCS implements Interface.
+func (m API) DeleteGCS(i *fastly.DeleteGCSInput) error {
+	return m.DeleteGCSFn(i)
 }
 
 // GetUser implements Interface.

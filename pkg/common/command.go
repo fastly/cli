@@ -92,6 +92,12 @@ type OptionalUint struct {
 	Value uint
 }
 
+// OptionalUint8 models an optional unit8 flag value.
+type OptionalUint8 struct {
+	Optional
+	Value uint8
+}
+
 // OptionalInt models an optional int flag value.
 type OptionalInt struct {
 	Optional
