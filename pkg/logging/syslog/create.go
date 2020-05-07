@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/fastly"
 )
 
-// CreateCommand calls the Fastly API to create Amazon Syslog logging endpoints.
+// CreateCommand calls the Fastly API to create Syslog logging endpoints.
 type CreateCommand struct {
 	common.Base
 	manifest manifest.Data

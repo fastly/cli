@@ -12,7 +12,7 @@ import (
 	"github.com/fastly/go-fastly/fastly"
 )
 
-// ListCommand calls the Fastly API to list Amazon Syslog logging endpoints.
+// ListCommand calls the Fastly API to list Syslog logging endpoints.
 type ListCommand struct {
 	common.Base
 	manifest manifest.Data

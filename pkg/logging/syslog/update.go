@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/fastly"
 )
 
-// UpdateCommand calls the Fastly API to update Amazon Syslog logging endpoints.
+// UpdateCommand calls the Fastly API to update Syslog logging endpoints.
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data

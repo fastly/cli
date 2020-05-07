@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/fastly"
 )
 
-// DescribeCommand calls the Fastly API to describe an Amazon Syslog logging endpoint.
+// DescribeCommand calls the Fastly API to describe a Syslog logging endpoint.
 type DescribeCommand struct {
 	common.Base
 	manifest manifest.Data
