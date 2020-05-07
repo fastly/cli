@@ -86,8 +86,14 @@ type OptionalBool struct {
 	Value bool
 }
 
-// OptionalUint models an optional unit flag value.
+// OptionalUint models an optional uint flag value.
 type OptionalUint struct {
 	Optional
 	Value uint
+}
+
+// OptionalInt models an optional int flag value.
+type OptionalInt struct {
+	Optional
+	Value int
 }

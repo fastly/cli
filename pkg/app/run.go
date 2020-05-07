@@ -23,6 +23,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/papertrail"
 	"github.com/fastly/cli/pkg/logging/s3"
+	"github.com/fastly/cli/pkg/logging/sumologic"
 	"github.com/fastly/cli/pkg/logging/syslog"
 	"github.com/fastly/cli/pkg/service"
 	"github.com/fastly/cli/pkg/serviceversion"
@@ -158,6 +159,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	papertrailUpdate := papertrail.NewUpdateCommand(papertrailRoot.CmdClause, &globals)
 	papertrailDelete := papertrail.NewDeleteCommand(papertrailRoot.CmdClause, &globals)
 
+	sumologicRoot := sumologic.NewRootCommand(loggingRoot.CmdClause, &globals)
+	sumologicCreate := sumologic.NewCreateCommand(sumologicRoot.CmdClause, &globals)
+	sumologicList := sumologic.NewListCommand(sumologicRoot.CmdClause, &globals)
+	sumologicDescribe := sumologic.NewDescribeCommand(sumologicRoot.CmdClause, &globals)
+	sumologicUpdate := sumologic.NewUpdateCommand(sumologicRoot.CmdClause, &globals)
+	sumologicDelete := sumologic.NewDeleteCommand(sumologicRoot.CmdClause, &globals)
+
 	commands := []common.Command{
 		configureRoot,
 		whoamiRoot,
@@ -243,6 +251,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		papertrailDescribe,
 		papertrailUpdate,
 		papertrailDelete,
+
+		sumologicRoot,
+		sumologicCreate,
+		sumologicList,
+		sumologicDescribe,
+		sumologicUpdate,
+		sumologicDelete,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs

@@ -82,6 +82,12 @@ type Interface interface {
 	UpdatePapertrail(*fastly.UpdatePapertrailInput) (*fastly.Papertrail, error)
 	DeletePapertrail(*fastly.DeletePapertrailInput) error
 
+	CreateSumologic(*fastly.CreateSumologicInput) (*fastly.Sumologic, error)
+	ListSumologics(*fastly.ListSumologicsInput) ([]*fastly.Sumologic, error)
+	GetSumologic(*fastly.GetSumologicInput) (*fastly.Sumologic, error)
+	UpdateSumologic(*fastly.UpdateSumologicInput) (*fastly.Sumologic, error)
+	DeleteSumologic(*fastly.DeleteSumologicInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 }
 
