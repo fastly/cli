@@ -73,6 +73,12 @@ type API struct {
 	UpdatePapertrailFn func(*fastly.UpdatePapertrailInput) (*fastly.Papertrail, error)
 	DeletePapertrailFn func(*fastly.DeletePapertrailInput) error
 
+	CreateSumologicFn func(*fastly.CreateSumologicInput) (*fastly.Sumologic, error)
+	ListSumologicsFn  func(*fastly.ListSumologicsInput) ([]*fastly.Sumologic, error)
+	GetSumologicFn    func(*fastly.GetSumologicInput) (*fastly.Sumologic, error)
+	UpdateSumologicFn func(*fastly.UpdateSumologicInput) (*fastly.Sumologic, error)
+	DeleteSumologicFn func(*fastly.DeleteSumologicInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 }
 
@@ -344,6 +350,31 @@ func (m API) UpdatePapertrail(i *fastly.UpdatePapertrailInput) (*fastly.Papertra
 // DeletePapertrail implements Interface.
 func (m API) DeletePapertrail(i *fastly.DeletePapertrailInput) error {
 	return m.DeletePapertrailFn(i)
+}
+
+// CreateSumologic implements Interface.
+func (m API) CreateSumologic(i *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
+	return m.CreateSumologicFn(i)
+}
+
+// ListSumologics implements Interface.
+func (m API) ListSumologics(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
+	return m.ListSumologicsFn(i)
+}
+
+// GetSumologic implements Interface.
+func (m API) GetSumologic(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
+	return m.GetSumologicFn(i)
+}
+
+// UpdateSumologic implements Interface.
+func (m API) UpdateSumologic(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
+	return m.UpdateSumologicFn(i)
+}
+
+// DeleteSumologic implements Interface.
+func (m API) DeleteSumologic(i *fastly.DeleteSumologicInput) error {
+	return m.DeleteSumologicFn(i)
 }
 
 // GetUser implements Interface.
