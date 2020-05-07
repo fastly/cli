@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestApplication(t *testing.T) {
@@ -29,12 +30,12 @@ func TestApplication(t *testing.T) {
 		{
 			name:    "no args",
 			args:    nil,
-			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n\n",
+			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
 		},
 		{
 			name:    "help flag only",
 			args:    []string{"--help"},
-			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n\n",
+			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
 		},
 		{
 			name:    "help argument only",
@@ -67,14 +68,26 @@ func TestApplication(t *testing.T) {
 
 			testutil.AssertString(t, testcase.wantOut, stdout.String())
 
-			wantErrLines := strings.Split(testcase.wantErr, "\n")
-			outputErrLines := strings.Split(stderr.String(), "\n")
+			wantErrLines := splitstrip(testcase.wantErr, "\n")
+			outputErrLines := splitstrip(stderr.String(), "\n")
+
+			if diff := cmp.Diff(outputErrLines, wantErrLines); diff != "" {
+				t.Fatalf("output mismatch (-want +got): %s", diff)
+			}
 
 			for i, line := range outputErrLines {
 				testutil.AssertString(t, strings.TrimSpace(wantErrLines[i]), strings.TrimSpace(line))
 			}
 		})
 	}
+}
+
+func splitstrip(str, sep string) []string {
+	var ret []string
+	for _, line := range strings.Split(str, sep) {
+		ret = append(ret, strings.TrimSpace(line))
+	}
+	return ret
 }
 
 var helpDefault = strings.TrimSpace(`
