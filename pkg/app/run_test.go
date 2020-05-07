@@ -1188,6 +1188,17 @@ COMMANDS
     List stats regions
 
 
+  stats historical [<flags>]
+    Query historical stats
+
+    -s, --service-id=SERVICE-ID  Service ID
+    --from=FROM              From time, accepted formats at
+                             https://docs.fastly.com/api/stats#Range
+    --to=TO                  To time
+    --by=BY                  Aggregation period (minute/hour/day)
+    --region=REGION          Filter by region ('stats regions' to list)
+    --format=FORMAT          Output format (json)
+
 For help on a specific command, try e.g.
 
 	fastly help configure

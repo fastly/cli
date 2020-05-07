@@ -177,6 +177,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
+	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
 
 	commands := []common.Command{
 		configureRoot,
@@ -280,6 +281,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 
 		statsRoot,
 		statsRegions,
+		statsHistorical,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs

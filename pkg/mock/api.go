@@ -87,7 +87,8 @@ type API struct {
 
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
-	GetRegionsFn func() (*fastly.RegionsResponse, error)
+	GetRegionsFn   func() (*fastly.RegionsResponse, error)
+	GetStatsJSONFn func(i *fastly.GetStatsInput, dst interface{}) error
 }
 
 // GetTokenSelf implements Interface.
@@ -418,4 +419,9 @@ func (m API) GetUser(i *fastly.GetUserInput) (*fastly.User, error) {
 // GetRegions implements Interface.
 func (m API) GetRegions() (*fastly.RegionsResponse, error) {
 	return m.GetRegionsFn()
+}
+
+// GetStatsJSON implements Interface.
+func (m API) GetStatsJSON(i *fastly.GetStatsInput, dst interface{}) error {
+	return m.GetStatsJSON(i, dst)
 }
