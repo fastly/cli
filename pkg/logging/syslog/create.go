@@ -27,7 +27,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	var c CreateCommand
 	c.Globals = globals
 	c.manifest.File.Read(manifest.Filename)
-	c.CmdClause = parent.Command("create", "Create an Syslog logging endpoint on a Fastly service version").Alias("add")
+	c.CmdClause = parent.Command("create", "Create a Syslog logging endpoint on a Fastly service version").Alias("add")
 
 	c.CmdClause.Flag("name", "The name of the Syslog logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
