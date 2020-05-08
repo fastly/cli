@@ -85,6 +85,12 @@ type API struct {
 	UpdateGCSFn func(*fastly.UpdateGCSInput) (*fastly.GCS, error)
 	DeleteGCSFn func(*fastly.DeleteGCSInput) error
 
+	CreateFTPFn func(*fastly.CreateFTPInput) (*fastly.FTP, error)
+	ListFTPsFn  func(*fastly.ListFTPsInput) ([]*fastly.FTP, error)
+	GetFTPFn    func(*fastly.GetFTPInput) (*fastly.FTP, error)
+	UpdateFTPFn func(*fastly.UpdateFTPInput) (*fastly.FTP, error)
+	DeleteFTPFn func(*fastly.DeleteFTPInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -409,6 +415,31 @@ func (m API) UpdateGCS(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 // DeleteGCS implements Interface.
 func (m API) DeleteGCS(i *fastly.DeleteGCSInput) error {
 	return m.DeleteGCSFn(i)
+}
+
+// CreateFTP implements Interface.
+func (m API) CreateFTP(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
+	return m.CreateFTPFn(i)
+}
+
+// ListFTPs implements Interface.
+func (m API) ListFTPs(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
+	return m.ListFTPsFn(i)
+}
+
+// GetFTP implements Interface.
+func (m API) GetFTP(i *fastly.GetFTPInput) (*fastly.FTP, error) {
+	return m.GetFTPFn(i)
+}
+
+// UpdateFTP implements Interface.
+func (m API) UpdateFTP(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
+	return m.UpdateFTPFn(i)
+}
+
+// DeleteFTP implements Interface.
+func (m API) DeleteFTP(i *fastly.DeleteFTPInput) error {
+	return m.DeleteFTPFn(i)
 }
 
 // GetUser implements Interface.

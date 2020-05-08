@@ -94,6 +94,12 @@ type Interface interface {
 	UpdateGCS(*fastly.UpdateGCSInput) (*fastly.GCS, error)
 	DeleteGCS(*fastly.DeleteGCSInput) error
 
+	CreateFTP(*fastly.CreateFTPInput) (*fastly.FTP, error)
+	ListFTPs(*fastly.ListFTPsInput) ([]*fastly.FTP, error)
+	GetFTP(*fastly.GetFTPInput) (*fastly.FTP, error)
+	UpdateFTP(*fastly.UpdateFTPInput) (*fastly.FTP, error)
+	DeleteFTP(*fastly.DeleteFTPInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
