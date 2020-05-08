@@ -95,28 +95,3 @@ jobs:
       env:
         TEST_COMPUTE_INIT: true
         TEST_COMPUTE_BUILD: true
-  scan:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install Go
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.14.x
-    - name: Install fossa
-      run: |
-        curl --proto '=https' --tlsv1.2 -sSf -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | bash
-      shell: bash
-    - name: Set GOPATH
-      # Temporary fix, see: https://github.com/actions/setup-go/issues/14
-      run: |
-        echo "::set-env name=GOPATH::$(go env GOPATH)"
-        echo "::add-path::$(go env GOPATH)/bin"
-      shell: bash
-    - name: Checkout code
-      uses: actions/checkout@v1
-    - name: Fossa
-      run: make fossa
-      shell: bash
-      env:
-        FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
-        FOSSA_API_ENDPOINT: ${{ secrets.FOSSA_API_ENDPOINT }}
