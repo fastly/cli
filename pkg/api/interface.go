@@ -64,6 +64,12 @@ type Interface interface {
 	UpdateS3(*fastly.UpdateS3Input) (*fastly.S3, error)
 	DeleteS3(*fastly.DeleteS3Input) error
 
+	CreateSyslog(*fastly.CreateSyslogInput) (*fastly.Syslog, error)
+	ListSyslogs(*fastly.ListSyslogsInput) ([]*fastly.Syslog, error)
+	GetSyslog(*fastly.GetSyslogInput) (*fastly.Syslog, error)
+	UpdateSyslog(*fastly.UpdateSyslogInput) (*fastly.Syslog, error)
+	DeleteSyslog(*fastly.DeleteSyslogInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 }
 

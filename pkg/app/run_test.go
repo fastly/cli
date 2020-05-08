@@ -727,6 +727,109 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the S3 logging object
 
+  logging syslog create --name=NAME --version=VERSION --address=ADDRESS [<flags>]
+    Create a Syslog logging endpoint on a Fastly service version
+
+    -n, --name=NAME                The name of the Syslog logging object. Used
+                                   as a primary key for API access
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+        --address=ADDRESS          A hostname or IPv4 address
+        --port=PORT                The port number
+        --use-tls                  Whether to use TLS for secure logging. Can be
+                                   either true or false
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME  
+                                   Used during the TLS handshake to validate the
+                                   certificate
+        --tls-client-cert=TLS-CLIENT-CERT  
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY  
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
+        --auth-token=AUTH-TOKEN    Whether to prepend each message with a
+                                   specific token
+        --format=FORMAT            Apache style log formatting
+        --format-version=FORMAT-VERSION  
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --message-type=MESSAGE-TYPE  
+                                   How the message should be formatted. One of:
+                                   classic (default), loggly, logplex or blank
+        --response-condition=RESPONSE-CONDITION  
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+
+  logging syslog list --version=VERSION [<flags>]
+    List Syslog endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging syslog describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Syslog logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the Syslog logging object
+
+  logging syslog update --version=VERSION --name=NAME [<flags>]
+    Update a Syslog logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+    -n, --name=NAME                The name of the Syslog logging object
+        --new-name=NEW-NAME        New name of the Syslog logging object
+        --address=ADDRESS          A hostname or IPv4 address
+        --port=PORT                The port number
+        --use-tls                  Whether to use TLS for secure logging. Can be
+                                   either true or false
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME  
+                                   Used during the TLS handshake to validate the
+                                   certificate
+        --tls-client-cert=TLS-CLIENT-CERT  
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY  
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
+        --auth-token=AUTH-TOKEN    Whether to prepend each message with a
+                                   specific token
+        --format=FORMAT            Apache style log formatting
+        --format-version=FORMAT-VERSION  
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --message-type=MESSAGE-TYPE  
+                                   How the message should be formatted. One of:
+                                   classic (default), loggly, logplex or blank
+        --response-condition=RESPONSE-CONDITION  
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+
+  logging syslog delete --version=VERSION --name=NAME [<flags>]
+    Delete a Syslog logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Syslog logging object
+
 For help on a specific command, try e.g.
 
 	fastly help configure
