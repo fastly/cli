@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/healthcheck"
 	"github.com/fastly/cli/pkg/logging"
 	"github.com/fastly/cli/pkg/logging/bigquery"
+	"github.com/fastly/cli/pkg/logging/ftp"
 	"github.com/fastly/cli/pkg/logging/gcs"
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/papertrail"
@@ -175,6 +176,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	gcsUpdate := gcs.NewUpdateCommand(gcsRoot.CmdClause, &globals)
 	gcsDelete := gcs.NewDeleteCommand(gcsRoot.CmdClause, &globals)
 
+	ftpRoot := ftp.NewRootCommand(loggingRoot.CmdClause, &globals)
+	ftpCreate := ftp.NewCreateCommand(ftpRoot.CmdClause, &globals)
+	ftpList := ftp.NewListCommand(ftpRoot.CmdClause, &globals)
+	ftpDescribe := ftp.NewDescribeCommand(ftpRoot.CmdClause, &globals)
+	ftpUpdate := ftp.NewUpdateCommand(ftpRoot.CmdClause, &globals)
+	ftpDelete := ftp.NewDeleteCommand(ftpRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -279,6 +287,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		gcsDescribe,
 		gcsUpdate,
 		gcsDelete,
+
+		ftpRoot,
+		ftpCreate,
+		ftpList,
+		ftpDescribe,
+		ftpUpdate,
+		ftpDelete,
 
 		statsRoot,
 		statsRegions,

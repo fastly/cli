@@ -1183,6 +1183,104 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the GCS logging object
 
+  logging ftp create --name=NAME --version=VERSION --address=ADDRESS --user=USER --password=PASSWORD [<flags>]
+    Create an FTP logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the FTP logging object. Used as a
+                                 primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --address=ADDRESS        An hostname or IPv4 address
+        --user=USER              The username for the server (can be anonymous)
+        --password=PASSWORD      The password for the server (for anonymous use
+                                 an email address)
+        --port=PORT              The port number
+        --path=PATH              The path to upload log files to. If the path
+                                 ends in / then it is treated as a directory
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging ftp list --version=VERSION [<flags>]
+    List FTP endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging ftp describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about an FTP logging endpoint on a Fastly service
+    version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the FTP logging object
+
+  logging ftp update --version=VERSION --name=NAME [<flags>]
+    Update an FTP logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the FTP logging object
+        --new-name=NEW-NAME      New name of the FTP logging object
+        --address=ADDRESS        An hostname or IPv4 address
+        --port=PORT              The port number
+        --username=USERNAME      The username for the server (can be anonymous)
+        --password=PASSWORD      The password for the server (for anonymous use
+                                 an email address)
+        --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
+                                 encrypt your log files before writing them to
+                                 disk
+        --path=PATH              The path to upload log files to. If the path
+                                 ends in / then it is treated as a directory
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (the default, version 2 log format) or 1 (the
+                                 version 1 log format). The logging call gets
+                                 placed by default in vcl_log if format_version
+                                 is set to 2 and in vcl_deliver if
+                                 format_version is set to 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging ftp delete --version=VERSION --name=NAME [<flags>]
+    Delete an FTP logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the FTP logging object
+
   stats regions
     List stats regions
 
