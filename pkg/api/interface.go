@@ -100,6 +100,12 @@ type Interface interface {
 	UpdateFTP(*fastly.UpdateFTPInput) (*fastly.FTP, error)
 	DeleteFTP(*fastly.DeleteFTPInput) error
 
+	CreateSplunk(*fastly.CreateSplunkInput) (*fastly.Splunk, error)
+	ListSplunks(*fastly.ListSplunksInput) ([]*fastly.Splunk, error)
+	GetSplunk(*fastly.GetSplunkInput) (*fastly.Splunk, error)
+	UpdateSplunk(*fastly.UpdateSplunkInput) (*fastly.Splunk, error)
+	DeleteSplunk(*fastly.DeleteSplunkInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)

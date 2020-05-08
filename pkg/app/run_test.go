@@ -1281,6 +1281,87 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the FTP logging object
 
+  logging splunk create --name=NAME --version=VERSION --url=URL [<flags>]
+    Create a Splunk logging endpoint on a Fastly service version
+
+    -n, --name=NAME                The name of the Splunk logging object. Used
+                                   as a primary key for API access
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+        --url=URL                  The URL to POST to
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME
+                                   The hostname used to verify the server's
+                                   certificate. It can either be the Common Name
+                                   or a Subject Alternative Name (SAN)
+        --format=FORMAT            Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+        --auth-token=AUTH-TOKEN    A Splunk token for use in posting logs over
+                                   HTTP to your collector
+
+  logging splunk list --version=VERSION [<flags>]
+    List Splunk endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging splunk describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Splunk logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the Splunk logging object
+
+  logging splunk update --version=VERSION --name=NAME [<flags>]
+    Update a Splunk logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+    -n, --name=NAME                The name of the Splunk logging object
+        --new-name=NEW-NAME        New name of the Splunk logging object
+        --url=URL                  The URL to POST to.
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME
+                                   The hostname used to verify the server's
+                                   certificate. It can either be the Common Name
+                                   or a Subject Alternative Name (SAN)
+        --format=FORMAT            Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug. This field is not required and has
+                                   no default value
+        --auth-token=AUTH-TOKEN
+
+  logging splunk delete --version=VERSION --name=NAME [<flags>]
+    Delete a Splunk logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Splunk logging object
+
   stats regions
     List stats regions
 

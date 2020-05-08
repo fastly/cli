@@ -1,0 +1,130 @@
+package splunk
+
+import (
+	"io"
+
+	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/compute/manifest"
+	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/go-fastly/fastly"
+)
+
+// UpdateCommand calls the Fastly API to update Splunk logging endpoints.
+type UpdateCommand struct {
+	common.Base
+	manifest manifest.Data
+
+	Input fastly.GetSplunkInput
+
+	NewName common.OptionalString
+
+	URL               common.OptionalString
+	Format            common.OptionalString
+	FormatVersion     common.OptionalUint
+	ResponseCondition common.OptionalString
+	Placement         common.OptionalString
+	Token             common.OptionalString
+	TLSCACert         common.OptionalString
+	TLSHostname       common.OptionalString
+}
+
+// NewUpdateCommand returns a usable command registered under the parent.
+func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+	var c UpdateCommand
+	c.Globals = globals
+	c.manifest.File.Read(manifest.Filename)
+
+	c.CmdClause = parent.Command("update", "Update a Splunk logging endpoint on a Fastly service version")
+
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("name", "The name of the Splunk logging object").Short('n').Required().StringVar(&c.Input.Name)
+
+	c.CmdClause.Flag("new-name", "New name of the Splunk logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
+	c.CmdClause.Flag("url", "The URL to POST to.").Action(c.URL.Set).StringVar(&c.URL.Value)
+	c.CmdClause.Flag("tls-ca-cert", "A secure certificate to authenticate the server with. Must be in PEM format").Action(c.TLSCACert.Set).StringVar(&c.TLSCACert.Value)
+	c.CmdClause.Flag("tls-hostname", "The hostname used to verify the server's certificate. It can either be the Common Name or a Subject Alternative Name (SAN)").Action(c.TLSHostname.Set).StringVar(&c.TLSHostname.Value)
+	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
+	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
+	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
+	c.CmdClause.Flag("placement", "	Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
+	c.CmdClause.Flag("auth-token", "").Action(c.Token.Set).StringVar(&c.Token.Value)
+
+	return &c
+}
+
+// Exec invokes the application logic for the command.
+func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	serviceID, source := c.manifest.ServiceID()
+	if source == manifest.SourceUndefined {
+		return errors.ErrNoServiceID
+	}
+	c.Input.Service = serviceID
+
+	splunk, err := c.Globals.Client.GetSplunk(&c.Input)
+	if err != nil {
+		return err
+	}
+
+	input := &fastly.UpdateSplunkInput{
+		Service:           splunk.ServiceID,
+		Version:           splunk.Version,
+		Name:              splunk.Name,
+		NewName:           splunk.Name,
+		URL:               splunk.URL,
+		Format:            splunk.Format,
+		FormatVersion:     splunk.FormatVersion,
+		ResponseCondition: splunk.ResponseCondition,
+		Placement:         splunk.Placement,
+		Token:             splunk.Token,
+		TLSCACert:         splunk.TLSCACert,
+		TLSHostname:       splunk.TLSHostname,
+	}
+
+	// Set new values if set by user.
+	if c.NewName.Valid {
+		input.NewName = c.NewName.Value
+	}
+
+	if c.URL.Valid {
+		input.URL = c.URL.Value
+	}
+
+	if c.Format.Valid {
+		input.Format = c.Format.Value
+	}
+
+	if c.FormatVersion.Valid {
+		input.FormatVersion = c.FormatVersion.Value
+	}
+
+	if c.ResponseCondition.Valid {
+		input.ResponseCondition = c.ResponseCondition.Value
+	}
+
+	if c.Placement.Valid {
+		input.Placement = c.Placement.Value
+	}
+
+	if c.Token.Valid {
+		input.Token = c.Token.Value
+	}
+
+	if c.TLSCACert.Valid {
+		input.TLSCACert = c.TLSCACert.Value
+	}
+
+	if c.TLSHostname.Valid {
+		input.TLSHostname = c.TLSHostname.Value
+	}
+
+	splunk, err = c.Globals.Client.UpdateSplunk(input)
+	if err != nil {
+		return err
+	}
+
+	text.Success(out, "Updated Splunk logging endpoint %s (service %s version %d)", splunk.Name, splunk.ServiceID, splunk.Version)
+	return nil
+}
