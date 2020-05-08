@@ -728,7 +728,7 @@ COMMANDS
     -n, --name=NAME              The name of the S3 logging object
 
   logging syslog create --name=NAME --version=VERSION --address=ADDRESS [<flags>]
-    Create an Syslog logging endpoint on a Fastly service version
+    Create a Syslog logging endpoint on a Fastly service version
 
     -n, --name=NAME                The name of the Syslog logging object. Used
                                    as a primary key for API access
