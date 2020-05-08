@@ -91,6 +91,12 @@ type API struct {
 	UpdateFTPFn func(*fastly.UpdateFTPInput) (*fastly.FTP, error)
 	DeleteFTPFn func(*fastly.DeleteFTPInput) error
 
+	CreateSplunkFn func(*fastly.CreateSplunkInput) (*fastly.Splunk, error)
+	ListSplunksFn  func(*fastly.ListSplunksInput) ([]*fastly.Splunk, error)
+	GetSplunkFn    func(*fastly.GetSplunkInput) (*fastly.Splunk, error)
+	UpdateSplunkFn func(*fastly.UpdateSplunkInput) (*fastly.Splunk, error)
+	DeleteSplunkFn func(*fastly.DeleteSplunkInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -440,6 +446,31 @@ func (m API) UpdateFTP(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 // DeleteFTP implements Interface.
 func (m API) DeleteFTP(i *fastly.DeleteFTPInput) error {
 	return m.DeleteFTPFn(i)
+}
+
+// CreateSplunk implements Interface.
+func (m API) CreateSplunk(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
+	return m.CreateSplunkFn(i)
+}
+
+// ListSplunks implements Interface.
+func (m API) ListSplunks(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
+	return m.ListSplunksFn(i)
+}
+
+// GetSplunk implements Interface.
+func (m API) GetSplunk(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
+	return m.GetSplunkFn(i)
+}
+
+// UpdateSplunk implements Interface.
+func (m API) UpdateSplunk(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
+	return m.UpdateSplunkFn(i)
+}
+
+// DeleteSplunk implements Interface.
+func (m API) DeleteSplunk(i *fastly.DeleteSplunkInput) error {
+	return m.DeleteSplunkFn(i)
 }
 
 // GetUser implements Interface.

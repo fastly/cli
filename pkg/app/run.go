@@ -25,6 +25,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/papertrail"
 	"github.com/fastly/cli/pkg/logging/s3"
+	"github.com/fastly/cli/pkg/logging/splunk"
 	"github.com/fastly/cli/pkg/logging/sumologic"
 	"github.com/fastly/cli/pkg/logging/syslog"
 	"github.com/fastly/cli/pkg/service"
@@ -183,6 +184,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	ftpUpdate := ftp.NewUpdateCommand(ftpRoot.CmdClause, &globals)
 	ftpDelete := ftp.NewDeleteCommand(ftpRoot.CmdClause, &globals)
 
+	splunkRoot := splunk.NewRootCommand(loggingRoot.CmdClause, &globals)
+	splunkCreate := splunk.NewCreateCommand(splunkRoot.CmdClause, &globals)
+	splunkList := splunk.NewListCommand(splunkRoot.CmdClause, &globals)
+	splunkDescribe := splunk.NewDescribeCommand(splunkRoot.CmdClause, &globals)
+	splunkUpdate := splunk.NewUpdateCommand(splunkRoot.CmdClause, &globals)
+	splunkDelete := splunk.NewDeleteCommand(splunkRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -294,6 +302,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		ftpDescribe,
 		ftpUpdate,
 		ftpDelete,
+
+		splunkRoot,
+		splunkCreate,
+		splunkList,
+		splunkDescribe,
+		splunkUpdate,
+		splunkDelete,
 
 		statsRoot,
 		statsRegions,
