@@ -1199,6 +1199,12 @@ COMMANDS
     --region=REGION          Filter by region ('stats regions' to list)
     --format=FORMAT          Output format (json)
 
+  stats realtime --service-id=SERVICE-ID [<flags>]
+    Query realtime stats
+
+    -s, --service-id=SERVICE-ID  Service ID
+    --format=FORMAT          Output format (json)
+
 For help on a specific command, try e.g.
 
 	fastly help configure

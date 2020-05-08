@@ -178,6 +178,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
+	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
 
 	commands := []common.Command{
 		configureRoot,
@@ -282,6 +283,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		statsRoot,
 		statsRegions,
 		statsHistorical,
+		statsRealtime,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs
@@ -370,6 +372,11 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	globals.Client, err = cf(token, endpoint)
 	if err != nil {
 		return fmt.Errorf("error constructing Fastly API client: %w", err)
+	}
+
+	globals.RTSClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
+	if err != nil {
+		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
 	}
 
 	command, found := common.SelectCommand(name, commands)

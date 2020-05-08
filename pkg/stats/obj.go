@@ -19,3 +19,13 @@ type statsResponseMeta struct {
 }
 
 type statsResponseData map[string]interface{}
+
+type realtimeResponse struct {
+	Timestamp uint64                 `json:"timestamp"`
+	Data      []realtimeResponseData `json:"data"`
+}
+
+type realtimeResponseData struct {
+	Recorded   float64           `json:"recorded"`
+	Aggregated statsResponseData `json:"aggregated"`
+}

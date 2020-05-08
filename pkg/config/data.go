@@ -54,7 +54,8 @@ type Data struct {
 	Env  Environment
 	Flag Flag
 
-	Client api.Interface // set by Run after parse
+	Client    api.Interface
+	RTSClient api.RealtimeStatsInterface
 }
 
 // Token yields the Fastly API token.
