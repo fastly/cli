@@ -51,7 +51,7 @@ func (m *CargoManifest) Read(filename string) error {
 	return err
 }
 
-// CargoLock models the package confuiguration properties of a Rust Cargo
+// CargoLock models the package configuration properties of a Rust Cargo
 // lock file which we are interested in and are read from the Cargo.lock file
 // within the $PWD of the package.
 type CargoLock struct {
