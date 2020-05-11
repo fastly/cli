@@ -277,36 +277,49 @@ func TestBuild(t *testing.T) {
 		name               string
 		args               []string
 		manifest           string
+		client             api.HTTPClient
 		wantError          string
 		wantOutputContains string
 	}{
 		{
 			name:      "no fastly.toml manifest",
 			args:      []string{"compute", "build"},
+			client:    versionClient{"0.0.0"},
 			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
 		},
 		{
 			name:      "empty language",
 			args:      []string{"compute", "build"},
 			manifest:  "name = \"test\"\n",
+			client:    versionClient{"0.0.0"},
 			wantError: "language cannot be empty, please provide a language",
 		},
 		{
 			name:      "empty name",
 			args:      []string{"compute", "build"},
 			manifest:  "language = \"rust\"\n",
+			client:    versionClient{"0.0.0"},
 			wantError: "name cannot be empty, please provide a name",
 		},
 		{
 			name:      "unknown language",
 			args:      []string{"compute", "build"},
 			manifest:  "name = \"test\"\nlanguage = \"javascript\"\n",
+			client:    versionClient{"0.0.0"},
 			wantError: "unsupported language javascript",
+		},
+		{
+			name:      "fastly crate out-of-date",
+			args:      []string{"compute", "build"},
+			manifest:  "name = \"test\"\nlanguage = \"rust\"\n",
+			client:    versionClient{"0.4.0"},
+			wantError: "fastly crate not up-to-date",
 		},
 		{
 			name:               "success",
 			args:               []string{"compute", "build"},
 			manifest:           "name = \"test\"\nlanguage = \"rust\"\n",
+			client:             versionClient{"0.0.0"},
 			wantOutputContains: "Built rust package test",
 		},
 	} {
@@ -337,7 +350,7 @@ func TestBuild(t *testing.T) {
 				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
-				httpClient                     = http.DefaultClient
+				httpClient                     = testcase.client
 				versioner     update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
@@ -1228,5 +1241,18 @@ type codeClient struct {
 func (c codeClient) Do(*http.Request) (*http.Response, error) {
 	rec := httptest.NewRecorder()
 	rec.WriteHeader(c.code)
+	return rec.Result(), nil
+}
+
+type versionClient struct {
+	version string
+}
+
+func (v versionClient) Do(*http.Request) (*http.Response, error) {
+	rec := httptest.NewRecorder()
+	_, err := rec.Write([]byte(fmt.Sprintf(`{"versions":[{"num":"%s"}]}`, v.version)))
+	if err != nil {
+		return nil, err
+	}
 	return rec.Result(), nil
 }

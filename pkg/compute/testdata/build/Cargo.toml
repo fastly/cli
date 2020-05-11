@@ -8,3 +8,4 @@ edition = "2018"
 debug = true
 
 [dependencies]
+fastly = "^0.3.2"

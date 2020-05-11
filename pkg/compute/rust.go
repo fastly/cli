@@ -3,8 +3,11 @@ package compute
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,6 +15,8 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
+	"github.com/blang/semver"
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
@@ -26,9 +31,11 @@ const (
 )
 
 // CargoPackage models the package confuiguration properties of a Rust Cargo
-// package which we are interested in and is embedded within CargoManifest.
+// package which we are interested in and is embedded within CargoManifest and
+// CargoLock.
 type CargoPackage struct {
-	Name string `toml:"name"`
+	Name    string `toml:"name"`
+	Version string `toml:"version"`
 }
 
 // CargoManifest models the package confuiguration properties of a Rust Cargo
@@ -44,8 +51,23 @@ func (m *CargoManifest) Read(filename string) error {
 	return err
 }
 
+// CargoLock models the package confuiguration properties of a Rust Cargo
+// lock file which we are interested in and are read from the Cargo.lock file
+// within the $PWD of the package.
+type CargoLock struct {
+	Package []CargoPackage
+}
+
+// Read the contents of the Cargo.lock file from filename.
+func (m *CargoLock) Read(filename string) error {
+	_, err := toml.DecodeFile(filename, m)
+	return err
+}
+
 // Rust is an implments Toolchain for the Rust lanaguage.
-type Rust struct{}
+type Rust struct {
+	client api.HTTPClient
+}
 
 // Verify implments the Toolchain interface and verifies whether the Rust
 // language toolchain is correctly configured on the host.
@@ -147,6 +169,51 @@ func (r Rust) Verify(out io.Writer) error {
 	}
 
 	fmt.Fprintf(out, "Found Cargo.toml at %s\n", fpath)
+
+	// 5) Verify `fastly` crate version
+	//
+	// A valid and up-to-date version of the fastly crate is required.
+	fpath, err = filepath.Abs("Cargo.lock")
+	if err != nil {
+		return fmt.Errorf("error getting Cargo.lock path: %w", err)
+	}
+
+	if !common.FileExists(fpath) {
+		return fmt.Errorf("%s not found", fpath)
+	}
+
+	var lock CargoLock
+	if err := lock.Read("Cargo.lock"); err != nil {
+		return fmt.Errorf("error reading Cargo.lock file: %w", err)
+	}
+
+	var crate CargoPackage
+	for _, p := range lock.Package {
+		if p.Name == "fastly" {
+			crate = p
+		}
+	}
+
+	version, err := semver.Parse(crate.Version)
+	if err != nil {
+		return fmt.Errorf("error parsing Cargo.lock file: %w", err)
+	}
+
+	l, err := GetLatestCrateVersion(r.client, "fastly")
+	if err != nil {
+		return err
+	}
+	latest, err := semver.Parse(l)
+	if err != nil {
+		return err
+	}
+
+	if version.LT(latest) {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("fastly crate not up-to-date"),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("cargo update -p fastly")),
+		}
+	}
 
 	return nil
 }
@@ -263,4 +330,63 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	}
 
 	return nil
+}
+
+// CargoCrateVersion models a Cargo crate version returned by the crates.io API.
+type CargoCrateVersion struct {
+	Version string `json:"num"`
+}
+
+// CargoCrateVersions models a Cargo crate version returned by the crates.io API.
+type CargoCrateVersions struct {
+	Versions []CargoCrateVersion `json:"versions"`
+}
+
+// GetLatestCrateVersion fetches all versions of a given Rust crate from the
+// crates.io HTTP API and returns the latest valid semver version.
+func GetLatestCrateVersion(client api.HTTPClient, name string) (string, error) {
+	url := fmt.Sprintf("https://crates.io/api/v1/crates/%s/versions", name)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("error fetching latest crate version %s", resp.Status)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	crate := CargoCrateVersions{}
+	err = json.Unmarshal(body, &crate)
+	if err != nil {
+		return "", err
+	}
+
+	var versions []semver.Version
+	for _, v := range crate.Versions {
+		if version, err := semver.Parse(v.Version); err == nil {
+			versions = append(versions, version)
+		}
+	}
+
+	if len(versions) < 1 {
+		return "", fmt.Errorf("no valid crate versions found")
+	}
+
+	semver.Sort(versions)
+
+	latest := versions[len(versions)-1]
+
+	return latest.String(), nil
 }
