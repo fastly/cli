@@ -27,24 +27,6 @@ type HistoricalCommand struct {
 	formatFlag string
 }
 
-func (c *HistoricalCommand) checkArgs() error {
-	switch c.byFlag {
-	case "minute", "hour", "day", "":
-		// OK
-	default:
-		return fmt.Errorf("unsupported value for 'by': %q", c.byFlag)
-	}
-
-	switch c.formatFlag {
-	case "json", "":
-		// OK
-	default:
-		return fmt.Errorf("unsupported value for 'format': %q", c.formatFlag)
-	}
-
-	return nil
-}
-
 // NewHistoricalCommand is the "stats historical" subcommand.
 func NewHistoricalCommand(parent common.Registerer, globals *config.Data) *HistoricalCommand {
 	var c HistoricalCommand
@@ -55,20 +37,16 @@ func NewHistoricalCommand(parent common.Registerer, globals *config.Data) *Histo
 
 	c.CmdClause.Flag("from", "From time, accepted formats at https://docs.fastly.com/api/stats#Range").StringVar(&c.fromFlag)
 	c.CmdClause.Flag("to", "To time").StringVar(&c.toFlag)
-	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").StringVar(&c.byFlag)
+	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.byFlag, "minute", "hour", "day")
 	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.regionFlag)
 
-	c.CmdClause.Flag("format", "Output format (json)").StringVar(&c.formatFlag)
+	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
 
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
-	if err := c.checkArgs(); err != nil {
-		return fmt.Errorf("historical: %w", err)
-	}
-
 	req := fastly.GetStatsInput{
 		Service: c.manifest.Flag.ServiceID,
 		Field:   "",

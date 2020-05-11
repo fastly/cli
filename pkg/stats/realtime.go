@@ -21,17 +21,6 @@ type RealtimeCommand struct {
 	formatFlag string
 }
 
-func (c *RealtimeCommand) checkArgs() error {
-	switch c.formatFlag {
-	case "json", "":
-		// OK
-	default:
-		return fmt.Errorf("unsupported value for 'format': %q", c.formatFlag)
-	}
-
-	return nil
-}
-
 // NewRealtimeCommand is the "stats realtime" subcommand.
 func NewRealtimeCommand(parent common.Registerer, globals *config.Data) *RealtimeCommand {
 	var c RealtimeCommand
@@ -40,17 +29,13 @@ func NewRealtimeCommand(parent common.Registerer, globals *config.Data) *Realtim
 	c.CmdClause = parent.Command("realtime", "Query realtime stats")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.manifest.Flag.ServiceID)
 
-	c.CmdClause.Flag("format", "Output format (json)").StringVar(&c.formatFlag)
+	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
 
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RealtimeCommand) Exec(in io.Reader, out io.Writer) error {
-	if err := c.checkArgs(); err != nil {
-		return fmt.Errorf("realtime: %w", err)
-	}
-
 	service, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID

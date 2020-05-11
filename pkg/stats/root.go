@@ -16,7 +16,7 @@ type RootCommand struct {
 func NewRootCommand(parent common.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("stats", "View service stats (historical and realtime)")
+	c.CmdClause = parent.Command("stats", "View statistics (historical and realtime) for a Fastly service")
 	return &c
 }
 
