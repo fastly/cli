@@ -19,11 +19,7 @@ type HistoricalCommand struct {
 	common.Base
 	manifest manifest.Data
 
-	fromFlag   string
-	toFlag     string
-	byFlag     string
-	regionFlag string
-
+	Input      fastly.GetStatsInput
 	formatFlag string
 }
 
@@ -32,13 +28,13 @@ func NewHistoricalCommand(parent common.Registerer, globals *config.Data) *Histo
 	var c HistoricalCommand
 	c.Globals = globals
 
-	c.CmdClause = parent.Command("historical", "Query historical stats")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.Input.Service)
 
-	c.CmdClause.Flag("from", "From time, accepted formats at https://docs.fastly.com/api/stats#Range").StringVar(&c.fromFlag)
-	c.CmdClause.Flag("to", "To time").StringVar(&c.toFlag)
-	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.byFlag, "minute", "hour", "day")
-	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.regionFlag)
+	c.CmdClause.Flag("from", "From time, accepted formats at https://docs.fastly.com/api/stats#Range").StringVar(&c.Input.From)
+	c.CmdClause.Flag("to", "To time").StringVar(&c.Input.To)
+	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.Input.By, "minute", "hour", "day")
+	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.Input.Region)
 
 	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
 
@@ -47,17 +43,8 @@ func NewHistoricalCommand(parent common.Registerer, globals *config.Data) *Histo
 
 // Exec implements the command interface.
 func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
-	req := fastly.GetStatsInput{
-		Service: c.manifest.Flag.ServiceID,
-		Field:   "",
-		From:    c.fromFlag,
-		To:      c.toFlag,
-		By:      c.byFlag,
-		Region:  c.regionFlag,
-	}
-
 	var envelope statsResponse
-	err := c.Globals.Client.GetStatsJSON(&req, &envelope)
+	err := c.Globals.Client.GetStatsJSON(&c.Input, &envelope)
 	if err != nil {
 		return err
 	}

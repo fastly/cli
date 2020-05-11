@@ -6,14 +6,12 @@ import (
 
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // RegionsCommand exposes the Stats Regions API.
 type RegionsCommand struct {
 	common.Base
-	Input  fastly.GetStatsInput
-	Format string
 }
 
 // NewRegionsCommand returns a new command registered under parent.
@@ -28,11 +26,11 @@ func NewRegionsCommand(parent common.Registerer, globals *config.Data) *RegionsC
 func (c *RegionsCommand) Exec(in io.Reader, out io.Writer) error {
 	resp, err := c.Globals.Client.GetRegions()
 	if err != nil {
-		return fmt.Errorf("regions: %w", err)
+		return fmt.Errorf("fetching regions: %w", err)
 	}
 
 	for _, region := range resp.Data {
-		fmt.Fprintf(out, "%s\n", region)
+		text.Output(out, "%s", region)
 	}
 
 	return nil

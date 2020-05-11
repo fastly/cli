@@ -2,7 +2,6 @@ package stats
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
@@ -10,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/fastly"
 )
 
@@ -26,7 +26,7 @@ func NewRealtimeCommand(parent common.Registerer, globals *config.Data) *Realtim
 	var c RealtimeCommand
 	c.Globals = globals
 
-	c.CmdClause = parent.Command("realtime", "Query realtime stats")
+	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.manifest.Flag.ServiceID)
 
 	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
@@ -69,14 +69,14 @@ func loopJSON(client api.RealtimeStatsInterface, service string, out io.Writer) 
 			Timestamp: timestamp,
 		}, &envelope)
 		if err != nil {
-			fmt.Fprintf(out, "ERROR: fetching stats: %s", err)
+			text.Error(out, "fetching stats: %w", err)
 			continue
 		}
 		timestamp = envelope.Timestamp
 
 		for _, block := range envelope.Data {
 			out.Write(block)
-			out.Write([]byte{'\n'})
+			text.Break(out)
 		}
 	}
 
@@ -93,7 +93,7 @@ func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) 
 			Timestamp: timestamp,
 		}, &envelope)
 		if err != nil {
-			fmt.Fprintf(out, "ERROR: fetching stats: %s", err)
+			text.Error(out, "fetching stats: %w", err)
 			continue
 		}
 		timestamp = envelope.Timestamp
@@ -108,7 +108,7 @@ func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) 
 			delete(agg, "miss_histogram")
 
 			if err := fmtBlock(out, service, agg); err != nil {
-				fmt.Fprintf(out, "ERROR: formatting stats: %s", err)
+				text.Error(out, "formatting stats: %w", err)
 				continue
 			}
 		}
