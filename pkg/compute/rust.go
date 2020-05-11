@@ -211,7 +211,7 @@ func (r Rust) Verify(out io.Writer) error {
 	if version.LT(latest) {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("fastly crate not up-to-date"),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("cargo update -p fastly")),
+			Remediation: fmt.Sprintf("To fix this error, edit %s with:\n\n\t %s\n", text.Bold("Cargo.toml"), text.Bold(fmt.Sprintf(`fastly = "^%s"`, latest))),
 		}
 	}
 
