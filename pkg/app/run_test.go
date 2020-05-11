@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestApplication(t *testing.T) {
@@ -66,28 +66,26 @@ func TestApplication(t *testing.T) {
 				errors.Deduce(err).Print(&stderr)
 			}
 
-			testutil.AssertString(t, testcase.wantOut, stdout.String())
-
-			wantErrLines := splitstrip(testcase.wantErr, "\n")
-			outputErrLines := splitstrip(stderr.String(), "\n")
-
-			if diff := cmp.Diff(outputErrLines, wantErrLines); diff != "" {
-				t.Fatalf("output mismatch (-want +got): %s", diff)
-			}
-
-			for i, line := range outputErrLines {
-				testutil.AssertString(t, strings.TrimSpace(wantErrLines[i]), strings.TrimSpace(line))
-			}
+			// Our flag package creates trailing space on
+			// some lines. Strip what we get so we don't
+			// need to maintain invisible spaces in
+			// wantOut/wantErr below.
+			testutil.AssertString(t, testcase.wantOut, stripTrailingSpace(stdout.String()))
+			testutil.AssertString(t, testcase.wantErr, stripTrailingSpace(stderr.String()))
 		})
 	}
 }
 
-func splitstrip(str, sep string) []string {
-	var ret []string
-	for _, line := range strings.Split(str, sep) {
-		ret = append(ret, strings.TrimSpace(line))
+// stripTrailingSpace removes any trailing spaces from the multiline str.
+func stripTrailingSpace(str string) string {
+	buf := bytes.NewBuffer(nil)
+
+	scan := bufio.NewScanner(strings.NewReader(str))
+	for scan.Scan() {
+		buf.WriteString(strings.TrimRight(scan.Text(), " \t\r\n"))
+		buf.WriteString("\n")
 	}
-	return ret
+	return buf.String()
 }
 
 var helpDefault = strings.TrimSpace(`
@@ -1193,18 +1191,18 @@ COMMANDS
     View historical stats for a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID
-    --from=FROM              From time, accepted formats at
-                             https://docs.fastly.com/api/stats#Range
-    --to=TO                  To time
-    --by=BY                  Aggregation period (minute/hour/day)
-    --region=REGION          Filter by region ('stats regions' to list)
-    --format=FORMAT          Output format (json)
+        --from=FROM              From time, accepted formats at
+                                 https://docs.fastly.com/api/stats#Range
+        --to=TO                  To time
+        --by=BY                  Aggregation period (minute/hour/day)
+        --region=REGION          Filter by region ('stats regions' to list)
+        --format=FORMAT          Output format (json)
 
   stats realtime --service-id=SERVICE-ID [<flags>]
     View realtime stats for a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID
-    --format=FORMAT          Output format (json)
+        --format=FORMAT          Output format (json)
 
 For help on a specific command, try e.g.
 
