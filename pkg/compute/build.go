@@ -17,7 +17,7 @@ import (
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
 	Verify(out io.Writer) error
-	Build(out io.Writer) error
+	Build(out io.Writer, verbose bool) error
 }
 
 // GetToolchain returns a Toolchain for the provided language.
@@ -122,7 +122,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", lang))
 
-	if err := toolchain.Build(progress); err != nil {
+	if err := toolchain.Build(progress, c.Globals.Flag.Verbose); err != nil {
 		return err
 	}
 

@@ -16,6 +16,8 @@ RELEASE_CHANGELOG.md
 **/src
 !pkg/compute/testdata/build/src
 **/target
+rust-toolchain
+.cargo
 
 # Binaries for programs and plugins
 *.exe

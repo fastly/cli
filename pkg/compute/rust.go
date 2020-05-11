@@ -153,7 +153,7 @@ func (r Rust) Verify(out io.Writer) error {
 
 // Build implments the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
-func (r Rust) Build(out io.Writer) error {
+func (r Rust) Build(out io.Writer, verbose bool) error {
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
 	if err := m.Read("Cargo.toml"); err != nil {
@@ -164,12 +164,27 @@ func (r Rust) Build(out io.Writer) error {
 	// Specify the toolchain using the `cargo +<version>` syntax.
 	toolchain := fmt.Sprintf("+%s", RustToolchainVersion)
 
+	args := []string{
+		toolchain,
+		"build",
+		"--bin",
+		binName,
+		"--release",
+		"--target",
+		WasmWasiTarget,
+		"--color",
+		"always",
+	}
+	if verbose {
+		args = append(args, "--verbose")
+	}
+
 	// Call cargo build with Wasm Wasi target and release flags.
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as the variables come from trusted sources.
 	/* #nosec */
-	cmd := exec.Command("cargo", toolchain, "build", "--bin", binName, "--release", "--target", WasmWasiTarget)
+	cmd := exec.Command("cargo", args...)
 
 	// Add debuginfo RUSTFLAGS to command environment to ensure DWARF debug
 	// infomation (such as, source mappings) are compiled into the binary.
@@ -201,15 +216,21 @@ func (r Rust) Build(out io.Writer) error {
 	_, errStderr = io.Copy(stderr, stderrIn)
 	wg.Wait()
 
-	// Wait for the command to exit.
-	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("error during compilation process: %w", err)
-	}
 	if errStdout != nil {
-		return fmt.Errorf("error during compilation process: %w", errStdout)
+		return fmt.Errorf("error streaming stdout output from child process: %w", errStdout)
 	}
 	if errStderr != nil {
-		return fmt.Errorf("error during compilation process: %w", errStderr)
+		return fmt.Errorf("error streaming stderr output from child process: %w", errStderr)
+	}
+
+	// Wait for the command to exit.
+	if err := cmd.Wait(); err != nil {
+		// If we're not in verbose mode return the bufferred stderr output
+		// from cargo as the error.
+		if !verbose && stderrBuf.Len() > 0 {
+			return fmt.Errorf("error during compilation process:\n%s", strings.TrimSpace(stderrBuf.String()))
+		}
+		return fmt.Errorf("error during compilation process")
 	}
 
 	// Get working directory.
