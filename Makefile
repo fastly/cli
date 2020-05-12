@@ -1,7 +1,7 @@
 SHELL := /bin/bash -o pipefail
 
 GITHUB_CHANGELOG_GENERATOR := $(shell command -v github_changelog_generator 2> /dev/null)
-PREVIOUS_SEMVER_TAG := $(shell git tag | sort -r --version-sort | egrep '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$$' | head -n2 | tail -n1)
+PREVIOUS_SEMVER_TAG := $(shell git describe --tags `git rev-list --tags --max-count=1`)
 VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
 LDFLAGS = -ldflags "\
  -X 'github.com/fastly/cli/pkg/version.AppVersion=${VERSION}' \
