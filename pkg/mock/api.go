@@ -423,5 +423,5 @@ func (m API) GetRegions() (*fastly.RegionsResponse, error) {
 
 // GetStatsJSON implements Interface.
 func (m API) GetStatsJSON(i *fastly.GetStatsInput, dst interface{}) error {
-	return m.GetStatsJSON(i, dst)
+	return m.GetStatsJSONFn(i, dst)
 }
