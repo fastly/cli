@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
@@ -18,16 +19,6 @@ import (
 type Toolchain interface {
 	Verify(out io.Writer) error
 	Build(out io.Writer, verbose bool) error
-}
-
-// GetToolchain returns a Toolchain for the provided language.
-func GetToolchain(l string) (Toolchain, error) {
-	switch l {
-	case "rust":
-		return &Rust{}, nil
-	default:
-		return nil, fmt.Errorf("unsupported language %s", l)
-	}
 }
 
 func createPackageArchive(files []string, destination string) error {
@@ -47,14 +38,16 @@ func createPackageArchive(files []string, destination string) error {
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	common.Base
-	name string
-	lang string
+	client api.HTTPClient
+	name   string
+	lang   string
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent common.Registerer, globals *config.Data) *BuildCommand {
+func NewBuildCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *BuildCommand {
 	var c BuildCommand
 	c.Globals = globals
+	c.client = client
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.name)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.lang)
@@ -108,9 +101,12 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	name = sanitize.BaseName(name)
 
-	toolchain, err := GetToolchain(lang)
-	if err != nil {
-		return err
+	var toolchain Toolchain
+	switch lang {
+	case "rust":
+		toolchain = &Rust{c.client}
+	default:
+		return fmt.Errorf("unsupported language %s", lang)
 	}
 
 	progress.Step(fmt.Sprintf("Verifying local %s toolchain...", lang))

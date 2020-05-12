@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -53,6 +54,28 @@ func AssertErrorContains(t *testing.T, err error, target string) {
 		t.Fatalf("want no error, have %v", err)
 	case err != nil && target != "":
 		if want, have := target, err.Error(); !strings.Contains(have, want) {
+			t.Fatalf("want %q, have %q", want, have)
+		}
+	}
+}
+
+// AssertRemediationErrorContains fatals a test if the error's RemediationError
+// remediation string doesn't contain target. As a special case, if target is
+// the empty string, we assume the error should be nil.
+func AssertRemediationErrorContains(t *testing.T, err error, target string) {
+	t.Helper()
+
+	re, ok := err.(errors.RemediationError)
+
+	switch {
+	case err == nil && target == "":
+		return // great
+	case err == nil && target != "":
+		t.Fatalf("want %q, have no error", target)
+	case err != nil && target != "" && !ok:
+		t.Fatal("have no RemediationError")
+	case err != nil && target != "":
+		if want, have := target, re.Remediation; !strings.Contains(have, want) {
 			t.Fatalf("want %q, have %q", want, have)
 		}
 	}

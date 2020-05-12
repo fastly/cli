@@ -93,7 +93,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 
 	computeRoot := compute.NewRootCommand(app, &globals)
 	computeInit := compute.NewInitCommand(computeRoot.CmdClause, &globals)
-	computeBuild := compute.NewBuildCommand(computeRoot.CmdClause, &globals)
+	computeBuild := compute.NewBuildCommand(computeRoot.CmdClause, httpClient, &globals)
 	computeDeploy := compute.NewDeployCommand(computeRoot.CmdClause, httpClient, &globals)
 	computeUpdate := compute.NewUpdateCommand(computeRoot.CmdClause, httpClient, &globals)
 	computeValidate := compute.NewValidateCommand(computeRoot.CmdClause, &globals)
