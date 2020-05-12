@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/api"
@@ -274,52 +275,75 @@ func TestBuild(t *testing.T) {
 	}
 
 	for _, testcase := range []struct {
-		name               string
-		args               []string
-		manifest           string
-		client             api.HTTPClient
-		wantError          string
-		wantOutputContains string
+		name                 string
+		args                 []string
+		fastlyManifest       string
+		cargoManifest        string
+		cargoLock            string
+		client               api.HTTPClient
+		wantError            string
+		wantRemediationError string
+		wantOutputContains   string
 	}{
 		{
 			name:      "no fastly.toml manifest",
 			args:      []string{"compute", "build"},
-			client:    versionClient{"0.0.0"},
+			client:    versionClient{[]string{"0.0.0"}},
 			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
 		},
 		{
-			name:      "empty language",
-			args:      []string{"compute", "build"},
-			manifest:  "name = \"test\"\n",
-			client:    versionClient{"0.0.0"},
-			wantError: "language cannot be empty, please provide a language",
+			name:           "empty language",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "name = \"test\"\n",
+			client:         versionClient{[]string{"0.0.0"}},
+			wantError:      "language cannot be empty, please provide a language",
 		},
 		{
-			name:      "empty name",
-			args:      []string{"compute", "build"},
-			manifest:  "language = \"rust\"\n",
-			client:    versionClient{"0.0.0"},
-			wantError: "name cannot be empty, please provide a name",
+			name:           "empty name",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "language = \"rust\"\n",
+			client:         versionClient{[]string{"0.0.0"}},
+			wantError:      "name cannot be empty, please provide a name",
 		},
 		{
-			name:      "unknown language",
-			args:      []string{"compute", "build"},
-			manifest:  "name = \"test\"\nlanguage = \"javascript\"\n",
-			client:    versionClient{"0.0.0"},
-			wantError: "unsupported language javascript",
+			name:           "unknown language",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "name = \"test\"\nlanguage = \"javascript\"\n",
+			client:         versionClient{[]string{"0.0.0"}},
+			wantError:      "unsupported language javascript",
 		},
 		{
-			name:      "fastly crate out-of-date",
-			args:      []string{"compute", "build"},
-			manifest:  "name = \"test\"\nlanguage = \"rust\"\n",
-			client:    versionClient{"0.4.0"},
-			wantError: "fastly crate not up-to-date",
+			name:                 "fastly crate not found",
+			args:                 []string{"compute", "build"},
+			fastlyManifest:       "name = \"test\"\nlanguage = \"rust\"\n",
+			cargoLock:            " ",
+			client:               versionClient{[]string{"0.4.0"}},
+			wantError:            "fastly crate not found",
+			wantRemediationError: "fastly = \"^0.4.0\"",
+		},
+		{
+			name:                 "fastly crate out-of-date but within minor range",
+			args:                 []string{"compute", "build"},
+			fastlyManifest:       "name = \"test\"\nlanguage = \"rust\"\n",
+			cargoLock:            "[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
+			client:               versionClient{[]string{"0.3.3"}},
+			wantError:            "fastly crate not up-to-date",
+			wantRemediationError: "cargo update -p fastly",
+		},
+		{
+			name:                 "fastly crate out-of-date but lower than minor range",
+			args:                 []string{"compute", "build"},
+			fastlyManifest:       "name = \"test\"\nlanguage = \"rust\"\n",
+			cargoLock:            "[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
+			client:               versionClient{[]string{"0.4.0"}},
+			wantError:            "fastly crate not up-to-date",
+			wantRemediationError: "fastly = \"^0.4.0\"",
 		},
 		{
 			name:               "success",
 			args:               []string{"compute", "build"},
-			manifest:           "name = \"test\"\nlanguage = \"rust\"\n",
-			client:             versionClient{"0.0.0"},
+			fastlyManifest:     "name = \"test\"\nlanguage = \"rust\"\n",
+			client:             versionClient{[]string{"0.0.0"}},
 			wantOutputContains: "Built rust package test",
 		},
 	} {
@@ -333,7 +357,7 @@ func TestBuild(t *testing.T) {
 
 			// Create our build environment in a temp dir.
 			// Defer a call to clean it up.
-			rootdir := makeBuildEnvironment(t, testcase.manifest)
+			rootdir := makeBuildEnvironment(t, testcase.fastlyManifest, testcase.cargoManifest, testcase.cargoLock)
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the build environment.
@@ -358,6 +382,7 @@ func TestBuild(t *testing.T) {
 			)
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
 				testutil.AssertStringContains(t, buf.String(), testcase.wantOutputContains)
 			}
@@ -978,6 +1003,44 @@ func TestGetIdealPackage(t *testing.T) {
 	}
 }
 
+func TestGetLatestCrateVersion(t *testing.T) {
+	for _, testcase := range []struct {
+		name        string
+		inputClient api.HTTPClient
+		wantVersion string
+		wantError   string
+	}{
+		{
+			name:        "http error",
+			inputClient: &errorClient{errTest},
+			wantError:   "fixture error",
+		},
+		{
+			name:        "no valid versions",
+			inputClient: &versionClient{[]string{}},
+			wantError:   "no valid crate versions found",
+		},
+		{
+			name:        "unsorted",
+			inputClient: &versionClient{[]string{"0.5.23", "0.1.0", "1.2.3", "0.7.3"}},
+			wantVersion: "1.2.3",
+		},
+		{
+			name:        "reverse chronological",
+			inputClient: &versionClient{[]string{"1.2.3", "0.8.3", "0.3.2"}},
+			wantVersion: "1.2.3",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			v, err := compute.GetLatestCrateVersion(testcase.inputClient, "fastly")
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			if v != testcase.wantVersion {
+				t.Errorf("wanted version %s, got %s", testcase.wantVersion, v)
+			}
+		})
+	}
+}
+
 func makeInitEnvironment(t *testing.T) (rootdir string) {
 	t.Helper()
 
@@ -999,7 +1062,7 @@ func makeInitEnvironment(t *testing.T) (rootdir string) {
 	return rootdir
 }
 
-func makeBuildEnvironment(t *testing.T, manifestContent string) (rootdir string) {
+func makeBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifestContent, cargoLockContent string) (rootdir string) {
 	t.Helper()
 
 	p := make([]byte, 8)
@@ -1027,9 +1090,23 @@ func makeBuildEnvironment(t *testing.T, manifestContent string) (rootdir string)
 		copyFile(t, fromFilename, toFilename)
 	}
 
-	if manifestContent != "" {
+	if fastlyManifestContent != "" {
 		filename := filepath.Join(rootdir, compute.ManifestFilename)
-		if err := ioutil.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
+		if err := ioutil.WriteFile(filename, []byte(fastlyManifestContent), 0777); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if cargoManifestContent != "" {
+		filename := filepath.Join(rootdir, "Cargo.toml")
+		if err := ioutil.WriteFile(filename, []byte(cargoManifestContent), 0777); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if cargoLockContent != "" {
+		filename := filepath.Join(rootdir, "Cargo.lock")
+		if err := ioutil.WriteFile(filename, []byte(cargoLockContent), 0777); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -1245,12 +1322,18 @@ func (c codeClient) Do(*http.Request) (*http.Response, error) {
 }
 
 type versionClient struct {
-	version string
+	versions []string
 }
 
 func (v versionClient) Do(*http.Request) (*http.Response, error) {
 	rec := httptest.NewRecorder()
-	_, err := rec.Write([]byte(fmt.Sprintf(`{"versions":[{"num":"%s"}]}`, v.version)))
+
+	var versions []string
+	for _, vv := range v.versions {
+		versions = append(versions, fmt.Sprintf(`{"num":"%s"}`, vv))
+	}
+
+	_, err := rec.Write([]byte(fmt.Sprintf(`{"versions":[%s]}`, strings.Join(versions, ","))))
 	if err != nil {
 		return nil, err
 	}
