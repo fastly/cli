@@ -190,11 +190,11 @@ func (r Rust) Verify(out io.Writer) error {
 	// Fetch the latest crate version from cargo.io API.
 	l, err := GetLatestCrateVersion(r.client, "fastly")
 	if err != nil {
-		return err
+		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
 	latest, err := semver.Parse(l)
 	if err != nil {
-		return err
+		return fmt.Errorf("error parsing latest crate SemVer: %w", err)
 	}
 
 	// Find the crate version declared in Cargo.lock lockfile.
@@ -224,6 +224,7 @@ func (r Rust) Verify(out io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("error parsing Cargo.lock file: %w", err)
 	}
+
 	// Parse the lowest minor semver for the latest release.
 	// I.e. v0.3.2 becomes v0.3.0.
 	latestMinor, err := semver.Parse(fmt.Sprintf("%d.%d.0", latest.Major, latest.Minor))
@@ -389,16 +390,16 @@ func GetLatestCrateVersion(client api.HTTPClient, name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("error fetching latest crate version %s", resp.Status)
+		return "", fmt.Errorf("error fetching latest crate version: %s", resp.Status)
 	}
-
-	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
