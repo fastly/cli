@@ -262,6 +262,7 @@ COMMANDS
 
     --name=NAME          Package name
     --language=LANGUAGE  Language type
+    --force              Skip verification steps and force build
 
   compute deploy [<flags>]
     Deploy a package to a Fastly Compute@Edge service
@@ -740,26 +741,26 @@ COMMANDS
                                    either true or false
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
-        --tls-hostname=TLS-HOSTNAME  
+        --tls-hostname=TLS-HOSTNAME
                                    Used during the TLS handshake to validate the
                                    certificate
-        --tls-client-cert=TLS-CLIENT-CERT  
+        --tls-client-cert=TLS-CLIENT-CERT
                                    The client certificate used to make
                                    authenticated requests. Must be in PEM format
-        --tls-client-key=TLS-CLIENT-KEY  
+        --tls-client-key=TLS-CLIENT-KEY
                                    The client private key used to make
                                    authenticated requests. Must be in PEM format
         --auth-token=AUTH-TOKEN    Whether to prepend each message with a
                                    specific token
         --format=FORMAT            Apache style log formatting
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                    The version of the custom logging format used
                                    for the configured endpoint. Can be either 2
                                    (default) or 1
-        --message-type=MESSAGE-TYPE  
+        --message-type=MESSAGE-TYPE
                                    How the message should be formatted. One of:
                                    classic (default), loggly, logplex or blank
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute
@@ -795,26 +796,26 @@ COMMANDS
                                    either true or false
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
-        --tls-hostname=TLS-HOSTNAME  
+        --tls-hostname=TLS-HOSTNAME
                                    Used during the TLS handshake to validate the
                                    certificate
-        --tls-client-cert=TLS-CLIENT-CERT  
+        --tls-client-cert=TLS-CLIENT-CERT
                                    The client certificate used to make
                                    authenticated requests. Must be in PEM format
-        --tls-client-key=TLS-CLIENT-KEY  
+        --tls-client-key=TLS-CLIENT-KEY
                                    The client private key used to make
                                    authenticated requests. Must be in PEM format
         --auth-token=AUTH-TOKEN    Whether to prepend each message with a
                                    specific token
         --format=FORMAT            Apache style log formatting
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                    The version of the custom logging format used
                                    for the configured endpoint. Can be either 2
                                    (default) or 1
-        --message-type=MESSAGE-TYPE  
+        --message-type=MESSAGE-TYPE
                                    How the message should be formatted. One of:
                                    classic (default), loggly, logplex or blank
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute

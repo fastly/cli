@@ -41,6 +41,7 @@ type BuildCommand struct {
 	client api.HTTPClient
 	name   string
 	lang   string
+	force  bool
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
@@ -51,6 +52,7 @@ func NewBuildCommand(parent common.Registerer, client api.HTTPClient, globals *c
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.name)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.lang)
+	c.CmdClause.Flag("force", "Skip verification steps and force build").BoolVar(&c.force)
 	return &c
 }
 
@@ -109,11 +111,13 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("unsupported language %s", lang)
 	}
 
-	progress.Step(fmt.Sprintf("Verifying local %s toolchain...", lang))
+	if !c.force {
+		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", lang))
 
-	err = toolchain.Verify(progress)
-	if err != nil {
-		return err
+		err = toolchain.Verify(progress)
+		if err != nil {
+			return err
+		}
 	}
 
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", lang))
