@@ -51,7 +51,7 @@ func (m *CargoManifest) Read(filename string) error {
 	return err
 }
 
-// CargoLock models the package configuration properties of a Rust Cargo
+// CargoLock models the package confuiguration properties of a Rust Cargo
 // lock file which we are interested in and are read from the Cargo.lock file
 // within the $PWD of the package.
 type CargoLock struct {
@@ -187,18 +187,7 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error reading Cargo.lock file: %w", err)
 	}
 
-	var crate CargoPackage
-	for _, p := range lock.Package {
-		if p.Name == "fastly" {
-			crate = p
-		}
-	}
-
-	version, err := semver.Parse(crate.Version)
-	if err != nil {
-		return fmt.Errorf("error parsing Cargo.lock file: %w", err)
-	}
-
+	// Fetch the latest crate version from cargo.io API.
 	l, err := GetLatestCrateVersion(r.client, "fastly")
 	if err != nil {
 		return err
@@ -208,10 +197,59 @@ func (r Rust) Verify(out io.Writer) error {
 		return err
 	}
 
-	if version.LT(latest) {
+	// Find the crate version declared in Cargo.lock lockfile.
+	var crate CargoPackage
+	for _, p := range lock.Package {
+		if p.Name == "fastly" {
+			crate = p
+			break
+		}
+	}
+
+	// If crate not found in lockfile, error with dual remediation steps.
+	if crate.Name == "" {
+		return errors.RemediationError{
+			Inner: fmt.Errorf("fastly crate not found"),
+			Remediation: fmt.Sprintf(
+				"To fix this error, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
+				text.Bold("Cargo.toml"),
+				text.Bold(fmt.Sprintf(`fastly = "^%s"`, latest)),
+				text.Bold("cargo update -p fastly"),
+			),
+		}
+	}
+
+	// Parse lockfile version to semver.
+	version, err := semver.Parse(crate.Version)
+	if err != nil {
+		return fmt.Errorf("error parsing Cargo.lock file: %w", err)
+	}
+	// Parse the lowest minor semver for the latest release.
+	// I.e. v0.3.2 becomes v0.3.0.
+	latestMinor, err := semver.Parse(fmt.Sprintf("%d.%d.0", latest.Major, latest.Minor))
+	if err != nil {
+		return fmt.Errorf("error parsing Cargo.lock file: %w", err)
+	}
+
+	// If the lockfile version is within the minor range but lower than the
+	// latest, error with remediation to run `cargo update`.
+	if version.GTE(latestMinor) && version.LT(latest) {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("fastly crate not up-to-date"),
-			Remediation: fmt.Sprintf("To fix this error, edit %s with:\n\n\t %s\n", text.Bold("Cargo.toml"), text.Bold(fmt.Sprintf(`fastly = "^%s"`, latest))),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("cargo update -p fastly")),
+		}
+	}
+
+	// If version is on a lower minor or major, error with a dual remediation.
+	if version.LT(latest) {
+		return errors.RemediationError{
+			Inner: fmt.Errorf("fastly crate not up-to-date"),
+			Remediation: fmt.Sprintf(
+				"To fix this error, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
+				text.Bold("Cargo.toml"),
+				text.Bold(fmt.Sprintf(`fastly = "^%s"`, latest)),
+				text.Bold("cargo update -p fastly"),
+			),
 		}
 	}
 
