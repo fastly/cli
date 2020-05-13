@@ -7,7 +7,6 @@ import (
 	"sort"
 
 	"github.com/fastly/cli/pkg/common"
-	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/go-fastly/fastly"
 )
@@ -17,7 +16,6 @@ const statusSuccess = "success"
 // HistoricalCommand exposes the Historical Stats API.
 type HistoricalCommand struct {
 	common.Base
-	manifest manifest.Data
 
 	Input      fastly.GetStatsInput
 	formatFlag string
