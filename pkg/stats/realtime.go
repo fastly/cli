@@ -79,8 +79,6 @@ func loopJSON(client api.RealtimeStatsInterface, service string, out io.Writer) 
 			text.Break(out)
 		}
 	}
-
-	return nil
 }
 
 func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) error {
@@ -113,6 +111,4 @@ func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) 
 			}
 		}
 	}
-
-	return nil
 }

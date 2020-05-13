@@ -72,9 +72,5 @@ func fmtBlock(out io.Writer, service string, block statsResponseData) error {
 		"Errors":       fmt.Sprintf("%30d", agg.Errors),
 		"Uncacheable":  fmt.Sprintf("%30d", agg.Uncachable)}
 
-	if err := blockTemplate.Execute(out, values); err != nil {
-		return err
-	}
-
-	return nil
+	return blockTemplate.Execute(out, values)
 }
