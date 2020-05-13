@@ -28,8 +28,8 @@ github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0 h1:9
 github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0/go.mod h1:V+Qd57rJe8gd4eiGzZyg4h54VLHmYVVw54iMnlAMrF8=
 github.com/emirpasic/gods v1.12.0 h1:QAUIPSaCu4G+POclxeqb3F+WPpdKqFGlw36+yOzGlrg=
 github.com/emirpasic/gods v1.12.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
-github.com/fastly/go-fastly v1.7.0 h1:IiDMXzoSSJZjQP5VIjv+BU4WMoo3DeMGIy2xm9BDuL8=
-github.com/fastly/go-fastly v1.7.0/go.mod h1:cBtWXhszIFx9xpzgm9L/3PW3Ixszo153xJBEHJghGUk=
+github.com/fastly/go-fastly v1.11.0 h1:WX2/kqXhTMM8U2UqcLMQ+G0k8jofGbchWKdWmY7kWRk=
+github.com/fastly/go-fastly v1.11.0/go.mod h1:jILbTQnU/K/7XHQNzQWd1O7hbXIcp6dKrxfRWqU6xfk=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568 h1:BHsljHzVlRcyQhjrss6TZTdY2VfCqZPbv5k3iBFa2ZQ=
