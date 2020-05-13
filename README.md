@@ -115,6 +115,14 @@ make
 ./fastly version
 ```
 
+The `make` task requires the following executables to exist in your `$PATH`:
+
+- golint
+- gosec
+- staticcheck
+
+If you have none of them installed, or don't mind them being upgraded automatically, you can run `make dependencies` to install them.
+
 ## Contributing
 
 We're happy to receive feature requests and PRs. If your change is nontrivial,
