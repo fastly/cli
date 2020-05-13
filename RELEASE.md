@@ -13,8 +13,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
     * Apply necessary labels (`enchancement`, `bug`, `documentation` etc) to all PRs intended for the release that you wish to appear in the `CHANGELOG.md`
     * **Only add labels for relevant changes**
     * `git checkout -b vx.x.x` where `vx.x.x` is your target version tag
-    * `make changelog`
-    * `git add CHANGELOG.md && git commit -m "vX.X.X"`
+    * `CHANGELOG_GITHUB_TOKEN=xxxx SEMVER_TAG=vx.x.x make changelo`
+    * `git add CHANGELOG.md && git commit -m "vx.x.x`
 1. Send PR for the `CHANGELOG.md`
 1. Once approved and merged, checkout and update the `master` branch:
     * `git checkout master`

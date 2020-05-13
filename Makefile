@@ -69,7 +69,11 @@ ifndef CHANGELOG_GITHUB_TOKEN
 	@echo "WARNING: No \$$CHANGELOG_GITHUB_TOKEN in environment, set one to avoid hitting rate limit."
 	@echo ""
 endif
+ifeq ($(SEMVER_TAG),)
+	$(error "You must set $$SEMVER_TAG to your desired release semver version.")
+endif
 	github_changelog_generator -u fastly -p cli \
+		--future-release $(SEMVER_TAG) \
 		--no-pr-wo-labels \
 		--no-author \
 		--enhancement-label "**Enhancements:**" \
