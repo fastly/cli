@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/go-fastly/fastly"
 )
@@ -16,6 +17,7 @@ const statusSuccess = "success"
 // HistoricalCommand exposes the Historical Stats API.
 type HistoricalCommand struct {
 	common.Base
+	manifest manifest.Data
 
 	Input      fastly.GetStatsInput
 	formatFlag string
@@ -27,7 +29,7 @@ func NewHistoricalCommand(parent common.Registerer, globals *config.Data) *Histo
 	c.Globals = globals
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.Input.Service)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 
 	c.CmdClause.Flag("from", "From time, accepted formats at https://docs.fastly.com/api/stats#Range").StringVar(&c.Input.From)
 	c.CmdClause.Flag("to", "To time").StringVar(&c.Input.To)
@@ -41,6 +43,11 @@ func NewHistoricalCommand(parent common.Registerer, globals *config.Data) *Histo
 
 // Exec implements the command interface.
 func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
+	service, source := c.manifest.ServiceID()
+	if source != manifest.SourceUndefined {
+		c.Input.Service = service
+	}
+
 	var envelope statsResponse
 	err := c.Globals.Client.GetStatsJSON(&c.Input, &envelope)
 	if err != nil {
