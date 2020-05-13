@@ -1,6 +1,23 @@
 # Changelog
 
-## [Unreleased](https://github.com/fastly/cli/releases/tag/HEAD)
+## [v0.8.0](https://github.com/fastly/cli/releases/tag/v0.8.0) (2020-05-13)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.7.1...v0.8.0)
+
+**Enhancements:**
+
+- Verify fastly crate version during compute build. [\#67](https://github.com/fastly/cli/pull/67)
+- Improve `compute build` rust compilation error messaging [\#60](https://github.com/fastly/cli/pull/60)
+- logging: adds syslog logging endpoint [\#55](https://github.com/fastly/cli/pull/55)
+
+**Bug fixes:**
+
+- debian package doesn't install in default $PATH [\#58](https://github.com/fastly/cli/issues/58)
+- deb and rpm packages install the binary in `/usr/local` instead of `/usr/local/bin` [\#53](https://github.com/fastly/cli/issues/53)
+
+**Closed issues:**
+
+- ERROR: error during compilation process: exit status 101. [\#52](https://github.com/fastly/cli/issues/52)
 
 ## [v0.7.1](https://github.com/fastly/cli/releases/tag/v0.7.1) (2020-05-04)
 
