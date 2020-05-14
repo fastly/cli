@@ -1910,6 +1910,111 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Cloudfiles logging object
 
+  logging digitalocean create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --secret-key=SECRET-KEY [<flags>]
+    Create a DigitalOcean Spaces logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the DigitalOcean Spaces logging
+                                 object. Used as a primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --bucket=BUCKET          The name of the DigitalOcean Space
+        --access-key=ACCESS-KEY  Your DigitalOcean Spaces account access key
+        --secret-key=SECRET-KEY  Your DigitalOcean Spaces account secret key
+        --domain=DOMAIN          The domain of the DigitalOcean Spaces endpoint
+                                 (default 'nyc3.digitaloceanspaces.com')
+        --path=PATH              The path to upload logs to
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --message-type=MESSAGE-TYPE
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+        --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
+                                 encrypt your log files before writing them to
+                                 disk
+
+  logging digitalocean list --version=VERSION [<flags>]
+    List DigitalOcean Spaces logging endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging digitalocean describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a DigitalOcean Spaces logging endpoint on a
+    Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the DigitalOcean Spaces logging
+                                 object
+
+  logging digitalocean update --version=VERSION --name=NAME [<flags>]
+    Update a DigitalOcean Spaces logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the DigitalOcean Spaces logging
+                                 object
+        --new-name=NEW-NAME      New name of the DigitalOcean Spaces logging
+                                 object
+        --bucket=BUCKET          The name of the DigitalOcean Space
+        --domain=DOMAIN          The domain of the DigitalOcean Spaces endpoint
+                                 (default 'nyc3.digitaloceanspaces.com')
+        --access-key=ACCESS-KEY  Your DigitalOcean Spaces account access key
+        --secret-key=SECRET-KEY  Your DigitalOcean Spaces account secret key
+        --path=PATH              The path to upload logs to
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --message-type=MESSAGE-TYPE
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+        --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
+                                 encrypt your log files before writing them to
+                                 disk
+
+  logging digitalocean delete --version=VERSION --name=NAME [<flags>]
+    Delete a DigitalOcean Spaces logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the DigitalOcean Spaces logging
+                                 object
+
   stats regions
     List stats regions
 
