@@ -103,6 +103,12 @@ type API struct {
 	UpdateScalyrFn func(*fastly.UpdateScalyrInput) (*fastly.Scalyr, error)
 	DeleteScalyrFn func(*fastly.DeleteScalyrInput) error
 
+	CreateLogglyFn func(*fastly.CreateLogglyInput) (*fastly.Loggly, error)
+	ListLogglyFn   func(*fastly.ListLogglyInput) ([]*fastly.Loggly, error)
+	GetLogglyFn    func(*fastly.GetLogglyInput) (*fastly.Loggly, error)
+	UpdateLogglyFn func(*fastly.UpdateLogglyInput) (*fastly.Loggly, error)
+	DeleteLogglyFn func(*fastly.DeleteLogglyInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -502,6 +508,31 @@ func (m API) UpdateScalyr(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 // DeleteScalyr implements Interface.
 func (m API) DeleteScalyr(i *fastly.DeleteScalyrInput) error {
 	return m.DeleteScalyrFn(i)
+}
+
+// CreateLoggly implements Interface.
+func (m API) CreateLoggly(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
+	return m.CreateLogglyFn(i)
+}
+
+// ListLoggly implements Interface.
+func (m API) ListLoggly(i *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
+	return m.ListLogglyFn(i)
+}
+
+// GetLoggly implements Interface.
+func (m API) GetLoggly(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
+	return m.GetLogglyFn(i)
+}
+
+// UpdateLoggly implements Interface.
+func (m API) UpdateLoggly(i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
+	return m.UpdateLogglyFn(i)
+}
+
+// DeleteLoggly implements Interface.
+func (m API) DeleteLoggly(i *fastly.DeleteLogglyInput) error {
+	return m.DeleteLogglyFn(i)
 }
 
 // GetUser implements Interface.

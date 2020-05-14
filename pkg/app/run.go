@@ -23,6 +23,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/ftp"
 	"github.com/fastly/cli/pkg/logging/gcs"
 	"github.com/fastly/cli/pkg/logging/logentries"
+	"github.com/fastly/cli/pkg/logging/loggly"
 	"github.com/fastly/cli/pkg/logging/papertrail"
 	"github.com/fastly/cli/pkg/logging/s3"
 	"github.com/fastly/cli/pkg/logging/scalyr"
@@ -199,6 +200,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	scalyrUpdate := scalyr.NewUpdateCommand(scalyrRoot.CmdClause, &globals)
 	scalyrDelete := scalyr.NewDeleteCommand(scalyrRoot.CmdClause, &globals)
 
+	logglyRoot := loggly.NewRootCommand(loggingRoot.CmdClause, &globals)
+	logglyCreate := loggly.NewCreateCommand(logglyRoot.CmdClause, &globals)
+	logglyList := loggly.NewListCommand(logglyRoot.CmdClause, &globals)
+	logglyDescribe := loggly.NewDescribeCommand(logglyRoot.CmdClause, &globals)
+	logglyUpdate := loggly.NewUpdateCommand(logglyRoot.CmdClause, &globals)
+	logglyDelete := loggly.NewDeleteCommand(logglyRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -324,6 +332,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		scalyrDescribe,
 		scalyrUpdate,
 		scalyrDelete,
+
+		logglyRoot,
+		logglyCreate,
+		logglyList,
+		logglyDescribe,
+		logglyUpdate,
+		logglyDelete,
 
 		statsRoot,
 		statsRegions,
