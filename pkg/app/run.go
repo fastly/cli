@@ -26,6 +26,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/honeycomb"
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/loggly"
+	"github.com/fastly/cli/pkg/logging/logshuttle"
 	"github.com/fastly/cli/pkg/logging/papertrail"
 	"github.com/fastly/cli/pkg/logging/s3"
 	"github.com/fastly/cli/pkg/logging/scalyr"
@@ -231,6 +232,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	sftpUpdate := sftp.NewUpdateCommand(sftpRoot.CmdClause, &globals)
 	sftpDelete := sftp.NewDeleteCommand(sftpRoot.CmdClause, &globals)
 
+	logshuttleRoot := logshuttle.NewRootCommand(loggingRoot.CmdClause, &globals)
+	logshuttleCreate := logshuttle.NewCreateCommand(logshuttleRoot.CmdClause, &globals)
+	logshuttleList := logshuttle.NewListCommand(logshuttleRoot.CmdClause, &globals)
+	logshuttleDescribe := logshuttle.NewDescribeCommand(logshuttleRoot.CmdClause, &globals)
+	logshuttleUpdate := logshuttle.NewUpdateCommand(logshuttleRoot.CmdClause, &globals)
+	logshuttleDelete := logshuttle.NewDeleteCommand(logshuttleRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -384,6 +392,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		sftpDescribe,
 		sftpUpdate,
 		sftpDelete,
+
+		logshuttleRoot,
+		logshuttleCreate,
+		logshuttleList,
+		logshuttleDescribe,
+		logshuttleUpdate,
+		logshuttleDelete,
 
 		statsRoot,
 		statsRegions,

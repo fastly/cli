@@ -1741,6 +1741,73 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the SFTP logging object
 
+  logging logshuttle create --name=NAME --version=VERSION --url=URL --auth-token=AUTH-TOKEN [<flags>]
+    Create a Logshuttle logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the Logshuttle logging object. Used
+                                 as a primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --url=URL                Your Log Shuttle endpoint url
+        --auth-token=AUTH-TOKEN  The data authentication token associated with
+                                 this endpoint
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging logshuttle list --version=VERSION [<flags>]
+    List Logshuttle endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging logshuttle describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Logshuttle logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the Logshuttle logging object
+
+  logging logshuttle update --version=VERSION --name=NAME [<flags>]
+    Update a Logshuttle logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Logshuttle logging object
+        --new-name=NEW-NAME      New name of the Logshuttle logging object
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --url=URL                Your Log Shuttle endpoint url
+        --auth-token=AUTH-TOKEN  The data authentication token associated with
+                                 this endpoint
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging logshuttle delete --version=VERSION --name=NAME [<flags>]
+    Delete a Logshuttle logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Logshuttle logging object
+
   stats regions
     List stats regions
 

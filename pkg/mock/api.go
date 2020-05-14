@@ -127,6 +127,12 @@ type API struct {
 	UpdateSFTPFn func(*fastly.UpdateSFTPInput) (*fastly.SFTP, error)
 	DeleteSFTPFn func(*fastly.DeleteSFTPInput) error
 
+	CreateLogshuttleFn func(*fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error)
+	ListLogshuttlesFn  func(*fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error)
+	GetLogshuttleFn    func(*fastly.GetLogshuttleInput) (*fastly.Logshuttle, error)
+	UpdateLogshuttleFn func(*fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error)
+	DeleteLogshuttleFn func(*fastly.DeleteLogshuttleInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -626,6 +632,31 @@ func (m API) UpdateSFTP(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 // DeleteSFTP implements Interface.
 func (m API) DeleteSFTP(i *fastly.DeleteSFTPInput) error {
 	return m.DeleteSFTPFn(i)
+}
+
+// CreateLogshuttle implements Interface.
+func (m API) CreateLogshuttle(i *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error) {
+	return m.CreateLogshuttleFn(i)
+}
+
+// ListLogshuttles implements Interface.
+func (m API) ListLogshuttles(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error) {
+	return m.ListLogshuttlesFn(i)
+}
+
+// GetLogshuttle implements Interface.
+func (m API) GetLogshuttle(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
+	return m.GetLogshuttleFn(i)
+}
+
+// UpdateLogshuttle implements Interface.
+func (m API) UpdateLogshuttle(i *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error) {
+	return m.UpdateLogshuttleFn(i)
+}
+
+// DeleteLogshuttle implements Interface.
+func (m API) DeleteLogshuttle(i *fastly.DeleteLogshuttleInput) error {
+	return m.DeleteLogshuttleFn(i)
 }
 
 // GetUser implements Interface.
