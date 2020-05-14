@@ -136,6 +136,12 @@ type Interface interface {
 	UpdateSFTP(*fastly.UpdateSFTPInput) (*fastly.SFTP, error)
 	DeleteSFTP(*fastly.DeleteSFTPInput) error
 
+	CreateLogshuttle(*fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error)
+	ListLogshuttles(*fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error)
+	GetLogshuttle(*fastly.GetLogshuttleInput) (*fastly.Logshuttle, error)
+	UpdateLogshuttle(*fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error)
+	DeleteLogshuttle(*fastly.DeleteLogshuttleInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
