@@ -148,6 +148,12 @@ type Interface interface {
 	UpdateCloudfiles(*fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error)
 	DeleteCloudfiles(*fastly.DeleteCloudfilesInput) error
 
+	CreateDigitalOcean(*fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error)
+	ListDigitalOceans(*fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error)
+	GetDigitalOcean(*fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error)
+	UpdateDigitalOcean(*fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error)
+	DeleteDigitalOcean(*fastly.DeleteDigitalOceanInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)

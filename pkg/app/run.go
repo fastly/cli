@@ -21,6 +21,7 @@ import (
 	"github.com/fastly/cli/pkg/logging"
 	"github.com/fastly/cli/pkg/logging/bigquery"
 	"github.com/fastly/cli/pkg/logging/cloudfiles"
+	"github.com/fastly/cli/pkg/logging/digitalocean"
 	"github.com/fastly/cli/pkg/logging/ftp"
 	"github.com/fastly/cli/pkg/logging/gcs"
 	"github.com/fastly/cli/pkg/logging/heroku"
@@ -247,6 +248,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	cloudfilesUpdate := cloudfiles.NewUpdateCommand(cloudfilesRoot.CmdClause, &globals)
 	cloudfilesDelete := cloudfiles.NewDeleteCommand(cloudfilesRoot.CmdClause, &globals)
 
+	digitaloceanRoot := digitalocean.NewRootCommand(loggingRoot.CmdClause, &globals)
+	digitaloceanCreate := digitalocean.NewCreateCommand(digitaloceanRoot.CmdClause, &globals)
+	digitaloceanList := digitalocean.NewListCommand(digitaloceanRoot.CmdClause, &globals)
+	digitaloceanDescribe := digitalocean.NewDescribeCommand(digitaloceanRoot.CmdClause, &globals)
+	digitaloceanUpdate := digitalocean.NewUpdateCommand(digitaloceanRoot.CmdClause, &globals)
+	digitaloceanDelete := digitalocean.NewDeleteCommand(digitaloceanRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -414,6 +422,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		cloudfilesDescribe,
 		cloudfilesUpdate,
 		cloudfilesDelete,
+
+		digitaloceanRoot,
+		digitaloceanCreate,
+		digitaloceanList,
+		digitaloceanDescribe,
+		digitaloceanUpdate,
+		digitaloceanDelete,
 
 		statsRoot,
 		statsRegions,

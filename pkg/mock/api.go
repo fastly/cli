@@ -139,6 +139,12 @@ type API struct {
 	UpdateCloudfilesFn func(*fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error)
 	DeleteCloudfilesFn func(*fastly.DeleteCloudfilesInput) error
 
+	CreateDigitalOceanFn func(*fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error)
+	ListDigitalOceansFn  func(*fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error)
+	GetDigitalOceanFn    func(*fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error)
+	UpdateDigitalOceanFn func(*fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error)
+	DeleteDigitalOceanFn func(*fastly.DeleteDigitalOceanInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -688,6 +694,31 @@ func (m API) UpdateCloudfiles(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfil
 // DeleteCloudfiles implements Interface.
 func (m API) DeleteCloudfiles(i *fastly.DeleteCloudfilesInput) error {
 	return m.DeleteCloudfilesFn(i)
+}
+
+// CreateDigitalOcean implements Interface.
+func (m API) CreateDigitalOcean(i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+	return m.CreateDigitalOceanFn(i)
+}
+
+// ListDigitalOceans implements Interface.
+func (m API) ListDigitalOceans(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
+	return m.ListDigitalOceansFn(i)
+}
+
+// GetDigitalOcean implements Interface.
+func (m API) GetDigitalOcean(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
+	return m.GetDigitalOceanFn(i)
+}
+
+// UpdateDigitalOcean implements Interface.
+func (m API) UpdateDigitalOcean(i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+	return m.UpdateDigitalOceanFn(i)
+}
+
+// DeleteDigitalOcean implements Interface.
+func (m API) DeleteDigitalOcean(i *fastly.DeleteDigitalOceanInput) error {
+	return m.DeleteDigitalOceanFn(i)
 }
 
 // GetUser implements Interface.
