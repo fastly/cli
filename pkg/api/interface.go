@@ -118,6 +118,12 @@ type Interface interface {
 	UpdateLoggly(*fastly.UpdateLogglyInput) (*fastly.Loggly, error)
 	DeleteLoggly(*fastly.DeleteLogglyInput) error
 
+	CreateHoneycomb(*fastly.CreateHoneycombInput) (*fastly.Honeycomb, error)
+	ListHoneycombs(*fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error)
+	GetHoneycomb(*fastly.GetHoneycombInput) (*fastly.Honeycomb, error)
+	UpdateHoneycomb(*fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error)
+	DeleteHoneycomb(*fastly.DeleteHoneycombInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)

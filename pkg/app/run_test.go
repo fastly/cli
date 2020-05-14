@@ -1492,6 +1492,75 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Loggly logging object
 
+  logging honeycomb create --name=NAME --version=VERSION --dataset=DATASET --auth-token=AUTH-TOKEN [<flags>]
+    Create a Honeycomb logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the Honeycomb logging object. Used
+                                 as a primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --dataset=DATASET        The Honeycomb Dataset you want to log to
+        --auth-token=AUTH-TOKEN  The Write Key from the Account page of your
+                                 Honeycomb account
+        --format=FORMAT          Apache style log formatting. Your log must
+                                 produce valid JSON that Honeycomb can ingest
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging honeycomb list --version=VERSION [<flags>]
+    List Honeycomb endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging honeycomb describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Honeycomb logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the Honeycomb logging object
+
+  logging honeycomb update --version=VERSION --name=NAME [<flags>]
+    Update a Honeycomb logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Honeycomb logging object
+        --new-name=NEW-NAME      New name of the Honeycomb logging object
+        --format=FORMAT          Apache style log formatting. Your log must
+                                 produce valid JSON that Honeycomb can ingest
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --dataset=DATASET        The Honeycomb Dataset you want to log to
+        --auth-token=AUTH-TOKEN  The Write Key from the Account page of your
+                                 Honeycomb account
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging honeycomb delete --version=VERSION --name=NAME [<flags>]
+    Delete a Honeycomb logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Honeycomb logging object
+
   stats regions
     List stats regions
 
@@ -1517,5 +1586,6 @@ For help on a specific command, try e.g.
 
 	fastly help configure
 	fastly configure --help
+
 
 `) + "\n\n"
