@@ -15,6 +15,12 @@ fastly:
 .PHONY: all
 all: fmt vet staticcheck lint gosec test build install
 
+.PHONY: dependencies
+dependencies:
+	go get -v -u github.com/securego/gosec/cmd/gosec
+	go get -v -u honnef.co/go/tools/cmd/staticcheck
+	go get -v -u golang.org/x/lint/golint
+
 .PHONY: fmt
 fmt:
 	@echo gofmt -l ./{cmd,pkg}
@@ -63,7 +69,11 @@ ifndef CHANGELOG_GITHUB_TOKEN
 	@echo "WARNING: No \$$CHANGELOG_GITHUB_TOKEN in environment, set one to avoid hitting rate limit."
 	@echo ""
 endif
+ifeq ($(SEMVER_TAG),)
+	$(error "You must set $$SEMVER_TAG to your desired release semver version.")
+endif
 	github_changelog_generator -u fastly -p cli \
+		--future-release $(SEMVER_TAG) \
 		--no-pr-wo-labels \
 		--no-author \
 		--enhancement-label "**Enhancements:**" \
