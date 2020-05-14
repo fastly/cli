@@ -1427,6 +1427,71 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Scalyr logging object
 
+  logging loggly create --name=NAME --version=VERSION --auth-token=AUTH-TOKEN [<flags>]
+    Create a Loggly logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the Loggly logging object. Used as
+                                 a primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --auth-token=AUTH-TOKEN  The token to use for authentication
+                                 (https://www.loggly.com/docs/customer-token-authentication-token/)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging loggly list --version=VERSION [<flags>]
+    List Loggly endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging loggly describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Loggly logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the Loggly logging object
+
+  logging loggly update --version=VERSION --name=NAME [<flags>]
+    Update a Loggly logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Loggly logging object
+        --new-name=NEW-NAME      New name of the Loggly logging object
+        --auth-token=AUTH-TOKEN  The token to use for authentication
+                                 (https://www.loggly.com/docs/customer-token-authentication-token/)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging loggly delete --version=VERSION --name=NAME [<flags>]
+    Delete a Loggly logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Loggly logging object
+
   stats regions
     List stats regions
 
@@ -1452,4 +1517,5 @@ For help on a specific command, try e.g.
 
 	fastly help configure
 	fastly configure --help
+
 `) + "\n\n"

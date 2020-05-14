@@ -112,6 +112,12 @@ type Interface interface {
 	UpdateScalyr(*fastly.UpdateScalyrInput) (*fastly.Scalyr, error)
 	DeleteScalyr(*fastly.DeleteScalyrInput) error
 
+	CreateLoggly(*fastly.CreateLogglyInput) (*fastly.Loggly, error)
+	ListLoggly(*fastly.ListLogglyInput) ([]*fastly.Loggly, error)
+	GetLoggly(*fastly.GetLogglyInput) (*fastly.Loggly, error)
+	UpdateLoggly(*fastly.UpdateLogglyInput) (*fastly.Loggly, error)
+	DeleteLoggly(*fastly.DeleteLogglyInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
