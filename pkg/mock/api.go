@@ -109,6 +109,12 @@ type API struct {
 	UpdateLogglyFn func(*fastly.UpdateLogglyInput) (*fastly.Loggly, error)
 	DeleteLogglyFn func(*fastly.DeleteLogglyInput) error
 
+	CreateHoneycombFn func(*fastly.CreateHoneycombInput) (*fastly.Honeycomb, error)
+	ListHoneycombsFn  func(*fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error)
+	GetHoneycombFn    func(*fastly.GetHoneycombInput) (*fastly.Honeycomb, error)
+	UpdateHoneycombFn func(*fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error)
+	DeleteHoneycombFn func(*fastly.DeleteHoneycombInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -533,6 +539,31 @@ func (m API) UpdateLoggly(i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
 // DeleteLoggly implements Interface.
 func (m API) DeleteLoggly(i *fastly.DeleteLogglyInput) error {
 	return m.DeleteLogglyFn(i)
+}
+
+// CreateHoneycomb implements Interface.
+func (m API) CreateHoneycomb(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error) {
+	return m.CreateHoneycombFn(i)
+}
+
+// ListHoneycombs implements Interface.
+func (m API) ListHoneycombs(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
+	return m.ListHoneycombsFn(i)
+}
+
+// GetHoneycomb implements Interface.
+func (m API) GetHoneycomb(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
+	return m.GetHoneycombFn(i)
+}
+
+// UpdateHoneycomb implements Interface.
+func (m API) UpdateHoneycomb(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {
+	return m.UpdateHoneycombFn(i)
+}
+
+// DeleteHoneycomb implements Interface.
+func (m API) DeleteHoneycomb(i *fastly.DeleteHoneycombInput) error {
+	return m.DeleteHoneycombFn(i)
 }
 
 // GetUser implements Interface.

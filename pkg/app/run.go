@@ -22,6 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/bigquery"
 	"github.com/fastly/cli/pkg/logging/ftp"
 	"github.com/fastly/cli/pkg/logging/gcs"
+	"github.com/fastly/cli/pkg/logging/honeycomb"
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/loggly"
 	"github.com/fastly/cli/pkg/logging/papertrail"
@@ -207,6 +208,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	logglyUpdate := loggly.NewUpdateCommand(logglyRoot.CmdClause, &globals)
 	logglyDelete := loggly.NewDeleteCommand(logglyRoot.CmdClause, &globals)
 
+	honeycombRoot := honeycomb.NewRootCommand(loggingRoot.CmdClause, &globals)
+	honeycombCreate := honeycomb.NewCreateCommand(honeycombRoot.CmdClause, &globals)
+	honeycombList := honeycomb.NewListCommand(honeycombRoot.CmdClause, &globals)
+	honeycombDescribe := honeycomb.NewDescribeCommand(honeycombRoot.CmdClause, &globals)
+	honeycombUpdate := honeycomb.NewUpdateCommand(honeycombRoot.CmdClause, &globals)
+	honeycombDelete := honeycomb.NewDeleteCommand(honeycombRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -339,6 +347,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		logglyDescribe,
 		logglyUpdate,
 		logglyDelete,
+
+		honeycombRoot,
+		honeycombCreate,
+		honeycombList,
+		honeycombDescribe,
+		honeycombUpdate,
+		honeycombDelete,
 
 		statsRoot,
 		statsRegions,
