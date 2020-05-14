@@ -22,6 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/bigquery"
 	"github.com/fastly/cli/pkg/logging/ftp"
 	"github.com/fastly/cli/pkg/logging/gcs"
+	"github.com/fastly/cli/pkg/logging/heroku"
 	"github.com/fastly/cli/pkg/logging/honeycomb"
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/loggly"
@@ -215,6 +216,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	honeycombUpdate := honeycomb.NewUpdateCommand(honeycombRoot.CmdClause, &globals)
 	honeycombDelete := honeycomb.NewDeleteCommand(honeycombRoot.CmdClause, &globals)
 
+	herokuRoot := heroku.NewRootCommand(loggingRoot.CmdClause, &globals)
+	herokuCreate := heroku.NewCreateCommand(herokuRoot.CmdClause, &globals)
+	herokuList := heroku.NewListCommand(herokuRoot.CmdClause, &globals)
+	herokuDescribe := heroku.NewDescribeCommand(herokuRoot.CmdClause, &globals)
+	herokuUpdate := heroku.NewUpdateCommand(herokuRoot.CmdClause, &globals)
+	herokuDelete := heroku.NewDeleteCommand(herokuRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -354,6 +362,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		honeycombDescribe,
 		honeycombUpdate,
 		honeycombDelete,
+
+		herokuRoot,
+		herokuCreate,
+		herokuList,
+		herokuDescribe,
+		herokuUpdate,
+		herokuDelete,
 
 		statsRoot,
 		statsRegions,

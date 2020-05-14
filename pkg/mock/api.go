@@ -115,6 +115,12 @@ type API struct {
 	UpdateHoneycombFn func(*fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error)
 	DeleteHoneycombFn func(*fastly.DeleteHoneycombInput) error
 
+	CreateHerokuFn func(*fastly.CreateHerokuInput) (*fastly.Heroku, error)
+	ListHerokusFn  func(*fastly.ListHerokusInput) ([]*fastly.Heroku, error)
+	GetHerokuFn    func(*fastly.GetHerokuInput) (*fastly.Heroku, error)
+	UpdateHerokuFn func(*fastly.UpdateHerokuInput) (*fastly.Heroku, error)
+	DeleteHerokuFn func(*fastly.DeleteHerokuInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -564,6 +570,31 @@ func (m API) UpdateHoneycomb(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb,
 // DeleteHoneycomb implements Interface.
 func (m API) DeleteHoneycomb(i *fastly.DeleteHoneycombInput) error {
 	return m.DeleteHoneycombFn(i)
+}
+
+// CreateHeroku implements Interface.
+func (m API) CreateHeroku(i *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
+	return m.CreateHerokuFn(i)
+}
+
+// ListHerokus implements Interface.
+func (m API) ListHerokus(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
+	return m.ListHerokusFn(i)
+}
+
+// GetHeroku implements Interface.
+func (m API) GetHeroku(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
+	return m.GetHerokuFn(i)
+}
+
+// UpdateHeroku implements Interface.
+func (m API) UpdateHeroku(i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
+	return m.UpdateHerokuFn(i)
+}
+
+// DeleteHeroku implements Interface.
+func (m API) DeleteHeroku(i *fastly.DeleteHerokuInput) error {
+	return m.DeleteHerokuFn(i)
 }
 
 // GetUser implements Interface.
