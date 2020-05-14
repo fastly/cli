@@ -117,9 +117,9 @@ make
 
 The `make` task requires the following executables to exist in your `$PATH`:
 
-- golint
-- gosec
-- staticcheck
+- [golint](https://github.com/golang/lint)
+- [gosec](https://github.com/securego/gosec)
+- [staticcheck](https://staticcheck.io/)
 
 If you have none of them installed, or don't mind them being upgraded automatically, you can run `make dependencies` to install them.
 
