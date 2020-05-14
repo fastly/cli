@@ -121,6 +121,12 @@ type API struct {
 	UpdateHerokuFn func(*fastly.UpdateHerokuInput) (*fastly.Heroku, error)
 	DeleteHerokuFn func(*fastly.DeleteHerokuInput) error
 
+	CreateSFTPFn func(*fastly.CreateSFTPInput) (*fastly.SFTP, error)
+	ListSFTPsFn  func(*fastly.ListSFTPsInput) ([]*fastly.SFTP, error)
+	GetSFTPFn    func(*fastly.GetSFTPInput) (*fastly.SFTP, error)
+	UpdateSFTPFn func(*fastly.UpdateSFTPInput) (*fastly.SFTP, error)
+	DeleteSFTPFn func(*fastly.DeleteSFTPInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -595,6 +601,31 @@ func (m API) UpdateHeroku(i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
 // DeleteHeroku implements Interface.
 func (m API) DeleteHeroku(i *fastly.DeleteHerokuInput) error {
 	return m.DeleteHerokuFn(i)
+}
+
+// CreateSFTP implements Interface.
+func (m API) CreateSFTP(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
+	return m.CreateSFTPFn(i)
+}
+
+// ListSFTPs implements Interface.
+func (m API) ListSFTPs(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
+	return m.ListSFTPsFn(i)
+}
+
+// GetSFTP implements Interface.
+func (m API) GetSFTP(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
+	return m.GetSFTPFn(i)
+}
+
+// UpdateSFTP implements Interface.
+func (m API) UpdateSFTP(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
+	return m.UpdateSFTPFn(i)
+}
+
+// DeleteSFTP implements Interface.
+func (m API) DeleteSFTP(i *fastly.DeleteSFTPInput) error {
+	return m.DeleteSFTPFn(i)
 }
 
 // GetUser implements Interface.

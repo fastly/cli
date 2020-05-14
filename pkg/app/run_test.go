@@ -1628,6 +1628,119 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Heroku logging object
 
+  logging sftp create --name=NAME --version=VERSION --address=ADDRESS --user=USER --ssh-known-hosts=SSH-KNOWN-HOSTS [<flags>]
+    Create an SFTP logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the SFTP logging object. Used as a
+                                 primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --address=ADDRESS        The hostname or IPv4 addres
+        --user=USER              The username for the server
+        --ssh-known-hosts=SSH-KNOWN-HOSTS
+                                 A list of host keys for all hosts we can
+                                 connect to over SFTP
+        --port=PORT              The port number
+        --password=PASSWORD      The password for the server. If both password
+                                 and secret_key are passed, secret_key will be
+                                 used in preference
+        --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
+                                 encrypt your log files before writing them to
+                                 disk
+        --secret-key=SECRET-KEY  The SSH private key for the server. If both
+                                 password and secret_key are passed, secret_key
+                                 will be used in preference
+        --path=PATH              The path to upload logs to. The directory must
+                                 exist on the SFTP server before logs can be
+                                 saved to it
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging sftp list --version=VERSION [<flags>]
+    List SFTP endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging sftp describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about an SFTP logging endpoint on a Fastly service
+    version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the SFTP logging object
+
+  logging sftp update --version=VERSION --name=NAME [<flags>]
+    Update an SFTP logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the SFTP logging object
+        --new-name=NEW-NAME      New name of the SFTP logging object
+        --address=ADDRESS        The hostname or IPv4 address
+        --port=PORT              The port number
+        --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
+                                 encrypt your log files before writing them to
+                                 disk
+        --secret-key=SECRET-KEY  The SSH private key for the server. If both
+                                 password and secret_key are passed, secret_key
+                                 will be used in preference
+        --ssh-known-hosts=SSH-KNOWN-HOSTS
+                                 A list of host keys for all hosts we can
+                                 connect to over SFTP
+        --user=USER              The username for the server
+        --password=PASSWORD      The password for the server. If both password
+                                 and secret_key are passed, secret_key will be
+                                 used in preference
+        --path=PATH              The path to upload logs to. The directory must
+                                 exist on the SFTP server before logs can be
+                                 saved to it
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging sftp delete --version=VERSION --name=NAME [<flags>]
+    Delete an SFTP logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the SFTP logging object
+
   stats regions
     List stats regions
 

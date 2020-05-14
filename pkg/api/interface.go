@@ -130,6 +130,12 @@ type Interface interface {
 	UpdateHeroku(*fastly.UpdateHerokuInput) (*fastly.Heroku, error)
 	DeleteHeroku(*fastly.DeleteHerokuInput) error
 
+	CreateSFTP(*fastly.CreateSFTPInput) (*fastly.SFTP, error)
+	ListSFTPs(*fastly.ListSFTPsInput) ([]*fastly.SFTP, error)
+	GetSFTP(*fastly.GetSFTPInput) (*fastly.SFTP, error)
+	UpdateSFTP(*fastly.UpdateSFTPInput) (*fastly.SFTP, error)
+	DeleteSFTP(*fastly.DeleteSFTPInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
