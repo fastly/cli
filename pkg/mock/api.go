@@ -133,6 +133,12 @@ type API struct {
 	UpdateLogshuttleFn func(*fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error)
 	DeleteLogshuttleFn func(*fastly.DeleteLogshuttleInput) error
 
+	CreateCloudfilesFn func(*fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error)
+	ListCloudfilesFn   func(*fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error)
+	GetCloudfilesFn    func(*fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error)
+	UpdateCloudfilesFn func(*fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error)
+	DeleteCloudfilesFn func(*fastly.DeleteCloudfilesInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -657,6 +663,31 @@ func (m API) UpdateLogshuttle(i *fastly.UpdateLogshuttleInput) (*fastly.Logshutt
 // DeleteLogshuttle implements Interface.
 func (m API) DeleteLogshuttle(i *fastly.DeleteLogshuttleInput) error {
 	return m.DeleteLogshuttleFn(i)
+}
+
+// CreateCloudfiles implements Interface.
+func (m API) CreateCloudfiles(i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error) {
+	return m.CreateCloudfilesFn(i)
+}
+
+// ListCloudfiles implements Interface.
+func (m API) ListCloudfiles(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error) {
+	return m.ListCloudfilesFn(i)
+}
+
+// GetCloudfiles implements Interface.
+func (m API) GetCloudfiles(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
+	return m.GetCloudfilesFn(i)
+}
+
+// UpdateCloudfiles implements Interface.
+func (m API) UpdateCloudfiles(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {
+	return m.UpdateCloudfilesFn(i)
+}
+
+// DeleteCloudfiles implements Interface.
+func (m API) DeleteCloudfiles(i *fastly.DeleteCloudfilesInput) error {
+	return m.DeleteCloudfilesFn(i)
 }
 
 // GetUser implements Interface.

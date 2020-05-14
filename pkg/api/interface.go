@@ -142,6 +142,12 @@ type Interface interface {
 	UpdateLogshuttle(*fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error)
 	DeleteLogshuttle(*fastly.DeleteLogshuttleInput) error
 
+	CreateCloudfiles(*fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error)
+	ListCloudfiles(*fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error)
+	GetCloudfiles(*fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error)
+	UpdateCloudfiles(*fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error)
+	DeleteCloudfiles(*fastly.DeleteCloudfilesInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
