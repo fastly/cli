@@ -68,8 +68,10 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if err := os.Rename(latestPath, currentPath); err != nil {
-		progress.Fail()
-		return fmt.Errorf("error moving latest binary in place: %w", err)
+		if err := common.CopyFile(latestPath, currentPath); err != nil {
+			progress.Fail()
+			return fmt.Errorf("error moving latest binary in place: %w", err)
+		}
 	}
 
 	progress.Done()
