@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/healthcheck"
 	"github.com/fastly/cli/pkg/logging"
 	"github.com/fastly/cli/pkg/logging/bigquery"
+	"github.com/fastly/cli/pkg/logging/cloudfiles"
 	"github.com/fastly/cli/pkg/logging/ftp"
 	"github.com/fastly/cli/pkg/logging/gcs"
 	"github.com/fastly/cli/pkg/logging/heroku"
@@ -239,6 +240,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	logshuttleUpdate := logshuttle.NewUpdateCommand(logshuttleRoot.CmdClause, &globals)
 	logshuttleDelete := logshuttle.NewDeleteCommand(logshuttleRoot.CmdClause, &globals)
 
+	cloudfilesRoot := cloudfiles.NewRootCommand(loggingRoot.CmdClause, &globals)
+	cloudfilesCreate := cloudfiles.NewCreateCommand(cloudfilesRoot.CmdClause, &globals)
+	cloudfilesList := cloudfiles.NewListCommand(cloudfilesRoot.CmdClause, &globals)
+	cloudfilesDescribe := cloudfiles.NewDescribeCommand(cloudfilesRoot.CmdClause, &globals)
+	cloudfilesUpdate := cloudfiles.NewUpdateCommand(cloudfilesRoot.CmdClause, &globals)
+	cloudfilesDelete := cloudfiles.NewDeleteCommand(cloudfilesRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -399,6 +407,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		logshuttleDescribe,
 		logshuttleUpdate,
 		logshuttleDelete,
+
+		cloudfilesRoot,
+		cloudfilesCreate,
+		cloudfilesList,
+		cloudfilesDescribe,
+		cloudfilesUpdate,
+		cloudfilesDelete,
 
 		statsRoot,
 		statsRegions,
