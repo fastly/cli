@@ -29,6 +29,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/papertrail"
 	"github.com/fastly/cli/pkg/logging/s3"
 	"github.com/fastly/cli/pkg/logging/scalyr"
+	"github.com/fastly/cli/pkg/logging/sftp"
 	"github.com/fastly/cli/pkg/logging/splunk"
 	"github.com/fastly/cli/pkg/logging/sumologic"
 	"github.com/fastly/cli/pkg/logging/syslog"
@@ -223,6 +224,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	herokuUpdate := heroku.NewUpdateCommand(herokuRoot.CmdClause, &globals)
 	herokuDelete := heroku.NewDeleteCommand(herokuRoot.CmdClause, &globals)
 
+	sftpRoot := sftp.NewRootCommand(loggingRoot.CmdClause, &globals)
+	sftpCreate := sftp.NewCreateCommand(sftpRoot.CmdClause, &globals)
+	sftpList := sftp.NewListCommand(sftpRoot.CmdClause, &globals)
+	sftpDescribe := sftp.NewDescribeCommand(sftpRoot.CmdClause, &globals)
+	sftpUpdate := sftp.NewUpdateCommand(sftpRoot.CmdClause, &globals)
+	sftpDelete := sftp.NewDeleteCommand(sftpRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -369,6 +377,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		herokuDescribe,
 		herokuUpdate,
 		herokuDelete,
+
+		sftpRoot,
+		sftpCreate,
+		sftpList,
+		sftpDescribe,
+		sftpUpdate,
+		sftpDelete,
 
 		statsRoot,
 		statsRegions,
