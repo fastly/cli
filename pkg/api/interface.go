@@ -124,6 +124,12 @@ type Interface interface {
 	UpdateHoneycomb(*fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error)
 	DeleteHoneycomb(*fastly.DeleteHoneycombInput) error
 
+	CreateHeroku(*fastly.CreateHerokuInput) (*fastly.Heroku, error)
+	ListHerokus(*fastly.ListHerokusInput) ([]*fastly.Heroku, error)
+	GetHeroku(*fastly.GetHerokuInput) (*fastly.Heroku, error)
+	UpdateHeroku(*fastly.UpdateHerokuInput) (*fastly.Heroku, error)
+	DeleteHeroku(*fastly.DeleteHerokuInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
