@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"sort"
 
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
@@ -60,24 +59,13 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("non-success response: %s", envelope.Msg)
 	}
 
-	// Sort the service IDs for consistent output.
-	var services []string
-	for service := range envelope.Data {
-		services = append(services, service)
-	}
-	sort.Strings(services)
-
 	switch c.formatFlag {
 	case "json":
-		for _, service := range services {
-			writeBlocksJSON(out, service, envelope.Data[service])
-		}
+		writeBlocksJSON(out, service, envelope.Data)
 
 	default:
 		writeHeader(out, envelope.Meta)
-		for _, service := range services {
-			writeBlocks(out, service, envelope.Data[service])
-		}
+		writeBlocks(out, service, envelope.Data)
 	}
 
 	return nil

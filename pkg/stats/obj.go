@@ -8,7 +8,7 @@ type statsResponse struct {
 	Msg    string            `json:"msg"`
 	Meta   statsResponseMeta `json:"meta"`
 
-	Data map[string][]statsResponseData `json:"data"`
+	Data []statsResponseData `json:"data"`
 }
 
 type statsResponseMeta struct {
