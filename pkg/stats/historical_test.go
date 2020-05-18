@@ -101,9 +101,7 @@ func getStatsJSONOK(i *fastly.GetStatsInput, o interface{}) error {
     "region": "all"
   },
   "msg": null,
-  "data": {
-    "123": [{"start_time": 0}]
-  }
+  "data": [{"start_time": 0}]
 }`)
 
 	return json.Unmarshal(msg, o)
