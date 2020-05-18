@@ -24,17 +24,17 @@ func TestHistorical(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"stats", "historical"},
+			args:       []string{"stats", "historical", "--service-id=123"},
 			api:        mock.API{GetStatsJSONFn: getStatsJSONOK},
 			wantOutput: historicalOK,
 		},
 		{
-			args:      []string{"stats", "historical"},
+			args:      []string{"stats", "historical", "--service-id=123"},
 			api:       mock.API{GetStatsJSONFn: getStatsJSONError},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"stats", "historical", "--format=json"},
+			args:       []string{"stats", "historical", "--service-id=123", "--format=json"},
 			api:        mock.API{GetStatsJSONFn: getStatsJSONOK},
 			wantOutput: historicalJSONOK,
 		},
@@ -63,8 +63,8 @@ To: Thu May 16 20:08:35 UTC 2013
 By: day
 Region: all
 ---
-Service ID:                              serviceID
-Start Time:          1969-12-31 16:00:00 -0800 PST
+Service ID:                                    123
+Start Time:          1970-01-01 00:00:00 +0000 UTC
 --------------------------------------------------
 Hit Rate:                                    0.00%
 Avg Hit Time:                               0.00µs
@@ -102,7 +102,7 @@ func getStatsJSONOK(i *fastly.GetStatsInput, o interface{}) error {
   },
   "msg": null,
   "data": {
-    "serviceID": [{"start_time": 0}]
+    "123": [{"start_time": 0}]
   }
 }`)
 

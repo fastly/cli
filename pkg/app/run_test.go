@@ -1187,7 +1187,7 @@ COMMANDS
     List stats regions
 
 
-  stats historical [<flags>]
+  stats historical --service-id=SERVICE-ID [<flags>]
     View historical stats for a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID

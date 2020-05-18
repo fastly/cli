@@ -48,7 +48,7 @@ func fmtBlock(out io.Writer, service string, block statsResponseData) error {
 	}
 
 	// TODO: parse the JSON more strictly so this doesn't need to be dynamic.
-	startTime := time.Unix(int64(block["start_time"].(float64)), 0)
+	startTime := time.Unix(int64(block["start_time"].(float64)), 0).UTC()
 
 	values := map[string]string{
 		"ServiceID":   fmt.Sprintf("%30s", service),
