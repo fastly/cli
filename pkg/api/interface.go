@@ -95,7 +95,18 @@ type Interface interface {
 	DeleteGCS(*fastly.DeleteGCSInput) error
 
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
+
+	GetRegions() (*fastly.RegionsResponse, error)
+	GetStatsJSON(*fastly.GetStatsInput, interface{}) error
 }
 
-// Interface assertion, to catch mismatches early.
+// RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
+type RealtimeStatsInterface interface {
+	GetRealtimeStatsJSON(*fastly.GetRealtimeStatsInput, interface{}) error
+}
+
+// Ensure that fastly.Client satisfies Interface.
 var _ Interface = (*fastly.Client)(nil)
+
+// Ensure that fastly.RTSClient satisfies RealtimeStatsInterface.
+var _ RealtimeStatsInterface = (*fastly.RTSClient)(nil)

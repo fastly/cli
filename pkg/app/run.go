@@ -28,6 +28,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/syslog"
 	"github.com/fastly/cli/pkg/service"
 	"github.com/fastly/cli/pkg/serviceversion"
+	"github.com/fastly/cli/pkg/stats"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/cli/pkg/version"
@@ -174,6 +175,11 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	gcsUpdate := gcs.NewUpdateCommand(gcsRoot.CmdClause, &globals)
 	gcsDelete := gcs.NewDeleteCommand(gcsRoot.CmdClause, &globals)
 
+	statsRoot := stats.NewRootCommand(app, &globals)
+	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
+	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
+	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
+
 	commands := []common.Command{
 		configureRoot,
 		whoamiRoot,
@@ -273,6 +279,11 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		gcsDescribe,
 		gcsUpdate,
 		gcsDelete,
+
+		statsRoot,
+		statsRegions,
+		statsHistorical,
+		statsRealtime,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs
@@ -361,6 +372,11 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	globals.Client, err = cf(token, endpoint)
 	if err != nil {
 		return fmt.Errorf("error constructing Fastly API client: %w", err)
+	}
+
+	globals.RTSClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
+	if err != nil {
+		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
 	}
 
 	command, found := common.SelectCommand(name, commands)

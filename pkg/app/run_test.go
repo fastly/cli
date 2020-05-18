@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 	"strings"
@@ -29,12 +30,12 @@ func TestApplication(t *testing.T) {
 		{
 			name:    "no args",
 			args:    nil,
-			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n\n",
+			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
 		},
 		{
 			name:    "help flag only",
 			args:    []string{"--help"},
-			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n\n",
+			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
 		},
 		{
 			name:    "help argument only",
@@ -65,16 +66,26 @@ func TestApplication(t *testing.T) {
 				errors.Deduce(err).Print(&stderr)
 			}
 
-			testutil.AssertString(t, testcase.wantOut, stdout.String())
-
-			wantErrLines := strings.Split(testcase.wantErr, "\n")
-			outputErrLines := strings.Split(stderr.String(), "\n")
-
-			for i, line := range outputErrLines {
-				testutil.AssertString(t, strings.TrimSpace(wantErrLines[i]), strings.TrimSpace(line))
-			}
+			// Our flag package creates trailing space on
+			// some lines. Strip what we get so we don't
+			// need to maintain invisible spaces in
+			// wantOut/wantErr below.
+			testutil.AssertString(t, testcase.wantOut, stripTrailingSpace(stdout.String()))
+			testutil.AssertString(t, testcase.wantErr, stripTrailingSpace(stderr.String()))
 		})
 	}
+}
+
+// stripTrailingSpace removes any trailing spaces from the multiline str.
+func stripTrailingSpace(str string) string {
+	buf := bytes.NewBuffer(nil)
+
+	scan := bufio.NewScanner(strings.NewReader(str))
+	for scan.Scan() {
+		buf.WriteString(strings.TrimRight(scan.Text(), " \t\r\n"))
+		buf.WriteString("\n")
+	}
+	return buf.String()
 }
 
 var helpDefault = strings.TrimSpace(`
@@ -101,6 +112,8 @@ COMMANDS
   backend          Manipulate Fastly service version backends
   healthcheck      Manipulate Fastly service version healthchecks
   logging          Manipulate Fastly service version logging endpoints
+  stats            View statistics (historical and realtime) for a Fastly
+                   service
 `) + "\n\n"
 
 var helpService = strings.TrimSpace(`
@@ -844,7 +857,7 @@ COMMANDS
         --auth-token=AUTH-TOKEN  Use token based authentication
                                  (https://logentries.com/doc/input-token/)
         --format=FORMAT          Apache style log formatting
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
                                  for the configured endpoint. Can be either 2
                                  (the default, version 2 log format) or 1 (the
@@ -852,7 +865,7 @@ COMMANDS
                                  placed by default in vcl_log if format_version
                                  is set to 2 and in vcl_deliver if
                                  format_version is set to 1
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
                                  execute
@@ -888,7 +901,7 @@ COMMANDS
         --auth-token=AUTH-TOKEN  Use token based authentication
                                  (https://logentries.com/doc/input-token/)
         --format=FORMAT          Apache style log formatting
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
                                  for the configured endpoint. Can be either 2
                                  (the default, version 2 log format) or 1 (the
@@ -896,7 +909,7 @@ COMMANDS
                                  placed by default in vcl_log if format_version
                                  is set to 2 and in vcl_deliver if
                                  format_version is set to 1
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
                                  execute
@@ -921,7 +934,7 @@ COMMANDS
         --version=VERSION        Number of service version
         --address=ADDRESS        A hostname or IPv4 address
         --port=PORT              The port number
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
                                  for the configured endpoint. Can be either 2
                                  (the default, version 2 log format) or 1 (the
@@ -930,7 +943,7 @@ COMMANDS
                                  is set to 2 and in vcl_deliver if
                                  format_version is set to 1
         --format=FORMAT          Apache style log formatting
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
                                  execute
@@ -962,7 +975,7 @@ COMMANDS
         --new-name=NEW-NAME      New name of the Papertrail logging object
         --address=ADDRESS        A hostname or IPv4 address
         --port=PORT              The port number
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
                                  for the configured endpoint. Can be either 2
                                  (the default, version 2 log format) or 1 (the
@@ -971,7 +984,7 @@ COMMANDS
                                  is set to 2 and in vcl_deliver if
                                  format_version is set to 1
         --format=FORMAT          Apache style log formatting
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
                                  execute
@@ -996,7 +1009,7 @@ COMMANDS
         --version=VERSION        Number of service version
         --url=URL                The URL to POST to
         --format=FORMAT          Apache style log formatting
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
                                  for the configured endpoint. Can be either 2
                                  (the default, version 2 log format) or 1 (the
@@ -1004,11 +1017,11 @@ COMMANDS
                                  placed by default in vcl_log if format_version
                                  is set to 2 and in vcl_deliver if
                                  format_version is set to 1
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
                                  execute
-        --message-type=MESSAGE-TYPE  
+        --message-type=MESSAGE-TYPE
                                  How the message should be formatted. One of:
                                  classic (default), loggly, logplex or blank
         --placement=PLACEMENT    Where in the generated VCL the logging call
@@ -1039,7 +1052,7 @@ COMMANDS
         --new-name=NEW-NAME      New name of the Sumologic logging object
         --url=URL                The URL to POST to
         --format=FORMAT          Apache style log formatting
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
                                  for the configured endpoint. Can be either 2
                                  (the default, version 2 log format) or 1 (the
@@ -1047,11 +1060,11 @@ COMMANDS
                                  placed by default in vcl_log if format_version
                                  is set to 2 and in vcl_deliver if
                                  format_version is set to 1
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
                                  execute
-        --message-type=MESSAGE-TYPE  
+        --message-type=MESSAGE-TYPE
                                  How the message should be formatted. One of:
                                  classic (default), loggly, logplex or blank
         --placement=PLACEMENT    Where in the generated VCL the logging call
@@ -1087,7 +1100,7 @@ COMMANDS
         --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
                                  dumping logs (default 0, no compression)
         --format=FORMAT          Apache style log formatting
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
                                  for the configured endpoint. Can be either 2
                                  (the default, version 2 log format) or 1 (the
@@ -1095,14 +1108,14 @@ COMMANDS
                                  placed by default in vcl_log if format_version
                                  is set to 2 and in vcl_deliver if
                                  format_version is set to 1
-        --message-type=MESSAGE-TYPE  
+        --message-type=MESSAGE-TYPE
                                  How the message should be formatted. One of:
                                  classic (default), loggly, logplex or blank
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
                                  execute
-        --timestamp-format=TIMESTAMP-FORMAT  
+        --timestamp-format=TIMESTAMP-FORMAT
                                  strftime specified timestamp formatting
                                  (default "%Y-%m-%dT%H:%M:%S.000")
         --placement=PLACEMENT    Where in the generated VCL the logging call
@@ -1141,7 +1154,7 @@ COMMANDS
         --period=PERIOD          How frequently log files are finalized so they
                                  can be available for reading (in seconds,
                                  default 3600)
-        --format-version=FORMAT-VERSION  
+        --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
                                  for the configured endpoint. Can be either 2
                                  (the default, version 2 log format) or 1 (the
@@ -1152,11 +1165,11 @@ COMMANDS
         --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
                                  dumping logs (default 0, no compression)
         --format=FORMAT          Apache style log formatting
-        --response-condition=RESPONSE-CONDITION  
+        --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
                                  execute
-        --timestamp-format=TIMESTAMP-FORMAT  
+        --timestamp-format=TIMESTAMP-FORMAT
                                  strftime specified timestamp formatting
                                  (default "%Y-%m-%dT%H:%M:%S.000")
         --placement=PLACEMENT    Where in the generated VCL the logging call
@@ -1169,6 +1182,27 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the GCS logging object
+
+  stats regions
+    List stats regions
+
+
+  stats historical --service-id=SERVICE-ID [<flags>]
+    View historical stats for a Fastly service
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --from=FROM              From time, accepted formats at
+                                 https://docs.fastly.com/api/stats#Range
+        --to=TO                  To time
+        --by=BY                  Aggregation period (minute/hour/day)
+        --region=REGION          Filter by region ('stats regions' to list)
+        --format=FORMAT          Output format (json)
+
+  stats realtime --service-id=SERVICE-ID [<flags>]
+    View realtime stats for a Fastly service
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --format=FORMAT          Output format (json)
 
 For help on a specific command, try e.g.
 
