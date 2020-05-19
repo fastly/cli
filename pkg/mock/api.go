@@ -97,6 +97,12 @@ type API struct {
 	UpdateSplunkFn func(*fastly.UpdateSplunkInput) (*fastly.Splunk, error)
 	DeleteSplunkFn func(*fastly.DeleteSplunkInput) error
 
+	CreateScalyrFn func(*fastly.CreateScalyrInput) (*fastly.Scalyr, error)
+	ListScalyrsFn  func(*fastly.ListScalyrsInput) ([]*fastly.Scalyr, error)
+	GetScalyrFn    func(*fastly.GetScalyrInput) (*fastly.Scalyr, error)
+	UpdateScalyrFn func(*fastly.UpdateScalyrInput) (*fastly.Scalyr, error)
+	DeleteScalyrFn func(*fastly.DeleteScalyrInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -471,6 +477,31 @@ func (m API) UpdateSplunk(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 // DeleteSplunk implements Interface.
 func (m API) DeleteSplunk(i *fastly.DeleteSplunkInput) error {
 	return m.DeleteSplunkFn(i)
+}
+
+// CreateScalyr implements Interface.
+func (m API) CreateScalyr(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
+	return m.CreateScalyrFn(i)
+}
+
+// ListScalyrs implements Interface.
+func (m API) ListScalyrs(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
+	return m.ListScalyrsFn(i)
+}
+
+// GetScalyr implements Interface.
+func (m API) GetScalyr(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
+	return m.GetScalyrFn(i)
+}
+
+// UpdateScalyr implements Interface.
+func (m API) UpdateScalyr(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
+	return m.UpdateScalyrFn(i)
+}
+
+// DeleteScalyr implements Interface.
+func (m API) DeleteScalyr(i *fastly.DeleteScalyrInput) error {
+	return m.DeleteScalyrFn(i)
 }
 
 // GetUser implements Interface.

@@ -1362,6 +1362,71 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Splunk logging object
 
+  logging scalyr create --name=NAME --version=VERSION --auth-token=AUTH-TOKEN [<flags>]
+    Create a Scalyr logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the Scalyr logging object. Used as
+                                 a primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --auth-token=AUTH-TOKEN  The token to use for authentication
+                                 (https://www.scalyr.com/keys)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging scalyr list --version=VERSION [<flags>]
+    List Scalyr endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging scalyr describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Scalyr logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -d, --name=NAME              The name of the Scalyr logging object
+
+  logging scalyr update --version=VERSION --name=NAME [<flags>]
+    Update a Scalyr logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Scalyr logging object
+        --new-name=NEW-NAME      New name of the Scalyr logging object
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --auth-token=AUTH-TOKEN  The token to use for authentication
+                                 (https://www.scalyr.com/keys)
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging scalyr delete --version=VERSION --name=NAME [<flags>]
+    Delete a Scalyr logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Scalyr logging object
+
   stats regions
     List stats regions
 
