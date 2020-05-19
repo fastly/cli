@@ -29,9 +29,9 @@ jobs:
       env:
         CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v1
+      uses: goreleaser/goreleaser-action@108bc4d
       with:
-        version: 'v0.131.1'
+        version: 'v0.135.0'
         args: release --rm-dist --release-notes=RELEASE_CHANGELOG.md
       env:
         GOVERSION: ${{ env.GOVERSION }}
