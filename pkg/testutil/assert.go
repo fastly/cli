@@ -8,6 +8,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+// AssertEqual fatals a test if the parameters aren't equal.
+func AssertEqual(t *testing.T, want, have interface{}) {
+	t.Helper()
+	if diff := cmp.Diff(want, have); diff != "" {
+		t.Fatal(diff)
+	}
+}
+
 // AssertBool fatals a test if the parameters aren't equal.
 func AssertBool(t *testing.T, want, have bool) {
 	t.Helper()
