@@ -25,6 +25,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/papertrail"
 	"github.com/fastly/cli/pkg/logging/s3"
+	"github.com/fastly/cli/pkg/logging/scalyr"
 	"github.com/fastly/cli/pkg/logging/splunk"
 	"github.com/fastly/cli/pkg/logging/sumologic"
 	"github.com/fastly/cli/pkg/logging/syslog"
@@ -191,6 +192,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	splunkUpdate := splunk.NewUpdateCommand(splunkRoot.CmdClause, &globals)
 	splunkDelete := splunk.NewDeleteCommand(splunkRoot.CmdClause, &globals)
 
+	scalyrRoot := scalyr.NewRootCommand(loggingRoot.CmdClause, &globals)
+	scalyrCreate := scalyr.NewCreateCommand(scalyrRoot.CmdClause, &globals)
+	scalyrList := scalyr.NewListCommand(scalyrRoot.CmdClause, &globals)
+	scalyrDescribe := scalyr.NewDescribeCommand(scalyrRoot.CmdClause, &globals)
+	scalyrUpdate := scalyr.NewUpdateCommand(scalyrRoot.CmdClause, &globals)
+	scalyrDelete := scalyr.NewDeleteCommand(scalyrRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -309,6 +317,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		splunkDescribe,
 		splunkUpdate,
 		splunkDelete,
+
+		scalyrRoot,
+		scalyrCreate,
+		scalyrList,
+		scalyrDescribe,
+		scalyrUpdate,
+		scalyrDelete,
 
 		statsRoot,
 		statsRegions,

@@ -106,6 +106,12 @@ type Interface interface {
 	UpdateSplunk(*fastly.UpdateSplunkInput) (*fastly.Splunk, error)
 	DeleteSplunk(*fastly.DeleteSplunkInput) error
 
+	CreateScalyr(*fastly.CreateScalyrInput) (*fastly.Scalyr, error)
+	ListScalyrs(*fastly.ListScalyrsInput) ([]*fastly.Scalyr, error)
+	GetScalyr(*fastly.GetScalyrInput) (*fastly.Scalyr, error)
+	UpdateScalyr(*fastly.UpdateScalyrInput) (*fastly.Scalyr, error)
+	DeleteScalyr(*fastly.DeleteScalyrInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
