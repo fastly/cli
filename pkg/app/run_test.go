@@ -315,7 +315,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              Name of domain
+    -n, --name=NAME              Name of domain
 
   domain update --version=VERSION --name=NAME [<flags>]
     Update a domain on a Fastly service version
@@ -586,7 +586,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the BigQuery logging object
+    -n, --name=NAME              The name of the BigQuery logging object
 
   logging bigquery update --version=VERSION --name=NAME [<flags>]
     Update a BigQuery logging endpoint on a Fastly service version
@@ -688,7 +688,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the S3 logging object
+    -n, --name=NAME              The name of the S3 logging object
 
   logging s3 update --version=VERSION --name=NAME [<flags>]
     Update a S3 logging endpoint on a Fastly service version
@@ -794,7 +794,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Syslog logging object
+    -n, --name=NAME              The name of the Syslog logging object
 
   logging syslog update --version=VERSION --name=NAME [<flags>]
     Update a Syslog logging endpoint on a Fastly service version
@@ -886,7 +886,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Logentries logging object
+    -n, --name=NAME              The name of the Logentries logging object
 
   logging logentries update --version=VERSION --name=NAME [<flags>]
     Update a Logentries logging endpoint on a Fastly service version
@@ -964,7 +964,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Papertrail logging object
+    -n, --name=NAME              The name of the Papertrail logging object
 
   logging papertrail update --version=VERSION --name=NAME [<flags>]
     Update a Papertrail logging endpoint on a Fastly service version
@@ -1041,7 +1041,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Sumologic logging object
+    -n, --name=NAME              The name of the Sumologic logging object
 
   logging sumologic update --version=VERSION --name=NAME [<flags>]
     Update a Sumologic logging endpoint on a Fastly service version
@@ -1134,7 +1134,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the GCS logging object
+    -n, --name=NAME              The name of the GCS logging object
 
   logging gcs update --version=VERSION --name=NAME [<flags>]
     Update a GCS logging endpoint on a Fastly service version
@@ -1230,7 +1230,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the FTP logging object
+    -n, --name=NAME              The name of the FTP logging object
 
   logging ftp update --version=VERSION --name=NAME [<flags>]
     Update an FTP logging endpoint on a Fastly service version
@@ -1323,7 +1323,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Splunk logging object
+    -n, --name=NAME              The name of the Splunk logging object
 
   logging splunk update --version=VERSION --name=NAME [<flags>]
     Update a Splunk logging endpoint on a Fastly service version
@@ -1396,7 +1396,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Scalyr logging object
+    -n, --name=NAME              The name of the Scalyr logging object
 
   logging scalyr update --version=VERSION --name=NAME [<flags>]
     Update a Scalyr logging endpoint on a Fastly service version
@@ -1461,7 +1461,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Loggly logging object
+    -n, --name=NAME              The name of the Loggly logging object
 
   logging loggly update --version=VERSION --name=NAME [<flags>]
     Update a Loggly logging endpoint on a Fastly service version
@@ -1528,7 +1528,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Honeycomb logging object
+    -n, --name=NAME              The name of the Honeycomb logging object
 
   logging honeycomb update --version=VERSION --name=NAME [<flags>]
     Update a Honeycomb logging endpoint on a Fastly service version
@@ -1596,7 +1596,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Heroku logging object
+    -n, --name=NAME              The name of the Heroku logging object
 
   logging heroku update --version=VERSION --name=NAME [<flags>]
     Update a Heroku logging endpoint on a Fastly service version
@@ -1686,7 +1686,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the SFTP logging object
+    -n, --name=NAME              The name of the SFTP logging object
 
   logging sftp update --version=VERSION --name=NAME [<flags>]
     Update an SFTP logging endpoint on a Fastly service version
@@ -1776,7 +1776,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Logshuttle logging object
+    -n, --name=NAME              The name of the Logshuttle logging object
 
   logging logshuttle update --version=VERSION --name=NAME [<flags>]
     Update a Logshuttle logging endpoint on a Fastly service version
@@ -1861,7 +1861,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the Cloudfiles logging object
+    -n, --name=NAME              The name of the Cloudfiles logging object
 
   logging cloudfiles update --version=VERSION --name=NAME [<flags>]
     Update a Cloudfiles logging endpoint on a Fastly service version
@@ -1962,7 +1962,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
-    -d, --name=NAME              The name of the DigitalOcean Spaces logging
+    -n, --name=NAME              The name of the DigitalOcean Spaces logging
                                  object
 
   logging digitalocean update --version=VERSION --name=NAME [<flags>]
