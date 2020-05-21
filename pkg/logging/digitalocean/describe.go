@@ -26,7 +26,7 @@ func NewDescribeCommand(parent common.Registerer, globals *config.Data) *Describ
 	c.CmdClause = parent.Command("describe", "Show detailed information about a DigitalOcean Spaces logging endpoint on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("name", "The name of the DigitalOcean Spaces logging object").Short('d').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("name", "The name of the DigitalOcean Spaces logging object").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
 
