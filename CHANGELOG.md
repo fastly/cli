@@ -1,14 +1,45 @@
 # Changelog
 
+## [v0.9.0](https://github.com/fastly/cli/releases/tag/v0.9.0) (2020-05-21)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.8.0...v0.9.0)
+
+**Breaking changes:**
+
+- Describe subcommand consistent --name short flag -d -\> -n [\#85](https://github.com/fastly/cli/pull/85)
+
+**Enhancements:**
+
+- Adds DigitalOcean Spaces logging endpoint support [\#80](https://github.com/fastly/cli/pull/80)
+- Adds Rackspace Cloudfiles logging endpoint support [\#79](https://github.com/fastly/cli/pull/79)
+- Adds Log Shuttle logging endpoint support [\#78](https://github.com/fastly/cli/pull/78)
+- Adds SFTP logging endpoint support [\#77](https://github.com/fastly/cli/pull/77)
+- Adds Heroku logging endpoint support [\#76](https://github.com/fastly/cli/pull/76)
+- Adds Honeycomb logging endpoint support [\#75](https://github.com/fastly/cli/pull/75)
+- Adds Loggly logging endpoint support [\#74](https://github.com/fastly/cli/pull/74)
+- Adds Scalyr logging endpoint support [\#73](https://github.com/fastly/cli/pull/73)
+- Basic support for historical & realtime stats [\#66](https://github.com/fastly/cli/pull/66)
+- Adds Splunk endpoint [\#64](https://github.com/fastly/cli/pull/64)
+- Adds FTP logging endpoint support [\#63](https://github.com/fastly/cli/pull/63)
+- Adds GCS logging endpoint support [\#62](https://github.com/fastly/cli/pull/62)
+- Adds Sumo Logic logging endpoint support [\#59](https://github.com/fastly/cli/pull/59)
+- Adds Papertrail logging endpoint support [\#57](https://github.com/fastly/cli/pull/57)
+- Adds Logentries logging endpoint support [\#56](https://github.com/fastly/cli/pull/56)
+
+**Bug fixes:**
+
+- Fallback to a file copy during update if the file rename fails [\#72](https://github.com/fastly/cli/pull/72)
+
 ## [v0.8.0](https://github.com/fastly/cli/releases/tag/v0.8.0) (2020-05-13)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.7.1...v0.8.0)
 
 **Enhancements:**
 
+- Add a --force flag to compute build to skip verification steps. [\#68](https://github.com/fastly/cli/pull/68)
 - Verify fastly crate version during compute build. [\#67](https://github.com/fastly/cli/pull/67)
 - Improve `compute build` rust compilation error messaging [\#60](https://github.com/fastly/cli/pull/60)
-- logging: adds syslog logging endpoint [\#55](https://github.com/fastly/cli/pull/55)
+- Adds Syslog logging endpoint support [\#55](https://github.com/fastly/cli/pull/55)
 
 **Bug fixes:**
 
