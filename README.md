@@ -83,6 +83,25 @@ Built with go version go1.13.1 linux/amd64
 The Fastly CLI will notify you if a new version is available, and can update
 itself via `fastly update`.
 
+### GitHub Actions
+
+In your [GitHub Actions](https://github.com/features/actions) workflows, you can install and configure the Fastly CLI using the [Setup Fastly CLI](https://github.com/softprops/setup-fastly-cli) action.
+
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup Fastly CLI
+      uses: softprops/setup-fastly-cli@v1
+      env:
+        FASTLY_API_TOKEN: ${{ secrets.FASTLY_API_TOKEN }}
+    - name: Enjoy
+      run: fastly whoami
+```
+
 ## Usage
 
 The Fastly CLI interacts with [the Fastly API][api] via an [API token][tokens].
