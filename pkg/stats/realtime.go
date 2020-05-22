@@ -64,6 +64,7 @@ func loopJSON(client api.RealtimeStatsInterface, service string, out io.Writer) 
 			Data      []json.RawMessage `json:"data"`
 		}
 
+		// this is annoyingly similar to the same loop in loopText
 		err := client.GetRealtimeStatsJSON(&fastly.GetRealtimeStatsInput{
 			Service:   service,
 			Timestamp: timestamp,
@@ -82,6 +83,35 @@ func loopJSON(client api.RealtimeStatsInterface, service string, out io.Writer) 
 }
 
 func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) error {
+	responses := make(chan realtimeResponse)
+	errors := make(chan error)
+	go fetchData(client, service, responses, errors)
+
+	for {
+		select {
+		case err := <-errors:
+			text.Error(out, "fetching stats: %w", err)
+			continue
+		case envelope := <-responses:
+			for _, block := range envelope.Data {
+				agg := block.Aggregated
+
+				// FIXME: These are heavy-handed compatibility
+				// fixes for stats vs realtime, so we can use
+				// fmtBlock for both.
+				agg["start_time"] = block.Recorded
+				delete(agg, "miss_histogram")
+
+				if err := fmtBlock(out, service, agg); err != nil {
+					text.Error(out, "formatting stats: %w", err)
+					continue
+				}
+			}
+		}
+	}
+}
+
+func fetchData(client api.RealtimeStatsInterface, service string, responses chan realtimeResponse, errors chan error) {
 	var timestamp uint64
 	for {
 		var envelope realtimeResponse
@@ -91,24 +121,10 @@ func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) 
 			Timestamp: timestamp,
 		}, &envelope)
 		if err != nil {
-			text.Error(out, "fetching stats: %w", err)
+			errors <- err
 			continue
 		}
 		timestamp = envelope.Timestamp
-
-		for _, block := range envelope.Data {
-			agg := block.Aggregated
-
-			// FIXME: These are heavy-handed compatibility
-			// fixes for stats vs realtime, so we can use
-			// fmtBlock for both.
-			agg["start_time"] = block.Recorded
-			delete(agg, "miss_histogram")
-
-			if err := fmtBlock(out, service, agg); err != nil {
-				text.Error(out, "formatting stats: %w", err)
-				continue
-			}
-		}
+		responses <- envelope
 	}
 }
