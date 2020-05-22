@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
@@ -222,9 +221,11 @@ func fileNameWithoutExtension(filename string) string {
 }
 
 // getIgnoredFiles reads the .fastlyignore file line-by-line and expands the
-// glob pattern into a list of files it matches. If no ignore file is present
-// it returns an empty list.
-func getIgnoredFiles(filePath string) (files []string, err error) {
+// glob pattern into a map containing all files it matches. If no ignore file
+// is present it returns an empty map.
+func getIgnoredFiles(filePath string) (files map[string]bool, err error) {
+	files = make(map[string]bool)
+
 	if !common.FileExists(filePath) {
 		return files, nil
 	}
@@ -252,7 +253,9 @@ func getIgnoredFiles(filePath string) (files []string, err error) {
 		if err != nil {
 			return files, fmt.Errorf("parsing glob %s: %w", glob, err)
 		}
-		files = append(files, globFiles...)
+		for _, f := range globFiles {
+			files[f] = true
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -262,30 +265,23 @@ func getIgnoredFiles(filePath string) (files []string, err error) {
 	return files, nil
 }
 
-// getNonIgnoredFiles walks a filepath and returns all files which aren't
-// included in the provided ignore list. The ignore list is first sorted and
-// then searched for each possible file in the tree using a binary search.
-func getNonIgnoredFiles(base string, ignoredFiles []string) ([]string, error) {
+// getNonIgnoredFiles walks a filepath and returns all files don't exist in the
+// provided ignore files map.
+func getNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, error) {
 	var files []string
-
-	if len(ignoredFiles) > 1 {
-		sort.Strings(ignoredFiles)
-	}
-
-	if err := filepath.Walk(base, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(base, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() {
-			i := sort.SearchStrings(ignoredFiles, path)
-			if found := i < len(ignoredFiles) && ignoredFiles[i] == path; !found {
-				files = append(files, path)
-			}
+		if info.IsDir() {
+			return nil
 		}
+		if ignoredFiles[path] {
+			return nil
+		}
+		files = append(files, path)
 		return nil
-	}); err != nil {
-		return files, err
-	}
+	})
 
-	return files, nil
+	return files, err
 }

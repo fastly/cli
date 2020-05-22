@@ -111,31 +111,31 @@ func TestGetIgnoredFiles(t *testing.T) {
 	for _, testcase := range []struct {
 		name         string
 		fastlyignore string
-		wantfiles    []string
+		wantfiles    map[string]bool
 	}{
 		{
 			name:         "ignore src",
 			fastlyignore: "src/*",
-			wantfiles: []string{
-				filepath.Join("src/main.rs"),
+			wantfiles: map[string]bool{
+				filepath.Join("src/main.rs"): true,
 			},
 		},
 		{
 			name:         "ignore cargo files",
 			fastlyignore: "Cargo.*",
-			wantfiles: []string{
-				"Cargo.lock",
-				"Cargo.toml",
+			wantfiles: map[string]bool{
+				"Cargo.lock": true,
+				"Cargo.toml": true,
 			},
 		},
 		{
 			name:         "ignore all",
 			fastlyignore: "*",
-			wantfiles: []string{
-				".fastlyignore",
-				"Cargo.lock",
-				"Cargo.toml",
-				"src",
+			wantfiles: map[string]bool{
+				".fastlyignore": true,
+				"Cargo.lock":    true,
+				"Cargo.toml":    true,
+				"src":           true,
 			},
 		},
 	} {
@@ -171,13 +171,13 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 	for _, testcase := range []struct {
 		name         string
 		path         string
-		ignoredFiles []string
+		ignoredFiles map[string]bool
 		wantFiles    []string
 	}{
 		{
 			name:         "no ignored files",
 			path:         ".",
-			ignoredFiles: []string{},
+			ignoredFiles: map[string]bool{},
 			wantFiles: []string{
 				"Cargo.lock",
 				"Cargo.toml",
@@ -187,8 +187,8 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 		{
 			name: "one ignored file",
 			path: ".",
-			ignoredFiles: []string{
-				filepath.Join("src/main.rs"),
+			ignoredFiles: map[string]bool{
+				filepath.Join("src/main.rs"): true,
 			},
 			wantFiles: []string{
 				"Cargo.lock",
@@ -198,9 +198,9 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 		{
 			name: "multiple ignored files",
 			path: ".",
-			ignoredFiles: []string{
-				"Cargo.toml",
-				"Cargo.lock",
+			ignoredFiles: map[string]bool{
+				"Cargo.toml": true,
+				"Cargo.lock": true,
 			},
 			wantFiles: []string{
 				filepath.Join("src/main.rs"),
