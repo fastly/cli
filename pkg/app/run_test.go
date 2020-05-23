@@ -2034,7 +2034,7 @@ COMMANDS
     View realtime stats for a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID
-        --format=FORMAT          Output format (json)
+        --format=FORMAT          Output format (json, chart)
 
 For help on a specific command, try e.g.
 

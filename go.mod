@@ -7,10 +7,12 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/dustin/go-humanize v1.0.0
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
 	github.com/fastly/go-fastly v1.11.0
 	github.com/fatih/color v1.7.0
 	github.com/frankban/quicktest v1.5.0 // indirect
+	github.com/gizak/termui/v3 v3.1.0
 	github.com/google/go-cmp v0.3.1
 	github.com/google/go-github/v28 v28.1.1
 	github.com/google/jsonapi v0.0.0-20200226002910-c8283f632fb7 // indirect

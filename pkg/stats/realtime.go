@@ -29,7 +29,7 @@ func NewRealtimeCommand(parent common.Registerer, globals *config.Data) *Realtim
 	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.manifest.Flag.ServiceID)
 
-	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
+	c.CmdClause.Flag("format", "Output format (json, chart)").EnumVar(&c.formatFlag, "json", "chart")
 
 	return &c
 }
@@ -44,6 +44,10 @@ func (c *RealtimeCommand) Exec(in io.Reader, out io.Writer) error {
 	switch c.formatFlag {
 	case "json":
 		if err := loopJSON(c.Globals.RTSClient, service, out); err != nil {
+			return err
+		}
+	case "chart":
+		if err := loopChart(c.Globals.RTSClient, service, out); err != nil {
 			return err
 		}
 
@@ -106,6 +110,45 @@ func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) 
 					text.Error(out, "formatting stats: %w", err)
 					continue
 				}
+			}
+		}
+	}
+}
+
+func loopChart(client api.RealtimeStatsInterface, service string, out io.Writer) error {
+	responses := make(chan realtimeResponse)
+	errors := make(chan error)
+
+	view, err := NewView(service)
+	if err != nil {
+		return err
+	}
+	defer view.Close()
+	view.Resize()
+	view.SetLayout()
+
+	go fetchData(client, service, responses, errors)
+
+	for {
+		select {
+		case err := <-errors:
+			text.Error(out, "fetching stats: %w", err)
+			continue
+		case envelope := <-responses:
+			for _, block := range envelope.Data {
+				if err := view.UpdateStats(block); err != nil {
+					text.Error(out, "charting stats: %w", err)
+					continue
+				}
+				view.Render()
+			}
+		case e := <-view.Events:
+			switch e.ID { // event string/identifier
+			case "q", "<C-c>": // press 'q' or 'C-c' to quit
+				return nil
+			case "<Resize>":
+				view.Resize()
+				view.Render()
 			}
 		}
 	}

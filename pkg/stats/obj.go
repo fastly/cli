@@ -26,6 +26,7 @@ type realtimeResponse struct {
 }
 
 type realtimeResponseData struct {
-	Recorded   float64           `json:"recorded"`
-	Aggregated statsResponseData `json:"aggregated"`
+	Recorded   float64                      `json:"recorded"`
+	Aggregated statsResponseData            `json:"aggregated"`
+	Datacenter map[string]statsResponseData `json:"datacenter"`
 }
