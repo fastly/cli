@@ -22,6 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/azureblob"
 	"github.com/fastly/cli/pkg/logging/bigquery"
 	"github.com/fastly/cli/pkg/logging/cloudfiles"
+	"github.com/fastly/cli/pkg/logging/datadog"
 	"github.com/fastly/cli/pkg/logging/digitalocean"
 	"github.com/fastly/cli/pkg/logging/elasticsearch"
 	"github.com/fastly/cli/pkg/logging/ftp"
@@ -271,6 +272,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	azureblobUpdate := azureblob.NewUpdateCommand(azureblobRoot.CmdClause, &globals)
 	azureblobDelete := azureblob.NewDeleteCommand(azureblobRoot.CmdClause, &globals)
 
+	datadogRoot := datadog.NewRootCommand(loggingRoot.CmdClause, &globals)
+	datadogCreate := datadog.NewCreateCommand(datadogRoot.CmdClause, &globals)
+	datadogList := datadog.NewListCommand(datadogRoot.CmdClause, &globals)
+	datadogDescribe := datadog.NewDescribeCommand(datadogRoot.CmdClause, &globals)
+	datadogUpdate := datadog.NewUpdateCommand(datadogRoot.CmdClause, &globals)
+	datadogDelete := datadog.NewDeleteCommand(datadogRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -459,6 +467,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		azureblobDescribe,
 		azureblobUpdate,
 		azureblobDelete,
+
+		datadogRoot,
+		datadogCreate,
+		datadogList,
+		datadogDescribe,
+		datadogUpdate,
+		datadogDelete,
 
 		statsRoot,
 		statsRegions,

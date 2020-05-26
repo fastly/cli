@@ -2263,6 +2263,77 @@ COMMANDS
     -n, --name=NAME              The name of the Azure Blob Storage logging
                                  object
 
+  logging datadog create --name=NAME --version=VERSION --auth-token=AUTH-TOKEN [<flags>]
+    Create a Datadog logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the Datadog logging object. Used as
+                                 a primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --auth-token=AUTH-TOKEN  The API key from your Datadog account
+        --region=REGION          The region that log data will be sent to. One
+                                 of US or EU. Defaults to US if undefined
+        --format=FORMAT          Apache style log formatting. For details on the
+                                 default value refer to the documentation
+                                 (https://developer.fastly.com/reference/api/logging/datadog/)
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging datadog list --version=VERSION [<flags>]
+    List Datadog endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging datadog describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Datadog logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Datadog logging object
+
+  logging datadog update --version=VERSION --name=NAME [<flags>]
+    Update a Datadog logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Datadog logging object
+        --new-name=NEW-NAME      New name of the Datadog logging object
+        --auth-token=AUTH-TOKEN  The API key from your Datadog account
+        --region=REGION          The region that log data will be sent to. One
+                                 of US or EU. Defaults to US if undefined
+        --format=FORMAT          Apache style log formatting. For details on the
+                                 default value refer to the documentation
+                                 (https://developer.fastly.com/reference/api/logging/datadog/)
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging datadog delete --version=VERSION --name=NAME [<flags>]
+    Delete a Datadog logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Datadog logging object
+
   stats regions
     List stats regions
 

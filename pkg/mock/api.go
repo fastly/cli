@@ -157,6 +157,12 @@ type API struct {
 	UpdateBlobStorageFn func(*fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error)
 	DeleteBlobStorageFn func(*fastly.DeleteBlobStorageInput) error
 
+	CreateDatadogFn func(*fastly.CreateDatadogInput) (*fastly.Datadog, error)
+	ListDatadogFn   func(*fastly.ListDatadogInput) ([]*fastly.Datadog, error)
+	GetDatadogFn    func(*fastly.GetDatadogInput) (*fastly.Datadog, error)
+	UpdateDatadogFn func(*fastly.UpdateDatadogInput) (*fastly.Datadog, error)
+	DeleteDatadogFn func(*fastly.DeleteDatadogInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -781,6 +787,31 @@ func (m API) UpdateBlobStorage(i *fastly.UpdateBlobStorageInput) (*fastly.BlobSt
 // DeleteBlobStorage implements Interface.
 func (m API) DeleteBlobStorage(i *fastly.DeleteBlobStorageInput) error {
 	return m.DeleteBlobStorageFn(i)
+}
+
+// CreateDatadog implements Interface.
+func (m API) CreateDatadog(i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
+	return m.CreateDatadogFn(i)
+}
+
+// ListDatadog implements Interface.
+func (m API) ListDatadog(i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
+	return m.ListDatadogFn(i)
+}
+
+// GetDatadog implements Interface.
+func (m API) GetDatadog(i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
+	return m.GetDatadogFn(i)
+}
+
+// UpdateDatadog implements Interface.
+func (m API) UpdateDatadog(i *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
+	return m.UpdateDatadogFn(i)
+}
+
+// DeleteDatadog implements Interface.
+func (m API) DeleteDatadog(i *fastly.DeleteDatadogInput) error {
+	return m.DeleteDatadogFn(i)
 }
 
 // GetUser implements Interface.
