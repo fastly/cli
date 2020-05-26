@@ -45,7 +45,7 @@ func NewBuildCommand(parent common.Registerer, client api.HTTPClient, globals *c
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.name)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.lang)
-	c.CmdClause.Flag("include-src", "Include src directory in package").BoolVar(&c.includeSrc)
+	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.includeSrc)
 	c.CmdClause.Flag("force", "Skip verification steps and force build").BoolVar(&c.force)
 	return &c
 }
