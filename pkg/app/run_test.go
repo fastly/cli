@@ -2015,6 +2015,141 @@ COMMANDS
     -n, --name=NAME              The name of the DigitalOcean Spaces logging
                                  object
 
+  logging elasticsearch create --name=NAME --version=VERSION --index=INDEX --url=URL [<flags>]
+    Create an Elasticsearch logging endpoint on a Fastly service version
+
+    -n, --name=NAME                The name of the Elasticsearch logging object.
+                                   Used as a primary key for API access
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+        --index=INDEX              The name of the Elasticsearch index to send
+                                   documents (logs) to. The index must follow
+                                   the Elasticsearch index format rules
+                                   (https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html).
+                                   We support strftime
+                                   (http://man7.org/linux/man-pages/man3/strftime.3.html)
+                                   interpolated variables inside braces prefixed
+                                   with a pound symbol. For example, #{%F} will
+                                   interpolate as YYYY-MM-DD with today's date
+        --url=URL                  The URL to stream logs to. Must use HTTPS.
+        --pipeline=PIPELINE        The ID of the Elasticsearch ingest pipeline
+                                   to apply pre-process transformations to
+                                   before indexing. For example my_pipeline_id.
+                                   Learn more about creating a pipeline in the
+                                   Elasticsearch docs
+                                   (https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html)
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-client-cert=TLS-CLIENT-CERT
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME
+                                   The hostname used to verify the server's
+                                   certificate. It can either be the Common Name
+                                   or a Subject Alternative Name (SAN)
+        --format=FORMAT            Apache style log formatting. Your log must
+                                   produce valid JSON that Elasticsearch can
+                                   ingest
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --request-max-entries=REQUEST-MAX-ENTRIES
+                                   Maximum number of logs to append to a batch,
+                                   if non-zero. Defaults to 0 for unbounded
+        --request-max-bytes=REQUEST-MAX-BYTES
+                                   Maximum size of log batch, if non-zero.
+                                   Defaults to 0 for unbounded
+
+  logging elasticsearch list --version=VERSION [<flags>]
+    List Elasticsearch endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging elasticsearch describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about an Elasticsearch logging endpoint on a
+    Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Elasticsearch logging object
+
+  logging elasticsearch update --version=VERSION --name=NAME [<flags>]
+    Update an Elasticsearch logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+    -n, --name=NAME                The name of the Elasticsearch logging object
+        --new-name=NEW-NAME        New name of the Elasticsearch logging object
+        --index=INDEX              The name of the Elasticsearch index to send
+                                   documents (logs) to. The index must follow
+                                   the Elasticsearch index format rules
+                                   (https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html).
+                                   We support strftime
+                                   (http://man7.org/linux/man-pages/man3/strftime.3.html)
+                                   interpolated variables inside braces prefixed
+                                   with a pound symbol. For example, #{%F} will
+                                   interpolate as YYYY-MM-DD with today's date
+        --url=URL                  The URL to stream logs to. Must use HTTPS.
+        --pipeline=PIPELINE        The ID of the Elasticsearch ingest pipeline
+                                   to apply pre-process transformations to
+                                   before indexing. For example my_pipeline_id.
+                                   Learn more about creating a pipeline in the
+                                   Elasticsearch docs
+                                   (https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html)
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-client-cert=TLS-CLIENT-CERT
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME
+                                   The hostname used to verify the server's
+                                   certificate. It can either be the Common Name
+                                   or a Subject Alternative Name (SAN)
+        --format=FORMAT            Apache style log formatting. Your log must
+                                   produce valid JSON that Elasticsearch can
+                                   ingest
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --request-max-entries=REQUEST-MAX-ENTRIES
+                                   Maximum number of logs to append to a batch,
+                                   if non-zero. Defaults to 0 for unbounded
+        --request-max-bytes=REQUEST-MAX-BYTES
+                                   Maximum size of log batch, if non-zero.
+                                   Defaults to 0 for unbounded
+
+  logging elasticsearch delete --version=VERSION --name=NAME [<flags>]
+    Delete an Elasticsearch logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Elasticsearch logging object
+
   stats regions
     List stats regions
 
