@@ -151,6 +151,12 @@ type API struct {
 	UpdateElasticsearchFn func(*fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error)
 	DeleteElasticsearchFn func(*fastly.DeleteElasticsearchInput) error
 
+	CreateBlobStorageFn func(*fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error)
+	ListBlobStoragesFn  func(*fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error)
+	GetBlobStorageFn    func(*fastly.GetBlobStorageInput) (*fastly.BlobStorage, error)
+	UpdateBlobStorageFn func(*fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error)
+	DeleteBlobStorageFn func(*fastly.DeleteBlobStorageInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -750,6 +756,31 @@ func (m API) UpdateElasticsearch(i *fastly.UpdateElasticsearchInput) (*fastly.El
 // DeleteElasticsearch implements Interface.
 func (m API) DeleteElasticsearch(i *fastly.DeleteElasticsearchInput) error {
 	return m.DeleteElasticsearchFn(i)
+}
+
+// CreateBlobStorage implements Interface.
+func (m API) CreateBlobStorage(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
+	return m.CreateBlobStorageFn(i)
+}
+
+// ListBlobStorages implements Interface.
+func (m API) ListBlobStorages(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
+	return m.ListBlobStoragesFn(i)
+}
+
+// GetBlobStorage implements Interface.
+func (m API) GetBlobStorage(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
+	return m.GetBlobStorageFn(i)
+}
+
+// UpdateBlobStorage implements Interface.
+func (m API) UpdateBlobStorage(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
+	return m.UpdateBlobStorageFn(i)
+}
+
+// DeleteBlobStorage implements Interface.
+func (m API) DeleteBlobStorage(i *fastly.DeleteBlobStorageInput) error {
+	return m.DeleteBlobStorageFn(i)
 }
 
 // GetUser implements Interface.
