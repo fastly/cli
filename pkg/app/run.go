@@ -29,6 +29,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/gcs"
 	"github.com/fastly/cli/pkg/logging/heroku"
 	"github.com/fastly/cli/pkg/logging/honeycomb"
+	"github.com/fastly/cli/pkg/logging/https"
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/loggly"
 	"github.com/fastly/cli/pkg/logging/logshuttle"
@@ -279,6 +280,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	datadogUpdate := datadog.NewUpdateCommand(datadogRoot.CmdClause, &globals)
 	datadogDelete := datadog.NewDeleteCommand(datadogRoot.CmdClause, &globals)
 
+	httpsRoot := https.NewRootCommand(loggingRoot.CmdClause, &globals)
+	httpsCreate := https.NewCreateCommand(httpsRoot.CmdClause, &globals)
+	httpsList := https.NewListCommand(httpsRoot.CmdClause, &globals)
+	httpsDescribe := https.NewDescribeCommand(httpsRoot.CmdClause, &globals)
+	httpsUpdate := https.NewUpdateCommand(httpsRoot.CmdClause, &globals)
+	httpsDelete := https.NewDeleteCommand(httpsRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -474,6 +482,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		datadogDescribe,
 		datadogUpdate,
 		datadogDelete,
+
+		httpsRoot,
+		httpsCreate,
+		httpsList,
+		httpsDescribe,
+		httpsUpdate,
+		httpsDelete,
 
 		statsRoot,
 		statsRegions,

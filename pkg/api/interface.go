@@ -172,6 +172,12 @@ type Interface interface {
 	UpdateDatadog(*fastly.UpdateDatadogInput) (*fastly.Datadog, error)
 	DeleteDatadog(*fastly.DeleteDatadogInput) error
 
+	CreateHTTPS(*fastly.CreateHTTPSInput) (*fastly.HTTPS, error)
+	ListHTTPS(*fastly.ListHTTPSInput) ([]*fastly.HTTPS, error)
+	GetHTTPS(*fastly.GetHTTPSInput) (*fastly.HTTPS, error)
+	UpdateHTTPS(*fastly.UpdateHTTPSInput) (*fastly.HTTPS, error)
+	DeleteHTTPS(*fastly.DeleteHTTPSInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
