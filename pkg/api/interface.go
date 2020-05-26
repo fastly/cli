@@ -160,6 +160,12 @@ type Interface interface {
 	UpdateElasticsearch(*fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error)
 	DeleteElasticsearch(*fastly.DeleteElasticsearchInput) error
 
+	CreateBlobStorage(*fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error)
+	ListBlobStorages(*fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error)
+	GetBlobStorage(*fastly.GetBlobStorageInput) (*fastly.BlobStorage, error)
+	UpdateBlobStorage(*fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error)
+	DeleteBlobStorage(*fastly.DeleteBlobStorageInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)

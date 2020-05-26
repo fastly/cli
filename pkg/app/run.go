@@ -19,6 +19,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/healthcheck"
 	"github.com/fastly/cli/pkg/logging"
+	"github.com/fastly/cli/pkg/logging/azureblob"
 	"github.com/fastly/cli/pkg/logging/bigquery"
 	"github.com/fastly/cli/pkg/logging/cloudfiles"
 	"github.com/fastly/cli/pkg/logging/digitalocean"
@@ -256,17 +257,24 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	digitaloceanUpdate := digitalocean.NewUpdateCommand(digitaloceanRoot.CmdClause, &globals)
 	digitaloceanDelete := digitalocean.NewDeleteCommand(digitaloceanRoot.CmdClause, &globals)
 
-	statsRoot := stats.NewRootCommand(app, &globals)
-	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
-	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
-	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
-
 	elasticsearchRoot := elasticsearch.NewRootCommand(loggingRoot.CmdClause, &globals)
 	elasticsearchCreate := elasticsearch.NewCreateCommand(elasticsearchRoot.CmdClause, &globals)
 	elasticsearchList := elasticsearch.NewListCommand(elasticsearchRoot.CmdClause, &globals)
 	elasticsearchDescribe := elasticsearch.NewDescribeCommand(elasticsearchRoot.CmdClause, &globals)
 	elasticsearchUpdate := elasticsearch.NewUpdateCommand(elasticsearchRoot.CmdClause, &globals)
 	elasticsearchDelete := elasticsearch.NewDeleteCommand(elasticsearchRoot.CmdClause, &globals)
+
+	azureblobRoot := azureblob.NewRootCommand(loggingRoot.CmdClause, &globals)
+	azureblobCreate := azureblob.NewCreateCommand(azureblobRoot.CmdClause, &globals)
+	azureblobList := azureblob.NewListCommand(azureblobRoot.CmdClause, &globals)
+	azureblobDescribe := azureblob.NewDescribeCommand(azureblobRoot.CmdClause, &globals)
+	azureblobUpdate := azureblob.NewUpdateCommand(azureblobRoot.CmdClause, &globals)
+	azureblobDelete := azureblob.NewDeleteCommand(azureblobRoot.CmdClause, &globals)
+
+	statsRoot := stats.NewRootCommand(app, &globals)
+	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
+	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
+	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
 
 	commands := []common.Command{
 		configureRoot,
@@ -444,6 +452,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		elasticsearchDescribe,
 		elasticsearchUpdate,
 		elasticsearchDelete,
+
+		azureblobRoot,
+		azureblobCreate,
+		azureblobList,
+		azureblobDescribe,
+		azureblobUpdate,
+		azureblobDelete,
 
 		statsRoot,
 		statsRegions,
