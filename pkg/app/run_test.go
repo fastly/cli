@@ -2334,6 +2334,147 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Datadog logging object
 
+  logging https create --name=NAME --version=VERSION --url=URL [<flags>]
+    Create an HTTPS logging endpoint on a Fastly service version
+
+    -n, --name=NAME                The name of the HTTPS logging object. Used as
+                                   a primary key for API access
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+        --url=URL                  URL that log data will be sent to. Must use
+                                   the https protocol
+        --content-type=CONTENT-TYPE
+                                   Content type of the header sent with the
+                                   request
+        --header-name=HEADER-NAME  Name of the custom header sent with the
+                                   request
+        --header-value=HEADER-VALUE
+                                   Value of the custom header sent with the
+                                   request
+        --method=METHOD            HTTP method used for request. Can be POST or
+                                   PUT. Defaults to POST if not specified
+        --json-format=JSON-FORMAT  Enforces valid JSON formatting for log
+                                   entries. Can be disabled 0, array of json
+                                   (wraps JSON log batches in an array) 1, or
+                                   newline delimited json (places each JSON log
+                                   entry onto a new line in a batch) 2
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-client-cert=TLS-CLIENT-CERT
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME
+                                   The hostname used to verify the server's
+                                   certificate. It can either be the Common Name
+                                   or a Subject Alternative Name (SAN)
+        --message-type=MESSAGE-TYPE
+                                   How the message should be formatted. One of:
+                                   classic (default), loggly, logplex or blank
+        --format=FORMAT            Apache style log formatting. Your log must
+                                   produce valid JSON that HTTPS can ingest
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --request-max-entries=REQUEST-MAX-ENTRIES
+                                   Maximum number of logs to append to a batch,
+                                   if non-zero. Defaults to 0 for unbounded
+        --request-max-bytes=REQUEST-MAX-BYTES
+                                   Maximum size of log batch, if non-zero.
+                                   Defaults to 0 for unbounded
+
+  logging https list --version=VERSION [<flags>]
+    List HTTPS endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging https describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about an HTTPS logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the HTTPS logging object
+
+  logging https update --version=VERSION --name=NAME [<flags>]
+    Update an HTTPS logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+    -n, --name=NAME                The name of the HTTPS logging object
+        --new-name=NEW-NAME        New name of the HTTPS logging object
+        --url=URL                  URL that log data will be sent to. Must use
+                                   the https protocol
+        --content-type=CONTENT-TYPE
+                                   Content type of the header sent with the
+                                   request
+        --header-name=HEADER-NAME  Name of the custom header sent with the
+                                   request
+        --header-value=HEADER-VALUE
+                                   Value of the custom header sent with the
+                                   request
+        --method=METHOD            HTTP method used for request. Can be POST or
+                                   PUT. Defaults to POST if not specified
+        --json-format=JSON-FORMAT  Enforces valid JSON formatting for log
+                                   entries. Can be disabled 0, array of json
+                                   (wraps JSON log batches in an array) 1, or
+                                   newline delimited json (places each JSON log
+                                   entry onto a new line in a batch) 2
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-client-cert=TLS-CLIENT-CERT
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME
+                                   The hostname used to verify the server's
+                                   certificate. It can either be the Common Name
+                                   or a Subject Alternative Name (SAN)
+        --message-type=MESSAGE-TYPE
+                                   How the message should be formatted. One of:
+                                   classic (default), loggly, logplex or blank
+        --format=FORMAT            Apache style log formatting. Your log must
+                                   produce valid JSON that HTTPS can ingest
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --request-max-entries=REQUEST-MAX-ENTRIES
+                                   Maximum number of logs to append to a batch,
+                                   if non-zero. Defaults to 0 for unbounded
+        --request-max-bytes=REQUEST-MAX-BYTES
+                                   Maximum size of log batch, if non-zero.
+                                   Defaults to 0 for unbounded
+
+  logging https delete --version=VERSION --name=NAME [<flags>]
+    Delete an HTTPS logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the HTTPS logging object
+
   stats regions
     List stats regions
 

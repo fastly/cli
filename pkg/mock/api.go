@@ -163,6 +163,12 @@ type API struct {
 	UpdateDatadogFn func(*fastly.UpdateDatadogInput) (*fastly.Datadog, error)
 	DeleteDatadogFn func(*fastly.DeleteDatadogInput) error
 
+	CreateHTTPSFn func(*fastly.CreateHTTPSInput) (*fastly.HTTPS, error)
+	ListHTTPSFn   func(*fastly.ListHTTPSInput) ([]*fastly.HTTPS, error)
+	GetHTTPSFn    func(*fastly.GetHTTPSInput) (*fastly.HTTPS, error)
+	UpdateHTTPSFn func(*fastly.UpdateHTTPSInput) (*fastly.HTTPS, error)
+	DeleteHTTPSFn func(*fastly.DeleteHTTPSInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -812,6 +818,31 @@ func (m API) UpdateDatadog(i *fastly.UpdateDatadogInput) (*fastly.Datadog, error
 // DeleteDatadog implements Interface.
 func (m API) DeleteDatadog(i *fastly.DeleteDatadogInput) error {
 	return m.DeleteDatadogFn(i)
+}
+
+// CreateHTTPS implements Interface.
+func (m API) CreateHTTPS(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
+	return m.CreateHTTPSFn(i)
+}
+
+// ListHTTPS implements Interface.
+func (m API) ListHTTPS(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
+	return m.ListHTTPSFn(i)
+}
+
+// GetHTTPS implements Interface.
+func (m API) GetHTTPS(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
+	return m.GetHTTPSFn(i)
+}
+
+// UpdateHTTPS implements Interface.
+func (m API) UpdateHTTPS(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
+	return m.UpdateHTTPSFn(i)
+}
+
+// DeleteHTTPS implements Interface.
+func (m API) DeleteHTTPS(i *fastly.DeleteHTTPSInput) error {
+	return m.DeleteHTTPSFn(i)
 }
 
 // GetUser implements Interface.
