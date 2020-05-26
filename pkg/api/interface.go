@@ -154,6 +154,12 @@ type Interface interface {
 	UpdateDigitalOcean(*fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error)
 	DeleteDigitalOcean(*fastly.DeleteDigitalOceanInput) error
 
+	CreateElasticsearch(*fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error)
+	ListElasticsearch(*fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error)
+	GetElasticsearch(*fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error)
+	UpdateElasticsearch(*fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error)
+	DeleteElasticsearch(*fastly.DeleteElasticsearchInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)

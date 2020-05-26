@@ -22,6 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/bigquery"
 	"github.com/fastly/cli/pkg/logging/cloudfiles"
 	"github.com/fastly/cli/pkg/logging/digitalocean"
+	"github.com/fastly/cli/pkg/logging/elasticsearch"
 	"github.com/fastly/cli/pkg/logging/ftp"
 	"github.com/fastly/cli/pkg/logging/gcs"
 	"github.com/fastly/cli/pkg/logging/heroku"
@@ -260,6 +261,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
 	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
 
+	elasticsearchRoot := elasticsearch.NewRootCommand(loggingRoot.CmdClause, &globals)
+	elasticsearchCreate := elasticsearch.NewCreateCommand(elasticsearchRoot.CmdClause, &globals)
+	elasticsearchList := elasticsearch.NewListCommand(elasticsearchRoot.CmdClause, &globals)
+	elasticsearchDescribe := elasticsearch.NewDescribeCommand(elasticsearchRoot.CmdClause, &globals)
+	elasticsearchUpdate := elasticsearch.NewUpdateCommand(elasticsearchRoot.CmdClause, &globals)
+	elasticsearchDelete := elasticsearch.NewDeleteCommand(elasticsearchRoot.CmdClause, &globals)
+
 	commands := []common.Command{
 		configureRoot,
 		whoamiRoot,
@@ -429,6 +437,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		digitaloceanDescribe,
 		digitaloceanUpdate,
 		digitaloceanDelete,
+
+		elasticsearchRoot,
+		elasticsearchCreate,
+		elasticsearchList,
+		elasticsearchDescribe,
+		elasticsearchUpdate,
+		elasticsearchDelete,
 
 		statsRoot,
 		statsRegions,

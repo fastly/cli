@@ -145,6 +145,12 @@ type API struct {
 	UpdateDigitalOceanFn func(*fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error)
 	DeleteDigitalOceanFn func(*fastly.DeleteDigitalOceanInput) error
 
+	CreateElasticsearchFn func(*fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error)
+	ListElasticsearchFn   func(*fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error)
+	GetElasticsearchFn    func(*fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error)
+	UpdateElasticsearchFn func(*fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error)
+	DeleteElasticsearchFn func(*fastly.DeleteElasticsearchInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -719,6 +725,31 @@ func (m API) UpdateDigitalOcean(i *fastly.UpdateDigitalOceanInput) (*fastly.Digi
 // DeleteDigitalOcean implements Interface.
 func (m API) DeleteDigitalOcean(i *fastly.DeleteDigitalOceanInput) error {
 	return m.DeleteDigitalOceanFn(i)
+}
+
+// CreateElasticsearch implements Interface.
+func (m API) CreateElasticsearch(i *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
+	return m.CreateElasticsearchFn(i)
+}
+
+// ListElasticsearch implements Interface.
+func (m API) ListElasticsearch(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
+	return m.ListElasticsearchFn(i)
+}
+
+// GetElasticsearch implements Interface.
+func (m API) GetElasticsearch(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
+	return m.GetElasticsearchFn(i)
+}
+
+// UpdateElasticsearch implements Interface.
+func (m API) UpdateElasticsearch(i *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
+	return m.UpdateElasticsearchFn(i)
+}
+
+// DeleteElasticsearch implements Interface.
+func (m API) DeleteElasticsearch(i *fastly.DeleteElasticsearchInput) error {
+	return m.DeleteElasticsearchFn(i)
 }
 
 // GetUser implements Interface.
