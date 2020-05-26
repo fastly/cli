@@ -14,7 +14,7 @@ import (
 )
 
 // Maximum number of time slots to remember (1 sec per spot)
-const MaxSlots = 60
+const maxSlots = 60
 
 type View struct {
 	Events  <-chan ui.Event
@@ -98,9 +98,8 @@ func NewView(service string) (*View, error) {
 	view.HitRatio.LabelFormatter = func(i int, v float64) string {
 		if v > 0.0 {
 			return fmt.Sprintf("%.01f%%", v*100)
-		} else {
-			return ""
 		}
+		return ""
 	}
 
 	view.MissTime = widgets.NewParagraph()
@@ -124,9 +123,9 @@ func NewView(service string) (*View, error) {
 	view.ReqChart = widgets.NewStackedBarChart()
 	view.ReqChart.NumFormatter = func(v float64) string { return "" }
 	// Stacked bar charts are too wide, so only do the last 30 seconds
-	view.ReqData = make([][]float64, MaxSlots/2, MaxSlots/2)
-	for i, _ := range view.ReqData {
-		view.ReqData[i] = make([]float64, 5, 5)
+	view.ReqData = make([][]float64, maxSlots/2)
+	for i := range view.ReqData {
+		view.ReqData[i] = make([]float64, 5)
 	}
 
 	view.BandwidthLabel = widgets.NewParagraph()
@@ -136,7 +135,7 @@ func NewView(service string) (*View, error) {
 	view.BandwidthChart.LineColor = view.BandwidthLabel.BorderStyle.Fg
 	view.BandwidthGroup = widgets.NewSparklineGroup(view.BandwidthChart)
 	view.BandwidthGroup.BorderStyle.Fg = view.BandwidthLabel.BorderStyle.Fg
-	view.BandwidthData = make([]float64, MaxSlots, MaxSlots)
+	view.BandwidthData = make([]float64, maxSlots)
 
 	// Fourth Row
 	view.ErrLabel = widgets.NewParagraph()
@@ -146,7 +145,7 @@ func NewView(service string) (*View, error) {
 	view.ErrChart.LineColor = view.ErrLabel.BorderStyle.Fg
 	view.ErrGroup = widgets.NewSparklineGroup(view.ErrChart)
 	view.ErrGroup.BorderStyle.Fg = view.ErrLabel.BorderStyle.Fg
-	view.ErrData = make([]float64, MaxSlots, MaxSlots)
+	view.ErrData = make([]float64, maxSlots)
 
 	view.HitLabel = widgets.NewParagraph()
 	view.HitLabel.Title = "Hit Ratio"
@@ -155,7 +154,7 @@ func NewView(service string) (*View, error) {
 	view.HitChart.LineColor = view.HitLabel.BorderStyle.Fg
 	view.HitGroup = widgets.NewSparklineGroup(view.HitChart)
 	view.HitGroup.BorderStyle.Fg = view.HitLabel.BorderStyle.Fg
-	view.HitData = make([]float64, MaxSlots, MaxSlots)
+	view.HitData = make([]float64, maxSlots)
 
 	// Fifth Row
 	view.IoLabel = widgets.NewParagraph()
@@ -165,7 +164,7 @@ func NewView(service string) (*View, error) {
 	view.IoChart.LineColor = view.IoLabel.BorderStyle.Fg
 	view.IoGroup = widgets.NewSparklineGroup(view.IoChart)
 	view.IoGroup.BorderStyle.Fg = view.IoLabel.BorderStyle.Fg
-	view.IoData = make([]float64, MaxSlots, MaxSlots)
+	view.IoData = make([]float64, maxSlots)
 
 	view.LoggingLabel = widgets.NewParagraph()
 	view.LoggingLabel.Title = "Logs Sent"
@@ -174,7 +173,7 @@ func NewView(service string) (*View, error) {
 	view.LoggingChart.LineColor = view.LoggingLabel.BorderStyle.Fg
 	view.LoggingGroup = widgets.NewSparklineGroup(view.LoggingChart)
 	view.LoggingGroup.BorderStyle.Fg = view.LoggingLabel.BorderStyle.Fg
-	view.LoggingData = make([]float64, MaxSlots, MaxSlots)
+	view.LoggingData = make([]float64, maxSlots)
 
 	return &view, nil
 }
@@ -250,7 +249,7 @@ func (v *View) UpdateStats(block realtimeResponseData) error {
 	// Second Row
 	var dcLabels []string
 	var dcReqs []float64
-	for dc, _ := range block.Datacenter {
+	for dc := range block.Datacenter {
 		if len(dc) > 3 {
 			continue
 		}
