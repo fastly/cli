@@ -141,6 +141,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	files = append(files, binFiles...)
 
 	if c.includeSrc {
+		// TODO(phamann): we will need to lookup the directory name based on the
+		// source language type when we support multiple languages.
 		srcFiles, err := getNonIgnoredFiles("src", ignoreFiles)
 		if err != nil {
 			return err
