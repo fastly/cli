@@ -166,6 +166,12 @@ type Interface interface {
 	UpdateBlobStorage(*fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error)
 	DeleteBlobStorage(*fastly.DeleteBlobStorageInput) error
 
+	CreateDatadog(*fastly.CreateDatadogInput) (*fastly.Datadog, error)
+	ListDatadog(*fastly.ListDatadogInput) ([]*fastly.Datadog, error)
+	GetDatadog(*fastly.GetDatadogInput) (*fastly.Datadog, error)
+	UpdateDatadog(*fastly.UpdateDatadogInput) (*fastly.Datadog, error)
+	DeleteDatadog(*fastly.DeleteDatadogInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
