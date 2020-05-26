@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="Fastly CLI logo" src="https://raw.githubusercontent.com/fastly/cli/phamann/update-readme/docs/img/cli-logo.svg?sanitize=true" height="140" />
+  <img alt="Fastly CLI logo" src="https://raw.githubusercontent.com/fastly/cli/master/docs/img/cli-logo.svg?sanitize=true" height="140" />
   <h3 align="center">Fastly CLI</h3>
   <p align="center">A CLI for interacting with the Fastly platform.</p>
   <p align="center">
