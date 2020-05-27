@@ -30,6 +30,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/heroku"
 	"github.com/fastly/cli/pkg/logging/honeycomb"
 	"github.com/fastly/cli/pkg/logging/https"
+	"github.com/fastly/cli/pkg/logging/kafka"
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/loggly"
 	"github.com/fastly/cli/pkg/logging/logshuttle"
@@ -292,6 +293,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
 	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
 
+	kafkaRoot := kafka.NewRootCommand(loggingRoot.CmdClause, &globals)
+	kafkaCreate := kafka.NewCreateCommand(kafkaRoot.CmdClause, &globals)
+	kafkaList := kafka.NewListCommand(kafkaRoot.CmdClause, &globals)
+	kafkaDescribe := kafka.NewDescribeCommand(kafkaRoot.CmdClause, &globals)
+	kafkaUpdate := kafka.NewUpdateCommand(kafkaRoot.CmdClause, &globals)
+	kafkaDelete := kafka.NewDeleteCommand(kafkaRoot.CmdClause, &globals)
+
 	commands := []common.Command{
 		configureRoot,
 		whoamiRoot,
@@ -489,6 +497,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		httpsDescribe,
 		httpsUpdate,
 		httpsDelete,
+
+		kafkaRoot,
+		kafkaCreate,
+		kafkaList,
+		kafkaDescribe,
+		kafkaUpdate,
+		kafkaDelete,
 
 		statsRoot,
 		statsRegions,

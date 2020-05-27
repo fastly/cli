@@ -2475,6 +2475,125 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the HTTPS logging object
 
+  logging kafka create --name=NAME --version=VERSION --topic=TOPIC --brokers=BROKERS [<flags>]
+    Create a Kafka logging endpoint on a Fastly service version
+
+    -n, --name=NAME                The name of the Kafka logging object. Used as
+                                   a primary key for API access
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+        --topic=TOPIC              The Kafka topic to send logs to
+        --brokers=BROKERS          A comma-separated list of IP addresses or
+                                   hostnames of Kafka brokers
+        --compression-codec=COMPRESSION-CODEC
+                                   The codec used for compression of your logs.
+                                   One of: gzip, snappy, lz4
+        --required-acks=REQUIRED-ACKS
+                                   The Number of acknowledgements a leader must
+                                   receive before a write is considered
+                                   successful. One of: 1 (default) One server
+                                   needs to respond. 0 No servers need to
+                                   respond. -1 Wait for all in-sync replicas to
+                                   respond
+        --use-tls                  Whether to use TLS for secure logging. Can be
+                                   either true or false
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-client-cert=TLS-CLIENT-CERT
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME
+                                   The hostname used to verify the server's
+                                   certificate. It can either be the Common Name
+                                   or a Subject Alternative Name (SAN)
+        --format=FORMAT            Apache style log formatting. Your log must
+                                   produce valid JSON that Kafka can ingest
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+
+  logging kafka list --version=VERSION [<flags>]
+    List Kafka endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging kafka describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Kafka logging endpoint on a Fastly service
+    version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Kafka logging object
+
+  logging kafka update --version=VERSION --name=NAME [<flags>]
+    Update a Kafka logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID    Service ID
+        --version=VERSION          Number of service version
+    -n, --name=NAME                The name of the Kafka logging object
+        --new-name=NEW-NAME        New name of the Kafka logging object
+        --topic=TOPIC              The Kafka topic to send logs to
+        --brokers=BROKERS          A comma-separated list of IP addresses or
+                                   hostnames of Kafka brokers
+        --compression-codec=COMPRESSION-CODEC
+                                   The codec used for compression of your logs.
+                                   One of: gzip, snappy, lz4
+        --required-acks=REQUIRED-ACKS
+                                   The Number of acknowledgements a leader must
+                                   receive before a write is considered
+                                   successful. One of: 1 (default) One server
+                                   needs to respond. 0 No servers need to
+                                   respond. -1 Wait for all in-sync replicas to
+                                   respond
+        --use-tls                  Whether to use TLS for secure logging. Can be
+                                   either true or false
+        --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
+                                   server with. Must be in PEM format
+        --tls-client-cert=TLS-CLIENT-CERT
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-hostname=TLS-HOSTNAME
+                                   The hostname used to verify the server's
+                                   certificate. It can either be the Common Name
+                                   or a Subject Alternative Name (SAN)
+        --format=FORMAT            Apache style log formatting. Your log must
+                                   produce valid JSON that Kafka can ingest
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+
+  logging kafka delete --version=VERSION --name=NAME [<flags>]
+    Delete a Kafka logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Kafka logging object
+
   stats regions
     List stats regions
 

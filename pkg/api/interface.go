@@ -178,6 +178,12 @@ type Interface interface {
 	UpdateHTTPS(*fastly.UpdateHTTPSInput) (*fastly.HTTPS, error)
 	DeleteHTTPS(*fastly.DeleteHTTPSInput) error
 
+	CreateKafka(*fastly.CreateKafkaInput) (*fastly.Kafka, error)
+	ListKafkas(*fastly.ListKafkasInput) ([]*fastly.Kafka, error)
+	GetKafka(*fastly.GetKafkaInput) (*fastly.Kafka, error)
+	UpdateKafka(*fastly.UpdateKafkaInput) (*fastly.Kafka, error)
+	DeleteKafka(*fastly.DeleteKafkaInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
