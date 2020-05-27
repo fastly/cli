@@ -184,6 +184,12 @@ type Interface interface {
 	UpdateKafka(*fastly.UpdateKafkaInput) (*fastly.Kafka, error)
 	DeleteKafka(*fastly.DeleteKafkaInput) error
 
+	CreatePubsub(*fastly.CreatePubsubInput) (*fastly.Pubsub, error)
+	ListPubsubs(*fastly.ListPubsubsInput) ([]*fastly.Pubsub, error)
+	GetPubsub(*fastly.GetPubsubInput) (*fastly.Pubsub, error)
+	UpdatePubsub(*fastly.UpdatePubsubInput) (*fastly.Pubsub, error)
+	DeletePubsub(*fastly.DeletePubsubInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)

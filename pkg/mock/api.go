@@ -175,6 +175,12 @@ type API struct {
 	UpdateKafkaFn func(*fastly.UpdateKafkaInput) (*fastly.Kafka, error)
 	DeleteKafkaFn func(*fastly.DeleteKafkaInput) error
 
+	CreatePubsubFn func(*fastly.CreatePubsubInput) (*fastly.Pubsub, error)
+	ListPubsubsFn  func(*fastly.ListPubsubsInput) ([]*fastly.Pubsub, error)
+	GetPubsubFn    func(*fastly.GetPubsubInput) (*fastly.Pubsub, error)
+	UpdatePubsubFn func(*fastly.UpdatePubsubInput) (*fastly.Pubsub, error)
+	DeletePubsubFn func(*fastly.DeletePubsubInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -874,6 +880,31 @@ func (m API) UpdateKafka(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 // DeleteKafka implements Interface.
 func (m API) DeleteKafka(i *fastly.DeleteKafkaInput) error {
 	return m.DeleteKafkaFn(i)
+}
+
+// CreatePubsub implements Interface.
+func (m API) CreatePubsub(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
+	return m.CreatePubsubFn(i)
+}
+
+// ListPubsubs implements Interface.
+func (m API) ListPubsubs(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
+	return m.ListPubsubsFn(i)
+}
+
+// GetPubsub implements Interface.
+func (m API) GetPubsub(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
+	return m.GetPubsubFn(i)
+}
+
+// UpdatePubsub implements Interface.
+func (m API) UpdatePubsub(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
+	return m.UpdatePubsubFn(i)
+}
+
+// DeletePubsub implements Interface.
+func (m API) DeletePubsub(i *fastly.DeletePubsubInput) error {
+	return m.DeletePubsubFn(i)
 }
 
 // GetUser implements Interface.
