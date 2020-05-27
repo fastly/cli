@@ -16,14 +16,16 @@ type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 
-	Input fastly.GetS3Input
+	// required
+	EndpointName string // Can't shaddow common.Base method Name().
+	Version      int
 
-	NewName common.OptionalString
-
-	BucketName common.OptionalString
-	AccessKey  common.OptionalString
-	SecretKey  common.OptionalString
-
+	// optional
+	NewName                      common.OptionalString
+	Address                      common.OptionalString
+	BucketName                   common.OptionalString
+	AccessKey                    common.OptionalString
+	SecretKey                    common.OptionalString
 	Domain                       common.OptionalString
 	Path                         common.OptionalString
 	Period                       common.OptionalUint
@@ -33,8 +35,8 @@ type UpdateCommand struct {
 	MessageType                  common.OptionalString
 	ResponseCondition            common.OptionalString
 	TimestampFormat              common.OptionalString
-	Redundancy                   common.OptionalString
 	Placement                    common.OptionalString
+	Redundancy                   common.OptionalString
 	ServerSideEncryption         common.OptionalString
 	ServerSideEncryptionKMSKeyID common.OptionalString
 }
@@ -48,14 +50,13 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause = parent.Command("update", "Update a S3 logging endpoint on a Fastly service version")
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("name", "The name of the S3 logging object").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.CmdClause.Flag("name", "The name of the S3 logging object").Short('n').Required().StringVar(&c.EndpointName)
 
 	c.CmdClause.Flag("new-name", "New name of the S3 logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("bucket", "Your S3 bucket name").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
 	c.CmdClause.Flag("access-key", "Your S3 account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
 	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
-
 	c.CmdClause.Flag("domain", "The domain of the S3 endpoint").Action(c.Domain.Set).StringVar(&c.Domain.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to").Action(c.Path.Set).StringVar(&c.Path.Value)
 	c.CmdClause.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Period.Set).UintVar(&c.Period.Value)
@@ -73,20 +74,23 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *UpdateCommand) createInput() (*fastly.UpdateS3Input, error) {
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		return nil, errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
 
-	s3, err := c.Globals.Client.GetS3(&c.Input)
+	s3, err := c.Globals.Client.GetS3(&fastly.GetS3Input{
+		Service: serviceID,
+		Name:    c.EndpointName,
+		Version: c.Version,
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	input := &fastly.UpdateS3Input{
+	input := fastly.UpdateS3Input{
 		Service:                      s3.ServiceID,
 		Version:                      s3.Version,
 		Name:                         s3.Name,
@@ -109,7 +113,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		ServerSideEncryptionKMSKeyID: s3.ServerSideEncryptionKMSKeyID,
 	}
 
-	// Set new values if set by user.
 	if c.NewName.Valid {
 		input.NewName = c.NewName.Value
 	}
@@ -118,16 +121,16 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		input.BucketName = c.BucketName.Value
 	}
 
-	if c.Domain.Valid {
-		input.Domain = c.Domain.Value
-	}
-
 	if c.AccessKey.Valid {
 		input.AccessKey = c.AccessKey.Value
 	}
 
 	if c.SecretKey.Valid {
 		input.SecretKey = c.SecretKey.Value
+	}
+
+	if c.Domain.Valid {
+		input.Domain = c.Domain.Value
 	}
 
 	if c.Path.Valid {
@@ -150,16 +153,24 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
-	}
-
 	if c.MessageType.Valid {
 		input.MessageType = c.MessageType.Value
 	}
 
+	if c.ResponseCondition.Valid {
+		input.ResponseCondition = c.ResponseCondition.Value
+	}
+
 	if c.TimestampFormat.Valid {
 		input.TimestampFormat = c.TimestampFormat.Value
+	}
+
+	if c.Placement.Valid {
+		input.Placement = c.Placement.Value
+	}
+
+	if c.ServerSideEncryptionKMSKeyID.Valid {
+		input.ServerSideEncryptionKMSKeyID = c.ServerSideEncryptionKMSKeyID.Value
 	}
 
 	if c.Redundancy.Valid {
@@ -171,10 +182,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
-	}
-
 	if c.ServerSideEncryption.Valid {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
@@ -184,11 +191,17 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	if c.ServerSideEncryptionKMSKeyID.Valid {
-		input.ServerSideEncryptionKMSKeyID = c.ServerSideEncryptionKMSKeyID.Value
+	return &input, nil
+}
+
+// Exec invokes the application logic for the command.
+func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	input, err := c.createInput()
+	if err != nil {
+		return err
 	}
 
-	s3, err = c.Globals.Client.UpdateS3(input)
+	s3, err := c.Globals.Client.UpdateS3(input)
 	if err != nil {
 		return err
 	}
