@@ -27,6 +27,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/elasticsearch"
 	"github.com/fastly/cli/pkg/logging/ftp"
 	"github.com/fastly/cli/pkg/logging/gcs"
+	"github.com/fastly/cli/pkg/logging/googlepubsub"
 	"github.com/fastly/cli/pkg/logging/heroku"
 	"github.com/fastly/cli/pkg/logging/honeycomb"
 	"github.com/fastly/cli/pkg/logging/https"
@@ -288,17 +289,24 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	httpsUpdate := https.NewUpdateCommand(httpsRoot.CmdClause, &globals)
 	httpsDelete := https.NewDeleteCommand(httpsRoot.CmdClause, &globals)
 
-	statsRoot := stats.NewRootCommand(app, &globals)
-	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
-	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
-	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
-
 	kafkaRoot := kafka.NewRootCommand(loggingRoot.CmdClause, &globals)
 	kafkaCreate := kafka.NewCreateCommand(kafkaRoot.CmdClause, &globals)
 	kafkaList := kafka.NewListCommand(kafkaRoot.CmdClause, &globals)
 	kafkaDescribe := kafka.NewDescribeCommand(kafkaRoot.CmdClause, &globals)
 	kafkaUpdate := kafka.NewUpdateCommand(kafkaRoot.CmdClause, &globals)
 	kafkaDelete := kafka.NewDeleteCommand(kafkaRoot.CmdClause, &globals)
+
+	googlepubsubRoot := googlepubsub.NewRootCommand(loggingRoot.CmdClause, &globals)
+	googlepubsubCreate := googlepubsub.NewCreateCommand(googlepubsubRoot.CmdClause, &globals)
+	googlepubsubList := googlepubsub.NewListCommand(googlepubsubRoot.CmdClause, &globals)
+	googlepubsubDescribe := googlepubsub.NewDescribeCommand(googlepubsubRoot.CmdClause, &globals)
+	googlepubsubUpdate := googlepubsub.NewUpdateCommand(googlepubsubRoot.CmdClause, &globals)
+	googlepubsubDelete := googlepubsub.NewDeleteCommand(googlepubsubRoot.CmdClause, &globals)
+
+	statsRoot := stats.NewRootCommand(app, &globals)
+	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
+	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
+	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
 
 	commands := []common.Command{
 		configureRoot,
@@ -504,6 +512,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		kafkaDescribe,
 		kafkaUpdate,
 		kafkaDelete,
+
+		googlepubsubRoot,
+		googlepubsubCreate,
+		googlepubsubList,
+		googlepubsubDescribe,
+		googlepubsubUpdate,
+		googlepubsubDelete,
 
 		statsRoot,
 		statsRegions,

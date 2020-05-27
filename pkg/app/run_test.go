@@ -2594,6 +2594,91 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Kafka logging object
 
+  logging googlepubsub create --name=NAME --version=VERSION --user=USER --secret-key=SECRET-KEY --topic=TOPIC --project-id=PROJECT-ID [<flags>]
+    Create a Google Cloud Pub/Sub logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
+                                 object. Used as a primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --user=USER              Your Google Cloud Platform service account
+                                 email address. The client_email field in your
+                                 service account authentication JSON
+        --secret-key=SECRET-KEY  Your Google Cloud Platform account secret key.
+                                 The private_key field in your service account
+                                 authentication JSON
+        --topic=TOPIC            The Google Cloud Pub/Sub topic to which logs
+                                 will be published
+        --project-id=PROJECT-ID  The ID of your Google Cloud Platform project
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug. This field
+                                 is not required and has no default value
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+
+  logging googlepubsub list --version=VERSION [<flags>]
+    List Google Cloud Pub/Sub endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging googlepubsub describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Google Cloud Pub/Sub logging endpoint on a
+    Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
+                                 object
+
+  logging googlepubsub update --version=VERSION --name=NAME [<flags>]
+    Update a Google Cloud Pub/Sub logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
+                                 object
+        --new-name=NEW-NAME      New name of the Google Cloud Pub/Sub logging
+                                 object
+        --user=USER              Your Google Cloud Platform service account
+                                 email address. The client_email field in your
+                                 service account authentication JSON
+        --secret-key=SECRET-KEY  Your Google Cloud Platform account secret key.
+                                 The private_key field in your service account
+                                 authentication JSON
+        --topic=TOPIC            The Google Cloud Pub/Sub topic to which logs
+                                 will be published
+        --project-id=PROJECT-ID  The ID of your Google Cloud Platform project
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug. This field
+                                 is not required and has no default value
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+
+  logging googlepubsub delete --version=VERSION --name=NAME [<flags>]
+    Delete a Google Cloud Pub/Sub logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
+                                 object
+
   stats regions
     List stats regions
 
