@@ -169,6 +169,12 @@ type API struct {
 	UpdateHTTPSFn func(*fastly.UpdateHTTPSInput) (*fastly.HTTPS, error)
 	DeleteHTTPSFn func(*fastly.DeleteHTTPSInput) error
 
+	CreateKafkaFn func(*fastly.CreateKafkaInput) (*fastly.Kafka, error)
+	ListKafkasFn  func(*fastly.ListKafkasInput) ([]*fastly.Kafka, error)
+	GetKafkaFn    func(*fastly.GetKafkaInput) (*fastly.Kafka, error)
+	UpdateKafkaFn func(*fastly.UpdateKafkaInput) (*fastly.Kafka, error)
+	DeleteKafkaFn func(*fastly.DeleteKafkaInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -843,6 +849,31 @@ func (m API) UpdateHTTPS(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 // DeleteHTTPS implements Interface.
 func (m API) DeleteHTTPS(i *fastly.DeleteHTTPSInput) error {
 	return m.DeleteHTTPSFn(i)
+}
+
+// CreateKafka implements Interface.
+func (m API) CreateKafka(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
+	return m.CreateKafkaFn(i)
+}
+
+// ListKafkas implements Interface.
+func (m API) ListKafkas(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
+	return m.ListKafkasFn(i)
+}
+
+// GetKafka implements Interface.
+func (m API) GetKafka(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
+	return m.GetKafkaFn(i)
+}
+
+// UpdateKafka implements Interface.
+func (m API) UpdateKafka(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
+	return m.UpdateKafkaFn(i)
+}
+
+// DeleteKafka implements Interface.
+func (m API) DeleteKafka(i *fastly.DeleteKafkaInput) error {
+	return m.DeleteKafkaFn(i)
 }
 
 // GetUser implements Interface.
