@@ -16,8 +16,11 @@ type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 
-	Input fastly.GetSyslogInput
+	// required
+	EndpointName string
+	Version      int
 
+	// optional
 	NewName           common.OptionalString
 	Address           common.OptionalString
 	Port              common.OptionalUint
@@ -43,8 +46,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause = parent.Command("update", "Update a Syslog logging endpoint on a Fastly service version")
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("name", "The name of the Syslog logging object").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.CmdClause.Flag("name", "The name of the Syslog logging object").Short('n').Required().StringVar(&c.EndpointName)
 
 	c.CmdClause.Flag("new-name", "New name of the Syslog logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("address", "A hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
@@ -64,20 +67,23 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *UpdateCommand) createInput() (*fastly.UpdateSyslogInput, error) {
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		return nil, errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
 
-	syslog, err := c.Globals.Client.GetSyslog(&c.Input)
+	syslog, err := c.Globals.Client.GetSyslog(&fastly.GetSyslogInput{
+		Service: serviceID,
+		Name:    c.EndpointName,
+		Version: c.Version,
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	input := &fastly.UpdateSyslogInput{
+	input := fastly.UpdateSyslogInput{
 		Service:           syslog.ServiceID,
 		Version:           syslog.Version,
 		Name:              syslog.Name,
@@ -98,10 +104,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
-	}
-
 	if c.NewName.Valid {
 		input.NewName = c.NewName.Value
 	}
@@ -158,7 +160,17 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		input.Placement = c.Placement.Value
 	}
 
-	syslog, err = c.Globals.Client.UpdateSyslog(input)
+	return &input, nil
+}
+
+// Exec invokes the application logic for the command.
+func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	input, err := c.createInput()
+	if err != nil {
+		return err
+	}
+
+	syslog, err := c.Globals.Client.UpdateSyslog(input)
 	if err != nil {
 		return err
 	}

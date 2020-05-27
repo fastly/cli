@@ -1,369 +1,217 @@
-package syslog_test
+package syslog
 
 import (
-	"bytes"
-	"errors"
-	"io"
-	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/fastly"
 )
 
-func TestSyslogCreate(t *testing.T) {
+func TestCreateSyslogInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *CreateCommand
+		want      *fastly.CreateSyslogInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log"},
-			wantError: "error parsing arguments: required flag --address not provided",
-		},
-		{
-			args:       []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1"},
-			api:        mock.API{CreateSyslogFn: createSyslogOK},
-			wantOutput: "Created Syslog logging endpoint log (service 123 version 1)",
-		},
-		{
-			args:      []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1"},
-			api:       mock.API{CreateSyslogFn: createSyslogError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
-		})
-	}
-}
-
-func TestSyslogList(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:       []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSyslogsFn: listSyslogsOK},
-			wantOutput: listSyslogsShortOutput,
-		},
-		{
-			args:       []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListSyslogsFn: listSyslogsOK},
-			wantOutput: listSyslogsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListSyslogsFn: listSyslogsOK},
-			wantOutput: listSyslogsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "syslog", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSyslogsFn: listSyslogsOK},
-			wantOutput: listSyslogsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "-v", "syslog", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSyslogsFn: listSyslogsOK},
-			wantOutput: listSyslogsVerboseOutput,
-		},
-		{
-			args:      []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListSyslogsFn: listSyslogsError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestSyslogDescribe(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args:      []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetSyslogFn: getSyslogError},
-			wantError: errTest.Error(),
-		},
-		{
-			args:       []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetSyslogFn: getSyslogOK},
-			wantOutput: describeSyslogOutput,
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestSyslogUpdate(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSyslogFn:    getSyslogError,
-				UpdateSyslogFn: updateSyslogOK,
+			name: "required values set flag serviceID",
+			cmd:  createCommandRequired(),
+			want: &fastly.CreateSyslogInput{
+				Service: "123",
+				Version: 2,
+				Name:    "log",
+				Address: "example.com",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSyslogFn:    getSyslogOK,
-				UpdateSyslogFn: updateSyslogError,
+			name: "all values set flag serviceID",
+			cmd:  createCommandAll(),
+			want: &fastly.CreateSyslogInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "log",
+				Address:           "example.com",
+				Port:              22,
+				UseTLS:            fastly.CBool(true),
+				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+				TLSHostname:       "example.com",
+				TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+				TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
+				Token:             "tkn",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				MessageType:       "classic",
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSyslogFn:    getSyslogOK,
-				UpdateSyslogFn: updateSyslogOK,
-			},
-			wantOutput: "Updated Syslog logging endpoint log (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       createCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func TestSyslogDelete(t *testing.T) {
+func TestUpdateSyslogInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *UpdateCommand
+		api       mock.API
+		want      *fastly.UpdateSyslogInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
+			name: "no updates",
+			cmd:  updateCommandNoUpdates(),
+			api:  mock.API{GetSyslogFn: getSyslogOK},
+			want: &fastly.UpdateSyslogInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "logs",
+				Address:           "example.com",
+				Port:              22,
+				UseTLS:            fastly.CBool(true),
+				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+				TLSHostname:       "example.com",
+				TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+				TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
+				Token:             "tkn",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				MessageType:       "classic",
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
+			},
 		},
 		{
-			args:      []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteSyslogFn: deleteSyslogError},
-			wantError: errTest.Error(),
+			name: "all values set flag serviceID",
+			cmd:  updateCommandAll(),
+			api:  mock.API{GetSyslogFn: getSyslogOK},
+			want: &fastly.UpdateSyslogInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "new1",
+				Address:           "new2",
+				Port:              23,
+				UseTLS:            fastly.CBool(false),
+				TLSCACert:         "new3",
+				TLSHostname:       "new4",
+				TLSClientCert:     "new5",
+				TLSClientKey:      "new6",
+				Token:             "new7",
+				Format:            "new8",
+				FormatVersion:     3,
+				MessageType:       "new9",
+				ResponseCondition: "new10",
+				Placement:         "new11",
+			},
 		},
 		{
-			args:       []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteSyslogFn: deleteSyslogOK},
-			wantOutput: "Deleted Syslog logging endpoint logs (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       updateCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			testcase.cmd.Base.Globals.Client = testcase.api
+
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-var errTest = errors.New("fixture error")
-
-func createSyslogOK(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
-	return &fastly.Syslog{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-	}, nil
+func createCommandRequired() *CreateCommand {
+	return &CreateCommand{
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Address:      "example.com",
+		Version:      2,
+	}
 }
 
-func createSyslogError(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
-	return nil, errTest
+func createCommandAll() *CreateCommand {
+	return &CreateCommand{
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		Address:           "example.com",
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 22},
+		UseTLS:            common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
+		TLSCACert:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
+		TLSHostname:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "example.com"},
+		TLSClientCert:     common.OptionalString{Optional: common.Optional{Valid: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
+		TLSClientKey:      common.OptionalString{Optional: common.Optional{Valid: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "tkn"},
+		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "classic"},
+	}
 }
 
-func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
-	return []*fastly.Syslog{
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "logs",
-			Address:           "127.0.0.1",
-			Hostname:          "",
-			Port:              514,
-			UseTLS:            false,
-			IPV4:              "127.0.0.1",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-			Token:             "tkn",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-		},
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "analytics",
-			Address:           "example.com",
-			Hostname:          "example.com",
-			Port:              789,
-			UseTLS:            true,
-			IPV4:              "",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----baz",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----qux",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----qux",
-			Token:             "tkn",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-		},
-	}, nil
+func createCommandMissingServiceID() *CreateCommand {
+	res := createCommandAll()
+	res.manifest = manifest.Data{}
+	return res
 }
 
-func listSyslogsError(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
-	return nil, errTest
+func updateCommandNoUpdates() *UpdateCommand {
+	return &UpdateCommand{
+		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+	}
 }
 
-var listSyslogsShortOutput = strings.TrimSpace(`
-SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
-`) + "\n"
+func updateCommandAll() *UpdateCommand {
+	return &UpdateCommand{
+		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
+		Address:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
+		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 23},
+		UseTLS:            common.OptionalBool{Optional: common.Optional{Valid: true}, Value: false},
+		TLSCACert:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
+		TLSHostname:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
+		TLSClientCert:     common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		TLSClientKey:      common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new6"},
+		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new7"},
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new8"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
+		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new9"},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new10"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new11"},
+	}
+}
 
-var listSyslogsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
-Fastly API endpoint: https://api.fastly.com
-Service ID: 123
-Version: 1
-	Syslog 1/2
-		Service ID: 123
-		Version: 1
-		Name: logs
-		Address: 127.0.0.1
-		Hostname: 
-		Port: 514
-		Use TLS: false
-		IPV4: 127.0.0.1
-		TLS CA certificate: -----BEGIN CERTIFICATE-----foo
-		TLS hostname: example.com
-		TLS client certificate: -----BEGIN CERTIFICATE-----bar
-		TLS client key: -----BEGIN PRIVATE KEY-----bar
-		Token: tkn
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Message type: classic
-		Response condition: Prevent default logging
-		Placement: none
-	Syslog 2/2
-		Service ID: 123
-		Version: 1
-		Name: analytics
-		Address: example.com
-		Hostname: example.com
-		Port: 789
-		Use TLS: true
-		IPV4: 
-		TLS CA certificate: -----BEGIN CERTIFICATE-----baz
-		TLS hostname: example.com
-		TLS client certificate: -----BEGIN CERTIFICATE-----qux
-		TLS client key: -----BEGIN PRIVATE KEY-----qux
-		Token: tkn
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Message type: classic
-		Response condition: Prevent default logging
-		Placement: none
-`) + "\n\n"
+func updateCommandMissingServiceID() *UpdateCommand {
+	res := updateCommandAll()
+	res.manifest = manifest.Data{}
+	return res
+}
 
 func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
@@ -371,10 +219,8 @@ func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 		Version:           i.Version,
 		Name:              "logs",
 		Address:           "example.com",
-		Hostname:          "example.com",
-		Port:              514,
+		Port:              22,
 		UseTLS:            true,
-		IPV4:              "",
 		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
 		TLSHostname:       "example.com",
 		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
@@ -386,64 +232,4 @@ func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 		ResponseCondition: "Prevent default logging",
 		Placement:         "none",
 	}, nil
-}
-
-func getSyslogError(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
-	return nil, errTest
-}
-
-var describeSyslogOutput = strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Address: example.com
-Hostname: example.com
-Port: 514
-Use TLS: true
-IPV4: 
-TLS CA certificate: -----BEGIN CERTIFICATE-----foo
-TLS hostname: example.com
-TLS client certificate: -----BEGIN CERTIFICATE-----bar
-TLS client key: -----BEGIN PRIVATE KEY-----bar
-Token: tkn
-Format: %h %l %u %t "%r" %>s %b
-Format version: 2
-Message type: classic
-Response condition: Prevent default logging
-Placement: none
-`) + "\n"
-
-func updateSyslogOK(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
-	return &fastly.Syslog{
-		ServiceID:         i.Service,
-		Version:           i.Version,
-		Name:              "log",
-		Address:           "example.com",
-		Hostname:          "example.com",
-		Port:              514,
-		UseTLS:            true,
-		IPV4:              "",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		Token:             "tkn",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
-	}, nil
-}
-
-func updateSyslogError(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
-	return nil, errTest
-}
-
-func deleteSyslogOK(i *fastly.DeleteSyslogInput) error {
-	return nil
-}
-
-func deleteSyslogError(i *fastly.DeleteSyslogInput) error {
-	return errTest
 }

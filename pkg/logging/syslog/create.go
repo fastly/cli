@@ -15,11 +15,25 @@ import (
 type CreateCommand struct {
 	common.Base
 	manifest manifest.Data
-	Input    fastly.CreateSyslogInput
 
-	// We must store all of the boolean flags seperatly to the input structure
-	// so they can be casted to go-fastly's custom `Compatibool` type later.
-	useTLS bool
+	// required
+	EndpointName string // Can't shaddow common.Base method Name().
+	Version      int
+	Address      string
+
+	// optional
+	Port              common.OptionalUint
+	UseTLS            common.OptionalBool
+	Token             common.OptionalString
+	TLSCACert         common.OptionalString
+	TLSClientCert     common.OptionalString
+	TLSClientKey      common.OptionalString
+	TLSHostname       common.OptionalString
+	MessageType       common.OptionalString
+	Format            common.OptionalString
+	FormatVersion     common.OptionalUint
+	Placement         common.OptionalString
+	ResponseCondition common.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -29,42 +43,101 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a Syslog logging endpoint on a Fastly service version").Alias("add")
 
-	c.CmdClause.Flag("name", "The name of the Syslog logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("name", "The name of the Syslog logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
 
-	c.CmdClause.Flag("address", "A hostname or IPv4 address").Required().StringVar(&c.Input.Address)
+	c.CmdClause.Flag("address", "A hostname or IPv4 address").Required().StringVar(&c.Address)
 
-	c.CmdClause.Flag("port", "The port number").UintVar(&c.Input.Port)
-	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").BoolVar(&c.useTLS)
-	c.CmdClause.Flag("tls-ca-cert", "A secure certificate to authenticate the server with. Must be in PEM format").StringVar(&c.Input.TLSCACert)
-	c.CmdClause.Flag("tls-hostname", "Used during the TLS handshake to validate the certificate").StringVar(&c.Input.TLSHostname)
-	c.CmdClause.Flag("tls-client-cert", "The client certificate used to make authenticated requests. Must be in PEM format").StringVar(&c.Input.TLSClientCert)
-	c.CmdClause.Flag("tls-client-key", "The client private key used to make authenticated requests. Must be in PEM format").StringVar(&c.Input.TLSClientKey)
-	c.CmdClause.Flag("auth-token", "Whether to prepend each message with a specific token").StringVar(&c.Input.Token)
-	c.CmdClause.Flag("format", "Apache style log formatting").StringVar(&c.Input.Format)
-	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").UintVar(&c.Input.FormatVersion)
-	c.CmdClause.Flag("message-type", "How the message should be formatted. One of: classic (default), loggly, logplex or blank").StringVar(&c.Input.MessageType)
-	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").StringVar(&c.Input.ResponseCondition)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").StringVar(&c.Input.Placement)
+	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
+	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
+	c.CmdClause.Flag("tls-ca-cert", "A secure certificate to authenticate the server with. Must be in PEM format").Action(c.TLSCACert.Set).StringVar(&c.TLSCACert.Value)
+	c.CmdClause.Flag("tls-hostname", "Used during the TLS handshake to validate the certificate").Action(c.TLSHostname.Set).StringVar(&c.TLSHostname.Value)
+	c.CmdClause.Flag("tls-client-cert", "The client certificate used to make authenticated requests. Must be in PEM format").Action(c.TLSClientCert.Set).StringVar(&c.TLSClientCert.Value)
+	c.CmdClause.Flag("tls-client-key", "The client private key used to make authenticated requests. Must be in PEM format").Action(c.TLSClientKey.Set).StringVar(&c.TLSClientKey.Value)
+	c.CmdClause.Flag("auth-token", "Whether to prepend each message with a specific token").Action(c.Token.Set).StringVar(&c.Token.Value)
+	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
+	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
+	c.CmdClause.Flag("message-type", "How the message should be formatted. One of: classic (default), loggly, logplex or blank").Action(c.MessageType.Set).StringVar(&c.MessageType.Value)
+	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
+	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *CreateCommand) createInput() (*fastly.CreateSyslogInput, error) {
+	var input fastly.CreateSyslogInput
+
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		return nil, errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
 
-	// Sadly, go-fastly uses custom a `Compatibool` type as a boolean value that
-	// marshalls to 0/1 instead of true/false for compatability with the API.
-	// Therefore, we need to cast our real flag bool to a fastly.Compatibool.
-	c.Input.UseTLS = fastly.CBool(c.useTLS)
+	input.Service = serviceID
+	input.Name = c.EndpointName
+	input.Version = c.Version
+	input.Address = c.Address
 
-	d, err := c.Globals.Client.CreateSyslog(&c.Input)
+	if c.Port.Valid {
+		input.Port = c.Port.Value
+	}
+
+	if c.UseTLS.Valid {
+		input.UseTLS = fastly.CBool(c.UseTLS.Value)
+	}
+
+	if c.TLSCACert.Valid {
+		input.TLSCACert = c.TLSCACert.Value
+	}
+
+	if c.TLSHostname.Valid {
+		input.TLSHostname = c.TLSHostname.Value
+	}
+
+	if c.TLSClientCert.Valid {
+		input.TLSClientCert = c.TLSClientCert.Value
+	}
+
+	if c.TLSClientKey.Valid {
+		input.TLSClientKey = c.TLSClientKey.Value
+	}
+
+	if c.Token.Valid {
+		input.Token = c.Token.Value
+	}
+
+	if c.Format.Valid {
+		input.Format = c.Format.Value
+	}
+
+	if c.FormatVersion.Valid {
+		input.FormatVersion = c.FormatVersion.Value
+	}
+
+	if c.MessageType.Valid {
+		input.MessageType = c.MessageType.Value
+	}
+
+	if c.ResponseCondition.Valid {
+		input.ResponseCondition = c.ResponseCondition.Value
+	}
+
+	if c.Placement.Valid {
+		input.Placement = c.Placement.Value
+	}
+
+	return &input, nil
+}
+
+// Exec invokes the application logic for the command.
+func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+	input, err := c.createInput()
+	if err != nil {
+		return err
+	}
+
+	d, err := c.Globals.Client.CreateSyslog(input)
 	if err != nil {
 		return err
 	}
