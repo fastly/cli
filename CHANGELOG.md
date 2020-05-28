@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.10.0](https://github.com/fastly/cli/releases/tag/v0.10.0) (2020-05-28)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.9.0...v0.10.0)
+
+**Enhancements:**
+
+- Adds Google Cloud Pub/Sub logging endpoint support [\#96](https://github.com/fastly/cli/pull/96)
+- Adds Kafka logging endpoint support [\#95](https://github.com/fastly/cli/pull/95)
+- Adds Datadog logging endpoint support [\#92](https://github.com/fastly/cli/pull/92)
+- Adds HTTPS logging endpoint support [\#91](https://github.com/fastly/cli/pull/91)
+- Adds Elasticsearch logging endpoint support [\#90](https://github.com/fastly/cli/pull/90)
+- Adds Azure Blob Storage logging endpoint support [\#89](https://github.com/fastly/cli/pull/89)
+- Adds SFTP logging endpoint support [\#77](https://github.com/fastly/cli/pull/77)
+
 ## [v0.9.0](https://github.com/fastly/cli/releases/tag/v0.9.0) (2020-05-21)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.8.0...v0.9.0)
@@ -13,7 +27,6 @@
 - Adds DigitalOcean Spaces logging endpoint support [\#80](https://github.com/fastly/cli/pull/80)
 - Adds Rackspace Cloudfiles logging endpoint support [\#79](https://github.com/fastly/cli/pull/79)
 - Adds Log Shuttle logging endpoint support [\#78](https://github.com/fastly/cli/pull/78)
-- Adds SFTP logging endpoint support [\#77](https://github.com/fastly/cli/pull/77)
 - Adds Heroku logging endpoint support [\#76](https://github.com/fastly/cli/pull/76)
 - Adds Honeycomb logging endpoint support [\#75](https://github.com/fastly/cli/pull/75)
 - Adds Loggly logging endpoint support [\#74](https://github.com/fastly/cli/pull/74)
