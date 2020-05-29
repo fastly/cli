@@ -275,6 +275,7 @@ COMMANDS
 
     --name=NAME          Package name
     --language=LANGUAGE  Language type
+    --include-source     Include source code in built package
     --force              Skip verification steps and force build
 
   compute deploy [<flags>]

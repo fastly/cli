@@ -1,8 +1,11 @@
 package compute
 
 import (
+	"bufio"
+	"crypto/rand"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -15,33 +18,23 @@ import (
 	"github.com/mholt/archiver/v3"
 )
 
+// IgnoreFilePath is the filepath name of the Fastly ignore file.
+const IgnoreFilePath = ".fastlyignore"
+
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
 	Verify(out io.Writer) error
 	Build(out io.Writer, verbose bool) error
 }
 
-func createPackageArchive(files []string, destination string) error {
-	tar := archiver.NewTarGz()
-	tar.OverwriteExisting = true      //
-	tar.ImplicitTopLevelFolder = true // prevent extracting to PWD
-	tar.MkdirAll = true               // make destination directory if it doesn't exist
-
-	err := tar.Archive(files, destination)
-	if err != nil {
-		return fmt.Errorf("error creating package archive: %w", err)
-	}
-
-	return nil
-}
-
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	common.Base
-	client api.HTTPClient
-	name   string
-	lang   string
-	force  bool
+	client     api.HTTPClient
+	name       string
+	lang       string
+	includeSrc bool
+	force      bool
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
@@ -52,6 +45,7 @@ func NewBuildCommand(parent common.Registerer, client api.HTTPClient, globals *c
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.name)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.lang)
+	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.includeSrc)
 	c.CmdClause.Flag("force", "Skip verification steps and force build").BoolVar(&c.force)
 	return &c
 }
@@ -129,17 +123,167 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Creating package archive...")
 
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", name))
-	err = createPackageArchive([]string{
+
+	files := []string{
 		ManifestFilename,
 		"Cargo.toml",
-		"bin",
-		"src",
-	}, dest)
+	}
+
+	ignoreFiles, err := getIgnoredFiles(IgnoreFilePath)
 	if err != nil {
 		return err
 	}
 
+	binFiles, err := getNonIgnoredFiles("bin", ignoreFiles)
+	if err != nil {
+		return err
+	}
+	files = append(files, binFiles...)
+
+	if c.includeSrc {
+		// TODO(phamann): we will need to lookup the directory name based on the
+		// source language type when we support multiple languages.
+		srcFiles, err := getNonIgnoredFiles("src", ignoreFiles)
+		if err != nil {
+			return err
+		}
+		files = append(files, srcFiles...)
+	}
+
+	err = createPackageArchive(files, dest)
+	if err != nil {
+		return fmt.Errorf("error creating package archive: %w", err)
+	}
+
 	progress.Done()
+
 	text.Success(out, "Built %s package %s (%s)", lang, name, dest)
 	return nil
+}
+
+// createPackageArchive packages build artifacts as a Fastly package, which
+// must be a GZipped Tar archive such as: package-name.tar.gz.
+//
+// Due to a behavior of archiver.Archive() which recursively writes all files in
+// a provided directory to the archive we first copy our input files to a
+// temporary directory to ensure only the specified files are included and not
+// any in the directory which may be ignored.
+func createPackageArchive(files []string, destination string) error {
+	// Create temporary directory to copy files into.
+	p := make([]byte, 8)
+	n, err := rand.Read(p)
+	if err != nil {
+		return fmt.Errorf("error creating temporary directory: %w", err)
+	}
+
+	tmpDir := filepath.Join(
+		os.TempDir(),
+		fmt.Sprintf("fastly-build-%x", p[:n]),
+	)
+
+	if err := os.MkdirAll(tmpDir, 0700); err != nil {
+		return fmt.Errorf("error creating temporary directory: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Create implicit top-level directory within temp which will become the
+	// root of the archive. This replaces the `tar.ImplicitTopLevelFolder`
+	// behavior.
+	dir := filepath.Join(tmpDir, fileNameWithoutExtension(destination))
+	if err := os.Mkdir(dir, 0700); err != nil {
+		return fmt.Errorf("error creating temporary directory: %w", err)
+	}
+
+	for _, src := range files {
+		dst := filepath.Join(dir, src)
+		if err = common.CopyFile(src, dst); err != nil {
+			return fmt.Errorf("error copying file: %w", err)
+		}
+	}
+
+	tar := archiver.NewTarGz()
+	tar.OverwriteExisting = true //
+	tar.MkdirAll = true          // make destination directory if it doesn't exist
+
+	if err = tar.Archive([]string{dir}, destination); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// fileNameWithoutExtension returns a filename with its extension stripped.
+func fileNameWithoutExtension(filename string) string {
+	base := filepath.Base(filename)
+	firstDot := strings.Index(base, ".")
+	if firstDot > -1 {
+		return base[:firstDot]
+	}
+	return base
+}
+
+// getIgnoredFiles reads the .fastlyignore file line-by-line and expands the
+// glob pattern into a map containing all files it matches. If no ignore file
+// is present it returns an empty map.
+func getIgnoredFiles(filePath string) (files map[string]bool, err error) {
+	files = make(map[string]bool)
+
+	if !common.FileExists(filePath) {
+		return files, nil
+	}
+
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	// Disabling as we trust the source of the filepath variable as it comes
+	// from the IgnoreFilePath constant.
+	/* #nosec */
+	file, err := os.Open(filePath)
+	if err != nil {
+		return files, err
+	}
+	defer func() {
+		cerr := file.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		glob := strings.TrimSpace(scanner.Text())
+		globFiles, err := filepath.Glob(glob)
+		if err != nil {
+			return files, fmt.Errorf("parsing glob %s: %w", glob, err)
+		}
+		for _, f := range globFiles {
+			files[f] = true
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return files, fmt.Errorf("reading %s file: %w", filePath, err)
+	}
+
+	return files, nil
+}
+
+// getNonIgnoredFiles walks a filepath and returns all files don't exist in the
+// provided ignore files map.
+func getNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, error) {
+	var files []string
+	err := filepath.Walk(base, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if ignoredFiles[path] {
+			return nil
+		}
+		files = append(files, path)
+		return nil
+	})
+
+	return files, err
 }

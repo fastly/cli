@@ -57,6 +57,11 @@ func CopyFile(src, dst string) (err error) {
 	}
 	defer in.Close() // #nosec G307
 
+	// Create all directories of destination
+	if err = os.MkdirAll(filepath.Dir(dst), 0700); err != nil {
+		return fmt.Errorf("creating destination directory: %w", err)
+	}
+
 	// Create destination file for writing.
 	out, err := os.Create(dst)
 	if err != nil {
