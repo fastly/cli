@@ -16,18 +16,21 @@ type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 
-	Input fastly.GetBigQueryInput
+	// required
+	EndpointName string // Can't shaddow common.Base method Name().
+	Version      int
 
+	// optional
 	NewName           common.OptionalString
 	ProjectID         common.OptionalString
 	Dataset           common.OptionalString
 	Table             common.OptionalString
-	Template          common.OptionalString
 	User              common.OptionalString
 	SecretKey         common.OptionalString
-	Format            common.OptionalString
-	ResponseCondition common.OptionalString
+	Template          common.OptionalString
 	Placement         common.OptionalString
+	ResponseCondition common.OptionalString
+	Format            common.OptionalString
 	FormatVersion     common.OptionalUint
 }
 
@@ -40,8 +43,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause = parent.Command("update", "Update a BigQuery logging endpoint on a Fastly service version")
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("name", "The name of the BigQuery logging object").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.CmdClause.Flag("name", "The name of the BigQuery logging object").Short('n').Required().StringVar(&c.EndpointName)
 
 	c.CmdClause.Flag("new-name", "New name of the BigQuery logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("project-id", "Your Google Cloud Platform project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
@@ -57,20 +60,23 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *UpdateCommand) createInput() (*fastly.UpdateBigQueryInput, error) {
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		return nil, errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
 
-	bq, err := c.Globals.Client.GetBigQuery(&c.Input)
+	bq, err := c.Globals.Client.GetBigQuery(&fastly.GetBigQueryInput{
+		Service: serviceID,
+		Name:    c.EndpointName,
+		Version: c.Version,
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	input := &fastly.UpdateBigQueryInput{
+	input := fastly.UpdateBigQueryInput{
 		Service:           bq.ServiceID,
 		Version:           bq.Version,
 		Name:              bq.Name,
@@ -78,13 +84,13 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		ProjectID:         bq.ProjectID,
 		Dataset:           bq.Dataset,
 		Table:             bq.Table,
+		Template:          bq.Template,
 		User:              bq.User,
 		SecretKey:         bq.SecretKey,
-		Template:          bq.Template,
 		Format:            bq.Format,
-		FormatVersion:     bq.FormatVersion,
 		ResponseCondition: bq.ResponseCondition,
 		Placement:         bq.Placement,
+		FormatVersion:     bq.FormatVersion,
 	}
 
 	// Set new values if set by user.
@@ -132,7 +138,17 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		input.Placement = c.Placement.Value
 	}
 
-	bq, err = c.Globals.Client.UpdateBigQuery(input)
+	return &input, nil
+}
+
+// Exec invokes the application logic for the command.
+func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	input, err := c.createInput()
+	if err != nil {
+		return err
+	}
+
+	bq, err := c.Globals.Client.UpdateBigQuery(input)
 	if err != nil {
 		return err
 	}
