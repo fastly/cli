@@ -1,389 +1,202 @@
-package logentries_test
+package logentries
 
 import (
-	"bytes"
-	"errors"
-	"io"
-	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/fastly"
 )
 
-func TestLogentriesCreate(t *testing.T) {
+func TestCreateLogentriesInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *CreateCommand
+		want      *fastly.CreateLogentriesInput
+		wantError string
 	}{
 		{
-			args:       []string{"logging", "logentries", "create", "--service-id", "123", "--version", "1", "--name", "log", "--port", "20000"},
-			api:        mock.API{CreateLogentriesFn: createLogentriesOK},
-			wantOutput: "Created Logentries logging endpoint log (service 123 version 1)",
-		},
-		{
-			args:      []string{"logging", "logentries", "create", "--service-id", "123", "--version", "1", "--name", "log", "--port", "20000"},
-			api:       mock.API{CreateLogentriesFn: createLogentriesError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
-		})
-	}
-}
-
-func TestLogentriesList(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:       []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
-			wantOutput: listLogentriesShortOutput,
-		},
-		{
-			args:       []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
-			wantOutput: listLogentriesVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
-			wantOutput: listLogentriesVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "logentries", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
-			wantOutput: listLogentriesVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "-v", "logentries", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
-			wantOutput: listLogentriesVerboseOutput,
-		},
-		{
-			args:      []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListLogentriesFn: listLogentriesError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestLogentriesDescribe(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args:      []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetLogentriesFn: getLogentriesError},
-			wantError: errTest.Error(),
-		},
-		{
-			args:       []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetLogentriesFn: getLogentriesOK},
-			wantOutput: describeLogentriesOutput,
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestLogentriesUpdate(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogentriesFn:    getLogentriesError,
-				UpdateLogentriesFn: updateLogentriesOK,
+			name: "required values set flag serviceID",
+			cmd:  createCommandRequired(),
+			want: &fastly.CreateLogentriesInput{
+				Service: "123",
+				Version: 2,
+				Name:    "log",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogentriesFn:    getLogentriesOK,
-				UpdateLogentriesFn: updateLogentriesError,
+			name: "all values set flag serviceID",
+			cmd:  createCommandOK(),
+			want: &fastly.CreateLogentriesInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "log",
+				Port:              22,
+				UseTLS:            fastly.CBool(true),
+				Token:             "tkn",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogentriesFn:    getLogentriesOK,
-				UpdateLogentriesFn: updateLogentriesOK,
-			},
-			wantOutput: "Updated Logentries logging endpoint log (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       createCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func TestLogentriesDelete(t *testing.T) {
+func TestUpdateLogentriesInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *UpdateCommand
+		api       mock.API
+		want      *fastly.UpdateLogentriesInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
+			name: "no updates",
+			cmd:  updateCommandNoUpdates(),
+			api:  mock.API{GetLogentriesFn: getLogentriesOK},
+			want: &fastly.UpdateLogentriesInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "logs",
+				Port:              22,
+				UseTLS:            fastly.CBool(true),
+				Token:             "tkn",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
+			},
 		},
 		{
-			args:      []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteLogentriesFn: deleteLogentriesError},
-			wantError: errTest.Error(),
+			name: "all values set flag serviceID",
+			cmd:  updateCommandAll(),
+			api:  mock.API{GetLogentriesFn: getLogentriesOK},
+			want: &fastly.UpdateLogentriesInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "new1",
+				Port:              23,
+				UseTLS:            fastly.CBool(true),
+				Token:             "new2",
+				Format:            "new3",
+				FormatVersion:     3,
+				ResponseCondition: "new4",
+				Placement:         "new5",
+			},
 		},
 		{
-			args:       []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteLogentriesFn: deleteLogentriesOK},
-			wantOutput: "Deleted Logentries logging endpoint logs (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       updateCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			testcase.cmd.Base.Globals.Client = testcase.api
+
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-var errTest = errors.New("fixture error")
-
-func createLogentriesOK(i *fastly.CreateLogentriesInput) (*fastly.Logentries, error) {
-	return &fastly.Logentries{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-	}, nil
+func createCommandOK() *CreateCommand {
+	return &CreateCommand{
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 22},
+		UseTLS:            common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
+		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "tkn"},
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+	}
 }
 
-func createLogentriesError(i *fastly.CreateLogentriesInput) (*fastly.Logentries, error) {
-	return nil, errTest
+func createCommandRequired() *CreateCommand {
+	return &CreateCommand{
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+	}
 }
 
-func listLogentriesOK(i *fastly.ListLogentriesInput) ([]*fastly.Logentries, error) {
-	return []*fastly.Logentries{
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "logs",
-			Port:              20000,
-			UseTLS:            true,
-			Token:             "tkn",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-		},
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "analytics",
-			Port:              20001,
-			UseTLS:            false,
-			Token:             "tkn1",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-		},
-	}, nil
+func createCommandMissingServiceID() *CreateCommand {
+	res := createCommandOK()
+	res.manifest = manifest.Data{}
+	return res
 }
 
-func listLogentriesError(i *fastly.ListLogentriesInput) ([]*fastly.Logentries, error) {
-	return nil, errTest
+func updateCommandNoUpdates() *UpdateCommand {
+	return &UpdateCommand{
+		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "logs",
+		Version:           2,
+		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 22},
+		UseTLS:            common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
+		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "tkn"},
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+	}
 }
 
-var listLogentriesShortOutput = strings.TrimSpace(`
-SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
-`) + "\n"
+func updateCommandAll() *UpdateCommand {
+	return &UpdateCommand{
+		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 23},
+		UseTLS:            common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
+		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
+		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+	}
+}
 
-var listLogentriesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
-Fastly API endpoint: https://api.fastly.com
-Service ID: 123
-Version: 1
-	Logentries 1/2
-		Service ID: 123
-		Version: 1
-		Name: logs
-		Port: 20000
-		Use TLS: true
-		Token: tkn
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Placement: none
-	Logentries 2/2
-		Service ID: 123
-		Version: 1
-		Name: analytics
-		Port: 20001
-		Use TLS: false
-		Token: tkn1
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Placement: none
-`) + "\n\n"
+func updateCommandMissingServiceID() *UpdateCommand {
+	res := updateCommandAll()
+	res.manifest = manifest.Data{}
+	return res
+}
 
 func getLogentriesOK(i *fastly.GetLogentriesInput) (*fastly.Logentries, error) {
 	return &fastly.Logentries{
 		ServiceID:         i.Service,
 		Version:           i.Version,
 		Name:              "logs",
-		Port:              20000,
-		UseTLS:            true,
 		Token:             "tkn",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
 		Placement:         "none",
 	}, nil
-}
-
-func getLogentriesError(i *fastly.GetLogentriesInput) (*fastly.Logentries, error) {
-	return nil, errTest
-}
-
-var describeLogentriesOutput = strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Port: 20000
-Use TLS: true
-Token: tkn
-Format: %h %l %u %t "%r" %>s %b
-Format version: 2
-Response condition: Prevent default logging
-Placement: none
-`) + "\n"
-
-func updateLogentriesOK(i *fastly.UpdateLogentriesInput) (*fastly.Logentries, error) {
-	return &fastly.Logentries{
-		ServiceID:         i.Service,
-		Version:           i.Version,
-		Name:              "log",
-		Port:              20000,
-		UseTLS:            true,
-		Token:             "tkn",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
-	}, nil
-}
-
-func updateLogentriesError(i *fastly.UpdateLogentriesInput) (*fastly.Logentries, error) {
-	return nil, errTest
-}
-
-func deleteLogentriesOK(i *fastly.DeleteLogentriesInput) error {
-	return nil
-}
-
-func deleteLogentriesError(i *fastly.DeleteLogentriesInput) error {
-	return errTest
 }
