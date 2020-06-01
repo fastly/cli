@@ -16,10 +16,12 @@ type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 
-	Input fastly.GetSumologicInput
+	// required
+	EndpointName string // Can't shaddow common.Base method Name().
+	Version      int
 
-	NewName common.OptionalString
-
+	// optional
+	NewName           common.OptionalString
 	Address           common.OptionalString
 	URL               common.OptionalString
 	Format            common.OptionalString
@@ -38,8 +40,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause = parent.Command("update", "Update a Sumologic logging endpoint on a Fastly service version")
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("name", "The name of the Sumologic logging object").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.CmdClause.Flag("name", "The name of the Sumologic logging object").Short('n').Required().StringVar(&c.EndpointName)
 
 	c.CmdClause.Flag("new-name", "New name of the Sumologic logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("url", "The URL to POST to").Action(c.URL.Set).StringVar(&c.URL.Value)
@@ -52,20 +54,23 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *UpdateCommand) createInput() (*fastly.UpdateSumologicInput, error) {
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		return nil, errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
 
-	sumologic, err := c.Globals.Client.GetSumologic(&c.Input)
+	sumologic, err := c.Globals.Client.GetSumologic(&fastly.GetSumologicInput{
+		Service: serviceID,
+		Name:    c.EndpointName,
+		Version: c.Version,
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	input := &fastly.UpdateSumologicInput{
+	input := fastly.UpdateSumologicInput{
 		Service:           sumologic.ServiceID,
 		Version:           sumologic.Version,
 		Name:              sumologic.Name,
@@ -112,7 +117,16 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		input.Placement = c.Placement.Value
 	}
 
-	sumologic, err = c.Globals.Client.UpdateSumologic(input)
+	return &input, nil
+}
+
+// Exec invokes the application logic for the command.
+func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	input, err := c.createInput()
+	if err != nil {
+		return err
+	}
+	sumologic, err := c.Globals.Client.UpdateSumologic(input)
 	if err != nil {
 		return err
 	}

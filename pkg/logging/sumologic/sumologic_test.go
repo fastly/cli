@@ -1,333 +1,182 @@
-package sumologic_test
+package sumologic
 
 import (
-	"bytes"
-	"errors"
-	"io"
-	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/fastly"
 )
 
-func TestSumologicCreate(t *testing.T) {
+func TestCreateSumologicInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *CreateCommand
+		want      *fastly.CreateSumologicInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log"},
-			wantError: "error parsing arguments: required flag --url not provided",
-		},
-		{
-			args:       []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
-			api:        mock.API{CreateSumologicFn: createSumologicOK},
-			wantOutput: "Created Sumologic logging endpoint log (service 123 version 1)",
-		},
-		{
-			args:      []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
-			api:       mock.API{CreateSumologicFn: createSumologicError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
-		})
-	}
-}
-
-func TestSumologicList(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:       []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
-			wantOutput: listSumologicsShortOutput,
-		},
-		{
-			args:       []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
-			wantOutput: listSumologicsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
-			wantOutput: listSumologicsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "sumologic", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
-			wantOutput: listSumologicsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "-v", "sumologic", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
-			wantOutput: listSumologicsVerboseOutput,
-		},
-		{
-			args:      []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListSumologicsFn: listSumologicsError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestSumologicDescribe(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "sumologic", "describe", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args:      []string{"logging", "sumologic", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetSumologicFn: getSumologicError},
-			wantError: errTest.Error(),
-		},
-		{
-			args:       []string{"logging", "sumologic", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetSumologicFn: getSumologicOK},
-			wantOutput: describeSumologicOutput,
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestSumologicUpdate(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSumologicFn:    getSumologicError,
-				UpdateSumologicFn: updateSumologicOK,
+			name: "required values set flag serviceID",
+			cmd:  createCommandRequired(),
+			want: &fastly.CreateSumologicInput{
+				Service: "123",
+				Version: 2,
+				Name:    "log",
+				URL:     "example.com",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSumologicFn:    getSumologicOK,
-				UpdateSumologicFn: updateSumologicError,
+			name: "all values set flag serviceID",
+			cmd:  createCommandOK(),
+			want: &fastly.CreateSumologicInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "log",
+				URL:               "example.com",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
+				MessageType:       "classic",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSumologicFn:    getSumologicOK,
-				UpdateSumologicFn: updateSumologicOK,
-			},
-			wantOutput: "Updated Sumologic logging endpoint log (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       createCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func TestSumologicDelete(t *testing.T) {
+func TestUpdateSFTPInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *UpdateCommand
+		api       mock.API
+		want      *fastly.UpdateSumologicInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "sumologic", "delete", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
+			name: "no updates",
+			cmd:  updateCommandNoUpdates(),
+			api:  mock.API{GetSumologicFn: getSumologicOK},
+			want: &fastly.UpdateSumologicInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "logs",
+				URL:               "example.com",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
+				MessageType:       "classic",
+			},
 		},
 		{
-			args:      []string{"logging", "sumologic", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteSumologicFn: deleteSumologicError},
-			wantError: errTest.Error(),
+			name: "all values set flag serviceID",
+			cmd:  updateCommandAll(),
+			api:  mock.API{GetSumologicFn: getSumologicOK},
+			want: &fastly.UpdateSumologicInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "new1",
+				URL:               "new2",
+				Format:            "new3",
+				FormatVersion:     3,
+				ResponseCondition: "new4",
+				Placement:         "new5",
+				MessageType:       "new6",
+			},
 		},
 		{
-			args:       []string{"logging", "sumologic", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteSumologicFn: deleteSumologicOK},
-			wantOutput: "Deleted Sumologic logging endpoint logs (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       updateCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			testcase.cmd.Base.Globals.Client = testcase.api
+
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-var errTest = errors.New("fixture error")
-
-func createSumologicOK(i *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
-	return &fastly.Sumologic{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-	}, nil
+func createCommandOK() *CreateCommand {
+	return &CreateCommand{
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		URL:               "example.com",
+		Version:           2,
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalInt{Optional: common.Optional{Valid: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "classic"},
+	}
 }
 
-func createSumologicError(i *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
-	return nil, errTest
+func createCommandRequired() *CreateCommand {
+	return &CreateCommand{
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		URL:          "example.com",
+		Version:      2,
+	}
 }
 
-func listSumologicsOK(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
-	return []*fastly.Sumologic{
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "logs",
-			URL:               "example.com",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-		},
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "analytics",
-			URL:               "bar.com",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			ResponseCondition: "Prevent default logging",
-			MessageType:       "classic",
-			FormatVersion:     2,
-			Placement:         "none",
-		},
-	}, nil
+func createCommandMissingServiceID() *CreateCommand {
+	res := createCommandOK()
+	res.manifest = manifest.Data{}
+	return res
 }
 
-func listSumologicsError(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
-	return nil, errTest
+func updateCommandNoUpdates() *UpdateCommand {
+	return &UpdateCommand{
+		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "logs",
+		Version:      2,
+	}
 }
 
-var listSumologicsShortOutput = strings.TrimSpace(`
-SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
-`) + "\n"
+func updateCommandAll() *UpdateCommand {
+	return &UpdateCommand{
+		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
+		URL:               common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
+		FormatVersion:     common.OptionalInt{Optional: common.Optional{Valid: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new6"},
+	}
+}
 
-var listSumologicsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
-Fastly API endpoint: https://api.fastly.com
-Service ID: 123
-Version: 1
-	Sumologic 1/2
-		Service ID: 123
-		Version: 1
-		Name: logs
-		URL: example.com
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Message type: classic
-		Placement: none
-	Sumologic 2/2
-		Service ID: 123
-		Version: 1
-		Name: analytics
-		URL: bar.com
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Message type: classic
-		Placement: none
-`) + "\n\n"
+func updateCommandMissingServiceID() *UpdateCommand {
+	res := updateCommandAll()
+	res.manifest = manifest.Data{}
+	return res
+}
 
 func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
@@ -336,51 +185,9 @@ func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 		Name:              "logs",
 		URL:               "example.com",
 		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
+		MessageType:       "classic",
+		FormatVersion:     2,
 		Placement:         "none",
 	}, nil
-}
-
-func getSumologicError(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
-	return nil, errTest
-}
-
-var describeSumologicOutput = strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-URL: example.com
-Format: %h %l %u %t "%r" %>s %b
-Format version: 2
-Response condition: Prevent default logging
-Message type: classic
-Placement: none
-`) + "\n"
-
-func updateSumologicOK(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
-	return &fastly.Sumologic{
-		ServiceID:         i.Service,
-		Version:           i.Version,
-		Name:              "log",
-		URL:               "example.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
-	}, nil
-}
-
-func updateSumologicError(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
-	return nil, errTest
-}
-
-func deleteSumologicOK(i *fastly.DeleteSumologicInput) error {
-	return nil
-}
-
-func deleteSumologicError(i *fastly.DeleteSumologicInput) error {
-	return errTest
 }
