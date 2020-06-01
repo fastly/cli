@@ -22,7 +22,6 @@ type UpdateCommand struct {
 
 	// optional
 	NewName           common.OptionalString
-	Address           common.OptionalString
 	URL               common.OptionalString
 	Format            common.OptionalString
 	ResponseCondition common.OptionalString
@@ -75,7 +74,6 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSumologicInput, error) {
 		Version:           sumologic.Version,
 		Name:              sumologic.Name,
 		NewName:           sumologic.Name,
-		Address:           sumologic.Address,
 		URL:               sumologic.URL,
 		Format:            sumologic.Format,
 		ResponseCondition: sumologic.ResponseCondition,
@@ -87,10 +85,6 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSumologicInput, error) {
 	// Set new values if set by user.
 	if c.NewName.Valid {
 		input.NewName = c.NewName.Value
-	}
-
-	if c.Address.Valid {
-		input.Address = c.Address.Value
 	}
 
 	if c.URL.Valid {
