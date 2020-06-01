@@ -16,10 +16,12 @@ type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 
-	Input fastly.GetLogentriesInput
+	// required
+	EndpointName string // Can't shaddow common.Base method Name().
+	Version      int
 
-	NewName common.OptionalString
-
+	// optional
+	NewName           common.OptionalString
 	Port              common.OptionalUint
 	UseTLS            common.OptionalBool
 	Token             common.OptionalString
@@ -38,8 +40,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause = parent.Command("update", "Update a Logentries logging endpoint on a Fastly service version")
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("name", "The name of the Logentries logging object").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.CmdClause.Flag("name", "The name of the Logentries logging object").Short('n').Required().StringVar(&c.EndpointName)
 
 	c.CmdClause.Flag("new-name", "New name of the Logentries logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
@@ -53,20 +55,23 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *UpdateCommand) createInput() (*fastly.UpdateLogentriesInput, error) {
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		return nil, errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
 
-	logentries, err := c.Globals.Client.GetLogentries(&c.Input)
+	logentries, err := c.Globals.Client.GetLogentries(&fastly.GetLogentriesInput{
+		Service: serviceID,
+		Name:    c.EndpointName,
+		Version: c.Version,
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	input := &fastly.UpdateLogentriesInput{
+	input := fastly.UpdateLogentriesInput{
 		Service:           logentries.ServiceID,
 		Version:           logentries.Version,
 		Name:              logentries.Name,
@@ -81,10 +86,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
-	}
-
 	if c.NewName.Valid {
 		input.NewName = c.NewName.Value
 	}
@@ -117,7 +118,17 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		input.Placement = c.Placement.Value
 	}
 
-	logentries, err = c.Globals.Client.UpdateLogentries(input)
+	return &input, nil
+}
+
+// Exec invokes the application logic for the command.
+func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	input, err := c.createInput()
+	if err != nil {
+		return err
+	}
+
+	logentries, err := c.Globals.Client.UpdateLogentries(input)
 	if err != nil {
 		return err
 	}
