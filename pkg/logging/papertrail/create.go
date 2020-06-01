@@ -15,7 +15,18 @@ import (
 type CreateCommand struct {
 	common.Base
 	manifest manifest.Data
-	Input    fastly.CreatePapertrailInput
+
+	// required
+	EndpointName string // Can't shaddow common.Base method Name().
+	Version      int
+	Address      string
+
+	// optional
+	Port              common.OptionalUint
+	Format            common.OptionalString
+	FormatVersion     common.OptionalUint
+	Placement         common.OptionalString
+	ResponseCondition common.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -25,29 +36,66 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a Papertrail logging endpoint on a Fastly service version").Alias("add")
 
-	c.CmdClause.Flag("name", "The name of the Papertrail logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("name", "The name of the Papertrail logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
 
-	c.CmdClause.Flag("address", "A hostname or IPv4 address").Required().StringVar(&c.Input.Address)
-	c.CmdClause.Flag("port", "The port number").UintVar(&c.Input.Port)
-	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").UintVar(&c.Input.FormatVersion)
-	c.CmdClause.Flag("format", "Apache style log formatting").StringVar(&c.Input.Format)
-	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").StringVar(&c.Input.ResponseCondition)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").StringVar(&c.Input.Placement)
+	c.CmdClause.Flag("address", "A hostname or IPv4 address").Required().StringVar(&c.Address)
+
+	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
+	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
+	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
+	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
+	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *CreateCommand) createInput() (*fastly.CreatePapertrailInput, error) {
+	var input fastly.CreatePapertrailInput
+
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		return nil, errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
 
-	d, err := c.Globals.Client.CreatePapertrail(&c.Input)
+	input.Service = serviceID
+	input.Name = c.EndpointName
+	input.Version = c.Version
+	input.Address = c.Address
+
+	if c.Port.Valid {
+		input.Port = c.Port.Value
+	}
+
+	if c.Format.Valid {
+		input.Format = c.Format.Value
+	}
+
+	if c.FormatVersion.Valid {
+		input.FormatVersion = c.FormatVersion.Value
+	}
+
+	if c.ResponseCondition.Valid {
+		input.ResponseCondition = c.ResponseCondition.Value
+	}
+
+	if c.Placement.Valid {
+		input.Placement = c.Placement.Value
+	}
+
+	return &input, nil
+}
+
+// Exec invokes the application logic for the command.
+func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+	input, err := c.createInput()
+	if err != nil {
+		return err
+	}
+
+	d, err := c.Globals.Client.CreatePapertrail(input)
 	if err != nil {
 		return err
 	}
