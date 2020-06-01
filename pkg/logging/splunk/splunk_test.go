@@ -1,341 +1,193 @@
-package splunk_test
+package splunk
 
 import (
-	"bytes"
-	"errors"
-	"io"
-	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/fastly"
 )
 
-func TestSplunkCreate(t *testing.T) {
+func TestCreateSplunkInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *CreateCommand
+		want      *fastly.CreateSplunkInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log"},
-			wantError: "error parsing arguments: required flag --url not provided",
-		},
-		{
-			args:       []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
-			api:        mock.API{CreateSplunkFn: createSplunkOK},
-			wantOutput: "Created Splunk logging endpoint log (service 123 version 1)",
-		},
-		{
-			args:      []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
-			api:       mock.API{CreateSplunkFn: createSplunkError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
-		})
-	}
-}
-
-func TestSplunkList(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:       []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
-			wantOutput: listSplunksShortOutput,
-		},
-		{
-			args:       []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
-			wantOutput: listSplunksVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
-			wantOutput: listSplunksVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "splunk", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
-			wantOutput: listSplunksVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "-v", "splunk", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
-			wantOutput: listSplunksVerboseOutput,
-		},
-		{
-			args:      []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListSplunksFn: listSplunksError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestSplunkDescribe(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args:      []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetSplunkFn: getSplunkError},
-			wantError: errTest.Error(),
-		},
-		{
-			args:       []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetSplunkFn: getSplunkOK},
-			wantOutput: describeSplunkOutput,
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestSplunkUpdate(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSplunkFn:    getSplunkError,
-				UpdateSplunkFn: updateSplunkOK,
+			name: "required values set flag serviceID",
+			cmd:  createCommandRequired(),
+			want: &fastly.CreateSplunkInput{
+				Service: "123",
+				Version: 2,
+				Name:    "log",
+				URL:     "example.com",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSplunkFn:    getSplunkOK,
-				UpdateSplunkFn: updateSplunkError,
+			name: "all values set flag serviceID",
+			cmd:  createCommandAll(),
+			want: &fastly.CreateSplunkInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "log",
+				URL:               "example.com",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
+				Token:             "tkn",
+				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+				TLSHostname:       "example.com",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSplunkFn:    getSplunkOK,
-				UpdateSplunkFn: updateSplunkOK,
-			},
-			wantOutput: "Updated Splunk logging endpoint log (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       createCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func TestSplunkDelete(t *testing.T) {
+func TestUpdateSplunkInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *UpdateCommand
+		api       mock.API
+		want      *fastly.UpdateSplunkInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
+			name: "no updates",
+			cmd:  updateCommandNoUpdates(),
+			api:  mock.API{GetSplunkFn: getSplunkOK},
+			want: &fastly.UpdateSplunkInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "logs",
+				URL:               "example.com",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
+				Token:             "tkn",
+				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+				TLSHostname:       "example.com",
+			},
 		},
 		{
-			args:      []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteSplunkFn: deleteSplunkError},
-			wantError: errTest.Error(),
+			name: "all values set flag serviceID",
+			cmd:  updateCommandAll(),
+			api:  mock.API{GetSplunkFn: getSplunkOK},
+			want: &fastly.UpdateSplunkInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "new1",
+				URL:               "new2",
+				Format:            "new3",
+				FormatVersion:     3,
+				ResponseCondition: "new4",
+				Placement:         "new5",
+				Token:             "new6",
+				TLSCACert:         "new7",
+				TLSHostname:       "new8",
+			},
 		},
 		{
-			args:       []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteSplunkFn: deleteSplunkOK},
-			wantOutput: "Deleted Splunk logging endpoint logs (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       updateCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			testcase.cmd.Base.Globals.Client = testcase.api
+
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-var errTest = errors.New("fixture error")
-
-func createSplunkOK(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
-	return &fastly.Splunk{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-	}, nil
+func createCommandRequired() *CreateCommand {
+	return &CreateCommand{
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+		URL:          "example.com",
+	}
 }
 
-func createSplunkError(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
-	return nil, errTest
+func createCommandAll() *CreateCommand {
+	return &CreateCommand{
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		URL:               "example.com",
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
+		TimestampFormat:   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "tkn"},
+		TLSCACert:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
+		TLSHostname:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "example.com"},
+	}
 }
 
-func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
-	return []*fastly.Splunk{
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "logs",
-			URL:               "example.com",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-			Token:             "tkn",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-		},
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "analytics",
-			URL:               "127.0.0.1",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-			Token:             "tkn1",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-		},
-	}, nil
+func createCommandMissingServiceID() *CreateCommand {
+	res := createCommandAll()
+	res.manifest = manifest.Data{}
+	return res
 }
 
-func listSplunksError(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
-	return nil, errTest
+func updateCommandNoUpdates() *UpdateCommand {
+	return &UpdateCommand{
+		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+	}
 }
 
-var listSplunksShortOutput = strings.TrimSpace(`
-SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
-`) + "\n"
+func updateCommandAll() *UpdateCommand {
+	return &UpdateCommand{
+		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
+		URL:               common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new6"},
+		TLSCACert:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new7"},
+		TLSHostname:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new8"},
+	}
+}
 
-var listSplunksVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
-Fastly API endpoint: https://api.fastly.com
-Service ID: 123
-Version: 1
-	Splunk 1/2
-		Service ID: 123
-		Version: 1
-		Name: logs
-		URL: example.com
-		Token: tkn
-		TLS CA certificate: -----BEGIN CERTIFICATE-----foo
-		TLS hostname: example.com
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Placement: none
-	Splunk 2/2
-		Service ID: 123
-		Version: 1
-		Name: analytics
-		URL: 127.0.0.1
-		Token: tkn1
-		TLS CA certificate: -----BEGIN CERTIFICATE-----foo
-		TLS hostname: example.com
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Placement: none
-`) + "\n\n"
+func updateCommandMissingServiceID() *UpdateCommand {
+	res := updateCommandAll()
+	res.manifest = manifest.Data{}
+	return res
+}
 
 func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
@@ -345,56 +197,10 @@ func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 		URL:               "example.com",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
 		ResponseCondition: "Prevent default logging",
 		Placement:         "none",
 		Token:             "tkn",
-	}, nil
-}
-
-func getSplunkError(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
-	return nil, errTest
-}
-
-var describeSplunkOutput = strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-URL: example.com
-Token: tkn
-TLS CA certificate: -----BEGIN CERTIFICATE-----foo
-TLS hostname: example.com
-Format: %h %l %u %t "%r" %>s %b
-Format version: 2
-Response condition: Prevent default logging
-Placement: none
-`) + "\n"
-
-func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
-	return &fastly.Splunk{
-		ServiceID:         i.Service,
-		Version:           i.Version,
-		Name:              "log",
-		URL:               "example.com",
-		Token:             "tkn",
 		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
 		TLSHostname:       "example.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
 	}, nil
-}
-
-func updateSplunkError(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
-	return nil, errTest
-}
-
-func deleteSplunkOK(i *fastly.DeleteSplunkInput) error {
-	return nil
-}
-
-func deleteSplunkError(i *fastly.DeleteSplunkInput) error {
-	return errTest
 }
