@@ -16,10 +16,12 @@ type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 
-	Input fastly.GetGCSInput
+	// required
+	EndpointName string // Can't shaddow common.Base method Name().
+	Version      int
 
-	NewName common.OptionalString
-
+	// optional
+	NewName           common.OptionalString
 	Bucket            common.OptionalString
 	User              common.OptionalString
 	SecretKey         common.OptionalString
@@ -42,8 +44,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause = parent.Command("update", "Update a GCS logging endpoint on a Fastly service version")
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("name", "The name of the GCS logging object").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.CmdClause.Flag("name", "The name of the GCS logging object").Short('n').Required().StringVar(&c.EndpointName)
 
 	c.CmdClause.Flag("new-name", "New name of the GCS logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("bucket", "The bucket of the GCS bucket").Action(c.Bucket.Set).StringVar(&c.Bucket.Value)
@@ -61,20 +63,23 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *UpdateCommand) createInput() (*fastly.UpdateGCSInput, error) {
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		return nil, errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
 
-	gcs, err := c.Globals.Client.GetGCS(&c.Input)
+	gcs, err := c.Globals.Client.GetGCS(&fastly.GetGCSInput{
+		Service: serviceID,
+		Name:    c.EndpointName,
+		Version: c.Version,
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	input := &fastly.UpdateGCSInput{
+	input := fastly.UpdateGCSInput{
 		Service:           gcs.ServiceID,
 		Version:           gcs.Version,
 		Name:              gcs.Name,
@@ -141,7 +146,17 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		input.Placement = c.Placement.Value
 	}
 
-	gcs, err = c.Globals.Client.UpdateGCS(input)
+	return &input, nil
+}
+
+// Exec invokes the application logic for the command.
+func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	input, err := c.createInput()
+	if err != nil {
+		return err
+	}
+
+	gcs, err := c.Globals.Client.UpdateGCS(input)
 	if err != nil {
 		return err
 	}

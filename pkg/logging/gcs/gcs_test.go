@@ -1,436 +1,227 @@
-package gcs_test
+package gcs
 
 import (
-	"bytes"
-	"errors"
-	"io"
-	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/fastly"
 )
 
-func TestGCSCreate(t *testing.T) {
+func TestCreateGCSInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *CreateCommand
+		want      *fastly.CreateGCSInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "foo@example.com", "--secret-key", "foo"},
-			wantError: "error parsing arguments: required flag --bucket not provided",
-		},
-		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "foo"},
-			wantError: "error parsing arguments: required flag --user not provided",
-		},
-		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com"},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
-			args:       []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400"},
-			api:        mock.API{CreateGCSFn: createGCSOK},
-			wantOutput: "Created GCS logging endpoint log (service 123 version 1)",
-		},
-		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400"},
-			api:       mock.API{CreateGCSFn: createGCSError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
-		})
-	}
-}
-
-func TestGCSList(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:       []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
-			wantOutput: listGCSsShortOutput,
-		},
-		{
-			args:       []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
-			wantOutput: listGCSsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
-			wantOutput: listGCSsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "gcs", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
-			wantOutput: listGCSsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "-v", "gcs", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
-			wantOutput: listGCSsVerboseOutput,
-		},
-		{
-			args:      []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListGCSsFn: listGCSsError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestGCSDescribe(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args:      []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetGCSFn: getGCSError},
-			wantError: errTest.Error(),
-		},
-		{
-			args:       []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetGCSFn: getGCSOK},
-			wantOutput: describeGCSOutput,
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestGCSUpdate(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetGCSFn:    getGCSError,
-				UpdateGCSFn: updateGCSOK,
+			name: "required values set flag serviceID",
+			cmd:  createCommandRequired(),
+			want: &fastly.CreateGCSInput{
+				Service:   "123",
+				Version:   2,
+				Name:      "log",
+				Bucket:    "bucket",
+				User:      "user",
+				SecretKey: "-----BEGIN PRIVATE KEY-----foo",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetGCSFn:    getGCSOK,
-				UpdateGCSFn: updateGCSError,
+			name: "all values set flag serviceID",
+			cmd:  createCommandAll(),
+			want: &fastly.CreateGCSInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "log",
+				Bucket:            "bucket",
+				User:              "user",
+				SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
+				Path:              "/logs",
+				Period:            3600,
+				FormatVersion:     2,
+				GzipLevel:         2,
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				ResponseCondition: "Prevent default logging",
+				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
+				Placement:         "none",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetGCSFn:    getGCSOK,
-				UpdateGCSFn: updateGCSOK,
-			},
-			wantOutput: "Updated GCS logging endpoint log (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       createCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func TestGCSDelete(t *testing.T) {
+func TestUpdateGCSInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *UpdateCommand
+		api       mock.API
+		want      *fastly.UpdateGCSInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
+			name: "no updates",
+			cmd:  updateCommandNoUpdates(),
+			api:  mock.API{GetGCSFn: getGCSOK},
+			want: &fastly.UpdateGCSInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "logs",
+				Bucket:            "bucket",
+				User:              "user",
+				SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
+				Path:              "/logs",
+				Period:            3600,
+				FormatVersion:     2,
+				GzipLevel:         2,
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				ResponseCondition: "Prevent default logging",
+				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
+				Placement:         "none",
+			},
 		},
 		{
-			args:      []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteGCSFn: deleteGCSError},
-			wantError: errTest.Error(),
+			name: "all values set flag serviceID",
+			cmd:  updateCommandAll(),
+			api:  mock.API{GetGCSFn: getGCSOK},
+			want: &fastly.UpdateGCSInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "new1",
+				Bucket:            "new2",
+				User:              "new3",
+				SecretKey:         "new4",
+				Path:              "new5",
+				Period:            3601,
+				FormatVersion:     3,
+				GzipLevel:         3,
+				Format:            "new6",
+				ResponseCondition: "new7",
+				TimestampFormat:   "new8",
+				Placement:         "new9",
+			},
 		},
 		{
-			args:       []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteGCSFn: deleteGCSOK},
-			wantOutput: "Deleted GCS logging endpoint logs (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       updateCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			testcase.cmd.Base.Globals.Client = testcase.api
+
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-var errTest = errors.New("fixture error")
-
-func createGCSOK(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
-	return &fastly.GCS{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-	}, nil
+func createCommandRequired() *CreateCommand {
+	return &CreateCommand{
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+		Bucket:       "bucket",
+		User:         "user",
+		SecretKey:    "-----BEGIN PRIVATE KEY-----foo",
+	}
 }
 
-func createGCSError(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
-	return nil, errTest
+func createCommandAll() *CreateCommand {
+	return &CreateCommand{
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		Bucket:            "bucket",
+		User:              "user",
+		SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
+		Path:              common.OptionalString{Optional: common.Optional{Valid: true}, Value: "/logs"},
+		Period:            common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3600},
+		GzipLevel:         common.OptionalUint8{Optional: common.Optional{Valid: true}, Value: 2},
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
+		TimestampFormat:   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+	}
 }
 
-func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
-	return []*fastly.GCS{
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "logs",
-			Bucket:            "my-logs",
-			User:              "foo@example.com",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
-			Path:              "logs/",
-			Period:            3600,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-		},
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "analytics",
-			Bucket:            "analytics",
-			User:              "foo@example.com",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
-			Path:              "logs/",
-			Period:            86400,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-		},
-	}, nil
+func createCommandMissingServiceID() *CreateCommand {
+	res := createCommandAll()
+	res.manifest = manifest.Data{}
+	return res
 }
 
-func listGCSsError(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
-	return nil, errTest
+func updateCommandNoUpdates() *UpdateCommand {
+	return &UpdateCommand{
+		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+	}
 }
 
-var listGCSsShortOutput = strings.TrimSpace(`
-SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
-`) + "\n"
+func updateCommandAll() *UpdateCommand {
+	return &UpdateCommand{
+		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
+		Bucket:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
+		User:              common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
+		SecretKey:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
+		Path:              common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		Period:            common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3601},
+		GzipLevel:         common.OptionalUint8{Optional: common.Optional{Valid: true}, Value: 3},
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new6"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new7"},
+		TimestampFormat:   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new8"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new9"},
+	}
+}
 
-var listGCSsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
-Fastly API endpoint: https://api.fastly.com
-Service ID: 123
-Version: 1
-	GCS 1/2
-		Service ID: 123
-		Version: 1
-		Name: logs
-		Bucket: my-logs
-		User: foo@example.com
-		Secret key: -----BEGIN RSA PRIVATE KEY-----foo
-		Path: logs/
-		Period: 3600
-		GZip level: 9
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Message type: classic
-		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
-	GCS 2/2
-		Service ID: 123
-		Version: 1
-		Name: analytics
-		Bucket: analytics
-		User: foo@example.com
-		Secret key: -----BEGIN RSA PRIVATE KEY-----foo
-		Path: logs/
-		Period: 86400
-		GZip level: 9
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Message type: classic
-		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
-`) + "\n\n"
+func updateCommandMissingServiceID() *UpdateCommand {
+	res := updateCommandAll()
+	res.manifest = manifest.Data{}
+	return res
+}
 
 func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
 		ServiceID:         i.Service,
 		Version:           i.Version,
 		Name:              "logs",
-		Bucket:            "my-logs",
-		User:              "foo@example.com",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
-		Path:              "logs/",
+		Bucket:            "bucket",
+		User:              "user",
+		SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
+		Path:              "/logs",
 		Period:            3600,
-		GzipLevel:         9,
+		GzipLevel:         2,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
-		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
 	}, nil
-}
-
-func getGCSError(i *fastly.GetGCSInput) (*fastly.GCS, error) {
-	return nil, errTest
-}
-
-var describeGCSOutput = strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Bucket: my-logs
-User: foo@example.com
-Secret key: -----BEGIN RSA PRIVATE KEY-----foo
-Path: logs/
-Period: 3600
-GZip level: 9
-Format: %h %l %u %t "%r" %>s %b
-Format version: 2
-Response condition: Prevent default logging
-Message type: classic
-Timestamp format: %Y-%m-%dT%H:%M:%S.000
-Placement: none
-`) + "\n"
-
-func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
-	return &fastly.GCS{
-		ServiceID:         i.Service,
-		Version:           i.Version,
-		Name:              "log",
-		Bucket:            "logs",
-		User:              "foo@example.com",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         9,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-	}, nil
-}
-
-func updateGCSError(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
-	return nil, errTest
-}
-
-func deleteGCSOK(i *fastly.DeleteGCSInput) error {
-	return nil
-}
-
-func deleteGCSError(i *fastly.DeleteGCSInput) error {
-	return errTest
 }
