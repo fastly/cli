@@ -15,7 +15,20 @@ import (
 type CreateCommand struct {
 	common.Base
 	manifest manifest.Data
-	Input    fastly.CreateBigQueryInput
+
+	// required
+	EndpointName string // Can't shaddow common.Base method Name().
+	Version      int
+	ProjectID    string
+	Dataset      string
+	Table        string
+	User         string
+	SecretKey    string
+
+	// optional
+	Template      common.OptionalString
+	Format        common.OptionalString
+	FormatVersion common.OptionalUint
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -24,32 +37,71 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.Globals = globals
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a BigQuery logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the BigQuery logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.Input.Name)
+
+	c.CmdClause.Flag("name", "The name of the BigQuery logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("project-id", "Your Google Cloud Platform project ID").Required().StringVar(&c.Input.ProjectID)
-	c.CmdClause.Flag("dataset", "Your BigQuery dataset").Required().StringVar(&c.Input.Dataset)
-	c.CmdClause.Flag("table", "Your BigQuery table").Required().StringVar(&c.Input.Table)
-	c.CmdClause.Flag("user", "Your Google Cloud Platform service account email address. The client_email field in your service account authentication JSON.").Required().StringVar(&c.Input.User)
-	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON.").Required().StringVar(&c.Input.SecretKey)
-	c.CmdClause.Flag("template-suffix", "BigQuery table name suffix template").StringVar(&c.Input.Template)
-	c.CmdClause.Flag("format", "Apache style log formatting. Must produce JSON that matches the schema of your BigQuery table").StringVar(&c.Input.Format)
-	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").UintVar(&c.Input.FormatVersion)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+
+	c.CmdClause.Flag("project-id", "Your Google Cloud Platform project ID").Required().StringVar(&c.ProjectID)
+	c.CmdClause.Flag("dataset", "Your BigQuery dataset").Required().StringVar(&c.Dataset)
+	c.CmdClause.Flag("table", "Your BigQuery table").Required().StringVar(&c.Table)
+	c.CmdClause.Flag("user", "Your Google Cloud Platform service account email address. The client_email field in your service account authentication JSON.").Required().StringVar(&c.User)
+	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON.").Required().StringVar(&c.SecretKey)
+
+	c.CmdClause.Flag("template-suffix", "BigQuery table name suffix template").Action(c.Template.Set).StringVar(&c.Template.Value)
+	c.CmdClause.Flag("format", "Apache style log formatting. Must produce JSON that matches the schema of your BigQuery table").Action(c.Format.Set).StringVar(&c.Format.Value)
+	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	// TODO(phamann): It seems `placement` and `response_condition` aren't
 	// exposed via the go-fastly input struct. They should be added here when
 	// they do.
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *CreateCommand) createInput() (*fastly.CreateBigQueryInput, error) {
+	var input fastly.CreateBigQueryInput
+
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		return nil, errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
 
-	d, err := c.Globals.Client.CreateBigQuery(&c.Input)
+	input.Service = serviceID
+	input.Version = c.Version
+	input.Name = c.EndpointName
+	input.ProjectID = c.ProjectID
+	input.Dataset = c.Dataset
+	input.User = c.User
+	input.Table = c.Table
+	input.SecretKey = c.SecretKey
+
+	if c.Template.Valid {
+		input.Template = c.Template.Value
+	}
+
+	if c.Format.Valid {
+		input.Format = c.Format.Value
+	}
+
+	if c.FormatVersion.Valid {
+		input.FormatVersion = c.FormatVersion.Value
+	}
+
+	if c.FormatVersion.Valid {
+		input.FormatVersion = c.FormatVersion.Value
+	}
+
+	return &input, nil
+}
+
+// Exec invokes the application logic for the command.
+func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+	input, err := c.createInput()
+	if err != nil {
+		return err
+	}
+
+	d, err := c.Globals.Client.CreateBigQuery(input)
 	if err != nil {
 		return err
 	}

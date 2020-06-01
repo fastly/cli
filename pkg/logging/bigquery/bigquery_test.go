@@ -1,414 +1,213 @@
-package bigquery_test
+package bigquery
 
 import (
-	"bytes"
-	"errors"
-	"io"
-	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/fastly"
 )
 
-func TestBigQueryCreate(t *testing.T) {
+func TestCreateBigQueryInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *CreateCommand
+		want      *fastly.CreateBigQueryInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com"},
-			api:       mock.API{CreateBigQueryFn: createBigQueryOK},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
-			args:       []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`},
-			api:        mock.API{CreateBigQueryFn: createBigQueryOK},
-			wantOutput: "Created BigQuery logging endpoint log (service 123 version 1)",
-		},
-		{
-			args:      []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`},
-			api:       mock.API{CreateBigQueryFn: createBigQueryError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
-		})
-	}
-}
-
-func TestBigQueryList(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:       []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListBigQueriesFn: listBigQueriesOK},
-			wantOutput: listBigQueriesShortOutput,
-		},
-		{
-			args:       []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListBigQueriesFn: listBigQueriesOK},
-			wantOutput: listBigQueriesVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListBigQueriesFn: listBigQueriesOK},
-			wantOutput: listBigQueriesVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "bigquery", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListBigQueriesFn: listBigQueriesOK},
-			wantOutput: listBigQueriesVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "-v", "bigquery", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListBigQueriesFn: listBigQueriesOK},
-			wantOutput: listBigQueriesVerboseOutput,
-		},
-		{
-			args:      []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListBigQueriesFn: listBigQueriesError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestBigQueryDescribe(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "bigquery", "describe", "--service-id", "123", "--version", "1"},
-			api:       mock.API{GetBigQueryFn: getBigQueryOK},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args:      []string{"logging", "bigquery", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetBigQueryFn: getBigQueryError},
-			wantError: errTest.Error(),
-		},
-		{
-			args:       []string{"logging", "bigquery", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetBigQueryFn: getBigQueryOK},
-			wantOutput: describeBigQueryOutput,
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestBigQueryUpdate(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--new-name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`},
-			api:       mock.API{UpdateBigQueryFn: updateBigQueryOK},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetBigQueryFn:    getBigQueryError,
-				UpdateBigQueryFn: updateBigQueryOK,
+			name: "required values set flag serviceID",
+			cmd:  createCommandRequired(),
+			want: &fastly.CreateBigQueryInput{
+				Service:   "123",
+				Version:   2,
+				Name:      "log",
+				ProjectID: "123",
+				Dataset:   "dataset",
+				Table:     "table",
+				User:      "user",
+				SecretKey: "-----BEGIN PRIVATE KEY-----foo",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetBigQueryFn:    getBigQueryOK,
-				UpdateBigQueryFn: updateBigQueryError,
+			name: "all values set flag serviceID",
+			cmd:  createCommandAll(),
+			want: &fastly.CreateBigQueryInput{
+				Service:       "123",
+				Version:       2,
+				Name:          "log",
+				ProjectID:     "123",
+				Dataset:       "dataset",
+				Table:         "table",
+				User:          "user",
+				Template:      "template",
+				SecretKey:     "-----BEGIN PRIVATE KEY-----foo",
+				Format:        `%h %l %u %t "%r" %>s %b`,
+				FormatVersion: 2,
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetBigQueryFn:    getBigQueryOK,
-				UpdateBigQueryFn: updateBigQueryOK,
-			},
-			wantOutput: "Updated BigQuery logging endpoint log (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       createCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func TestBigQueryDelete(t *testing.T) {
+func TestUpdateBigQueryInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *UpdateCommand
+		api       mock.API
+		want      *fastly.UpdateBigQueryInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1"},
-			api:       mock.API{DeleteBigQueryFn: deleteBigQueryOK},
-			wantError: "error parsing arguments: required flag --name not provided",
+			name: "no updates",
+			cmd:  updateCommandNoUpdates(),
+			api:  mock.API{GetBigQueryFn: getBigQueryOK},
+			want: &fastly.UpdateBigQueryInput{
+				Service:       "123",
+				Version:       2,
+				Name:          "logs",
+				NewName:       "logs",
+				ProjectID:     "123",
+				Dataset:       "dataset",
+				Table:         "table",
+				Template:      "template",
+				User:          "user",
+				SecretKey:     "-----BEGIN PRIVATE KEY-----foo",
+				Format:        `%h %l %u %t "%r" %>s %b`,
+				FormatVersion: 2,
+			},
 		},
 		{
-			args:      []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteBigQueryFn: deleteBigQueryError},
-			wantError: errTest.Error(),
+			name: "all values set flag serviceID",
+			cmd:  updateCommandAll(),
+			api:  mock.API{GetBigQueryFn: getBigQueryOK},
+			want: &fastly.UpdateBigQueryInput{
+				Service:       "123",
+				Version:       2,
+				Name:          "logs",
+				NewName:       "new1",
+				ProjectID:     "new2",
+				Dataset:       "new3",
+				Table:         "new4",
+				User:          "new5",
+				SecretKey:     "new6",
+				Template:      "new7",
+				Format:        "new8",
+				FormatVersion: 3,
+			},
 		},
 		{
-			args:       []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteBigQueryFn: deleteBigQueryOK},
-			wantOutput: "Deleted BigQuery logging endpoint logs (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       updateCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			testcase.cmd.Base.Globals.Client = testcase.api
+
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-var errTest = errors.New("fixture error")
-
-func createBigQueryOK(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
-	return &fastly.BigQuery{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-	}, nil
+func createCommandRequired() *CreateCommand {
+	return &CreateCommand{
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+		ProjectID:    "123",
+		Dataset:      "dataset",
+		Table:        "table",
+		User:         "user",
+		SecretKey:    "-----BEGIN PRIVATE KEY-----foo",
+	}
 }
 
-func createBigQueryError(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
-	return nil, errTest
+func createCommandAll() *CreateCommand {
+	return &CreateCommand{
+		manifest:      manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:  "log",
+		Version:       2,
+		ProjectID:     "123",
+		Dataset:       "dataset",
+		Table:         "table",
+		User:          "user",
+		SecretKey:     "-----BEGIN PRIVATE KEY-----foo",
+		Template:      common.OptionalString{Optional: common.Optional{Valid: true}, Value: "template"},
+		Format:        common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion: common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
+	}
 }
 
-func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
-	return []*fastly.BigQuery{
-		&fastly.BigQuery{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "logs",
-			ProjectID:         "my-project",
-			Dataset:           "raw-logs",
-			Table:             "logs",
-			User:              "service-account@domain.com",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Template:          "%Y%m%d",
-			Placement:         "none",
-			ResponseCondition: "Prevent default logging",
-		},
-		&fastly.BigQuery{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "analytics",
-			ProjectID:         "my-project",
-			Dataset:           "analytics",
-			Table:             "logs",
-			User:              "service-account@domain.com",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Template:          "%Y%m%d",
-			Placement:         "none",
-			ResponseCondition: "Prevent default logging",
-		},
-	}, nil
+func createCommandMissingServiceID() *CreateCommand {
+	res := createCommandAll()
+	res.manifest = manifest.Data{}
+	return res
 }
 
-func listBigQueriesError(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
-	return nil, errTest
+func updateCommandNoUpdates() *UpdateCommand {
+	return &UpdateCommand{
+		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+	}
 }
 
-var listBigQueriesShortOutput = strings.TrimSpace(`
-SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
-`) + "\n"
+func updateCommandAll() *UpdateCommand {
+	return &UpdateCommand{
+		Base:          common.Base{Globals: &config.Data{Client: nil}},
+		manifest:      manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:  "log",
+		Version:       2,
+		NewName:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
+		ProjectID:     common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
+		Dataset:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
+		Table:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
+		User:          common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		SecretKey:     common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new6"},
+		Template:      common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new7"},
+		Format:        common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new8"},
+		FormatVersion: common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
+	}
+}
 
-var listBigQueriesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
-Fastly API endpoint: https://api.fastly.com
-Service ID: 123
-Version: 1
-	BigQuery 1/2
-		Service ID: 123
-		Version: 1
-		Name: logs
-		Format: %h %l %u %t "%r" %>s %b
-		User: service-account@domain.com
-		Project ID: my-project
-		Dataset: raw-logs
-		Table: logs
-		Template suffix: %Y%m%d
-		Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
-		Response condition: Prevent default logging
-		Placement: none
-		Format version: 0
-	BigQuery 2/2
-		Service ID: 123
-		Version: 1
-		Name: analytics
-		Format: %h %l %u %t "%r" %>s %b
-		User: service-account@domain.com
-		Project ID: my-project
-		Dataset: analytics
-		Table: logs
-		Template suffix: %Y%m%d
-		Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
-		Response condition: Prevent default logging
-		Placement: none
-		Format version: 0
-`) + "\n\n"
+func updateCommandMissingServiceID() *UpdateCommand {
+	res := updateCommandAll()
+	res.manifest = manifest.Data{}
+	return res
+}
 
 func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID:         i.Service,
-		Version:           i.Version,
-		Name:              "logs",
-		ProjectID:         "my-project",
-		Dataset:           "raw-logs",
-		Table:             "logs",
-		User:              "service-account@domain.com",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Template:          "%Y%m%d",
-		Placement:         "none",
-		ResponseCondition: "Prevent default logging",
+		ServiceID:     i.Service,
+		Version:       i.Version,
+		Name:          "logs",
+		Format:        `%h %l %u %t "%r" %>s %b`,
+		User:          "user",
+		ProjectID:     "123",
+		Dataset:       "dataset",
+		Table:         "table",
+		Template:      "template",
+		SecretKey:     "-----BEGIN PRIVATE KEY-----foo",
+		FormatVersion: 2,
 	}, nil
-}
-
-func getBigQueryError(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
-	return nil, errTest
-}
-
-var describeBigQueryOutput = strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Format: %h %l %u %t "%r" %>s %b
-User: service-account@domain.com
-Project ID: my-project
-Dataset: raw-logs
-Table: logs
-Template suffix: %Y%m%d
-Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
-Response condition: Prevent default logging
-Placement: none
-Format version: 0
-`) + "\n"
-
-func updateBigQueryOK(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
-	return &fastly.BigQuery{
-		ServiceID:         i.Service,
-		Version:           i.Version,
-		Name:              "log",
-		ProjectID:         "my-project",
-		Dataset:           "raw-logs",
-		Table:             "logs",
-		User:              "service-account@domain.com",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Template:          "%Y%m%d",
-		Placement:         "none",
-		ResponseCondition: "Prevent default logging",
-	}, nil
-}
-
-func updateBigQueryError(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
-	return nil, errTest
-}
-
-func deleteBigQueryOK(i *fastly.DeleteBigQueryInput) error {
-	return nil
-}
-
-func deleteBigQueryError(i *fastly.DeleteBigQueryInput) error {
-	return errTest
 }
