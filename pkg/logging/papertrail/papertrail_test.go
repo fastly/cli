@@ -1,386 +1,193 @@
-package papertrail_test
+package papertrail
 
 import (
-	"bytes"
-	"errors"
-	"io"
-	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/fastly"
 )
 
-func TestPapertrailCreate(t *testing.T) {
+func TestCreatePapertrailInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *CreateCommand
+		want      *fastly.CreatePapertrailInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log"},
-			wantError: "error parsing arguments: required flag --address not provided",
-		},
-		{
-			args:       []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com:123"},
-			api:        mock.API{CreatePapertrailFn: createPapertrailOK},
-			wantOutput: "Created Papertrail logging endpoint log (service 123 version 1)",
-		},
-		{
-			args:      []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com:123"},
-			api:       mock.API{CreatePapertrailFn: createPapertrailError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
-		})
-	}
-}
-
-func TestPapertrailList(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:       []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListPapertrailsFn: listPapertrailsOK},
-			wantOutput: listPapertrailsShortOutput,
-		},
-		{
-			args:       []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListPapertrailsFn: listPapertrailsOK},
-			wantOutput: listPapertrailsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListPapertrailsFn: listPapertrailsOK},
-			wantOutput: listPapertrailsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "papertrail", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListPapertrailsFn: listPapertrailsOK},
-			wantOutput: listPapertrailsVerboseOutput,
-		},
-		{
-			args:       []string{"logging", "-v", "papertrail", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListPapertrailsFn: listPapertrailsOK},
-			wantOutput: listPapertrailsVerboseOutput,
-		},
-		{
-			args:      []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListPapertrailsFn: listPapertrailsError},
-			wantError: errTest.Error(),
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestPapertrailDescribe(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args:      []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetPapertrailFn: getPapertrailError},
-			wantError: errTest.Error(),
-		},
-		{
-			args:       []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetPapertrailFn: getPapertrailOK},
-			wantOutput: describePapertrailOutput,
-		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
-		})
-	}
-}
-
-func TestPapertrailUpdate(t *testing.T) {
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
-		{
-			args:      []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetPapertrailFn:    getPapertrailError,
-				UpdatePapertrailFn: updatePapertrailOK,
+			name: "required values set flag serviceID",
+			cmd:  createCommandRequired(),
+			want: &fastly.CreatePapertrailInput{
+				Service: "123",
+				Version: 2,
+				Name:    "log",
+				Address: "example.com",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetPapertrailFn:    getPapertrailOK,
-				UpdatePapertrailFn: updatePapertrailError,
+			name: "all values set flag serviceID",
+			cmd:  createCommandAll(),
+			want: &fastly.CreatePapertrailInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "log",
+				Address:           "example.com",
+				Port:              22,
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
 			},
-			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetPapertrailFn:    getPapertrailOK,
-				UpdatePapertrailFn: updatePapertrailOK,
-			},
-			wantOutput: "Updated Papertrail logging endpoint log (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       createCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func TestPapertrailDelete(t *testing.T) {
+func TestUpdatePapertrailInput(t *testing.T) {
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		name      string
+		cmd       *UpdateCommand
+		api       mock.API
+		want      *fastly.UpdatePapertrailInput
+		wantError string
 	}{
 		{
-			args:      []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1"},
-			wantError: "error parsing arguments: required flag --name not provided",
+			name: "no updates",
+			cmd:  updateCommandNoUpdates(),
+			api:  mock.API{GetPapertrailFn: getPapertrailOK},
+			want: &fastly.UpdatePapertrailInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "logs",
+				Address:           "example.com",
+				Port:              22,
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
+			},
 		},
 		{
-			args:      []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeletePapertrailFn: deletePapertrailError},
-			wantError: errTest.Error(),
+			name: "all values set flag serviceID",
+			cmd:  updateCommandAll(),
+			api:  mock.API{GetPapertrailFn: getPapertrailOK},
+			want: &fastly.UpdatePapertrailInput{
+				Service:           "123",
+				Version:           2,
+				Name:              "logs",
+				NewName:           "new1",
+				Address:           "new2",
+				Port:              23,
+				Format:            "new3",
+				FormatVersion:     3,
+				ResponseCondition: "new4",
+				Placement:         "new5",
+			},
 		},
 		{
-			args:       []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeletePapertrailFn: deletePapertrailOK},
-			wantOutput: "Deleted Papertrail logging endpoint logs (service 123 version 1)",
+			name:      "error missing serviceID",
+			cmd:       updateCommandMissingServiceID(),
+			want:      nil,
+			wantError: errors.ErrNoServiceID.Error(),
 		},
 	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+		t.Run(testcase.name, func(t *testing.T) {
+			testcase.cmd.Base.Globals.Client = testcase.api
+
+			have, err := testcase.cmd.createInput()
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-var errTest = errors.New("fixture error")
-
-func createPapertrailOK(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
-	return &fastly.Papertrail{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-	}, nil
+func createCommandRequired() *CreateCommand {
+	return &CreateCommand{
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Address:      "example.com",
+		Version:      2,
+	}
 }
 
-func createPapertrailError(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
-	return nil, errTest
+func createCommandAll() *CreateCommand {
+	return &CreateCommand{
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		Address:           "example.com",
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 22},
+	}
 }
 
-func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
-	return []*fastly.Papertrail{
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "logs",
-			Address:           "example.com:123",
-			Port:              123,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-		},
-		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
-			Name:              "analytics",
-			Address:           "127.0.0.1:456",
-			Port:              456,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-		},
-	}, nil
+func createCommandMissingServiceID() *CreateCommand {
+	res := createCommandAll()
+	res.manifest = manifest.Data{}
+	return res
 }
 
-func listPapertrailsError(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
-	return nil, errTest
+func updateCommandNoUpdates() *UpdateCommand {
+	return &UpdateCommand{
+		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+	}
 }
 
-var listPapertrailsShortOutput = strings.TrimSpace(`
-SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
-`) + "\n"
+func updateCommandAll() *UpdateCommand {
+	return &UpdateCommand{
+		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName:      "log",
+		Version:           2,
+		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
+		Address:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
+		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 23},
+		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
+		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+	}
+}
 
-var listPapertrailsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
-Fastly API endpoint: https://api.fastly.com
-Service ID: 123
-Version: 1
-	Papertrail 1/2
-		Service ID: 123
-		Version: 1
-		Name: logs
-		Address: example.com:123
-		Port: 123
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Placement: none
-	Papertrail 2/2
-		Service ID: 123
-		Version: 1
-		Name: analytics
-		Address: 127.0.0.1:456
-		Port: 456
-		Format: %h %l %u %t "%r" %>s %b
-		Format version: 2
-		Response condition: Prevent default logging
-		Placement: none
-`) + "\n\n"
+func updateCommandMissingServiceID() *UpdateCommand {
+	res := updateCommandAll()
+	res.manifest = manifest.Data{}
+	return res
+}
 
 func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
 		ServiceID:         i.Service,
 		Version:           i.Version,
 		Name:              "logs",
-		Address:           "example.com:123",
-		Port:              123,
+		Address:           "example.com",
+		Port:              22,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
 		Placement:         "none",
 	}, nil
-}
-
-func getPapertrailError(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
-	return nil, errTest
-}
-
-var describePapertrailOutput = strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Address: example.com:123
-Port: 123
-Format: %h %l %u %t "%r" %>s %b
-Format version: 2
-Response condition: Prevent default logging
-Placement: none
-`) + "\n"
-
-func updatePapertrailOK(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
-	return &fastly.Papertrail{
-		ServiceID:         i.Service,
-		Version:           i.Version,
-		Name:              "log",
-		Address:           "example.com:123",
-		Port:              123,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
-	}, nil
-}
-
-func updatePapertrailError(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
-	return nil, errTest
-}
-
-func deletePapertrailOK(i *fastly.DeletePapertrailInput) error {
-	return nil
-}
-
-func deletePapertrailError(i *fastly.DeletePapertrailInput) error {
-	return errTest
 }
