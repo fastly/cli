@@ -33,6 +33,8 @@ type UpdateCommand struct {
 	ResponseCondition common.OptionalString
 	TimestampFormat   common.OptionalString
 	Placement         common.OptionalString
+
+	// TODO (@mccurdyc): Add supported MessageType field once exposed for Updates (already exists for Creates).
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
