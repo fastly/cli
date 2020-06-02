@@ -58,7 +58,7 @@ func TestCreateLogglyInput(t *testing.T) {
 	}
 }
 
-func TestUpdateSFTPInput(t *testing.T) {
+func TestUpdateLogglyInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
 		cmd       *UpdateCommand
