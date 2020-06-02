@@ -26,9 +26,11 @@ type CreateCommand struct {
 	SecretKey    string
 
 	// optional
-	Template      common.OptionalString
-	Format        common.OptionalString
-	FormatVersion common.OptionalUint
+	Template          common.OptionalString
+	Placement         common.OptionalString
+	ResponseCondition common.OptionalString
+	Format            common.OptionalString
+	FormatVersion     common.OptionalUint
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -51,9 +53,9 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("template-suffix", "BigQuery table name suffix template").Action(c.Template.Set).StringVar(&c.Template.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting. Must produce JSON that matches the schema of your BigQuery table").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
-	// TODO(phamann): It seems `placement` and `response_condition` aren't
-	// exposed via the go-fastly input struct. They should be added here when
-	// they do.
+	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
+	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
+
 	return &c
 }
 
@@ -87,8 +89,12 @@ func (c *CreateCommand) createInput() (*fastly.CreateBigQueryInput, error) {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+	if c.Placement.Valid {
+		input.Placement = c.Placement.Value
+	}
+
+	if c.ResponseCondition.Valid {
+		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
 	return &input, nil

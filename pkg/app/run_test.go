@@ -574,6 +574,14 @@ COMMANDS
                                  placed by default in vcl_log if format_version
                                  is set to 2 and in vcl_deliver if
                                  format_version is set to 1
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug. This field
+                                 is not required and has no default value
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
 
   logging bigquery list --version=VERSION [<flags>]
     List BigQuery endpoints on a Fastly service version
