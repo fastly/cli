@@ -151,17 +151,10 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "logs",
-		Version:           2,
-		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 22},
-		UseTLS:            common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "tkn"},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "logs",
+		Version:      2,
 	}
 }
 
@@ -193,6 +186,8 @@ func getLogentriesOK(i *fastly.GetLogentriesInput) (*fastly.Logentries, error) {
 		ServiceID:         i.Service,
 		Version:           i.Version,
 		Name:              "logs",
+		Port:              22,
+		UseTLS:            true,
 		Token:             "tkn",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,

@@ -193,27 +193,10 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
-		Base:                         common.Base{Globals: &config.Data{Client: nil}},
-		manifest:                     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:                 "logs",
-		Version:                      2,
-		NewName:                      common.OptionalString{Optional: common.Optional{Valid: true}, Value: "logs"},
-		BucketName:                   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "bucket"},
-		AccessKey:                    common.OptionalString{Optional: common.Optional{Valid: true}, Value: "access"},
-		SecretKey:                    common.OptionalString{Optional: common.Optional{Valid: true}, Value: "secret"},
-		Domain:                       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "domain"},
-		Path:                         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "path"},
-		Period:                       common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3600},
-		GzipLevel:                    common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		Format:                       common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:                common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		MessageType:                  common.OptionalString{Optional: common.Optional{Valid: true}, Value: "classic"},
-		ResponseCondition:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		TimestampFormat:              common.OptionalString{Optional: common.Optional{Valid: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		Placement:                    common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
-		Redundancy:                   common.OptionalString{Optional: common.Optional{Valid: true}, Value: string(fastly.S3RedundancyStandard)},
-		ServerSideEncryption:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: string(fastly.S3ServerSideEncryptionAES)},
-		ServerSideEncryptionKMSKeyID: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "kmskey"},
+		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "logs",
+		Version:      2,
 	}
 }
 
@@ -269,6 +252,6 @@ func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 		Placement:                    "none",
 		Redundancy:                   fastly.S3RedundancyStandard,
 		ServerSideEncryptionKMSKeyID: "kmskey",
-		ServerSideEncryption:         fastly.S3ServerSideEncryptionKMS,
+		ServerSideEncryption:         fastly.S3ServerSideEncryptionAES,
 	}, nil
 }
