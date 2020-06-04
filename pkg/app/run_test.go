@@ -678,6 +678,9 @@ COMMANDS
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
+        --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
+                                 encrypt your log files before writing them to
+                                 disk
         --server-side-encryption=SERVER-SIDE-ENCRYPTION
                                  Set to enable S3 Server Side Encryption. Can be
                                  either AES256 or aws:kms
@@ -736,6 +739,9 @@ COMMANDS
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
+        --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
+                                 encrypt your log files before writing them to
+                                 disk
         --server-side-encryption=SERVER-SIDE-ENCRYPTION
                                  Set to enable S3 Server Side Encryption. Can be
                                  either AES256 or aws:kms
