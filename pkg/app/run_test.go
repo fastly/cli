@@ -1187,6 +1187,9 @@ COMMANDS
         --timestamp-format=TIMESTAMP-FORMAT
                                  strftime specified timestamp formatting
                                  (default "%Y-%m-%dT%H:%M:%S.000")
+        --message-type=MESSAGE-TYPE
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
