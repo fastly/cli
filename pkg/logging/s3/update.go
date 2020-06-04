@@ -111,6 +111,7 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateS3Input, error) {
 		TimestampFormat:              s3.TimestampFormat,
 		Redundancy:                   s3.Redundancy,
 		Placement:                    s3.Placement,
+		PublicKey:                    s3.PublicKey,
 		ServerSideEncryption:         s3.ServerSideEncryption,
 		ServerSideEncryptionKMSKeyID: s3.ServerSideEncryptionKMSKeyID,
 	}
