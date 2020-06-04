@@ -33,6 +33,7 @@ type CreateCommand struct {
 	Format            common.OptionalString
 	FormatVersion     common.OptionalUint
 	GzipLevel         common.OptionalUint
+	MessageType       common.OptionalString
 	ResponseCondition common.OptionalString
 	TimestampFormat   common.OptionalString
 	Placement         common.OptionalString
@@ -63,6 +64,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("gzip-level", "What level of GZIP encoding to have when dumping logs (default 0, no compression)").Action(c.GzipLevel.Set).UintVar(&c.GzipLevel.Value)
+	c.CmdClause.Flag("message-type", "How the message should be formatted. One of: classic (default), loggly, logplex or blank").Action(c.MessageType.Set).StringVar(&c.MessageType.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
@@ -120,6 +122,10 @@ func (c *CreateCommand) createInput() (*fastly.CreateSFTPInput, error) {
 
 	if c.GzipLevel.Valid {
 		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
+	}
+
+	if c.MessageType.Valid {
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.ResponseCondition.Valid {

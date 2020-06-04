@@ -58,6 +58,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "GZip level: %d\n", sftp.GzipLevel)
 	fmt.Fprintf(out, "Format: %s\n", sftp.Format)
 	fmt.Fprintf(out, "Format version: %d\n", sftp.FormatVersion)
+	fmt.Fprintf(out, "Message type: %s\n", sftp.MessageType)
 	fmt.Fprintf(out, "Response condition: %s\n", sftp.ResponseCondition)
 	fmt.Fprintf(out, "Timestamp format: %s\n", sftp.TimestampFormat)
 	fmt.Fprintf(out, "Placement: %s\n", sftp.Placement)

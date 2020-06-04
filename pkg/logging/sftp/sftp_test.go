@@ -52,6 +52,7 @@ func TestCreateSFTPInput(t *testing.T) {
 				GzipLevel:         fastly.Uint(2),
 				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
 				ResponseCondition: fastly.String("Prevent default logging"),
+				MessageType:       fastly.String("classic"),
 				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
 				Placement:         fastly.String("none"),
 			},
@@ -103,6 +104,7 @@ func TestUpdateSFTPInput(t *testing.T) {
 				ResponseCondition: fastly.String("new10"),
 				TimestampFormat:   fastly.String("new11"),
 				Placement:         fastly.String("new12"),
+				MessageType:       fastly.String("new13"),
 			},
 		},
 		{
@@ -127,6 +129,7 @@ func TestUpdateSFTPInput(t *testing.T) {
 				GzipLevel:         fastly.Uint(2),
 				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
 				ResponseCondition: fastly.String("Prevent default logging"),
+				MessageType:       fastly.String("classic"),
 				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
 				Placement:         fastly.String("none"),
 			},
@@ -176,6 +179,7 @@ func createCommandAll() *CreateCommand {
 		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
 		GzipLevel:         common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
+		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "classic"},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
@@ -219,6 +223,7 @@ func updateCommandAll() *UpdateCommand {
 		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new10"},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new11"},
 		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new12"},
+		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new13"},
 	}
 }
 
@@ -245,6 +250,7 @@ func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		GzipLevel:         2,
+		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
