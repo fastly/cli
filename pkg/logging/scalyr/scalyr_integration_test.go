@@ -308,6 +308,7 @@ func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 			Version:           i.Version,
 			Name:              "logs",
 			Token:             "abc",
+			Region:            "US",
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
 			ResponseCondition: "Prevent default logging",
@@ -318,6 +319,7 @@ func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 			Version:           i.Version,
 			Name:              "analytics",
 			Token:             "abc",
+			Region:            "US",
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
 			ResponseCondition: "Prevent default logging",
@@ -346,6 +348,7 @@ Version: 1
 		Version: 1
 		Name: logs
 		Token: abc
+		Region: US
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -355,6 +358,7 @@ Version: 1
 		Version: 1
 		Name: analytics
 		Token: abc
+		Region: US
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -367,6 +371,7 @@ func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 		Version:           i.Version,
 		Name:              "logs",
 		Token:             "abc",
+		Region:            "US",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
@@ -383,6 +388,7 @@ Service ID: 123
 Version: 1
 Name: logs
 Token: abc
+Region: US
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Response condition: Prevent default logging
@@ -395,6 +401,7 @@ func updateScalyrOK(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 		Version:           i.Version,
 		Name:              "log",
 		Token:             "abc",
+		Region:            "EU",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",

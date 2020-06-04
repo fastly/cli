@@ -61,6 +61,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tVersion: %d\n", scalyr.Version)
 		fmt.Fprintf(out, "\t\tName: %s\n", scalyr.Name)
 		fmt.Fprintf(out, "\t\tToken: %s\n", scalyr.Token)
+		fmt.Fprintf(out, "\t\tRegion: %s\n", scalyr.Region)
 		fmt.Fprintf(out, "\t\tFormat: %s\n", scalyr.Format)
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", scalyr.FormatVersion)
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", scalyr.ResponseCondition)

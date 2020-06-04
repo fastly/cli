@@ -25,6 +25,7 @@ type UpdateCommand struct {
 	Format            common.OptionalString
 	FormatVersion     common.OptionalUint
 	Token             common.OptionalString
+	Region            common.OptionalString
 	ResponseCondition common.OptionalString
 	Placement         common.OptionalString
 }
@@ -45,6 +46,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://www.scalyr.com/keys)").Action(c.Token.Set).StringVar(&c.Token.Value)
+	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 
@@ -75,6 +77,7 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateScalyrInput, error) {
 		Format:            fastly.String(scalyr.Format),
 		FormatVersion:     fastly.Uint(scalyr.FormatVersion),
 		Token:             fastly.String(scalyr.Token),
+		Region:            fastly.String(scalyr.Region),
 		ResponseCondition: fastly.String(scalyr.ResponseCondition),
 		Placement:         fastly.String(scalyr.Placement),
 	}
@@ -93,6 +96,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateScalyrInput, error) {
 
 	if c.Token.Valid {
 		input.Token = fastly.String(c.Token.Value)
+	}
+
+	if c.Region.Valid {
+		input.Region = fastly.String(c.Region.Value)
 	}
 
 	if c.ResponseCondition.Valid {

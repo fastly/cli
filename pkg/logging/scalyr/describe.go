@@ -47,6 +47,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", scalyr.Version)
 	fmt.Fprintf(out, "Name: %s\n", scalyr.Name)
 	fmt.Fprintf(out, "Token: %s\n", scalyr.Token)
+	fmt.Fprintf(out, "Region: %s\n", scalyr.Region)
 	fmt.Fprintf(out, "Format: %s\n", scalyr.Format)
 	fmt.Fprintf(out, "Format version: %d\n", scalyr.FormatVersion)
 	fmt.Fprintf(out, "Response condition: %s\n", scalyr.ResponseCondition)
