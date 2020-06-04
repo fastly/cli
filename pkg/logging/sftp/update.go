@@ -34,6 +34,7 @@ type UpdateCommand struct {
 	FormatVersion     common.OptionalUint
 	GzipLevel         common.OptionalUint
 	Format            common.OptionalString
+	MessageType       common.OptionalString
 	ResponseCondition common.OptionalString
 	TimestampFormat   common.OptionalString
 	Placement         common.OptionalString
@@ -63,6 +64,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Period.Set).UintVar(&c.Period.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
+	c.CmdClause.Flag("message-type", "How the message should be formatted. One of: classic (default), loggly, logplex or blank").Action(c.MessageType.Set).StringVar(&c.MessageType.Value)
 	c.CmdClause.Flag("gzip-level", "What level of GZIP encoding to have when dumping logs (default 0, no compression)").Action(c.GzipLevel.Set).UintVar(&c.GzipLevel.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
@@ -104,6 +106,7 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSFTPInput, error) {
 		Format:            fastly.String(sftp.Format),
 		FormatVersion:     fastly.Uint(sftp.FormatVersion),
 		GzipLevel:         fastly.Uint(uint(sftp.GzipLevel)), // TODO (v2): consistent type.
+		MessageType:       fastly.String(sftp.MessageType),
 		ResponseCondition: fastly.String(sftp.ResponseCondition),
 		TimestampFormat:   fastly.String(sftp.TimestampFormat),
 		Placement:         fastly.String(sftp.Placement),
@@ -159,6 +162,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSFTPInput, error) {
 
 	if c.GzipLevel.Valid {
 		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
+	}
+
+	if c.MessageType.Valid {
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.ResponseCondition.Valid {

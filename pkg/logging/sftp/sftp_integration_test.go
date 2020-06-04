@@ -296,6 +296,7 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 			GzipLevel:         2,
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
+			MessageType:       "classic",
 			ResponseCondition: "Prevent default logging",
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
@@ -315,6 +316,7 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 			Period:            3600,
 			GzipLevel:         3,
 			Format:            `%h %l %u %t "%r" %>s %b`,
+			MessageType:       "classic",
 			FormatVersion:     2,
 			ResponseCondition: "Prevent default logging",
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
@@ -354,6 +356,7 @@ Version: 1
 		GZip level: 2
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
+		Message type: classic
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
@@ -373,6 +376,7 @@ Version: 1
 		GZip level: 3
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
+		Message type: classic
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
@@ -395,6 +399,7 @@ func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 		GzipLevel:         2,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
+		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
@@ -421,6 +426,7 @@ Period: 3600
 GZip level: 2
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
+Message type: classic
 Response condition: Prevent default logging
 Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Placement: none
@@ -443,6 +449,7 @@ func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 		GzipLevel:         3,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
+		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",

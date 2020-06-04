@@ -1681,6 +1681,9 @@ COMMANDS
                                  (default) or 1
         --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
                                  dumping logs (default 0, no compression)
+        --message-type=MESSAGE-TYPE
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
@@ -1739,6 +1742,9 @@ COMMANDS
                                  The version of the custom logging format used
                                  for the configured endpoint. Can be either 2
                                  (default) or 1
+        --message-type=MESSAGE-TYPE
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
         --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
                                  dumping logs (default 0, no compression)
         --response-condition=RESPONSE-CONDITION

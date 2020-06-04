@@ -72,6 +72,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tGZip level: %d\n", sftp.GzipLevel)
 		fmt.Fprintf(out, "\t\tFormat: %s\n", sftp.Format)
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", sftp.FormatVersion)
+		fmt.Fprintf(out, "\t\tMessage type: %s\n", sftp.MessageType)
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", sftp.ResponseCondition)
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", sftp.TimestampFormat)
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", sftp.Placement)
