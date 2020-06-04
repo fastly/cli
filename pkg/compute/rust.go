@@ -34,8 +34,9 @@ const (
 // package which we are interested in and is embedded within CargoManifest and
 // CargoLock.
 type CargoPackage struct {
-	Name    string `toml:"name"`
-	Version string `toml:"version"`
+	Name         string         `toml:"name" json:"name"`
+	Version      string         `toml:"version" json:"version"`
+	Dependencies []CargoPackage `toml:"-" json:"dependencies"`
 }
 
 // CargoManifest models the package confuiguration properties of a Rust Cargo
@@ -51,17 +52,29 @@ func (m *CargoManifest) Read(filename string) error {
 	return err
 }
 
-// CargoLock models the package confuiguration properties of a Rust Cargo
-// lock file which we are interested in and are read from the Cargo.lock file
-// within the $PWD of the package.
-type CargoLock struct {
-	Package []CargoPackage
+// CargoMetadata models information about the workspace members and resolved
+// dependencies of the current package via `cargo metadata` command output.
+type CargoMetadata struct {
+	Package []CargoPackage `json:"packages"`
 }
 
 // Read the contents of the Cargo.lock file from filename.
-func (m *CargoLock) Read(filename string) error {
-	_, err := toml.DecodeFile(filename, m)
-	return err
+func (m *CargoMetadata) Read() error {
+	cmd := exec.Command("cargo", "metadata", "--format-version", "1")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	if err := json.NewDecoder(stdout).Decode(&m); err != nil {
+		return err
+	}
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Rust is an implments Toolchain for the Rust lanaguage.
@@ -170,88 +183,57 @@ func (r Rust) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found Cargo.toml at %s\n", fpath)
 
-	// 5) Verify `fastly` crate version
+	// 5) Verify `fastly` and  `fastly-sys` crate version
 	//
-	// A valid and up-to-date version of the fastly crate is required.
-	fpath, err = filepath.Abs("Cargo.lock")
-	if err != nil {
-		return fmt.Errorf("error getting Cargo.lock path: %w", err)
-	}
-
+	// A valid and up-to-date version of the fastly-sys crate is required.
 	if !common.FileExists(fpath) {
 		return fmt.Errorf("%s not found", fpath)
 	}
 
-	var lock CargoLock
-	if err := lock.Read("Cargo.lock"); err != nil {
-		return fmt.Errorf("error reading Cargo.lock file: %w", err)
+	var metadata CargoMetadata
+	if err := metadata.Read(); err != nil {
+		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
 
-	// Fetch the latest crate version from cargo.io API.
-	l, err := GetLatestCrateVersion(r.client, "fastly")
+	// Fetch the latest crate versions from cargo.io API.
+	latestFastly, err := getLatestCrateVersion(r.client, "fastly")
 	if err != nil {
 		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
-	latest, err := semver.Parse(l)
+	latestFastlySys, err := getLatestCrateVersion(r.client, "fastly-sys")
 	if err != nil {
-		return fmt.Errorf("error parsing latest crate SemVer: %w", err)
+		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
 
-	// Find the crate version declared in Cargo.lock lockfile.
-	var crate CargoPackage
-	for _, p := range lock.Package {
-		if p.Name == "fastly" {
-			crate = p
-			break
-		}
-	}
-
-	// If crate not found in lockfile, error with dual remediation steps.
-	if crate.Name == "" {
-		return errors.RemediationError{
-			Inner: fmt.Errorf("fastly crate not found"),
-			Remediation: fmt.Sprintf(
-				"To fix this error, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
-				text.Bold("Cargo.toml"),
-				text.Bold(fmt.Sprintf(`fastly = "^%s"`, latest)),
-				text.Bold("cargo update -p fastly"),
-			),
-		}
-	}
-
-	// Parse lockfile version to semver.
-	version, err := semver.Parse(crate.Version)
+	fastlySysVersion, err := getCrateVersionFromMetadata(metadata, "fastly-sys")
+	// If fastly-sys crate not found, error with dual remediation steps.
 	if err != nil {
-		return fmt.Errorf("error parsing Cargo.lock file: %w", err)
+		return newCargoUpdateRemediationErr(err, latestFastly.String())
 	}
 
-	// Parse the lowest minor semver for the latest release.
-	// I.e. v0.3.2 becomes v0.3.0.
-	latestMinor, err := semver.Parse(fmt.Sprintf("%d.%d.0", latest.Major, latest.Minor))
+	// If fastly-sys version is on a lower than the latest, error with dual
+	// remediation steps.
+	if fastlySysVersion.LT(*latestFastlySys) {
+		return newCargoUpdateRemediationErr(fmt.Errorf("fastly crate not up-to-date"), latestFastly.String())
+	}
+
+	fastlyVersion, err := getCrateVersionFromMetadata(metadata, "fastly")
+	// If fastly crate not found, error with dual remediation steps.
 	if err != nil {
-		return fmt.Errorf("error parsing Cargo.lock file: %w", err)
+		return newCargoUpdateRemediationErr(err, latestFastly.String())
 	}
 
-	// If the lockfile version is within the minor range but lower than the
-	// latest, error with remediation to run `cargo update`.
-	if version.GTE(latestMinor) && version.LT(latest) {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("fastly crate not up-to-date"),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("cargo update -p fastly")),
-		}
-	}
-
-	// If version is on a lower minor or major, error with a dual remediation.
-	if version.LT(latest) {
-		return errors.RemediationError{
-			Inner: fmt.Errorf("fastly crate not up-to-date"),
-			Remediation: fmt.Sprintf(
-				"To fix this error, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
-				text.Bold("Cargo.toml"),
-				text.Bold(fmt.Sprintf(`fastly = "^%s"`, latest)),
-				text.Bold("cargo update -p fastly"),
-			),
-		}
+	// If fastly crate version is lower than the latest, suggest user should
+	// update, but don't error.
+	if fastlyVersion.LT(*latestFastly) {
+		text.Break(out)
+		text.Info(out, fmt.Sprintf(
+			"a newer version of the fastly crate is avaiable, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
+			text.Bold("Cargo.toml"),
+			text.Bold(fmt.Sprintf(`fastly = "^%s"`, latestFastly)),
+			text.Bold("cargo update -p fastly"),
+		))
+		text.Break(out)
 	}
 
 	return nil
@@ -381,35 +363,35 @@ type CargoCrateVersions struct {
 	Versions []CargoCrateVersion `json:"versions"`
 }
 
-// GetLatestCrateVersion fetches all versions of a given Rust crate from the
+// getLatestCrateVersion fetches all versions of a given Rust crate from the
 // crates.io HTTP API and returns the latest valid semver version.
-func GetLatestCrateVersion(client api.HTTPClient, name string) (string, error) {
+func getLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version, error) {
 	url := fmt.Sprintf("https://crates.io/api/v1/crates/%s/versions", name)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("error fetching latest crate version: %s", resp.Status)
+		return nil, fmt.Errorf("error fetching latest crate version: %s", resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	crate := CargoCrateVersions{}
 	err = json.Unmarshal(body, &crate)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var versions []semver.Version
@@ -420,12 +402,58 @@ func GetLatestCrateVersion(client api.HTTPClient, name string) (string, error) {
 	}
 
 	if len(versions) < 1 {
-		return "", fmt.Errorf("no valid crate versions found")
+		return nil, fmt.Errorf("no valid crate versions found")
 	}
 
 	semver.Sort(versions)
 
 	latest := versions[len(versions)-1]
 
-	return latest.String(), nil
+	return &latest, nil
+}
+
+// getCrateVersionFromLockfile searches for a crate inside a CargoMetadata tree
+// and returns the crates version as a semver.Version.
+func getCrateVersionFromMetadata(metadata CargoMetadata, crate string) (*semver.Version, error) {
+	// Search for crate in metadata tree.
+	var c CargoPackage
+	for _, p := range metadata.Package {
+		if p.Name == crate {
+			c = p
+			break
+		}
+		for _, pp := range p.Dependencies {
+			if pp.Name == crate {
+				c = pp
+				break
+			}
+		}
+	}
+
+	if c.Name == "" {
+		return nil, fmt.Errorf("%s crate not found", crate)
+	}
+
+	// Parse lockfile version to semver.Version.
+	version, err := semver.Parse(c.Version)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing cargo metadata: %w", err)
+	}
+
+	return &version, nil
+}
+
+// newCargoUpdateRemediationErr constructs a new a new RemediationError which
+// wraps a cargo error and suggests to update the fastly crate to a specified
+// version as its remediation message.
+func newCargoUpdateRemediationErr(err error, version string) errors.RemediationError {
+	return errors.RemediationError{
+		Inner: err,
+		Remediation: fmt.Sprintf(
+			"To fix this error, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
+			text.Bold("Cargo.toml"),
+			text.Bold(fmt.Sprintf(`fastly = "^%s"`, version)),
+			text.Bold("cargo update -p fastly"),
+		),
+	}
 }

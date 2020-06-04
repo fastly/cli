@@ -145,6 +145,12 @@ func Warning(w io.Writer, format string, args ...interface{}) {
 	fmt.Fprintf(w, "\n"+BoldYellow("WARNING: ")+format, args...)
 }
 
+// Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
+func Info(w io.Writer, format string, args ...interface{}) {
+	format = strings.TrimRight(format, "\r\n") + "\n"
+	fmt.Fprintf(w, "\n"+Bold("INFO: ")+format, args...)
+}
+
 // Success is a wrapper for fmt.Fprintf with a bold green "SUCCESS: " prefix.
 func Success(w io.Writer, format string, args ...interface{}) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
