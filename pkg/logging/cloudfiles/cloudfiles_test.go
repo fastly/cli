@@ -184,24 +184,10 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdate() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		Version:           2,
-		EndpointName:      "logs",
-		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "logs"},
-		AccessKey:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "key"},
-		BucketName:        common.OptionalString{Optional: common.Optional{Valid: true}, Value: "bucket"},
-		Path:              common.OptionalString{Optional: common.Optional{Valid: true}, Value: "/logs"},
-		Region:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "abc"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
-		Period:            common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3600},
-		GzipLevel:         common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "classic"},
-		TimestampFormat:   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		PublicKey:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: pgpPublicKey()},
+		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Version:      2,
+		EndpointName: "logs",
 	}
 }
 
@@ -245,7 +231,7 @@ func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 		Path:              "/logs",
 		Region:            "abc",
 		Placement:         "none",
-		Period:            2,
+		Period:            3600,
 		GzipLevel:         2,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
