@@ -35,6 +35,7 @@ type CreateCommand struct {
 	TimestampFormat              common.OptionalString
 	Placement                    common.OptionalString
 	Redundancy                   common.OptionalString
+	PublicKey                    common.OptionalString
 	ServerSideEncryption         common.OptionalString
 	ServerSideEncryptionKMSKeyID common.OptionalString
 }
@@ -65,8 +66,10 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
 	c.CmdClause.Flag("redundancy", "The S3 redundancy level. Can be either standard or reduced_redundancy").Action(c.Redundancy.Set).EnumVar(&c.Redundancy.Value, string(fastly.S3RedundancyStandard), string(fastly.S3RedundancyReduced))
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
+	c.CmdClause.Flag("public-key", "A PGP public key that Fastly will use to encrypt your log files before writing them to disk").Action(c.PublicKey.Set).StringVar(&c.PublicKey.Value)
 	c.CmdClause.Flag("server-side-encryption", "Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms").Action(c.ServerSideEncryption.Set).EnumVar(&c.ServerSideEncryption.Value, string(fastly.S3ServerSideEncryptionAES), string(fastly.S3ServerSideEncryptionKMS))
 	c.CmdClause.Flag("server-side-encryption-kms-key-id", "Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms").Action(c.ServerSideEncryptionKMSKeyID.Set).StringVar(&c.ServerSideEncryptionKMSKeyID.Value)
+
 	return &c
 }
 
@@ -124,6 +127,10 @@ func (c *CreateCommand) createInput() (*fastly.CreateS3Input, error) {
 
 	if c.Placement.Valid {
 		input.Placement = c.Placement.Value
+	}
+
+	if c.PublicKey.Valid {
+		input.PublicKey = c.PublicKey.Value
 	}
 
 	if c.ServerSideEncryptionKMSKeyID.Valid {

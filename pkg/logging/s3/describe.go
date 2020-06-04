@@ -58,6 +58,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Message type: %s\n", s3.MessageType)
 	fmt.Fprintf(out, "Timestamp format: %s\n", s3.TimestampFormat)
 	fmt.Fprintf(out, "Placement: %s\n", s3.Placement)
+	fmt.Fprintf(out, "Public key: %s\n", s3.PublicKey)
 	fmt.Fprintf(out, "Redundancy: %s\n", s3.Redundancy)
 	fmt.Fprintf(out, "Server-side encryption: %s\n", s3.ServerSideEncryption)
 	fmt.Fprintf(out, "Server-side encryption KMS key ID: %s\n", s3.ServerSideEncryption)

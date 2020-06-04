@@ -72,6 +72,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", s3.MessageType)
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", s3.TimestampFormat)
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", s3.Placement)
+		fmt.Fprintf(out, "\t\tPublic key: %s\n", s3.PublicKey)
 		fmt.Fprintf(out, "\t\tRedundancy: %s\n", s3.Redundancy)
 		fmt.Fprintf(out, "\t\tServer-side encryption: %s\n", s3.ServerSideEncryption)
 		fmt.Fprintf(out, "\t\tServer-side encryption KMS key ID: %s\n", s3.ServerSideEncryption)
