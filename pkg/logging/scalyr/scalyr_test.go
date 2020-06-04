@@ -37,6 +37,7 @@ func TestCreateScalyrInput(t *testing.T) {
 				Version:           2,
 				Name:              fastly.String("log"),
 				Token:             fastly.String("tkn"),
+				Region:            fastly.String("US"),
 				FormatVersion:     fastly.Uint(2),
 				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
 				ResponseCondition: fastly.String("Prevent default logging"),
@@ -76,6 +77,7 @@ func TestUpdateScalyrInput(t *testing.T) {
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
 				Token:             fastly.String("tkn"),
+				Region:            fastly.String("US"),
 				FormatVersion:     fastly.Uint(2),
 				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
 				ResponseCondition: fastly.String("Prevent default logging"),
@@ -96,6 +98,7 @@ func TestUpdateScalyrInput(t *testing.T) {
 				Format:            fastly.String("new3"),
 				ResponseCondition: fastly.String("new4"),
 				Placement:         fastly.String("new5"),
+				Region:            fastly.String("new6"),
 			},
 		},
 		{
@@ -130,6 +133,7 @@ func createCommandAll() *CreateCommand {
 		EndpointName:      "log",
 		Version:           2,
 		Token:             "tkn",
+		Region:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "US"},
 		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
@@ -164,6 +168,7 @@ func updateCommandAll() *UpdateCommand {
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
 		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		Region:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new6"},
 	}
 }
 
@@ -181,6 +186,7 @@ func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		Token:             "tkn",
+		Region:            "US",
 		ResponseCondition: "Prevent default logging",
 		Placement:         "none",
 	}, nil

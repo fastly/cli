@@ -22,6 +22,7 @@ type CreateCommand struct {
 	Version      int
 
 	// optional
+	Region            common.OptionalString
 	Format            common.OptionalString
 	FormatVersion     common.OptionalUint
 	ResponseCondition common.OptionalString
@@ -42,6 +43,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 
 	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://www.scalyr.com/keys)").Required().StringVar(&c.Token)
 
+	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
@@ -63,6 +65,10 @@ func (c *CreateCommand) createInput() (*fastly.CreateScalyrInput, error) {
 	input.Version = c.Version
 	input.Name = fastly.String(c.EndpointName)
 	input.Token = fastly.String(c.Token)
+
+	if c.Region.Valid {
+		input.Region = fastly.String(c.Region.Value)
+	}
 
 	if c.Format.Valid {
 		input.Format = fastly.String(c.Format.Value)

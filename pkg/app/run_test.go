@@ -1389,6 +1389,8 @@ COMMANDS
         --version=VERSION        Number of service version
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://www.scalyr.com/keys)
+        --region=REGION          The region that log data will be sent to. One
+                                 of US or EU. Defaults to US if undefined
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -1430,6 +1432,8 @@ COMMANDS
                                  (default) or 1
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://www.scalyr.com/keys)
+        --region=REGION          The region that log data will be sent to. One
+                                 of US or EU. Defaults to US if undefined
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
