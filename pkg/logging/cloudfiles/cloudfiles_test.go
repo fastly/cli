@@ -87,6 +87,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 				Version:           2,
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
+				User:              fastly.String("user"),
 				AccessKey:         fastly.String("key"),
 				BucketName:        fastly.String("bucket"),
 				Path:              fastly.String("/logs"),
@@ -124,6 +125,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 				MessageType:       fastly.String("new9"),
 				TimestampFormat:   fastly.String("new10"),
 				PublicKey:         fastly.String("new11"),
+				User:              fastly.String("new12"),
 			},
 		},
 		{
@@ -211,6 +213,7 @@ func updateCommandAll() *UpdateCommand {
 		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new9"},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new10"},
 		PublicKey:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new11"},
+		User:              common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new12"},
 	}
 }
 
