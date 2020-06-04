@@ -32,9 +32,8 @@ type UpdateCommand struct {
 	Format            common.OptionalString
 	ResponseCondition common.OptionalString
 	TimestampFormat   common.OptionalString
+	MessageType       common.OptionalString
 	Placement         common.OptionalString
-
-	// TODO (@mccurdyc): Add supported MessageType field once exposed for Updates (already exists for Creates).
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -60,6 +59,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
+	c.CmdClause.Flag("message-type", "How the message should be formatted. One of: classic (default), loggly, logplex or blank").Action(c.MessageType.Set).StringVar(&c.MessageType.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 
 	return &c
@@ -94,6 +94,7 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateGCSInput, error) {
 		FormatVersion:     gcs.FormatVersion,
 		GzipLevel:         gcs.GzipLevel,
 		Format:            gcs.Format,
+		MessageType:       gcs.MessageType,
 		ResponseCondition: gcs.ResponseCondition,
 		TimestampFormat:   gcs.TimestampFormat,
 		Placement:         gcs.Placement,
@@ -142,6 +143,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateGCSInput, error) {
 
 	if c.TimestampFormat.Valid {
 		input.TimestampFormat = c.TimestampFormat.Value
+	}
+
+	if c.MessageType.Valid {
+		input.MessageType = c.MessageType.Value
 	}
 
 	if c.Placement.Valid {

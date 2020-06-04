@@ -46,6 +46,7 @@ func TestCreateGCSInput(t *testing.T) {
 				FormatVersion:     2,
 				GzipLevel:         2,
 				Format:            `%h %l %u %t "%r" %>s %b`,
+				MessageType:       "classic",
 				ResponseCondition: "Prevent default logging",
 				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 				Placement:         "none",
@@ -93,6 +94,7 @@ func TestUpdateGCSInput(t *testing.T) {
 				Format:            `%h %l %u %t "%r" %>s %b`,
 				ResponseCondition: "Prevent default logging",
 				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
+				MessageType:       "classic",
 				Placement:         "none",
 			},
 		},
@@ -116,6 +118,7 @@ func TestUpdateGCSInput(t *testing.T) {
 				ResponseCondition: "new7",
 				TimestampFormat:   "new8",
 				Placement:         "new9",
+				MessageType:       "new10",
 			},
 		},
 		{
@@ -160,6 +163,7 @@ func createCommandAll() *CreateCommand {
 		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "classic"},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
 		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
 	}
@@ -198,6 +202,7 @@ func updateCommandAll() *UpdateCommand {
 		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new7"},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new8"},
 		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new9"},
+		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new10"},
 	}
 }
 
@@ -220,6 +225,7 @@ func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 		GzipLevel:         2,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
+		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
