@@ -1894,6 +1894,7 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Cloudfiles logging object
         --new-name=NEW-NAME      New name of the Cloudfiles logging object
+        --user=USER              The username for your Cloudfile account
         --access-key=ACCESS-KEY  Your Cloudfile account access key
         --bucket=BUCKET          The name of your Cloudfiles container
         --path=PATH              The path to upload logs to

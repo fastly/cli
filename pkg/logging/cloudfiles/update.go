@@ -22,6 +22,7 @@ type UpdateCommand struct {
 
 	// optional
 	NewName           common.OptionalString
+	User              common.OptionalString
 	AccessKey         common.OptionalString
 	BucketName        common.OptionalString
 	Path              common.OptionalString
@@ -50,6 +51,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("name", "The name of the Cloudfiles logging object").Short('n').Required().StringVar(&c.EndpointName)
 
 	c.CmdClause.Flag("new-name", "New name of the Cloudfiles logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
+	c.CmdClause.Flag("user", "The username for your Cloudfile account").Action(c.User.Set).StringVar(&c.User.Value)
 	c.CmdClause.Flag("access-key", "Your Cloudfile account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
 	c.CmdClause.Flag("bucket", "The name of your Cloudfiles container").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to").Action(c.Path.Set).StringVar(&c.Path.Value)
@@ -88,6 +90,7 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateCloudfilesInput, error) {
 		Version:           cloudfiles.Version,
 		Name:              cloudfiles.Name,
 		NewName:           fastly.String(cloudfiles.Name),
+		User:              fastly.String(cloudfiles.User),
 		AccessKey:         fastly.String(cloudfiles.AccessKey),
 		BucketName:        fastly.String(cloudfiles.BucketName),
 		Path:              fastly.String(cloudfiles.Path),
@@ -106,6 +109,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateCloudfilesInput, error) {
 	// Set new values if set by user.
 	if c.NewName.Valid {
 		input.NewName = fastly.String(c.NewName.Value)
+	}
+
+	if c.User.Valid {
+		input.User = fastly.String(c.User.Value)
 	}
 
 	if c.AccessKey.Valid {
