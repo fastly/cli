@@ -35,6 +35,8 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
       run: make dependencies
       shell: bash
+    - name: Mod Tidy
+      run: make tidy
     - name: Fmt
       run: make fmt
     - name: Vet
