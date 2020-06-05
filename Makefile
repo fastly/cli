@@ -1,7 +1,5 @@
 SHELL := /bin/bash -o pipefail
 
-GITHUB_CHANGELOG_GENERATOR := $(shell command -v github_changelog_generator 2> /dev/null)
-PREVIOUS_SEMVER_TAG := $(shell git tag | sort -r --version-sort | egrep '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$$' | head -n2 | tail -n1)
 VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
 LDFLAGS = -ldflags "\
  -X 'github.com/fastly/cli/pkg/version.AppVersion=${VERSION}' \
@@ -63,38 +61,10 @@ build:
 install:
 	go install ./cmd/fastly
 
-.PHONY:
+.PHONY: changelog
 changelog:
-ifndef GITHUB_CHANGELOG_GENERATOR
-	$(error "No github_changelog_generator in $$PATH, install via `gem install github_changelog_generator`.")
-endif
-ifndef CHANGELOG_GITHUB_TOKEN
-	@echo ""
-	@echo "WARNING: No \$$CHANGELOG_GITHUB_TOKEN in environment, set one to avoid hitting rate limit."
-	@echo ""
-endif
-ifeq ($(SEMVER_TAG),)
-	$(error "You must set $$SEMVER_TAG to your desired release semver version.")
-endif
-	github_changelog_generator -u fastly -p cli \
-		--future-release $(SEMVER_TAG) \
-		--no-pr-wo-labels \
-		--no-author \
-		--enhancement-label "**Enhancements:**" \
-		--bugs-label "**Bug fixes:**" \
-		--release-url "https://github.com/fastly/cli/releases/tag/%s" \
-		--exclude-labels documentation \
-		--exclude-tags-regex "v.*-.*"
+	@$(CURRENT_DIR)/scripts/changelog.sh
 
-.PHONY:
+.PHONY: release-changelog
 release-changelog:
-	github_changelog_generator -u fastly -p cli \
-		--no-pr-wo-labels \
-		--no-author \
-		--no-issues \
-		--enhancement-label "**Enhancements:**" \
-		--bugs-label "**Bug fixes:**" \
-		--release-url "https://github.com/fastly/cli/releases/tag/%s" \
-		--exclude-labels documentation \
-		--output RELEASE_CHANGELOG.md \
-		--since-tag $(PREVIOUS_SEMVER_TAG)
+	@$(CURRENT_DIR)/scripts/release-changelog.sh
