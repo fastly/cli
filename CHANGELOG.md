@@ -1,5 +1,22 @@
 # Changelog
 
+## [v0.12.0](https://github.com/fastly/cli/releases/tag/v0.12.0) (2020-06-05)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.11.0...v0.12.0)
+
+**Enhancements:**
+
+- Adds MessageType field to SFTP [\#118](https://github.com/fastly/cli/pull/118)
+- Adds User field to Cloudfiles Updates [\#117](https://github.com/fastly/cli/pull/117)
+- Adds Region field to Scalyr [\#116](https://github.com/fastly/cli/pull/116)
+- Adds PublicKey field to S3 [\#114](https://github.com/fastly/cli/pull/114)
+- Adds MessageType field to GCS Updates [\#113](https://github.com/fastly/cli/pull/113)
+- Adds ResponseCondition and Placement fields to BigQuery Creates [\#111](https://github.com/fastly/cli/pull/111)
+
+**Bug fixes:**
+
+- Unable to login with API key [\#94](https://github.com/fastly/cli/issues/94)
+
 ## [v0.11.0](https://github.com/fastly/cli/releases/tag/v0.11.0) (2020-05-29)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.10.0...v0.11.0)
