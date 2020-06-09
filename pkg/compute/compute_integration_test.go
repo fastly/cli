@@ -129,6 +129,8 @@ func TestInit(t *testing.T) {
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
 				GetServiceFn:    getServiceOK,
+				ListVersionsFn:  listVersionsActiveOk,
+				CloneVersionFn:  cloneVersionOk,
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendOK,
 			},
@@ -939,84 +941,6 @@ func TestUploadPackage(t *testing.T) {
 
 			err = testcase.client.UpdatePackage(testcase.serviceID, testcase.version, testcase.path)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-		})
-	}
-}
-
-func TestGetIdealPackage(t *testing.T) {
-	for _, testcase := range []struct {
-		name          string
-		inputVersions []*fastly.Version
-		wantVersion   int
-	}{
-		{
-			name: "active",
-			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-			},
-			wantVersion: 2,
-		},
-		{
-			name: "active not latest",
-			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
-			},
-			wantVersion: 2,
-		},
-		{
-			name: "active and locked",
-			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-				{Number: 3, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")}},
-			wantVersion: 2,
-		},
-		{
-			name: "locked",
-			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-			},
-			wantVersion: 2,
-		},
-		{
-			name: "locked not latest",
-			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
-			},
-			wantVersion: 2,
-		},
-		{
-			name: "no active or locked",
-			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
-			},
-			wantVersion: 3,
-		},
-		{
-			name: "not sorted",
-			inputVersions: []*fastly.Version{
-				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
-				{Number: 2, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-				{Number: 4, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-04T01:00:00Z")},
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-			},
-			wantVersion: 4,
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
-			v, err := compute.GetLatestIdealVersion(testcase.inputVersions)
-			testutil.AssertNoError(t, err)
-			if v.Number != testcase.wantVersion {
-				t.Errorf("wanted version %d, got %d", testcase.wantVersion, v.Number)
-			}
 		})
 	}
 }

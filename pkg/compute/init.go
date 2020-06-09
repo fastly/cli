@@ -110,7 +110,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	undoStack := common.NewUndoStack()
 	defer func() { undoStack.RunIfError(out, err) }()
 
-	var service *fastly.Service
+	var (
+		service *fastly.Service
+		version int
+	)
+
 	if c.serviceID != "" {
 		service, err = c.Globals.Client.GetService(&fastly.GetServiceInput{
 			ID: c.serviceID,
@@ -221,7 +225,34 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
-	if c.serviceID == "" {
+	// If we have an existing service, get the ideal version.
+	// Otherwise create a new service and set version to 1.
+	if c.serviceID != "" {
+		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
+			Service: c.serviceID,
+		})
+		if err != nil {
+			return fmt.Errorf("error listing service versions: %w", err)
+		}
+
+		v, err := getLatestIdealVersion(versions)
+		if err != nil {
+			return fmt.Errorf("error finding latest service version")
+		}
+
+		if v.Active || v.Locked {
+			progress.Step("Cloning latest version...")
+			v, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
+				Service: c.serviceID,
+				Version: v.Number,
+			})
+			if err != nil {
+				return fmt.Errorf("error cloning latest service version: %w", err)
+			}
+		}
+
+		version = v.Number
+	} else {
 		progress.Step("Creating service...")
 		service, err = c.Globals.Client.CreateService(&fastly.CreateServiceInput{
 			Name:    c.name,
@@ -231,6 +262,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return fmt.Errorf("error creating service: %w", err)
 		}
+		version = 1
 		undoStack.Push(func() error {
 			return c.Globals.Client.DeleteService(&fastly.DeleteServiceInput{
 				ID: service.ID,
@@ -241,7 +273,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Creating domain...")
 	_, err = c.Globals.Client.CreateDomain(&fastly.CreateDomainInput{
 		Service: service.ID,
-		Version: 1,
+		Version: version,
 		Name:    c.domain,
 	})
 	if err != nil {
@@ -250,7 +282,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	undoStack.Push(func() error {
 		return c.Globals.Client.DeleteDomain(&fastly.DeleteDomainInput{
 			Service: service.ID,
-			Version: 1,
+			Version: version,
 			Name:    c.domain,
 		})
 	})
@@ -258,7 +290,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Creating backend...")
 	_, err = c.Globals.Client.CreateBackend(&fastly.CreateBackendInput{
 		Service: service.ID,
-		Version: 1,
+		Version: version,
 		Name:    c.backend,
 		Address: c.backend,
 	})
@@ -268,7 +300,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	undoStack.Push(func() error {
 		return c.Globals.Client.DeleteBackend(&fastly.DeleteBackendInput{
 			Service: service.ID,
-			Version: 1,
+			Version: version,
 			Name:    c.backend,
 		})
 	})
