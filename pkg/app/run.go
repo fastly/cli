@@ -534,7 +534,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	// and gives us greater control over our error formatting.
 	app.Writers(ioutil.Discard, ioutil.Discard)
 	name, err := app.Parse(args)
-	if err != nil {
+	if err != nil && !argsIsHelpJSON(args) { // Ignore error if `help --format json`
 		usage := Usage(args, app, out, ioutil.Discard)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("error parsing arguments: %w", err)}
 	}
@@ -543,6 +543,20 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		return errors.RemediationError{Prefix: usage}
 	}
 	app.Writers(out, ioutil.Discard)
+
+	// As the `help` command model gets privately added as a side-effect of
+	// kingping.Parse, we cannot add the `--format json` flag to the model.
+	// Therefore, we have to manually parse the args slice here to check for the
+	// existence of `help --format json`, if present we print usage JSON and
+	// exit early.
+	if argsIsHelpJSON(args) {
+		json, err := UsageJSON(app)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(out, "%s", json)
+		return nil
+	}
 
 	// A side-effect of suppressing app.Parse from writing output is the usage
 	// isn't printed for the default `help` command. Therefore we capture it
@@ -654,4 +668,13 @@ func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
 func contextHasHelpFlag(ctx *kingpin.ParseContext) bool {
 	_, ok := ctx.Elements.FlagMap()["help"]
 	return ok
+}
+
+// argsIsHelpJSON determines whether the supplied command arguments are exactly
+// `help --format json`.
+func argsIsHelpJSON(args []string) bool {
+	return (len(args) == 3 &&
+		args[0] == "help" &&
+		args[1] == "--format" &&
+		args[2] == "json")
 }
