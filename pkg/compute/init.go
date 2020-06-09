@@ -68,7 +68,7 @@ func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand
 	var c InitCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
-	c.CmdClause.Flag("service-id", "Existing service ID to initialize from").Short('s').StringVar(&c.serviceID)
+	c.CmdClause.Flag("service-id", "Existing service ID to use. By default, this command creates a new service").Short('s').StringVar(&c.serviceID)
 	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.name)
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.description)
 	c.CmdClause.Flag("author", "Author of the package").Short('a').StringVar(&c.author)
