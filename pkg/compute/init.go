@@ -52,6 +52,7 @@ var (
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
 	common.Base
+	serviceID   string
 	name        string
 	description string
 	author      string
@@ -67,6 +68,7 @@ func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand
 	var c InitCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
+	c.CmdClause.Flag("service-id", "Existing service ID to initialize from").Short('s').StringVar(&c.serviceID)
 	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.name)
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.description)
 	c.CmdClause.Flag("author", "Author of the package").Short('a').StringVar(&c.author)
@@ -107,6 +109,19 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	undoStack := common.NewUndoStack()
 	defer func() { undoStack.RunIfError(out, err) }()
+
+	var service *fastly.Service
+	if c.serviceID != "" {
+		service, err = c.Globals.Client.GetService(&fastly.GetServiceInput{
+			ID: c.serviceID,
+		})
+		if err != nil {
+			return fmt.Errorf("error fetching service details: %w", err)
+		}
+
+		c.name = service.Name
+		c.description = service.Comment
+	}
 
 	if c.path == "" {
 		fmt.Fprintf(progress, "--path not specified, using current directory\n")
@@ -206,20 +221,22 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
-	progress.Step("Creating service...")
-	service, err := c.Globals.Client.CreateService(&fastly.CreateServiceInput{
-		Name:    c.name,
-		Type:    "wasm",
-		Comment: c.description,
-	})
-	if err != nil {
-		return fmt.Errorf("error creating service: %w", err)
-	}
-	undoStack.Push(func() error {
-		return c.Globals.Client.DeleteService(&fastly.DeleteServiceInput{
-			ID: service.ID,
+	if c.serviceID == "" {
+		progress.Step("Creating service...")
+		service, err = c.Globals.Client.CreateService(&fastly.CreateServiceInput{
+			Name:    c.name,
+			Type:    "wasm",
+			Comment: c.description,
 		})
-	})
+		if err != nil {
+			return fmt.Errorf("error creating service: %w", err)
+		}
+		undoStack.Push(func() error {
+			return c.Globals.Client.DeleteService(&fastly.DeleteServiceInput{
+				ID: service.ID,
+			})
+		})
+	}
 
 	progress.Step("Creating domain...")
 	_, err = c.Globals.Client.CreateDomain(&fastly.CreateDomainInput{

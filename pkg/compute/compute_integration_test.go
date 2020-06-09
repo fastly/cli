@@ -122,6 +122,24 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "test"`,
 		},
 		{
+			name:       "with service",
+			args:       []string{"compute", "init", "-s", "test"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				GetServiceFn:    getServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest...",
+			},
+			manifestIncludes: `name = "test"`,
+		},
+		{
 			name:       "with description",
 			args:       []string{"compute", "init", "--description", "test"},
 			configFile: config.File{Token: "123"},
@@ -1195,6 +1213,13 @@ func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 		ID:   "12345",
 		Name: i.Name,
 		Type: i.Type,
+	}, nil
+}
+
+func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
+	return &fastly.Service{
+		ID:   "12345",
+		Name: "test",
 	}, nil
 }
 
