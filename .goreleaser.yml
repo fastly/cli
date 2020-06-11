@@ -1,6 +1,8 @@
 project_name: fastly
 release:
   prerelease: auto
+  extra_files:
+    - glob: "dist/usage.json"
 before:
   hooks:
     - go mod tidy
@@ -23,6 +25,13 @@ builds:
     id: windows
     goos: [windows]
     goarch: [386, amd64]
+  - <<: *build_defaults
+    id: generate-usage
+    goos: [darwin]
+    goarch: [amd64]
+    hooks:
+      post:
+        - cmd: "scripts/documentation.sh {{ .Path }}"
 archives:
   - id: nix
     builds: [macos, linux]

@@ -2,13 +2,88 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"io/ioutil"
+	"strings"
 	"text/template"
 
 	"github.com/fastly/cli/pkg/text"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
+
+type usageJSON struct {
+	GlobalFlags []flagJSON    `json:"globalFlags"`
+	Commands    []commandJSON `json:"commands"`
+}
+
+type flagJSON struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Placeholder string `json:"placeholder"`
+	Required    bool   `json:"required"`
+	Default     string `json:"default"`
+}
+
+type commandJSON struct {
+	Name        string        `json:"name"`
+	Description string        `json:"description"`
+	Flags       []flagJSON    `json:"flags"`
+	Children    []commandJSON `json:"children"`
+}
+
+func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
+	var flags []flagJSON
+	for _, f := range models {
+		var flag flagJSON
+		flag.Name = f.Name
+		flag.Description = f.Help
+		flag.Placeholder = f.PlaceHolder
+		flag.Required = f.Required
+		flag.Default = strings.Join(f.Default, ",")
+		flags = append(flags, flag)
+	}
+	return flags
+}
+
+func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
+	var globalFlags []*kingpin.ClauseModel
+	for _, f := range models {
+		if !f.Hidden {
+			globalFlags = append(globalFlags, f)
+		}
+	}
+	return getFlagJSON(globalFlags)
+}
+
+func getCommandJSON(models []*kingpin.CmdModel) []commandJSON {
+	var commands []commandJSON
+	for _, c := range models {
+		var cmd commandJSON
+		cmd.Name = c.Name
+		cmd.Description = c.Help
+		cmd.Flags = getFlagJSON(c.Flags)
+		cmd.Children = getCommandJSON(c.Commands)
+		commands = append(commands, cmd)
+	}
+	return commands
+}
+
+// UsageJSON returns a structured representation of the application usage
+// documentation in JSON format. This is useful for machine consumtion.
+func UsageJSON(app *kingpin.Application) (string, error) {
+	usage := &usageJSON{
+		GlobalFlags: getGlobalFlagJSON(app.Model().Flags),
+		Commands:    getCommandJSON(app.Model().Commands),
+	}
+
+	j, err := json.Marshal(usage)
+	if err != nil {
+		return "", err
+	}
+
+	return string(j), nil
+}
 
 // Usage returns a contextual usage string for the application. In order to deal
 // with Kingpin's annoying love of side effects, we have to swap the app.Writers
