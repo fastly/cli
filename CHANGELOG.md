@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.13.0](https://github.com/fastly/cli/releases/tag/v0.13.0) (2020-06-15)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.12.0...v0.13.0)
+
+**Enhancements:**
+
+- Allow compute services to be initialised from an existing service ID [\#125](https://github.com/fastly/cli/pull/125)
+
+**Bug fixes:**
+
+- Fix bash completion [\#128](https://github.com/fastly/cli/pull/128)
+
 ## [v0.12.0](https://github.com/fastly/cli/releases/tag/v0.12.0) (2020-06-05)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.11.0...v0.12.0)
