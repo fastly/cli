@@ -63,8 +63,8 @@ install:
 
 .PHONY: changelog
 changelog:
-	@$(CURRENT_DIR)/scripts/changelog.sh
+	@$(shell pwd)/scripts/changelog.sh
 
 .PHONY: release-changelog
 release-changelog:
-	@$(CURRENT_DIR)/scripts/release-changelog.sh
+	@$(shell pwd)/scripts/release-changelog.sh
