@@ -258,6 +258,8 @@ COMMANDS
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
 
+    -s, --service-id=SERVICE-ID    Existing service ID to use. By default, this
+                                   command creates a new service
     -n, --name=NAME                Name of package, defaulting to directory name
                                    of the --path destination
     -d, --description=DESCRIPTION  Description of the package

@@ -92,7 +92,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return fmt.Errorf("error listing service versions: %w", err)
 		}
 
-		version, err := GetLatestIdealVersion(versions)
+		version, err := getLatestIdealVersion(versions)
 		if err != nil {
 			return fmt.Errorf("error finding latest service version")
 		}
@@ -228,11 +228,11 @@ func (c *Client) UpdatePackage(serviceID string, v int, path string) error {
 	return nil
 }
 
-// GetLatestIdealVersion gets the most ideal service version using the following logic:
+// getLatestIdealVersion gets the most ideal service version using the following logic:
 // - Find the active version and return
 // - If no active version, find the latest locked version and return
 // - Otherwise return the latest version
-func GetLatestIdealVersion(versions []*fastly.Version) (*fastly.Version, error) {
+func getLatestIdealVersion(versions []*fastly.Version) (*fastly.Version, error) {
 	sort.Slice(versions, func(i, j int) bool {
 		return versions[i].UpdatedAt.Before(*versions[j].UpdatedAt)
 	})
