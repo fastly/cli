@@ -236,7 +236,7 @@ func (r Rust) Verify(out io.Writer) error {
 	if fastlyVersion.LessThan(latestFastly) {
 		text.Break(out)
 		text.Info(out, fmt.Sprintf(
-			"a newer version of the fastly crate is avaiable, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
+			"an optional upgrade for the fastly crate is available, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
 			text.Bold("Cargo.toml"),
 			text.Bold(fmt.Sprintf(`fastly = "^%s"`, latestFastly)),
 			text.Bold("cargo update -p fastly"),
