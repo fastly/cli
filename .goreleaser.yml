@@ -27,7 +27,7 @@ builds:
     goarch: [386, amd64]
   - <<: *build_defaults
     id: generate-usage
-    goos: [darwin]
+    goos: [linux]
     goarch: [amd64]
     hooks:
       post:
