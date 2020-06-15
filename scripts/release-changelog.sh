@@ -12,11 +12,6 @@ if [ -z "$CHANGELOG_GITHUB_TOKEN" ]; then
 	printf "\nWARNING: No \$CHANGELOG_GITHUB_TOKEN in environment, set one to avoid hitting rate limit.\n\n"
 fi
 
-if [ -z "$SEMVER_TAG" ]; then
-	echo "You must set \$SEMVER_TAG to your desired release semver version."
-	exit 1
-fi
-
 github_changelog_generator -u fastly -p cli \
   --no-pr-wo-labels \
   --no-author \
