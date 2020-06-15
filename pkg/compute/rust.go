@@ -208,7 +208,7 @@ func (r Rust) Verify(out io.Writer) error {
 
 	// Create a semver contraint to be within the latest minor range or above.
 	// TODO(phamann): Update this to major when fastly-sys hits 1.x.x.
-	fastlySysConstraint, err := semver.NewConstraint(fmt.Sprintf("~%d.%d.0", latestFastlySys.Major(), latestFastlySys.Major()))
+	fastlySysConstraint, err := semver.NewConstraint(fmt.Sprintf("~%d.%d.0", latestFastlySys.Major(), latestFastlySys.Minor()))
 	if err != nil {
 		return fmt.Errorf("error parsing latest crate version: %w", err)
 	}
