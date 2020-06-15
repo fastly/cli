@@ -11,11 +11,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
 	"github.com/BurntSushi/toml"
-	"github.com/blang/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/errors"
@@ -205,15 +206,22 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
 
+	// Create a semver contraint to be within the latest minor range or above.
+	// TODO(phamann): Update this to major when fastly-sys hits 1.x.x.
+	fastlySysConstraint, err := semver.NewConstraint(fmt.Sprintf("~%d.%d.0", latestFastlySys.Major(), latestFastlySys.Major()))
+	if err != nil {
+		return fmt.Errorf("error parsing latest crate version: %w", err)
+	}
+
 	fastlySysVersion, err := getCrateVersionFromMetadata(metadata, "fastly-sys")
 	// If fastly-sys crate not found, error with dual remediation steps.
 	if err != nil {
 		return newCargoUpdateRemediationErr(err, latestFastly.String())
 	}
 
-	// If fastly-sys version is on a lower than the latest, error with dual
-	// remediation steps.
-	if fastlySysVersion.LT(*latestFastlySys) {
+	// If fastly-sys version doesn't meet our constraint of being within the
+	// minor range, error with dual remediation steps.
+	if ok := fastlySysConstraint.Check(fastlySysVersion); !ok {
 		return newCargoUpdateRemediationErr(fmt.Errorf("fastly crate not up-to-date"), latestFastly.String())
 	}
 
@@ -225,7 +233,7 @@ func (r Rust) Verify(out io.Writer) error {
 
 	// If fastly crate version is lower than the latest, suggest user should
 	// update, but don't error.
-	if fastlyVersion.LT(*latestFastly) {
+	if fastlyVersion.LessThan(latestFastly) {
 		text.Break(out)
 		text.Info(out, fmt.Sprintf(
 			"a newer version of the fastly crate is avaiable, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
@@ -394,9 +402,9 @@ func getLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version,
 		return nil, err
 	}
 
-	var versions []semver.Version
+	var versions []*semver.Version
 	for _, v := range crate.Versions {
-		if version, err := semver.Parse(v.Version); err == nil {
+		if version, err := semver.NewVersion(v.Version); err == nil {
 			versions = append(versions, version)
 		}
 	}
@@ -405,11 +413,11 @@ func getLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version,
 		return nil, fmt.Errorf("no valid crate versions found")
 	}
 
-	semver.Sort(versions)
+	sort.Sort(semver.Collection(versions))
 
 	latest := versions[len(versions)-1]
 
-	return &latest, nil
+	return latest, nil
 }
 
 // getCrateVersionFromLockfile searches for a crate inside a CargoMetadata tree
@@ -435,12 +443,12 @@ func getCrateVersionFromMetadata(metadata CargoMetadata, crate string) (*semver.
 	}
 
 	// Parse lockfile version to semver.Version.
-	version, err := semver.Parse(c.Version)
+	version, err := semver.NewVersion(c.Version)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing cargo metadata: %w", err)
 	}
 
-	return &version, nil
+	return version, nil
 }
 
 // newCargoUpdateRemediationErr constructs a new a new RemediationError which
