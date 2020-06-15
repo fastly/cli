@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
@@ -53,6 +54,10 @@ import (
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
+var (
+	completionRegExp = regexp.MustCompile("completion-(?:script-)?(?:bash|zsh)$")
+)
+
 // Run constructs the application including all of the subcommands, parses the
 // args, invokes the client factory with the token to create a Fastly API
 // client, and executes the chosen command, using the provided io.Reader and
@@ -77,12 +82,21 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	// bindings, because we need to do things like track where a config
 	// parameter came from.
 	app := kingpin.New("fastly", "A tool to interact with the Fastly API")
-	app.Terminate(nil)               // don't let kingpin call os.Exit
 	app.Writers(out, ioutil.Discard) // don't let kingpin write error output
 	app.UsageContext(&kingpin.UsageContext{
 		Template: VerboseUsageTemplate,
 		Funcs:    UsageTemplateFuncs,
 	})
+
+	// Prevent kingpin from calling os.Exit, this gives us greater control over
+	// error states and output contorl flow.
+	app.Terminate(nil)
+
+	// As kingpin generates bash completion as a side-effect of kingpin.Parse we
+	// allow it to call os.Exit, only if a completetion flag is present.
+	if isCompletion(args) {
+		app.Terminate(os.Exit)
+	}
 
 	// WARNING: kingping has no way of decorating flags as being "global"
 	// therefore if you add/remove a global flag you will also need to update
@@ -677,4 +691,16 @@ func argsIsHelpJSON(args []string) bool {
 		args[0] == "help" &&
 		args[1] == "--format" &&
 		args[2] == "json")
+}
+
+// isCompletion determines whether the supplied command arguments are for
+// bash/zsh completion output.
+func isCompletion(args []string) bool {
+	var found bool
+	for _, arg := range args {
+		if completionRegExp.MatchString(arg) {
+			found = true
+		}
+	}
+	return found
 }

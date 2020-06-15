@@ -12,6 +12,7 @@
 ## Quick links
 - [Installation](#Installation)
 - [Usage](#Usage)
+- [Bash/ZSH completion](#bashzsh-shell-completion)
 - [Development](#Development)
 - [Issues](#Issues)
 
@@ -101,6 +102,22 @@ To see an overview of all commands, simply run `fastly` with no arguments.
 Succinct help about any command or subcommand is available via the `-h, --help`
 flag. Verbose help about any command or subcommand is available via the help
 argument, e.g. `fastly help service`.
+
+## Bash/ZSH shell completion
+The CLI can generate completions for all commands, subcommands and flags.
+
+By specifying `--completion-bash` as the first argument, the CLI will show possible subcommands. By ending your argv with `--`, hints for flags will be shown.
+
+### Configuring your shell
+To install the completions source them in your `bash_profile` (or equivalent):
+```
+eval "$(fastly --completion-script-bash)"
+```
+
+Or for ZSH in your `zshrc`:
+```
+eval "$(fastly --completion-script-zsh)"
+```
 
 ## Development
 
