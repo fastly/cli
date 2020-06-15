@@ -2,12 +2,18 @@ package compute
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/fastly"
@@ -314,6 +320,130 @@ func TestGetIdealPackage(t *testing.T) {
 	}
 }
 
+func TestGetLatestCrateVersion(t *testing.T) {
+	for _, testcase := range []struct {
+		name        string
+		inputClient api.HTTPClient
+		wantVersion *semver.Version
+		wantError   string
+	}{
+		{
+			name:        "http error",
+			inputClient: &errorClient{errTest},
+			wantError:   "fixture error",
+		},
+		{
+			name:        "no valid versions",
+			inputClient: &versionClient{[]string{}},
+			wantError:   "no valid crate versions found",
+		},
+		{
+			name:        "unsorted",
+			inputClient: &versionClient{[]string{"0.5.23", "0.1.0", "1.2.3", "0.7.3"}},
+			wantVersion: semver.MustParse("1.2.3"),
+		},
+		{
+			name:        "reverse chronological",
+			inputClient: &versionClient{[]string{"1.2.3", "0.8.3", "0.3.2"}},
+			wantVersion: semver.MustParse("1.2.3"),
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			v, err := getLatestCrateVersion(testcase.inputClient, "fastly")
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			if err == nil && !v.Equal(testcase.wantVersion) {
+				t.Errorf("wanted version %s, got %s", testcase.wantVersion, v)
+			}
+		})
+	}
+}
+
+func TestGetCrateVersionFromMetadata(t *testing.T) {
+	for _, testcase := range []struct {
+		name        string
+		inputLock   CargoMetadata
+		inputCrate  string
+		wantVersion *semver.Version
+		wantError   string
+	}{
+		{
+			name:       "crate not found",
+			inputLock:  CargoMetadata{},
+			inputCrate: "fastly",
+			wantError:  "fastly crate not found",
+		},
+		{
+			name: "parsing error",
+			inputLock: CargoMetadata{
+				Package: []CargoPackage{
+					{
+						Name:    "foo",
+						Version: "1.2.3",
+					},
+					{
+						Name:    "fastly",
+						Version: "dgsfdfg",
+					},
+				},
+			},
+			inputCrate: "fastly",
+			wantError:  "error parsing cargo metadata",
+		},
+		{
+			name: "success",
+			inputLock: CargoMetadata{
+				Package: []CargoPackage{
+					{
+						Name:    "foo",
+						Version: "1.2.3",
+					},
+					{
+						Name:    "fastly-sys",
+						Version: "0.3.0",
+					},
+					{
+						Name:    "fastly",
+						Version: "3.0.0",
+					},
+				},
+			},
+			inputCrate:  "fastly",
+			wantVersion: semver.MustParse("3.0.0"),
+		},
+		{
+			name: "success nested",
+			inputLock: CargoMetadata{
+				Package: []CargoPackage{
+					{
+						Name:    "foo",
+						Version: "1.2.3",
+					},
+					{
+						Name:    "fastly",
+						Version: "3.0.0",
+						Dependencies: []CargoPackage{
+							{
+								Name:    "fastly-sys",
+								Version: "0.3.0",
+							},
+						},
+					},
+				},
+			},
+			inputCrate:  "fastly-sys",
+			wantVersion: semver.MustParse("0.3.0"),
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			v, err := getCrateVersionFromMetadata(testcase.inputLock, testcase.inputCrate)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			if err == nil && !v.Equal(testcase.wantVersion) {
+				t.Errorf("wanted version %s, got %s", testcase.wantVersion, v)
+			}
+		})
+	}
+}
+
 func makeBuildEnvironment(t *testing.T, fastlyIgnoreContent string) (rootdir string) {
 	t.Helper()
 
@@ -352,4 +482,33 @@ func makeBuildEnvironment(t *testing.T, fastlyIgnoreContent string) (rootdir str
 	}
 
 	return rootdir
+}
+
+var errTest = errors.New("fixture error")
+
+type errorClient struct {
+	err error
+}
+
+func (c errorClient) Do(*http.Request) (*http.Response, error) {
+	return nil, c.err
+}
+
+type versionClient struct {
+	versions []string
+}
+
+func (v versionClient) Do(*http.Request) (*http.Response, error) {
+	rec := httptest.NewRecorder()
+
+	var versions []string
+	for _, vv := range v.versions {
+		versions = append(versions, fmt.Sprintf(`{"num":"%s"}`, vv))
+	}
+
+	_, err := rec.Write([]byte(fmt.Sprintf(`{"versions":[%s]}`, strings.Join(versions, ","))))
+	if err != nil {
+		return nil, err
+	}
+	return rec.Result(), nil
 }

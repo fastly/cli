@@ -333,28 +333,28 @@ func TestBuild(t *testing.T) {
 			wantError:      "unsupported language javascript",
 		},
 		{
-			name:                 "fastly crate not found",
+			name:           "error reading cargo metadata",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
+			cargoManifest:  "[package]\nname = \"test\"",
+			client:         versionClient{[]string{"0.4.0"}},
+			wantError:      "reading cargo metadata",
+		},
+		{
+			name:                 "fastly-sys crate not found",
 			args:                 []string{"compute", "build"},
 			fastlyManifest:       "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoLock:            " ",
+			cargoManifest:        "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.3.2\"",
+			cargoLock:            "[[package]]\nname = \"test\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
 			client:               versionClient{[]string{"0.4.0"}},
-			wantError:            "fastly crate not found",
+			wantError:            "fastly-sys crate not found",
 			wantRemediationError: "fastly = \"^0.4.0\"",
 		},
 		{
-			name:                 "fastly crate out-of-date but within minor range",
+			name:                 "fastly-sys crate out-of-date",
 			args:                 []string{"compute", "build"},
 			fastlyManifest:       "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoLock:            "[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
-			client:               versionClient{[]string{"0.3.3"}},
-			wantError:            "fastly crate not up-to-date",
-			wantRemediationError: "cargo update -p fastly",
-		},
-		{
-			name:                 "fastly crate out-of-date but lower than minor range",
-			args:                 []string{"compute", "build"},
-			fastlyManifest:       "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoLock:            "[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
+			cargoLock:            "[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.2\"",
 			client:               versionClient{[]string{"0.4.0"}},
 			wantError:            "fastly crate not up-to-date",
 			wantRemediationError: "fastly = \"^0.4.0\"",
@@ -363,6 +363,7 @@ func TestBuild(t *testing.T) {
 			name:               "success",
 			args:               []string{"compute", "build"},
 			fastlyManifest:     "name = \"test\"\nlanguage = \"rust\"\n",
+			cargoLock:          "[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"\n\n[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.2\"",
 			client:             versionClient{[]string{"0.0.0"}},
 			wantOutputContains: "Built rust package test",
 		},
@@ -941,44 +942,6 @@ func TestUploadPackage(t *testing.T) {
 
 			err = testcase.client.UpdatePackage(testcase.serviceID, testcase.version, testcase.path)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-		})
-	}
-}
-
-func TestGetLatestCrateVersion(t *testing.T) {
-	for _, testcase := range []struct {
-		name        string
-		inputClient api.HTTPClient
-		wantVersion string
-		wantError   string
-	}{
-		{
-			name:        "http error",
-			inputClient: &errorClient{errTest},
-			wantError:   "fixture error",
-		},
-		{
-			name:        "no valid versions",
-			inputClient: &versionClient{[]string{}},
-			wantError:   "no valid crate versions found",
-		},
-		{
-			name:        "unsorted",
-			inputClient: &versionClient{[]string{"0.5.23", "0.1.0", "1.2.3", "0.7.3"}},
-			wantVersion: "1.2.3",
-		},
-		{
-			name:        "reverse chronological",
-			inputClient: &versionClient{[]string{"1.2.3", "0.8.3", "0.3.2"}},
-			wantVersion: "1.2.3",
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
-			v, err := compute.GetLatestCrateVersion(testcase.inputClient, "fastly")
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			if v != testcase.wantVersion {
-				t.Errorf("wanted version %s, got %s", testcase.wantVersion, v)
-			}
 		})
 	}
 }
