@@ -2710,6 +2710,105 @@ COMMANDS
     -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
                                  object
 
+  logging openstack create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --user=USER --url=URL [<flags>]
+    Create an OpenStack logging endpoint on a Fastly service version
+
+    -n, --name=NAME              The name of the OpenStack logging object. Used
+                                 as a primary key for API access
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+        --bucket=BUCKET          The name of your OpenStack container
+        --access-key=ACCESS-KEY  Your OpenStack account access key
+        --user=USER              The username for your OpenStack account
+        --url=URL                Your OpenStack auth url
+        --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
+                                 encrypt your log files before writing them to
+                                 disk
+        --path=PATH              The path to upload logs to
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --message-type=MESSAGE-TYPE
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+
+  logging openstack list --version=VERSION [<flags>]
+    List OpenStack logging endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging openstack describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about an OpenStack logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the OpenStack logging object
+
+  logging openstack update --version=VERSION --name=NAME [<flags>]
+    Update an OpenStack logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the OpenStack logging object
+        --new-name=NEW-NAME      New name of the OpenStack logging object
+        --bucket=BUCKET          The name of the Openstack Space
+        --access-key=ACCESS-KEY  Your OpenStack account access key
+        --user=USER              The username for your OpenStack account.
+        --url=URL                Your OpenStack auth url.
+        --path=PATH              The path to upload logs to
+        --period=PERIOD          How frequently log files are finalized so they
+                                 can be available for reading (in seconds,
+                                 default 3600)
+        --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
+                                 dumping logs (default 0, no compression)
+        --format=FORMAT          Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint. Can be either 2
+                                 (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint, or leave blank to always
+                                 execute
+        --message-type=MESSAGE-TYPE
+                                 How the message should be formatted. One of:
+                                 classic (default), loggly, logplex or blank
+        --timestamp-format=TIMESTAMP-FORMAT
+                                 strftime specified timestamp formatting
+                                 (default "%Y-%m-%dT%H:%M:%S.000")
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed, overriding any format_version
+                                 default. Can be none or waf_debug
+        --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
+                                 encrypt your log files before writing them to
+                                 disk
+
+  logging openstack delete --version=VERSION --name=NAME [<flags>]
+    Delete an OpenStack logging endpoint on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the OpenStack logging object
+
   stats regions
     List stats regions
 

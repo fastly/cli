@@ -36,6 +36,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/loggly"
 	"github.com/fastly/cli/pkg/logging/logshuttle"
+	"github.com/fastly/cli/pkg/logging/openstack"
 	"github.com/fastly/cli/pkg/logging/papertrail"
 	"github.com/fastly/cli/pkg/logging/s3"
 	"github.com/fastly/cli/pkg/logging/scalyr"
@@ -317,6 +318,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	googlepubsubUpdate := googlepubsub.NewUpdateCommand(googlepubsubRoot.CmdClause, &globals)
 	googlepubsubDelete := googlepubsub.NewDeleteCommand(googlepubsubRoot.CmdClause, &globals)
 
+	openstackRoot := openstack.NewRootCommand(loggingRoot.CmdClause, &globals)
+	openstackCreate := openstack.NewCreateCommand(openstackRoot.CmdClause, &globals)
+	openstackList := openstack.NewListCommand(openstackRoot.CmdClause, &globals)
+	openstackDescribe := openstack.NewDescribeCommand(openstackRoot.CmdClause, &globals)
+	openstackUpdate := openstack.NewUpdateCommand(openstackRoot.CmdClause, &globals)
+	openstackDelete := openstack.NewDeleteCommand(openstackRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -533,6 +541,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		googlepubsubDescribe,
 		googlepubsubUpdate,
 		googlepubsubDelete,
+
+		openstackRoot,
+		openstackCreate,
+		openstackList,
+		openstackDescribe,
+		openstackUpdate,
+		openstackDelete,
 
 		statsRoot,
 		statsRegions,

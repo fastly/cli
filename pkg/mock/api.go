@@ -181,6 +181,12 @@ type API struct {
 	UpdatePubsubFn func(*fastly.UpdatePubsubInput) (*fastly.Pubsub, error)
 	DeletePubsubFn func(*fastly.DeletePubsubInput) error
 
+	CreateOpenstackFn func(*fastly.CreateOpenstackInput) (*fastly.Openstack, error)
+	ListOpenstacksFn  func(*fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
+	GetOpenstackFn    func(*fastly.GetOpenstackInput) (*fastly.Openstack, error)
+	UpdateOpenstackFn func(*fastly.UpdateOpenstackInput) (*fastly.Openstack, error)
+	DeleteOpenstackFn func(*fastly.DeleteOpenstackInput) error
+
 	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
@@ -905,6 +911,31 @@ func (m API) UpdatePubsub(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 // DeletePubsub implements Interface.
 func (m API) DeletePubsub(i *fastly.DeletePubsubInput) error {
 	return m.DeletePubsubFn(i)
+}
+
+// CreateOpenstack implements Interface.
+func (m API) CreateOpenstack(i *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
+	return m.CreateOpenstackFn(i)
+}
+
+// ListOpenstack implements Interface.
+func (m API) ListOpenstack(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
+	return m.ListOpenstacksFn(i)
+}
+
+// GetOpenstack implements Interface.
+func (m API) GetOpenstack(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
+	return m.GetOpenstackFn(i)
+}
+
+// UpdateOpenstack implements Interface.
+func (m API) UpdateOpenstack(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
+	return m.UpdateOpenstackFn(i)
+}
+
+// DeleteOpenstack implements Interface.
+func (m API) DeleteOpenstack(i *fastly.DeleteOpenstackInput) error {
+	return m.DeleteOpenstackFn(i)
 }
 
 // GetUser implements Interface.
