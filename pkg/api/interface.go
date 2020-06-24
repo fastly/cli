@@ -190,6 +190,12 @@ type Interface interface {
 	UpdatePubsub(*fastly.UpdatePubsubInput) (*fastly.Pubsub, error)
 	DeletePubsub(*fastly.DeletePubsubInput) error
 
+	CreateOpenstack(*fastly.CreateOpenstackInput) (*fastly.Openstack, error)
+	ListOpenstack(*fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
+	GetOpenstack(*fastly.GetOpenstackInput) (*fastly.Openstack, error)
+	UpdateOpenstack(*fastly.UpdateOpenstackInput) (*fastly.Openstack, error)
+	DeleteOpenstack(*fastly.DeleteOpenstackInput) error
+
 	GetUser(*fastly.GetUserInput) (*fastly.User, error)
 
 	GetRegions() (*fastly.RegionsResponse, error)
