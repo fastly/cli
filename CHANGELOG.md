@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.14.0](https://github.com/fastly/cli/releases/tag/v0.14.0) (2020-06-25)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.13.0...v0.14.0)
+
+**Enhancements:**
+
+- Bump default Rust template version to v0.4.0 [\#133](https://github.com/fastly/cli/pull/133)
+
 ## [v0.13.0](https://github.com/fastly/cli/releases/tag/v0.13.0) (2020-06-15)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.12.0...v0.13.0)
@@ -11,6 +19,10 @@
 **Bug fixes:**
 
 - Fix bash completion [\#128](https://github.com/fastly/cli/pull/128)
+
+**Closed issues:**
+
+- Bash Autocomplete is broken [\#127](https://github.com/fastly/cli/issues/127)
 
 ## [v0.12.0](https://github.com/fastly/cli/releases/tag/v0.12.0) (2020-06-05)
 
