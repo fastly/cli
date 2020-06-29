@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.15.0](https://github.com/fastly/cli/releases/tag/v0.15.0) (2020-06-29)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.14.0...v0.15.0)
+
+**Enhancements:**
+
+- Adds OpenStack logging support [\#132](https://github.com/fastly/cli/pull/132)
+
 ## [v0.14.0](https://github.com/fastly/cli/releases/tag/v0.14.0) (2020-06-25)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.13.0...v0.14.0)
