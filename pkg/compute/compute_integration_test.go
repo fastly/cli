@@ -462,7 +462,6 @@ func TestDeploy(t *testing.T) {
 		args             []string
 		manifest         string
 		api              mock.API
-		client           api.HTTPClient
 		wantError        string
 		wantOutput       []string
 		manifestIncludes string
@@ -523,67 +522,15 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "no token",
-			args: []string{"compute", "deploy"},
-			api: mock.API{
-				ListVersionsFn: listVersionsActiveOk,
-				CloneVersionFn: cloneVersionOk,
-			},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "no token provided",
-			wantOutput: []string{
-				"Reading package manifest...",
-				"Validating package...",
-				"Fetching latest version...",
-				"Cloning latest version...",
-			},
-		},
-		{
 			name: "package API error",
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
-				ListVersionsFn: listVersionsActiveOk,
-				CloneVersionFn: cloneVersionOk,
+				ListVersionsFn:  listVersionsActiveOk,
+				CloneVersionFn:  cloneVersionOk,
+				UpdatePackageFn: updatePackageError,
 			},
-			client:    errorClient{err: errors.New("some network failure")},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error executing API request: some network failure",
-			wantOutput: []string{
-				"Reading package manifest...",
-				"Validating package...",
-				"Fetching latest version...",
-				"Cloning latest version...",
-				"Uploading package...",
-			},
-		},
-		{
-			name: "package API error",
-			args: []string{"compute", "deploy", "-t", "123"},
-			api: mock.API{
-				ListVersionsFn: listVersionsActiveOk,
-				CloneVersionFn: cloneVersionOk,
-			},
-			client:    errorClient{err: errors.New("some network failure")},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error executing API request: some network failure",
-			wantOutput: []string{
-				"Reading package manifest...",
-				"Validating package...",
-				"Fetching latest version...",
-				"Cloning latest version...",
-				"Uploading package...",
-			},
-		},
-		{
-			name: "package API server error",
-			args: []string{"compute", "deploy", "-t", "123"},
-			api: mock.API{
-				ListVersionsFn: listVersionsActiveOk,
-				CloneVersionFn: cloneVersionOk,
-			},
-			client:    codeClient{http.StatusInternalServerError},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error from API: 500 Internal Server Error",
+			wantError: "error uploading package: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
 				"Validating package...",
@@ -598,9 +545,9 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionError,
 			},
-			client:    codeClient{http.StatusOK},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error activating version: fixture error",
 			wantOutput: []string{
@@ -618,10 +565,10 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsError,
 			},
-			client:   codeClient{http.StatusOK},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Reading package manifest...",
@@ -641,10 +588,10 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			client:   codeClient{http.StatusOK},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Reading package manifest...",
@@ -666,10 +613,10 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			client: codeClient{http.StatusOK},
 			wantOutput: []string{
 				"Validating package...",
 				"Fetching latest version...",
@@ -685,10 +632,10 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:    listVersionsInactiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			client: codeClient{http.StatusOK},
 			wantOutput: []string{
 				"Validating package...",
 				"Fetching latest version...",
@@ -701,10 +648,10 @@ func TestDeploy(t *testing.T) {
 			name: "success with version",
 			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
 			api: mock.API{
+				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			client:           codeClient{http.StatusOK},
 			manifestIncludes: "version = 2",
 			wantOutput: []string{
 				"Validating package...",
@@ -742,7 +689,7 @@ func TestDeploy(t *testing.T) {
 				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = testcase.client
+				httpClient                     = http.DefaultClient
 				versioner     update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
@@ -769,48 +716,28 @@ func TestUpdate(t *testing.T) {
 	for _, testcase := range []struct {
 		name       string
 		args       []string
-		client     api.HTTPClient
+		api        mock.API
 		wantError  string
 		wantOutput []string
 	}{
 		{
-			name:      "no token",
-			args:      []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz"},
-			wantError: "no token provided",
-			wantOutput: []string{
-				"Initializing...",
+			name: "package API error",
+			args: []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123"},
+			api: mock.API{
+				UpdatePackageFn: updatePackageError,
 			},
-		},
-		{
-			name:       "invalid package path",
-			args:       []string{"compute", "update", "-s", "123", "--version", "1", "-p", "unkown.tar.gz", "-t", "123"},
-			wantError:  "error reading package: ",
-			wantOutput: []string{},
-		},
-		{
-			name:      "package API error",
-			args:      []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123"},
-			client:    errorClient{err: errors.New("some network failure")},
-			wantError: "error executing API request: some network failure",
+			wantError: "error uploading package: fixture error",
 			wantOutput: []string{
 				"Initializing...",
 				"Uploading package...",
 			},
 		},
 		{
-			name:      "package API server error",
-			args:      []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123"},
-			client:    codeClient{http.StatusInternalServerError},
-			wantError: "error from API: 500 Internal Server Error",
-			wantOutput: []string{
-				"Initializing...",
-				"Uploading package...",
+			name: "success",
+			args: []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123"},
+			api: mock.API{
+				UpdatePackageFn: updatePackageOk,
 			},
-		},
-		{
-			name:   "success",
-			args:   []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123"},
-			client: codeClient{http.StatusOK},
 			wantOutput: []string{
 				"Initializing...",
 				"Uploading package...",
@@ -844,8 +771,8 @@ func TestUpdate(t *testing.T) {
 				env                            = config.Environment{}
 				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(mock.API{})
-				httpClient                     = testcase.client
+				clientFactory                  = mock.APIClient(testcase.api)
+				httpClient                     = http.DefaultClient
 				versioner     update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
@@ -910,83 +837,6 @@ func TestValidate(t *testing.T) {
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, buf.String(), testcase.wantOutput)
-		})
-	}
-}
-
-func TestUploadPackage(t *testing.T) {
-	for _, testcase := range []struct {
-		name      string
-		client    *compute.Client
-		serviceID string
-		version   int
-		path      string
-		wantError string
-	}{
-		{
-			name:      "no package",
-			client:    compute.NewClient(codeClient{http.StatusOK}, "", ""),
-			serviceID: "123",
-			version:   1,
-			path:      "pkg/unkown.pkg.tar.gz",
-			wantError: "error reading package",
-		},
-		{
-			name:      "package API error",
-			client:    compute.NewClient(errorClient{err: errors.New("some network failure")}, "", ""),
-			serviceID: "123",
-			version:   1,
-			path:      "pkg/package.tar.gz",
-			wantError: "error executing API request: some network failure",
-		},
-		{
-			name:      "package API not found",
-			client:    compute.NewClient(codeClient{http.StatusNotFound}, "", ""),
-			serviceID: "123",
-			version:   1,
-			path:      "pkg/package.tar.gz",
-			wantError: "error from API: 404 Not Found",
-		},
-		{
-			name:      "package API server error",
-			client:    compute.NewClient(codeClient{http.StatusInternalServerError}, "", ""),
-			serviceID: "123",
-			version:   1,
-			path:      "pkg/package.tar.gz",
-			wantError: "error from API: 500 Internal Server Error",
-		},
-		{
-			name:      "success",
-			client:    compute.NewClient(codeClient{http.StatusOK}, "", ""),
-			serviceID: "123",
-			version:   1,
-			path:      "pkg/package.tar.gz",
-			wantError: "",
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
-			// We're going to chdir to a deploy environment,
-			// so save the PWD to return to, afterwards.
-			pwd, err := os.Getwd()
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			// Create our deploy environment in a temp dir.
-			// Defer a call to clean it up.
-			rootdir := makeDeployEnvironment(t, "")
-			defer os.RemoveAll(rootdir)
-
-			// Before running the test, chdir into the build environment.
-			// When we're done, chdir back to our original location.
-			// This is so we can reliably copy the testdata/ fixtures.
-			if err := os.Chdir(rootdir); err != nil {
-				t.Fatal(err)
-			}
-			defer os.Chdir(pwd)
-
-			err = testcase.client.UpdatePackage(testcase.serviceID, testcase.version, testcase.path)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
 		})
 	}
 }
@@ -1249,6 +1099,14 @@ func cloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return nil, errTest
 }
 
+func updatePackageOk(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
+	return &fastly.Package{ServiceID: i.Service, Version: i.Version}, nil
+}
+
+func updatePackageError(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
+	return nil, errTest
+}
+
 func activateVersionOk(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{ServiceID: i.Service, Number: i.Version}, nil
 }
@@ -1265,24 +1123,6 @@ func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 
 func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, errTest
-}
-
-type errorClient struct {
-	err error
-}
-
-func (c errorClient) Do(*http.Request) (*http.Response, error) {
-	return nil, c.err
-}
-
-type codeClient struct {
-	code int
-}
-
-func (c codeClient) Do(*http.Request) (*http.Response, error) {
-	rec := httptest.NewRecorder()
-	rec.WriteHeader(c.code)
-	return rec.Result(), nil
 }
 
 type versionClient struct {
