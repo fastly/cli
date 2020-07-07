@@ -52,26 +52,24 @@ var (
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
 	common.Base
-	serviceID   string
-	name        string
-	description string
-	author      string
-	from        string
-	branch      string
-	path        string
-	domain      string
-	backend     string
+	manifest manifest.Data
+	from     string
+	branch   string
+	path     string
+	domain   string
+	backend  string
 }
 
 // NewInitCommand returns a usable command registered under the parent.
 func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand {
 	var c InitCommand
 	c.Globals = globals
+	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
-	c.CmdClause.Flag("service-id", "Existing service ID to use. By default, this command creates a new service").Short('s').StringVar(&c.serviceID)
-	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.name)
-	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.description)
-	c.CmdClause.Flag("author", "Author of the package").Short('a').StringVar(&c.author)
+	c.CmdClause.Flag("service-id", "Existing service ID to use. By default, this command creates a new service").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.manifest.File.Name)
+	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
+	c.CmdClause.Flag("author", "Author of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("from", "Git repository containing package template").Short('f').StringVar(&c.from)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
@@ -84,8 +82,8 @@ func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand
 // Exec implements the command interface.
 func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Exit early if no token configured.
-	_, source := c.Globals.Token()
-	if source == config.SourceUndefined {
+	_, s := c.Globals.Token()
+	if s == config.SourceUndefined {
 		return errors.ErrNoToken
 	}
 
@@ -111,23 +109,33 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	defer func() { undoStack.RunIfError(out, err) }()
 
 	var (
-		service *fastly.Service
-		version int
+		source      manifest.Source
+		serviceID   string
+		service     *fastly.Service
+		version     int
+		name        string
+		description string
+		authors     []string
 	)
 
-	if c.serviceID != "" {
+	name, _ = c.manifest.Name()
+	description, _ = c.manifest.Description()
+	authors, _ = c.manifest.Authors()
+
+	serviceID, source = c.manifest.ServiceID()
+	if source != manifest.SourceUndefined {
 		service, err = c.Globals.Client.GetService(&fastly.GetServiceInput{
-			ID: c.serviceID,
+			ID: serviceID,
 		})
 		if err != nil {
 			return fmt.Errorf("error fetching service details: %w", err)
 		}
 
-		c.name = service.Name
-		c.description = service.Comment
+		name = service.Name
+		description = service.Comment
 	}
 
-	if c.path == "" {
+	if c.path == "" && !c.manifest.File.Exists() {
 		fmt.Fprintf(progress, "--path not specified, using current directory\n")
 		path, err := os.Getwd()
 		if err != nil {
@@ -142,27 +150,24 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	c.path = abspath
 
-	if c.name == "" {
-		c.name = filepath.Base(c.path)
-		fmt.Fprintf(progress, "--name not specified, using %s\n\n", c.name)
+	if name == "" {
+		name = filepath.Base(c.path)
+		fmt.Fprintf(progress, "--name not specified, using %s\n\n", name)
 
-		name, err := text.Input(out, fmt.Sprintf("Name: [%s] ", c.name), in)
-		if err != nil {
-			return fmt.Errorf("error reading input: %w", err)
-		}
-		if name != "" {
-			c.name = name
-		}
-	}
-
-	if c.description == "" {
-		c.description, err = text.Input(out, "Description: ", in)
+		name, err = text.Input(out, fmt.Sprintf("Name: [%s] ", name), in)
 		if err != nil {
 			return fmt.Errorf("error reading input: %w", err)
 		}
 	}
 
-	if c.author == "" {
+	if description == "" {
+		description, err = text.Input(out, "Description: ", in)
+		if err != nil {
+			return fmt.Errorf("error reading input: %w", err)
+		}
+	}
+
+	if len(authors) == 0 {
 		label := "Author: "
 		var defaultEmail string
 		if email := c.Globals.File.Email; email != "" {
@@ -170,16 +175,18 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			label = fmt.Sprintf("%s[%s] ", label, email)
 		}
 
-		c.author, err = text.Input(out, label, in)
+		author, err := text.Input(out, label, in)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
 		}
-		if c.author == "" {
-			c.author = defaultEmail
+		if author != "" {
+			authors = []string{author}
+		} else {
+			authors = []string{defaultEmail}
 		}
 	}
 
-	if c.from == "" {
+	if c.from == "" && !c.manifest.File.Exists() {
 		text.Output(out, "%s", text.Bold("Template:"))
 		for i, template := range defaultTemplates {
 			text.Output(out, "[%d] %s (%s)", i, template.Name, template.Path)
@@ -227,9 +234,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// If we have an existing service, get the ideal version.
 	// Otherwise create a new service and set version to 1.
-	if c.serviceID != "" {
+	if serviceID != "" {
 		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
-			Service: c.serviceID,
+			Service: serviceID,
 		})
 		if err != nil {
 			return fmt.Errorf("error listing service versions: %w", err)
@@ -243,7 +250,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if v.Active || v.Locked {
 			progress.Step("Cloning latest version...")
 			v, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
-				Service: c.serviceID,
+				Service: serviceID,
 				Version: v.Number,
 			})
 			if err != nil {
@@ -255,9 +262,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	} else {
 		progress.Step("Creating service...")
 		service, err = c.Globals.Client.CreateService(&fastly.CreateServiceInput{
-			Name:    c.name,
+			Name:    name,
 			Type:    "wasm",
-			Comment: c.description,
+			Comment: description,
 		})
 		if err != nil {
 			return fmt.Errorf("error creating service: %w", err)
@@ -305,59 +312,61 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		})
 	})
 
-	progress.Step("Fetching package template...")
-	tempdir, err := tempDir("package-init")
-	if err != nil {
-		return fmt.Errorf("error creating temporary path for package template: %w", err)
-	}
-	defer os.RemoveAll(tempdir)
-
-	var ref plumbing.ReferenceName
-	if c.from == defaultTemplate {
-		ref = plumbing.NewBranchReferenceName(defaultTemplateBranch)
-	}
-	if c.branch != "" {
-		ref = plumbing.NewBranchReferenceName(c.branch)
-	}
-
-	if _, err := git.PlainClone(tempdir, false, &git.CloneOptions{
-		URL:           c.from,
-		ReferenceName: ref,
-		Depth:         1,
-		Progress:      progress,
-	}); err != nil {
-		return fmt.Errorf("error fetching package template: %w", err)
-	}
-
-	if err := os.RemoveAll(filepath.Join(tempdir, ".git")); err != nil {
-		return fmt.Errorf("error removing git metadata from package template: %w", err)
-	}
-
-	if err := filepath.Walk(tempdir, func(path string, info os.FileInfo, err error) error {
+	if c.from != "" && !c.manifest.File.Exists() {
+		progress.Step("Fetching package template...")
+		tempdir, err := tempDir("package-init")
 		if err != nil {
-			return err // abort
+			return fmt.Errorf("error creating temporary path for package template: %w", err)
 		}
-		if info.IsDir() {
-			return nil // descend
+		defer os.RemoveAll(tempdir)
+
+		var ref plumbing.ReferenceName
+		if c.from == defaultTemplate {
+			ref = plumbing.NewBranchReferenceName(defaultTemplateBranch)
 		}
-		rel, err := filepath.Rel(tempdir, path)
-		if err != nil {
-			return err
+		if c.branch != "" {
+			ref = plumbing.NewBranchReferenceName(c.branch)
 		}
-		// Filter any files we want to ignore in Fastly-owned templates.
-		if fastlyOrgRegEx.MatchString(c.from) && fastlyFileIgnoreListRegEx.MatchString(rel) {
+
+		if _, err := git.PlainClone(tempdir, false, &git.CloneOptions{
+			URL:           c.from,
+			ReferenceName: ref,
+			Depth:         1,
+			Progress:      progress,
+		}); err != nil {
+			return fmt.Errorf("error fetching package template: %w", err)
+		}
+
+		if err := os.RemoveAll(filepath.Join(tempdir, ".git")); err != nil {
+			return fmt.Errorf("error removing git metadata from package template: %w", err)
+		}
+
+		if err := filepath.Walk(tempdir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err // abort
+			}
+			if info.IsDir() {
+				return nil // descend
+			}
+			rel, err := filepath.Rel(tempdir, path)
+			if err != nil {
+				return err
+			}
+			// Filter any files we want to ignore in Fastly-owned templates.
+			if fastlyOrgRegEx.MatchString(c.from) && fastlyFileIgnoreListRegEx.MatchString(rel) {
+				return nil
+			}
+			dst := filepath.Join(c.path, rel)
+			if err := os.MkdirAll(filepath.Dir(dst), 0750); err != nil {
+				return err
+			}
+			if err := common.CopyFile(path, dst); err != nil {
+				return err
+			}
 			return nil
+		}); err != nil {
+			return fmt.Errorf("error copying files from package template: %w", err)
 		}
-		dst := filepath.Join(c.path, rel)
-		if err := os.MkdirAll(filepath.Dir(dst), 0750); err != nil {
-			return err
-		}
-		if err := common.CopyFile(path, dst); err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
-		return fmt.Errorf("error copying files from package template: %w", err)
 	}
 
 	progress.Step("Updating package manifest...")
@@ -367,24 +376,24 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error reading package manifest: %w", err)
 	}
 
-	fmt.Fprintf(progress, "Setting package name in manifest to %q...\n", c.name)
-	m.Name = c.name
+	fmt.Fprintf(progress, "Setting package name in manifest to %q...\n", name)
+	m.Name = name
 
-	if c.description != "" {
-		fmt.Fprintf(progress, "Setting description in manifest to %s...\n", c.description)
-		m.Description = c.description
+	if description != "" {
+		fmt.Fprintf(progress, "Setting description in manifest to %s...\n", description)
+		m.Description = description
 	}
 
-	if c.author != "" {
-		fmt.Fprintf(progress, "Setting author in manifest to %s...\n", c.author)
-		m.Authors = []string{c.author}
+	if len(authors) > 0 {
+		fmt.Fprintf(progress, "Setting author in manifest to %s...\n", strings.Join(authors, ", "))
+		m.Authors = authors
 	}
 
 	fmt.Fprintf(progress, "Setting service ID in manifest to %q...\n", service.ID)
 	m.ServiceID = service.ID
 
-	fmt.Fprintf(progress, "Setting version in manifest to 1...\n")
-	m.Version = 1
+	fmt.Fprintf(progress, "Setting version in manifest to %d...\n", version)
+	m.Version = version
 
 	if err := m.Write(filepath.Join(c.path, ManifestFilename)); err != nil {
 		return fmt.Errorf("error saving package manifest: %w", err)
@@ -421,10 +430,6 @@ func verifyDestination(path string, verbose io.Writer) (abspath string, err erro
 		if err := os.MkdirAll(abspath, 0700); err != nil {
 			return abspath, fmt.Errorf("error creating package destination: %w", err)
 		}
-	}
-
-	if _, err := os.Stat(filepath.Join(abspath, ManifestFilename)); err == nil {
-		return abspath, fmt.Errorf("package destination already contains a package manifest")
 	}
 
 	tmpname := make([]byte, 16)

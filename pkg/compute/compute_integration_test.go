@@ -36,6 +36,7 @@ func TestInit(t *testing.T) {
 		args             []string
 		configFile       config.File
 		api              mock.API
+		manifest         string
 		wantFiles        []string
 		unwantedFiles    []string
 		stdin            string
@@ -178,6 +179,25 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `authors = ["test@example.com"]`,
 		},
 		{
+			name:       "with multiple authors",
+			args:       []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest...",
+			},
+			manifestIncludes: `authors = ["test1@example.com", "test2@example.com"]`,
+		},
+
+		{
 			name:       "with from repository and branch",
 			args:       []string{"compute", "init", "--from", "https://github.com/fastly/fastly-template-rust-default.git", "--branch", "master"},
 			configFile: config.File{Token: "123"},
@@ -191,6 +211,33 @@ func TestInit(t *testing.T) {
 			wantOutput: []string{
 				"Initializing...",
 				"Fetching package template...",
+				"Updating package manifest...",
+			},
+		},
+		{
+			name:       "with existing package manifest",
+			args:       []string{"compute", "init"},
+			configFile: config.File{Token: "123"},
+			manifest: strings.Join([]string{
+				"service_id = \"1234\"",
+				"name = \"test\"",
+				"language = \"rust\"",
+				"description = \"test\"",
+				"authors = [\"test@fastly.com\"]",
+			}, "\n"),
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				GetServiceFn:    getServiceOK,
+				ListVersionsFn:  listVersionsActiveOk,
+				CloneVersionFn:  cloneVersionOk,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
+			wantOutput: []string{
+				"Initializing...",
+				"Creating domain...",
+				"Creating backend...",
 				"Updating package manifest...",
 			},
 		},
@@ -237,10 +284,8 @@ func TestInit(t *testing.T) {
 
 			// Create our init environment in a temp dir.
 			// Defer a call to clean it up.
-			rootdir := makeInitEnvironment(t)
+			rootdir := makeInitEnvironment(t, testcase.manifest)
 			defer os.RemoveAll(rootdir)
-
-			t.Logf("Temporary init environment: %s", rootdir)
 
 			// Before running the test, chdir into the init environment.
 			// When we're done, chdir back to our original location.
@@ -946,7 +991,7 @@ func TestUploadPackage(t *testing.T) {
 	}
 }
 
-func makeInitEnvironment(t *testing.T) (rootdir string) {
+func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) {
 	t.Helper()
 
 	p := make([]byte, 8)
@@ -962,6 +1007,13 @@ func makeInitEnvironment(t *testing.T) (rootdir string) {
 
 	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
+	}
+
+	if manifestContent != "" {
+		filename := filepath.Join(rootdir, compute.ManifestFilename)
+		if err := ioutil.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	return rootdir

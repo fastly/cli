@@ -263,7 +263,7 @@ COMMANDS
     -n, --name=NAME                Name of package, defaulting to directory name
                                    of the --path destination
     -d, --description=DESCRIPTION  Description of the package
-    -a, --author=AUTHOR            Author of the package
+    -a, --author=AUTHOR ...        Author of the package
     -f, --from=FROM                Git repository containing package template
     -p, --path=PATH                Destination to write the new package,
                                    defaulting to the current directory
