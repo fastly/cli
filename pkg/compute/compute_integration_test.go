@@ -475,12 +475,12 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name:      "path with no service ID",
-			args:      []string{"compute", "deploy", "-p", "pkg/package.tar.gz"},
-			manifest:  "name = \"package\"\n",
-			wantError: "error reading service: no service ID found. Please provide one via the --service-id flag or within your package manifest",
+			name:       "path with no service ID",
+			args:       []string{"compute", "deploy", "-p", "pkg/package.tar.gz"},
+			manifest:   "name = \"package\"\n",
+			wantError:  "error reading service: no service ID found. Please provide one via the --service-id flag or within your package manifest",
 			wantOutput: []string{
-				"Validating package...",
+				// "Reading package manifest...",
 			},
 		},
 		{
@@ -490,7 +490,6 @@ func TestDeploy(t *testing.T) {
 			wantError: "error reading service: no service ID found. Please provide one via the --service-id flag or within your package manifest",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Validating package...",
 			},
 		},
 		{
@@ -501,7 +500,6 @@ func TestDeploy(t *testing.T) {
 			wantError: "error listing service versions: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Validating package...",
 				"Fetching latest version...",
 			},
 		},
@@ -510,6 +508,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy"},
 			api: mock.API{
 				ListVersionsFn: listVersionsActiveOk,
+				GetPackageFn:   getPackageOk,
 				CloneVersionFn: cloneVersionError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
@@ -526,6 +525,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
 				ListVersionsFn:  listVersionsActiveOk,
+				GetPackageFn:    getPackageOk,
 				CloneVersionFn:  cloneVersionOk,
 				UpdatePackageFn: updatePackageError,
 			},
@@ -544,6 +544,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
+				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionError,
@@ -564,6 +565,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
+				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -583,10 +585,26 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
+			name: "indentical package",
+			args: []string{"compute", "deploy", "-t", "123"},
+			api: mock.API{
+				ListVersionsFn: listVersionsActiveOk,
+				GetPackageFn:   getPackageIdentical,
+			},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
+			wantOutput: []string{
+				"Reading package manifest...",
+				"Fetching latest version...",
+				"Validating package...",
+				"Skipping package deployment",
+			},
+		},
+		{
 			name: "success",
 			args: []string{"compute", "deploy", "-t", "123"},
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
+				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -612,6 +630,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
+				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -631,6 +650,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
 			api: mock.API{
 				ListVersionsFn:    listVersionsInactiveOk,
+				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -648,6 +668,7 @@ func TestDeploy(t *testing.T) {
 			name: "success with version",
 			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
 			api: mock.API{
+				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
@@ -888,9 +909,9 @@ func makeBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifestCont
 	}
 
 	for _, filename := range [][]string{
-		[]string{"Cargo.toml"},
-		[]string{"Cargo.lock"},
-		[]string{"src", "main.rs"},
+		{"Cargo.toml"},
+		{"Cargo.lock"},
+		{"src", "main.rs"},
 	} {
 		fromFilename := filepath.Join("testdata", "build", filepath.Join(filename...))
 		toFilename := filepath.Join(rootdir, filepath.Join(filename...))
@@ -940,7 +961,7 @@ func makeDeployEnvironment(t *testing.T, manifestContent string) (rootdir string
 	}
 
 	for _, filename := range [][]string{
-		[]string{"pkg", "package.tar.gz"},
+		{"pkg", "package.tar.gz"},
 	} {
 		fromFilename := filepath.Join("testdata", "deploy", filepath.Join(filename...))
 		toFilename := filepath.Join(rootdir, filepath.Join(filename...))
@@ -1091,6 +1112,20 @@ func listVersionsError(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return nil, errTest
 }
 
+func getPackageOk(i *fastly.GetPackageInput) (*fastly.Package, error) {
+	return &fastly.Package{ServiceID: i.Service, Version: i.Version}, nil
+}
+
+func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
+	return &fastly.Package{
+		ServiceID: i.Service,
+		Version:   i.Version,
+		Metadata: fastly.PackageMetadata{
+			HashSum: "2b742f99854df7e024c287e36fb0fdfc5414942e012be717e52148ea0d6800d66fc659563f6f11105815051e82b14b61edc84b33b49789b790db1ed3446fb483",
+		},
+	}, nil
+}
+
 func cloneVersionOk(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{ServiceID: i.Service, Number: i.Version + 1}, nil
 }
@@ -1117,7 +1152,7 @@ func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, erro
 
 func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
-		&fastly.Domain{Name: "https://directly-careful-coyote.edgecompute.app"},
+		{Name: "https://directly-careful-coyote.edgecompute.app"},
 	}, nil
 }
 

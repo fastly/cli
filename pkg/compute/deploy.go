@@ -1,8 +1,10 @@
 package compute
 
 import (
+	"crypto/sha512"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"sort"
 
@@ -20,7 +22,7 @@ type DeployCommand struct {
 	common.Base
 	manifest manifest.Data
 	path     string
-	version  int
+	version  common.OptionalInt
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -30,7 +32,7 @@ func NewDeployCommand(parent common.Registerer, client api.HTTPClient, globals *
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version to activate").IntVar(&c.version)
+	c.CmdClause.Flag("version", "Number of version to activate").Action(c.version.Set).IntVar(&c.version.Value)
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.path)
 	return &c
 }
@@ -50,6 +52,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}()
 
+	var (
+		version *fastly.Version
+	)
+
 	// If path flag was empty, default to package tar inside pkg directory
 	// and get filename from the manifest.
 	if c.path == "" {
@@ -63,18 +69,14 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(name)))
 	}
 
-	progress.Step("Validating package...")
-
-	if err := validate(c.path); err != nil {
-		return err
-	}
-
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		return fmt.Errorf("error reading service: no service ID found. Please provide one via the --service-id flag or within your package manifest")
 	}
 
-	if c.version == 0 {
+	// Set the version we want to operate on.
+	// If version not provided infer the latest ideal version from the service.
+	if !c.version.Valid {
 		progress.Step("Fetching latest version...")
 		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
 			Service: serviceID,
@@ -83,29 +85,55 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return fmt.Errorf("error listing service versions: %w", err)
 		}
 
-		version, err := getLatestIdealVersion(versions)
+		version, err = getLatestIdealVersion(versions)
 		if err != nil {
 			return fmt.Errorf("error finding latest service version")
 		}
+	} else {
+		version = &fastly.Version{Number: c.version.Value}
+	}
 
-		if version.Active || version.Locked {
-			progress.Step("Cloning latest version...")
-			version, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
-				Service: serviceID,
-				Version: version.Number,
-			})
-			if err != nil {
-				return fmt.Errorf("error cloning latest service version: %w", err)
-			}
+	progress.Step("Validating package...")
+
+	if err := validate(c.path); err != nil {
+		return err
+	}
+
+	// Compare local package hashsum against existing service package version
+	// and exit early with message if identical.
+	if p, err := c.Globals.Client.GetPackage(&fastly.GetPackageInput{
+		Service: serviceID,
+		Version: version.Number,
+	}); err == nil {
+		hashSum, err := getHashSum(c.path)
+		if err != nil {
+			return fmt.Errorf("error getting package hashsum: %w", err)
 		}
 
-		c.version = version.Number
+		if hashSum == p.Metadata.HashSum {
+			progress.Done()
+			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, c.version)
+			return nil
+		}
+	}
+
+	// If a version wasn't supplied and the ideal version is currently active
+	// or locked, clone it.
+	if !c.version.Valid && version.Active || version.Locked {
+		progress.Step("Cloning latest version...")
+		version, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
+			Service: serviceID,
+			Version: version.Number,
+		})
+		if err != nil {
+			return fmt.Errorf("error cloning latest service version: %w", err)
+		}
 	}
 
 	progress.Step("Uploading package...")
 	_, err = c.Globals.Client.UpdatePackage(&fastly.UpdatePackageInput{
 		Service:     serviceID,
-		Version:     c.version,
+		Version:     version.Number,
 		PackagePath: c.path,
 	})
 	if err != nil {
@@ -116,7 +144,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	_, err = c.Globals.Client.ActivateVersion(&fastly.ActivateVersionInput{
 		Service: serviceID,
-		Version: c.version,
+		Version: version.Number,
 	})
 	if err != nil {
 		return fmt.Errorf("error activating version: %w", err)
@@ -124,8 +152,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Updating package manifest...")
 
-	fmt.Fprintf(progress, "Setting version in manifest to %d...\n", c.version)
-	c.manifest.File.Version = c.version
+	fmt.Fprintf(progress, "Setting version in manifest to %d...\n", version.Number)
+	c.manifest.File.Version = version.Number
 
 	if err := c.manifest.File.Write(ManifestFilename); err != nil {
 		return fmt.Errorf("error saving package manifest: %w", err)
@@ -139,12 +167,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if domains, err := c.Globals.Client.ListDomains(&fastly.ListDomainsInput{
 		Service: serviceID,
-		Version: c.version,
+		Version: version.Number,
 	}); err == nil {
 		text.Description(out, "View this service at", fmt.Sprintf("https://%s", domains[0].Name))
 	}
 
-	text.Success(out, "Deployed package (service %s, version %v)", serviceID, c.version)
+	text.Success(out, "Deployed package (service %s, version %v)", serviceID, version.Number)
 	return nil
 }
 
@@ -183,4 +211,28 @@ func getLatestIdealVersion(versions []*fastly.Version) (*fastly.Version, error) 
 	}
 
 	return version, nil
+}
+
+func getHashSum(path string) (hash string, err error) {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	// Disabling as we trust the source of the filepath variable.
+	/* #nosec */
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		cerr := f.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	h := sha512.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
