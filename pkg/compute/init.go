@@ -69,7 +69,7 @@ func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand
 	c.CmdClause.Flag("service-id", "Existing service ID to use. By default, this command creates a new service").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.manifest.File.Name)
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
-	c.CmdClause.Flag("author", "Author of the package").Short('a').StringsVar(&c.manifest.File.Authors)
+	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("from", "Git repository containing package template").Short('f').StringVar(&c.from)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
@@ -385,7 +385,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if len(authors) > 0 {
-		fmt.Fprintf(progress, "Setting author in manifest to %s...\n", strings.Join(authors, ", "))
+		fmt.Fprintf(progress, "Setting authors in manifest to %s...\n", strings.Join(authors, ", "))
 		m.Authors = authors
 	}
 
