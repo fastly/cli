@@ -38,6 +38,10 @@ type Data struct {
 
 // Name yields a Name.
 func (d *Data) Name() (string, Source) {
+	if d.Flag.Name != "" {
+		return d.Flag.Name, SourceFlag
+	}
+
 	if d.File.Name != "" {
 		return d.File.Name, SourceFile
 	}
@@ -58,6 +62,32 @@ func (d *Data) ServiceID() (string, Source) {
 	return "", SourceUndefined
 }
 
+// Description yields a Description.
+func (d *Data) Description() (string, Source) {
+	if d.Flag.Description != "" {
+		return d.Flag.Description, SourceFlag
+	}
+
+	if d.File.Description != "" {
+		return d.File.Description, SourceFile
+	}
+
+	return "", SourceUndefined
+}
+
+// Authors yields an Authors.
+func (d *Data) Authors() ([]string, Source) {
+	if len(d.Flag.Authors) > 0 {
+		return d.Flag.Authors, SourceFlag
+	}
+
+	if len(d.File.Authors) > 0 {
+		return d.File.Authors, SourceFile
+	}
+
+	return []string{}, SourceUndefined
+}
+
 // File represents all of the configuration parameters in the fastly.toml
 // manifest file schema.
 type File struct {
@@ -67,13 +97,25 @@ type File struct {
 	Authors     []string `toml:"authors"`
 	Language    string   `toml:"language"`
 	ServiceID   string   `toml:"service_id"`
+
+	exists bool
 }
 
+// Exists yeilds whether the manifest exists.
+func (f *File) Exists() bool {
+	return f.exists
+}
+
+// Read loads the manifest file content from disk.
 func (f *File) Read(filename string) error {
 	_, err := toml.DecodeFile(filename, f)
+	if err == nil {
+		f.exists = true
+	}
 	return err
 }
 
+// Write persists the manifest content to disk.
 func (f *File) Write(filename string) error {
 	fp, err := os.Create(filename)
 	if err != nil {
@@ -94,5 +136,8 @@ func (f *File) Write(filename string) error {
 // Flag represents all of the manifest parameters that can be set with explicit
 // flags. Consumers should bind their flag values to these fields directly.
 type Flag struct {
-	ServiceID string
+	Name        string
+	Description string
+	Authors     []string
+	ServiceID   string
 }
