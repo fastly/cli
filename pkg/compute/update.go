@@ -1,19 +1,19 @@
 package compute
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/go-fastly/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update packages.
 type UpdateCommand struct {
 	common.Base
-	client    api.HTTPClient
 	serviceID string
 	version   int
 	path      string
@@ -23,7 +23,6 @@ type UpdateCommand struct {
 func NewUpdateCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
-	c.client = client
 	c.CmdClause = parent.Command("update", "Update a package on a Fastly Compute@Edge service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.serviceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.version)
@@ -40,16 +39,14 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}()
 
-	token, source := c.Globals.Token()
-	if source == config.SourceUndefined {
-		return errors.ErrNoToken
-	}
-	endpoint, _ := c.Globals.Endpoint()
-
 	progress.Step("Uploading package...")
-	client := NewClient(c.client, endpoint, token)
-	if err := client.UpdatePackage(c.serviceID, c.version, c.path); err != nil {
-		return err
+	_, err = c.Globals.Client.UpdatePackage(&fastly.UpdatePackageInput{
+		Service:     c.serviceID,
+		Version:     c.version,
+		PackagePath: c.path,
+	})
+	if err != nil {
+		return fmt.Errorf("error uploading package: %w", err)
 	}
 	progress.Done()
 

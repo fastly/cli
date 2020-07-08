@@ -52,6 +52,9 @@ type Interface interface {
 	UpdateHealthCheck(*fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error)
 	DeleteHealthCheck(*fastly.DeleteHealthCheckInput) error
 
+	GetPackage(*fastly.GetPackageInput) (*fastly.Package, error)
+	UpdatePackage(*fastly.UpdatePackageInput) (*fastly.Package, error)
+
 	CreateBigQuery(*fastly.CreateBigQueryInput) (*fastly.BigQuery, error)
 	ListBigQueries(*fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 	GetBigQuery(*fastly.GetBigQueryInput) (*fastly.BigQuery, error)

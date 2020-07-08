@@ -43,6 +43,9 @@ type API struct {
 	UpdateHealthCheckFn func(*fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error)
 	DeleteHealthCheckFn func(*fastly.DeleteHealthCheckInput) error
 
+	GetPackageFn    func(*fastly.GetPackageInput) (*fastly.Package, error)
+	UpdatePackageFn func(*fastly.UpdatePackageInput) (*fastly.Package, error)
+
 	CreateBigQueryFn func(*fastly.CreateBigQueryInput) (*fastly.BigQuery, error)
 	ListBigQueriesFn func(*fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 	GetBigQueryFn    func(*fastly.GetBigQueryInput) (*fastly.BigQuery, error)
@@ -336,6 +339,16 @@ func (m API) UpdateHealthCheck(i *fastly.UpdateHealthCheckInput) (*fastly.Health
 // DeleteHealthCheck implements Interface.
 func (m API) DeleteHealthCheck(i *fastly.DeleteHealthCheckInput) error {
 	return m.DeleteHealthCheckFn(i)
+}
+
+// GetPackage implements Interface.
+func (m API) GetPackage(i *fastly.GetPackageInput) (*fastly.Package, error) {
+	return m.GetPackageFn(i)
+}
+
+// UpdatePackage implements Interface.
+func (m API) UpdatePackage(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
+	return m.UpdatePackageFn(i)
 }
 
 // CreateBigQuery implements Interface.

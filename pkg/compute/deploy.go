@@ -1,23 +1,18 @@
 package compute
 
 import (
-	"bytes"
+	"crypto/sha512"
 	"fmt"
 	"io"
-	"mime/multipart"
-	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/version"
 	"github.com/fastly/go-fastly/fastly"
 	"github.com/kennygrant/sanitize"
 )
@@ -25,21 +20,19 @@ import (
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
 	common.Base
-	client   api.HTTPClient
 	manifest manifest.Data
 	path     string
-	version  int
+	version  common.OptionalInt
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
 func NewDeployCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *DeployCommand {
 	var c DeployCommand
 	c.Globals = globals
-	c.client = client
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version to activate").IntVar(&c.version)
+	c.CmdClause.Flag("version", "Number of version to activate").Action(c.version.Set).IntVar(&c.version.Value)
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.path)
 	return &c
 }
@@ -59,6 +52,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}()
 
+	var (
+		version *fastly.Version
+	)
+
 	// If path flag was empty, default to package tar inside pkg directory
 	// and get filename from the manifest.
 	if c.path == "" {
@@ -72,18 +69,14 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(name)))
 	}
 
-	progress.Step("Validating package...")
-
-	if err := validate(c.path); err != nil {
-		return err
-	}
-
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		return fmt.Errorf("error reading service: no service ID found. Please provide one via the --service-id flag or within your package manifest")
 	}
 
-	if c.version == 0 {
+	// Set the version we want to operate on.
+	// If version not provided infer the latest ideal version from the service.
+	if !c.version.Valid {
 		progress.Step("Fetching latest version...")
 		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
 			Service: serviceID,
@@ -92,41 +85,66 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return fmt.Errorf("error listing service versions: %w", err)
 		}
 
-		version, err := getLatestIdealVersion(versions)
+		version, err = getLatestIdealVersion(versions)
 		if err != nil {
 			return fmt.Errorf("error finding latest service version")
 		}
+	} else {
+		version = &fastly.Version{Number: c.version.Value}
+	}
 
-		if version.Active || version.Locked {
-			progress.Step("Cloning latest version...")
-			version, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
-				Service: serviceID,
-				Version: version.Number,
-			})
-			if err != nil {
-				return fmt.Errorf("error cloning latest service version: %w", err)
-			}
+	progress.Step("Validating package...")
+
+	if err := validate(c.path); err != nil {
+		return err
+	}
+
+	// Compare local package hashsum against existing service package version
+	// and exit early with message if identical.
+	if p, err := c.Globals.Client.GetPackage(&fastly.GetPackageInput{
+		Service: serviceID,
+		Version: version.Number,
+	}); err == nil {
+		hashSum, err := getHashSum(c.path)
+		if err != nil {
+			return fmt.Errorf("error getting package hashsum: %w", err)
 		}
 
-		c.version = version.Number
+		if hashSum == p.Metadata.HashSum {
+			progress.Done()
+			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, c.version)
+			return nil
+		}
+	}
+
+	// If a version wasn't supplied and the ideal version is currently active
+	// or locked, clone it.
+	if !c.version.Valid && version.Active || version.Locked {
+		progress.Step("Cloning latest version...")
+		version, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
+			Service: serviceID,
+			Version: version.Number,
+		})
+		if err != nil {
+			return fmt.Errorf("error cloning latest service version: %w", err)
+		}
 	}
 
 	progress.Step("Uploading package...")
-	token, s := c.Globals.Token()
-	if s == config.SourceUndefined {
-		return errors.ErrNoToken
-	}
-	endpoint, _ := c.Globals.Endpoint()
-	client := NewClient(c.client, endpoint, token)
-	if err := client.UpdatePackage(serviceID, c.version, c.path); err != nil {
-		return err
+	_, err = c.Globals.Client.UpdatePackage(&fastly.UpdatePackageInput{
+		Service:     serviceID,
+		Version:     version.Number,
+		PackagePath: c.path,
+	})
+	if err != nil {
+		return fmt.Errorf("error uploading package: %w", err)
 	}
 
 	progress.Step("Activating version...")
 
 	_, err = c.Globals.Client.ActivateVersion(&fastly.ActivateVersionInput{
 		Service: serviceID,
-		Version: c.version,
+		Version: version.Number,
 	})
 	if err != nil {
 		return fmt.Errorf("error activating version: %w", err)
@@ -134,8 +152,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Updating package manifest...")
 
-	fmt.Fprintf(progress, "Setting version in manifest to %d...\n", c.version)
-	c.manifest.File.Version = c.version
+	fmt.Fprintf(progress, "Setting version in manifest to %d...\n", version.Number)
+	c.manifest.File.Version = version.Number
 
 	if err := c.manifest.File.Write(ManifestFilename); err != nil {
 		return fmt.Errorf("error saving package manifest: %w", err)
@@ -149,82 +167,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if domains, err := c.Globals.Client.ListDomains(&fastly.ListDomainsInput{
 		Service: serviceID,
-		Version: c.version,
+		Version: version.Number,
 	}); err == nil {
 		text.Description(out, "View this service at", fmt.Sprintf("https://%s", domains[0].Name))
 	}
 
-	text.Success(out, "Deployed package (service %s, version %v)", serviceID, c.version)
-	return nil
-}
-
-// Client wraps a HTTP client with an endpoint and token to make API requests.
-type Client struct {
-	client api.HTTPClient
-
-	endpoint string
-	token    string
-}
-
-// NewClient constructs a new Client.
-func NewClient(client api.HTTPClient, endpoint, token string) *Client {
-	return &Client{
-		client,
-		endpoint,
-		token,
-	}
-}
-
-// UpdatePackage is an HTTP API client method to update a package on a given
-// service version. It reads the package from a given path and encodes it as
-// multi-part form data in the request with associated content-type.
-// TODO(ph): This should eventually be replaced by the equivilent method in
-// the go-fastly client.
-func (c *Client) UpdatePackage(serviceID string, v int, path string) error {
-	file, err := os.Open(filepath.Clean(path))
-	if err != nil {
-		return fmt.Errorf("error reading package: %w", err)
-	}
-	defer file.Close() // #nosec G307
-
-	var body bytes.Buffer
-	w := multipart.NewWriter(&body)
-	part, err := w.CreateFormFile("package", filepath.Base(path))
-	if err != nil {
-		return fmt.Errorf("error creating multipart form: %w", err)
-	}
-
-	_, err = io.Copy(part, file)
-	if err != nil {
-		return fmt.Errorf("error copying package to multipart form: %w", err)
-	}
-
-	err = w.Close()
-	if err != nil {
-		return fmt.Errorf("error closing multipart form: %w", err)
-	}
-
-	fullurl := fmt.Sprintf("%s/service/%s/version/%d/package", strings.TrimSuffix(c.endpoint, "/"), serviceID, v)
-	req, err := http.NewRequest("PUT", fullurl, &body)
-	if err != nil {
-		return fmt.Errorf("error constructing API request: %w", err)
-	}
-
-	req.Header.Set("Fastly-Key", c.token)
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", w.FormDataContentType())
-	req.Header.Set("User-Agent", version.UserAgent)
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("error executing API request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error from API: %s", resp.Status)
-	}
-
+	text.Success(out, "Deployed package (service %s, version %v)", serviceID, version.Number)
 	return nil
 }
 
@@ -263,4 +211,28 @@ func getLatestIdealVersion(versions []*fastly.Version) (*fastly.Version, error) 
 	}
 
 	return version, nil
+}
+
+func getHashSum(path string) (hash string, err error) {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	// Disabling as we trust the source of the filepath variable.
+	/* #nosec */
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		cerr := f.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	h := sha512.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
