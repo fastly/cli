@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.16.0](https://github.com/fastly/cli/releases/tag/v0.16.0) (2020-07-09)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.15.0...v0.16.0)
+
+**Enhancements:**
+
+- Compare package hashsum during deployment [\#139](https://github.com/fastly/cli/pull/139)
+- Allow compute init to be reinvoked within an existing package directory [\#138](https://github.com/fastly/cli/pull/138)
+
 ## [v0.15.0](https://github.com/fastly/cli/releases/tag/v0.15.0) (2020-06-29)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.14.0...v0.15.0)
