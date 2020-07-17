@@ -112,7 +112,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		if hashSum == p.Metadata.HashSum {
 			progress.Done()
-			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, c.version)
+			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version.Number)
 			return nil
 		}
 	}
