@@ -151,12 +151,13 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	c.path = abspath
 
 	if name == "" {
-		name = filepath.Base(c.path)
-		fmt.Fprintf(progress, "--name not specified, using %s\n\n", name)
-
-		name, err = text.Input(out, fmt.Sprintf("Name: [%s] ", name), in)
+		defaultName := filepath.Base(c.path)
+		name, err = text.Input(out, fmt.Sprintf("Name: [%s] ", defaultName), in)
 		if err != nil {
 			return fmt.Errorf("error reading input: %w", err)
+		}
+		if name == "" {
+			name = defaultName
 		}
 	}
 
