@@ -273,6 +273,19 @@ func TestInit(t *testing.T) {
 				"Updating package manifest...",
 			},
 		},
+		{
+			name:       "with default name inferred from directory",
+			args:       []string{"compute", "init"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
+			manifestIncludes: `name = "fastly-build`,
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// We're going to chdir to an init environment,
