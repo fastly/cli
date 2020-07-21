@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.16.1](https://github.com/fastly/cli/releases/tag/v0.16.1) (2020-07-20)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.16.0...v0.16.1)
+
+**Bug fixes:**
+
+- Display the correct version number on error [\#144](https://github.com/fastly/cli/pull/144)
+- Fix bug where name was not added to the manifest [\#143](https://github.com/fastly/cli/pull/143)
+
 ## [v0.16.0](https://github.com/fastly/cli/releases/tag/v0.16.0) (2020-07-09)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.15.0...v0.16.0)
