@@ -67,7 +67,7 @@ Install and upgrade:
 ### From a prebuilt binary
 [Download the latest release][latest] from the [releases page][releases].
 Unarchive the binary and place it in your $PATH. You can verify the integrity
-of the binary using the SHA256 checksums file `fastly_x.x.x_SHA256SUMS` provided 
+of the binary using the SHA256 checksums file `fastly_x.x.x_SHA256SUMS` provided
 alongside the release.
 
 [latest]: https://github.com/fastly/cli/releases/latest
@@ -142,9 +142,7 @@ If you have none of them installed, or don't mind them being upgraded automatica
 
 ## Contributing
 
-We're happy to receive feature requests and PRs. If your change is nontrivial,
-please open an [issue](https://github.com/fastly/cli/issues/new) to discuss the idea and implementation strategy before
-submitting a PR.
+Refer to [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## Issues
 
