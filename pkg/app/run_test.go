@@ -403,7 +403,7 @@ COMMANDS
                                    connections to this backend
         --ssl-ciphers=SSL-CIPHERS ...
                                    List of OpenSSL ciphers (see
-                                   https://www.openssl.org/docs/manmaster/man1/ciphers.html
+                                   https://www.openssl.org/docs/man1.0.2/man1/ciphers
                                    for details)
 
   backend list --service-id=SERVICE-ID --version=VERSION
@@ -477,7 +477,7 @@ COMMANDS
                                    connections to this backend
         --ssl-ciphers=SSL-CIPHERS ...
                                    List of OpenSSL ciphers (see
-                                   https://www.openssl.org/docs/manmaster/man1/ciphers.html
+                                   https://www.openssl.org/docs/man1.0.2/man1/ciphers
                                    for details)
 
   backend delete --service-id=SERVICE-ID --version=VERSION --name=NAME
