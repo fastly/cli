@@ -197,6 +197,48 @@ func TestServiceDescribe(t *testing.T) {
 	}
 }
 
+func TestServiceSearch(t *testing.T) {
+	for _, testcase := range []struct {
+		args       []string
+		api        mock.API
+		wantError  string
+		wantOutput string
+	}{
+		{
+			args:       []string{"service", "search", "--name", "Foo"},
+			api:        mock.API{SearchServiceFn: searchServiceOK},
+			wantOutput: searchServiceShortOutput,
+		},
+		{
+			args:       []string{"service", "search", "--name", "Foo", "-v"},
+			api:        mock.API{SearchServiceFn: searchServiceOK},
+			wantOutput: searchServiceVerboseOutput,
+		},
+		{
+			args:      []string{"service", "search", "--name"},
+			api:       mock.API{SearchServiceFn: searchServiceOK},
+			wantError: "error parsing arguments: expected argument for flag '--name'",
+		},
+	} {
+		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			var (
+				args                           = testcase.args
+				env                            = config.Environment{}
+				file                           = config.File{}
+				appConfigFile                  = "/dev/null"
+				clientFactory                  = mock.APIClient(testcase.api)
+				httpClient                     = http.DefaultClient
+				versioner     update.Versioner = nil
+				in            io.Reader        = nil
+				out           bytes.Buffer
+			)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertString(t, testcase.wantOutput, out.String())
+		})
+	}
+}
+
 func TestServiceUpdate(t *testing.T) {
 	for _, testcase := range []struct {
 		args       []string
@@ -586,6 +628,103 @@ Active version:
 	Testing: false
 	Created (UTC): 2001-03-03 04:05
 	Last edited (UTC): 2001-03-04 04:05
+Versions: 2
+	Version 1/2
+		Number: 1
+		Comment: a
+		Service ID: b
+		Active: false
+		Locked: false
+		Deployed: false
+		Staging: false
+		Testing: false
+		Created (UTC): 2001-02-03 04:05
+		Last edited (UTC): 2001-02-04 04:05
+		Deleted (UTC): 2001-02-05 04:05
+	Version 2/2
+		Number: 2
+		Comment: c
+		Service ID: d
+		Active: true
+		Locked: false
+		Deployed: true
+		Staging: false
+		Testing: false
+		Created (UTC): 2001-03-03 04:05
+		Last edited (UTC): 2001-03-04 04:05
+`) + "\n"
+
+func searchServiceOK(i *fastly.SearchServiceInput) (*fastly.Service, error) {
+	return &fastly.Service{
+		ID:         "123",
+		Name:       "Foo",
+		Type:       "wasm",
+		CustomerID: "mycustomerid",
+		UpdatedAt:  testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+		Versions: []*fastly.Version{
+			&fastly.Version{
+				Number:    1,
+				Comment:   "a",
+				ServiceID: "b",
+				CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
+				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
+			},
+			&fastly.Version{
+				Number:    2,
+				Comment:   "c",
+				ServiceID: "d",
+				Active:    true,
+				Deployed:  true,
+				CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
+				UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
+			},
+		},
+	}, nil
+}
+
+var searchServiceShortOutput = strings.TrimSpace(`
+ID: 123
+Name: Foo
+Type: wasm
+Customer ID: mycustomerid
+Last edited (UTC): 2010-11-15 19:01
+Active version: 0
+Versions: 2
+	Version 1/2
+		Number: 1
+		Comment: a
+		Service ID: b
+		Active: false
+		Locked: false
+		Deployed: false
+		Staging: false
+		Testing: false
+		Created (UTC): 2001-02-03 04:05
+		Last edited (UTC): 2001-02-04 04:05
+		Deleted (UTC): 2001-02-05 04:05
+	Version 2/2
+		Number: 2
+		Comment: c
+		Service ID: d
+		Active: true
+		Locked: false
+		Deployed: true
+		Staging: false
+		Testing: false
+		Created (UTC): 2001-03-03 04:05
+		Last edited (UTC): 2001-03-04 04:05
+`) + "\n"
+
+var searchServiceVerboseOutput = strings.TrimSpace(`
+Fastly API token not provided
+Fastly API endpoint: https://api.fastly.com
+ID: 123
+Name: Foo
+Type: wasm
+Customer ID: mycustomerid
+Last edited (UTC): 2010-11-15 19:01
+Active version: 0
 Versions: 2
 	Version 1/2
 		Number: 1

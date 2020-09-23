@@ -16,6 +16,7 @@ type API struct {
 	GetServiceDetailsFn func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error)
 	UpdateServiceFn     func(*fastly.UpdateServiceInput) (*fastly.Service, error)
 	DeleteServiceFn     func(*fastly.DeleteServiceInput) error
+	SearchServiceFn     func(*fastly.SearchServiceInput) (*fastly.Service, error)
 
 	CloneVersionFn      func(*fastly.CloneVersionInput) (*fastly.Version, error)
 	ListVersionsFn      func(*fastly.ListVersionsInput) ([]*fastly.Version, error)
@@ -219,6 +220,11 @@ func (m API) GetService(i *fastly.GetServiceInput) (*fastly.Service, error) {
 // GetServiceDetails implements Interface.
 func (m API) GetServiceDetails(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return m.GetServiceDetailsFn(i)
+}
+
+// SearchService implements Interface.
+func (m API) SearchService(i *fastly.SearchServiceInput) (*fastly.Service, error) {
+	return m.SearchServiceFn(i)
 }
 
 // UpdateService implements Interface.
