@@ -1,6 +1,19 @@
 # Changelog
 
-## [v0.16.1](https://github.com/fastly/cli/releases/tag/v0.16.1) (2020-07-20)
+## [v0.17.0](https://github.com/fastly/cli/releases/tag/v0.17.0) (2020-09-24)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.16.1...v0.17.0)
+
+**Enhancements:**
+
+- Bump supported Rust toolchain version to 1.46 [\#156](https://github.com/fastly/cli/pull/156)
+- Add service search command [\#152](https://github.com/fastly/cli/pull/152)
+
+**Bug fixes:**
+
+- Broken link in usage info [\#148](https://github.com/fastly/cli/issues/148)
+
+## [v0.16.1](https://github.com/fastly/cli/releases/tag/v0.16.1) (2020-07-21)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.16.0...v0.16.1)
 
