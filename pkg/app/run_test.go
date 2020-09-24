@@ -156,6 +156,11 @@ SUBCOMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
 
+  service search [<flags>]
+    Search for a Fastly service by name
+
+    -n, --name=NAME  Service name
+
 `) + "\n\n"
 
 var fullFatHelpDefault = strings.TrimSpace(`
@@ -218,6 +223,11 @@ COMMANDS
     Delete a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID
+
+  service search [<flags>]
+    Search for a Fastly service by name
+
+    -n, --name=NAME  Service name
 
   service-version clone --version=VERSION [<flags>]
     Clone a Fastly service version

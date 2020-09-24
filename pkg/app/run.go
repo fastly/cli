@@ -90,7 +90,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	})
 
 	// Prevent kingpin from calling os.Exit, this gives us greater control over
-	// error states and output contorl flow.
+	// error states and output control flow.
 	app.Terminate(nil)
 
 	// As kingpin generates bash completion as a side-effect of kingpin.Parse we
@@ -118,6 +118,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	serviceDescribe := service.NewDescribeCommand(serviceRoot.CmdClause, &globals)
 	serviceUpdate := service.NewUpdateCommand(serviceRoot.CmdClause, &globals)
 	serviceDelete := service.NewDeleteCommand(serviceRoot.CmdClause, &globals)
+	serviceSearch := service.NewSearchCommand(serviceRoot.CmdClause, &globals)
 
 	serviceVersionRoot := serviceversion.NewRootCommand(app, &globals)
 	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionRoot.CmdClause, &globals)
@@ -342,6 +343,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		serviceDescribe,
 		serviceUpdate,
 		serviceDelete,
+		serviceSearch,
 
 		serviceVersionRoot,
 		serviceVersionClone,

@@ -25,6 +25,7 @@ type Interface interface {
 	GetServiceDetails(*fastly.GetServiceInput) (*fastly.ServiceDetail, error)
 	UpdateService(*fastly.UpdateServiceInput) (*fastly.Service, error)
 	DeleteService(*fastly.DeleteServiceInput) error
+	SearchService(*fastly.SearchServiceInput) (*fastly.Service, error)
 
 	CloneVersion(*fastly.CloneVersionInput) (*fastly.Version, error)
 	ListVersions(*fastly.ListVersionsInput) ([]*fastly.Version, error)
