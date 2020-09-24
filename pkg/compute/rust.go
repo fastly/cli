@@ -26,7 +26,7 @@ import (
 const (
 	// RustToolchainVersion is the `rustup` toolchain string for the compiler
 	// that we support
-	RustToolchainVersion = "1.43.0"
+	RustToolchainVersion = "1.46.0"
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
 	WasmWasiTarget = "wasm32-wasi"
 )
