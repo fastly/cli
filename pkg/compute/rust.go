@@ -334,7 +334,7 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	if err != nil {
 		return fmt.Errorf("error getting current working directory: %w", err)
 	}
-	src := filepath.Join(dir, "target", WasmWasiTarget, "release", "deps", fmt.Sprintf("%s.wasm", binName))
+	src := filepath.Join(dir, "target", WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", binName))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 
 	// Check if bin directory exists and create if not.
