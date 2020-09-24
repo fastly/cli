@@ -12,38 +12,24 @@ require (
 	github.com/fastly/go-fastly v1.16.0
 	github.com/fatih/color v1.7.0
 	github.com/frankban/quicktest v1.5.0 // indirect
-	github.com/go-delve/delve v1.5.0 // indirect
 	github.com/google/go-cmp v0.3.1
-	github.com/google/go-dap v0.3.0 // indirect
 	github.com/google/go-github/v28 v28.1.1
 	github.com/google/jsonapi v0.0.0-20200226002910-c8283f632fb7 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mattn/go-colorable v0.1.7 // indirect
-	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/mholt/archiver/v3 v3.3.0
 	github.com/mitchellh/go-wordwrap v1.0.0
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/nicksnyder/go-i18n v1.10.1 // indirect
-	github.com/onsi/ginkgo v1.8.0 // indirect
-	github.com/onsi/gomega v1.5.0 // indirect
-	github.com/peterh/liner v1.2.0 // indirect
 	github.com/pierrec/lz4 v2.3.0+incompatible // indirect
-	github.com/pkg/profile v0.0.0-20170413231811-06b906832ed0 // indirect
 	github.com/segmentio/textio v1.2.0
-	github.com/spf13/cobra v1.0.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
-	go.starlark.net v0.0.0-20200901195727-6e684ef5eeee // indirect
-	golang.org/x/arch v0.0.0-20200826200359-b19915210f00 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
 	golang.org/x/sys v0.0.0-20200923182605-d9f96fdee20d // indirect
-	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/alecthomas/kingpin.v3-unstable v3.0.0-20180810215634-df19058c872c
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
