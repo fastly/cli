@@ -26,7 +26,7 @@ import (
 const (
 	// RustToolchainVersion is the `rustup` toolchain string for the compiler
 	// that we support
-	RustToolchainVersion = "1.43.0"
+	RustToolchainVersion = "1.46.0"
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
 	WasmWasiTarget = "wasm32-wasi"
 )
@@ -334,7 +334,7 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	if err != nil {
 		return fmt.Errorf("error getting current working directory: %w", err)
 	}
-	src := filepath.Join(dir, "target", WasmWasiTarget, "release", "deps", fmt.Sprintf("%s.wasm", binName))
+	src := filepath.Join(dir, "target", WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", binName))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 
 	// Check if bin directory exists and create if not.
