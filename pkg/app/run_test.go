@@ -159,7 +159,7 @@ SUBCOMMANDS
   service search [<flags>]
     Search for a Fastly service by name
 
-    -n, --name=NAME  Service Name
+    -n, --name=NAME  Service name
 
 `) + "\n\n"
 
@@ -227,7 +227,7 @@ COMMANDS
   service search [<flags>]
     Search for a Fastly service by name
 
-    -n, --name=NAME  Service Name
+    -n, --name=NAME  Service name
 
   service-version clone --version=VERSION [<flags>]
     Clone a Fastly service version
