@@ -47,6 +47,8 @@ type API struct {
 	GetPackageFn    func(*fastly.GetPackageInput) (*fastly.Package, error)
 	UpdatePackageFn func(*fastly.UpdatePackageInput) (*fastly.Package, error)
 
+	GetDictionaryFn func(*fastly.GetDictionaryInput) (*fastly.Dictionary, error)
+
 	CreateBigQueryFn func(*fastly.CreateBigQueryInput) (*fastly.BigQuery, error)
 	ListBigQueriesFn func(*fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 	GetBigQueryFn    func(*fastly.GetBigQueryInput) (*fastly.BigQuery, error)
@@ -355,6 +357,11 @@ func (m API) GetPackage(i *fastly.GetPackageInput) (*fastly.Package, error) {
 // UpdatePackage implements Interface.
 func (m API) UpdatePackage(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
 	return m.UpdatePackageFn(i)
+}
+
+// GetDictionary implementes Interface.
+func (m API) GetDictionary(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
+	return m.GetDictionaryFn(i)
 }
 
 // CreateBigQuery implements Interface.

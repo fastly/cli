@@ -111,6 +111,7 @@ COMMANDS
   domain           Manipulate Fastly service version domains
   backend          Manipulate Fastly service version backends
   healthcheck      Manipulate Fastly service version healthchecks
+  dictionary       Manipulate Fastly dictionaries
   logging          Manipulate Fastly service version logging endpoints
   stats            View statistics (historical and realtime) for a Fastly
                    service
@@ -558,6 +559,13 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              Healthcheck name
+
+  dictionary describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              Name of Dictionary
 
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version
