@@ -2,6 +2,7 @@ package edgedictionary_test
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -57,6 +58,64 @@ func TestDictionaryDescribe(t *testing.T) {
 	}
 }
 
+func TestDictionaryCreate(t *testing.T) {
+	for _, testcase := range []struct {
+		args       []string
+		api        mock.API
+		wantError  string
+		wantOutput string
+	}{
+		{
+			args:      []string{"dictionary", "create", "--version", "1", "--service-id", "123"},
+			api:       mock.API{CreateDictionaryFn: createDictionaryOK},
+			wantError: "error parsing arguments: required flag --name not provided",
+		},
+		{
+			args:       []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist"},
+			api:        mock.API{CreateDictionaryFn: createDictionaryOK},
+			wantOutput: createDictionaryOutput,
+		},
+		{
+			args:      []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist"},
+			api:       mock.API{CreateDictionaryFn: createDictionaryDuplicate},
+			wantError: "Duplicate record",
+		},
+	} {
+		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			var (
+				args                           = testcase.args
+				env                            = config.Environment{}
+				file                           = config.File{}
+				appConfigFile                  = "/dev/null"
+				clientFactory                  = mock.APIClient(testcase.api)
+				httpClient                     = http.DefaultClient
+				versioner     update.Versioner = nil
+				in            io.Reader        = nil
+				out           bytes.Buffer
+			)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertString(t, testcase.wantOutput, out.String())
+		})
+	}
+}
+
+func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
+	return &fastly.Dictionary{
+		ServiceID: i.Service,
+		Version:   i.Version,
+		Name:      i.Name,
+		CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+		WriteOnly: false,
+		ID:        "456",
+		UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+	}, nil
+}
+
+func createDictionaryDuplicate(*fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
+	return nil, errors.New("Duplicate record")
+}
+
 func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
 		ServiceID: i.Service,
@@ -81,6 +140,8 @@ func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictiona
 		DeletedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:08Z"),
 	}, nil
 }
+
+var createDictionaryOutput = "\nSUCCESS: Created dictionary denylist (service 123 version 1)\n"
 
 var describeDictionaryOutput = strings.TrimSpace(`
 Service ID: 123

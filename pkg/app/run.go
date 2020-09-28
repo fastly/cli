@@ -158,6 +158,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	healthcheckDelete := healthcheck.NewDeleteCommand(healthcheckRoot.CmdClause, &globals)
 
 	dictionaryRoot := edgedictionary.NewRootCommand(app, &globals)
+	dictionaryCreate := edgedictionary.NewCreateCommand(dictionaryRoot.CmdClause, &globals)
 	dictionaryDescribe := edgedictionary.NewDescribeCommand(dictionaryRoot.CmdClause, &globals)
 
 	loggingRoot := logging.NewRootCommand(app, &globals)
@@ -386,6 +387,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		healthcheckDelete,
 
 		dictionaryRoot,
+		dictionaryCreate,
 		dictionaryDescribe,
 
 		loggingRoot,

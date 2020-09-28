@@ -560,6 +560,13 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              Healthcheck name
 
+  dictionary create --version=VERSION --name=NAME [<flags>]
+    Create a Fastly edge dictionary on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              Name of Dictionary
+
   dictionary describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Fastly edge dictionary
 

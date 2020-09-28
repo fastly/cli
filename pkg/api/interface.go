@@ -56,6 +56,7 @@ type Interface interface {
 	GetPackage(*fastly.GetPackageInput) (*fastly.Package, error)
 	UpdatePackage(*fastly.UpdatePackageInput) (*fastly.Package, error)
 
+	CreateDictionary(*fastly.CreateDictionaryInput) (*fastly.Dictionary, error)
 	GetDictionary(*fastly.GetDictionaryInput) (*fastly.Dictionary, error)
 
 	CreateBigQuery(*fastly.CreateBigQueryInput) (*fastly.BigQuery, error)
