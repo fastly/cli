@@ -574,6 +574,13 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              Name of Dictionary
 
+  dictionary delete --version=VERSION --name=NAME [<flags>]
+    Delete a Fastly edge dictionary from a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              Name of Dictionary
+
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version
 

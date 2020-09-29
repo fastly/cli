@@ -160,6 +160,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	dictionaryRoot := edgedictionary.NewRootCommand(app, &globals)
 	dictionaryCreate := edgedictionary.NewCreateCommand(dictionaryRoot.CmdClause, &globals)
 	dictionaryDescribe := edgedictionary.NewDescribeCommand(dictionaryRoot.CmdClause, &globals)
+	dictionaryDelete := edgedictionary.NewDeleteCommand(dictionaryRoot.CmdClause, &globals)
 
 	loggingRoot := logging.NewRootCommand(app, &globals)
 
@@ -389,6 +390,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		dictionaryRoot,
 		dictionaryCreate,
 		dictionaryDescribe,
+		dictionaryDelete,
 
 		loggingRoot,
 
