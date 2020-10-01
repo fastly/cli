@@ -9,15 +9,15 @@ import (
 	"github.com/segmentio/textio"
 )
 
-// PrintDictionary pretty prints a fastly.Dictionary structure in verbose
+// PrintDictionaryItem pretty prints a fastly.DictionaryInfo structure in verbose
 // format to a given io.Writer. Consumers can provider an prefix string which
 // will be used as a prefix to each line, useful for indentation.
-func PrintDictionary(out io.Writer, prefix string, d *fastly.Dictionary) {
+func PrintDictionaryItem(out io.Writer, prefix string, d *fastly.DictionaryItem) {
 	out = textio.NewPrefixWriter(out, prefix)
 
-	fmt.Fprintf(out, "ID: %s\n", d.ID)
-	fmt.Fprintf(out, "Name: %s\n", d.Name)
-	fmt.Fprintf(out, "Write Only: %t\n", d.WriteOnly)
+	fmt.Fprintf(out, "Dictionary ID: %s\n", d.DictionaryID)
+	fmt.Fprintf(out, "Item Key: %s\n", d.ItemKey)
+	fmt.Fprintf(out, "Item Value: %s\n", d.ItemValue)
 	fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(common.TimeFormat))
 	fmt.Fprintf(out, "Last edited (UTC): %s\n", d.UpdatedAt.UTC().Format(common.TimeFormat))
 	if d.DeletedAt != nil {

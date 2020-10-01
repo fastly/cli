@@ -51,6 +51,8 @@ type API struct {
 	GetDictionaryFn    func(*fastly.GetDictionaryInput) (*fastly.Dictionary, error)
 	DeleteDictionaryFn func(*fastly.DeleteDictionaryInput) error
 
+	GetDictionaryItemFn func(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
+
 	CreateBigQueryFn func(*fastly.CreateBigQueryInput) (*fastly.BigQuery, error)
 	ListBigQueriesFn func(*fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 	GetBigQueryFn    func(*fastly.GetBigQueryInput) (*fastly.BigQuery, error)
@@ -374,6 +376,11 @@ func (m API) GetDictionary(i *fastly.GetDictionaryInput) (*fastly.Dictionary, er
 // DeleteDictionary implements Interface.
 func (m API) DeleteDictionary(i *fastly.DeleteDictionaryInput) error {
 	return m.DeleteDictionaryFn(i)
+}
+
+// GetDictionaryItem implements Interface.
+func (m API) GetDictionaryItem(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
+	return m.GetDictionaryItemFn(i)
 }
 
 // CreateBigQuery implements Interface.

@@ -1,4 +1,4 @@
-package edgedictionary
+package edgedictionaryitem
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 type DescribeCommand struct {
 	common.Base
 	manifest manifest.Data
-	Input    fastly.GetDictionaryInput
+	Input    fastly.GetDictionaryItemInput
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -24,10 +24,10 @@ func NewDescribeCommand(parent common.Registerer, globals *config.Data) *Describ
 	var c DescribeCommand
 	c.Globals = globals
 	c.manifest.File.Read(manifest.Filename)
-	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly edge dictionary").Alias("get")
+	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly edge dictionary item").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("name", "Name of Dictionary").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("name", "Name of dictionary").Short('n').Required().StringVar(&c.Input.Dictionary)
+	c.CmdClause.Flag("itemkey", "Dictionary item key").Short('i').Required().StringVar(&c.Input.ItemKey)
 	return &c
 }
 
@@ -39,13 +39,12 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.Service = serviceID
 
-	dictionary, err := c.Globals.Client.GetDictionary(&c.Input)
+	dictionary, err := c.Globals.Client.GetDictionaryItem(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", dictionary.ServiceID)
-	fmt.Fprintf(out, "Version: %d\n", dictionary.Version)
-	text.PrintDictionary(out, "", dictionary)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
+	text.PrintDictionaryItem(out, "", dictionary)
 	return nil
 }

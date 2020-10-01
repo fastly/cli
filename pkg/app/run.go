@@ -18,6 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/configure"
 	"github.com/fastly/cli/pkg/domain"
 	"github.com/fastly/cli/pkg/edgedictionary"
+	"github.com/fastly/cli/pkg/edgedictionaryitem"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/healthcheck"
 	"github.com/fastly/cli/pkg/logging"
@@ -161,6 +162,9 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	dictionaryCreate := edgedictionary.NewCreateCommand(dictionaryRoot.CmdClause, &globals)
 	dictionaryDescribe := edgedictionary.NewDescribeCommand(dictionaryRoot.CmdClause, &globals)
 	dictionaryDelete := edgedictionary.NewDeleteCommand(dictionaryRoot.CmdClause, &globals)
+
+	dictionaryItemRoot := edgedictionaryitem.NewRootCommand(app, &globals)
+	dictionaryItemDescribe := edgedictionaryitem.NewDescribeCommand(dictionaryItemRoot.CmdClause, &globals)
 
 	loggingRoot := logging.NewRootCommand(app, &globals)
 
@@ -391,6 +395,9 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		dictionaryCreate,
 		dictionaryDescribe,
 		dictionaryDelete,
+
+		dictionaryItemRoot,
+		dictionaryItemDescribe,
 
 		loggingRoot,
 

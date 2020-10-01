@@ -112,6 +112,7 @@ COMMANDS
   backend          Manipulate Fastly service version backends
   healthcheck      Manipulate Fastly service version healthchecks
   dictionary       Manipulate Fastly dictionaries
+  dictionaryitem   Manipulate Fastly dictionary items
   logging          Manipulate Fastly service version logging endpoints
   stats            View statistics (historical and realtime) for a Fastly
                    service
@@ -580,6 +581,13 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              Name of Dictionary
+
+  dictionaryitem describe --name=NAME --itemkey=ITEMKEY [<flags>]
+    Show detailed information about a Fastly edge dictionary item
+
+    -s, --service-id=SERVICE-ID  Service ID
+    -n, --name=NAME              Name of dictionary
+    -i, --itemkey=ITEMKEY        Dictionary item key
 
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version
