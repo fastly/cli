@@ -60,6 +60,7 @@ type Interface interface {
 	GetDictionary(*fastly.GetDictionaryInput) (*fastly.Dictionary, error)
 	DeleteDictionary(*fastly.DeleteDictionaryInput) error
 
+	ListDictionaryItems(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
 	GetDictionaryItem(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
 
 	CreateBigQuery(*fastly.CreateBigQueryInput) (*fastly.BigQuery, error)

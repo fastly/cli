@@ -63,6 +63,43 @@ func TestDictionaryItemDescribe(t *testing.T) {
 	}
 }
 
+func TestDictionaryItemsList(t *testing.T) {
+	for _, testcase := range []struct {
+		args       []string
+		api        mock.API
+		wantError  string
+		wantOutput string
+	}{
+		{
+			args:      []string{"dictionaryitem", "list", "--service-id", "123"},
+			api:       mock.API{ListDictionaryItemsFn: listDictionaryItemsOK},
+			wantError: "error parsing arguments: required flag --dictionary-id not provided",
+		},
+		{
+			args:       []string{"dictionaryitem", "list", "--service-id", "123", "--dictionary-id", "456"},
+			api:        mock.API{ListDictionaryItemsFn: listDictionaryItemsOK},
+			wantOutput: listDictionaryItemsOutput,
+		},
+	} {
+		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			var (
+				args                           = testcase.args
+				env                            = config.Environment{}
+				file                           = config.File{}
+				appConfigFile                  = "/dev/null"
+				clientFactory                  = mock.APIClient(testcase.api)
+				httpClient                     = http.DefaultClient
+				versioner     update.Versioner = nil
+				in            io.Reader        = nil
+				out           bytes.Buffer
+			)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertString(t, testcase.wantOutput, out.String())
+		})
+	}
+}
+
 func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
 		ServiceID:    i.Service,
@@ -104,3 +141,43 @@ Created (UTC): 2001-02-03 04:05
 Last edited (UTC): 2001-02-03 04:05
 Deleted (UTC): 2001-02-03 04:06
 `) + "\n"
+
+func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
+	return []*fastly.DictionaryItem{
+		&fastly.DictionaryItem{
+			ServiceID:    i.Service,
+			DictionaryID: "456",
+			ItemKey:      "foo",
+			ItemValue:    "bar",
+			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		},
+		&fastly.DictionaryItem{
+			ServiceID:    i.Service,
+			DictionaryID: "456",
+			ItemKey:      "baz",
+			ItemValue:    "bear",
+			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+			DeletedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:06:08Z"),
+		},
+	}, nil
+}
+
+var listDictionaryItemsOutput = strings.TrimSpace(`
+Service ID: 123
+Item: 1/2
+	Dictionary ID: 456
+	Item Key: foo
+	Item Value: bar
+	Created (UTC): 2001-02-03 04:05
+	Last edited (UTC): 2001-02-03 04:05
+
+Item: 2/2
+	Dictionary ID: 456
+	Item Key: baz
+	Item Value: bear
+	Created (UTC): 2001-02-03 04:05
+	Last edited (UTC): 2001-02-03 04:05
+	Deleted (UTC): 2001-02-03 04:06
+`) + "\n\n"

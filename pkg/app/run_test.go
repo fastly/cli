@@ -582,6 +582,13 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              Name of Dictionary
 
+  dictionaryitem list --dictionary-id=DICTIONARY-ID [<flags>]
+    List items in a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+
   dictionaryitem describe --name=NAME --itemkey=ITEMKEY [<flags>]
     Show detailed information about a Fastly edge dictionary item
 

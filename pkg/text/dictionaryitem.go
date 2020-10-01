@@ -18,8 +18,12 @@ func PrintDictionaryItem(out io.Writer, prefix string, d *fastly.DictionaryItem)
 	fmt.Fprintf(out, "Dictionary ID: %s\n", d.DictionaryID)
 	fmt.Fprintf(out, "Item Key: %s\n", d.ItemKey)
 	fmt.Fprintf(out, "Item Value: %s\n", d.ItemValue)
-	fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(common.TimeFormat))
-	fmt.Fprintf(out, "Last edited (UTC): %s\n", d.UpdatedAt.UTC().Format(common.TimeFormat))
+	if d.CreatedAt != nil {
+		fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(common.TimeFormat))
+	}
+	if d.UpdatedAt != nil {
+		fmt.Fprintf(out, "Last edited (UTC): %s\n", d.UpdatedAt.UTC().Format(common.TimeFormat))
+	}
 	if d.DeletedAt != nil {
 		fmt.Fprintf(out, "Deleted (UTC): %s\n", d.DeletedAt.UTC().Format(common.TimeFormat))
 	}
