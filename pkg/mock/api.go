@@ -51,8 +51,9 @@ type API struct {
 	GetDictionaryFn    func(*fastly.GetDictionaryInput) (*fastly.Dictionary, error)
 	DeleteDictionaryFn func(*fastly.DeleteDictionaryInput) error
 
-	ListDictionaryItemsFn func(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
-	GetDictionaryItemFn   func(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
+	ListDictionaryItemsFn  func(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
+	GetDictionaryItemFn    func(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
+	CreateDictionaryItemFn func(*fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error)
 
 	CreateBigQueryFn func(*fastly.CreateBigQueryInput) (*fastly.BigQuery, error)
 	ListBigQueriesFn func(*fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
@@ -387,6 +388,11 @@ func (m API) ListDictionaryItems(i *fastly.ListDictionaryItemsInput) ([]*fastly.
 // GetDictionaryItem implements Interface.
 func (m API) GetDictionaryItem(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return m.GetDictionaryItemFn(i)
+}
+
+// CreateDictionaryItem implements Interface.
+func (m API) CreateDictionaryItem(i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
+	return m.CreateDictionaryItemFn(i)
 }
 
 // CreateBigQuery implements Interface.

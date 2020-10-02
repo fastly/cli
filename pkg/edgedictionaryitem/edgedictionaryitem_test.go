@@ -100,6 +100,48 @@ func TestDictionaryItemsList(t *testing.T) {
 	}
 }
 
+func TestDictionaryItemCreate(t *testing.T) {
+	for _, testcase := range []struct {
+		args       []string
+		api        mock.API
+		wantError  string
+		wantOutput string
+	}{
+		{
+			args:      []string{"dictionaryitem", "create", "--service-id", "123"},
+			api:       mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
+			wantError: "error parsing arguments: required flag ",
+		},
+		{
+			args:      []string{"dictionaryitem", "create", "--service-id", "123", "--dictionary-id", "456"},
+			api:       mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
+			wantError: "error parsing arguments: required flag ",
+		},
+		{
+			args:       []string{"dictionaryitem", "create", "--service-id", "123", "--dictionary-id", "456", "--itemkey", "foo", "--itemvalue", "bar"},
+			api:        mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
+			wantOutput: describeDictionaryItemOutput,
+		},
+	} {
+		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			var (
+				args                           = testcase.args
+				env                            = config.Environment{}
+				file                           = config.File{}
+				appConfigFile                  = "/dev/null"
+				clientFactory                  = mock.APIClient(testcase.api)
+				httpClient                     = http.DefaultClient
+				versioner     update.Versioner = nil
+				in            io.Reader        = nil
+				out           bytes.Buffer
+			)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertString(t, testcase.wantOutput, out.String())
+		})
+	}
+}
+
 func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
 		ServiceID:    i.Service,
@@ -181,3 +223,14 @@ Item: 2/2
 	Last edited (UTC): 2001-02-03 04:05
 	Deleted (UTC): 2001-02-03 04:06
 `) + "\n\n"
+
+func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
+	return &fastly.DictionaryItem{
+		ServiceID:    i.Service,
+		DictionaryID: i.Dictionary,
+		ItemKey:      i.ItemKey,
+		ItemValue:    i.ItemValue,
+		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+	}, nil
+}

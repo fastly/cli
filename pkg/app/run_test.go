@@ -594,7 +594,16 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
     -n, --name=NAME              Name of dictionary
-    -i, --itemkey=ITEMKEY        Dictionary item key
+        --itemkey=ITEMKEY        Dictionary item key
+
+  dictionaryitem create --dictionary-id=DICTIONARY-ID --itemkey=ITEMKEY --itemvalue=ITEMVALUE [<flags>]
+    Create a new item on a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --itemkey=ITEMKEY        Dictionary item key
+        --itemvalue=ITEMVALUE    Dictionary item value
 
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version
