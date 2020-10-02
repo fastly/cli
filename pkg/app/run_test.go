@@ -614,6 +614,14 @@ COMMANDS
         --itemkey=ITEMKEY        Dictionary item key
         --itemvalue=ITEMVALUE    Dictionary item value
 
+  dictionaryitem delete --dictionary-id=DICTIONARY-ID --itemkey=ITEMKEY [<flags>]
+    Delete an item from a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --itemkey=ITEMKEY        Dictionary item key
+
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version
 
