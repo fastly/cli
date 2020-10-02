@@ -23,6 +23,12 @@ const IgnoreFilePath = ".fastlyignore"
 
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
+	Name() string
+	DisplayName() string
+	StarterKits() []StarterKit
+	SourceDirectory() string
+	IncludeFiles() []string
+	Initialize(out io.Writer) error
 	Verify(out io.Writer) error
 	Build(out io.Writer, verbose bool) error
 }
@@ -99,6 +105,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var toolchain Toolchain
 	switch lang {
+	case "assemblyscript":
+		toolchain = &AssemblyScript{}
 	case "rust":
 		toolchain = &Rust{c.client}
 	default:
@@ -126,8 +134,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	files := []string{
 		ManifestFilename,
-		"Cargo.toml",
 	}
+	files = append(files, toolchain.IncludeFiles()...)
 
 	ignoreFiles, err := getIgnoredFiles(IgnoreFilePath)
 	if err != nil {
@@ -141,9 +149,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	files = append(files, binFiles...)
 
 	if c.includeSrc {
-		// TODO(phamann): we will need to lookup the directory name based on the
-		// source language type when we support multiple languages.
-		srcFiles, err := getNonIgnoredFiles("src", ignoreFiles)
+		srcFiles, err := getNonIgnoredFiles(toolchain.SourceDirectory(), ignoreFiles)
 		if err != nil {
 			return err
 		}
