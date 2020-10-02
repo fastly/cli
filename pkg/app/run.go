@@ -167,6 +167,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	dictionaryItemList := edgedictionaryitem.NewListCommand(dictionaryItemRoot.CmdClause, &globals)
 	dictionaryItemDescribe := edgedictionaryitem.NewDescribeCommand(dictionaryItemRoot.CmdClause, &globals)
 	dictionaryItemCreate := edgedictionaryitem.NewCreateCommand(dictionaryItemRoot.CmdClause, &globals)
+	dictionaryItemUpdate := edgedictionaryitem.NewUpdateCommand(dictionaryItemRoot.CmdClause, &globals)
 
 	loggingRoot := logging.NewRootCommand(app, &globals)
 
@@ -402,6 +403,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		dictionaryItemList,
 		dictionaryItemDescribe,
 		dictionaryItemCreate,
+		dictionaryItemUpdate,
 
 		loggingRoot,
 

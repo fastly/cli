@@ -605,6 +605,15 @@ COMMANDS
         --itemkey=ITEMKEY        Dictionary item key
         --itemvalue=ITEMVALUE    Dictionary item value
 
+  dictionaryitem update --dictionary-id=DICTIONARY-ID --itemkey=ITEMKEY --itemvalue=ITEMVALUE [<flags>]
+    Update or insert an item on a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --itemkey=ITEMKEY        Dictionary item key
+        --itemvalue=ITEMVALUE    Dictionary item value
+
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version
 
