@@ -87,6 +87,12 @@ type Interface interface {
 	UpdateS3(*fastly.UpdateS3Input) (*fastly.S3, error)
 	DeleteS3(*fastly.DeleteS3Input) error
 
+	CreateKinesis(*fastly.CreateKinesisInput) (*fastly.Kinesis, error)
+	ListKineses(*fastly.ListKinesesInput) ([]*fastly.Kinesis, error)
+	GetKinesis(*fastly.GetKinesisInput) (*fastly.Kinesis, error)
+	UpdateKinesis(*fastly.UpdateKinesisInput) (*fastly.Kinesis, error)
+	DeleteKinesis(*fastly.DeleteKinesisInput) error
+
 	CreateSyslog(*fastly.CreateSyslogInput) (*fastly.Syslog, error)
 	ListSyslogs(*fastly.ListSyslogsInput) ([]*fastly.Syslog, error)
 	GetSyslog(*fastly.GetSyslogInput) (*fastly.Syslog, error)

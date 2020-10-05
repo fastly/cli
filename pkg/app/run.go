@@ -35,6 +35,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/honeycomb"
 	"github.com/fastly/cli/pkg/logging/https"
 	"github.com/fastly/cli/pkg/logging/kafka"
+	"github.com/fastly/cli/pkg/logging/kinesis"
 	"github.com/fastly/cli/pkg/logging/logentries"
 	"github.com/fastly/cli/pkg/logging/loggly"
 	"github.com/fastly/cli/pkg/logging/logshuttle"
@@ -188,6 +189,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	s3Describe := s3.NewDescribeCommand(s3Root.CmdClause, &globals)
 	s3Update := s3.NewUpdateCommand(s3Root.CmdClause, &globals)
 	s3Delete := s3.NewDeleteCommand(s3Root.CmdClause, &globals)
+
+	kinesisRoot := kinesis.NewRootCommand(loggingRoot.CmdClause, &globals)
+	kinesisCreate := kinesis.NewCreateCommand(kinesisRoot.CmdClause, &globals)
+	kinesisList := kinesis.NewListCommand(kinesisRoot.CmdClause, &globals)
+	kinesisDescribe := kinesis.NewDescribeCommand(kinesisRoot.CmdClause, &globals)
+	kinesisUpdate := kinesis.NewUpdateCommand(kinesisRoot.CmdClause, &globals)
+	kinesisDelete := kinesis.NewDeleteCommand(kinesisRoot.CmdClause, &globals)
 
 	syslogRoot := syslog.NewRootCommand(loggingRoot.CmdClause, &globals)
 	syslogCreate := syslog.NewCreateCommand(syslogRoot.CmdClause, &globals)
@@ -428,6 +436,13 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		s3Describe,
 		s3Update,
 		s3Delete,
+
+		kinesisRoot,
+		kinesisCreate,
+		kinesisList,
+		kinesisDescribe,
+		kinesisUpdate,
+		kinesisDelete,
 
 		syslogRoot,
 		syslogCreate,
