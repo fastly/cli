@@ -120,7 +120,7 @@ func TestDictionaryItemCreate(t *testing.T) {
 		{
 			args:       []string{"dictionaryitem", "create", "--service-id", "123", "--dictionary-id", "456", "--key", "foo", "--value", "bar"},
 			api:        mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
-			wantOutput: describeDictionaryItemOutput,
+			wantOutput: "\nSUCCESS: Created dictionary item foo (service 123, dictionary 456)\n",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {

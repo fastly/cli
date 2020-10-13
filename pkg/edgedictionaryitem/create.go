@@ -1,7 +1,6 @@
 package edgedictionaryitem
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/common"
@@ -40,12 +39,12 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.Service = serviceID
 
-	dictionary, err := c.Globals.Client.CreateDictionaryItem(&c.Input)
+	_, err := c.Globals.Client.CreateDictionaryItem(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	text.PrintDictionaryItem(out, "", dictionary)
+	text.Success(out, "Created dictionary item %s (service %s, dictionary %s)", c.Input.ItemKey, c.Input.Service, c.Input.Dictionary)
+
 	return nil
 }
