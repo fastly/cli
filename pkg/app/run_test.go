@@ -589,38 +589,38 @@ COMMANDS
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
 
-  dictionaryitem describe --name=NAME --itemkey=ITEMKEY [<flags>]
+  dictionaryitem describe --name=NAME --key=KEY [<flags>]
     Show detailed information about a Fastly edge dictionary item
 
     -s, --service-id=SERVICE-ID  Service ID
     -n, --name=NAME              Name of dictionary
-        --itemkey=ITEMKEY        Dictionary item key
+        --key=KEY                Dictionary item key
 
-  dictionaryitem create --dictionary-id=DICTIONARY-ID --itemkey=ITEMKEY --itemvalue=ITEMVALUE [<flags>]
+  dictionaryitem create --dictionary-id=DICTIONARY-ID --key=KEY --value=VALUE [<flags>]
     Create a new item on a Fastly edge dictionary
 
     -s, --service-id=SERVICE-ID  Service ID
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
-        --itemkey=ITEMKEY        Dictionary item key
-        --itemvalue=ITEMVALUE    Dictionary item value
+        --key=KEY                Dictionary item key
+        --value=VALUE            Dictionary item value
 
-  dictionaryitem update --dictionary-id=DICTIONARY-ID --itemkey=ITEMKEY --itemvalue=ITEMVALUE [<flags>]
+  dictionaryitem update --dictionary-id=DICTIONARY-ID --key=KEY --value=VALUE [<flags>]
     Update or insert an item on a Fastly edge dictionary
 
     -s, --service-id=SERVICE-ID  Service ID
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
-        --itemkey=ITEMKEY        Dictionary item key
-        --itemvalue=ITEMVALUE    Dictionary item value
+        --key=KEY                Dictionary item key
+        --value=VALUE            Dictionary item value
 
-  dictionaryitem delete --dictionary-id=DICTIONARY-ID --itemkey=ITEMKEY [<flags>]
+  dictionaryitem delete --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
     Delete an item from a Fastly edge dictionary
 
     -s, --service-id=SERVICE-ID  Service ID
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
-        --itemkey=ITEMKEY        Dictionary item key
+        --key=KEY                Dictionary item key
 
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version

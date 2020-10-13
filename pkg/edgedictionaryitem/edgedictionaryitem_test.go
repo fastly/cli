@@ -24,22 +24,22 @@ func TestDictionaryItemDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"dictionaryitem", "describe", "--service-id", "123", "--itemkey", "foo"},
+			args:      []string{"dictionaryitem", "describe", "--service-id", "123", "--key", "foo"},
 			api:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			args:      []string{"dictionaryitem", "describe", "--service-id", "123", "--name", "dict-1"},
 			api:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
-			wantError: "error parsing arguments: required flag --itemkey not provided",
+			wantError: "error parsing arguments: required flag --key not provided",
 		},
 		{
-			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--name", "dict-1", "--itemkey", "foo"},
+			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--name", "dict-1", "--key", "foo"},
 			api:        mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantOutput: describeDictionaryItemOutput,
 		},
 		{
-			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--name", "dict-1", "--itemkey", "foo-deleted"},
+			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--name", "dict-1", "--key", "foo-deleted"},
 			api:        mock.API{GetDictionaryItemFn: describeDictionaryItemOKDeleted},
 			wantOutput: describeDictionaryItemOutputDeleted,
 		},
@@ -118,7 +118,7 @@ func TestDictionaryItemCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:       []string{"dictionaryitem", "create", "--service-id", "123", "--dictionary-id", "456", "--itemkey", "foo", "--itemvalue", "bar"},
+			args:       []string{"dictionaryitem", "create", "--service-id", "123", "--dictionary-id", "456", "--key", "foo", "--value", "bar"},
 			api:        mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			wantOutput: describeDictionaryItemOutput,
 		},
@@ -160,7 +160,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:       []string{"dictionaryitem", "update", "--service-id", "123", "--dictionary-id", "456", "--itemkey", "foo", "--itemvalue", "bar"},
+			args:       []string{"dictionaryitem", "update", "--service-id", "123", "--dictionary-id", "456", "--key", "foo", "--value", "bar"},
 			api:        mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			wantOutput: describeDictionaryItemOutput,
 		},
@@ -202,7 +202,7 @@ func TestDictionaryItemDelete(t *testing.T) {
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:       []string{"dictionaryitem", "delete", "--service-id", "123", "--dictionary-id", "456", "--itemkey", "foo"},
+			args:       []string{"dictionaryitem", "delete", "--service-id", "123", "--dictionary-id", "456", "--key", "foo"},
 			api:        mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			wantOutput: "\nSUCCESS: Deleted dictionary item foo (service 123, dicitonary 456)\n",
 		},

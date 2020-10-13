@@ -26,7 +26,7 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	c.CmdClause = parent.Command("delete", "Delete an item from a Fastly edge dictionary")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.Dictionary)
-	c.CmdClause.Flag("itemkey", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
+	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
 	return &c
 }
 
