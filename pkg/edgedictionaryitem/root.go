@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent common.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("dictionaryitem", "Manipulate Fastly dictionary items")
+	c.CmdClause = parent.Command("dictionaryitem", "Manipulate Fastly edge dictionary items")
 	return &c
 }
 

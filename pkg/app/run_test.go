@@ -111,8 +111,8 @@ COMMANDS
   domain           Manipulate Fastly service version domains
   backend          Manipulate Fastly service version backends
   healthcheck      Manipulate Fastly service version healthchecks
-  dictionary       Manipulate Fastly dictionaries
-  dictionaryitem   Manipulate Fastly dictionary items
+  dictionary       Manipulate Fastly edge dictionaries
+  dictionaryitem   Manipulate Fastly edge dictionary items
   logging          Manipulate Fastly service version logging endpoints
   stats            View statistics (historical and realtime) for a Fastly
                    service
