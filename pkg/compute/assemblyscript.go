@@ -197,6 +197,8 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 		args = append(args, "--verbose")
 	}
 
+	fmt.Fprintf(out, "Installing package dependencies...\n")
+
 	// Call asc with the build arguments.
 	cmd := common.NewStreamingExec(filepath.Join(npmdir, "asc"), args, []string{}, verbose, out)
 	if err := cmd.Exec(); err != nil {
