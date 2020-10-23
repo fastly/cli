@@ -217,6 +217,6 @@ func checkPackageDependencyExists(name string) bool {
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as the variables come from trusted sources.
 	/* #nosec */
-	err := exec.Command("npm", "link", "--json", "--depth", "0", name).Run()
+	err := exec.Command("npm", "list", "--json", "--depth", "0", name).Run()
 	return err == nil
 }
