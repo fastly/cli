@@ -76,19 +76,19 @@ func (m *CargoMetadata) Read() error {
 	return nil
 }
 
-// Rust is an implments Toolchain for the Rust lanaguage.
+// Rust is an implements Toolchain for the Rust language.
 type Rust struct {
 	client api.HTTPClient
 }
 
-// Name implements the Toolchain inferface and returns the name of the toolchain.
+// Name implements the Toolchain interface and returns the name of the toolchain.
 func (r Rust) Name() string { return "rust" }
 
-// DisplayName implements the Toolchain inferface and returns the name of the
+// DisplayName implements the Toolchain interface and returns the name of the
 // toolchain suitable for displaying or printing to output.
 func (r Rust) DisplayName() string { return "Rust" }
 
-// StarterKits implements the Toolchain inferface and returns the list of
+// StarterKits implements the Toolchain interface and returns the list of
 // starter kits that can be used to initialize a new package for the toolchain.
 func (r Rust) StarterKits() []StarterKit {
 	return []StarterKit{
@@ -100,7 +100,7 @@ func (r Rust) StarterKits() []StarterKit {
 	}
 }
 
-// SourceDirectory implements the Toolchain inferface and returns the source
+// SourceDirectory implements the Toolchain interface and returns the source
 // directory for Rust packages.
 func (r Rust) SourceDirectory() string { return "src" }
 
@@ -231,7 +231,7 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
 
-	// Create a semver contraint to be within the latest minor range or above.
+	// Create a semver constraint to be within the latest minor range or above.
 	// TODO(phamann): Update this to major when fastly-sys hits 1.x.x.
 	fastlySysConstraint, err := semver.NewConstraint(fmt.Sprintf("~%d.%d.0", latestFastlySys.Major(), latestFastlySys.Minor()))
 	if err != nil {
@@ -272,11 +272,11 @@ func (r Rust) Verify(out io.Writer) error {
 	return nil
 }
 
-// Initialize implments the Toolchain interface and initializes a newly cloned
+// Initialize implements the Toolchain interface and initializes a newly cloned
 // package. It is a noop for Rust as the Cargo toolchain handles these steps.
 func (r Rust) Initialize(out io.Writer) error { return nil }
 
-// Build implments the Toolchain interface and attempts to compile the package
+// Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
 func (r Rust) Build(out io.Writer, verbose bool) error {
 	// Get binary name from Cargo.toml.
@@ -304,7 +304,7 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 		args = append(args, "--verbose")
 	}
 	// Add debuginfo RUSTFLAGS to command environment to ensure DWARF debug
-	// infomation (such as, source mappings) are compiled into the binary.
+	// information (such as, source mappings) are compiled into the binary.
 	env := append(os.Environ(), `RUSTFLAGS=-C debuginfo=2`)
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release

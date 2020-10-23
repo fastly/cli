@@ -13,17 +13,17 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// AssemblyScript is an implments Toolchain for the AssemblyScript lanaguage.
+// AssemblyScript implements Toolchain for the AssemblyScript language.
 type AssemblyScript struct{}
 
-// Name implements the Toolchain inferface and returns the name of the toolchain.
+// Name implements the Toolchain interface and returns the name of the toolchain.
 func (a AssemblyScript) Name() string { return "assemblyscript" }
 
-// DisplayName implements the Toolchain inferface and returns the name of the
+// DisplayName implements the Toolchain interface and returns the name of the
 // toolchain suitable for displaying or printing to output.
 func (a AssemblyScript) DisplayName() string { return "AssemblyScript (beta)" }
 
-// StarterKits implements the Toolchain inferface and returns the list of
+// StarterKits implements the Toolchain interface and returns the list of
 // starter kits that can be used to initialize a new package for the toolchain.
 func (a AssemblyScript) StarterKits() []StarterKit {
 	return []StarterKit{
@@ -35,7 +35,7 @@ func (a AssemblyScript) StarterKits() []StarterKit {
 	}
 }
 
-// SourceDirectory implements the Toolchain inferface and returns the source
+// SourceDirectory implements the Toolchain interface and returns the source
 // directory for AssemblyScript packages.
 func (a AssemblyScript) SourceDirectory() string { return "src" }
 
@@ -45,7 +45,7 @@ func (a AssemblyScript) IncludeFiles() []string {
 	return []string{"package.json"}
 }
 
-// Verify implments the Toolchain interface and verifies whether the
+// Verify implements the Toolchain interface and verifies whether the
 // AssemblyScript language toolchain is correctly configured on the host.
 func (a AssemblyScript) Verify(out io.Writer) error {
 	// 1) Check `npm` is on $PATH
@@ -60,7 +60,7 @@ func (a AssemblyScript) Verify(out io.Writer) error {
 	if err != nil {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`npm` not found in $PATH"),
-			Remediation: fmt.Sprintf("To fix this error, install Node.sj and npm by visiting:\n\n\t$ %s", text.Bold("https://nodejs.org/")),
+			Remediation: fmt.Sprintf("To fix this error, install Node.js and npm by visiting:\n\n\t$ %s", text.Bold("https://nodejs.org/")),
 		}
 	}
 
@@ -69,7 +69,7 @@ func (a AssemblyScript) Verify(out io.Writer) error {
 	// 2) Check package.json file exists in $PWD
 	//
 	// A valid npm package is needed for compilation and to assert whether the
-	// required dependencies are installd locally. Therefore, we first assert
+	// required dependencies are installed locally. Therefore, we first assert
 	// whether one exists in the current $PWD.
 	fpath, err := filepath.Abs("package.json")
 	if err != nil {
@@ -88,7 +88,7 @@ func (a AssemblyScript) Verify(out io.Writer) error {
 	// 3) Check if `asc` is installed.
 	//
 	// asc is the AssemblyScript compiler. We first check if it exists in the
-	// package.json and then whether the binary exists in the npm bin dirctory.
+	// package.json and then whether the binary exists in the npm bin directory.
 	fmt.Fprintf(out, "Checking if AssemblyScript is installed...\n")
 	if !checkPackageDependencyExists("assemblyscript") {
 		return errors.RemediationError{
@@ -121,7 +121,7 @@ func (a AssemblyScript) Verify(out io.Writer) error {
 	return nil
 }
 
-// Initialize implments the Toolchain interface and initializes a newly cloned
+// Initialize implements the Toolchain interface and initializes a newly cloned
 // package by installing required dependencies.
 func (a AssemblyScript) Initialize(out io.Writer) error {
 	// 1) Check `npm` is on $PATH
@@ -135,7 +135,7 @@ func (a AssemblyScript) Initialize(out io.Writer) error {
 	if err != nil {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`npm` not found in $PATH"),
-			Remediation: fmt.Sprintf("To fix this error, install Node.sj and npm by visiting:\n\n\t$ %s", text.Bold("https://nodejs.org/")),
+			Remediation: fmt.Sprintf("To fix this error, install Node.js and npm by visiting:\n\n\t$ %s", text.Bold("https://nodejs.org/")),
 		}
 	}
 
