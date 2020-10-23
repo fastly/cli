@@ -161,11 +161,7 @@ func (a AssemblyScript) Initialize(out io.Writer) error {
 
 	// Call npm install.
 	cmd := common.NewStreamingExec("npm", []string{"install"}, []string{}, false, out)
-	if err := cmd.Exec(); err != nil {
-		return err
-	}
-
-	return nil
+	return cmd.Exec()	
 }
 
 // Build implements the Toolchain interface and attempts to compile the package
