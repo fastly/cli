@@ -161,7 +161,7 @@ func (a AssemblyScript) Initialize(out io.Writer) error {
 
 	// Call npm install.
 	cmd := common.NewStreamingExec("npm", []string{"install"}, []string{}, false, out)
-	return cmd.Exec()	
+	return cmd.Exec()
 }
 
 // Build implements the Toolchain interface and attempts to compile the package
@@ -217,12 +217,6 @@ func checkPackageDependencyExists(name string) bool {
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as the variables come from trusted sources.
 	/* #nosec */
-	cmd := exec.Command("npm", "link", "--json", "--depth", "0", name)
-	if err := cmd.Start(); err != nil {
-		return false
-	}
-	if err := cmd.Wait(); err != nil {
-		return false
-	}
-	return true
+	err := exec.Command("npm", "link", "--json", "--depth", "0", name).Run()
+	return err == nil
 }

@@ -60,14 +60,18 @@ func (s StreamingExec) Exec() error {
 
 	var errStdout, errStderr error
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
 
 	go func() {
 		_, errStdout = io.Copy(stdout, stdoutIn)
 		wg.Done()
 	}()
 
-	_, errStderr = io.Copy(stderr, stderrIn)
+	go func() {
+		_, errStderr = io.Copy(stderr, stderrIn)
+		wg.Done()
+	}()
+
 	wg.Wait()
 
 	if errStdout != nil {
@@ -79,8 +83,6 @@ func (s StreamingExec) Exec() error {
 
 	// Wait for the command to exit.
 	if err := cmd.Wait(); err != nil {
-		// If we're not in verbose mode return the bufferred stderr output
-		// from cargo as the error.
 		if !s.verbose && stderrBuf.Len() > 0 {
 			return fmt.Errorf("error during execution process:\n%s", strings.TrimSpace(stderrBuf.String()))
 		}

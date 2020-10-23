@@ -94,6 +94,9 @@ func MakeDirectoryIfNotExists(path string) error {
 		if err := os.MkdirAll(path, 0750); err != nil {
 			return err
 		}
+	case err != nil:
+		return err
 	}
-	return err
+
+	return nil
 }
