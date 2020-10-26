@@ -23,14 +23,42 @@ const IgnoreFilePath = ".fastlyignore"
 
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
-	Name() string
-	DisplayName() string
-	StarterKits() []StarterKit
-	SourceDirectory() string
-	IncludeFiles() []string
 	Initialize(out io.Writer) error
 	Verify(out io.Writer) error
 	Build(out io.Writer, verbose bool) error
+}
+
+// Language models a Compute@Edge source language.
+type Language struct {
+	Name            string
+	DisplayName     string
+	StarterKits     []StarterKit
+	SourceDirectory string
+	IncludeFiles    []string
+
+	Toolchain
+}
+
+// LanguageOptions models configuration options for a Language.
+type LanguageOptions struct {
+	Name            string
+	DisplayName     string
+	StarterKits     []StarterKit
+	SourceDirectory string
+	IncludeFiles    []string
+	Toolchain       Toolchain
+}
+
+// NewLanguage constructs a new Language from a LangaugeOptions.
+func NewLanguage(options *LanguageOptions) *Language {
+	return &Language{
+		options.Name,
+		options.DisplayName,
+		options.StarterKits,
+		options.SourceDirectory,
+		options.IncludeFiles,
+		options.Toolchain,
+	}
 }
 
 // BuildCommand produces a deployable artifact from files on the local disk.
@@ -103,12 +131,22 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	name = sanitize.BaseName(name)
 
-	var toolchain Toolchain
+	var language *Language
 	switch lang {
 	case "assemblyscript":
-		toolchain = &AssemblyScript{}
+		language = NewLanguage(&LanguageOptions{
+			Name:            "assemblyscript",
+			SourceDirectory: "src",
+			IncludeFiles:    []string{"package.json"},
+			Toolchain:       NewAssemblyScript(),
+		})
 	case "rust":
-		toolchain = &Rust{c.client}
+		language = NewLanguage(&LanguageOptions{
+			Name:            "rust",
+			SourceDirectory: "src",
+			IncludeFiles:    []string{"Cargo.toml"},
+			Toolchain:       NewRust(c.client),
+		})
 	default:
 		return fmt.Errorf("unsupported language %s", lang)
 	}
@@ -116,7 +154,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if !c.force {
 		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", lang))
 
-		err = toolchain.Verify(progress)
+		err = language.Verify(progress)
 		if err != nil {
 			return err
 		}
@@ -124,7 +162,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", lang))
 
-	if err := toolchain.Build(progress, c.Globals.Flag.Verbose); err != nil {
+	if err := language.Build(progress, c.Globals.Flag.Verbose); err != nil {
 		return err
 	}
 
@@ -135,7 +173,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	files := []string{
 		ManifestFilename,
 	}
-	files = append(files, toolchain.IncludeFiles()...)
+	files = append(files, language.IncludeFiles...)
 
 	ignoreFiles, err := getIgnoredFiles(IgnoreFilePath)
 	if err != nil {
@@ -149,7 +187,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	files = append(files, binFiles...)
 
 	if c.includeSrc {
-		srcFiles, err := getNonIgnoredFiles(toolchain.SourceDirectory(), ignoreFiles)
+		srcFiles, err := getNonIgnoredFiles(language.SourceDirectory, ignoreFiles)
 		if err != nil {
 			return err
 		}

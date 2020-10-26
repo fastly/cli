@@ -81,23 +81,9 @@ type Rust struct {
 	client api.HTTPClient
 }
 
-// Name implements the Toolchain interface and returns the name of the toolchain.
-func (r Rust) Name() string { return "rust" }
-
-// DisplayName implements the Toolchain interface and returns the name of the
-// toolchain suitable for displaying or printing to output.
-func (r Rust) DisplayName() string { return "Rust" }
-
-// StarterKits implements the Toolchain interface and returns the list of
-// starter kits that can be used to initialize a new package for the toolchain.
-func (r Rust) StarterKits() []StarterKit {
-	return []StarterKit{
-		{
-			Name:   "Default",
-			Path:   "https://github.com/fastly/fastly-template-rust-default.git",
-			Branch: "0.4.0",
-		},
-	}
+// NewRust constructs a new Rust.
+func NewRust(client api.HTTPClient) *Rust {
+	return &Rust{client}
 }
 
 // SourceDirectory implements the Toolchain interface and returns the source

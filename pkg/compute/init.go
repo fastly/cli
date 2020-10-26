@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/dustinkirkland/golang-petname"
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
@@ -34,9 +35,21 @@ var (
 	domainNameRegEx           = regexp.MustCompile(`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`)
 	fastlyOrgRegEx            = regexp.MustCompile(`^https:\/\/github\.com\/fastly`)
 	fastlyFileIgnoreListRegEx = regexp.MustCompile(`\.github|LICENSE|SECURITY\.md|CHANGELOG\.md|screenshot\.png`)
-	languages                 = []Toolchain{
-		&Rust{},
-		&AssemblyScript{},
+	starterKits               = map[string][]StarterKit{
+		"assemblyscript": {
+			{
+				Name: "Default",
+				Path: "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
+				Tag:  "v0.1.0",
+			},
+		},
+		"rust": {
+			{
+				Name:   "Default",
+				Path:   "https://github.com/fastly/fastly-template-rust-default.git",
+				Branch: "0.4.0",
+			},
+		},
 	}
 )
 
@@ -51,6 +64,7 @@ type StarterKit struct {
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
 	common.Base
+	client   api.HTTPClient
 	manifest manifest.Data
 	language string
 	from     string
@@ -62,9 +76,10 @@ type InitCommand struct {
 }
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand {
+func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *InitCommand {
 	var c InitCommand
 	c.Globals = globals
+	c.client = client
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
 	c.CmdClause.Flag("service-id", "Existing service ID to use. By default, this command creates a new service").Short('s').StringVar(&c.manifest.Flag.ServiceID)
@@ -119,8 +134,23 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		name        string
 		description string
 		authors     []string
-		language    Toolchain
+		language    *Language
 	)
+
+	languages := []*Language{
+		NewLanguage(&LanguageOptions{
+			Name:        "rust",
+			DisplayName: "Rust",
+			StarterKits: starterKits["rust"],
+			Toolchain:   NewRust(c.client),
+		}),
+		NewLanguage(&LanguageOptions{
+			Name:        "assemblyscript",
+			DisplayName: "AssemblyScript (beta)",
+			StarterKits: starterKits["assemblyscript"],
+			Toolchain:   NewAssemblyScript(),
+		}),
+	}
 
 	name, _ = c.manifest.Name()
 	description, _ = c.manifest.Description()
@@ -194,9 +224,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.language == "" {
 		text.Output(out, "%s", text.Bold("Language:"))
 		for i, lang := range languages {
-			text.Output(out, "[%d] %s", i+1, lang.DisplayName())
+			text.Output(out, "[%d] %s", i+1, lang.DisplayName)
 		}
-		option, err := text.Input(out, "Choose option: [1] ", in, validateLanguageOption)
+		option, err := text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
 		if err != nil {
 			return fmt.Errorf("reading input %w", err)
 		}
@@ -210,7 +240,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	} else {
 		for _, l := range languages {
-			if strings.EqualFold(c.language, l.Name()) {
+			if strings.EqualFold(c.language, l.Name) {
 				language = l
 			}
 		}
@@ -218,10 +248,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if c.from == "" && !c.manifest.File.Exists() {
 		text.Output(out, "%s", text.Bold("Starter kit:"))
-		for i, kit := range language.StarterKits() {
+		for i, kit := range language.StarterKits {
 			text.Output(out, "[%d] %s (%s)", i+1, kit.Name, kit.Path)
 		}
-		option, err := text.Input(out, "Choose option or type URL: [1] ", in, validateTemplateOptionOrURL(language.StarterKits()))
+		option, err := text.Input(out, "Choose option or type URL: [1] ", in, validateTemplateOptionOrURL(language.StarterKits))
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
 		}
@@ -230,7 +260,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		if i, err := strconv.Atoi(option); err == nil {
-			template := language.StarterKits()[i-1]
+			template := language.StarterKits[i-1]
 			c.from = template.Path
 			c.branch = template.Branch
 			c.tag = template.Tag
@@ -434,8 +464,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	fmt.Fprintf(progress, "Setting version in manifest to %d...\n", version)
 	m.Version = version
 
-	fmt.Fprintf(progress, "Setting language in manifest to %s...\n", language.Name())
-	m.Language = language.Name()
+	fmt.Fprintf(progress, "Setting language in manifest to %s...\n", language.Name)
+	m.Language = language.Name
 
 	if err := m.Write(filepath.Join(c.path, ManifestFilename)); err != nil {
 		return fmt.Errorf("error saving package manifest: %w", err)
@@ -522,18 +552,20 @@ func tempDir(prefix string) (abspath string, err error) {
 	return abspath, nil
 }
 
-func validateLanguageOption(input string) error {
-	errMsg := fmt.Errorf("must be a valid option")
-	if input == "" {
-		return nil
-	}
-	if option, err := strconv.Atoi(input); err == nil {
-		if option > len(languages) {
-			return errMsg
+func validateLanguageOption(languages []*Language) func(string) error {
+	return func(input string) error {
+		errMsg := fmt.Errorf("must be a valid option")
+		if input == "" {
+			return nil
 		}
-		return nil
+		if option, err := strconv.Atoi(input); err == nil {
+			if option > len(languages) {
+				return errMsg
+			}
+			return nil
+		}
+		return errMsg
 	}
-	return errMsg
 }
 
 func validateTemplateOptionOrURL(templates []StarterKit) func(string) error {

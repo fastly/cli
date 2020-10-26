@@ -16,33 +16,9 @@ import (
 // AssemblyScript implements Toolchain for the AssemblyScript language.
 type AssemblyScript struct{}
 
-// Name implements the Toolchain interface and returns the name of the toolchain.
-func (a AssemblyScript) Name() string { return "assemblyscript" }
-
-// DisplayName implements the Toolchain interface and returns the name of the
-// toolchain suitable for displaying or printing to output.
-func (a AssemblyScript) DisplayName() string { return "AssemblyScript (beta)" }
-
-// StarterKits implements the Toolchain interface and returns the list of
-// starter kits that can be used to initialize a new package for the toolchain.
-func (a AssemblyScript) StarterKits() []StarterKit {
-	return []StarterKit{
-		{
-			Name: "Default",
-			Path: "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
-			Tag:  "v0.1.0",
-		},
-	}
-}
-
-// SourceDirectory implements the Toolchain interface and returns the source
-// directory for AssemblyScript packages.
-func (a AssemblyScript) SourceDirectory() string { return "src" }
-
-// IncludeFiles implements the Toolchain interface and returns a list of
-// additional files to include in the package archive for AssemblyScript packages.
-func (a AssemblyScript) IncludeFiles() []string {
-	return []string{"package.json"}
+// NewAssemblyScript constructs a new AssemblyScript.
+func NewAssemblyScript() *AssemblyScript {
+	return &AssemblyScript{}
 }
 
 // Verify implements the Toolchain interface and verifies whether the
@@ -170,16 +146,16 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 	// Check if bin directory exists and create if not.
 	pwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("error getting current working directory: %w", err)
+		return fmt.Errorf("getting current working directory: %w", err)
 	}
 	binDir := filepath.Join(pwd, "bin")
 	if err := common.MakeDirectoryIfNotExists(binDir); err != nil {
-		return fmt.Errorf("error making bin directory: %w", err)
+		return fmt.Errorf("making bin directory: %w", err)
 	}
 
 	npmdir, err := getNpmBinPath()
 	if err != nil {
-		return err
+		return fmt.Errorf("getting npm path: %w", err)
 	}
 
 	args := []string{
@@ -207,7 +183,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 func getNpmBinPath() (string, error) {
 	path, err := exec.Command("npm", "bin").Output()
 	if err != nil {
-		return "", fmt.Errorf("error getting npm bin path: %w", err)
+		return "", err
 	}
 	return strings.TrimSpace(string(path)), nil
 }
