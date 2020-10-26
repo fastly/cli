@@ -59,6 +59,11 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Format version: %d\n", kafka.FormatVersion)
 	fmt.Fprintf(out, "Response condition: %s\n", kafka.ResponseCondition)
 	fmt.Fprintf(out, "Placement: %s\n", kafka.Placement)
+	fmt.Fprintf(out, "Parse log key-values: %t\n", kafka.ParseLogKeyvals)
+	fmt.Fprintf(out, "Max batch size: %d\n", kafka.RequestMaxBytes)
+	fmt.Fprintf(out, "SASL authentication method: %s\n", kafka.AuthMethod)
+	fmt.Fprintf(out, "SASL authentication username: %s\n", kafka.User)
+	fmt.Fprintf(out, "SASL authentication password: %s\n", kafka.Password)
 
 	return nil
 }
