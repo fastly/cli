@@ -91,9 +91,7 @@ func MakeDirectoryIfNotExists(path string) error {
 	case err == nil && !fi.IsDir():
 		return fmt.Errorf("%s already exists as a regular file", path)
 	case os.IsNotExist(err):
-		if err := os.MkdirAll(path, 0750); err != nil {
-			return err
-		}
+		return os.MkdirAll(path, 0750)
 	case err != nil:
 		return err
 	}

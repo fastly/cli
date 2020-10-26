@@ -2,7 +2,6 @@ package compute_test
 
 import (
 	"bytes"
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
@@ -285,7 +284,7 @@ func TestInit(t *testing.T) {
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendOK,
 			},
-			manifestIncludes: `name = "fastly-build`,
+			manifestIncludes: `name = "fastly-init`,
 		},
 		{
 			name:       "with AssemblyScript language",
@@ -298,7 +297,7 @@ func TestInit(t *testing.T) {
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendOK,
 			},
-			manifestIncludes: `name = "fastly-build`,
+			manifestIncludes: `name = "fastly-init`,
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -979,16 +978,10 @@ func TestValidate(t *testing.T) {
 func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) {
 	t.Helper()
 
-	p := make([]byte, 8)
-	n, err := rand.Read(p)
+	rootdir, err := ioutil.TempDir("", "fastly-init-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	rootdir = filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-build-%x", p[:n]),
-	)
 
 	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
@@ -1007,16 +1000,10 @@ func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) 
 func makeRustBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifestContent, cargoLockContent string) (rootdir string) {
 	t.Helper()
 
-	p := make([]byte, 8)
-	n, err := rand.Read(p)
+	rootdir, err := ioutil.TempDir("", "fastly-build-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	rootdir = filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-build-%x", p[:n]),
-	)
 
 	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
@@ -1059,16 +1046,10 @@ func makeRustBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifest
 func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent string) (rootdir string) {
 	t.Helper()
 
-	p := make([]byte, 8)
-	n, err := rand.Read(p)
+	rootdir, err := ioutil.TempDir("", "fastly-build-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	rootdir = filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-build-%x", p[:n]),
-	)
 
 	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
@@ -1102,16 +1083,10 @@ func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent stri
 func makeDeployEnvironment(t *testing.T, manifestContent string) (rootdir string) {
 	t.Helper()
 
-	p := make([]byte, 8)
-	n, err := rand.Read(p)
+	rootdir, err := ioutil.TempDir("", "fastly-deploy-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	rootdir = filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-deploy-%x", p[:n]),
-	)
 
 	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
