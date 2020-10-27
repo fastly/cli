@@ -18,6 +18,7 @@ RELEASE_CHANGELOG.md
 **/target
 rust-toolchain
 .cargo
+**/node_modules
 
 # Binaries for programs and plugins
 *.exe

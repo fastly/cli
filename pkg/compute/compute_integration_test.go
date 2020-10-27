@@ -2,7 +2,6 @@ package compute_test
 
 import (
 	"bytes"
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -284,7 +284,20 @@ func TestInit(t *testing.T) {
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendOK,
 			},
-			manifestIncludes: `name = "fastly-build`,
+			manifestIncludes: `name = "fastly-init`,
+		},
+		{
+			name:       "with AssemblyScript language",
+			args:       []string{"compute", "init", "--language", "assemblyscript"},
+			configFile: config.File{Token: "123"},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
+			manifestIncludes: `name = "fastly-init`,
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -346,8 +359,8 @@ func TestInit(t *testing.T) {
 	}
 }
 
-func TestBuild(t *testing.T) {
-	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
+func TestBuildRust(t *testing.T) {
+	if os.Getenv("TEST_COMPUTE_BUILD_RUST") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
@@ -418,7 +431,7 @@ func TestBuild(t *testing.T) {
 			wantRemediationError: "fastly = \"^0.4.0\"",
 		},
 		{
-			name:               "success",
+			name:               "Rust success",
 			args:               []string{"compute", "build"},
 			fastlyManifest:     "name = \"test\"\nlanguage = \"rust\"\n",
 			cargoLock:          "[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"\n\n[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.2\"",
@@ -436,7 +449,7 @@ func TestBuild(t *testing.T) {
 
 			// Create our build environment in a temp dir.
 			// Defer a call to clean it up.
-			rootdir := makeBuildEnvironment(t, testcase.fastlyManifest, testcase.cargoManifest, testcase.cargoLock)
+			rootdir := makeRustBuildEnvironment(t, testcase.fastlyManifest, testcase.cargoManifest, testcase.cargoLock)
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the build environment.
@@ -454,6 +467,93 @@ func TestBuild(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = testcase.client
+				versioner     update.Versioner = nil
+				in            io.Reader        = nil
+				buf           bytes.Buffer
+				out           io.Writer = common.NewSyncWriter(&buf)
+			)
+			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
+			if testcase.wantOutputContains != "" {
+				testutil.AssertStringContains(t, buf.String(), testcase.wantOutputContains)
+			}
+		})
+	}
+}
+
+func TestBuildAssemblyScript(t *testing.T) {
+	if os.Getenv("TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
+	}
+
+	for _, testcase := range []struct {
+		name                 string
+		args                 []string
+		fastlyManifest       string
+		wantError            string
+		wantRemediationError string
+		wantOutputContains   string
+	}{
+		{
+			name:      "no fastly.toml manifest",
+			args:      []string{"compute", "build"},
+			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
+		},
+		{
+			name:           "empty language",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "name = \"test\"\n",
+			wantError:      "language cannot be empty, please provide a language",
+		},
+		{
+			name:           "empty name",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "language = \"assemblyscript\"\n",
+			wantError:      "name cannot be empty, please provide a name",
+		},
+		{
+			name:           "unknown language",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "name = \"test\"\nlanguage = \"javascript\"\n",
+			wantError:      "unsupported language javascript",
+		},
+		{
+			name:               "AssemblyScript success",
+			args:               []string{"compute", "build"},
+			fastlyManifest:     "name = \"test\"\nlanguage = \"assemblyscript\"\n",
+			wantOutputContains: "Built assemblyscript package test",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			// We're going to chdir to a build environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Create our build environment in a temp dir.
+			// Defer a call to clean it up.
+			rootdir := makeAssemblyScriptBuildEnvironment(t, testcase.fastlyManifest)
+			defer os.RemoveAll(rootdir)
+
+			// Before running the test, chdir into the build environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably copy the testdata/ fixtures.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(pwd)
+
+			var (
+				args                           = testcase.args
+				env                            = config.Environment{}
+				file                           = config.File{}
+				appConfigFile                  = "/dev/null"
+				clientFactory                  = mock.APIClient(mock.API{})
+				httpClient                     = http.DefaultClient
 				versioner     update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
@@ -878,16 +978,10 @@ func TestValidate(t *testing.T) {
 func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) {
 	t.Helper()
 
-	p := make([]byte, 8)
-	n, err := rand.Read(p)
+	rootdir, err := ioutil.TempDir("", "fastly-init-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	rootdir = filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-build-%x", p[:n]),
-	)
 
 	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
@@ -903,19 +997,13 @@ func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) 
 	return rootdir
 }
 
-func makeBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifestContent, cargoLockContent string) (rootdir string) {
+func makeRustBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifestContent, cargoLockContent string) (rootdir string) {
 	t.Helper()
 
-	p := make([]byte, 8)
-	n, err := rand.Read(p)
+	rootdir, err := ioutil.TempDir("", "fastly-build-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	rootdir = filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-build-%x", p[:n]),
-	)
 
 	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
@@ -955,19 +1043,50 @@ func makeBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifestCont
 	return rootdir
 }
 
-func makeDeployEnvironment(t *testing.T, manifestContent string) (rootdir string) {
+func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent string) (rootdir string) {
 	t.Helper()
 
-	p := make([]byte, 8)
-	n, err := rand.Read(p)
+	rootdir, err := ioutil.TempDir("", "fastly-build-*")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	rootdir = filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-deploy-%x", p[:n]),
-	)
+	if err := os.MkdirAll(rootdir, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, filename := range [][]string{
+		{"package.json"},
+		{"assembly", "index.ts"},
+	} {
+		fromFilename := filepath.Join("testdata", "build", filepath.Join(filename...))
+		toFilename := filepath.Join(rootdir, filepath.Join(filename...))
+		copyFile(t, fromFilename, toFilename)
+	}
+
+	if fastlyManifestContent != "" {
+		filename := filepath.Join(rootdir, compute.ManifestFilename)
+		if err := ioutil.WriteFile(filename, []byte(fastlyManifestContent), 0777); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	cmd := exec.Command("npm", "install")
+	cmd.Dir = rootdir
+	if err := cmd.Run(); err != nil {
+		t.Fatal(err)
+	}
+
+	return rootdir
+}
+
+func makeDeployEnvironment(t *testing.T, manifestContent string) (rootdir string) {
+	t.Helper()
+
+	rootdir, err := ioutil.TempDir("", "fastly-deploy-*")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)

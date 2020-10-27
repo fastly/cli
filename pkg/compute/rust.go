@@ -2,7 +2,6 @@ package compute
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,7 +12,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/semver/v3"
@@ -31,7 +29,7 @@ const (
 	WasmWasiTarget = "wasm32-wasi"
 )
 
-// CargoPackage models the package confuiguration properties of a Rust Cargo
+// CargoPackage models the package configuration properties of a Rust Cargo
 // package which we are interested in and is embedded within CargoManifest and
 // CargoLock.
 type CargoPackage struct {
@@ -40,7 +38,7 @@ type CargoPackage struct {
 	Dependencies []CargoPackage `toml:"-" json:"dependencies"`
 }
 
-// CargoManifest models the package confuiguration properties of a Rust Cargo
+// CargoManifest models the package configuration properties of a Rust Cargo
 // manifest which we are interested in and are read from the Cargo.toml manifest
 // file within the $PWD of the package.
 type CargoManifest struct {
@@ -78,10 +76,23 @@ func (m *CargoMetadata) Read() error {
 	return nil
 }
 
-// Rust is an implments Toolchain for the Rust lanaguage.
+// Rust is an implements Toolchain for the Rust language.
 type Rust struct {
 	client api.HTTPClient
 }
+
+// NewRust constructs a new Rust.
+func NewRust(client api.HTTPClient) *Rust {
+	return &Rust{client}
+}
+
+// SourceDirectory implements the Toolchain interface and returns the source
+// directory for Rust packages.
+func (r Rust) SourceDirectory() string { return "src" }
+
+// IncludeFiles implements the Toolchain interface and returns a list of
+// additional files to include in the package archive for Rust packages.
+func (r Rust) IncludeFiles() []string { return []string{"Cargo.toml"} }
 
 // Verify implments the Toolchain interface and verifies whether the Rust
 // language toolchain is correctly configured on the host.
@@ -206,7 +217,7 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
 
-	// Create a semver contraint to be within the latest minor range or above.
+	// Create a semver constraint to be within the latest minor range or above.
 	// TODO(phamann): Update this to major when fastly-sys hits 1.x.x.
 	fastlySysConstraint, err := semver.NewConstraint(fmt.Sprintf("~%d.%d.0", latestFastlySys.Major(), latestFastlySys.Minor()))
 	if err != nil {
@@ -247,7 +258,11 @@ func (r Rust) Verify(out io.Writer) error {
 	return nil
 }
 
-// Build implments the Toolchain interface and attempts to compile the package
+// Initialize implements the Toolchain interface and initializes a newly cloned
+// package. It is a noop for Rust as the Cargo toolchain handles these steps.
+func (r Rust) Initialize(out io.Writer) error { return nil }
+
+// Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
 func (r Rust) Build(out io.Writer, verbose bool) error {
 	// Get binary name from Cargo.toml.
@@ -274,88 +289,34 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	if verbose {
 		args = append(args, "--verbose")
 	}
-
-	// Call cargo build with Wasm Wasi target and release flags.
-	// gosec flagged this:
-	// G204 (CWE-78): Subprocess launched with variable
-	// Disabling as the variables come from trusted sources.
-	/* #nosec */
-	cmd := exec.Command("cargo", args...)
-
 	// Add debuginfo RUSTFLAGS to command environment to ensure DWARF debug
-	// infomation (such as, source mappings) are compiled into the binary.
-	cmd.Env = append(os.Environ(),
-		`RUSTFLAGS=-C debuginfo=2`,
-	)
+	// information (such as, source mappings) are compiled into the binary.
+	env := append(os.Environ(), `RUSTFLAGS=-C debuginfo=2`)
 
-	// Pipe the child process stdout and stderr to our own writer.
-	var stdoutBuf, stderrBuf bytes.Buffer
-	stdoutIn, _ := cmd.StdoutPipe()
-	stderrIn, _ := cmd.StderrPipe()
-	stdout := io.MultiWriter(out, &stdoutBuf)
-	stderr := io.MultiWriter(out, &stderrBuf)
-
-	// Start the command.
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to start compilation process: %w", err)
-	}
-
-	var errStdout, errStderr error
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		_, errStdout = io.Copy(stdout, stdoutIn)
-		wg.Done()
-	}()
-
-	_, errStderr = io.Copy(stderr, stderrIn)
-	wg.Wait()
-
-	if errStdout != nil {
-		return fmt.Errorf("error streaming stdout output from child process: %w", errStdout)
-	}
-	if errStderr != nil {
-		return fmt.Errorf("error streaming stderr output from child process: %w", errStderr)
-	}
-
-	// Wait for the command to exit.
-	if err := cmd.Wait(); err != nil {
-		// If we're not in verbose mode return the bufferred stderr output
-		// from cargo as the error.
-		if !verbose && stderrBuf.Len() > 0 {
-			return fmt.Errorf("error during compilation process:\n%s", strings.TrimSpace(stderrBuf.String()))
-		}
-		return fmt.Errorf("error during compilation process")
+	// Execute the `cargo build` commands with the Wasm WASI target, release
+	// flags and env vars.
+	cmd := common.NewStreamingExec("cargo", args, env, verbose, out)
+	if err := cmd.Exec(); err != nil {
+		return err
 	}
 
 	// Get working directory.
 	dir, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("error getting current working directory: %w", err)
+		return fmt.Errorf("getting current working directory: %w", err)
 	}
 	src := filepath.Join(dir, "target", WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", binName))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 
 	// Check if bin directory exists and create if not.
 	binDir := filepath.Join(dir, "bin")
-	fi, err := os.Stat(binDir)
-	switch {
-	case err == nil && fi.IsDir():
-		// no problem
-	case err == nil && !fi.IsDir():
-		return fmt.Errorf("error creating bin directory: target already exists as a regular file")
-	case os.IsNotExist(err):
-		if err := os.MkdirAll(binDir, 0750); err != nil {
-			return err
-		}
-	case err != nil:
-		return err
+	if err := common.MakeDirectoryIfNotExists(binDir); err != nil {
+		return fmt.Errorf("creating bin directory: %w", err)
 	}
 
 	err = common.CopyFile(src, dst)
 	if err != nil {
-		return fmt.Errorf("error copying wasm binary: %w", err)
+		return fmt.Errorf("copying wasm binary: %w", err)
 	}
 
 	return nil

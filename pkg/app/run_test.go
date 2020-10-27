@@ -274,6 +274,7 @@ COMMANDS
                                    of the --path destination
     -d, --description=DESCRIPTION  Description of the package
     -a, --author=AUTHOR ...        Author(s) of the package
+    -l, --language=LANGUAGE        Language of the package
     -f, --from=FROM                Git repository containing package template
     -p, --path=PATH                Destination to write the new package,
                                    defaulting to the current directory

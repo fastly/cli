@@ -80,3 +80,21 @@ func CopyFile(src, dst string) (err error) {
 
 	return
 }
+
+// MakeDirectoryIfNotExists asserts whether a directory exists and makes it
+// if not. Returns nil if exists or successfully made.
+func MakeDirectoryIfNotExists(path string) error {
+	fi, err := os.Stat(path)
+	switch {
+	case err == nil && fi.IsDir():
+		return nil
+	case err == nil && !fi.IsDir():
+		return fmt.Errorf("%s already exists as a regular file", path)
+	case os.IsNotExist(err):
+		return os.MkdirAll(path, 0750)
+	case err != nil:
+		return err
+	}
+
+	return nil
+}
