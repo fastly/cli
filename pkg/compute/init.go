@@ -40,7 +40,7 @@ var (
 			{
 				Name: "Default",
 				Path: "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
-				Tag:  "v0.1.0",
+				Tag:  "v0.2.0",
 			},
 		},
 		"rust": {

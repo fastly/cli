@@ -18,6 +18,6 @@
     "assemblyscript": "^0.14.11"
   },
   "dependencies": {
-    "@fastly/as-compute": "^0.1.0"
+    "@fastly/as-compute": "^0.1.1"
   }
 }

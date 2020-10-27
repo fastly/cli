@@ -136,7 +136,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	case "assemblyscript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
-			SourceDirectory: "src",
+			SourceDirectory: "assembly",
 			IncludeFiles:    []string{"package.json"},
 			Toolchain:       NewAssemblyScript(),
 		})

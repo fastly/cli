@@ -159,7 +159,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	args := []string{
-		"src/index.ts",
+		"assembly/index.ts",
 		"--binaryFile",
 		filepath.Join(binDir, "main.wasm"),
 		"--optimize",
