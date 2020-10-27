@@ -1057,7 +1057,7 @@ func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent stri
 
 	for _, filename := range [][]string{
 		{"package.json"},
-		{"src", "index.ts"},
+		{"assembly", "index.ts"},
 	} {
 		fromFilename := filepath.Join("testdata", "build", filepath.Join(filename...))
 		toFilename := filepath.Join(rootdir, filepath.Join(filename...))
