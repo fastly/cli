@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.18.0](https://github.com/fastly/cli/releases/tag/v0.18.0) (2020-10-27)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.17.0...v0.18.0)
+
+**Enhancements:**
+
+- Add AssemblyScript support to compute init and build commands [\#160](https://github.com/fastly/cli/pull/160)
+
 ## [v0.17.0](https://github.com/fastly/cli/releases/tag/v0.17.0) (2020-09-24)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.16.1...v0.17.0)
