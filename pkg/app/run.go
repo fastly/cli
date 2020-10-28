@@ -129,7 +129,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	serviceVersionLock := serviceversion.NewLockCommand(serviceVersionRoot.CmdClause, &globals)
 
 	computeRoot := compute.NewRootCommand(app, &globals)
-	computeInit := compute.NewInitCommand(computeRoot.CmdClause, &globals)
+	computeInit := compute.NewInitCommand(computeRoot.CmdClause, httpClient, &globals)
 	computeBuild := compute.NewBuildCommand(computeRoot.CmdClause, httpClient, &globals)
 	computeDeploy := compute.NewDeployCommand(computeRoot.CmdClause, httpClient, &globals)
 	computeUpdate := compute.NewUpdateCommand(computeRoot.CmdClause, httpClient, &globals)

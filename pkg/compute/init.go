@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/dustinkirkland/golang-petname"
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
@@ -24,14 +25,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
-type template struct {
-	Name string
-	Path string
-}
-
 const (
-	defaultTemplate       = "https://github.com/fastly/fastly-template-rust-default.git"
-	defaultTemplateBranch = "0.4.0"
 	defaultTopLevelDomain = "edgecompute.app"
 	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
 )
@@ -40,38 +34,62 @@ var (
 	gitRepositoryRegEx        = regexp.MustCompile(`((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)?`)
 	domainNameRegEx           = regexp.MustCompile(`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`)
 	fastlyOrgRegEx            = regexp.MustCompile(`^https:\/\/github\.com\/fastly`)
-	fastlyFileIgnoreListRegEx = regexp.MustCompile(`\.github|LICENSE|SECURITY\.md`)
-	defaultTemplates          = map[int]template{
-		1: {
-			Name: "Starter kit",
-			Path: defaultTemplate,
+	fastlyFileIgnoreListRegEx = regexp.MustCompile(`\.github|LICENSE|SECURITY\.md|CHANGELOG\.md|screenshot\.png`)
+	starterKits               = map[string][]StarterKit{
+		"assemblyscript": {
+			{
+				Name: "Default",
+				Path: "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
+				Tag:  "v0.2.0",
+			},
+		},
+		"rust": {
+			{
+				Name:   "Default",
+				Path:   "https://github.com/fastly/fastly-template-rust-default.git",
+				Branch: "0.4.0",
+			},
 		},
 	}
 )
 
+// StarterKit models a Compute@Edge package template and its git location.
+type StarterKit struct {
+	Name   string
+	Path   string
+	Branch string
+	Tag    string
+}
+
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
 	common.Base
+	client   api.HTTPClient
 	manifest manifest.Data
+	language string
 	from     string
 	branch   string
+	tag      string
 	path     string
 	domain   string
 	backend  string
 }
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent common.Registerer, globals *config.Data) *InitCommand {
+func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *InitCommand {
 	var c InitCommand
 	c.Globals = globals
+	c.client = client
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
 	c.CmdClause.Flag("service-id", "Existing service ID to use. By default, this command creates a new service").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.manifest.File.Name)
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
+	c.CmdClause.Flag("language", "Language of the package").Short('l').StringVar(&c.language)
 	c.CmdClause.Flag("from", "Git repository containing package template").Short('f').StringVar(&c.from)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
+	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.path)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.path)
@@ -116,7 +134,23 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		name        string
 		description string
 		authors     []string
+		language    *Language
 	)
+
+	languages := []*Language{
+		NewLanguage(&LanguageOptions{
+			Name:        "rust",
+			DisplayName: "Rust",
+			StarterKits: starterKits["rust"],
+			Toolchain:   NewRust(c.client),
+		}),
+		NewLanguage(&LanguageOptions{
+			Name:        "assemblyscript",
+			DisplayName: "AssemblyScript (beta)",
+			StarterKits: starterKits["assemblyscript"],
+			Toolchain:   NewAssemblyScript(),
+		}),
+	}
 
 	name, _ = c.manifest.Name()
 	description, _ = c.manifest.Description()
@@ -187,22 +221,52 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if c.from == "" && !c.manifest.File.Exists() {
-		text.Output(out, "%s", text.Bold("Template:"))
-		for i, template := range defaultTemplates {
-			text.Output(out, "[%d] %s (%s)", i, template.Name, template.Path)
+	if c.language == "" {
+		text.Output(out, "%s", text.Bold("Language:"))
+		for i, lang := range languages {
+			text.Output(out, "[%d] %s", i+1, lang.DisplayName)
 		}
-		template, err := text.Input(out, "Choose option or type URL: [1] ", in, validateTemplateOptionOrURL)
+		option, err := text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
+		if err != nil {
+			return fmt.Errorf("reading input %w", err)
+		}
+		if option == "" {
+			option = "1"
+		}
+		if i, err := strconv.Atoi(option); err == nil {
+			language = languages[i-1]
+		} else {
+			return fmt.Errorf("selecting language")
+		}
+	} else {
+		for _, l := range languages {
+			if strings.EqualFold(c.language, l.Name) {
+				language = l
+			}
+		}
+	}
+
+	if c.from == "" && !c.manifest.File.Exists() {
+		text.Output(out, "%s", text.Bold("Starter kit:"))
+		for i, kit := range language.StarterKits {
+			text.Output(out, "[%d] %s (%s)", i+1, kit.Name, kit.Path)
+		}
+		option, err := text.Input(out, "Choose option or type URL: [1] ", in, validateTemplateOptionOrURL(language.StarterKits))
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
 		}
-		if template == "" {
-			template = "1"
+		if option == "" {
+			option = "1"
 		}
-		if i, err := strconv.Atoi(template); err == nil {
-			template = defaultTemplates[i].Path
+
+		if i, err := strconv.Atoi(option); err == nil {
+			template := language.StarterKits[i-1]
+			c.from = template.Path
+			c.branch = template.Branch
+			c.tag = template.Tag
+		} else {
+			c.from = option
 		}
-		c.from = template
 	}
 
 	if c.domain == "" {
@@ -321,12 +385,16 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 		defer os.RemoveAll(tempdir)
 
-		var ref plumbing.ReferenceName
-		if c.from == defaultTemplate {
-			ref = plumbing.NewBranchReferenceName(defaultTemplateBranch)
+		if c.branch != "" && c.tag != "" {
+			return fmt.Errorf("cannot use both git branch and tag name")
 		}
+
+		var ref plumbing.ReferenceName
 		if c.branch != "" {
 			ref = plumbing.NewBranchReferenceName(c.branch)
+		}
+		if c.tag != "" {
+			ref = plumbing.NewTagReferenceName(c.tag)
 		}
 
 		if _, err := git.PlainClone(tempdir, false, &git.CloneOptions{
@@ -396,8 +464,18 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	fmt.Fprintf(progress, "Setting version in manifest to %d...\n", version)
 	m.Version = version
 
+	fmt.Fprintf(progress, "Setting language in manifest to %s...\n", language.Name)
+	m.Language = language.Name
+
 	if err := m.Write(filepath.Join(c.path, ManifestFilename)); err != nil {
 		return fmt.Errorf("error saving package manifest: %w", err)
+	}
+
+	progress.Step("Initializing package...")
+
+	if err := language.Initialize(progress); err != nil {
+		fmt.Println(err)
+		return fmt.Errorf("error initializing package: %w", err)
 	}
 
 	progress.Done()
@@ -474,21 +552,39 @@ func tempDir(prefix string) (abspath string, err error) {
 	return abspath, nil
 }
 
-func validateTemplateOptionOrURL(input string) error {
-	msg := "must be a valid option or Git URL"
-	if input == "" {
-		return nil
+func validateLanguageOption(languages []*Language) func(string) error {
+	return func(input string) error {
+		errMsg := fmt.Errorf("must be a valid option")
+		if input == "" {
+			return nil
+		}
+		if option, err := strconv.Atoi(input); err == nil {
+			if option > len(languages) {
+				return errMsg
+			}
+			return nil
+		}
+		return errMsg
 	}
-	if option, err := strconv.Atoi(input); err == nil {
-		if _, ok := defaultTemplates[option]; !ok {
+}
+
+func validateTemplateOptionOrURL(templates []StarterKit) func(string) error {
+	return func(input string) error {
+		msg := "must be a valid option or Git URL"
+		if input == "" {
+			return nil
+		}
+		if option, err := strconv.Atoi(input); err == nil {
+			if option > len(templates) {
+				return fmt.Errorf(msg)
+			}
+			return nil
+		}
+		if !gitRepositoryRegEx.MatchString(input) {
 			return fmt.Errorf(msg)
 		}
 		return nil
 	}
-	if !gitRepositoryRegEx.MatchString(input) {
-		return fmt.Errorf(msg)
-	}
-	return nil
 }
 
 func validateBackend(input string) error {
