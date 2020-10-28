@@ -2564,6 +2564,18 @@ COMMANDS
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute
+        --parse-log-keyvals        Parse key-value pairs within the log format.
+        --max-batch-size=MAX-BATCH-SIZE
+                                   The maximum size of the log batch in bytes
+        --use-sasl                 Enable SASL authentication. Requires
+                                   --auth-method, --username, and --password to
+                                   be specified.
+        --auth-method=AUTH-METHOD  SASL authentication method. Valid values are:
+                                   plain, scram-sha-256, scram-sha-512
+        --username=USERNAME        SASL authentication username. Required if
+                                   --auth-method is specified.
+        --password=PASSWORD        SASL authentication password. Required if
+                                   --auth-method is specified.
 
   logging kafka list --version=VERSION [<flags>]
     List Kafka endpoints on a Fastly service version
@@ -2627,6 +2639,21 @@ COMMANDS
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute
+        --parse-log-keyvals        Parse key-value pairs within the log format.
+        --no-parse-log-keyvals     Disable parsing of key-value pairs within the
+                                   log format.
+        --max-batch-size=MAX-BATCH-SIZE
+                                   The maximum size of the log batch in bytes
+        --use-sasl                 Enable SASL authentication. Requires
+                                   --auth-method, --username, and --password to
+                                   be specified.
+        --disable-sasl             Disable SASL authentication.
+        --auth-method=AUTH-METHOD  SASL authentication method. Valid values are:
+                                   plain, scram-sha-256, scram-sha-512.
+        --username=USERNAME        SASL authentication username. Required if
+                                   --auth-method is specified.
+        --password=PASSWORD        SASL authentication password. Required if
+                                   --auth-method is specified.
 
   logging kafka delete --version=VERSION --name=NAME [<flags>]
     Delete a Kafka logging endpoint on a Fastly service version
