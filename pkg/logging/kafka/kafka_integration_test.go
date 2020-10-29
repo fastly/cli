@@ -380,9 +380,9 @@ Version: 1
 		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
-		SASL authentication method: `+`
-		SASL authentication username: `+`
-		SASL authentication password: `+`
+		SASL authentication method: 
+		SASL authentication username: 
+		SASL authentication password: 
 	Kafka 2/2
 		Service ID: 123
 		Version: 1
@@ -402,9 +402,9 @@ Version: 1
 		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
-		SASL authentication method: `+`
-		SASL authentication username: `+`
-		SASL authentication password:`+`
+		SASL authentication method: 
+		SASL authentication username: 
+		SASL authentication password: 
 `) + " \n\n"
 
 func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
@@ -451,9 +451,9 @@ Response condition: Prevent default logging
 Placement: none
 Parse log key-values: false
 Max batch size: 0
-SASL authentication method: `+`
-SASL authentication username: `+`
-SASL authentication password:`+`
+SASL authentication method: 
+SASL authentication username: 
+SASL authentication password: 
 `) + " \n"
 
 func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {

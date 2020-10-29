@@ -71,7 +71,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("parse-log-keyvals", "Parse key-value pairs within the log format.").Action(c.ParseLogKeyvals.Set).BoolVar(&c.ParseLogKeyvals.Value)
 	c.CmdClause.Flag("max-batch-size", "The maximum size of the log batch in bytes").Action(c.RequestMaxBytes.Set).UintVar(&c.RequestMaxBytes.Value)
 	c.CmdClause.Flag("use-sasl", "Enable SASL authentication. Requires --auth-method, --username, and --password to be specified.").Action(c.UseSASL.Set).BoolVar(&c.UseSASL.Value)
-	c.CmdClause.Flag("auth-method", "SASL authentication method. Valid values are: plain, scram-sha-256, scram-sha-512").Action(c.AuthMethod.Set).StringVar(&c.AuthMethod.Value)
+	c.CmdClause.Flag("auth-method", "SASL authentication method. Valid values are plain, scram-sha-256, and scram-sha-512.").Action(c.AuthMethod.Set).HintOptions("plain", "scram-sha-256", "scram-sha-512").EnumVar(&c.AuthMethod.Value, "plain", "scram-sha-256", "scram-sha-512")
 	c.CmdClause.Flag("username", "SASL authentication username. Required if --auth-method is specified.").Action(c.User.Set).StringVar(&c.User.Value)
 	c.CmdClause.Flag("password", "SASL authentication password. Required if --auth-method is specified.").Action(c.Password.Set).StringVar(&c.Password.Value)
 
@@ -148,13 +148,6 @@ func (c *CreateCommand) createInput() (*fastly.CreateKafkaInput, error) {
 		if c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "" {
 			return nil, fmt.Errorf("the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag")
 
-		}
-
-		if c.AuthMethod.Value != "plain" &&
-			c.AuthMethod.Value != "scram-sha-256" &&
-			c.AuthMethod.Value != "scram-sha-512" {
-
-			return nil, fmt.Errorf("invalid SASL authentication method: %s. Valid values are plain, scram-sha-256, and scram-sha-512", c.AuthMethod.Value)
 		}
 
 		input.AuthMethod = fastly.String(c.AuthMethod.Value)

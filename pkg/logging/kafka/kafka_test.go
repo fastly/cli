@@ -75,12 +75,6 @@ func TestCreateKafkaInput(t *testing.T) {
 			},
 		},
 		{
-			name:      "verify SASL validation: invalid auth method",
-			cmd:       createCommandSASL("bad-auth-type", "user", "password"),
-			want:      nil,
-			wantError: "invalid SASL authentication method: bad-auth-type. Valid values are plain, scram-sha-256, and scram-sha-512",
-		},
-		{
 			name:      "verify SASL validation: missing username",
 			cmd:       createCommandSASL("scram-sha-256", "", "password"),
 			want:      nil,
@@ -263,27 +257,6 @@ func TestUpdateKafkaInput(t *testing.T) {
 			},
 		},
 		{
-			name:      "verify SASL validation: enable and disable key-value log parsing",
-			api:       mock.API{GetKafkaFn: getKafkaOK},
-			cmd:       updateCommandConflictingParseLogKeyvals(),
-			want:      nil,
-			wantError: "--parse-key-logvals and --no-parse-key-logvals are mutually exclusive",
-		},
-		{
-			name:      "verify SASL validation: enable and disable SASL",
-			api:       mock.API{GetKafkaFn: getKafkaOK},
-			cmd:       updateCommandEnableAndDisableSASL(),
-			want:      nil,
-			wantError: "--use-sasl and --disable-sasl are mutually exclusive",
-		},
-		{
-			name:      "verify SASL validation: invalid auth method",
-			api:       mock.API{GetKafkaFn: getKafkaOK},
-			cmd:       updateCommandSASL("bad-auth-type", "user", "password"),
-			want:      nil,
-			wantError: "invalid SASL authentication method: bad-auth-type. Valid values are plain, scram-sha-256, and scram-sha-512",
-		},
-		{
 			name:      "verify SASL validation: missing username",
 			api:       mock.API{GetKafkaFn: getKafkaOK},
 			cmd:       updateCommandSASL("scram-sha-256", "", "password"),
@@ -458,42 +431,10 @@ func updateCommandNoSASL() *UpdateCommand {
 		Brokers:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "127.0.0.1,127.0.0.2"},
 		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
 		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 11111},
-		UseSASL:         common.OptionalBool{Optional: common.Optional{Valid: false}, Value: false},
-		DisableSASL:     common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
+		UseSASL:         common.OptionalBool{Optional: common.Optional{Valid: true}, Value: false},
 		AuthMethod:      common.OptionalString{Optional: common.Optional{Valid: false}, Value: ""},
 		User:            common.OptionalString{Optional: common.Optional{Valid: false}, Value: ""},
 		Password:        common.OptionalString{Optional: common.Optional{Valid: false}, Value: ""},
-	}
-}
-
-func updateCommandEnableAndDisableSASL() *UpdateCommand {
-	return &UpdateCommand{
-		Base:            common.Base{Globals: &config.Data{Client: nil}},
-		manifest:        manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:    "log",
-		Version:         2,
-		Topic:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "logs"},
-		Brokers:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "127.0.0.1,127.0.0.2"},
-		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 11111},
-		UseSASL:         common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		DisableSASL:     common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		AuthMethod:      common.OptionalString{Optional: common.Optional{Valid: false}, Value: ""},
-		User:            common.OptionalString{Optional: common.Optional{Valid: false}, Value: ""},
-		Password:        common.OptionalString{Optional: common.Optional{Valid: false}, Value: ""},
-	}
-}
-
-func updateCommandConflictingParseLogKeyvals() *UpdateCommand {
-	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		Version:           2,
-		Topic:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "logs"},
-		Brokers:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "127.0.0.1,127.0.0.2"},
-		ParseLogKeyvals:   common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		NoParseLogKeyvals: common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
 	}
 }
 

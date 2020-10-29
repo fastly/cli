@@ -38,10 +38,8 @@ type UpdateCommand struct {
 	Placement         common.OptionalString
 	ResponseCondition common.OptionalString
 	ParseLogKeyvals   common.OptionalBool
-	NoParseLogKeyvals common.OptionalBool
 	RequestMaxBytes   common.OptionalUint
 	UseSASL           common.OptionalBool
-	DisableSASL       common.OptionalBool
 	AuthMethod        common.OptionalString
 	User              common.OptionalString
 	Password          common.OptionalString
@@ -73,12 +71,10 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
-	c.CmdClause.Flag("parse-log-keyvals", "Parse key-value pairs within the log format.").Action(c.ParseLogKeyvals.Set).BoolVar(&c.ParseLogKeyvals.Value)
-	c.CmdClause.Flag("no-parse-log-keyvals", "Disable parsing of key-value pairs within the log format.").Action(c.NoParseLogKeyvals.Set).BoolVar(&c.NoParseLogKeyvals.Value)
+	c.CmdClause.Flag("parse-log-keyvals", "Parse key-value pairs within the log format.").Action(c.ParseLogKeyvals.Set).NegatableBoolVar(&c.ParseLogKeyvals.Value)
 	c.CmdClause.Flag("max-batch-size", "The maximum size of the log batch in bytes").Action(c.RequestMaxBytes.Set).UintVar(&c.RequestMaxBytes.Value)
 	c.CmdClause.Flag("use-sasl", "Enable SASL authentication. Requires --auth-method, --username, and --password to be specified.").Action(c.UseSASL.Set).BoolVar(&c.UseSASL.Value)
-	c.CmdClause.Flag("disable-sasl", "Disable SASL authentication.").Action(c.DisableSASL.Set).BoolVar(&c.DisableSASL.Value)
-	c.CmdClause.Flag("auth-method", "SASL authentication method. Valid values are: plain, scram-sha-256, scram-sha-512.").Action(c.AuthMethod.Set).StringVar(&c.AuthMethod.Value)
+	c.CmdClause.Flag("auth-method", "SASL authentication method. Valid values are plain, scram-sha-256, and scram-sha-512.").Action(c.AuthMethod.Set).HintOptions("plain", "scram-sha-256", "scram-sha-512").EnumVar(&c.AuthMethod.Value, "plain", "scram-sha-256", "scram-sha-512")
 	c.CmdClause.Flag("username", "SASL authentication username. Required if --auth-method is specified.").Action(c.User.Set).StringVar(&c.User.Value)
 	c.CmdClause.Flag("password", "SASL authentication password. Required if --auth-method is specified.").Action(c.Password.Set).StringVar(&c.Password.Value)
 
@@ -182,10 +178,6 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
-	if c.ParseLogKeyvals.Valid && c.NoParseLogKeyvals.Valid {
-		return nil, fmt.Errorf("--parse-key-logvals and --no-parse-key-logvals are mutually exclusive")
-	}
-
 	if c.ParseLogKeyvals.Valid {
 		input.ParseLogKeyvals = fastly.CBool(c.ParseLogKeyvals.Value)
 	}
@@ -194,11 +186,7 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 		input.RequestMaxBytes = fastly.Uint(c.RequestMaxBytes.Value)
 	}
 
-	if c.UseSASL.Valid && c.DisableSASL.Valid {
-		return nil, fmt.Errorf("--use-sasl and --disable-sasl are mutually exclusive")
-	}
-
-	if c.DisableSASL.Valid && c.DisableSASL.Value {
+	if c.UseSASL.Valid && !c.UseSASL.Value {
 		input.AuthMethod = fastly.String("")
 		input.User = fastly.String("")
 		input.Password = fastly.String("")
@@ -208,13 +196,6 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 		if c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "" {
 			return nil, fmt.Errorf("the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag")
 
-		}
-
-		if c.AuthMethod.Value != "plain" &&
-			c.AuthMethod.Value != "scram-sha-256" &&
-			c.AuthMethod.Value != "scram-sha-512" {
-
-			return nil, fmt.Errorf("invalid SASL authentication method: %s. Valid values are plain, scram-sha-256, and scram-sha-512", c.AuthMethod.Value)
 		}
 
 		input.AuthMethod = fastly.String(c.AuthMethod.Value)
