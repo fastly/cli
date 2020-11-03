@@ -74,11 +74,5 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 //
 // NOTE: this is indicated by the presence of a hyphen, e.g. v1.0.0-rc.1
 func PreRelease(version string) bool {
-	var result bool
-
-	if i := strings.Index(version, "-"); i >= 0 {
-		result = true
-	}
-
-	return result
+    result strings.Contains(version, "-")
 }
