@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.18.1](https://github.com/fastly/cli/releases/tag/v0.18.1) (2020-11-03)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.18.0...v0.18.1)
+
+**Enhancements:**
+
+- Update the default Rust template to fastly-0.5.0 [\#163](https://github.com/fastly/cli/pull/163)
+
+**Bug fixes:**
+
+- Constrain Version Upgrade Suggestion [\#165](https://github.com/fastly/cli/pull/165)
+- Fix AssemblyScript compilation messaging [\#164](https://github.com/fastly/cli/pull/164)
+
 ## [v0.18.0](https://github.com/fastly/cli/releases/tag/v0.18.0) (2020-10-27)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.17.0...v0.18.0)
@@ -180,6 +193,7 @@
 - Publish scoop package manifest during release process [\#45](https://github.com/fastly/cli/pull/45)
 - Generate dep and rpm packages during release process [\#44](https://github.com/fastly/cli/pull/44)
 - 🦀 🆙date to Rust 1.43.0 [\#40](https://github.com/fastly/cli/pull/40)
+- Bump default Rust template to v0.3.0 [\#32](https://github.com/fastly/cli/pull/32)
 
 **Closed issues:**
 
@@ -191,7 +205,6 @@
 
 **Enhancements:**
 
-- Bump default Rust template to v0.3.0 [\#32](https://github.com/fastly/cli/pull/32)
 - Publish to homebrew [\#26](https://github.com/fastly/cli/pull/26)
 
 **Bug fixes:**
