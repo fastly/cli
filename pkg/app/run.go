@@ -670,7 +670,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
 	}
 
-	if versioner != nil && name != "update" && version.PreRelease(version.AppVersion) == false {
+	if versioner != nil && name != "update" && !version.PreRelease(version.AppVersion) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel() // push cancel on the defer stack first...
 		f := update.CheckAsync(ctx, file, configFilePath, version.AppVersion, versioner)
