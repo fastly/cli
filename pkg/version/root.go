@@ -70,9 +70,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-// PreRelease determines if the given app version is a pre-release.
+// IsPreRelease determines if the given app version is a pre-release.
 //
 // NOTE: this is indicated by the presence of a hyphen, e.g. v1.0.0-rc.1
-func PreRelease(version string) bool {
-    result strings.Contains(version, "-")
+func IsPreRelease(version string) bool {
+	return strings.Contains(version, "-")
 }
