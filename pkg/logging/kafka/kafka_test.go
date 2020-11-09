@@ -78,25 +78,25 @@ func TestCreateKafkaInput(t *testing.T) {
 			name:      "verify SASL validation: missing username",
 			cmd:       createCommandSASL("scram-sha-256", "", "password"),
 			want:      nil,
-			wantError: "the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag",
+			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
 			name:      "verify SASL validation: missing password",
 			cmd:       createCommandSASL("plain", "user", ""),
 			want:      nil,
-			wantError: "the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag",
+			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
 			name:      "verify SASL validation: username with no auth method or password",
 			cmd:       createCommandSASL("", "user1", ""),
 			want:      nil,
-			wantError: "the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag",
+			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
 			name:      "verify SASL validation: password with no auth method",
 			cmd:       createCommandSASL("", "", "password"),
 			want:      nil,
-			wantError: "the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag",
+			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 
 		{
@@ -261,28 +261,28 @@ func TestUpdateKafkaInput(t *testing.T) {
 			api:       mock.API{GetKafkaFn: getKafkaOK},
 			cmd:       updateCommandSASL("scram-sha-256", "", "password"),
 			want:      nil,
-			wantError: "the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag",
+			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
 			name:      "verify SASL validation: missing password",
 			api:       mock.API{GetKafkaFn: getKafkaOK},
 			cmd:       updateCommandSASL("plain", "user", ""),
 			want:      nil,
-			wantError: "the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag",
+			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
 			name:      "verify SASL validation: username with no auth method",
 			api:       mock.API{GetKafkaFn: getKafkaOK},
 			cmd:       updateCommandSASL("", "user1", ""),
 			want:      nil,
-			wantError: "the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag",
+			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
 			name:      "verify SASL validation: password with no auth method",
 			api:       mock.API{GetKafkaFn: getKafkaOK},
 			cmd:       updateCommandSASL("", "", "password"),
 			want:      nil,
-			wantError: "the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag",
+			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
