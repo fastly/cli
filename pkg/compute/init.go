@@ -47,7 +47,7 @@ var (
 			{
 				Name:   "Default",
 				Path:   "https://github.com/fastly/fastly-template-rust-default.git",
-				Branch: "0.4.0",
+				Branch: "0.5.0",
 			},
 		},
 	}
