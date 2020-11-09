@@ -1,6 +1,10 @@
 SHELL := /bin/bash -o pipefail
 
+# the rationale for using both `git describe` and `git rev-parse` is because
+# when CI builds the application it can be based on a git tag, so this ensures
+# the output is consistent across environments.
 VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
+
 LDFLAGS = -ldflags "\
  -X 'github.com/fastly/cli/pkg/version.AppVersion=${VERSION}' \
  -X 'github.com/fastly/cli/pkg/version.GitRevision=$(shell git rev-parse --short HEAD || echo unknown)' \
