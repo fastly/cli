@@ -97,6 +97,14 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 		return nil, err
 	}
 
+	if c.UseSASL.Valid && c.UseSASL.Value && (c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "") {
+		return nil, fmt.Errorf("the --auth-method, --username, and --password flags must be present when using the --use-sasl flag")
+	}
+
+	if !c.UseSASL.Value && (c.AuthMethod.Value != "" || c.User.Value != "" || c.Password.Value != "") {
+		return nil, fmt.Errorf("the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified")
+	}
+
 	input := fastly.UpdateKafkaInput{
 		Service:           kafka.ServiceID,
 		Version:           kafka.Version,
@@ -192,34 +200,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 		input.Password = fastly.String("")
 	}
 
-	if c.UseSASL.Valid && c.UseSASL.Value {
-		if c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "" {
-			return nil, fmt.Errorf("the --auth-method, --username,  and --password flags must be present when using the --use-sasl flag")
-
-		}
-
+	if c.AuthMethod.Valid {
 		input.AuthMethod = fastly.String(c.AuthMethod.Value)
 
-		if c.User.Valid {
-			input.User = fastly.String(c.User.Value)
-		}
-
-		if c.Password.Valid {
-			input.Password = fastly.String(c.Password.Value)
-		}
 	}
 
-	if !c.UseSASL.Value && (c.AuthMethod.Value != "" || c.User.Value != "" || c.Password.Value != "") {
-		if c.AuthMethod.Value != "" {
-			fmt.Printf("AuthMethod: %s\n", c.AuthMethod.Value)
-		}
-		if c.User.Value != "" {
-			fmt.Printf("AuthMethod: %s\n", c.User.Value)
-		}
-		if c.Password.Value != "" {
-			fmt.Printf("AuthMethod: %s\n", c.Password.Value)
-		}
-		return nil, fmt.Errorf("the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified")
+	if c.User.Valid {
+		input.User = fastly.String(c.User.Value)
+	}
+
+	if c.Password.Valid {
+		input.Password = fastly.String(c.Password.Value)
 	}
 
 	return &input, nil
