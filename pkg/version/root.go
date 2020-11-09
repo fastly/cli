@@ -3,6 +3,7 @@ package version
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/go-fastly/fastly"
@@ -67,4 +68,11 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Fastly CLI version %s (%s)\n", AppVersion, GitRevision)
 	fmt.Fprintf(out, "Built with %s\n", GoVersion)
 	return nil
+}
+
+// IsPreRelease determines if the given app version is a pre-release.
+//
+// NOTE: this is indicated by the presence of a hyphen, e.g. v1.0.0-rc.1
+func IsPreRelease(version string) bool {
+	return strings.Contains(version, "-")
 }

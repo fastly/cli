@@ -135,6 +135,8 @@ func (a AssemblyScript) Initialize(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found package.json at %s\n", fpath)
 
+	fmt.Fprintf(out, "Installing package dependencies...\n")
+
 	// Call npm install.
 	cmd := common.NewStreamingExec("npm", []string{"install"}, []string{}, false, out)
 	return cmd.Exec()
@@ -168,8 +170,6 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 	if verbose {
 		args = append(args, "--verbose")
 	}
-
-	fmt.Fprintf(out, "Installing package dependencies...\n")
 
 	// Call asc with the build arguments.
 	cmd := common.NewStreamingExec(filepath.Join(npmdir, "asc"), args, []string{}, verbose, out)
