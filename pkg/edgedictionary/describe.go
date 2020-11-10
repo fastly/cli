@@ -47,5 +47,33 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Service ID: %s\n", dictionary.ServiceID)
 	fmt.Fprintf(out, "Version: %d\n", dictionary.Version)
 	text.PrintDictionary(out, "", dictionary)
+
+	if c.Globals.Verbose() {
+		infoInput := fastly.GetDictionaryInfoInput{
+			ServiceID: c.Input.Service,
+			Version:   c.Input.Version,
+			ID:        c.manifest.Flag.ServiceID,
+		}
+		info, err := c.Globals.Client.GetDictionaryInfo(&infoInput)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(out, "Digest: %s\n", info.Digest)
+		fmt.Fprintf(out, "Item Count: %d\n", info.ItemCount)
+
+		itemInput := fastly.ListDictionaryItemsInput{
+			Service:    c.Input.Service,
+			Dictionary: dictionary.ID,
+		}
+		items, err := c.Globals.Client.ListDictionaryItems(&itemInput)
+		if err != nil {
+			return err
+		}
+		for i, item := range items {
+			fmt.Fprintf(out, "	Item %d/%d:\n", i+1, len(items))
+			text.PrintDictionaryItemKV(out, "		", item)
+		}
+	}
+
 	return nil
 }

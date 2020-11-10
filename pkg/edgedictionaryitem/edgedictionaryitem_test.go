@@ -2,7 +2,6 @@ package edgedictionaryitem_test
 
 import (
 	"bytes"
-	//"errors"
 	"io"
 	"net/http"
 	"strings"

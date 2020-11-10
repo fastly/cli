@@ -38,6 +38,15 @@ func TestDictionaryDescribe(t *testing.T) {
 			api:        mock.API{GetDictionaryFn: describeDictionaryOKDeleted},
 			wantOutput: describeDictionaryOutputDeleted,
 		},
+		{
+			args: []string{"dictionary", "describe", "--version", "1", "--service-id", "123", "--name", "dict-1", "--verbose"},
+			api: mock.API{
+				GetDictionaryFn:       describeDictionaryOK,
+				GetDictionaryInfoFn:   getDictionaryInfoOK,
+				ListDictionaryItemsFn: listDictionaryItemsOK,
+			},
+			wantOutput: describeDictionaryOutputVerbose,
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (
@@ -179,6 +188,38 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 	}, nil
 }
 
+// These two are responses from other packages that will need to update if
+// the responses ever change.
+func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
+	return &fastly.DictionaryInfo{
+		ItemCount:   2,
+		LastUpdated: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		Digest:      "digest_hash",
+	}, nil
+}
+
+func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
+	return []*fastly.DictionaryItem{
+		&fastly.DictionaryItem{
+			ServiceID:    i.Service,
+			DictionaryID: "456",
+			ItemKey:      "foo",
+			ItemValue:    "bar",
+			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		},
+		&fastly.DictionaryItem{
+			ServiceID:    i.Service,
+			DictionaryID: "456",
+			ItemKey:      "baz",
+			ItemValue:    "bear",
+			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+			DeletedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:06:08Z"),
+		},
+	}, nil
+}
+
 func createDictionaryDuplicate(*fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
 	return nil, errors.New("Duplicate record")
 }
@@ -215,4 +256,24 @@ Write Only: false
 Created (UTC): 2001-02-03 04:05
 Last edited (UTC): 2001-02-03 04:05
 Deleted (UTC): 2001-02-03 04:05
+`) + "\n"
+
+var describeDictionaryOutputVerbose = strings.TrimSpace(`
+Fastly API token not provided
+Fastly API endpoint: https://api.fastly.com
+Service ID: 123
+Version: 1
+ID: 456
+Name: dict-1
+Write Only: false
+Created (UTC): 2001-02-03 04:05
+Last edited (UTC): 2001-02-03 04:05
+Digest: digest_hash
+Item Count: 2
+	Item 1/2:
+		Item Key: foo
+		Item Value: bar
+	Item 2/2:
+		Item Key: baz
+		Item Value: bear
 `) + "\n"

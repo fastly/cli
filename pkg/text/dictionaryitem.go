@@ -28,3 +28,10 @@ func PrintDictionaryItem(out io.Writer, prefix string, d *fastly.DictionaryItem)
 		fmt.Fprintf(out, "Deleted (UTC): %s\n", d.DeletedAt.UTC().Format(common.TimeFormat))
 	}
 }
+
+// PrintDictionaryItemKV pretty prints only the key/value pairs from a dictionary item.
+func PrintDictionaryItemKV(out io.Writer, prefix string, d *fastly.DictionaryItem) {
+	out = textio.NewPrefixWriter(out, prefix)
+	fmt.Fprintf(out, "Item Key: %s\n", d.ItemKey)
+	fmt.Fprintf(out, "Item Value: %s\n", d.ItemValue)
+}
