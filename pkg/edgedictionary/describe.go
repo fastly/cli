@@ -1,7 +1,6 @@
 package edgedictionary
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/common"
@@ -44,8 +43,8 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", dictionary.ServiceID)
-	fmt.Fprintf(out, "Version: %d\n", dictionary.Version)
+	text.Output(out, "Service ID: %s", dictionary.ServiceID)
+	text.Output(out, "Version: %d", dictionary.Version)
 	text.PrintDictionary(out, "", dictionary)
 
 	if c.Globals.Verbose() {
@@ -58,8 +57,8 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(out, "Digest: %s\n", info.Digest)
-		fmt.Fprintf(out, "Item Count: %d\n", info.ItemCount)
+		text.Output(out, "Digest: %s", info.Digest)
+		text.Output(out, "Item Count: %d", info.ItemCount)
 
 		itemInput := fastly.ListDictionaryItemsInput{
 			Service:    c.Input.Service,
@@ -70,8 +69,8 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 			return err
 		}
 		for i, item := range items {
-			fmt.Fprintf(out, "	Item %d/%d:\n", i+1, len(items))
-			text.PrintDictionaryItemKV(out, "		", item)
+			text.Output(out, "Item %d/%d:", i+1, len(items))
+			text.PrintDictionaryItemKV(out, "	", item)
 		}
 	}
 

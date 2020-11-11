@@ -1,7 +1,6 @@
 package edgedictionaryitem
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/common"
@@ -43,11 +42,11 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
+	text.Output(out, "Service ID: %s\n", c.Input.Service)
 	for i, dictionary := range dictionaries {
-		fmt.Fprintf(out, "Item: %d/%d\n", i+1, len(dictionaries))
+		text.Output(out, "Item: %d/%d", i+1, len(dictionaries))
 		text.PrintDictionaryItem(out, "\t", dictionary)
-		fmt.Fprintln(out)
+		text.Break(out)
 	}
 
 	return nil

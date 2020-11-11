@@ -270,10 +270,10 @@ Created (UTC): 2001-02-03 04:05
 Last edited (UTC): 2001-02-03 04:05
 Digest: digest_hash
 Item Count: 2
-	Item 1/2:
-		Item Key: foo
-		Item Value: bar
-	Item 2/2:
-		Item Key: baz
-		Item Value: bear
+Item 1/2:
+	Item Key: foo
+	Item Value: bar
+Item 2/2:
+	Item Key: baz
+	Item Value: bear
 `) + "\n"

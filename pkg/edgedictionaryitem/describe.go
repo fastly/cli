@@ -1,7 +1,6 @@
 package edgedictionaryitem
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/common"
@@ -44,7 +43,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
+	text.Output(out, "Service ID: %s", c.Input.Service)
 	text.PrintDictionaryItem(out, "", dictionary)
 	return nil
 }
