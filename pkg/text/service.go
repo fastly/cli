@@ -22,7 +22,7 @@ func ServiceType(t string) string {
 }
 
 // PrintService pretty prints a fastly.Service structure in verbose format
-// to a given io.Writer. Consumers can provider an prefix string which will
+// to a given io.Writer. Consumers can provide a prefix string which will
 // be used as a prefix to each line, useful for indentation.
 func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 	out = textio.NewPrefixWriter(out, prefix)
@@ -52,7 +52,7 @@ func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 }
 
 // PrintServiceDetail pretty prints a fastly.ServiceDetail structure in verbose
-// format to a given io.Writer. Consumers can provider an prefix string which
+// format to a given io.Writer. Consumers can provide a prefix string which
 // will be used as a prefix to each line, useful for indentation.
 func PrintServiceDetail(out io.Writer, indent string, s *fastly.ServiceDetail) {
 	out = textio.NewPrefixWriter(out, indent)
@@ -95,7 +95,7 @@ func PrintServiceDetail(out io.Writer, indent string, s *fastly.ServiceDetail) {
 }
 
 // PrintVersion pretty prints a fastly.Version structure in verbose format to a
-// given io.Writer. Consumers can provider an prefix string which will be used
+// given io.Writer. Consumers can provide a prefix string which will be used
 // as a prefix to each line, useful for indentation.
 func PrintVersion(out io.Writer, indent string, v *fastly.Version) {
 	out = textio.NewPrefixWriter(out, indent)

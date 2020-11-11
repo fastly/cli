@@ -10,7 +10,7 @@ import (
 )
 
 // PrintDictionaryItem pretty prints a fastly.DictionaryInfo structure in verbose
-// format to a given io.Writer. Consumers can provider a prefix string which
+// format to a given io.Writer. Consumers can provide a prefix string which
 // will be used as a prefix to each line, useful for indentation.
 func PrintDictionaryItem(out io.Writer, prefix string, d *fastly.DictionaryItem) {
 	out = textio.NewPrefixWriter(out, prefix)
