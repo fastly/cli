@@ -30,8 +30,6 @@ github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0 h1:9
 github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0/go.mod h1:V+Qd57rJe8gd4eiGzZyg4h54VLHmYVVw54iMnlAMrF8=
 github.com/emirpasic/gods v1.12.0 h1:QAUIPSaCu4G+POclxeqb3F+WPpdKqFGlw36+yOzGlrg=
 github.com/emirpasic/gods v1.12.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
-github.com/fastly/go-fastly v1.16.0 h1:RMHvkzZ52J60+jSPK+6BLodIsx4OBlaoB18XmL7C0+Y=
-github.com/fastly/go-fastly v1.16.0/go.mod h1:jILbTQnU/K/7XHQNzQWd1O7hbXIcp6dKrxfRWqU6xfk=
 github.com/fastly/go-fastly v1.18.0 h1:fyVq/142VTFz5ZkNE5d57K+NkTmtwxt2K2Mh5sV5scg=
 github.com/fastly/go-fastly v1.18.0/go.mod h1:fwYSSnZ6zEClwRS65T0f57Yh83Tc4gL12GgttQwJZfA=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
