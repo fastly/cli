@@ -13,7 +13,7 @@ jobs:
     - name: Set GOPATH
       # Temporary fix, see: https://github.com/actions/setup-go/issues/14
       run: |
-        echo "::set-env name=GOPATH::$(go env GOPATH)"
+        echo "GOPATH=$GITHUB_WORKSPACE/go" >> $GITHUB_ENV
         echo "::add-path::$(go env GOPATH)/bin"
       shell: bash
     - name: Restore cache
