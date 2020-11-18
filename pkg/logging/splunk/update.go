@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Splunk logging endpoints.
@@ -65,64 +65,64 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSplunkInput, error) {
 	}
 
 	splunk, err := c.Globals.Client.GetSplunk(&fastly.GetSplunkInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateSplunkInput{
-		Service:           splunk.ServiceID,
-		Version:           splunk.Version,
+		ServiceID:         splunk.ServiceID,
+		ServiceVersion:    splunk.ServiceVersion,
 		Name:              splunk.Name,
-		NewName:           splunk.Name,
-		URL:               splunk.URL,
-		Format:            splunk.Format,
-		FormatVersion:     splunk.FormatVersion,
-		ResponseCondition: splunk.ResponseCondition,
-		Placement:         splunk.Placement,
-		Token:             splunk.Token,
-		TLSCACert:         splunk.TLSCACert,
-		TLSHostname:       splunk.TLSHostname,
+		NewName:           fastly.String(splunk.Name),
+		URL:               fastly.String(splunk.URL),
+		Format:            fastly.String(splunk.Format),
+		FormatVersion:     fastly.Uint(splunk.FormatVersion),
+		ResponseCondition: fastly.String(splunk.ResponseCondition),
+		Placement:         fastly.String(splunk.Placement),
+		Token:             fastly.String(splunk.Token),
+		TLSCACert:         fastly.String(splunk.TLSCACert),
+		TLSHostname:       fastly.String(splunk.TLSHostname),
 	}
 
 	// Set new values if set by user.
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.URL.Valid {
-		input.URL = c.URL.Value
+		input.URL = fastly.String(c.URL.Value)
 	}
 
 	if c.Format.Valid {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	if c.Token.Valid {
-		input.Token = c.Token.Value
+		input.Token = fastly.String(c.Token.Value)
 	}
 
 	if c.TLSCACert.Valid {
-		input.TLSCACert = c.TLSCACert.Value
+		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
 	if c.TLSHostname.Valid {
-		input.TLSHostname = c.TLSHostname.Value
+		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
 	return &input, nil
@@ -140,6 +140,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Splunk logging endpoint %s (service %s version %d)", splunk.Name, splunk.ServiceID, splunk.Version)
+	text.Success(out, "Updated Splunk logging endpoint %s (service %s version %d)", splunk.Name, splunk.ServiceID, splunk.ServiceVersion)
 	return nil
 }

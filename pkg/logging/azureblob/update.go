@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Azure Blob Storage logging endpoints.
@@ -75,89 +75,89 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateBlobStorageInput, error) {
 	}
 
 	azureblob, err := c.Globals.Client.GetBlobStorage(&fastly.GetBlobStorageInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateBlobStorageInput{
-		Service:           azureblob.ServiceID,
-		Version:           azureblob.Version,
+		ServiceID:         azureblob.ServiceID,
+		ServiceVersion:    azureblob.ServiceVersion,
 		Name:              azureblob.Name,
-		NewName:           azureblob.Name,
-		Path:              azureblob.Path,
-		AccountName:       azureblob.AccountName,
-		Container:         azureblob.Container,
-		SASToken:          azureblob.SASToken,
-		Period:            azureblob.Period,
-		TimestampFormat:   azureblob.TimestampFormat,
-		GzipLevel:         azureblob.GzipLevel,
-		PublicKey:         azureblob.PublicKey,
-		Format:            azureblob.Format,
-		FormatVersion:     azureblob.FormatVersion,
-		MessageType:       azureblob.MessageType,
-		Placement:         azureblob.Placement,
-		ResponseCondition: azureblob.ResponseCondition,
+		NewName:           fastly.String(azureblob.Name),
+		Path:              fastly.String(azureblob.Path),
+		AccountName:       fastly.String(azureblob.AccountName),
+		Container:         fastly.String(azureblob.Container),
+		SASToken:          fastly.String(azureblob.SASToken),
+		Period:            fastly.Uint(azureblob.Period),
+		TimestampFormat:   fastly.String(azureblob.TimestampFormat),
+		GzipLevel:         fastly.Uint(azureblob.GzipLevel),
+		PublicKey:         fastly.String(azureblob.PublicKey),
+		Format:            fastly.String(azureblob.Format),
+		FormatVersion:     fastly.Uint(azureblob.FormatVersion),
+		MessageType:       fastly.String(azureblob.MessageType),
+		Placement:         fastly.String(azureblob.Placement),
+		ResponseCondition: fastly.String(azureblob.ResponseCondition),
 	}
 
 	// Set new values if set by user.
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.Path.Valid {
-		input.Path = c.Path.Value
+		input.Path = fastly.String(c.Path.Value)
 	}
 
 	if c.AccountName.Valid {
-		input.AccountName = c.AccountName.Value
+		input.AccountName = fastly.String(c.AccountName.Value)
 	}
 
 	if c.Container.Valid {
-		input.Container = c.Container.Value
+		input.Container = fastly.String(c.Container.Value)
 	}
 
 	if c.SASToken.Valid {
-		input.SASToken = c.SASToken.Value
+		input.SASToken = fastly.String(c.SASToken.Value)
 	}
 
 	if c.Period.Valid {
-		input.Period = c.Period.Value
+		input.Period = fastly.Uint(c.Period.Value)
 	}
 
 	if c.GzipLevel.Valid {
-		input.GzipLevel = c.GzipLevel.Value
+		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
 	}
 
 	if c.Format.Valid {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.MessageType.Valid {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.TimestampFormat.Valid {
-		input.TimestampFormat = c.TimestampFormat.Value
+		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
 	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	if c.PublicKey.Valid {
-		input.PublicKey = c.PublicKey.Value
+		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
 	return &input, nil
@@ -175,6 +175,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Azure Blob Storage logging endpoint %s (service %s version %d)", azureblob.Name, azureblob.ServiceID, azureblob.Version)
+	text.Success(out, "Updated Azure Blob Storage logging endpoint %s (service %s version %d)", azureblob.Name, azureblob.ServiceID, azureblob.ServiceVersion)
 	return nil
 }

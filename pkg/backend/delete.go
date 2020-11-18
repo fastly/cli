@@ -6,7 +6,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // DeleteCommand calls the Fastly API to delete backends.
@@ -20,8 +20,8 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	var c DeleteCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("delete", "Delete a backend on a Fastly service version").Alias("remove")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.Service)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.ServiceID)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	c.CmdClause.Flag("name", "Backend name").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
@@ -32,6 +32,6 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted backend %s (service %s version %d)", c.Input.Name, c.Input.Service, c.Input.Version)
+	text.Success(out, "Deleted backend %s (service %s version %d)", c.Input.Name, c.Input.ServiceID, c.Input.ServiceVersion)
 	return nil
 }

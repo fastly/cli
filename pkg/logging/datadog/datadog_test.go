@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateDatadogInput(t *testing.T) {
@@ -23,25 +23,25 @@ func TestCreateDatadogInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateDatadogInput{
-				Service: "123",
-				Version: 2,
-				Name:    fastly.String("log"),
-				Token:   fastly.String("tkn"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				Token:          "tkn",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandOK(),
 			want: &fastly.CreateDatadogInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("log"),
-				Region:            fastly.String("US"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				Token:             fastly.String("tkn"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "log",
+				Region:            "US",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				Token:             "tkn",
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
 			},
 		},
 		{
@@ -72,8 +72,8 @@ func TestUpdateDatadogInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetDatadogFn: getDatadogOK},
 			want: &fastly.UpdateDatadogInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
 				Region:            fastly.String("US"),
@@ -89,8 +89,8 @@ func TestUpdateDatadogInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetDatadogFn: getDatadogOK},
 			want: &fastly.UpdateDatadogInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				Region:            fastly.String("new2"),
@@ -180,8 +180,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getDatadogOK(i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 	return &fastly.Datadog{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Token:             "tkn",
 		Region:            "US",

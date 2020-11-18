@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update DigitalOcean Spaces logging endpoints.
@@ -77,17 +77,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateDigitalOceanInput, error) {
 	}
 
 	digitalocean, err := c.Globals.Client.GetDigitalOcean(&fastly.GetDigitalOceanInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateDigitalOceanInput{
-		Service:           digitalocean.ServiceID,
-		Version:           digitalocean.Version,
+		ServiceID:         digitalocean.ServiceID,
+		ServiceVersion:    digitalocean.ServiceVersion,
 		Name:              digitalocean.Name,
 		NewName:           fastly.String(digitalocean.Name),
 		BucketName:        fastly.String(digitalocean.BucketName),
@@ -182,6 +182,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated DigitalOcean Spaces logging endpoint %s (service %s version %d)", digitalocean.Name, digitalocean.ServiceID, digitalocean.Version)
+	text.Success(out, "Updated DigitalOcean Spaces logging endpoint %s (service %s version %d)", digitalocean.Name, digitalocean.ServiceID, digitalocean.ServiceVersion)
 	return nil
 }

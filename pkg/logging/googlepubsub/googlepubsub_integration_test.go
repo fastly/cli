@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestGooglePubSubCreate(t *testing.T) {
@@ -267,8 +267,8 @@ var errTest = errors.New("fixture error")
 
 func createGooglePubSubOK(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Topic:             "topic",
 		User:              "user",
@@ -288,8 +288,8 @@ func createGooglePubSubError(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error
 func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 	return []*fastly.Pubsub{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			User:              "user@example.com",
 			SecretKey:         "secret",
@@ -301,8 +301,8 @@ func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 			FormatVersion:     2,
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			User:              "user@example.com",
 			SecretKey:         "secret",
@@ -333,7 +333,7 @@ Service ID: 123
 Version: 1
 	Google Cloud Pub/Sub 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		User: user@example.com
 		Secret key: secret
@@ -345,7 +345,7 @@ Version: 1
 		Placement: none
 	Google Cloud Pub/Sub 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		User: user@example.com
 		Secret key: secret
@@ -359,8 +359,8 @@ Version: 1
 
 func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Topic:             "topic",
 		User:              "user@example.com",
@@ -393,8 +393,8 @@ Placement: none
 
 func updateGooglePubSubOK(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Topic:             "topic",
 		User:              "user@example.com",

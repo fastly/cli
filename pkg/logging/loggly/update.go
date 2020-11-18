@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Loggly logging endpoints.
@@ -59,17 +59,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateLogglyInput, error) {
 	}
 
 	loggly, err := c.Globals.Client.GetLoggly(&fastly.GetLogglyInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateLogglyInput{
-		Service:           loggly.ServiceID,
-		Version:           loggly.Version,
+		ServiceID:         loggly.ServiceID,
+		ServiceVersion:    loggly.ServiceVersion,
 		Name:              loggly.Name,
 		NewName:           fastly.String(loggly.Name),
 		Format:            fastly.String(loggly.Format),
@@ -118,6 +118,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Loggly logging endpoint %s (service %s version %d)", loggly.Name, loggly.ServiceID, loggly.Version)
+	text.Success(out, "Updated Loggly logging endpoint %s (service %s version %d)", loggly.Name, loggly.ServiceID, loggly.ServiceVersion)
 	return nil
 }

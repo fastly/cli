@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to create services.
@@ -27,8 +27,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Fastly service")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("name", "Service name").Short('n').StringVar(&c.updateInput.Name)
-	c.CmdClause.Flag("comment", "Human-readable comment").StringVar(&c.updateInput.Comment)
+	c.CmdClause.Flag("name", "Service name").Short('n').StringVar(c.updateInput.Name)
+	c.CmdClause.Flag("comment", "Human-readable comment").StringVar(c.updateInput.Comment)
 	return &c
 }
 
@@ -41,7 +41,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.getInput.ID = serviceID
 
 	// If neither arguments are provided, error with useful message.
-	if c.updateInput.Name == "" && c.updateInput.Comment == "" {
+	if *c.updateInput.Name == "" && *c.updateInput.Comment == "" {
 		return fmt.Errorf("error parsing arguments: must provide either --name or --comment to update service")
 	}
 
@@ -53,13 +53,13 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.updateInput.ID = s.ID
 
 	// Only update name if non-empty.
-	if c.updateInput.Name == "" {
-		c.updateInput.Name = s.Name
+	if *c.updateInput.Name == "" {
+		c.updateInput.Name = fastly.String(s.Name)
 	}
 
 	// Only update comment if non-empty.
-	if c.updateInput.Comment == "" {
-		c.updateInput.Comment = s.Comment
+	if *c.updateInput.Comment == "" {
+		c.updateInput.Comment = fastly.String(s.Comment)
 	}
 
 	s, err = c.Globals.Client.UpdateService(&c.updateInput)

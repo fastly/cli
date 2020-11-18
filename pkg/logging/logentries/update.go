@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Logentries logging endpoints.
@@ -63,35 +63,35 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateLogentriesInput, error) {
 	}
 
 	logentries, err := c.Globals.Client.GetLogentries(&fastly.GetLogentriesInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateLogentriesInput{
-		Service:           logentries.ServiceID,
-		Version:           logentries.Version,
+		ServiceID:         logentries.ServiceID,
+		ServiceVersion:    logentries.ServiceVersion,
 		Name:              logentries.Name,
-		NewName:           logentries.Name,
-		Port:              logentries.Port,
+		NewName:           fastly.String(logentries.Name),
+		Port:              fastly.Uint(logentries.Port),
 		UseTLS:            fastly.CBool(logentries.UseTLS),
-		Token:             logentries.Token,
-		Format:            logentries.Format,
-		FormatVersion:     logentries.FormatVersion,
-		ResponseCondition: logentries.ResponseCondition,
-		Placement:         logentries.Placement,
+		Token:             fastly.String(logentries.Token),
+		Format:            fastly.String(logentries.Format),
+		FormatVersion:     fastly.Uint(logentries.FormatVersion),
+		ResponseCondition: fastly.String(logentries.ResponseCondition),
+		Placement:         fastly.String(logentries.Placement),
 	}
 
 	// Set new values if set by user.
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.Port.Valid {
-		input.Port = c.Port.Value
+		input.Port = fastly.Uint(c.Port.Value)
 	}
 
 	if c.UseTLS.Valid {
@@ -99,23 +99,23 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateLogentriesInput, error) {
 	}
 
 	if c.Token.Valid {
-		input.Token = c.Token.Value
+		input.Token = fastly.String(c.Token.Value)
 	}
 
 	if c.Format.Valid {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil
@@ -133,6 +133,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Logentries logging endpoint %s (service %s version %d)", logentries.Name, logentries.ServiceID, logentries.Version)
+	text.Success(out, "Updated Logentries logging endpoint %s (service %s version %d)", logentries.Name, logentries.ServiceID, logentries.ServiceVersion)
 	return nil
 }

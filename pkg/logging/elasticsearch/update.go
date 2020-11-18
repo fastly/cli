@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Elasticsearch logging endpoints.
@@ -77,17 +77,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateElasticsearchInput, error) 
 	}
 
 	elasticsearch, err := c.Globals.Client.GetElasticsearch(&fastly.GetElasticsearchInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateElasticsearchInput{
-		Service:           elasticsearch.ServiceID,
-		Version:           elasticsearch.Version,
+		ServiceID:         elasticsearch.ServiceID,
+		ServiceVersion:    elasticsearch.ServiceVersion,
 		Name:              elasticsearch.Name,
 		NewName:           fastly.String(elasticsearch.Name),
 		ResponseCondition: fastly.String(elasticsearch.ResponseCondition),
@@ -186,6 +186,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Elasticsearch logging endpoint %s (service %s version %d)", elasticsearch.Name, elasticsearch.ServiceID, elasticsearch.Version)
+	text.Success(out, "Updated Elasticsearch logging endpoint %s (service %s version %d)", elasticsearch.Name, elasticsearch.ServiceID, elasticsearch.ServiceVersion)
 	return nil
 }

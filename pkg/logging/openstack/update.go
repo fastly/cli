@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update OpenStack logging endpoints.
@@ -77,17 +77,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateOpenstackInput, error) {
 	}
 
 	openstack, err := c.Globals.Client.GetOpenstack(&fastly.GetOpenstackInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateOpenstackInput{
-		Service:           openstack.ServiceID,
-		Version:           openstack.Version,
+		ServiceID:         openstack.ServiceID,
+		ServiceVersion:    openstack.ServiceVersion,
 		Name:              openstack.Name,
 		NewName:           fastly.String(openstack.Name),
 		BucketName:        fastly.String(openstack.BucketName),
@@ -182,6 +182,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated OpenStack logging endpoint %s (service %s version %d)", openstack.Name, openstack.ServiceID, openstack.Version)
+	text.Success(out, "Updated OpenStack logging endpoint %s (service %s version %d)", openstack.Name, openstack.ServiceID, openstack.ServiceVersion)
 	return nil
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestVersionClone(t *testing.T) {
@@ -292,7 +292,7 @@ var errTest = errors.New("fixture error")
 
 func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version + 1,
+		Number:    i.ServiceVersion + 1,
 		ServiceID: "123",
 		Active:    true,
 		Deployed:  true,
@@ -306,14 +306,14 @@ func cloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 
 func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
-		&fastly.Version{
+		{
 			Number:    1,
 			Comment:   "a",
 			ServiceID: "b",
 			CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		},
-		&fastly.Version{
+		{
 			Number:    2,
 			Comment:   "c",
 			ServiceID: "b",
@@ -365,7 +365,7 @@ Versions: 2
 
 func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version,
+		Number:    i.ServiceVersion,
 		ServiceID: "123",
 		Active:    true,
 		Deployed:  true,
@@ -380,7 +380,7 @@ func updateVersionError(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 
 func activateVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version,
+		Number:    i.ServiceVersion,
 		ServiceID: "123",
 		Active:    true,
 		Deployed:  true,
@@ -395,7 +395,7 @@ func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, erro
 
 func deactivateVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version,
+		Number:    i.ServiceVersion,
 		ServiceID: "123",
 		Active:    false,
 		Deployed:  true,
@@ -410,7 +410,7 @@ func deactivateVersionError(i *fastly.DeactivateVersionInput) (*fastly.Version, 
 
 func lockVersionOK(i *fastly.LockVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version,
+		Number:    i.ServiceVersion,
 		ServiceID: "123",
 		Active:    false,
 		Deployed:  true,

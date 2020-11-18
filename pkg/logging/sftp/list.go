@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list SFTP logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List SFTP endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	sftps, err := c.Globals.Client.ListSFTPs(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, sftp := range sftps {
-			tw.AddLine(sftp.ServiceID, sftp.Version, sftp.Name)
+			tw.AddLine(sftp.ServiceID, sftp.ServiceVersion, sftp.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, sftp := range sftps {
 		fmt.Fprintf(out, "\tSFTP %d/%d\n", i+1, len(sftps))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", sftp.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", sftp.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", sftp.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", sftp.Name)
 		fmt.Fprintf(out, "\t\tAddress: %s\n", sftp.Address)
 		fmt.Fprintf(out, "\t\tPort: %d\n", sftp.Port)

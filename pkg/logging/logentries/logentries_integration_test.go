@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestLogentriesCreate(t *testing.T) {
@@ -251,9 +251,9 @@ var errTest = errors.New("fixture error")
 
 func createLogentriesOK(i *fastly.CreateLogentriesInput) (*fastly.Logentries, error) {
 	return &fastly.Logentries{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -264,8 +264,8 @@ func createLogentriesError(i *fastly.CreateLogentriesInput) (*fastly.Logentries,
 func listLogentriesOK(i *fastly.ListLogentriesInput) ([]*fastly.Logentries, error) {
 	return []*fastly.Logentries{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Port:              20000,
 			UseTLS:            true,
@@ -276,8 +276,8 @@ func listLogentriesOK(i *fastly.ListLogentriesInput) ([]*fastly.Logentries, erro
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Port:              20001,
 			UseTLS:            false,
@@ -307,7 +307,7 @@ Service ID: 123
 Version: 1
 	Logentries 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		Port: 20000
 		Use TLS: true
@@ -318,7 +318,7 @@ Version: 1
 		Placement: none
 	Logentries 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		Port: 20001
 		Use TLS: false
@@ -331,8 +331,8 @@ Version: 1
 
 func getLogentriesOK(i *fastly.GetLogentriesInput) (*fastly.Logentries, error) {
 	return &fastly.Logentries{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Port:              20000,
 		UseTLS:            true,
@@ -363,8 +363,8 @@ Placement: none
 
 func updateLogentriesOK(i *fastly.UpdateLogentriesInput) (*fastly.Logentries, error) {
 	return &fastly.Logentries{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Port:              20000,
 		UseTLS:            true,

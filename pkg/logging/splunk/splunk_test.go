@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateSplunkInput(t *testing.T) {
@@ -23,18 +23,18 @@ func TestCreateSplunkInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateSplunkInput{
-				Service: "123",
-				Version: 2,
-				Name:    "log",
-				URL:     "example.com",
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				URL:            "example.com",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateSplunkInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				URL:               "example.com",
 				Format:            `%h %l %u %t "%r" %>s %b`,
@@ -74,18 +74,18 @@ func TestUpdateSplunkInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetSplunkFn: getSplunkOK},
 			want: &fastly.UpdateSplunkInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
-				NewName:           "logs",
-				URL:               "example.com",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
-				Token:             "tkn",
-				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-				TLSHostname:       "example.com",
+				NewName:           fastly.String("logs"),
+				URL:               fastly.String("example.com"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Uint(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
+				Token:             fastly.String("tkn"),
+				TLSCACert:         fastly.String("-----BEGIN CERTIFICATE-----foo"),
+				TLSHostname:       fastly.String("example.com"),
 			},
 		},
 		{
@@ -93,18 +93,18 @@ func TestUpdateSplunkInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetSplunkFn: getSplunkOK},
 			want: &fastly.UpdateSplunkInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
-				NewName:           "new1",
-				URL:               "new2",
-				Format:            "new3",
-				FormatVersion:     3,
-				ResponseCondition: "new4",
-				Placement:         "new5",
-				Token:             "new6",
-				TLSCACert:         "new7",
-				TLSHostname:       "new8",
+				NewName:           fastly.String("new1"),
+				URL:               fastly.String("new2"),
+				Format:            fastly.String("new3"),
+				FormatVersion:     fastly.Uint(3),
+				ResponseCondition: fastly.String("new4"),
+				Placement:         fastly.String("new5"),
+				Token:             fastly.String("new6"),
+				TLSCACert:         fastly.String("new7"),
+				TLSHostname:       fastly.String("new8"),
 			},
 		},
 		{
@@ -191,8 +191,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		URL:               "example.com",
 		Format:            `%h %l %u %t "%r" %>s %b`,

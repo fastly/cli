@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CloneCommand calls the Fastly API to clone a service version.
@@ -25,7 +25,7 @@ func NewCloneCommand(parent common.Registerer, globals *config.Data) *CloneComma
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("clone", "Clone a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to clone").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of version you wish to clone").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -35,13 +35,13 @@ func (c *CloneCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	v, err := c.Globals.Client.CloneVersion(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Cloned service %s version %d to version %d", v.ServiceID, c.Input.Version, v.Number)
+	text.Success(out, "Cloned service %s version %d to version %d", v.ServiceID, c.Input.ServiceVersion, v.Number)
 	return nil
 }

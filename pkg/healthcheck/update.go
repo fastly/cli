@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update healthchecks.
@@ -39,7 +39,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause = parent.Command("update", "Update a healthcheck on a Fastly service version")
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Required().StringVar(&c.Input.Name)
 
 	c.CmdClause.Flag("new-name", "Healthcheck name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
@@ -64,7 +64,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	h, err := c.Globals.Client.GetHealthCheck(&c.Input)
 	if err != nil {
@@ -73,70 +73,70 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	// Copy existing values from GET to UpdateHealthCheckInput strcuture
 	input := &fastly.UpdateHealthCheckInput{
-		Service:          h.ServiceID,
-		Version:          h.Version,
+		ServiceID:        h.ServiceID,
+		ServiceVersion:   h.ServiceVersion,
 		Name:             h.Name,
-		NewName:          h.Name,
-		Comment:          h.Comment,
-		Method:           h.Method,
-		Host:             h.Host,
-		Path:             h.Path,
-		HTTPVersion:      h.HTTPVersion,
-		Timeout:          h.Timeout,
-		CheckInterval:    h.CheckInterval,
-		ExpectedResponse: h.ExpectedResponse,
-		Window:           h.Window,
-		Threshold:        h.Threshold,
-		Initial:          h.Initial,
+		NewName:          fastly.String(h.Name),
+		Comment:          fastly.String(h.Comment),
+		Method:           fastly.String(h.Method),
+		Host:             fastly.String(h.Host),
+		Path:             fastly.String(h.Path),
+		HTTPVersion:      fastly.String(h.HTTPVersion),
+		Timeout:          fastly.Uint(h.Timeout),
+		CheckInterval:    fastly.Uint(h.CheckInterval),
+		ExpectedResponse: fastly.Uint(h.ExpectedResponse),
+		Window:           fastly.Uint(h.Window),
+		Threshold:        fastly.Uint(h.Threshold),
+		Initial:          fastly.Uint(h.Initial),
 	}
 
 	// Set values to existing ones to prevent accidental overwrite if empty.
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.Comment.Valid {
-		input.Comment = c.Comment.Value
+		input.Comment = fastly.String(c.Comment.Value)
 	}
 
 	if c.Method.Valid {
-		input.Method = c.Method.Value
+		input.Method = fastly.String(c.Method.Value)
 	}
 
 	if c.Host.Valid {
-		input.Host = c.Host.Value
+		input.Host = fastly.String(c.Host.Value)
 	}
 
 	if c.Path.Valid {
-		input.Path = c.Path.Value
+		input.Path = fastly.String(c.Path.Value)
 	}
 
 	if c.HTTPVersion.Valid {
-		input.HTTPVersion = c.HTTPVersion.Value
+		input.HTTPVersion = fastly.String(c.HTTPVersion.Value)
 	}
 
 	if c.Timeout.Valid {
-		input.Timeout = c.Timeout.Value
+		input.Timeout = fastly.Uint(c.Timeout.Value)
 	}
 
 	if c.CheckInterval.Valid {
-		input.CheckInterval = c.CheckInterval.Value
+		input.CheckInterval = fastly.Uint(c.CheckInterval.Value)
 	}
 
 	if c.ExpectedResponse.Valid {
-		input.ExpectedResponse = c.ExpectedResponse.Value
+		input.ExpectedResponse = fastly.Uint(c.ExpectedResponse.Value)
 	}
 
 	if c.Window.Valid {
-		input.Window = c.Window.Value
+		input.Window = fastly.Uint(c.Window.Value)
 	}
 
 	if c.Threshold.Valid {
-		input.Threshold = c.Threshold.Value
+		input.Threshold = fastly.Uint(c.Threshold.Value)
 	}
 
 	if c.Initial.Valid {
-		input.Initial = c.Initial.Value
+		input.Initial = fastly.Uint(c.Initial.Value)
 	}
 
 	h, err = c.Globals.Client.UpdateHealthCheck(input)
@@ -144,6 +144,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated healthcheck %s (service %s version %d)", h.Name, h.ServiceID, h.Version)
+	text.Success(out, "Updated healthcheck %s (service %s version %d)", h.Name, h.ServiceID, h.ServiceVersion)
 	return nil
 }

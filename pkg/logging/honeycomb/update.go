@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Honeycomb logging endpoints.
@@ -61,17 +61,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateHoneycombInput, error) {
 	}
 
 	honeycomb, err := c.Globals.Client.GetHoneycomb(&fastly.GetHoneycombInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateHoneycombInput{
-		Service:           honeycomb.ServiceID,
-		Version:           honeycomb.Version,
+		ServiceID:         honeycomb.ServiceID,
+		ServiceVersion:    honeycomb.ServiceVersion,
 		Name:              honeycomb.Name,
 		NewName:           fastly.String(honeycomb.Name),
 		Format:            fastly.String(honeycomb.Format),
@@ -125,6 +125,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Honeycomb logging endpoint %s (service %s version %d)", honeycomb.Name, honeycomb.ServiceID, honeycomb.Version)
+	text.Success(out, "Updated Honeycomb logging endpoint %s (service %s version %d)", honeycomb.Name, honeycomb.ServiceID, honeycomb.ServiceVersion)
 	return nil
 }

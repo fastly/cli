@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/common"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 var (

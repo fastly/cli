@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestSplunkCreate(t *testing.T) {
@@ -255,9 +255,9 @@ var errTest = errors.New("fixture error")
 
 func createSplunkOK(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -268,8 +268,8 @@ func createSplunkError(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 	return []*fastly.Splunk{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			URL:               "example.com",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -281,8 +281,8 @@ func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 			TLSHostname:       "example.com",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			URL:               "127.0.0.1",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -313,7 +313,7 @@ Service ID: 123
 Version: 1
 	Splunk 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		URL: example.com
 		Token: tkn
@@ -325,7 +325,7 @@ Version: 1
 		Placement: none
 	Splunk 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		URL: 127.0.0.1
 		Token: tkn1
@@ -339,8 +339,8 @@ Version: 1
 
 func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		URL:               "example.com",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -373,8 +373,8 @@ Placement: none
 
 func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		URL:               "example.com",
 		Token:             "tkn",

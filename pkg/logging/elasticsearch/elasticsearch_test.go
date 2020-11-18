@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateElasticsearchInput(t *testing.T) {
@@ -23,35 +23,35 @@ func TestCreateElasticsearchInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateElasticsearchInput{
-				Service: "123",
-				Version: 2,
-				Name:    fastly.String("log"),
-				Index:   fastly.String("logs"),
-				URL:     fastly.String("example.com"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				Index:          "logs",
+				URL:            "example.com",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateElasticsearchInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("logs"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				Index:             fastly.String("logs"),
-				URL:               fastly.String("example.com"),
-				Pipeline:          fastly.String("my_pipeline_id"),
-				User:              fastly.String("user"),
-				Password:          fastly.String("password"),
-				RequestMaxEntries: fastly.Uint(2),
-				RequestMaxBytes:   fastly.Uint(2),
-				Placement:         fastly.String("none"),
-				TLSCACert:         fastly.String("-----BEGIN CERTIFICATE-----foo"),
-				TLSHostname:       fastly.String("example.com"),
-				TLSClientCert:     fastly.String("-----BEGIN CERTIFICATE-----bar"),
-				TLSClientKey:      fastly.String("-----BEGIN PRIVATE KEY-----bar"),
-				FormatVersion:     fastly.Uint(2),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "logs",
+				ResponseCondition: "Prevent default logging",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				Index:             "logs",
+				URL:               "example.com",
+				Pipeline:          "my_pipeline_id",
+				User:              "user",
+				Password:          "password",
+				RequestMaxEntries: 2,
+				RequestMaxBytes:   2,
+				Placement:         "none",
+				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+				TLSHostname:       "example.com",
+				TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+				TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
+				FormatVersion:     2,
 			},
 		},
 		{
@@ -82,8 +82,8 @@ func TestUpdateElasticsearchInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetElasticsearchFn: getElasticsearchOK},
 			want: &fastly.UpdateElasticsearchInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Index:             fastly.String("new2"),
@@ -108,8 +108,8 @@ func TestUpdateElasticsearchInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetElasticsearchFn: getElasticsearchOK},
 			want: &fastly.UpdateElasticsearchInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				NewName:           fastly.String("log"),
 				Index:             fastly.String("logs"),
@@ -227,8 +227,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,

@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update SFTP logging endpoints.
@@ -81,17 +81,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSFTPInput, error) {
 	}
 
 	sftp, err := c.Globals.Client.GetSFTP(&fastly.GetSFTPInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateSFTPInput{
-		Service:           sftp.ServiceID,
-		Version:           sftp.Version,
+		ServiceID:         sftp.ServiceID,
+		ServiceVersion:    sftp.ServiceVersion,
 		Name:              sftp.Name,
 		NewName:           fastly.String(sftp.Name),
 		Address:           fastly.String(sftp.Address),
@@ -195,6 +195,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated SFTP logging endpoint %s (service %s version %d)", sftp.Name, sftp.ServiceID, sftp.Version)
+	text.Success(out, "Updated SFTP logging endpoint %s (service %s version %d)", sftp.Name, sftp.ServiceID, sftp.ServiceVersion)
 	return nil
 }

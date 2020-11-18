@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list Amazon S3 logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List S3 endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	s3s, err := c.Globals.Client.ListS3s(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, s3 := range s3s {
-			tw.AddLine(s3.ServiceID, s3.Version, s3.Name)
+			tw.AddLine(s3.ServiceID, s3.ServiceVersion, s3.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, s3 := range s3s {
 		fmt.Fprintf(out, "\tS3 %d/%d\n", i+1, len(s3s))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", s3.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", s3.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", s3.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", s3.Name)
 		fmt.Fprintf(out, "\t\tBucket: %s\n", s3.BucketName)
 		fmt.Fprintf(out, "\t\tAccess key: %s\n", s3.AccessKey)

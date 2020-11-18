@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ActivateCommand calls the Fastly API to activate a service version.
@@ -25,7 +25,7 @@ func NewActivateCommand(parent common.Registerer, globals *config.Data) *Activat
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("activate", "Activate a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to activate").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of version you wish to activate").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -35,13 +35,13 @@ func (c *ActivateCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	v, err := c.Globals.Client.ActivateVersion(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Activated service %s version %d", v.ServiceID, c.Input.Version)
+	text.Success(out, "Activated service %s version %d", v.ServiceID, c.Input.ServiceVersion)
 	return nil
 }

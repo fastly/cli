@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update a service version.
@@ -25,8 +25,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to update").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("comment", "Human-readable comment").Required().StringVar(&c.Input.Comment)
+	c.CmdClause.Flag("version", "Number of version you wish to update").Required().IntVar(&c.Input.ServiceVersion)
+	c.CmdClause.Flag("comment", "Human-readable comment").Required().StringVar(c.Input.Comment)
 	return &c
 }
 
@@ -36,13 +36,13 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	v, err := c.Globals.Client.UpdateVersion(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Updated service %s version %d", v.ServiceID, c.Input.Version)
+	text.Success(out, "Updated service %s version %d", v.ServiceID, c.Input.ServiceVersion)
 	return nil
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestScalyrCreate(t *testing.T) {
@@ -264,34 +264,34 @@ var errTest = errors.New("fixture error")
 
 func createScalyrOK(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	s := fastly.Scalyr{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 	}
 
 	// Avoids null pointer dereference for test cases with missing required params.
 	// If omitted, tests are guaranteed to panic.
-	if i.Name != nil {
-		s.Name = *i.Name
+	if i.Name != "" {
+		s.Name = i.Name
 	}
 
-	if i.Token != nil {
-		s.Token = *i.Token
+	if i.Token != "" {
+		s.Token = i.Token
 	}
 
-	if i.Format != nil {
-		s.Format = *i.Format
+	if i.Format != "" {
+		s.Format = i.Format
 	}
 
-	if i.FormatVersion != nil {
-		s.FormatVersion = *i.FormatVersion
+	if i.FormatVersion != 0 {
+		s.FormatVersion = i.FormatVersion
 	}
 
-	if i.ResponseCondition != nil {
-		s.ResponseCondition = *i.ResponseCondition
+	if i.ResponseCondition != "" {
+		s.ResponseCondition = i.ResponseCondition
 	}
 
-	if i.Placement != nil {
-		s.Placement = *i.Placement
+	if i.Placement != "" {
+		s.Placement = i.Placement
 	}
 
 	return &s, nil
@@ -304,8 +304,8 @@ func createScalyrError(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	return []*fastly.Scalyr{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Token:             "abc",
 			Region:            "US",
@@ -315,8 +315,8 @@ func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Token:             "abc",
 			Region:            "US",
@@ -345,7 +345,7 @@ Service ID: 123
 Version: 1
 	Scalyr 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		Token: abc
 		Region: US
@@ -355,7 +355,7 @@ Version: 1
 		Placement: none
 	Scalyr 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		Token: abc
 		Region: US
@@ -367,8 +367,8 @@ Version: 1
 
 func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Token:             "abc",
 		Region:            "US",
@@ -397,8 +397,8 @@ Placement: none
 
 func updateScalyrOK(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Token:             "abc",
 		Region:            "EU",

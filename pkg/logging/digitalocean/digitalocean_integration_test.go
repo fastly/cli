@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestDigitalOceanCreate(t *testing.T) {
@@ -263,12 +263,12 @@ var errTest = errors.New("fixture error")
 
 func createDigitalOceanOK(i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	s := fastly.DigitalOcean{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != nil {
-		s.Name = *i.Name
+	if i.Name != "" {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -281,8 +281,8 @@ func createDigitalOceanError(i *fastly.CreateDigitalOceanInput) (*fastly.Digital
 func listDigitalOceansOK(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
 	return []*fastly.DigitalOcean{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			BucketName:        "my-logs",
 			Domain:            "https://digitalocean.us-east-1.amazonaws.com",
@@ -300,8 +300,8 @@ func listDigitalOceansOK(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOce
 			PublicKey:         pgpPublicKey(),
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			BucketName:        "analytics",
 			AccessKey:         "1234",
@@ -338,7 +338,7 @@ Service ID: 123
 Version: 1
 	DigitalOcean 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		Bucket: my-logs
 		Domain: https://digitalocean.us-east-1.amazonaws.com
@@ -356,7 +356,7 @@ Version: 1
 		Public key: `+pgpPublicKey()+`
 	DigitalOcean 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		Bucket: analytics
 		Domain: https://digitalocean.us-east-2.amazonaws.com
@@ -376,8 +376,8 @@ Version: 1
 
 func getDigitalOceanOK(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return &fastly.DigitalOcean{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		BucketName:        "my-logs",
 		Domain:            "https://digitalocean.us-east-1.amazonaws.com",
@@ -422,8 +422,8 @@ Public key: `+pgpPublicKey()+`
 
 func updateDigitalOceanOK(i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return &fastly.DigitalOcean{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		BucketName:        "my-logs",
 		Domain:            "https://digitalocean.us-east-1.amazonaws.com",

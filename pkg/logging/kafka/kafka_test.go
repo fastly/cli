@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateKafkaInput(t *testing.T) {
@@ -23,33 +23,33 @@ func TestCreateKafkaInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateKafkaInput{
-				Service: "123",
-				Version: 2,
-				Name:    fastly.String("log"),
-				Topic:   fastly.String("logs"),
-				Brokers: fastly.String("127.0.0.1,127.0.0.2"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				Topic:          "logs",
+				Brokers:        "127.0.0.1,127.0.0.2",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateKafkaInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("logs"),
-				Brokers:           fastly.String("127.0.0.1,127.0.0.2"),
-				Topic:             fastly.String("logs"),
-				RequiredACKs:      fastly.String("-1"),
-				UseTLS:            fastly.CBool(true),
-				CompressionCodec:  fastly.String("zippy"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
-				TLSCACert:         fastly.String("-----BEGIN CERTIFICATE-----foo"),
-				TLSHostname:       fastly.String("example.com"),
-				TLSClientCert:     fastly.String("-----BEGIN CERTIFICATE-----bar"),
-				TLSClientKey:      fastly.String("-----BEGIN PRIVATE KEY-----bar"),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "logs",
+				Brokers:           "127.0.0.1,127.0.0.2",
+				Topic:             "logs",
+				RequiredACKs:      "-1",
+				UseTLS:            true,
+				CompressionCodec:  "zippy",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
+				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+				TLSHostname:       "example.com",
+				TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+				TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
 			},
 		},
 		{
@@ -139,8 +139,8 @@ func TestUpdateKafkaInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetKafkaFn: getKafkaOK},
 			want: &fastly.UpdateKafkaInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Topic:             fastly.String("new2"),
@@ -168,8 +168,8 @@ func TestUpdateKafkaInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetKafkaFn: getKafkaOK},
 			want: &fastly.UpdateKafkaInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				NewName:           fastly.String("log"),
 				Brokers:           fastly.String("127.0.0.1,127.0.0.2"),
@@ -446,8 +446,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Brokers:           "127.0.0.1,127.0.0.2",
 		Topic:             "logs",

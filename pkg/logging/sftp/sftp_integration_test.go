@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestSFTPCreate(t *testing.T) {
@@ -263,12 +263,12 @@ var errTest = errors.New("fixture error")
 
 func createSFTPOK(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	s := fastly.SFTP{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != nil {
-		s.Name = *i.Name
+	if i.Name != "" {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -281,8 +281,8 @@ func createSFTPError(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 	return []*fastly.SFTP{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Address:           "127.0.0.1",
 			Port:              514,
@@ -302,8 +302,8 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Address:           "example.com",
 			Port:              123,
@@ -342,7 +342,7 @@ Service ID: 123
 Version: 1
 	SFTP 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		Address: 127.0.0.1
 		Port: 514
@@ -362,7 +362,7 @@ Version: 1
 		Placement: none
 	SFTP 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		Address: example.com
 		Port: 123
@@ -384,8 +384,8 @@ Version: 1
 
 func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	return &fastly.SFTP{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Address:           "example.com",
 		Port:              514,
@@ -434,8 +434,8 @@ Placement: none
 
 func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 	return &fastly.SFTP{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Address:           "example.com",
 		Port:              514,

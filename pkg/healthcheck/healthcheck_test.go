@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestHealthCheckCreate(t *testing.T) {
@@ -259,12 +259,12 @@ var errTest = errors.New("fixture error")
 
 func createHealthCheckOK(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-		Comment:   i.Comment,
-		Host:      "www.test.com",
-		Path:      "/health",
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
+		Comment:        i.Comment,
+		Host:           "www.test.com",
+		Path:           "/health",
 	}, nil
 }
 
@@ -274,23 +274,23 @@ func createHealthCheckError(i *fastly.CreateHealthCheckInput) (*fastly.HealthChe
 
 func listHealthChecksOK(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
 	return []*fastly.HealthCheck{
-		&fastly.HealthCheck{
-			ServiceID: i.Service,
-			Version:   i.Version,
-			Name:      "test",
-			Comment:   "test",
-			Method:    "HEAD",
-			Host:      "www.test.com",
-			Path:      "/health",
+		{
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           "test",
+			Comment:        "test",
+			Method:         "HEAD",
+			Host:           "www.test.com",
+			Path:           "/health",
 		},
-		&fastly.HealthCheck{
-			ServiceID: i.Service,
-			Version:   i.Version,
-			Name:      "example",
-			Comment:   "example",
-			Method:    "HEAD",
-			Host:      "www.example.com",
-			Path:      "/health",
+		{
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           "example",
+			Comment:        "example",
+			Method:         "HEAD",
+			Host:           "www.example.com",
+			Path:           "/health",
 		},
 	}, nil
 }
@@ -340,13 +340,13 @@ var listHealthChecksVerboseOutput = strings.Join([]string{
 
 func getHealthCheckOK(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      "test",
-		Method:    "HEAD",
-		Host:      "www.test.com",
-		Path:      "/healthcheck",
-		Comment:   "test",
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           "test",
+		Method:         "HEAD",
+		Host:           "www.test.com",
+		Path:           "/healthcheck",
+		Comment:        "test",
 	}, nil
 }
 
@@ -373,10 +373,10 @@ var describeHealthCheckOutput = strings.Join([]string{
 
 func updateHealthCheckOK(i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.NewName,
-		Comment:   i.Comment,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           *i.NewName,
+		Comment:        *i.Comment,
 	}, nil
 }
 

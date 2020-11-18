@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create Cloudfiles logging endpoints.
@@ -78,55 +78,55 @@ func (c *CreateCommand) createInput() (*fastly.CreateCloudfilesInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	input.Service = serviceID
-	input.Version = c.Version
-	input.Name = fastly.String(c.EndpointName)
-	input.User = fastly.String(c.User)
-	input.AccessKey = fastly.String(c.AccessKey)
-	input.BucketName = fastly.String(c.BucketName)
+	input.ServiceID = serviceID
+	input.ServiceVersion = c.Version
+	input.Name = c.EndpointName
+	input.User = c.User
+	input.AccessKey = c.AccessKey
+	input.BucketName = c.BucketName
 
 	if c.Path.Valid {
-		input.Path = fastly.String(c.Path.Value)
+		input.Path = c.Path.Value
 	}
 
 	if c.Region.Valid {
-		input.Region = fastly.String(c.Region.Value)
+		input.Region = c.Region.Value
 	}
 
 	if c.Placement.Valid {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = c.Placement.Value
 	}
 
 	if c.Period.Valid {
-		input.Period = fastly.Uint(c.Period.Value)
+		input.Period = c.Period.Value
 	}
 
 	if c.GzipLevel.Valid {
-		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
+		input.GzipLevel = c.GzipLevel.Value
 	}
 
 	if c.Format.Valid {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = c.Format.Value
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+		input.FormatVersion = c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
 	if c.MessageType.Valid {
-		input.MessageType = fastly.String(c.MessageType.Value)
+		input.MessageType = c.MessageType.Value
 	}
 
 	if c.TimestampFormat.Valid {
-		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
+		input.TimestampFormat = c.TimestampFormat.Value
 	}
 
 	if c.PublicKey.Valid {
-		input.PublicKey = fastly.String(c.PublicKey.Value)
+		input.PublicKey = c.PublicKey.Value
 	}
 
 	return &input, nil
@@ -144,6 +144,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Cloudfiles logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Created Cloudfiles logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 	return nil
 }

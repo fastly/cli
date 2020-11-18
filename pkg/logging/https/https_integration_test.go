@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestHTTPSCreate(t *testing.T) {
@@ -255,8 +255,8 @@ var errTest = errors.New("fixture error")
 
 func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -285,8 +285,8 @@ func createHTTPSError(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	return []*fastly.HTTPS{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			ResponseCondition: "Prevent default logging",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -307,8 +307,8 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 			FormatVersion:     2,
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			ResponseCondition: "Prevent default logging",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -348,7 +348,7 @@ Service ID: 123
 Version: 1
 	HTTPS 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		URL: example.com
 		Content type: application/json
@@ -369,7 +369,7 @@ Version: 1
 		Placement: none
 	HTTPS 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		URL: analytics.example.com
 		Content type: application/json
@@ -392,8 +392,8 @@ Version: 1
 
 func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -444,8 +444,8 @@ Placement: none
 
 func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,

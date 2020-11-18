@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create Kafka logging endpoints.
@@ -94,54 +94,54 @@ func (c *CreateCommand) createInput() (*fastly.CreateKafkaInput, error) {
 		return nil, fmt.Errorf("the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified")
 	}
 
-	input.Service = serviceID
-	input.Version = c.Version
-	input.Name = fastly.String(c.EndpointName)
-	input.Topic = fastly.String(c.Topic)
-	input.Brokers = fastly.String(c.Brokers)
+	input.ServiceID = serviceID
+	input.ServiceVersion = c.Version
+	input.Name = c.EndpointName
+	input.Topic = c.Topic
+	input.Brokers = c.Brokers
 
 	if c.CompressionCodec.Valid {
-		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
+		input.CompressionCodec = c.CompressionCodec.Value
 	}
 
 	if c.RequiredACKs.Valid {
-		input.RequiredACKs = fastly.String(c.RequiredACKs.Value)
+		input.RequiredACKs = c.RequiredACKs.Value
 	}
 
 	if c.UseTLS.Valid {
-		input.UseTLS = fastly.CBool(c.UseTLS.Value)
+		input.UseTLS = fastly.Compatibool(c.UseTLS.Value)
 	}
 
 	if c.TLSCACert.Valid {
-		input.TLSCACert = fastly.String(c.TLSCACert.Value)
+		input.TLSCACert = c.TLSCACert.Value
 	}
 
 	if c.TLSClientCert.Valid {
-		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
+		input.TLSClientCert = c.TLSClientCert.Value
 	}
 
 	if c.TLSClientKey.Valid {
-		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
+		input.TLSClientKey = c.TLSClientKey.Value
 	}
 
 	if c.TLSHostname.Valid {
-		input.TLSHostname = fastly.String(c.TLSHostname.Value)
+		input.TLSHostname = c.TLSHostname.Value
 	}
 
 	if c.Format.Valid {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = c.Format.Value
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+		input.FormatVersion = c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
 	if c.Placement.Valid {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = c.Placement.Value
 	}
 
 	if c.ParseLogKeyvals.Valid {
@@ -179,6 +179,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Kafka logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Created Kafka logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 	return nil
 }

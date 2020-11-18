@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestBackendCreate(t *testing.T) {
@@ -259,10 +259,10 @@ var errTest = errors.New("fixture error")
 
 func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-		Comment:   i.Comment,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
+		Comment:        i.Comment,
 	}, nil
 }
 
@@ -272,21 +272,21 @@ func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 
 func listBackendsOK(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return []*fastly.Backend{
-		&fastly.Backend{
-			ServiceID: i.Service,
-			Version:   i.Version,
-			Name:      "test.com",
-			Address:   "www.test.com",
-			Port:      80,
-			Comment:   "test",
+		{
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           "test.com",
+			Address:        "www.test.com",
+			Port:           80,
+			Comment:        "test",
 		},
-		&fastly.Backend{
-			ServiceID: i.Service,
-			Version:   i.Version,
-			Name:      "example.com",
-			Address:   "www.example.com",
-			Port:      443,
-			Comment:   "example",
+		{
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           "example.com",
+			Address:        "www.example.com",
+			Port:           443,
+			Comment:        "example",
 		},
 	}, nil
 }
@@ -358,12 +358,12 @@ var listBackendsVerboseOutput = strings.Join([]string{
 
 func getBackendOK(i *fastly.GetBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      "test.com",
-		Address:   "www.test.com",
-		Port:      80,
-		Comment:   "test",
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           "test.com",
+		Address:        "www.test.com",
+		Port:           80,
+		Comment:        "test",
 	}, nil
 }
 
@@ -401,10 +401,10 @@ var describeBackendOutput = strings.Join([]string{
 
 func updateBackendOK(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.NewName,
-		Comment:   i.Comment,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           *i.NewName,
+		Comment:        *i.Comment,
 	}, nil
 }
 

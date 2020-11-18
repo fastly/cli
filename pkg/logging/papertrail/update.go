@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Papertrail logging endpoints.
@@ -61,58 +61,58 @@ func (c *UpdateCommand) createInput() (*fastly.UpdatePapertrailInput, error) {
 	}
 
 	papertrail, err := c.Globals.Client.GetPapertrail(&fastly.GetPapertrailInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdatePapertrailInput{
-		Service:           papertrail.ServiceID,
-		Version:           papertrail.Version,
+		ServiceID:         papertrail.ServiceID,
+		ServiceVersion:    papertrail.ServiceVersion,
 		Name:              papertrail.Name,
-		NewName:           papertrail.Name,
-		Address:           papertrail.Address,
-		Port:              papertrail.Port,
-		FormatVersion:     papertrail.FormatVersion,
-		Format:            papertrail.Format,
-		ResponseCondition: papertrail.ResponseCondition,
-		Placement:         papertrail.Placement,
+		NewName:           fastly.String(papertrail.Name),
+		Address:           fastly.String(papertrail.Address),
+		Port:              fastly.Uint(papertrail.Port),
+		FormatVersion:     fastly.Uint(papertrail.FormatVersion),
+		Format:            fastly.String(papertrail.Format),
+		ResponseCondition: fastly.String(papertrail.ResponseCondition),
+		Placement:         fastly.String(papertrail.Placement),
 	}
 
 	// Set new values if set by user.
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.Address.Valid {
-		input.Address = c.Address.Value
+		input.Address = fastly.String(c.Address.Value)
 	}
 
 	if c.Port.Valid {
-		input.Port = c.Port.Value
+		input.Port = fastly.Uint(c.Port.Value)
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
 	if c.Format.Valid {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil
@@ -130,6 +130,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Papertrail logging endpoint %s (service %s version %d)", papertrail.Name, papertrail.ServiceID, papertrail.Version)
+	text.Success(out, "Updated Papertrail logging endpoint %s (service %s version %d)", papertrail.Name, papertrail.ServiceID, papertrail.ServiceVersion)
 	return nil
 }

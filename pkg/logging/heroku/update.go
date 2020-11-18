@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Heroku logging endpoints.
@@ -61,17 +61,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateHerokuInput, error) {
 	}
 
 	heroku, err := c.Globals.Client.GetHeroku(&fastly.GetHerokuInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateHerokuInput{
-		Service:           heroku.ServiceID,
-		Version:           heroku.Version,
+		ServiceID:         heroku.ServiceID,
+		ServiceVersion:    heroku.ServiceVersion,
 		Name:              heroku.Name,
 		NewName:           fastly.String(heroku.Name),
 		Format:            fastly.String(heroku.Format),
@@ -125,6 +125,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Heroku logging endpoint %s (service %s version %d)", heroku.Name, heroku.ServiceID, heroku.Version)
+	text.Success(out, "Updated Heroku logging endpoint %s (service %s version %d)", heroku.Name, heroku.ServiceID, heroku.ServiceVersion)
 	return nil
 }

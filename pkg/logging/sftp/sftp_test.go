@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateSFTPInput(t *testing.T) {
@@ -24,37 +24,37 @@ func TestCreateSFTPInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateSFTPInput{
-				Service:       "123",
-				Version:       2,
-				Name:          fastly.String("log"),
-				Address:       fastly.String("127.0.0.1"),
-				User:          fastly.String("user"),
-				SSHKnownHosts: fastly.String(knownHosts()),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				Address:        "127.0.0.1",
+				User:           "user",
+				SSHKnownHosts:  knownHosts(),
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateSFTPInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("log"),
-				Address:           fastly.String("127.0.0.1"),
-				Port:              fastly.Uint(80),
-				User:              fastly.String("user"),
-				Password:          fastly.String("password"),
-				PublicKey:         fastly.String(pgpPublicKey()),
-				SecretKey:         fastly.String(sshPrivateKey()),
-				SSHKnownHosts:     fastly.String(knownHosts()),
-				Path:              fastly.String("/log"),
-				Period:            fastly.Uint(3600),
-				FormatVersion:     fastly.Uint(2),
-				GzipLevel:         fastly.Uint(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				MessageType:       fastly.String("classic"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.String("none"),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "log",
+				Address:           "127.0.0.1",
+				Port:              80,
+				User:              "user",
+				Password:          "password",
+				PublicKey:         pgpPublicKey(),
+				SecretKey:         sshPrivateKey(),
+				SSHKnownHosts:     knownHosts(),
+				Path:              "/log",
+				Period:            3600,
+				FormatVersion:     2,
+				GzipLevel:         2,
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				ResponseCondition: "Prevent default logging",
+				MessageType:       "classic",
+				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
+				Placement:         "none",
 			},
 		},
 		{
@@ -85,8 +85,8 @@ func TestUpdateSFTPInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetSFTPFn: getSFTPOK},
 			want: &fastly.UpdateSFTPInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				Address:           fastly.String("new2"),
@@ -112,8 +112,8 @@ func TestUpdateSFTPInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetSFTPFn: getSFTPOK},
 			want: &fastly.UpdateSFTPInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
 				Address:           fastly.String("127.0.0.1"),
@@ -235,8 +235,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	return &fastly.SFTP{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Address:           "127.0.0.1",
 		Port:              80,

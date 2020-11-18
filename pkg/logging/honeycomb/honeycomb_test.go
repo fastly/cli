@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateHoneycombInput(t *testing.T) {
@@ -23,26 +23,26 @@ func TestCreateHoneycombInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateHoneycombInput{
-				Service: "123",
-				Version: 2,
-				Name:    fastly.String("log"),
-				Token:   fastly.String("tkn"),
-				Dataset: fastly.String("logs"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				Token:          "tkn",
+				Dataset:        "logs",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateHoneycombInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("log"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				Token:             fastly.String("tkn"),
-				Dataset:           fastly.String("logs"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "log",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				Token:             "tkn",
+				Dataset:           "logs",
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
 			},
 		},
 		{
@@ -73,8 +73,8 @@ func TestUpdateHoneycombInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetHoneycombFn: getHoneycombOK},
 			want: &fastly.UpdateHoneycombInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
 				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
@@ -90,8 +90,8 @@ func TestUpdateHoneycombInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetHoneycombFn: getHoneycombOK},
 			want: &fastly.UpdateHoneycombInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				Format:            fastly.String("new2"),
@@ -182,8 +182,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getHoneycombOK(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 	return &fastly.Honeycomb{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Token:             "tkn",
 		Dataset:           "logs",

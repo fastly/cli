@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateOpenstackInput(t *testing.T) {
@@ -24,36 +24,36 @@ func TestCreateOpenstackInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateOpenstackInput{
-				Service:    "123",
-				Version:    2,
-				Name:       fastly.String("log"),
-				BucketName: fastly.String("bucket"),
-				AccessKey:  fastly.String("access"),
-				User:       fastly.String("user"),
-				URL:        fastly.String("https://example.com"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				BucketName:     "bucket",
+				AccessKey:      "access",
+				User:           "user",
+				URL:            "https://example.com",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateOpenstackInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("log"),
-				BucketName:        fastly.String("bucket"),
-				AccessKey:         fastly.String("access"),
-				User:              fastly.String("user"),
-				URL:               fastly.String("https://example.com"),
-				Path:              fastly.String("/log"),
-				Period:            fastly.Uint(3600),
-				GzipLevel:         fastly.Uint(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				MessageType:       fastly.String("classic"),
-				FormatVersion:     fastly.Uint(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.String("none"),
-				PublicKey:         fastly.String(pgpPublicKey()),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "log",
+				BucketName:        "bucket",
+				AccessKey:         "access",
+				User:              "user",
+				URL:               "https://example.com",
+				Path:              "/log",
+				Period:            3600,
+				GzipLevel:         2,
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				MessageType:       "classic",
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
+				Placement:         "none",
+				PublicKey:         pgpPublicKey(),
 			},
 		},
 		{
@@ -84,8 +84,8 @@ func TestUpdateOpenstackInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetOpenstackFn: getOpenstackOK},
 			want: &fastly.UpdateOpenstackInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				BucketName:        fastly.String("new2"),
@@ -109,8 +109,8 @@ func TestUpdateOpenstackInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetOpenstackFn: getOpenstackOK},
 			want: &fastly.UpdateOpenstackInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
 				BucketName:        fastly.String("bucket"),
@@ -227,8 +227,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	return &fastly.Openstack{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		BucketName:        "bucket",
 		AccessKey:         "access",

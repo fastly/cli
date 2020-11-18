@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list GCS logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List GCS endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	gcss, err := c.Globals.Client.ListGCSs(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, gcs := range gcss {
-			tw.AddLine(gcs.ServiceID, gcs.Version, gcs.Name)
+			tw.AddLine(gcs.ServiceID, gcs.ServiceVersion, gcs.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, gcs := range gcss {
 		fmt.Fprintf(out, "\tGCS %d/%d\n", i+1, len(gcss))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", gcs.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", gcs.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", gcs.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", gcs.Name)
 		fmt.Fprintf(out, "\t\tBucket: %s\n", gcs.Bucket)
 		fmt.Fprintf(out, "\t\tUser: %s\n", gcs.User)

@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some

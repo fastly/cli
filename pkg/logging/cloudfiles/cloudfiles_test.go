@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateCloudfilesInput(t *testing.T) {
@@ -24,35 +24,35 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateCloudfilesInput{
-				Service:    "123",
-				Version:    2,
-				Name:       fastly.String("log"),
-				User:       fastly.String("user"),
-				AccessKey:  fastly.String("key"),
-				BucketName: fastly.String("bucket"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				User:           "user",
+				AccessKey:      "key",
+				BucketName:     "bucket",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateCloudfilesInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("log"),
-				User:              fastly.String("user"),
-				AccessKey:         fastly.String("key"),
-				BucketName:        fastly.String("bucket"),
-				Path:              fastly.String("/logs"),
-				Region:            fastly.String("abc"),
-				Placement:         fastly.String("none"),
-				Period:            fastly.Uint(3600),
-				GzipLevel:         fastly.Uint(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				MessageType:       fastly.String("classic"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				PublicKey:         fastly.String(pgpPublicKey()),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "log",
+				User:              "user",
+				AccessKey:         "key",
+				BucketName:        "bucket",
+				Path:              "/logs",
+				Region:            "abc",
+				Placement:         "none",
+				Period:            3600,
+				GzipLevel:         2,
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				MessageType:       "classic",
+				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
+				PublicKey:         pgpPublicKey(),
 			},
 		},
 		{
@@ -83,8 +83,8 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			cmd:  updateCommandNoUpdate(),
 			api:  mock.API{GetCloudfilesFn: getCloudfilesOK},
 			want: &fastly.UpdateCloudfilesInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
 				User:              fastly.String("user"),
@@ -108,8 +108,8 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetCloudfilesFn: getCloudfilesOK},
 			want: &fastly.UpdateCloudfilesInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				AccessKey:         fastly.String("new2"),
@@ -225,8 +225,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return &fastly.Cloudfiles{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		User:              "user",
 		AccessKey:         "key",

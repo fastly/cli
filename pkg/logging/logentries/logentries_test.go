@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateLogentriesInput(t *testing.T) {
@@ -23,20 +23,20 @@ func TestCreateLogentriesInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateLogentriesInput{
-				Service: "123",
-				Version: 2,
-				Name:    "log",
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandOK(),
 			want: &fastly.CreateLogentriesInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				Port:              22,
-				UseTLS:            fastly.CBool(true),
+				UseTLS:            fastly.Compatibool(true),
 				Token:             "tkn",
 				Format:            `%h %l %u %t "%r" %>s %b`,
 				FormatVersion:     2,
@@ -72,17 +72,17 @@ func TestUpdateLogentriesInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetLogentriesFn: getLogentriesOK},
 			want: &fastly.UpdateLogentriesInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
-				NewName:           "logs",
-				Port:              22,
+				NewName:           fastly.String("logs"),
+				Port:              fastly.Uint(22),
 				UseTLS:            fastly.CBool(true),
-				Token:             "tkn",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
+				Token:             fastly.String("tkn"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Uint(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
 			},
 		},
 		{
@@ -90,17 +90,17 @@ func TestUpdateLogentriesInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetLogentriesFn: getLogentriesOK},
 			want: &fastly.UpdateLogentriesInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
-				NewName:           "new1",
-				Port:              23,
+				NewName:           fastly.String("new1"),
+				Port:              fastly.Uint(23),
 				UseTLS:            fastly.CBool(true),
-				Token:             "new2",
-				Format:            "new3",
-				FormatVersion:     3,
-				ResponseCondition: "new4",
-				Placement:         "new5",
+				Token:             fastly.String("new2"),
+				Format:            fastly.String("new3"),
+				FormatVersion:     fastly.Uint(3),
+				ResponseCondition: fastly.String("new4"),
+				Placement:         fastly.String("new5"),
 			},
 		},
 		{
@@ -183,8 +183,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getLogentriesOK(i *fastly.GetLogentriesInput) (*fastly.Logentries, error) {
 	return &fastly.Logentries{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Port:              22,
 		UseTLS:            true,

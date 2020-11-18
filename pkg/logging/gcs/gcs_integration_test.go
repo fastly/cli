@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestGCSCreate(t *testing.T) {
@@ -263,9 +263,9 @@ var errTest = errors.New("fixture error")
 
 func createGCSOK(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -276,8 +276,8 @@ func createGCSError(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
 func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 	return []*fastly.GCS{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Bucket:            "my-logs",
 			User:              "foo@example.com",
@@ -293,8 +293,8 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Bucket:            "analytics",
 			User:              "foo@example.com",
@@ -329,7 +329,7 @@ Service ID: 123
 Version: 1
 	GCS 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		Bucket: my-logs
 		User: foo@example.com
@@ -345,7 +345,7 @@ Version: 1
 		Placement: none
 	GCS 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		Bucket: analytics
 		User: foo@example.com
@@ -363,8 +363,8 @@ Version: 1
 
 func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Bucket:            "my-logs",
 		User:              "foo@example.com",
@@ -405,8 +405,8 @@ Placement: none
 
 func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Bucket:            "logs",
 		User:              "foo@example.com",

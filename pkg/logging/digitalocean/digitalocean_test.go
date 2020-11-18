@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateDigitalOceanInput(t *testing.T) {
@@ -24,35 +24,35 @@ func TestCreateDigitalOceanInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateDigitalOceanInput{
-				Service:    "123",
-				Version:    2,
-				Name:       fastly.String("log"),
-				BucketName: fastly.String("bucket"),
-				AccessKey:  fastly.String("access"),
-				SecretKey:  fastly.String("secret"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				BucketName:     "bucket",
+				AccessKey:      "access",
+				SecretKey:      "secret",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateDigitalOceanInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("log"),
-				BucketName:        fastly.String("bucket"),
-				Domain:            fastly.String("nyc3.digitaloceanspaces.com"),
-				AccessKey:         fastly.String("access"),
-				SecretKey:         fastly.String("secret"),
-				Path:              fastly.String("/log"),
-				Period:            fastly.Uint(3600),
-				GzipLevel:         fastly.Uint(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				MessageType:       fastly.String("classic"),
-				FormatVersion:     fastly.Uint(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.String("none"),
-				PublicKey:         fastly.String(pgpPublicKey()),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "log",
+				BucketName:        "bucket",
+				Domain:            "nyc3.digitaloceanspaces.com",
+				AccessKey:         "access",
+				SecretKey:         "secret",
+				Path:              "/log",
+				Period:            3600,
+				GzipLevel:         2,
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				MessageType:       "classic",
+				FormatVersion:     2,
+				ResponseCondition: "Prevent default logging",
+				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
+				Placement:         "none",
+				PublicKey:         pgpPublicKey(),
 			},
 		},
 		{
@@ -83,8 +83,8 @@ func TestUpdateDigitalOceanInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetDigitalOceanFn: getDigitalOceanOK},
 			want: &fastly.UpdateDigitalOceanInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				BucketName:        fastly.String("new2"),
@@ -108,8 +108,8 @@ func TestUpdateDigitalOceanInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetDigitalOceanFn: getDigitalOceanOK},
 			want: &fastly.UpdateDigitalOceanInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
 				BucketName:        fastly.String("bucket"),
@@ -225,8 +225,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getDigitalOceanOK(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return &fastly.DigitalOcean{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		BucketName:        "bucket",
 		Domain:            "nyc3.digitaloceanspaces.com",

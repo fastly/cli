@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Scalyr logging endpoints.
@@ -61,17 +61,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateScalyrInput, error) {
 	}
 
 	scalyr, err := c.Globals.Client.GetScalyr(&fastly.GetScalyrInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateScalyrInput{
-		Service:           scalyr.ServiceID,
-		Version:           scalyr.Version,
+		ServiceID:         scalyr.ServiceID,
+		ServiceVersion:    scalyr.ServiceVersion,
 		Name:              scalyr.Name,
 		NewName:           fastly.String(scalyr.Name),
 		Format:            fastly.String(scalyr.Format),
@@ -125,6 +125,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Scalyr logging endpoint %s (service %s version %d)", scalyr.Name, scalyr.ServiceID, scalyr.Version)
+	text.Success(out, "Updated Scalyr logging endpoint %s (service %s version %d)", scalyr.Name, scalyr.ServiceID, scalyr.ServiceVersion)
 	return nil
 }

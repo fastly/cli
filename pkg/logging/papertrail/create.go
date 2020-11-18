@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create Papertrail logging endpoints.
@@ -60,9 +60,9 @@ func (c *CreateCommand) createInput() (*fastly.CreatePapertrailInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	input.Service = serviceID
+	input.ServiceID = serviceID
 	input.Name = c.EndpointName
-	input.Version = c.Version
+	input.ServiceVersion = c.Version
 	input.Address = c.Address
 
 	if c.Port.Valid {
@@ -100,6 +100,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Papertrail logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Created Papertrail logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 	return nil
 }

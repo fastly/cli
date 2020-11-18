@@ -6,7 +6,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update backends.
@@ -47,8 +47,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update a backend on a Fastly service version")
 
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.Service)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.ServiceID)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	c.CmdClause.Flag("name", "backend name").Short('n').Required().StringVar(&c.Input.Name)
 
 	c.CmdClause.Flag("new-name", "New backend name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
@@ -88,69 +88,69 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	// Copy existing values from GET to UpdateBackendInput strcuture
 	input := &fastly.UpdateBackendInput{
-		Service:             b.ServiceID,
-		Version:             b.Version,
+		ServiceID:           b.ServiceID,
+		ServiceVersion:      b.ServiceVersion,
 		Name:                b.Name,
-		NewName:             b.Name,
-		Address:             b.Address,
-		Port:                b.Port,
-		OverrideHost:        b.OverrideHost,
-		ConnectTimeout:      b.ConnectTimeout,
-		MaxConn:             b.MaxConn,
-		FirstByteTimeout:    b.FirstByteTimeout,
-		BetweenBytesTimeout: b.BetweenBytesTimeout,
+		NewName:             fastly.String(b.Name),
+		Address:             fastly.String(b.Address),
+		Port:                fastly.Uint(b.Port),
+		OverrideHost:        fastly.String(b.OverrideHost),
+		ConnectTimeout:      fastly.Uint(b.ConnectTimeout),
+		MaxConn:             fastly.Uint(b.MaxConn),
+		FirstByteTimeout:    fastly.Uint(b.FirstByteTimeout),
+		BetweenBytesTimeout: fastly.Uint(b.BetweenBytesTimeout),
 		AutoLoadbalance:     fastly.CBool(b.AutoLoadbalance),
-		Weight:              b.Weight,
-		RequestCondition:    b.RequestCondition,
-		HealthCheck:         b.HealthCheck,
-		Shield:              b.Shield,
+		Weight:              fastly.Uint(b.Weight),
+		RequestCondition:    fastly.String(b.RequestCondition),
+		HealthCheck:         fastly.String(b.HealthCheck),
+		Shield:              fastly.String(b.Shield),
 		UseSSL:              fastly.CBool(b.UseSSL),
 		SSLCheckCert:        fastly.CBool(b.SSLCheckCert),
-		SSLCACert:           b.SSLCACert,
-		SSLClientCert:       b.SSLClientCert,
-		SSLClientKey:        b.SSLClientKey,
-		SSLCertHostname:     b.SSLCertHostname,
-		SSLSNIHostname:      b.SSLSNIHostname,
-		MinTLSVersion:       b.MinTLSVersion,
-		MaxTLSVersion:       b.MaxTLSVersion,
+		SSLCACert:           fastly.String(b.SSLCACert),
+		SSLClientCert:       fastly.String(b.SSLClientCert),
+		SSLClientKey:        fastly.String(b.SSLClientKey),
+		SSLCertHostname:     fastly.String(b.SSLCertHostname),
+		SSLSNIHostname:      fastly.String(b.SSLSNIHostname),
+		MinTLSVersion:       fastly.String(b.MinTLSVersion),
+		MaxTLSVersion:       fastly.String(b.MaxTLSVersion),
 		SSLCiphers:          b.SSLCiphers,
 	}
 
 	// Set values to existing ones to prevent accidental overwrite if empty.
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.Comment.Valid {
-		input.Comment = c.Comment.Value
+		input.Comment = fastly.String(c.Comment.Value)
 	}
 
 	if c.Address.Valid {
-		input.Address = c.Address.Value
+		input.Address = fastly.String(c.Address.Value)
 	}
 
 	if c.Port.Valid {
-		input.Port = c.Port.Value
+		input.Port = fastly.Uint(c.Port.Value)
 	}
 
 	if c.OverrideHost.Valid {
-		input.OverrideHost = c.OverrideHost.Value
+		input.OverrideHost = fastly.String(c.OverrideHost.Value)
 	}
 
 	if c.ConnectTimeout.Valid {
-		input.ConnectTimeout = c.ConnectTimeout.Value
+		input.ConnectTimeout = fastly.Uint(c.ConnectTimeout.Value)
 	}
 
 	if c.MaxConn.Valid {
-		input.MaxConn = c.MaxConn.Value
+		input.MaxConn = fastly.Uint(c.MaxConn.Value)
 	}
 
 	if c.FirstByteTimeout.Valid {
-		input.FirstByteTimeout = c.FirstByteTimeout.Value
+		input.FirstByteTimeout = fastly.Uint(c.FirstByteTimeout.Value)
 	}
 
 	if c.BetweenBytesTimeout.Valid {
-		input.BetweenBytesTimeout = c.BetweenBytesTimeout.Value
+		input.BetweenBytesTimeout = fastly.Uint(c.BetweenBytesTimeout.Value)
 	}
 
 	if c.AutoLoadbalance.Valid {
@@ -158,19 +158,19 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.Weight.Valid {
-		input.Weight = c.Weight.Value
+		input.Weight = fastly.Uint(c.Weight.Value)
 	}
 
 	if c.RequestCondition.Valid {
-		input.RequestCondition = c.RequestCondition.Value
+		input.RequestCondition = fastly.String(c.RequestCondition.Value)
 	}
 
 	if c.HealthCheck.Valid {
-		input.HealthCheck = c.HealthCheck.Value
+		input.HealthCheck = fastly.String(c.HealthCheck.Value)
 	}
 
 	if c.Shield.Valid {
-		input.Shield = c.Shield.Value
+		input.Shield = fastly.String(c.Shield.Value)
 	}
 
 	if c.UseSSL.Valid {
@@ -182,31 +182,31 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.SSLCACert.Valid {
-		input.SSLCACert = c.SSLCACert.Value
+		input.SSLCACert = fastly.String(c.SSLCACert.Value)
 	}
 
 	if c.SSLClientCert.Valid {
-		input.SSLClientCert = c.SSLClientCert.Value
+		input.SSLClientCert = fastly.String(c.SSLClientCert.Value)
 	}
 
 	if c.SSLClientKey.Valid {
-		input.SSLClientKey = c.SSLClientKey.Value
+		input.SSLClientKey = fastly.String(c.SSLClientKey.Value)
 	}
 
 	if c.SSLCertHostname.Valid {
-		input.SSLCertHostname = c.SSLCertHostname.Value
+		input.SSLCertHostname = fastly.String(c.SSLCertHostname.Value)
 	}
 
 	if c.SSLSNIHostname.Valid {
-		input.SSLSNIHostname = c.SSLSNIHostname.Value
+		input.SSLSNIHostname = fastly.String(c.SSLSNIHostname.Value)
 	}
 
 	if c.MinTLSVersion.Valid {
-		input.MinTLSVersion = c.MinTLSVersion.Value
+		input.MinTLSVersion = fastly.String(c.MinTLSVersion.Value)
 	}
 
 	if c.MaxTLSVersion.Valid {
-		input.MaxTLSVersion = c.MaxTLSVersion.Value
+		input.MaxTLSVersion = fastly.String(c.MaxTLSVersion.Value)
 	}
 
 	if c.SSLCiphers.Valid {
@@ -218,6 +218,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated backend %s (service %s version %d)", b.Name, b.ServiceID, b.Version)
+	text.Success(out, "Updated backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
 	return nil
 }

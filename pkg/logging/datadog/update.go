@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Datadog logging endpoints.
@@ -61,17 +61,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateDatadogInput, error) {
 	}
 
 	datadog, err := c.Globals.Client.GetDatadog(&fastly.GetDatadogInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateDatadogInput{
-		Service:           datadog.ServiceID,
-		Version:           datadog.Version,
+		ServiceID:         datadog.ServiceID,
+		ServiceVersion:    datadog.ServiceVersion,
 		Name:              datadog.Name,
 		NewName:           fastly.String(datadog.Name),
 		Token:             fastly.String(datadog.Token),
@@ -125,6 +125,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Datadog logging endpoint %s (service %s version %d)", datadog.Name, datadog.ServiceID, datadog.Version)
+	text.Success(out, "Updated Datadog logging endpoint %s (service %s version %d)", datadog.Name, datadog.ServiceID, datadog.ServiceVersion)
 	return nil
 }

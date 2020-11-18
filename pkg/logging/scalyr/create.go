@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create Scalyr logging endpoints.
@@ -61,29 +61,29 @@ func (c *CreateCommand) createInput() (*fastly.CreateScalyrInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	input.Service = serviceID
-	input.Version = c.Version
-	input.Name = fastly.String(c.EndpointName)
-	input.Token = fastly.String(c.Token)
+	input.ServiceID = serviceID
+	input.ServiceVersion = c.Version
+	input.Name = c.EndpointName
+	input.Token = c.Token
 
 	if c.Region.Valid {
-		input.Region = fastly.String(c.Region.Value)
+		input.Region = c.Region.Value
 	}
 
 	if c.Format.Valid {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = c.Format.Value
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+		input.FormatVersion = c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
 	if c.Placement.Valid {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = c.Placement.Value
 	}
 
 	return &input, nil
@@ -101,6 +101,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Scalyr logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Created Scalyr logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 	return nil
 }

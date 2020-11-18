@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create Syslog logging endpoints.
@@ -74,9 +74,9 @@ func (c *CreateCommand) createInput() (*fastly.CreateSyslogInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	input.Service = serviceID
+	input.ServiceID = serviceID
 	input.Name = c.EndpointName
-	input.Version = c.Version
+	input.ServiceVersion = c.Version
 	input.Address = c.Address
 
 	if c.Port.Valid {
@@ -84,7 +84,7 @@ func (c *CreateCommand) createInput() (*fastly.CreateSyslogInput, error) {
 	}
 
 	if c.UseTLS.Valid {
-		input.UseTLS = fastly.CBool(c.UseTLS.Value)
+		input.UseTLS = fastly.Compatibool(c.UseTLS.Value)
 	}
 
 	if c.TLSCACert.Valid {
@@ -142,6 +142,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Syslog logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Created Syslog logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 	return nil
 }

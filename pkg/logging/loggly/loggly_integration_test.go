@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestLogglyCreate(t *testing.T) {
@@ -255,8 +255,8 @@ var errTest = errors.New("fixture error")
 
 func createLogglyOK(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 	s := fastly.Loggly{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 	}
 
 	if i.Name != nil {
@@ -273,8 +273,8 @@ func createLogglyError(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 func listLogglysOK(i *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
 	return []*fastly.Loggly{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Token:             "abc",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -283,8 +283,8 @@ func listLogglysOK(i *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Token:             "abc",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -312,7 +312,7 @@ Service ID: 123
 Version: 1
 	Loggly 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		Token: abc
 		Format: %h %l %u %t "%r" %>s %b
@@ -321,7 +321,7 @@ Version: 1
 		Placement: none
 	Loggly 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		Token: abc
 		Format: %h %l %u %t "%r" %>s %b
@@ -332,8 +332,8 @@ Version: 1
 
 func getLogglyOK(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 	return &fastly.Loggly{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Token:             "abc",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -360,8 +360,8 @@ Placement: none
 
 func updateLogglyOK(i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
 	return &fastly.Loggly{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Token:             "abc",
 		Format:            `%h %l %u %t "%r" %>s %b`,

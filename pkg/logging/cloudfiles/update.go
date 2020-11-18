@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Cloudfiles logging endpoints.
@@ -77,17 +77,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateCloudfilesInput, error) {
 	}
 
 	cloudfiles, err := c.Globals.Client.GetCloudfiles(&fastly.GetCloudfilesInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateCloudfilesInput{
-		Service:           cloudfiles.ServiceID,
-		Version:           cloudfiles.Version,
+		ServiceID:         cloudfiles.ServiceID,
+		ServiceVersion:    cloudfiles.ServiceVersion,
 		Name:              cloudfiles.Name,
 		NewName:           fastly.String(cloudfiles.Name),
 		User:              fastly.String(cloudfiles.User),
@@ -182,6 +182,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Cloudfiles logging endpoint %s (service %s version %d)", cloudfiles.Name, cloudfiles.ServiceID, cloudfiles.Version)
+	text.Success(out, "Updated Cloudfiles logging endpoint %s (service %s version %d)", cloudfiles.Name, cloudfiles.ServiceID, cloudfiles.ServiceVersion)
 	return nil
 }

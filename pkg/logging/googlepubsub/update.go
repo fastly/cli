@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Google Cloud Pub/Sub logging endpoints.
@@ -65,17 +65,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdatePubsubInput, error) {
 	}
 
 	googlepubsub, err := c.Globals.Client.GetPubsub(&fastly.GetPubsubInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdatePubsubInput{
-		Service:           googlepubsub.ServiceID,
-		Version:           googlepubsub.Version,
+		ServiceID:         googlepubsub.ServiceID,
+		ServiceVersion:    googlepubsub.ServiceVersion,
 		Name:              googlepubsub.Name,
 		NewName:           fastly.String(googlepubsub.Name),
 		User:              fastly.String(googlepubsub.User),
@@ -139,6 +139,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Google Cloud Pub/Sub logging endpoint %s (service %s version %d)", googlepubsub.Name, googlepubsub.ServiceID, googlepubsub.Version)
+	text.Success(out, "Updated Google Cloud Pub/Sub logging endpoint %s (service %s version %d)", googlepubsub.Name, googlepubsub.ServiceID, googlepubsub.ServiceVersion)
 	return nil
 }

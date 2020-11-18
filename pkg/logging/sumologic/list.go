@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list Sumologic logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List Sumologic endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	sumologics, err := c.Globals.Client.ListSumologics(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, sumologic := range sumologics {
-			tw.AddLine(sumologic.ServiceID, sumologic.Version, sumologic.Name)
+			tw.AddLine(sumologic.ServiceID, sumologic.ServiceVersion, sumologic.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, sumologic := range sumologics {
 		fmt.Fprintf(out, "\tSumologic %d/%d\n", i+1, len(sumologics))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", sumologic.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", sumologic.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", sumologic.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", sumologic.Name)
 		fmt.Fprintf(out, "\t\tURL: %s\n", sumologic.URL)
 		fmt.Fprintf(out, "\t\tFormat: %s\n", sumologic.Format)

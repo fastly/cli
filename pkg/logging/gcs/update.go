@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update GCS logging endpoints.
@@ -73,84 +73,84 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateGCSInput, error) {
 	}
 
 	gcs, err := c.Globals.Client.GetGCS(&fastly.GetGCSInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateGCSInput{
-		Service:           gcs.ServiceID,
-		Version:           gcs.Version,
+		ServiceID:         gcs.ServiceID,
+		ServiceVersion:    gcs.ServiceVersion,
 		Name:              gcs.Name,
-		NewName:           gcs.Name,
-		Bucket:            gcs.Bucket,
-		User:              gcs.User,
-		SecretKey:         gcs.SecretKey,
-		Path:              gcs.Path,
-		Period:            gcs.Period,
-		FormatVersion:     gcs.FormatVersion,
-		GzipLevel:         gcs.GzipLevel,
-		Format:            gcs.Format,
-		MessageType:       gcs.MessageType,
-		ResponseCondition: gcs.ResponseCondition,
-		TimestampFormat:   gcs.TimestampFormat,
-		Placement:         gcs.Placement,
+		NewName:           fastly.String(gcs.Name),
+		Bucket:            fastly.String(gcs.Bucket),
+		User:              fastly.String(gcs.User),
+		SecretKey:         fastly.String(gcs.SecretKey),
+		Path:              fastly.String(gcs.Path),
+		Period:            fastly.Uint(gcs.Period),
+		FormatVersion:     fastly.Uint(gcs.FormatVersion),
+		GzipLevel:         fastly.Uint8(gcs.GzipLevel),
+		Format:            fastly.String(gcs.Format),
+		MessageType:       fastly.String(gcs.MessageType),
+		ResponseCondition: fastly.String(gcs.ResponseCondition),
+		TimestampFormat:   fastly.String(gcs.TimestampFormat),
+		Placement:         fastly.String(gcs.Placement),
 	}
 
 	// Set new values if set by user.
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.Bucket.Valid {
-		input.Bucket = c.Bucket.Value
+		input.Bucket = fastly.String(c.Bucket.Value)
 	}
 
 	if c.User.Valid {
-		input.User = c.User.Value
+		input.User = fastly.String(c.User.Value)
 	}
 
 	if c.SecretKey.Valid {
-		input.SecretKey = c.SecretKey.Value
+		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
 	if c.Path.Valid {
-		input.Path = c.Path.Value
+		input.Path = fastly.String(c.Path.Value)
 	}
 
 	if c.Period.Valid {
-		input.Period = c.Period.Value
+		input.Period = fastly.Uint(c.Period.Value)
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
 	if c.GzipLevel.Valid {
-		input.GzipLevel = c.GzipLevel.Value
+		input.GzipLevel = fastly.Uint8(c.GzipLevel.Value)
 	}
 
 	if c.Format.Valid {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.TimestampFormat.Valid {
-		input.TimestampFormat = c.TimestampFormat.Value
+		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
 	if c.MessageType.Valid {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil
@@ -168,6 +168,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated GCS logging endpoint %s (service %s version %d)", gcs.Name, gcs.ServiceID, gcs.Version)
+	text.Success(out, "Updated GCS logging endpoint %s (service %s version %d)", gcs.Name, gcs.ServiceID, gcs.ServiceVersion)
 	return nil
 }

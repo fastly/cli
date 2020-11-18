@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update HTTPS logging endpoints.
@@ -83,108 +83,108 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateHTTPSInput, error) {
 	}
 
 	https, err := c.Globals.Client.GetHTTPS(&fastly.GetHTTPSInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateHTTPSInput{
-		Service:           https.ServiceID,
-		Version:           https.Version,
+		ServiceID:         https.ServiceID,
+		ServiceVersion:    https.ServiceVersion,
 		Name:              https.Name,
-		NewName:           https.Name,
-		ResponseCondition: https.ResponseCondition,
-		Format:            https.Format,
-		URL:               https.URL,
-		RequestMaxEntries: https.RequestMaxEntries,
-		RequestMaxBytes:   https.RequestMaxBytes,
-		ContentType:       https.ContentType,
-		HeaderName:        https.HeaderName,
-		HeaderValue:       https.HeaderValue,
-		Method:            https.Method,
-		JSONFormat:        https.JSONFormat,
-		Placement:         https.Placement,
-		TLSCACert:         https.TLSCACert,
-		TLSClientCert:     https.TLSClientCert,
-		TLSClientKey:      https.TLSClientKey,
-		TLSHostname:       https.TLSHostname,
-		MessageType:       https.MessageType,
-		FormatVersion:     https.FormatVersion,
+		NewName:           fastly.String(https.Name),
+		ResponseCondition: fastly.String(https.ResponseCondition),
+		Format:            fastly.String(https.Format),
+		URL:               fastly.String(https.URL),
+		RequestMaxEntries: fastly.Uint(https.RequestMaxEntries),
+		RequestMaxBytes:   fastly.Uint(https.RequestMaxBytes),
+		ContentType:       fastly.String(https.ContentType),
+		HeaderName:        fastly.String(https.HeaderName),
+		HeaderValue:       fastly.String(https.HeaderValue),
+		Method:            fastly.String(https.Method),
+		JSONFormat:        fastly.String(https.JSONFormat),
+		Placement:         fastly.String(https.Placement),
+		TLSCACert:         fastly.String(https.TLSCACert),
+		TLSClientCert:     fastly.String(https.TLSClientCert),
+		TLSClientKey:      fastly.String(https.TLSClientKey),
+		TLSHostname:       fastly.String(https.TLSHostname),
+		MessageType:       fastly.String(https.MessageType),
+		FormatVersion:     fastly.Uint(https.FormatVersion),
 	}
 
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.URL.Valid {
-		input.URL = c.URL.Value
+		input.URL = fastly.String(c.URL.Value)
 	}
 
 	if c.ContentType.Valid {
-		input.ContentType = c.ContentType.Value
+		input.ContentType = fastly.String(c.ContentType.Value)
 	}
 
 	if c.JSONFormat.Valid {
-		input.JSONFormat = c.JSONFormat.Value
+		input.JSONFormat = fastly.String(c.JSONFormat.Value)
 	}
 
 	if c.HeaderName.Valid {
-		input.HeaderName = c.HeaderName.Value
+		input.HeaderName = fastly.String(c.HeaderName.Value)
 	}
 
 	if c.HeaderValue.Valid {
-		input.HeaderValue = c.HeaderValue.Value
+		input.HeaderValue = fastly.String(c.HeaderValue.Value)
 	}
 
 	if c.Method.Valid {
-		input.Method = c.Method.Value
+		input.Method = fastly.String(c.Method.Value)
 	}
 
 	if c.RequestMaxEntries.Valid {
-		input.RequestMaxEntries = c.RequestMaxEntries.Value
+		input.RequestMaxEntries = fastly.Uint(c.RequestMaxEntries.Value)
 	}
 
 	if c.RequestMaxBytes.Valid {
-		input.RequestMaxBytes = c.RequestMaxBytes.Value
+		input.RequestMaxBytes = fastly.Uint(c.RequestMaxBytes.Value)
 	}
 
 	if c.TLSCACert.Valid {
-		input.TLSCACert = c.TLSCACert.Value
+		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
 	if c.TLSClientCert.Valid {
-		input.TLSClientCert = c.TLSClientCert.Value
+		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
 	}
 
 	if c.TLSClientKey.Valid {
-		input.TLSClientKey = c.TLSClientKey.Value
+		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
 	}
 
 	if c.TLSHostname.Valid {
-		input.TLSHostname = c.TLSHostname.Value
+		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
 	if c.Format.Valid {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	if c.MessageType.Valid {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	return &input, nil
@@ -202,6 +202,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated HTTPS logging endpoint %s (service %s version %d)", https.Name, https.ServiceID, https.Version)
+	text.Success(out, "Updated HTTPS logging endpoint %s (service %s version %d)", https.Name, https.ServiceID, https.ServiceVersion)
 	return nil
 }

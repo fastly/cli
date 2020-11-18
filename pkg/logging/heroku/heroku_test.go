@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateHerokuInput(t *testing.T) {
@@ -23,26 +23,26 @@ func TestCreateHerokuInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateHerokuInput{
-				Service: "123",
-				Version: 2,
-				Name:    fastly.String("log"),
-				Token:   fastly.String("tkn"),
-				URL:     fastly.String("example.com"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				Token:          "tkn",
+				URL:            "example.com",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateHerokuInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("log"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				Token:             fastly.String("tkn"),
-				URL:               fastly.String("example.com"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "log",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				Token:             "tkn",
+				URL:               "example.com",
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
 			},
 		},
 		{
@@ -73,8 +73,8 @@ func TestUpdateHerokuInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetHerokuFn: getHerokuOK},
 			want: &fastly.UpdateHerokuInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
 				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
@@ -90,8 +90,8 @@ func TestUpdateHerokuInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetHerokuFn: getHerokuOK},
 			want: &fastly.UpdateHerokuInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				Format:            fastly.String("new2"),
@@ -182,8 +182,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 	return &fastly.Heroku{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Token:             "tkn",
 		URL:               "example.com",

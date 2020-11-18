@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestSyslogCreate(t *testing.T) {
@@ -255,9 +255,9 @@ var errTest = errors.New("fixture error")
 
 func createSyslogOK(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -268,8 +268,8 @@ func createSyslogError(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 	return []*fastly.Syslog{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Address:           "127.0.0.1",
 			Hostname:          "",
@@ -288,8 +288,8 @@ func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Address:           "example.com",
 			Hostname:          "example.com",
@@ -327,10 +327,10 @@ Service ID: 123
 Version: 1
 	Syslog 1/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: logs
 		Address: 127.0.0.1
-		Hostname: 
+		Hostname:
 		Port: 514
 		Use TLS: false
 		IPV4: 127.0.0.1
@@ -346,13 +346,13 @@ Version: 1
 		Placement: none
 	Syslog 2/2
 		Service ID: 123
-		Version: 1
+	  ServiceVersion: 1
 		Name: analytics
 		Address: example.com
 		Hostname: example.com
 		Port: 789
 		Use TLS: true
-		IPV4: 
+		IPV4:
 		TLS CA certificate: -----BEGIN CERTIFICATE-----baz
 		TLS hostname: example.com
 		TLS client certificate: -----BEGIN CERTIFICATE-----qux
@@ -367,8 +367,8 @@ Version: 1
 
 func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Address:           "example.com",
 		Hostname:          "example.com",
@@ -400,7 +400,7 @@ Address: example.com
 Hostname: example.com
 Port: 514
 Use TLS: true
-IPV4: 
+IPV4:
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo
 TLS hostname: example.com
 TLS client certificate: -----BEGIN CERTIFICATE-----bar
@@ -415,8 +415,8 @@ Placement: none
 
 func updateSyslogOK(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Address:           "example.com",
 		Hostname:          "example.com",

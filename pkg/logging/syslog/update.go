@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Syslog logging endpoints.
@@ -75,45 +75,45 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSyslogInput, error) {
 	}
 
 	syslog, err := c.Globals.Client.GetSyslog(&fastly.GetSyslogInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateSyslogInput{
-		Service:           syslog.ServiceID,
-		Version:           syslog.Version,
+		ServiceID:         syslog.ServiceID,
+		ServiceVersion:    syslog.ServiceVersion,
 		Name:              syslog.Name,
-		NewName:           syslog.Name,
-		Address:           syslog.Address,
-		Port:              syslog.Port,
+		NewName:           fastly.String(syslog.Name),
+		Address:           fastly.String(syslog.Address),
+		Port:              fastly.Uint(syslog.Port),
 		UseTLS:            fastly.CBool(syslog.UseTLS),
-		TLSCACert:         syslog.TLSCACert,
-		TLSHostname:       syslog.TLSHostname,
-		TLSClientCert:     syslog.TLSClientCert,
-		TLSClientKey:      syslog.TLSClientKey,
-		Token:             syslog.Token,
-		Format:            syslog.Format,
-		FormatVersion:     syslog.FormatVersion,
-		MessageType:       syslog.MessageType,
-		ResponseCondition: syslog.ResponseCondition,
-		Placement:         syslog.Placement,
+		TLSCACert:         fastly.String(syslog.TLSCACert),
+		TLSHostname:       fastly.String(syslog.TLSHostname),
+		TLSClientCert:     fastly.String(syslog.TLSClientCert),
+		TLSClientKey:      fastly.String(syslog.TLSClientKey),
+		Token:             fastly.String(syslog.Token),
+		Format:            fastly.String(syslog.Format),
+		FormatVersion:     fastly.Uint(syslog.FormatVersion),
+		MessageType:       fastly.String(syslog.MessageType),
+		ResponseCondition: fastly.String(syslog.ResponseCondition),
+		Placement:         fastly.String(syslog.Placement),
 	}
 
 	// Set new values if set by user.
 	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.Address.Valid {
-		input.Address = c.Address.Value
+		input.Address = fastly.String(c.Address.Value)
 	}
 
 	if c.Port.Valid {
-		input.Port = c.Port.Value
+		input.Port = fastly.Uint(c.Port.Value)
 	}
 
 	if c.UseTLS.Valid {
@@ -121,43 +121,43 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSyslogInput, error) {
 	}
 
 	if c.TLSCACert.Valid {
-		input.TLSCACert = c.TLSCACert.Value
+		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
 	if c.TLSHostname.Valid {
-		input.TLSHostname = c.TLSHostname.Value
+		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
 	if c.TLSClientCert.Valid {
-		input.TLSClientCert = c.TLSClientCert.Value
+		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
 	}
 
 	if c.TLSClientKey.Valid {
-		input.TLSClientKey = c.TLSClientKey.Value
+		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
 	}
 
 	if c.Token.Valid {
-		input.Token = c.Token.Value
+		input.Token = fastly.String(c.Token.Value)
 	}
 
 	if c.Format.Valid {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
 	if c.MessageType.Valid {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil
@@ -175,6 +175,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Syslog logging endpoint %s (service %s version %d)", syslog.Name, syslog.ServiceID, syslog.Version)
+	text.Success(out, "Updated Syslog logging endpoint %s (service %s version %d)", syslog.Name, syslog.ServiceID, syslog.ServiceVersion)
 	return nil
 }
