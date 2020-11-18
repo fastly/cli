@@ -263,8 +263,8 @@ func createHoneycombOK(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error
 		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != nil {
-		s.Name = *i.Name
+	if i.Name != "" {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -276,7 +276,7 @@ func createHoneycombError(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, er
 
 func listHoneycombsOK(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
 	return []*fastly.Honeycomb{
-		&fastly.Honeycomb{
+		{
 			ServiceID:         i.ServiceID,
 			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
