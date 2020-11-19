@@ -32,7 +32,7 @@ func TestKafkaCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --brokers not provided",
 		},
 		{
-			args:       []string{"logging", "kafka", "create", "--service-id", "123", "--version", "1", "--name", "log", "--topic", "logs", "--brokers", "127.0.0.1,127.0.0.2"},
+			args:       []string{"logging", "kafka", "create", "--service-id", "123", "--version", "1", "--name", "log", "--topic", "logs", "--brokers", "127.0.0.1,127.0.0.2", "--parse-log-keyvals", "--max-batch-size", "1024", "--use-sasl", "--auth-method", "plain", "--username", "user", "--password", "password"},
 			api:        mock.API{CreateKafkaFn: createKafkaOK},
 			wantOutput: "Created Kafka logging endpoint log (service 123 version 1)",
 		},
@@ -194,6 +194,14 @@ func TestKafkaUpdate(t *testing.T) {
 			},
 			wantOutput: "Updated Kafka logging endpoint log (service 123 version 1)",
 		},
+		{
+			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--parse-log-keyvals", "--max-batch-size", "1024", "--use-sasl", "--auth-method", "plain", "--username", "user", "--password", "password"},
+			api: mock.API{
+				GetKafkaFn:    getKafkaOK,
+				UpdateKafkaFn: updateKafkaSASL,
+			},
+			wantOutput: "Updated Kafka logging endpoint log (service 123 version 1)",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (
@@ -275,6 +283,11 @@ func createKafkaOK(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
 		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
 		FormatVersion:     2,
+		ParseLogKeyvals:   true,
+		RequestMaxBytes:   1024,
+		AuthMethod:        "plain",
+		User:              "user",
+		Password:          "password",
 	}, nil
 }
 
@@ -301,6 +314,11 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
 			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
 			FormatVersion:     2,
+			ParseLogKeyvals:   false,
+			RequestMaxBytes:   0,
+			AuthMethod:        "",
+			User:              "",
+			Password:          "",
 		},
 		{
 			ServiceID:         i.Service,
@@ -319,6 +337,11 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			ResponseCondition: "Prevent default logging",
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
+			ParseLogKeyvals:   false,
+			RequestMaxBytes:   0,
+			AuthMethod:        "",
+			User:              "",
+			Password:          "",
 		},
 	}, nil
 }
@@ -355,6 +378,11 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Parse log key-values: false
+		Max batch size: 0
+		SASL authentication method: 
+		SASL authentication username: 
+		SASL authentication password: 
 	Kafka 2/2
 		Service ID: 123
 		Version: 1
@@ -372,7 +400,12 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
-`) + "\n\n"
+		Parse log key-values: false
+		Max batch size: 0
+		SASL authentication method: 
+		SASL authentication username: 
+		SASL authentication password: 
+`) + " \n\n"
 
 func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
@@ -416,7 +449,12 @@ Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Response condition: Prevent default logging
 Placement: none
-`) + "\n"
+Parse log key-values: false
+Max batch size: 0
+SASL authentication method: 
+SASL authentication username: 
+SASL authentication password: 
+`) + " \n"
 
 func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
@@ -436,6 +474,32 @@ func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
 		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
 		FormatVersion:     2,
+	}, nil
+}
+
+func updateKafkaSASL(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
+	return &fastly.Kafka{
+		ServiceID:         i.Service,
+		Version:           i.Version,
+		Name:              "log",
+		ResponseCondition: "Prevent default logging",
+		Format:            `%h %l %u %t "%r" %>s %b`,
+		Topic:             "logs",
+		Brokers:           "127.0.0.1,127.0.0.2",
+		RequiredACKs:      "-1",
+		CompressionCodec:  "zippy",
+		UseTLS:            true,
+		Placement:         "none",
+		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+		TLSHostname:       "127.0.0.1,127.0.0.2",
+		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
+		FormatVersion:     2,
+		ParseLogKeyvals:   true,
+		RequestMaxBytes:   1024,
+		AuthMethod:        "plain",
+		User:              "user",
+		Password:          "password",
 	}, nil
 }
 
