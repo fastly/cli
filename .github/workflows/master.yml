@@ -18,8 +18,8 @@ jobs:
     - name: Set GOPATH
       # Temporary fix, see: https://github.com/actions/setup-go/issues/14
       run: |
-        echo "::set-env name=GOPATH::$(go env GOPATH)"
-        echo "::add-path::$(go env GOPATH)/bin"
+        echo "GOPATH=$GITHUB_WORKSPACE/go" >> $GITHUB_ENV
+        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
       shell: bash
     - name: Checkout code
       uses: actions/checkout@v1
