@@ -57,6 +57,8 @@ func (b Base) Name() string {
 
 // Optional models an optional type that consumers can use to assert whether the
 // inner value has been set and is therefore valid for use.
+//
+// TODO(integralist): rename Valid to WasSet.
 type Optional struct {
 	Valid bool
 }

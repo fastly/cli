@@ -18,6 +18,8 @@ type UpdateCommand struct {
 	manifest    manifest.Data
 	getInput    fastly.GetDomainInput
 	updateInput fastly.UpdateDomainInput
+
+	Comment common.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -29,7 +31,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.getInput.ServiceVersion)
 	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.getInput.Name)
 	c.CmdClause.Flag("new-name", "New domain name").StringVar(&c.updateInput.NewName)
-	c.CmdClause.Flag("comment", "A descriptive note").StringVar(c.updateInput.Comment)
+	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	return &c
 }
 
@@ -42,7 +44,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.getInput.ServiceID = serviceID
 
 	// If neither arguments are provided, error with useful message.
-	if c.updateInput.NewName == "" && *c.updateInput.Comment == "" {
+	if c.updateInput.NewName == "" && !c.Comment.Valid {
 		return fmt.Errorf("error parsing arguments: must provide either --new-name or --comment to update domain")
 	}
 
@@ -54,14 +56,14 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.updateInput.ServiceID = d.ServiceID
 	c.updateInput.ServiceVersion = d.ServiceVersion
 
-	// Only update name if non-empty.
+	// set original value, and then afterwards check if we can use the flag value
+	c.updateInput.Comment = &d.Comment
+
 	if c.updateInput.NewName == "" {
 		c.updateInput.NewName = d.Name
 	}
-
-	// Only update comment if non-empty.
-	if *c.updateInput.Comment == "" {
-		c.updateInput.Comment = fastly.String(d.Comment)
+	if c.Comment.Valid {
+		c.updateInput.Comment = fastly.String(c.Comment.Value)
 	}
 
 	d, err = c.Globals.Client.UpdateDomain(&c.updateInput)

@@ -186,7 +186,7 @@ func TestBackendUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"backend", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
+			args: []string{"backend", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--comment", ""},
 			api: mock.API{
 				GetBackendFn:    getBackendOK,
 				UpdateBackendFn: updateBackendOK,
