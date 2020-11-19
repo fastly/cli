@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.19.0](https://github.com/fastly/cli/releases/tag/v0.19.0) (2020-11-19)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.18.1...v0.19.0)
+
+**Enhancements:**
+
+- Support sasl kafka endpoint options in Fastly CLI [\#161](https://github.com/fastly/cli/pull/161)
+
 ## [v0.18.1](https://github.com/fastly/cli/releases/tag/v0.18.1) (2020-11-03)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.18.0...v0.18.1)
@@ -193,7 +201,6 @@
 - Publish scoop package manifest during release process [\#45](https://github.com/fastly/cli/pull/45)
 - Generate dep and rpm packages during release process [\#44](https://github.com/fastly/cli/pull/44)
 - 🦀 🆙date to Rust 1.43.0 [\#40](https://github.com/fastly/cli/pull/40)
-- Bump default Rust template to v0.3.0 [\#32](https://github.com/fastly/cli/pull/32)
 
 **Closed issues:**
 
@@ -205,6 +212,7 @@
 
 **Enhancements:**
 
+- Bump default Rust template to v0.3.0 [\#32](https://github.com/fastly/cli/pull/32)
 - Publish to homebrew [\#26](https://github.com/fastly/cli/pull/26)
 
 **Bug fixes:**
