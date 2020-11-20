@@ -342,7 +342,7 @@ Service ID: 123
 Version: 1
 	SFTP 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Address: 127.0.0.1
 		Port: 514
@@ -362,7 +362,7 @@ Version: 1
 		Placement: none
 	SFTP 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Address: example.com
 		Port: 123

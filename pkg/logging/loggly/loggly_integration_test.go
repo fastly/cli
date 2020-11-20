@@ -312,7 +312,7 @@ Service ID: 123
 Version: 1
 	Loggly 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Token: abc
 		Format: %h %l %u %t "%r" %>s %b
@@ -321,7 +321,7 @@ Version: 1
 		Placement: none
 	Loggly 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Token: abc
 		Format: %h %l %u %t "%r" %>s %b

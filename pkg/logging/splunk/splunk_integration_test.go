@@ -313,7 +313,7 @@ Service ID: 123
 Version: 1
 	Splunk 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		URL: example.com
 		Token: tkn
@@ -325,7 +325,7 @@ Version: 1
 		Placement: none
 	Splunk 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		URL: 127.0.0.1
 		Token: tkn1

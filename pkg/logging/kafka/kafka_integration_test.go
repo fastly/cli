@@ -363,7 +363,7 @@ Service ID: 123
 Version: 1
 	Kafka 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Topic: logs
 		Brokers: 127.0.0.1,127.0.0.2
@@ -385,7 +385,7 @@ Version: 1
 		SASL authentication password: 
 	Kafka 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Topic: analytics
 		Brokers: 127.0.0.1,127.0.0.2

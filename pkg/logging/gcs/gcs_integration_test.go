@@ -329,7 +329,7 @@ Service ID: 123
 Version: 1
 	GCS 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Bucket: my-logs
 		User: foo@example.com
@@ -345,7 +345,7 @@ Version: 1
 		Placement: none
 	GCS 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Bucket: analytics
 		User: foo@example.com

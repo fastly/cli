@@ -327,10 +327,10 @@ Service ID: 123
 Version: 1
 	Syslog 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Address: 127.0.0.1
-		Hostname:
+		Hostname: 
 		Port: 514
 		Use TLS: false
 		IPV4: 127.0.0.1
@@ -346,13 +346,13 @@ Version: 1
 		Placement: none
 	Syslog 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Address: example.com
 		Hostname: example.com
 		Port: 789
 		Use TLS: true
-		IPV4:
+		IPV4: 
 		TLS CA certificate: -----BEGIN CERTIFICATE-----baz
 		TLS hostname: example.com
 		TLS client certificate: -----BEGIN CERTIFICATE-----qux
@@ -400,7 +400,7 @@ Address: example.com
 Hostname: example.com
 Port: 514
 Use TLS: true
-IPV4:
+IPV4: 
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo
 TLS hostname: example.com
 TLS client certificate: -----BEGIN CERTIFICATE-----bar

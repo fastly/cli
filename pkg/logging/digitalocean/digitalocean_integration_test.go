@@ -338,7 +338,7 @@ Service ID: 123
 Version: 1
 	DigitalOcean 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Bucket: my-logs
 		Domain: https://digitalocean.us-east-1.amazonaws.com
@@ -356,7 +356,7 @@ Version: 1
 		Public key: `+pgpPublicKey()+`
 	DigitalOcean 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Bucket: analytics
 		Domain: https://digitalocean.us-east-2.amazonaws.com

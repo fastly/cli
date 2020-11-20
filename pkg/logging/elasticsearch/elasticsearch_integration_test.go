@@ -346,7 +346,7 @@ Service ID: 123
 Version: 1
 	Elasticsearch 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Index: logs
 		URL: example.com
@@ -363,7 +363,7 @@ Version: 1
 		Placement: none
 	Elasticsearch 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Index: analytics
 		URL: example.com

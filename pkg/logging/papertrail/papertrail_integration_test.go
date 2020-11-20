@@ -309,7 +309,7 @@ Service ID: 123
 Version: 1
 	Papertrail 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Address: example.com:123
 		Port: 123
@@ -319,7 +319,7 @@ Version: 1
 		Placement: none
 	Papertrail 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Address: 127.0.0.1:456
 		Port: 456

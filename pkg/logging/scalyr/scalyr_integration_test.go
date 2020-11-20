@@ -345,7 +345,7 @@ Service ID: 123
 Version: 1
 	Scalyr 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Token: abc
 		Region: US
@@ -355,7 +355,7 @@ Version: 1
 		Placement: none
 	Scalyr 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Token: abc
 		Region: US

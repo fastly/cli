@@ -314,7 +314,7 @@ Service ID: 123
 Version: 1
 	Datadog 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Token: abc
 		Region: US
@@ -324,7 +324,7 @@ Version: 1
 		Placement: none
 	Datadog 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Token: abc
 		Region: US

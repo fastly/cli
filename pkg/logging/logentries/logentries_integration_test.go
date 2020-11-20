@@ -307,7 +307,7 @@ Service ID: 123
 Version: 1
 	Logentries 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Port: 20000
 		Use TLS: true
@@ -318,7 +318,7 @@ Version: 1
 		Placement: none
 	Logentries 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Port: 20001
 		Use TLS: false

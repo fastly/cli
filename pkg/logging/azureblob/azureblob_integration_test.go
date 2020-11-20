@@ -346,7 +346,7 @@ Service ID: 123
 Version: 1
 	BlobStorage 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Container: container
 		Account name: account
@@ -363,7 +363,7 @@ Version: 1
 		Public key: `+pgpPublicKey()+`
 	BlobStorage 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Container: analytics
 		Account name: account

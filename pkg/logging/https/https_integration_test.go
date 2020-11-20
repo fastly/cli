@@ -348,7 +348,7 @@ Service ID: 123
 Version: 1
 	HTTPS 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		URL: example.com
 		Content type: application/json
@@ -369,7 +369,7 @@ Version: 1
 		Placement: none
 	HTTPS 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		URL: analytics.example.com
 		Content type: application/json

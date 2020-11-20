@@ -319,7 +319,7 @@ Service ID: 123
 Version: 1
 	BigQuery 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Format: %h %l %u %t "%r" %>s %b
 		User: service-account@domain.com
@@ -333,7 +333,7 @@ Version: 1
 		Format version: 0
 	BigQuery 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Format: %h %l %u %t "%r" %>s %b
 		User: service-account@domain.com

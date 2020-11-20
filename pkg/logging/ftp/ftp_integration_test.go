@@ -331,7 +331,7 @@ Service ID: 123
 Version: 1
 	FTP 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Address: example.com
 		Port: 123
@@ -348,7 +348,7 @@ Version: 1
 		Placement: none
 	FTP 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Address: 127.0.0.1
 		Port: 456

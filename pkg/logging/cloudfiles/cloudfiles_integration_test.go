@@ -338,7 +338,7 @@ Service ID: 123
 Version: 1
 	Cloudfiles 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		User: username
 		Access key: 1234
@@ -356,7 +356,7 @@ Version: 1
 		Public key: `+pgpPublicKey()+`
 	Cloudfiles 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		User: username
 		Access key: 1234

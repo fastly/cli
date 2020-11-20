@@ -318,7 +318,7 @@ Service ID: 123
 Version: 1
 	Logshuttle 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		URL: example.com
 		Token: abc
@@ -328,7 +328,7 @@ Version: 1
 		Placement: none
 	Logshuttle 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		URL: example.com
 		Token: abc

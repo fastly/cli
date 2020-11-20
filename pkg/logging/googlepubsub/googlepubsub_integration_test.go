@@ -333,7 +333,7 @@ Service ID: 123
 Version: 1
 	Google Cloud Pub/Sub 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		User: user@example.com
 		Secret key: secret
@@ -345,7 +345,7 @@ Version: 1
 		Placement: none
 	Google Cloud Pub/Sub 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		User: user@example.com
 		Secret key: secret

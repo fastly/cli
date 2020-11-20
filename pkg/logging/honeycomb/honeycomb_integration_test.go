@@ -318,7 +318,7 @@ Service ID: 123
 Version: 1
 	Honeycomb 1/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: logs
 		Dataset: log
 		Token: tkn
@@ -328,7 +328,7 @@ Version: 1
 		Placement: none
 	Honeycomb 2/2
 		Service ID: 123
-	  ServiceVersion: 1
+		Version: 1
 		Name: analytics
 		Dataset: log
 		Token: tkn
