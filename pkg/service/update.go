@@ -18,6 +18,13 @@ type UpdateCommand struct {
 	manifest    manifest.Data
 	getInput    fastly.GetServiceInput
 	updateInput fastly.UpdateServiceInput
+
+	// TODO(integralist):
+	// ensure consistency in capitalization
+	// should be lowercase to avoid ambiguity in common.Command interface
+	//
+	name    common.OptionalString
+	comment common.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -27,8 +34,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Fastly service")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("name", "Service name").Short('n').StringVar(c.updateInput.Name)
-	c.CmdClause.Flag("comment", "Human-readable comment").StringVar(c.updateInput.Comment)
+	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
+	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	return &c
 }
 
@@ -41,7 +48,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.getInput.ID = serviceID
 
 	// If neither arguments are provided, error with useful message.
-	if *c.updateInput.Name == "" && *c.updateInput.Comment == "" {
+	if !c.name.Valid && !c.comment.Valid {
 		return fmt.Errorf("error parsing arguments: must provide either --name or --comment to update service")
 	}
 
@@ -50,16 +57,17 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
+	// set original value, and then afterwards check if we can use the flag value
 	c.updateInput.ID = s.ID
+	c.updateInput.Name = fastly.String(s.Name)
+	c.updateInput.Comment = fastly.String(s.Comment)
 
-	// Only update name if non-empty.
-	if *c.updateInput.Name == "" {
-		c.updateInput.Name = fastly.String(s.Name)
+	// update field value as required
+	if c.name.Valid {
+		c.updateInput.Name = fastly.String(c.name.Value)
 	}
-
-	// Only update comment if non-empty.
-	if *c.updateInput.Comment == "" {
-		c.updateInput.Comment = fastly.String(s.Comment)
+	if c.comment.Valid {
+		c.updateInput.Comment = fastly.String(c.comment.Value)
 	}
 
 	s, err = c.Globals.Client.UpdateService(&c.updateInput)
