@@ -582,6 +582,12 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              Name of Dictionary
 
+  dictionary list --version=VERSION [<flags>]
+    List all dictionaries on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
   dictionaryitem list --dictionary-id=DICTIONARY-ID [<flags>]
     List items in a Fastly edge dictionary
 

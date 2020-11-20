@@ -50,6 +50,7 @@ type API struct {
 	CreateDictionaryFn func(*fastly.CreateDictionaryInput) (*fastly.Dictionary, error)
 	GetDictionaryFn    func(*fastly.GetDictionaryInput) (*fastly.Dictionary, error)
 	DeleteDictionaryFn func(*fastly.DeleteDictionaryInput) error
+	ListDictionariesFn func(*fastly.ListDictionariesInput) ([]*fastly.Dictionary, error)
 
 	ListDictionaryItemsFn  func(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
 	GetDictionaryItemFn    func(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
@@ -382,6 +383,11 @@ func (m API) GetDictionary(i *fastly.GetDictionaryInput) (*fastly.Dictionary, er
 // DeleteDictionary implements Interface.
 func (m API) DeleteDictionary(i *fastly.DeleteDictionaryInput) error {
 	return m.DeleteDictionaryFn(i)
+}
+
+// ListDictionaries implements Interface.
+func (m API) ListDictionaries(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, error) {
+	return m.ListDictionariesFn(i)
 }
 
 // ListDictionaryItems implements Interface.

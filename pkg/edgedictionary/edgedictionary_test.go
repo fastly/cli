@@ -151,6 +151,48 @@ func TestDeleteDictionary(t *testing.T) {
 	}
 }
 
+func TestListDictionary(t *testing.T) {
+	for _, testcase := range []struct {
+		args       []string
+		api        mock.API
+		wantError  string
+		wantOutput string
+	}{
+		{
+			args:      []string{"dictionary", "list", "--version", "1"},
+			api:       mock.API{ListDictionariesFn: listDictionariesOk},
+			wantError: "error reading service: no service ID found",
+		},
+		{
+			args:      []string{"dictionary", "list", "--service-id", "123"},
+			api:       mock.API{DeleteDictionaryFn: deleteDictionaryOK},
+			wantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			args:       []string{"dictionary", "list", "--version", "1", "--service-id", "123"},
+			api:        mock.API{ListDictionariesFn: listDictionariesOk},
+			wantOutput: listDictionariesOutput,
+		},
+	} {
+		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			var (
+				args                           = testcase.args
+				env                            = config.Environment{}
+				file                           = config.File{}
+				appConfigFile                  = "/dev/null"
+				clientFactory                  = mock.APIClient(testcase.api)
+				httpClient                     = http.DefaultClient
+				versioner     update.Versioner = nil
+				in            io.Reader        = nil
+				out           bytes.Buffer
+			)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertString(t, testcase.wantOutput, out.String())
+		})
+	}
+}
+
 func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
 		ServiceID: i.Service,
@@ -200,7 +242,7 @@ func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryIn
 
 func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
 	return []*fastly.DictionaryItem{
-		&fastly.DictionaryItem{
+		{
 			ServiceID:    i.Service,
 			DictionaryID: "456",
 			ItemKey:      "foo",
@@ -208,7 +250,7 @@ func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.Dictio
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
-		&fastly.DictionaryItem{
+		{
 			ServiceID:    i.Service,
 			DictionaryID: "456",
 			ItemKey:      "baz",
@@ -230,6 +272,29 @@ func deleteDictionaryOK(*fastly.DeleteDictionaryInput) error {
 
 func deleteDictionaryError(*fastly.DeleteDictionaryInput) error {
 	return errTest
+}
+
+func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, error) {
+	return []*fastly.Dictionary{
+		{
+			ServiceID: i.Service,
+			Version:   i.Version,
+			Name:      "dict-1",
+			CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			WriteOnly: false,
+			ID:        "456",
+			UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		},
+		{
+			ServiceID: i.Service,
+			Version:   i.Version,
+			Name:      "dict-2",
+			CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			WriteOnly: false,
+			ID:        "456",
+			UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		},
+	}, nil
 }
 
 var errTest = errors.New("an expected error ocurred")
@@ -276,4 +341,19 @@ Item 1/2:
 Item 2/2:
 	Item Key: baz
 	Item Value: bear
+`) + "\n"
+
+var listDictionariesOutput = strings.TrimSpace(`
+Service ID: 123
+Version: 1
+ID: 456
+Name: dict-1
+Write Only: false
+Created (UTC): 2001-02-03 04:05
+Last edited (UTC): 2001-02-03 04:05
+ID: 456
+Name: dict-2
+Write Only: false
+Created (UTC): 2001-02-03 04:05
+Last edited (UTC): 2001-02-03 04:05
 `) + "\n"
