@@ -193,6 +193,64 @@ func TestListDictionary(t *testing.T) {
 	}
 }
 
+func TestUpdateDictionary(t *testing.T) {
+	for _, testcase := range []struct {
+		args       []string
+		api        mock.API
+		wantError  string
+		wantOutput string
+	}{
+		{
+			args:      []string{"dictionary", "update", "--version", "1", "--name", "oldname", "--new-name", "newname"},
+			wantError: "error reading service: no service ID found",
+		},
+		{
+			args:      []string{"dictionary", "update", "--name", "oldname", "--new-name", "newname"},
+			wantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			args:      []string{"dictionary", "update", "--version", "1", "--new-name", "newname"},
+			wantError: "error parsing arguments: required flag --name not provided",
+		},
+		{
+			args:      []string{"dictionary", "update", "--version", "1", "--name", "oldname"},
+			wantError: "error parsing arguments: required flag --new-name not provided",
+		},
+		{
+			args:       []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
+			api:        mock.API{UpdateDictionaryFn: updateDictionaryOK},
+			wantOutput: updateDictionaryOutput,
+		},
+		{
+			args:       []string{"dictionary", "update", "-v", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
+			api:        mock.API{UpdateDictionaryFn: updateDictionaryOK},
+			wantOutput: updateDictionaryOutputVerbose,
+		},
+		{
+			args:      []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
+			api:       mock.API{UpdateDictionaryFn: updateDictionaryError},
+			wantError: errTest.Error(),
+		},
+	} {
+		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			var (
+				args                           = testcase.args
+				env                            = config.Environment{}
+				file                           = config.File{}
+				appConfigFile                  = "/dev/null"
+				clientFactory                  = mock.APIClient(testcase.api)
+				httpClient                     = http.DefaultClient
+				versioner     update.Versioner = nil
+				in            io.Reader        = nil
+				out           bytes.Buffer
+			)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertString(t, testcase.wantOutput, out.String())
+		})
+	}
+}
+
 func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
 		ServiceID: i.Service,
@@ -297,10 +355,37 @@ func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, 
 	}, nil
 }
 
+func updateDictionaryOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+	return &fastly.Dictionary{
+		ServiceID: i.Service,
+		Version:   i.Version,
+		Name:      i.NewName,
+		CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+		WriteOnly: false,
+		ID:        "456",
+		UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+	}, nil
+}
+
+func updateDictionaryError(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+	return nil, errTest
+}
+
 var errTest = errors.New("an expected error ocurred")
 
 var createDictionaryOutput = "\nSUCCESS: Created dictionary denylist (service 123 version 1)\n"
 var deleteDictionaryOutput = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 1)\n"
+var updateDictionaryOutput = "\nSUCCESS: Updated dictionary oldname to dict-1 (service 123 version 1)\n"
+
+var updateDictionaryOutputVerbose = strings.Join(
+	[]string{
+		"Fastly API token not provided",
+		"Fastly API endpoint: https://api.fastly.com",
+		"",
+		strings.TrimSpace(updateDictionaryOutput),
+		describeDictionaryOutput,
+	},
+	"\n")
 
 var describeDictionaryOutput = strings.TrimSpace(`
 Service ID: 123

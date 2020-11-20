@@ -588,6 +588,14 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
 
+  dictionary update --version=VERSION --name=NAME --new-name=NEW-NAME [<flags>]
+    Update name of dictionary on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              Old name of Dictionary
+        --new-name=NEW-NAME      New name of Dictionary
+
   dictionaryitem list --dictionary-id=DICTIONARY-ID [<flags>]
     List items in a Fastly edge dictionary
 
