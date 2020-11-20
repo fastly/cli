@@ -7,15 +7,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v1
     - name: Install Go
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v2
       with:
         go-version: 1.14.x
-    - name: Set GOPATH
-      # Temporary fix, see: https://github.com/actions/setup-go/issues/14
-      run: |
-        echo "::set-env name=GOPATH::$(go env GOPATH)"
-        echo "::add-path::$(go env GOPATH)/bin"
-      shell: bash
     - name: Restore cache
       id: cache
       uses: actions/cache@v1
@@ -63,14 +57,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v1
     - name: Install Go
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
-    - name: Set GOPATH
-      # Temporary fix, see: https://github.com/actions/setup-go/issues/14
-      run: |
-        echo "::set-env name=GOPATH::$(go env GOPATH)"
-        echo "::add-path::$(go env GOPATH)/bin"
     - name: Restore cache
       uses: actions/cache@v1
       with:
