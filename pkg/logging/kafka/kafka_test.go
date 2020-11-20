@@ -62,16 +62,16 @@ func TestCreateKafkaInput(t *testing.T) {
 			name: "verify SASL fields",
 			cmd:  createCommandSASL("scram-sha-512", "user1", "12345"),
 			want: &fastly.CreateKafkaInput{
-				Service:         "123",
-				Version:         2,
-				Name:            fastly.String("log"),
-				Topic:           fastly.String("logs"),
-				Brokers:         fastly.String("127.0.0.1,127.0.0.2"),
-				ParseLogKeyvals: fastly.CBool(true),
-				RequestMaxBytes: fastly.Uint(11111),
-				AuthMethod:      fastly.String("scram-sha-512"),
-				User:            fastly.String("user1"),
-				Password:        fastly.String("12345"),
+				ServiceID:       "123",
+				ServiceVersion:  2,
+				Name:            "log",
+				Topic:           "logs",
+				Brokers:         "127.0.0.1,127.0.0.2",
+				ParseLogKeyvals: true,
+				RequestMaxBytes: 11111,
+				AuthMethod:      "scram-sha-512",
+				User:            "user1",
+				Password:        "12345",
 			},
 		},
 		{
@@ -203,8 +203,8 @@ func TestUpdateKafkaInput(t *testing.T) {
 			api:  mock.API{GetKafkaFn: getKafkaOK},
 			cmd:  updateCommandSASL("scram-sha-512", "user1", "12345"),
 			want: &fastly.UpdateKafkaInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				NewName:           fastly.String("log"),
 				Topic:             fastly.String("logs"),
@@ -232,8 +232,8 @@ func TestUpdateKafkaInput(t *testing.T) {
 			api:  mock.API{GetKafkaFn: getKafkaSASL},
 			cmd:  updateCommandNoSASL(),
 			want: &fastly.UpdateKafkaInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				NewName:           fastly.String("log"),
 				Topic:             fastly.String("logs"),
@@ -333,12 +333,12 @@ func createCommandSASL(authMethod, user, password string) *CreateCommand {
 		Version:         2,
 		Topic:           "logs",
 		Brokers:         "127.0.0.1,127.0.0.2",
-		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 11111},
-		UseSASL:         common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		AuthMethod:      common.OptionalString{Optional: common.Optional{Valid: true}, Value: authMethod},
-		User:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: user},
-		Password:        common.OptionalString{Optional: common.Optional{Valid: true}, Value: password},
+		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
+		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 11111},
+		UseSASL:         common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
+		AuthMethod:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: authMethod},
+		User:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: user},
+		Password:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: password},
 	}
 }
 
@@ -349,12 +349,12 @@ func createCommandNoSASL(authMethod, user, password string) *CreateCommand {
 		Version:         2,
 		Topic:           "logs",
 		Brokers:         "127.0.0.1,127.0.0.2",
-		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 11111},
-		UseSASL:         common.OptionalBool{Optional: common.Optional{Valid: true}, Value: false},
-		AuthMethod:      common.OptionalString{Optional: common.Optional{Valid: true}, Value: authMethod},
-		User:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: user},
-		Password:        common.OptionalString{Optional: common.Optional{Valid: true}, Value: password},
+		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
+		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 11111},
+		UseSASL:         common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: false},
+		AuthMethod:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: authMethod},
+		User:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: user},
+		Password:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: password},
 	}
 }
 
@@ -370,8 +370,8 @@ func updateCommandNoUpdates() *UpdateCommand {
 		manifest:        manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:    "log",
 		Version:         2,
-		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{Valid: true}, Value: false},
-		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 11111},
+		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: false},
+		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 11111},
 	}
 }
 
@@ -472,8 +472,8 @@ func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 
 func getKafkaSASL(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Brokers:           "127.0.0.1,127.0.0.2",
 		Topic:             "logs",

@@ -479,8 +479,8 @@ func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 
 func updateKafkaSASL(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,

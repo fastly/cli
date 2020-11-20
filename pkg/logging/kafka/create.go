@@ -86,7 +86,7 @@ func (c *CreateCommand) createInput() (*fastly.CreateKafkaInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	if c.UseSASL.Valid && c.UseSASL.Value && (c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "") {
+	if c.UseSASL.WasSet && c.UseSASL.Value && (c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "") {
 		return nil, fmt.Errorf("the --auth-method, --username, and --password flags must be present when using the --use-sasl flag")
 	}
 
@@ -144,24 +144,24 @@ func (c *CreateCommand) createInput() (*fastly.CreateKafkaInput, error) {
 		input.Placement = c.Placement.Value
 	}
 
-	if c.ParseLogKeyvals.Valid {
-		input.ParseLogKeyvals = fastly.CBool(c.ParseLogKeyvals.Value)
+	if c.ParseLogKeyvals.WasSet {
+		input.ParseLogKeyvals = fastly.Compatibool(c.ParseLogKeyvals.Value)
 	}
 
-	if c.RequestMaxBytes.Valid {
-		input.RequestMaxBytes = fastly.Uint(c.RequestMaxBytes.Value)
+	if c.RequestMaxBytes.WasSet {
+		input.RequestMaxBytes = c.RequestMaxBytes.Value
 	}
 
-	if c.AuthMethod.Valid {
-		input.AuthMethod = fastly.String(c.AuthMethod.Value)
+	if c.AuthMethod.WasSet {
+		input.AuthMethod = c.AuthMethod.Value
 	}
 
-	if c.User.Valid {
-		input.User = fastly.String(c.User.Value)
+	if c.User.WasSet {
+		input.User = c.User.Value
 	}
 
-	if c.Password.Valid {
-		input.Password = fastly.String(c.Password.Value)
+	if c.Password.WasSet {
+		input.Password = c.Password.Value
 	}
 
 	return &input, nil
