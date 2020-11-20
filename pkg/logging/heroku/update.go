@@ -82,31 +82,31 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateHerokuInput, error) {
 		Placement:         fastly.String(heroku.Placement),
 	}
 
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.Token.Valid {
+	if c.Token.WasSet {
 		input.Token = fastly.String(c.Token.Value)
 	}
 
-	if c.URL.Valid {
+	if c.URL.WasSet {
 		input.URL = fastly.String(c.URL.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 

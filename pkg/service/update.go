@@ -56,7 +56,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	// (and thus be relied upon) at the API layer.
 	//
 	// If neither arguments are provided, error with useful message.
-	if !c.name.Valid && !c.comment.Valid {
+	if !c.name.WasSet && !c.comment.WasSet {
 		return fmt.Errorf("error parsing arguments: must provide either --name or --comment to update service")
 	}
 
@@ -71,10 +71,10 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.updateInput.Comment = fastly.String(s.Comment)
 
 	// update field value as required
-	if c.name.Valid {
+	if c.name.WasSet {
 		c.updateInput.Name = fastly.String(c.name.Value)
 	}
-	if c.comment.Valid {
+	if c.comment.WasSet {
 		c.updateInput.Comment = fastly.String(c.comment.Value)
 	}
 

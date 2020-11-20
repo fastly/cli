@@ -91,51 +91,51 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	// Set values to existing ones to prevent accidental overwrite if empty.
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Comment.Valid {
+	if c.Comment.WasSet {
 		input.Comment = fastly.String(c.Comment.Value)
 	}
 
-	if c.Method.Valid {
+	if c.Method.WasSet {
 		input.Method = fastly.String(c.Method.Value)
 	}
 
-	if c.Host.Valid {
+	if c.Host.WasSet {
 		input.Host = fastly.String(c.Host.Value)
 	}
 
-	if c.Path.Valid {
+	if c.Path.WasSet {
 		input.Path = fastly.String(c.Path.Value)
 	}
 
-	if c.HTTPVersion.Valid {
+	if c.HTTPVersion.WasSet {
 		input.HTTPVersion = fastly.String(c.HTTPVersion.Value)
 	}
 
-	if c.Timeout.Valid {
+	if c.Timeout.WasSet {
 		input.Timeout = fastly.Uint(c.Timeout.Value)
 	}
 
-	if c.CheckInterval.Valid {
+	if c.CheckInterval.WasSet {
 		input.CheckInterval = fastly.Uint(c.CheckInterval.Value)
 	}
 
-	if c.ExpectedResponse.Valid {
+	if c.ExpectedResponse.WasSet {
 		input.ExpectedResponse = fastly.Uint(c.ExpectedResponse.Value)
 	}
 
-	if c.Window.Valid {
+	if c.Window.WasSet {
 		input.Window = fastly.Uint(c.Window.Value)
 	}
 
-	if c.Threshold.Valid {
+	if c.Threshold.WasSet {
 		input.Threshold = fastly.Uint(c.Threshold.Value)
 	}
 
-	if c.Initial.Valid {
+	if c.Initial.WasSet {
 		input.Initial = fastly.Uint(c.Initial.Value)
 	}
 

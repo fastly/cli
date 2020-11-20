@@ -76,7 +76,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// Set the version we want to operate on.
 	// If version not provided infer the latest ideal version from the service.
-	if !c.version.Valid {
+	if !c.version.WasSet {
 		progress.Step("Fetching latest version...")
 		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
 			ServiceID: serviceID,
@@ -119,7 +119,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// If a version wasn't supplied and the ideal version is currently active
 	// or locked, clone it.
-	if !c.version.Valid && version.Active || version.Locked {
+	if !c.version.WasSet && version.Active || version.Locked {
 		progress.Step("Cloning latest version...")
 		version, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      serviceID,

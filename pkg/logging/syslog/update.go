@@ -104,59 +104,59 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSyslogInput, error) {
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Address.Valid {
+	if c.Address.WasSet {
 		input.Address = fastly.String(c.Address.Value)
 	}
 
-	if c.Port.Valid {
+	if c.Port.WasSet {
 		input.Port = fastly.Uint(c.Port.Value)
 	}
 
-	if c.UseTLS.Valid {
+	if c.UseTLS.WasSet {
 		input.UseTLS = fastly.CBool(c.UseTLS.Value)
 	}
 
-	if c.TLSCACert.Valid {
+	if c.TLSCACert.WasSet {
 		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
-	if c.TLSHostname.Valid {
+	if c.TLSHostname.WasSet {
 		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
-	if c.TLSClientCert.Valid {
+	if c.TLSClientCert.WasSet {
 		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
 	}
 
-	if c.TLSClientKey.Valid {
+	if c.TLSClientKey.WasSet {
 		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
 	}
 
-	if c.Token.Valid {
+	if c.Token.WasSet {
 		input.Token = fastly.String(c.Token.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 

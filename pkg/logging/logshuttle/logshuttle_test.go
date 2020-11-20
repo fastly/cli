@@ -136,10 +136,10 @@ func createCommandAll() *CreateCommand {
 		Token:             "tkn",
 		URL:               "example.com",
 		Version:           2,
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -164,13 +164,13 @@ func updateCommandAll() *UpdateCommand {
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
-		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
-		URL:               common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new6"},
+		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		Token:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
+		URL:               common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
 	}
 }
 

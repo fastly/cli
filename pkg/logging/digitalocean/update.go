@@ -107,63 +107,63 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateDigitalOceanInput, error) {
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.BucketName.Valid {
+	if c.BucketName.WasSet {
 		input.BucketName = fastly.String(c.BucketName.Value)
 	}
 
-	if c.Domain.Valid {
+	if c.Domain.WasSet {
 		input.Domain = fastly.String(c.Domain.Value)
 	}
 
-	if c.AccessKey.Valid {
+	if c.AccessKey.WasSet {
 		input.AccessKey = fastly.String(c.AccessKey.Value)
 	}
 
-	if c.SecretKey.Valid {
+	if c.SecretKey.WasSet {
 		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
-	if c.Path.Valid {
+	if c.Path.WasSet {
 		input.Path = fastly.String(c.Path.Value)
 	}
 
-	if c.Period.Valid {
+	if c.Period.WasSet {
 		input.Period = fastly.Uint(c.Period.Value)
 	}
 
-	if c.GzipLevel.Valid {
+	if c.GzipLevel.WasSet {
 		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
-	if c.TimestampFormat.Valid {
+	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
-	if c.PublicKey.Valid {
+	if c.PublicKey.WasSet {
 		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 

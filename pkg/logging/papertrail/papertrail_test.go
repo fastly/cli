@@ -133,11 +133,11 @@ func createCommandAll() *CreateCommand {
 		EndpointName:      "log",
 		Version:           2,
 		Address:           "example.com",
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
-		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 22},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
+		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 22},
 	}
 }
 
@@ -162,13 +162,13 @@ func updateCommandAll() *UpdateCommand {
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
-		Address:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
-		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 23},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
+		Address:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
+		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 23},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 	}
 }
 

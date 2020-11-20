@@ -70,31 +70,31 @@ func (c *CreateCommand) createInput() (*fastly.CreateSplunkInput, error) {
 	input.Name = c.EndpointName
 	input.URL = c.URL
 
-	if c.TLSHostname.Valid {
+	if c.TLSHostname.WasSet {
 		input.TLSHostname = c.TLSHostname.Value
 	}
 
-	if c.TLSCACert.Valid {
+	if c.TLSCACert.WasSet {
 		input.TLSCACert = c.TLSCACert.Value
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.Token.Valid {
+	if c.Token.WasSet {
 		input.Token = c.Token.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 

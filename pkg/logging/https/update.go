@@ -115,75 +115,75 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateHTTPSInput, error) {
 		FormatVersion:     fastly.Uint(https.FormatVersion),
 	}
 
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.URL.Valid {
+	if c.URL.WasSet {
 		input.URL = fastly.String(c.URL.Value)
 	}
 
-	if c.ContentType.Valid {
+	if c.ContentType.WasSet {
 		input.ContentType = fastly.String(c.ContentType.Value)
 	}
 
-	if c.JSONFormat.Valid {
+	if c.JSONFormat.WasSet {
 		input.JSONFormat = fastly.String(c.JSONFormat.Value)
 	}
 
-	if c.HeaderName.Valid {
+	if c.HeaderName.WasSet {
 		input.HeaderName = fastly.String(c.HeaderName.Value)
 	}
 
-	if c.HeaderValue.Valid {
+	if c.HeaderValue.WasSet {
 		input.HeaderValue = fastly.String(c.HeaderValue.Value)
 	}
 
-	if c.Method.Valid {
+	if c.Method.WasSet {
 		input.Method = fastly.String(c.Method.Value)
 	}
 
-	if c.RequestMaxEntries.Valid {
+	if c.RequestMaxEntries.WasSet {
 		input.RequestMaxEntries = fastly.Uint(c.RequestMaxEntries.Value)
 	}
 
-	if c.RequestMaxBytes.Valid {
+	if c.RequestMaxBytes.WasSet {
 		input.RequestMaxBytes = fastly.Uint(c.RequestMaxBytes.Value)
 	}
 
-	if c.TLSCACert.Valid {
+	if c.TLSCACert.WasSet {
 		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
-	if c.TLSClientCert.Valid {
+	if c.TLSClientCert.WasSet {
 		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
 	}
 
-	if c.TLSClientKey.Valid {
+	if c.TLSClientKey.WasSet {
 		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
 	}
 
-	if c.TLSHostname.Valid {
+	if c.TLSHostname.WasSet {
 		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 

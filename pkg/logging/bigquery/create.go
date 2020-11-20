@@ -77,23 +77,23 @@ func (c *CreateCommand) createInput() (*fastly.CreateBigQueryInput, error) {
 	input.Table = c.Table
 	input.SecretKey = c.SecretKey
 
-	if c.Template.Valid {
+	if c.Template.WasSet {
 		input.Template = c.Template.Value
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 

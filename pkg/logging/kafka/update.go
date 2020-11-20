@@ -130,59 +130,59 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 		Password:          fastly.String(kafka.Password),
 	}
 
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Topic.Valid {
+	if c.Topic.WasSet {
 		input.Topic = fastly.String(c.Topic.Value)
 	}
 
-	if c.Brokers.Valid {
+	if c.Brokers.WasSet {
 		input.Brokers = fastly.String(c.Brokers.Value)
 	}
 
-	if c.CompressionCodec.Valid {
+	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
 	}
 
-	if c.RequiredACKs.Valid {
+	if c.RequiredACKs.WasSet {
 		input.RequiredACKs = fastly.String(c.RequiredACKs.Value)
 	}
 
-	if c.UseTLS.Valid {
+	if c.UseTLS.WasSet {
 		input.UseTLS = fastly.CBool(c.UseTLS.Value)
 	}
 
-	if c.TLSCACert.Valid {
+	if c.TLSCACert.WasSet {
 		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
-	if c.TLSClientCert.Valid {
+	if c.TLSClientCert.WasSet {
 		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
 	}
 
-	if c.TLSClientKey.Valid {
+	if c.TLSClientKey.WasSet {
 		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
 	}
 
-	if c.TLSHostname.Valid {
+	if c.TLSHostname.WasSet {
 		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 

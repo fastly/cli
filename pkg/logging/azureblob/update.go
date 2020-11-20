@@ -104,59 +104,59 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateBlobStorageInput, error) {
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Path.Valid {
+	if c.Path.WasSet {
 		input.Path = fastly.String(c.Path.Value)
 	}
 
-	if c.AccountName.Valid {
+	if c.AccountName.WasSet {
 		input.AccountName = fastly.String(c.AccountName.Value)
 	}
 
-	if c.Container.Valid {
+	if c.Container.WasSet {
 		input.Container = fastly.String(c.Container.Value)
 	}
 
-	if c.SASToken.Valid {
+	if c.SASToken.WasSet {
 		input.SASToken = fastly.String(c.SASToken.Value)
 	}
 
-	if c.Period.Valid {
+	if c.Period.WasSet {
 		input.Period = fastly.Uint(c.Period.Value)
 	}
 
-	if c.GzipLevel.Valid {
+	if c.GzipLevel.WasSet {
 		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
-	if c.TimestampFormat.Valid {
+	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
-	if c.PublicKey.Valid {
+	if c.PublicKey.WasSet {
 		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 

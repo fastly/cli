@@ -65,23 +65,23 @@ func (c *CreateCommand) createInput() (*fastly.CreateSumologicInput, error) {
 	input.Name = c.EndpointName
 	input.URL = c.URL
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = c.MessageType.Value
 	}
 

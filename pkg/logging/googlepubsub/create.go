@@ -72,19 +72,19 @@ func (c *CreateCommand) createInput() (*fastly.CreatePubsubInput, error) {
 	input.Topic = c.Topic
 	input.ProjectID = c.ProjectID
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 

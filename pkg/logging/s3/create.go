@@ -89,55 +89,55 @@ func (c *CreateCommand) createInput() (*fastly.CreateS3Input, error) {
 	input.AccessKey = c.AccessKey
 	input.SecretKey = c.SecretKey
 
-	if c.Domain.Valid {
+	if c.Domain.WasSet {
 		input.Domain = c.Domain.Value
 	}
 
-	if c.Path.Valid {
+	if c.Path.WasSet {
 		input.Path = c.Path.Value
 	}
 
-	if c.Period.Valid {
+	if c.Period.WasSet {
 		input.Period = c.Period.Value
 	}
 
-	if c.GzipLevel.Valid {
+	if c.GzipLevel.WasSet {
 		input.GzipLevel = c.GzipLevel.Value
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = c.MessageType.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.TimestampFormat.Valid {
+	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = c.TimestampFormat.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 
-	if c.PublicKey.Valid {
+	if c.PublicKey.WasSet {
 		input.PublicKey = c.PublicKey.Value
 	}
 
-	if c.ServerSideEncryptionKMSKeyID.Valid {
+	if c.ServerSideEncryptionKMSKeyID.WasSet {
 		input.ServerSideEncryptionKMSKeyID = c.ServerSideEncryptionKMSKeyID.Value
 	}
 
-	if c.Redundancy.Valid {
+	if c.Redundancy.WasSet {
 		switch c.Redundancy.Value {
 		case string(fastly.S3RedundancyStandard):
 			input.Redundancy = fastly.S3RedundancyStandard
@@ -146,7 +146,7 @@ func (c *CreateCommand) createInput() (*fastly.CreateS3Input, error) {
 		}
 	}
 
-	if c.ServerSideEncryption.Valid {
+	if c.ServerSideEncryption.WasSet {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
 			input.ServerSideEncryption = fastly.S3ServerSideEncryptionAES

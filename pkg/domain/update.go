@@ -44,7 +44,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.getInput.ServiceID = serviceID
 
 	// If neither arguments are provided, error with useful message.
-	if c.updateInput.NewName == "" && !c.Comment.Valid {
+	if c.updateInput.NewName == "" && !c.Comment.WasSet {
 		return fmt.Errorf("error parsing arguments: must provide either --new-name or --comment to update domain")
 	}
 
@@ -62,7 +62,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.updateInput.NewName == "" {
 		c.updateInput.NewName = d.Name
 	}
-	if c.Comment.Valid {
+	if c.Comment.WasSet {
 		c.updateInput.Comment = fastly.String(c.Comment.Value)
 	}
 

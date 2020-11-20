@@ -100,47 +100,47 @@ func (c *CreateCommand) createInput() (*fastly.CreateKafkaInput, error) {
 	input.Topic = c.Topic
 	input.Brokers = c.Brokers
 
-	if c.CompressionCodec.Valid {
+	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = c.CompressionCodec.Value
 	}
 
-	if c.RequiredACKs.Valid {
+	if c.RequiredACKs.WasSet {
 		input.RequiredACKs = c.RequiredACKs.Value
 	}
 
-	if c.UseTLS.Valid {
+	if c.UseTLS.WasSet {
 		input.UseTLS = fastly.Compatibool(c.UseTLS.Value)
 	}
 
-	if c.TLSCACert.Valid {
+	if c.TLSCACert.WasSet {
 		input.TLSCACert = c.TLSCACert.Value
 	}
 
-	if c.TLSClientCert.Valid {
+	if c.TLSClientCert.WasSet {
 		input.TLSClientCert = c.TLSClientCert.Value
 	}
 
-	if c.TLSClientKey.Valid {
+	if c.TLSClientKey.WasSet {
 		input.TLSClientKey = c.TLSClientKey.Value
 	}
 
-	if c.TLSHostname.Valid {
+	if c.TLSHostname.WasSet {
 		input.TLSHostname = c.TLSHostname.Value
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 

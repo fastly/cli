@@ -88,39 +88,39 @@ func (c *UpdateCommand) createInput() (*fastly.UpdatePubsubInput, error) {
 		ResponseCondition: fastly.String(googlepubsub.ResponseCondition),
 	}
 
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.User.Valid {
+	if c.User.WasSet {
 		input.User = fastly.String(c.User.Value)
 	}
 
-	if c.SecretKey.Valid {
+	if c.SecretKey.WasSet {
 		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
-	if c.Topic.Valid {
+	if c.Topic.WasSet {
 		input.Topic = fastly.String(c.Topic.Value)
 	}
 
-	if c.ProjectID.Valid {
+	if c.ProjectID.WasSet {
 		input.ProjectID = fastly.String(c.ProjectID.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 

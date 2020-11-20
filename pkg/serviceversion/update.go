@@ -49,7 +49,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	c.getInput.ID = serviceID
 
-	if !c.comment.Valid {
+	if !c.comment.WasSet {
 		return fmt.Errorf("error parsing arguments: required flag --comment not provided")
 	}
 
@@ -63,7 +63,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.updateInput.Comment = &s.Comment
 
 	// update field value as required
-	if c.comment.Valid {
+	if c.comment.WasSet {
 		c.updateInput.Comment = fastly.String(c.comment.Value)
 	}
 

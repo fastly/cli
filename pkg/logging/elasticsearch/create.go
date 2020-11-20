@@ -82,55 +82,55 @@ func (c *CreateCommand) createInput() (*fastly.CreateElasticsearchInput, error) 
 	input.Index = c.Index
 	input.URL = c.URL
 
-	if c.Pipeline.Valid {
+	if c.Pipeline.WasSet {
 		input.Pipeline = c.Pipeline.Value
 	}
 
-	if c.RequestMaxEntries.Valid {
+	if c.RequestMaxEntries.WasSet {
 		input.RequestMaxEntries = c.RequestMaxEntries.Value
 	}
 
-	if c.RequestMaxBytes.Valid {
+	if c.RequestMaxBytes.WasSet {
 		input.RequestMaxBytes = c.RequestMaxBytes.Value
 	}
 
-	if c.User.Valid {
+	if c.User.WasSet {
 		input.User = c.User.Value
 	}
 
-	if c.Password.Valid {
+	if c.Password.WasSet {
 		input.Password = c.Password.Value
 	}
 
-	if c.TLSCACert.Valid {
+	if c.TLSCACert.WasSet {
 		input.TLSCACert = c.TLSCACert.Value
 	}
 
-	if c.TLSClientCert.Valid {
+	if c.TLSClientCert.WasSet {
 		input.TLSClientCert = c.TLSClientCert.Value
 	}
 
-	if c.TLSClientKey.Valid {
+	if c.TLSClientKey.WasSet {
 		input.TLSClientKey = c.TLSClientKey.Value
 	}
 
-	if c.TLSHostname.Valid {
+	if c.TLSHostname.WasSet {
 		input.TLSHostname = c.TLSHostname.Value
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 

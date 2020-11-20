@@ -79,39 +79,39 @@ func (c *CreateCommand) createInput() (*fastly.CreateFTPInput, error) {
 	input.Username = c.Username
 	input.Password = c.Password
 
-	if c.Port.Valid {
+	if c.Port.WasSet {
 		input.Port = c.Port.Value
 	}
 
-	if c.Path.Valid {
+	if c.Path.WasSet {
 		input.Path = c.Path.Value
 	}
 
-	if c.Period.Valid {
+	if c.Period.WasSet {
 		input.Period = c.Period.Value
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.GzipLevel.Valid {
+	if c.GzipLevel.WasSet {
 		input.GzipLevel = c.GzipLevel.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.TimestampFormat.Valid {
+	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = c.TimestampFormat.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 

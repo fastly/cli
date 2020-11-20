@@ -65,23 +65,23 @@ func (c *CreateCommand) createInput() (*fastly.CreatePapertrailInput, error) {
 	input.ServiceVersion = c.Version
 	input.Address = c.Address
 
-	if c.Port.Valid {
+	if c.Port.WasSet {
 		input.Port = c.Port.Value
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 

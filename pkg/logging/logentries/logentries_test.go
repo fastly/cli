@@ -125,13 +125,13 @@ func createCommandOK() *CreateCommand {
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 22},
-		UseTLS:            common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "tkn"},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 22},
+		UseTLS:            common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
+		Token:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "tkn"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -164,14 +164,14 @@ func updateCommandAll() *UpdateCommand {
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 23},
-		UseTLS:            common.OptionalBool{Optional: common.Optional{Valid: true}, Value: true},
-		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
-		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 23},
+		UseTLS:            common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
+		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
+		Token:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 	}
 }
 
