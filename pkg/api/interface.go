@@ -16,6 +16,10 @@ type HTTPClient interface {
 
 // Interface models the methods of the Fastly API client that we use.
 // It exists to allow for easier testing, in combination with Mock.
+//
+// TODO(integralist):
+// there are missing methods such as GetVersion from this list so review in
+// future the missing features in CLI and implement here.
 type Interface interface {
 	GetTokenSelf() (*fastly.Token, error)
 
