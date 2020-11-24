@@ -32,7 +32,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("version", "Number of version you wish to update").Required().IntVar(&c.updateInput.ServiceVersion)
 
 	// TODO(integralist):
-	// make 'comment' field mandatory once we roll out a new release of Go-Fastly
+	// Make 'comment' field mandatory once we roll out a new release of Go-Fastly
 	// which will hopefully have better/more correct consistency as far as which
 	// fields are supposed to be optional and which should be 'required'.
 	//
@@ -58,11 +58,11 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	// set original value, and then afterwards check if we can use the flag value
+	// Set original value, and then afterwards check if we can use the flag value.
 	c.updateInput.ServiceID = serviceID
 	c.updateInput.Comment = &s.Comment
 
-	// update field value as required
+	// Update field value as required.
 	if c.comment.WasSet {
 		c.updateInput.Comment = fastly.String(c.comment.Value)
 	}

@@ -18,7 +18,7 @@ type HTTPClient interface {
 // It exists to allow for easier testing, in combination with Mock.
 //
 // TODO(integralist):
-// there are missing methods such as GetVersion from this list so review in
+// There are missing methods such as GetVersion from this list so review in
 // future the missing features in CLI and implement here.
 type Interface interface {
 	GetTokenSelf() (*fastly.Token, error)

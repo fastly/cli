@@ -56,7 +56,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.updateInput.ServiceID = d.ServiceID
 	c.updateInput.ServiceVersion = d.ServiceVersion
 
-	// set original value, and then afterwards check if we can use the flag value
+	// Set original value, and then afterwards check if we can use the flag value.
 	c.updateInput.Comment = &d.Comment
 
 	if c.updateInput.NewName == "" {
