@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.20.0](https://github.com/fastly/cli/releases/tag/v0.20.0) (2020-11-24)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.19.0...v0.20.0)
+
+**Enhancements:**
+
+- Migrate to Go-Fastly 2.0.0 [\#169](https://github.com/fastly/cli/pull/169)
+
+**Bug fixes:**
+
+- Build failure with Cargo workspaces [\#171](https://github.com/fastly/cli/issues/171)
+- Support cargo workspaces [\#172](https://github.com/fastly/cli/pull/172)
+
 ## [v0.19.0](https://github.com/fastly/cli/releases/tag/v0.19.0) (2020-11-19)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.18.1...v0.19.0)
