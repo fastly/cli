@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Amazon S3 logging endpoints.
@@ -84,103 +84,103 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateS3Input, error) {
 	}
 
 	s3, err := c.Globals.Client.GetS3(&fastly.GetS3Input{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateS3Input{
-		Service:                      s3.ServiceID,
-		Version:                      s3.Version,
+		ServiceID:                    s3.ServiceID,
+		ServiceVersion:               s3.ServiceVersion,
 		Name:                         s3.Name,
-		NewName:                      s3.Name,
-		BucketName:                   s3.BucketName,
-		Domain:                       s3.Domain,
-		AccessKey:                    s3.AccessKey,
-		SecretKey:                    s3.SecretKey,
-		Path:                         s3.Path,
-		Period:                       s3.Period,
-		GzipLevel:                    s3.GzipLevel,
-		Format:                       s3.Format,
-		FormatVersion:                s3.FormatVersion,
-		ResponseCondition:            s3.ResponseCondition,
-		MessageType:                  s3.MessageType,
-		TimestampFormat:              s3.TimestampFormat,
+		NewName:                      fastly.String(s3.Name),
+		BucketName:                   fastly.String(s3.BucketName),
+		Domain:                       fastly.String(s3.Domain),
+		AccessKey:                    fastly.String(s3.AccessKey),
+		SecretKey:                    fastly.String(s3.SecretKey),
+		Path:                         fastly.String(s3.Path),
+		Period:                       fastly.Uint(s3.Period),
+		GzipLevel:                    fastly.Uint(s3.GzipLevel),
+		Format:                       fastly.String(s3.Format),
+		FormatVersion:                fastly.Uint(s3.FormatVersion),
+		ResponseCondition:            fastly.String(s3.ResponseCondition),
+		MessageType:                  fastly.String(s3.MessageType),
+		TimestampFormat:              fastly.String(s3.TimestampFormat),
 		Redundancy:                   s3.Redundancy,
-		Placement:                    s3.Placement,
-		PublicKey:                    s3.PublicKey,
+		Placement:                    fastly.String(s3.Placement),
+		PublicKey:                    fastly.String(s3.PublicKey),
 		ServerSideEncryption:         s3.ServerSideEncryption,
-		ServerSideEncryptionKMSKeyID: s3.ServerSideEncryptionKMSKeyID,
+		ServerSideEncryptionKMSKeyID: fastly.String(s3.ServerSideEncryptionKMSKeyID),
 	}
 
-	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+	if c.NewName.WasSet {
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.BucketName.Valid {
-		input.BucketName = c.BucketName.Value
+	if c.BucketName.WasSet {
+		input.BucketName = fastly.String(c.BucketName.Value)
 	}
 
-	if c.AccessKey.Valid {
-		input.AccessKey = c.AccessKey.Value
+	if c.AccessKey.WasSet {
+		input.AccessKey = fastly.String(c.AccessKey.Value)
 	}
 
-	if c.SecretKey.Valid {
-		input.SecretKey = c.SecretKey.Value
+	if c.SecretKey.WasSet {
+		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
-	if c.Domain.Valid {
-		input.Domain = c.Domain.Value
+	if c.Domain.WasSet {
+		input.Domain = fastly.String(c.Domain.Value)
 	}
 
-	if c.Path.Valid {
-		input.Path = c.Path.Value
+	if c.Path.WasSet {
+		input.Path = fastly.String(c.Path.Value)
 	}
 
-	if c.Period.Valid {
-		input.Period = c.Period.Value
+	if c.Period.WasSet {
+		input.Period = fastly.Uint(c.Period.Value)
 	}
 
-	if c.GzipLevel.Valid {
-		input.GzipLevel = c.GzipLevel.Value
+	if c.GzipLevel.WasSet {
+		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
 	}
 
-	if c.Format.Valid {
-		input.Format = c.Format.Value
+	if c.Format.WasSet {
+		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.MessageType.Valid {
-		input.MessageType = c.MessageType.Value
+	if c.MessageType.WasSet {
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
-	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.TimestampFormat.Valid {
-		input.TimestampFormat = c.TimestampFormat.Value
+	if c.TimestampFormat.WasSet {
+		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
-	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+	if c.Placement.WasSet {
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
-	if c.PublicKey.Valid {
-		input.PublicKey = c.PublicKey.Value
+	if c.PublicKey.WasSet {
+		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
-	if c.ServerSideEncryptionKMSKeyID.Valid {
-		input.ServerSideEncryptionKMSKeyID = c.ServerSideEncryptionKMSKeyID.Value
+	if c.ServerSideEncryptionKMSKeyID.WasSet {
+		input.ServerSideEncryptionKMSKeyID = fastly.String(c.ServerSideEncryptionKMSKeyID.Value)
 	}
 
-	if c.Redundancy.Valid {
+	if c.Redundancy.WasSet {
 		switch c.Redundancy.Value {
 		case string(fastly.S3RedundancyStandard):
 			input.Redundancy = fastly.S3RedundancyStandard
@@ -189,7 +189,7 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateS3Input, error) {
 		}
 	}
 
-	if c.ServerSideEncryption.Valid {
+	if c.ServerSideEncryption.WasSet {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
 			input.ServerSideEncryption = fastly.S3ServerSideEncryptionAES
@@ -213,6 +213,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated S3 logging endpoint %s (service %s version %d)", s3.Name, s3.ServiceID, s3.Version)
+	text.Success(out, "Updated S3 logging endpoint %s (service %s version %d)", s3.Name, s3.ServiceID, s3.ServiceVersion)
 	return nil
 }

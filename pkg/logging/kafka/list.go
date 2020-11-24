@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list Kafka logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List Kafka endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	kafkas, err := c.Globals.Client.ListKafkas(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, kafka := range kafkas {
-			tw.AddLine(kafka.ServiceID, kafka.Version, kafka.Name)
+			tw.AddLine(kafka.ServiceID, kafka.ServiceVersion, kafka.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, kafka := range kafkas {
 		fmt.Fprintf(out, "\tKafka %d/%d\n", i+1, len(kafkas))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", kafka.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", kafka.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", kafka.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", kafka.Name)
 		fmt.Fprintf(out, "\t\tTopic: %s\n", kafka.Topic)
 		fmt.Fprintf(out, "\t\tBrokers: %s\n", kafka.Brokers)

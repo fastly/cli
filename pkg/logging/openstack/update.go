@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update OpenStack logging endpoints.
@@ -77,17 +77,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateOpenstackInput, error) {
 	}
 
 	openstack, err := c.Globals.Client.GetOpenstack(&fastly.GetOpenstackInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateOpenstackInput{
-		Service:           openstack.ServiceID,
-		Version:           openstack.Version,
+		ServiceID:         openstack.ServiceID,
+		ServiceVersion:    openstack.ServiceVersion,
 		Name:              openstack.Name,
 		NewName:           fastly.String(openstack.Name),
 		BucketName:        fastly.String(openstack.BucketName),
@@ -107,63 +107,63 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateOpenstackInput, error) {
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.BucketName.Valid {
+	if c.BucketName.WasSet {
 		input.BucketName = fastly.String(c.BucketName.Value)
 	}
 
-	if c.AccessKey.Valid {
+	if c.AccessKey.WasSet {
 		input.AccessKey = fastly.String(c.AccessKey.Value)
 	}
 
-	if c.User.Valid {
+	if c.User.WasSet {
 		input.User = fastly.String(c.User.Value)
 	}
 
-	if c.URL.Valid {
+	if c.URL.WasSet {
 		input.URL = fastly.String(c.URL.Value)
 	}
 
-	if c.Path.Valid {
+	if c.Path.WasSet {
 		input.Path = fastly.String(c.Path.Value)
 	}
 
-	if c.Period.Valid {
+	if c.Period.WasSet {
 		input.Period = fastly.Uint(c.Period.Value)
 	}
 
-	if c.GzipLevel.Valid {
+	if c.GzipLevel.WasSet {
 		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
-	if c.TimestampFormat.Valid {
+	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
-	if c.PublicKey.Valid {
+	if c.PublicKey.WasSet {
 		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
@@ -182,6 +182,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated OpenStack logging endpoint %s (service %s version %d)", openstack.Name, openstack.ServiceID, openstack.Version)
+	text.Success(out, "Updated OpenStack logging endpoint %s (service %s version %d)", openstack.Name, openstack.ServiceID, openstack.ServiceVersion)
 	return nil
 }

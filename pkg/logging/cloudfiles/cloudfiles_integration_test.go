@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCloudfilesCreate(t *testing.T) {
@@ -263,12 +263,12 @@ var errTest = errors.New("fixture error")
 
 func createCloudfilesOK(i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	s := fastly.Cloudfiles{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != nil {
-		s.Name = *i.Name
+	if i.Name != "" {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -281,8 +281,8 @@ func createCloudfilesError(i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles,
 func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error) {
 	return []*fastly.Cloudfiles{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			User:              "username",
 			AccessKey:         "1234",
@@ -300,8 +300,8 @@ func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, erro
 			PublicKey:         pgpPublicKey(),
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			User:              "username",
 			AccessKey:         "1234",
@@ -376,8 +376,8 @@ Version: 1
 
 func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return &fastly.Cloudfiles{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		User:              "username",
 		AccessKey:         "1234",
@@ -422,8 +422,8 @@ Public key: `+pgpPublicKey()+`
 
 func updateCloudfilesOK(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return &fastly.Cloudfiles{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		User:              "username",
 		AccessKey:         "1234",

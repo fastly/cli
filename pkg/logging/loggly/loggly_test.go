@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateLogglyInput(t *testing.T) {
@@ -23,24 +23,24 @@ func TestCreateLogglyInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateLogglyInput{
-				Service: "123",
-				Version: 2,
-				Name:    fastly.String("log"),
-				Token:   fastly.String("tkn"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				Token:          "tkn",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandOK(),
 			want: &fastly.CreateLogglyInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("log"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				Token:             fastly.String("tkn"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "log",
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				FormatVersion:     2,
+				Token:             "tkn",
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
 			},
 		},
 		{
@@ -71,8 +71,8 @@ func TestUpdateLogglyInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetLogglyFn: getLogglyOK},
 			want: &fastly.UpdateLogglyInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("logs"),
 				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
@@ -87,8 +87,8 @@ func TestUpdateLogglyInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetLogglyFn: getLogglyOK},
 			want: &fastly.UpdateLogglyInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				Format:            fastly.String("new2"),
@@ -121,10 +121,10 @@ func createCommandOK() *CreateCommand {
 		EndpointName:      "log",
 		Token:             "tkn",
 		Version:           2,
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -158,12 +158,12 @@ func updateCommandAll() *UpdateCommand {
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
-		Token:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		Token:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 	}
 }
 
@@ -175,8 +175,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getLogglyOK(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 	return &fastly.Loggly{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Token:             "tkn",
 		Format:            `%h %l %u %t "%r" %>s %b`,

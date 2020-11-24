@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create Logentries logging endpoints.
@@ -61,35 +61,35 @@ func (c *CreateCommand) createInput() (*fastly.CreateLogentriesInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	input.Service = serviceID
-	input.Version = c.Version
+	input.ServiceID = serviceID
+	input.ServiceVersion = c.Version
 	input.Name = c.EndpointName
 
-	if c.Port.Valid {
+	if c.Port.WasSet {
 		input.Port = c.Port.Value
 	}
 
-	if c.UseTLS.Valid {
-		input.UseTLS = fastly.CBool(c.UseTLS.Value)
+	if c.UseTLS.WasSet {
+		input.UseTLS = fastly.Compatibool(c.UseTLS.Value)
 	}
 
-	if c.Token.Valid {
+	if c.Token.WasSet {
 		input.Token = c.Token.Value
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 
@@ -108,6 +108,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Logentries logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Created Logentries logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 	return nil
 }

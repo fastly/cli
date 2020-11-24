@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Google Cloud Pub/Sub logging endpoints.
@@ -65,17 +65,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdatePubsubInput, error) {
 	}
 
 	googlepubsub, err := c.Globals.Client.GetPubsub(&fastly.GetPubsubInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdatePubsubInput{
-		Service:           googlepubsub.ServiceID,
-		Version:           googlepubsub.Version,
+		ServiceID:         googlepubsub.ServiceID,
+		ServiceVersion:    googlepubsub.ServiceVersion,
 		Name:              googlepubsub.Name,
 		NewName:           fastly.String(googlepubsub.Name),
 		User:              fastly.String(googlepubsub.User),
@@ -88,39 +88,39 @@ func (c *UpdateCommand) createInput() (*fastly.UpdatePubsubInput, error) {
 		ResponseCondition: fastly.String(googlepubsub.ResponseCondition),
 	}
 
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.User.Valid {
+	if c.User.WasSet {
 		input.User = fastly.String(c.User.Value)
 	}
 
-	if c.SecretKey.Valid {
+	if c.SecretKey.WasSet {
 		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
-	if c.Topic.Valid {
+	if c.Topic.WasSet {
 		input.Topic = fastly.String(c.Topic.Value)
 	}
 
-	if c.ProjectID.Valid {
+	if c.ProjectID.WasSet {
 		input.ProjectID = fastly.String(c.ProjectID.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
@@ -139,6 +139,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Google Cloud Pub/Sub logging endpoint %s (service %s version %d)", googlepubsub.Name, googlepubsub.ServiceID, googlepubsub.Version)
+	text.Success(out, "Updated Google Cloud Pub/Sub logging endpoint %s (service %s version %d)", googlepubsub.Name, googlepubsub.ServiceID, googlepubsub.ServiceVersion)
 	return nil
 }

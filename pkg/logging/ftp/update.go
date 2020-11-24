@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update FTP logging endpoints.
@@ -75,89 +75,89 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateFTPInput, error) {
 	}
 
 	ftp, err := c.Globals.Client.GetFTP(&fastly.GetFTPInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateFTPInput{
-		Service:           ftp.ServiceID,
-		Version:           ftp.Version,
+		ServiceID:         ftp.ServiceID,
+		ServiceVersion:    ftp.ServiceVersion,
 		Name:              ftp.Name,
-		NewName:           ftp.Name,
-		Address:           ftp.Address,
-		Port:              ftp.Port,
-		PublicKey:         ftp.PublicKey,
-		Username:          ftp.Username,
-		Password:          ftp.Password,
-		Path:              ftp.Path,
-		Period:            ftp.Period,
-		FormatVersion:     ftp.FormatVersion,
-		GzipLevel:         ftp.GzipLevel,
-		Format:            ftp.Format,
-		ResponseCondition: ftp.ResponseCondition,
-		TimestampFormat:   ftp.TimestampFormat,
-		Placement:         ftp.Placement,
+		NewName:           fastly.String(ftp.Name),
+		Address:           fastly.String(ftp.Address),
+		Port:              fastly.Uint(ftp.Port),
+		PublicKey:         fastly.String(ftp.PublicKey),
+		Username:          fastly.String(ftp.Username),
+		Password:          fastly.String(ftp.Password),
+		Path:              fastly.String(ftp.Path),
+		Period:            fastly.Uint(ftp.Period),
+		FormatVersion:     fastly.Uint(ftp.FormatVersion),
+		GzipLevel:         fastly.Uint8(ftp.GzipLevel),
+		Format:            fastly.String(ftp.Format),
+		ResponseCondition: fastly.String(ftp.ResponseCondition),
+		TimestampFormat:   fastly.String(ftp.TimestampFormat),
+		Placement:         fastly.String(ftp.Placement),
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+	if c.NewName.WasSet {
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Address.Valid {
-		input.Address = c.Address.Value
+	if c.Address.WasSet {
+		input.Address = fastly.String(c.Address.Value)
 	}
 
-	if c.Port.Valid {
-		input.Port = c.Port.Value
+	if c.Port.WasSet {
+		input.Port = fastly.Uint(c.Port.Value)
 	}
 
-	if c.Username.Valid {
-		input.Username = c.Username.Value
+	if c.Username.WasSet {
+		input.Username = fastly.String(c.Username.Value)
 	}
 
-	if c.Password.Valid {
-		input.Password = c.Password.Value
+	if c.Password.WasSet {
+		input.Password = fastly.String(c.Password.Value)
 	}
 
-	if c.PublicKey.Valid {
-		input.PublicKey = c.PublicKey.Value
+	if c.PublicKey.WasSet {
+		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
-	if c.Path.Valid {
-		input.Path = c.Path.Value
+	if c.Path.WasSet {
+		input.Path = fastly.String(c.Path.Value)
 	}
 
-	if c.Period.Valid {
-		input.Period = c.Period.Value
+	if c.Period.WasSet {
+		input.Period = fastly.Uint(c.Period.Value)
 	}
 
-	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.GzipLevel.Valid {
-		input.GzipLevel = c.GzipLevel.Value
+	if c.GzipLevel.WasSet {
+		input.GzipLevel = fastly.Uint8(c.GzipLevel.Value)
 	}
 
-	if c.Format.Valid {
-		input.Format = c.Format.Value
+	if c.Format.WasSet {
+		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.TimestampFormat.Valid {
-		input.TimestampFormat = c.TimestampFormat.Value
+	if c.TimestampFormat.WasSet {
+		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
-	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+	if c.Placement.WasSet {
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil
@@ -175,6 +175,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated FTP logging endpoint %s (service %s version %d)", ftp.Name, ftp.ServiceID, ftp.Version)
+	text.Success(out, "Updated FTP logging endpoint %s (service %s version %d)", ftp.Name, ftp.ServiceID, ftp.ServiceVersion)
 	return nil
 }

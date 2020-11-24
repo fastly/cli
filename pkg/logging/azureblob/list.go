@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list Azure Blob Storage logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List Azure Blob Storage logging endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	azureblobs, err := c.Globals.Client.ListBlobStorages(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, azureblob := range azureblobs {
-			tw.AddLine(azureblob.ServiceID, azureblob.Version, azureblob.Name)
+			tw.AddLine(azureblob.ServiceID, azureblob.ServiceVersion, azureblob.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, azureblob := range azureblobs {
 		fmt.Fprintf(out, "\tBlobStorage %d/%d\n", i+1, len(azureblobs))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", azureblob.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", azureblob.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", azureblob.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", azureblob.Name)
 		fmt.Fprintf(out, "\t\tContainer: %s\n", azureblob.Container)
 		fmt.Fprintf(out, "\t\tAccount name: %s\n", azureblob.AccountName)

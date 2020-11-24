@@ -13,14 +13,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dustinkirkland/golang-petname"
+	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
@@ -301,7 +301,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Otherwise create a new service and set version to 1.
 	if serviceID != "" {
 		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
-			Service: serviceID,
+			ServiceID: serviceID,
 		})
 		if err != nil {
 			return fmt.Errorf("error listing service versions: %w", err)
@@ -315,8 +315,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if v.Active || v.Locked {
 			progress.Step("Cloning latest version...")
 			v, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
-				Service: serviceID,
-				Version: v.Number,
+				ServiceID:      serviceID,
+				ServiceVersion: v.Number,
 			})
 			if err != nil {
 				return fmt.Errorf("error cloning latest service version: %w", err)
@@ -344,36 +344,36 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Creating domain...")
 	_, err = c.Globals.Client.CreateDomain(&fastly.CreateDomainInput{
-		Service: service.ID,
-		Version: version,
-		Name:    c.domain,
+		ServiceID:      service.ID,
+		ServiceVersion: version,
+		Name:           c.domain,
 	})
 	if err != nil {
 		return fmt.Errorf("error creating domain: %w", err)
 	}
 	undoStack.Push(func() error {
 		return c.Globals.Client.DeleteDomain(&fastly.DeleteDomainInput{
-			Service: service.ID,
-			Version: version,
-			Name:    c.domain,
+			ServiceID:      service.ID,
+			ServiceVersion: version,
+			Name:           c.domain,
 		})
 	})
 
 	progress.Step("Creating backend...")
 	_, err = c.Globals.Client.CreateBackend(&fastly.CreateBackendInput{
-		Service: service.ID,
-		Version: version,
-		Name:    c.backend,
-		Address: c.backend,
+		ServiceID:      service.ID,
+		ServiceVersion: version,
+		Name:           c.backend,
+		Address:        c.backend,
 	})
 	if err != nil {
 		return fmt.Errorf("error creating backend: %w", err)
 	}
 	undoStack.Push(func() error {
 		return c.Globals.Client.DeleteBackend(&fastly.DeleteBackendInput{
-			Service: service.ID,
-			Version: version,
-			Name:    c.backend,
+			ServiceID:      service.ID,
+			ServiceVersion: version,
+			Name:           c.backend,
 		})
 	})
 

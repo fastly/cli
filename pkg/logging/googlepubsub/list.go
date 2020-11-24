@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list Google Cloud Pub/Sub logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List Google Cloud Pub/Sub endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	googlepubsubs, err := c.Globals.Client.ListPubsubs(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, googlepubsub := range googlepubsubs {
-			tw.AddLine(googlepubsub.ServiceID, googlepubsub.Version, googlepubsub.Name)
+			tw.AddLine(googlepubsub.ServiceID, googlepubsub.ServiceVersion, googlepubsub.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, googlepubsub := range googlepubsubs {
 		fmt.Fprintf(out, "\tGoogle Cloud Pub/Sub %d/%d\n", i+1, len(googlepubsubs))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", googlepubsub.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", googlepubsub.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", googlepubsub.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", googlepubsub.Name)
 		fmt.Fprintf(out, "\t\tUser: %s\n", googlepubsub.User)
 		fmt.Fprintf(out, "\t\tSecret key: %s\n", googlepubsub.SecretKey)

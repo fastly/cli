@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update SFTP logging endpoints.
@@ -81,17 +81,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSFTPInput, error) {
 	}
 
 	sftp, err := c.Globals.Client.GetSFTP(&fastly.GetSFTPInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateSFTPInput{
-		Service:           sftp.ServiceID,
-		Version:           sftp.Version,
+		ServiceID:         sftp.ServiceID,
+		ServiceVersion:    sftp.ServiceVersion,
 		Name:              sftp.Name,
 		NewName:           fastly.String(sftp.Name),
 		Address:           fastly.String(sftp.Address),
@@ -112,71 +112,71 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSFTPInput, error) {
 		Placement:         fastly.String(sftp.Placement),
 	}
 
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Address.Valid {
+	if c.Address.WasSet {
 		input.Address = fastly.String(c.Address.Value)
 	}
 
-	if c.Port.Valid {
+	if c.Port.WasSet {
 		input.Port = fastly.Uint(c.Port.Value)
 	}
 
-	if c.Password.Valid {
+	if c.Password.WasSet {
 		input.Password = fastly.String(c.Password.Value)
 	}
 
-	if c.PublicKey.Valid {
+	if c.PublicKey.WasSet {
 		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
-	if c.SecretKey.Valid {
+	if c.SecretKey.WasSet {
 		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
-	if c.SSHKnownHosts.Valid {
+	if c.SSHKnownHosts.WasSet {
 		input.SSHKnownHosts = fastly.String(c.SSHKnownHosts.Value)
 	}
 
-	if c.User.Valid {
+	if c.User.WasSet {
 		input.User = fastly.String(c.User.Value)
 	}
 
-	if c.Path.Valid {
+	if c.Path.WasSet {
 		input.Path = fastly.String(c.Path.Value)
 	}
 
-	if c.Period.Valid {
+	if c.Period.WasSet {
 		input.Period = fastly.Uint(c.Period.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.GzipLevel.Valid {
+	if c.GzipLevel.WasSet {
 		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.TimestampFormat.Valid {
+	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
@@ -195,6 +195,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated SFTP logging endpoint %s (service %s version %d)", sftp.Name, sftp.ServiceID, sftp.Version)
+	text.Success(out, "Updated SFTP logging endpoint %s (service %s version %d)", sftp.Name, sftp.ServiceID, sftp.ServiceVersion)
 	return nil
 }

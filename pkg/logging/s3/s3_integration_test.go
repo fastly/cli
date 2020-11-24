@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestS3Create(t *testing.T) {
@@ -255,9 +255,9 @@ var errTest = errors.New("fixture error")
 
 func createS3OK(i *fastly.CreateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -268,8 +268,8 @@ func createS3Error(i *fastly.CreateS3Input) (*fastly.S3, error) {
 func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 	return []*fastly.S3{
 		{
-			ServiceID:                    i.Service,
-			Version:                      i.Version,
+			ServiceID:                    i.ServiceID,
+			ServiceVersion:               i.ServiceVersion,
 			Name:                         "logs",
 			BucketName:                   "my-logs",
 			AccessKey:                    "1234",
@@ -290,8 +290,8 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			ServerSideEncryptionKMSKeyID: "1234",
 		},
 		{
-			ServiceID:                    i.Service,
-			Version:                      i.Version,
+			ServiceID:                    i.ServiceID,
+			ServiceVersion:               i.ServiceVersion,
 			Name:                         "analytics",
 			BucketName:                   "analytics",
 			AccessKey:                    "1234",
@@ -373,8 +373,8 @@ Version: 1
 
 func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID:                    i.Service,
-		Version:                      i.Version,
+		ServiceID:                    i.ServiceID,
+		ServiceVersion:               i.ServiceVersion,
 		Name:                         "logs",
 		BucketName:                   "my-logs",
 		AccessKey:                    "1234",
@@ -424,8 +424,8 @@ Server-side encryption KMS key ID: aws:kms
 
 func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID:                    i.Service,
-		Version:                      i.Version,
+		ServiceID:                    i.ServiceID,
+		ServiceVersion:               i.ServiceVersion,
 		Name:                         "log",
 		BucketName:                   "my-logs",
 		AccessKey:                    "1234",

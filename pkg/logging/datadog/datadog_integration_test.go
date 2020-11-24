@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestDatadogCreate(t *testing.T) {
@@ -255,12 +255,12 @@ var errTest = errors.New("fixture error")
 
 func createDatadogOK(i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
 	s := fastly.Datadog{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != nil {
-		s.Name = *i.Name
+	if i.Name != "" {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -273,8 +273,8 @@ func createDatadogError(i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
 func listDatadogsOK(i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
 	return []*fastly.Datadog{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Token:             "abc",
 			Region:            "US",
@@ -284,8 +284,8 @@ func listDatadogsOK(i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Token:             "abc",
 			Region:            "US",
@@ -336,8 +336,8 @@ Version: 1
 
 func getDatadogOK(i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 	return &fastly.Datadog{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Token:             "abc",
 		Region:            "US",
@@ -366,8 +366,8 @@ Placement: none
 
 func updateDatadogOK(i *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
 	return &fastly.Datadog{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Token:             "abc",
 		Region:            "US",

@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Kafka logging endpoints.
@@ -89,15 +89,15 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 	}
 
 	kafka, err := c.Globals.Client.GetKafka(&fastly.GetKafkaInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	if c.UseSASL.Valid && c.UseSASL.Value && (c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "") {
+	if c.UseSASL.WasSet && c.UseSASL.Value && (c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "") {
 		return nil, fmt.Errorf("the --auth-method, --username, and --password flags must be present when using the --use-sasl flag")
 	}
 
@@ -106,8 +106,8 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 	}
 
 	input := fastly.UpdateKafkaInput{
-		Service:           kafka.ServiceID,
-		Version:           kafka.Version,
+		ServiceID:         kafka.ServiceID,
+		ServiceVersion:    kafka.ServiceVersion,
 		Name:              kafka.Name,
 		NewName:           fastly.String(kafka.Name),
 		Brokers:           fastly.String(kafka.Brokers),
@@ -130,86 +130,86 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 		Password:          fastly.String(kafka.Password),
 	}
 
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Topic.Valid {
+	if c.Topic.WasSet {
 		input.Topic = fastly.String(c.Topic.Value)
 	}
 
-	if c.Brokers.Valid {
+	if c.Brokers.WasSet {
 		input.Brokers = fastly.String(c.Brokers.Value)
 	}
 
-	if c.CompressionCodec.Valid {
+	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
 	}
 
-	if c.RequiredACKs.Valid {
+	if c.RequiredACKs.WasSet {
 		input.RequiredACKs = fastly.String(c.RequiredACKs.Value)
 	}
 
-	if c.UseTLS.Valid {
+	if c.UseTLS.WasSet {
 		input.UseTLS = fastly.CBool(c.UseTLS.Value)
 	}
 
-	if c.TLSCACert.Valid {
+	if c.TLSCACert.WasSet {
 		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
-	if c.TLSClientCert.Valid {
+	if c.TLSClientCert.WasSet {
 		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
 	}
 
-	if c.TLSClientKey.Valid {
+	if c.TLSClientKey.WasSet {
 		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
 	}
 
-	if c.TLSHostname.Valid {
+	if c.TLSHostname.WasSet {
 		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
-	if c.ParseLogKeyvals.Valid {
+	if c.ParseLogKeyvals.WasSet {
 		input.ParseLogKeyvals = fastly.CBool(c.ParseLogKeyvals.Value)
 	}
 
-	if c.RequestMaxBytes.Valid {
+	if c.RequestMaxBytes.WasSet {
 		input.RequestMaxBytes = fastly.Uint(c.RequestMaxBytes.Value)
 	}
 
-	if c.UseSASL.Valid && !c.UseSASL.Value {
+	if c.UseSASL.WasSet && !c.UseSASL.Value {
 		input.AuthMethod = fastly.String("")
 		input.User = fastly.String("")
 		input.Password = fastly.String("")
 	}
 
-	if c.AuthMethod.Valid {
+	if c.AuthMethod.WasSet {
 		input.AuthMethod = fastly.String(c.AuthMethod.Value)
 
 	}
 
-	if c.User.Valid {
+	if c.User.WasSet {
 		input.User = fastly.String(c.User.Value)
 	}
 
-	if c.Password.Valid {
+	if c.Password.WasSet {
 		input.Password = fastly.String(c.Password.Value)
 	}
 
@@ -228,6 +228,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Kafka logging endpoint %s (service %s version %d)", kafka.Name, kafka.ServiceID, kafka.Version)
+	text.Success(out, "Updated Kafka logging endpoint %s (service %s version %d)", kafka.Name, kafka.ServiceID, kafka.ServiceVersion)
 	return nil
 }

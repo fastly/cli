@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestLogshuttleCreate(t *testing.T) {
@@ -259,12 +259,12 @@ var errTest = errors.New("fixture error")
 
 func createLogshuttleOK(i *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error) {
 	s := fastly.Logshuttle{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != nil {
-		s.Name = *i.Name
+	if i.Name != "" {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -277,8 +277,8 @@ func createLogshuttleError(i *fastly.CreateLogshuttleInput) (*fastly.Logshuttle,
 func listLogshuttlesOK(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error) {
 	return []*fastly.Logshuttle{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
@@ -288,8 +288,8 @@ func listLogshuttlesOK(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, er
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
@@ -340,8 +340,8 @@ Version: 1
 
 func getLogshuttleOK(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
 	return &fastly.Logshuttle{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		URL:               "example.com",
 		Token:             "abc",
@@ -370,8 +370,8 @@ Placement: none
 
 func updateLogshuttleOK(i *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error) {
 	return &fastly.Logshuttle{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		URL:               "example.com",
 		Token:             "abc",

@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update BigQuery logging endpoints.
@@ -68,74 +68,74 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateBigQueryInput, error) {
 	}
 
 	bq, err := c.Globals.Client.GetBigQuery(&fastly.GetBigQueryInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateBigQueryInput{
-		Service:           bq.ServiceID,
-		Version:           bq.Version,
+		ServiceID:         bq.ServiceID,
+		ServiceVersion:    bq.ServiceVersion,
 		Name:              bq.Name,
-		NewName:           bq.Name,
-		ProjectID:         bq.ProjectID,
-		Dataset:           bq.Dataset,
-		Table:             bq.Table,
-		Template:          bq.Template,
-		User:              bq.User,
-		SecretKey:         bq.SecretKey,
-		Format:            bq.Format,
-		ResponseCondition: bq.ResponseCondition,
-		Placement:         bq.Placement,
-		FormatVersion:     bq.FormatVersion,
+		NewName:           fastly.String(bq.Name),
+		ProjectID:         fastly.String(bq.ProjectID),
+		Dataset:           fastly.String(bq.Dataset),
+		Table:             fastly.String(bq.Table),
+		Template:          fastly.String(bq.Template),
+		User:              fastly.String(bq.User),
+		SecretKey:         fastly.String(bq.SecretKey),
+		Format:            fastly.String(bq.Format),
+		ResponseCondition: fastly.String(bq.ResponseCondition),
+		Placement:         fastly.String(bq.Placement),
+		FormatVersion:     fastly.Uint(bq.FormatVersion),
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+	if c.NewName.WasSet {
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.ProjectID.Valid {
-		input.ProjectID = c.ProjectID.Value
+	if c.ProjectID.WasSet {
+		input.ProjectID = fastly.String(c.ProjectID.Value)
 	}
 
-	if c.Dataset.Valid {
-		input.Dataset = c.Dataset.Value
+	if c.Dataset.WasSet {
+		input.Dataset = fastly.String(c.Dataset.Value)
 	}
 
-	if c.Table.Valid {
-		input.Table = c.Table.Value
+	if c.Table.WasSet {
+		input.Table = fastly.String(c.Table.Value)
 	}
 
-	if c.User.Valid {
-		input.User = c.User.Value
+	if c.User.WasSet {
+		input.User = fastly.String(c.User.Value)
 	}
 
-	if c.SecretKey.Valid {
-		input.SecretKey = c.SecretKey.Value
+	if c.SecretKey.WasSet {
+		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
-	if c.Template.Valid {
-		input.Template = c.Template.Value
+	if c.Template.WasSet {
+		input.Template = fastly.String(c.Template.Value)
 	}
 
-	if c.Format.Valid {
-		input.Format = c.Format.Value
+	if c.Format.WasSet {
+		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+	if c.Placement.WasSet {
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil
@@ -153,6 +153,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated BigQuery logging endpoint %s (service %s version %d)", bq.Name, bq.ServiceID, bq.Version)
+	text.Success(out, "Updated BigQuery logging endpoint %s (service %s version %d)", bq.Name, bq.ServiceID, bq.ServiceVersion)
 	return nil
 }

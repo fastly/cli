@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestVersionClone(t *testing.T) {
@@ -128,18 +128,24 @@ func TestVersionUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
+			args: []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
+			api: mock.API{
+				GetServiceFn:    getServiceOK,
+				UpdateVersionFn: updateVersionOK,
+			},
+			wantOutput: "Updated service 123 version 1",
+		},
+		{
 			args:      []string{"service-version", "update", "--service-id", "123", "--version", "2"},
 			api:       mock.API{UpdateVersionFn: updateVersionOK},
 			wantError: "error parsing arguments: required flag --comment not provided",
 		},
 		{
-			args:       []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
-			api:        mock.API{UpdateVersionFn: updateVersionOK},
-			wantOutput: "Updated service 123 version 1",
-		},
-		{
-			args:      []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
-			api:       mock.API{UpdateVersionFn: updateVersionError},
+			args: []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
+			api: mock.API{
+				GetServiceFn:    getServiceOK,
+				UpdateVersionFn: updateVersionError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -292,7 +298,7 @@ var errTest = errors.New("fixture error")
 
 func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version + 1,
+		Number:    i.ServiceVersion + 1,
 		ServiceID: "123",
 		Active:    true,
 		Deployed:  true,
@@ -306,14 +312,14 @@ func cloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 
 func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
-		&fastly.Version{
+		{
 			Number:    1,
 			Comment:   "a",
 			ServiceID: "b",
 			CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		},
-		&fastly.Version{
+		{
 			Number:    2,
 			Comment:   "c",
 			ServiceID: "b",
@@ -363,9 +369,17 @@ Versions: 2
 		Last edited (UTC): 2015-03-14 12:59
 `) + "\n\n"
 
+func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
+	return &fastly.Service{
+		ID:      "12345",
+		Name:    "Foo",
+		Comment: "Bar",
+	}, nil
+}
+
 func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version,
+		Number:    i.ServiceVersion,
 		ServiceID: "123",
 		Active:    true,
 		Deployed:  true,
@@ -380,7 +394,7 @@ func updateVersionError(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 
 func activateVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version,
+		Number:    i.ServiceVersion,
 		ServiceID: "123",
 		Active:    true,
 		Deployed:  true,
@@ -395,7 +409,7 @@ func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, erro
 
 func deactivateVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version,
+		Number:    i.ServiceVersion,
 		ServiceID: "123",
 		Active:    false,
 		Deployed:  true,
@@ -410,7 +424,7 @@ func deactivateVersionError(i *fastly.DeactivateVersionInput) (*fastly.Version, 
 
 func lockVersionOK(i *fastly.LockVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.Version,
+		Number:    i.ServiceVersion,
 		ServiceID: "123",
 		Active:    false,
 		Deployed:  true,

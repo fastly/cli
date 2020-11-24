@@ -58,13 +58,13 @@ func (b Base) Name() string {
 // Optional models an optional type that consumers can use to assert whether the
 // inner value has been set and is therefore valid for use.
 type Optional struct {
-	Valid bool
+	WasSet bool
 }
 
 // Set implements kingpin.Action and is used as callback to set that the optional
 // inner value is valid.
 func (o *Optional) Set(e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	o.Valid = true
+	o.WasSet = true
 	return nil
 }
 

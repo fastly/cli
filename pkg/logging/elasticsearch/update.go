@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Elasticsearch logging endpoints.
@@ -77,17 +77,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateElasticsearchInput, error) 
 	}
 
 	elasticsearch, err := c.Globals.Client.GetElasticsearch(&fastly.GetElasticsearchInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateElasticsearchInput{
-		Service:           elasticsearch.ServiceID,
-		Version:           elasticsearch.Version,
+		ServiceID:         elasticsearch.ServiceID,
+		ServiceVersion:    elasticsearch.ServiceVersion,
 		Name:              elasticsearch.Name,
 		NewName:           fastly.String(elasticsearch.Name),
 		ResponseCondition: fastly.String(elasticsearch.ResponseCondition),
@@ -107,67 +107,67 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateElasticsearchInput, error) 
 		FormatVersion:     fastly.Uint(elasticsearch.FormatVersion),
 	}
 
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Index.Valid {
+	if c.Index.WasSet {
 		input.Index = fastly.String(c.Index.Value)
 	}
 
-	if c.URL.Valid {
+	if c.URL.WasSet {
 		input.URL = fastly.String(c.URL.Value)
 	}
 
-	if c.Pipeline.Valid {
+	if c.Pipeline.WasSet {
 		input.Pipeline = fastly.String(c.Pipeline.Value)
 	}
 
-	if c.RequestMaxEntries.Valid {
+	if c.RequestMaxEntries.WasSet {
 		input.RequestMaxEntries = fastly.Uint(c.RequestMaxEntries.Value)
 	}
 
-	if c.RequestMaxBytes.Valid {
+	if c.RequestMaxBytes.WasSet {
 		input.RequestMaxBytes = fastly.Uint(c.RequestMaxBytes.Value)
 	}
 
-	if c.User.Valid {
+	if c.User.WasSet {
 		input.User = fastly.String(c.User.Value)
 	}
 
-	if c.Password.Valid {
+	if c.Password.WasSet {
 		input.Password = fastly.String(c.Password.Value)
 	}
 
-	if c.TLSCACert.Valid {
+	if c.TLSCACert.WasSet {
 		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
-	if c.TLSClientCert.Valid {
+	if c.TLSClientCert.WasSet {
 		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
 	}
 
-	if c.TLSClientKey.Valid {
+	if c.TLSClientKey.WasSet {
 		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
 	}
 
-	if c.TLSHostname.Valid {
+	if c.TLSHostname.WasSet {
 		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
@@ -186,6 +186,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Elasticsearch logging endpoint %s (service %s version %d)", elasticsearch.Name, elasticsearch.ServiceID, elasticsearch.Version)
+	text.Success(out, "Updated Elasticsearch logging endpoint %s (service %s version %d)", elasticsearch.Name, elasticsearch.ServiceID, elasticsearch.ServiceVersion)
 	return nil
 }

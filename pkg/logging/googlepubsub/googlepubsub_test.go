@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateGooglePubSubInput(t *testing.T) {
@@ -23,30 +23,30 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreatePubsubInput{
-				Service:   "123",
-				Version:   2,
-				Name:      fastly.String("log"),
-				User:      fastly.String("user@example.com"),
-				SecretKey: fastly.String("secret"),
-				ProjectID: fastly.String("project"),
-				Topic:     fastly.String("topic"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				User:           "user@example.com",
+				SecretKey:      "secret",
+				ProjectID:      "project",
+				Topic:          "topic",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreatePubsubInput{
-				Service:           "123",
-				Version:           2,
-				Name:              fastly.String("logs"),
-				Topic:             fastly.String("topic"),
-				User:              fastly.String("user@example.com"),
-				SecretKey:         fastly.String("secret"),
-				ProjectID:         fastly.String("project"),
-				FormatVersion:     fastly.Uint(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:         "123",
+				ServiceVersion:    2,
+				Name:              "logs",
+				Topic:             "topic",
+				User:              "user@example.com",
+				SecretKey:         "secret",
+				ProjectID:         "project",
+				FormatVersion:     2,
+				Format:            `%h %l %u %t "%r" %>s %b`,
+				ResponseCondition: "Prevent default logging",
+				Placement:         "none",
 			},
 		},
 		{
@@ -77,8 +77,8 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetPubsubFn: getGooglePubSubOK},
 			want: &fastly.UpdatePubsubInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				User:              fastly.String("new2"),
@@ -96,8 +96,8 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetPubsubFn: getGooglePubSubOK},
 			want: &fastly.UpdatePubsubInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				NewName:           fastly.String("log"),
 				User:              fastly.String("user@example.com"),
@@ -148,10 +148,10 @@ func createCommandAll() *CreateCommand {
 		ProjectID:         "project",
 		Topic:             "topic",
 		SecretKey:         "secret",
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -176,15 +176,15 @@ func updateCommandAll() *UpdateCommand {
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
-		User:              common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
-		SecretKey:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
-		ProjectID:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
-		Topic:             common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new6"},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new7"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new8"},
+		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
+		User:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
+		SecretKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
+		ProjectID:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
+		Topic:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
 	}
 }
 
@@ -196,8 +196,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,

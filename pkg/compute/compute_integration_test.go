@@ -22,7 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestInit(t *testing.T) {
@@ -1175,9 +1175,9 @@ func deleteServiceOK(i *fastly.DeleteServiceInput) error {
 
 func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -1191,9 +1191,9 @@ func deleteDomainOK(i *fastly.DeleteDomainInput) error {
 
 func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -1208,13 +1208,13 @@ func deleteBackendOK(i *fastly.DeleteBackendInput) error {
 func listVersionsInactiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
-			ServiceID: i.Service,
+			ServiceID: i.ServiceID,
 			Number:    1,
 			Active:    false,
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
 		},
 		{
-			ServiceID: i.Service,
+			ServiceID: i.ServiceID,
 			Number:    2,
 			Active:    false,
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
@@ -1225,13 +1225,13 @@ func listVersionsInactiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, err
 func listVersionsActiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
-			ServiceID: i.Service,
+			ServiceID: i.ServiceID,
 			Number:    1,
 			Active:    true,
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
 		},
 		{
-			ServiceID: i.Service,
+			ServiceID: i.ServiceID,
 			Number:    2,
 			Active:    false,
 			Locked:    true,
@@ -1245,13 +1245,13 @@ func listVersionsError(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 }
 
 func getPackageOk(i *fastly.GetPackageInput) (*fastly.Package, error) {
-	return &fastly.Package{ServiceID: i.Service, Version: i.Version}, nil
+	return &fastly.Package{ServiceID: i.ServiceID, ServiceVersion: i.ServiceVersion}, nil
 }
 
 func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 	return &fastly.Package{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 		Metadata: fastly.PackageMetadata{
 			HashSum: "2b742f99854df7e024c287e36fb0fdfc5414942e012be717e52148ea0d6800d66fc659563f6f11105815051e82b14b61edc84b33b49789b790db1ed3446fb483",
 		},
@@ -1259,7 +1259,7 @@ func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 }
 
 func cloneVersionOk(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.Service, Number: i.Version + 1}, nil
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }
 
 func cloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
@@ -1267,7 +1267,7 @@ func cloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 }
 
 func updatePackageOk(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
-	return &fastly.Package{ServiceID: i.Service, Version: i.Version}, nil
+	return &fastly.Package{ServiceID: i.ServiceID, ServiceVersion: i.ServiceVersion}, nil
 }
 
 func updatePackageError(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
@@ -1275,7 +1275,7 @@ func updatePackageError(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
 }
 
 func activateVersionOk(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.Service, Number: i.Version}, nil
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion}, nil
 }
 
 func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, error) {

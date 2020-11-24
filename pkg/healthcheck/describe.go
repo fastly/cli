@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // DescribeCommand calls the Fastly API to describe a healthcheck.
@@ -26,7 +26,7 @@ func NewDescribeCommand(parent common.Registerer, globals *config.Data) *Describ
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("describe", "Show detailed information about a healthcheck on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	c.CmdClause.Flag("name", "Name of healthcheck").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
@@ -37,7 +37,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	healthCheck, err := c.Globals.Client.GetHealthCheck(&c.Input)
 	if err != nil {
@@ -45,7 +45,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	fmt.Fprintf(out, "Service ID: %s\n", healthCheck.ServiceID)
-	fmt.Fprintf(out, "Version: %d\n", healthCheck.Version)
+	fmt.Fprintf(out, "Version: %d\n", healthCheck.ServiceVersion)
 	text.PrintHealthCheck(out, "", healthCheck)
 
 	return nil

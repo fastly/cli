@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // DescribeCommand calls the Fastly API to describe a Splunk logging endpoint.
@@ -25,7 +25,7 @@ func NewDescribeCommand(parent common.Registerer, globals *config.Data) *Describ
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("describe", "Show detailed information about a Splunk logging endpoint on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	c.CmdClause.Flag("name", "The name of the Splunk logging object").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
@@ -36,7 +36,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	splunk, err := c.Globals.Client.GetSplunk(&c.Input)
 	if err != nil {
@@ -44,7 +44,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	fmt.Fprintf(out, "Service ID: %s\n", splunk.ServiceID)
-	fmt.Fprintf(out, "Version: %d\n", splunk.Version)
+	fmt.Fprintf(out, "Version: %d\n", splunk.ServiceVersion)
 	fmt.Fprintf(out, "Name: %s\n", splunk.Name)
 	fmt.Fprintf(out, "URL: %s\n", splunk.URL)
 	fmt.Fprintf(out, "Token: %s\n", splunk.Token)

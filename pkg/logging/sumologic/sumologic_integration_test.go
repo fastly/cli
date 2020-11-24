@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestSumologicCreate(t *testing.T) {
@@ -255,9 +255,9 @@ var errTest = errors.New("fixture error")
 
 func createSumologicOK(i *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -268,8 +268,8 @@ func createSumologicError(i *fastly.CreateSumologicInput) (*fastly.Sumologic, er
 func listSumologicsOK(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
 	return []*fastly.Sumologic{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			URL:               "example.com",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -279,8 +279,8 @@ func listSumologicsOK(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			URL:               "bar.com",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -331,8 +331,8 @@ Version: 1
 
 func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		URL:               "example.com",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -361,8 +361,8 @@ Placement: none
 
 func updateSumologicOK(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		URL:               "example.com",
 		Format:            `%h %l %u %t "%r" %>s %b`,

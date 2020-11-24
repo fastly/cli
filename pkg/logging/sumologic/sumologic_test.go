@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreateSumologicInput(t *testing.T) {
@@ -23,18 +23,18 @@ func TestCreateSumologicInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateSumologicInput{
-				Service: "123",
-				Version: 2,
-				Name:    "log",
-				URL:     "example.com",
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				URL:            "example.com",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandOK(),
 			want: &fastly.CreateSumologicInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				URL:               "example.com",
 				Format:            `%h %l %u %t "%r" %>s %b`,
@@ -72,16 +72,16 @@ func TestUpdateSFTPInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetSumologicFn: getSumologicOK},
 			want: &fastly.UpdateSumologicInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
-				NewName:           "logs",
-				URL:               "example.com",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
-				MessageType:       "classic",
+				NewName:           fastly.String("logs"),
+				URL:               fastly.String("example.com"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Int(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
+				MessageType:       fastly.String("classic"),
 			},
 		},
 		{
@@ -89,16 +89,16 @@ func TestUpdateSFTPInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetSumologicFn: getSumologicOK},
 			want: &fastly.UpdateSumologicInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
-				NewName:           "new1",
-				URL:               "new2",
-				Format:            "new3",
-				FormatVersion:     3,
-				ResponseCondition: "new4",
-				Placement:         "new5",
-				MessageType:       "new6",
+				NewName:           fastly.String("new1"),
+				URL:               fastly.String("new2"),
+				Format:            fastly.String("new3"),
+				FormatVersion:     fastly.Int(3),
+				ResponseCondition: fastly.String("new4"),
+				Placement:         fastly.String("new5"),
+				MessageType:       fastly.String("new6"),
 			},
 		},
 		{
@@ -124,11 +124,11 @@ func createCommandOK() *CreateCommand {
 		EndpointName:      "log",
 		URL:               "example.com",
 		Version:           2,
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalInt{Optional: common.Optional{Valid: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
-		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "classic"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalInt{Optional: common.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
+		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
 	}
 }
 
@@ -162,13 +162,13 @@ func updateCommandAll() *UpdateCommand {
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
-		URL:               common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
-		FormatVersion:     common.OptionalInt{Optional: common.Optional{Valid: true}, Value: 3},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
-		MessageType:       common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new6"},
+		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
+		URL:               common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
+		FormatVersion:     common.OptionalInt{Optional: common.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
+		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
 	}
 }
 
@@ -180,8 +180,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		URL:               "example.com",
 		Format:            `%h %l %u %t "%r" %>s %b`,

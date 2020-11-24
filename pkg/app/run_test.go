@@ -240,7 +240,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
 
-  service-version update --version=VERSION --comment=COMMENT [<flags>]
+  service-version update --version=VERSION [<flags>]
     Update a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID

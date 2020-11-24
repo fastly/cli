@@ -6,7 +6,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create backends.
@@ -27,8 +27,8 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.Globals = globals
 	c.CmdClause = parent.Command("create", "Create a backend on a Fastly service version").Alias("add")
 
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.Service)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.ServiceID)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	c.CmdClause.Flag("name", "Backend name").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Required().StringVar(&c.Input.Address)
 
@@ -63,15 +63,15 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	// Sadly, go-fastly uses custom a `Compatibool` type as a boolean value that
 	// marshalls to 0/1 instead of true/false for compatability with the API.
 	// Therefore, we need to cast our real flag bool to a fastly.Compatibool.
-	c.Input.AutoLoadbalance = fastly.CBool(c.AutoLoadbalance)
-	c.Input.UseSSL = fastly.CBool(c.UseSSL)
-	c.Input.SSLCheckCert = fastly.CBool(c.SSLCheckCert)
+	c.Input.AutoLoadbalance = fastly.Compatibool(c.AutoLoadbalance)
+	c.Input.UseSSL = fastly.Compatibool(c.UseSSL)
+	c.Input.SSLCheckCert = fastly.Compatibool(c.SSLCheckCert)
 
 	b, err := c.Globals.Client.CreateBackend(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Created backend %s (service %s version %d)", b.Name, b.ServiceID, b.Version)
+	text.Success(out, "Created backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
 	return nil
 }

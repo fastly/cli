@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestDomainCreate(t *testing.T) {
@@ -264,10 +264,10 @@ var errTest = errors.New("fixture error")
 
 func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-		Comment:   i.Comment,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
+		Comment:        i.Comment,
 	}, nil
 }
 
@@ -277,17 +277,17 @@ func createDomainError(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 
 func listDomainsOK(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
-		&fastly.Domain{
-			ServiceID: i.Service,
-			Version:   i.Version,
-			Name:      "www.test.com",
-			Comment:   "test",
+		{
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           "www.test.com",
+			Comment:        "test",
 		},
-		&fastly.Domain{
-			ServiceID: i.Service,
-			Version:   i.Version,
-			Name:      "www.example.com",
-			Comment:   "example",
+		{
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           "www.example.com",
+			Comment:        "example",
 		},
 	}, nil
 }
@@ -317,10 +317,10 @@ Version: 1
 
 func getDomainOK(i *fastly.GetDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-		Comment:   "test",
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
+		Comment:        "test",
 	}, nil
 }
 
@@ -337,10 +337,10 @@ Comment: test
 
 func updateDomainOK(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.NewName,
-		Comment:   i.Comment,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.NewName,
+		Comment:        *i.Comment,
 	}, nil
 }
 

@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some
@@ -16,6 +16,10 @@ type HTTPClient interface {
 
 // Interface models the methods of the Fastly API client that we use.
 // It exists to allow for easier testing, in combination with Mock.
+//
+// TODO(integralist):
+// There are missing methods such as GetVersion from this list so review in
+// future the missing features in CLI and implement here.
 type Interface interface {
 	GetTokenSelf() (*fastly.Token, error)
 

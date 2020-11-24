@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Sumologic logging endpoints.
@@ -61,54 +61,54 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSumologicInput, error) {
 	}
 
 	sumologic, err := c.Globals.Client.GetSumologic(&fastly.GetSumologicInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateSumologicInput{
-		Service:           sumologic.ServiceID,
-		Version:           sumologic.Version,
+		ServiceID:         sumologic.ServiceID,
+		ServiceVersion:    sumologic.ServiceVersion,
 		Name:              sumologic.Name,
-		NewName:           sumologic.Name,
-		URL:               sumologic.URL,
-		Format:            sumologic.Format,
-		ResponseCondition: sumologic.ResponseCondition,
-		MessageType:       sumologic.MessageType,
-		FormatVersion:     sumologic.FormatVersion,
-		Placement:         sumologic.Placement,
+		NewName:           fastly.String(sumologic.Name),
+		URL:               fastly.String(sumologic.URL),
+		Format:            fastly.String(sumologic.Format),
+		ResponseCondition: fastly.String(sumologic.ResponseCondition),
+		MessageType:       fastly.String(sumologic.MessageType),
+		FormatVersion:     fastly.Int(sumologic.FormatVersion),
+		Placement:         fastly.String(sumologic.Placement),
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
-		input.NewName = c.NewName.Value
+	if c.NewName.WasSet {
+		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.URL.Valid {
-		input.URL = c.URL.Value
+	if c.URL.WasSet {
+		input.URL = fastly.String(c.URL.Value)
 	}
 
-	if c.Format.Valid {
-		input.Format = c.Format.Value
+	if c.Format.WasSet {
+		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.ResponseCondition.Valid {
-		input.ResponseCondition = c.ResponseCondition.Value
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.MessageType.Valid {
-		input.MessageType = c.MessageType.Value
+	if c.MessageType.WasSet {
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
-	if c.FormatVersion.Valid {
-		input.FormatVersion = c.FormatVersion.Value
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
-	if c.Placement.Valid {
-		input.Placement = c.Placement.Value
+	if c.Placement.WasSet {
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil
@@ -125,6 +125,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Sumologic logging endpoint %s (service %s version %d)", sumologic.Name, sumologic.ServiceID, sumologic.Version)
+	text.Success(out, "Updated Sumologic logging endpoint %s (service %s version %d)", sumologic.Name, sumologic.ServiceID, sumologic.ServiceVersion)
 	return nil
 }
