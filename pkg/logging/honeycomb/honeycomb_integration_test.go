@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestHoneycombCreate(t *testing.T) {
@@ -259,12 +259,12 @@ var errTest = errors.New("fixture error")
 
 func createHoneycombOK(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error) {
 	s := fastly.Honeycomb{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != nil {
-		s.Name = *i.Name
+	if i.Name != "" {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -276,9 +276,9 @@ func createHoneycombError(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, er
 
 func listHoneycombsOK(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
 	return []*fastly.Honeycomb{
-		&fastly.Honeycomb{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+		{
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
@@ -288,8 +288,8 @@ func listHoneycombsOK(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Dataset:           "log",
 			Token:             "tkn",
@@ -340,8 +340,8 @@ Version: 1
 
 func getHoneycombOK(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 	return &fastly.Honeycomb{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Dataset:           "log",
 		Token:             "tkn",
@@ -370,8 +370,8 @@ Placement: none
 
 func updateHoneycombOK(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {
 	return &fastly.Honeycomb{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Dataset:           "log",
 		Token:             "tkn",

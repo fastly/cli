@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestFTPCreate(t *testing.T) {
@@ -263,9 +263,9 @@ var errTest = errors.New("fixture error")
 
 func createFTPOK(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -276,8 +276,8 @@ func createFTPError(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 	return []*fastly.FTP{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Address:           "example.com",
 			Port:              123,
@@ -294,8 +294,8 @@ func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Address:           "127.0.0.1",
 			Port:              456,
@@ -367,8 +367,8 @@ Version: 1
 
 func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Address:           "example.com",
 		Port:              123,
@@ -411,8 +411,8 @@ Placement: none
 
 func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Address:           "example.com",
 		Port:              123,

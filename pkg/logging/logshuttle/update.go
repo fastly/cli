@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Logshuttle logging endpoints.
@@ -62,17 +62,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateLogshuttleInput, error) {
 	}
 
 	logshuttle, err := c.Globals.Client.GetLogshuttle(&fastly.GetLogshuttleInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateLogshuttleInput{
-		Service:           logshuttle.ServiceID,
-		Version:           logshuttle.Version,
+		ServiceID:         logshuttle.ServiceID,
+		ServiceVersion:    logshuttle.ServiceVersion,
 		Name:              logshuttle.Name,
 		NewName:           fastly.String(logshuttle.Name),
 		Format:            fastly.String(logshuttle.Format),
@@ -84,31 +84,31 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateLogshuttleInput, error) {
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.URL.Valid {
+	if c.URL.WasSet {
 		input.URL = fastly.String(c.URL.Value)
 	}
 
-	if c.Token.Valid {
+	if c.Token.WasSet {
 		input.Token = fastly.String(c.Token.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
@@ -127,6 +127,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Logshuttle logging endpoint %s (service %s version %d)", logshuttle.Name, logshuttle.ServiceID, logshuttle.Version)
+	text.Success(out, "Updated Logshuttle logging endpoint %s (service %s version %d)", logshuttle.Name, logshuttle.ServiceID, logshuttle.ServiceVersion)
 	return nil
 }

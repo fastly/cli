@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestServiceCreate(t *testing.T) {
@@ -402,7 +402,7 @@ func createServiceError(*fastly.CreateServiceInput) (*fastly.Service, error) {
 
 func listServicesOK(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
 	return []*fastly.Service{
-		&fastly.Service{
+		{
 			ID:            "123",
 			Name:          "Foo",
 			Type:          "wasm",
@@ -410,7 +410,7 @@ func listServicesOK(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
 			ActiveVersion: 2,
 			UpdatedAt:     testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 			Versions: []*fastly.Version{
-				&fastly.Version{
+				{
 					Number:    1,
 					Comment:   "a",
 					ServiceID: "b",
@@ -418,7 +418,7 @@ func listServicesOK(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
 					UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
 					DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
 				},
-				&fastly.Version{
+				{
 					Number:    2,
 					Comment:   "c",
 					ServiceID: "d",
@@ -429,7 +429,7 @@ func listServicesOK(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
 				},
 			},
 		},
-		&fastly.Service{
+		{
 			ID:            "456",
 			Name:          "Bar",
 			Type:          "wasm",
@@ -437,7 +437,7 @@ func listServicesOK(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
 			ActiveVersion: 1,
 			UpdatedAt:     testutil.MustParseTimeRFC3339("2015-03-14T12:59:59Z"),
 		},
-		&fastly.Service{
+		{
 			ID:            "789",
 			Name:          "Baz",
 			Type:          "",
@@ -541,7 +541,7 @@ func describeServiceOK(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
 		},
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		Versions: []*fastly.Version{
-			&fastly.Version{
+			{
 				Number:    1,
 				Comment:   "a",
 				ServiceID: "b",
@@ -549,7 +549,7 @@ func describeServiceOK(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
 				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
 			},
-			&fastly.Version{
+			{
 				Number:    2,
 				Comment:   "c",
 				ServiceID: "d",
@@ -662,7 +662,7 @@ func searchServiceOK(i *fastly.SearchServiceInput) (*fastly.Service, error) {
 		CustomerID: "mycustomerid",
 		UpdatedAt:  testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		Versions: []*fastly.Version{
-			&fastly.Version{
+			{
 				Number:    1,
 				Comment:   "a",
 				ServiceID: "b",
@@ -670,7 +670,7 @@ func searchServiceOK(i *fastly.SearchServiceInput) (*fastly.Service, error) {
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
 				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
 			},
-			&fastly.Version{
+			{
 				Number:    2,
 				Comment:   "c",
 				ServiceID: "d",
@@ -754,8 +754,8 @@ Versions: 2
 func updateServiceOK(i *fastly.UpdateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ID:      "12345",
-		Name:    i.Name,
-		Comment: i.Comment,
+		Name:    *i.Name,
+		Comment: *i.Comment,
 	}, nil
 }
 

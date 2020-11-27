@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestBlobStorageCreate(t *testing.T) {
@@ -263,8 +263,8 @@ var errTest = errors.New("fixture error")
 
 func createBlobStorageOK(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
 	s := fastly.BlobStorage{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Path:              "/logs",
 		AccountName:       "account",
@@ -291,8 +291,8 @@ func createBlobStorageError(i *fastly.CreateBlobStorageInput) (*fastly.BlobStora
 func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
 	return []*fastly.BlobStorage{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Path:              "/logs",
 			AccountName:       "account",
@@ -309,8 +309,8 @@ func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage,
 			ResponseCondition: "Prevent default logging",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			AccountName:       "account",
 			Container:         "analytics",
@@ -382,8 +382,8 @@ Version: 1
 
 func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
 	return &fastly.BlobStorage{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Container:         "container",
 		AccountName:       "account",
@@ -426,8 +426,8 @@ Public key: `+pgpPublicKey()+`
 
 func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
 	return &fastly.BlobStorage{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Container:         "container",
 		AccountName:       "account",

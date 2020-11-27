@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list HTTPS logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List HTTPS endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	httpss, err := c.Globals.Client.ListHTTPS(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, https := range httpss {
-			tw.AddLine(https.ServiceID, https.Version, https.Name)
+			tw.AddLine(https.ServiceID, https.ServiceVersion, https.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, https := range httpss {
 		fmt.Fprintf(out, "\tHTTPS %d/%d\n", i+1, len(httpss))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", https.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", https.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", https.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", https.Name)
 		fmt.Fprintf(out, "\t\tURL: %s\n", https.URL)
 		fmt.Fprintf(out, "\t\tContent type: %s\n", https.ContentType)

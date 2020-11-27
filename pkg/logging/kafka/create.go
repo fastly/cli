@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create Kafka logging endpoints.
@@ -86,7 +86,7 @@ func (c *CreateCommand) createInput() (*fastly.CreateKafkaInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	if c.UseSASL.Valid && c.UseSASL.Value && (c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "") {
+	if c.UseSASL.WasSet && c.UseSASL.Value && (c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "") {
 		return nil, fmt.Errorf("the --auth-method, --username, and --password flags must be present when using the --use-sasl flag")
 	}
 
@@ -94,74 +94,74 @@ func (c *CreateCommand) createInput() (*fastly.CreateKafkaInput, error) {
 		return nil, fmt.Errorf("the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified")
 	}
 
-	input.Service = serviceID
-	input.Version = c.Version
-	input.Name = fastly.String(c.EndpointName)
-	input.Topic = fastly.String(c.Topic)
-	input.Brokers = fastly.String(c.Brokers)
+	input.ServiceID = serviceID
+	input.ServiceVersion = c.Version
+	input.Name = c.EndpointName
+	input.Topic = c.Topic
+	input.Brokers = c.Brokers
 
-	if c.CompressionCodec.Valid {
-		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
+	if c.CompressionCodec.WasSet {
+		input.CompressionCodec = c.CompressionCodec.Value
 	}
 
-	if c.RequiredACKs.Valid {
-		input.RequiredACKs = fastly.String(c.RequiredACKs.Value)
+	if c.RequiredACKs.WasSet {
+		input.RequiredACKs = c.RequiredACKs.Value
 	}
 
-	if c.UseTLS.Valid {
-		input.UseTLS = fastly.CBool(c.UseTLS.Value)
+	if c.UseTLS.WasSet {
+		input.UseTLS = fastly.Compatibool(c.UseTLS.Value)
 	}
 
-	if c.TLSCACert.Valid {
-		input.TLSCACert = fastly.String(c.TLSCACert.Value)
+	if c.TLSCACert.WasSet {
+		input.TLSCACert = c.TLSCACert.Value
 	}
 
-	if c.TLSClientCert.Valid {
-		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
+	if c.TLSClientCert.WasSet {
+		input.TLSClientCert = c.TLSClientCert.Value
 	}
 
-	if c.TLSClientKey.Valid {
-		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
+	if c.TLSClientKey.WasSet {
+		input.TLSClientKey = c.TLSClientKey.Value
 	}
 
-	if c.TLSHostname.Valid {
-		input.TLSHostname = fastly.String(c.TLSHostname.Value)
+	if c.TLSHostname.WasSet {
+		input.TLSHostname = c.TLSHostname.Value
 	}
 
-	if c.Format.Valid {
-		input.Format = fastly.String(c.Format.Value)
+	if c.Format.WasSet {
+		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.Placement.Valid {
-		input.Placement = fastly.String(c.Placement.Value)
+	if c.Placement.WasSet {
+		input.Placement = c.Placement.Value
 	}
 
-	if c.ParseLogKeyvals.Valid {
-		input.ParseLogKeyvals = fastly.CBool(c.ParseLogKeyvals.Value)
+	if c.ParseLogKeyvals.WasSet {
+		input.ParseLogKeyvals = fastly.Compatibool(c.ParseLogKeyvals.Value)
 	}
 
-	if c.RequestMaxBytes.Valid {
-		input.RequestMaxBytes = fastly.Uint(c.RequestMaxBytes.Value)
+	if c.RequestMaxBytes.WasSet {
+		input.RequestMaxBytes = c.RequestMaxBytes.Value
 	}
 
-	if c.AuthMethod.Valid {
-		input.AuthMethod = fastly.String(c.AuthMethod.Value)
+	if c.AuthMethod.WasSet {
+		input.AuthMethod = c.AuthMethod.Value
 	}
 
-	if c.User.Valid {
-		input.User = fastly.String(c.User.Value)
+	if c.User.WasSet {
+		input.User = c.User.Value
 	}
 
-	if c.Password.Valid {
-		input.Password = fastly.String(c.Password.Value)
+	if c.Password.WasSet {
+		input.Password = c.Password.Value
 	}
 
 	return &input, nil
@@ -179,6 +179,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Kafka logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Created Kafka logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 	return nil
 }

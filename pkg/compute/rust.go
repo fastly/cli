@@ -54,12 +54,13 @@ func (m *CargoManifest) Read(filename string) error {
 // CargoMetadata models information about the workspace members and resolved
 // dependencies of the current package via `cargo metadata` command output.
 type CargoMetadata struct {
-	Package []CargoPackage `json:"packages"`
+	Package         []CargoPackage `json:"packages"`
+	TargetDirectory string         `json:"target_directory"`
 }
 
 // Read the contents of the Cargo.lock file from filename.
 func (m *CargoMetadata) Read() error {
-	cmd := exec.Command("cargo", "metadata", "--format-version", "1")
+	cmd := exec.Command("cargo", "metadata", "--quiet", "--format-version", "1")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -305,7 +306,11 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	if err != nil {
 		return fmt.Errorf("getting current working directory: %w", err)
 	}
-	src := filepath.Join(dir, "target", WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", binName))
+	var metadata CargoMetadata
+	if err := metadata.Read(); err != nil {
+		return fmt.Errorf("error reading cargo metadata: %w", err)
+	}
+	src := filepath.Join(metadata.TargetDirectory, WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", binName))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 
 	// Check if bin directory exists and create if not.

@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list Honeycomb logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List Honeycomb endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	honeycombs, err := c.Globals.Client.ListHoneycombs(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, honeycomb := range honeycombs {
-			tw.AddLine(honeycomb.ServiceID, honeycomb.Version, honeycomb.Name)
+			tw.AddLine(honeycomb.ServiceID, honeycomb.ServiceVersion, honeycomb.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, honeycomb := range honeycombs {
 		fmt.Fprintf(out, "\tHoneycomb %d/%d\n", i+1, len(honeycombs))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", honeycomb.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", honeycomb.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", honeycomb.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", honeycomb.Name)
 		fmt.Fprintf(out, "\t\tDataset: %s\n", honeycomb.Dataset)
 		fmt.Fprintf(out, "\t\tToken: %s\n", honeycomb.Token)

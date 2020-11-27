@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestOpenstackCreate(t *testing.T) {
@@ -267,12 +267,12 @@ var errTest = errors.New("fixture error")
 
 func createOpenstackOK(i *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
 	s := fastly.Openstack{
-		ServiceID: i.Service,
-		Version:   i.Version,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != nil {
-		s.Name = *i.Name
+	if i.Name != "" {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -285,8 +285,8 @@ func createOpenstackError(i *fastly.CreateOpenstackInput) (*fastly.Openstack, er
 func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
 	return []*fastly.Openstack{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			BucketName:        "my-logs",
 			AccessKey:         "1234",
@@ -304,8 +304,8 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 			PublicKey:         pgpPublicKey(),
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			BucketName:        "analytics",
 			AccessKey:         "1234",
@@ -380,8 +380,8 @@ Version: 1
 
 func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	return &fastly.Openstack{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		BucketName:        "my-logs",
 		AccessKey:         "1234",
@@ -426,8 +426,8 @@ Public key: `+pgpPublicKey()+`
 
 func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
 	return &fastly.Openstack{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		BucketName:        "my-logs",
 		AccessKey:         "1234",

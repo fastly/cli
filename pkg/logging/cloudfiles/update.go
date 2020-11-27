@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Cloudfiles logging endpoints.
@@ -77,17 +77,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateCloudfilesInput, error) {
 	}
 
 	cloudfiles, err := c.Globals.Client.GetCloudfiles(&fastly.GetCloudfilesInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateCloudfilesInput{
-		Service:           cloudfiles.ServiceID,
-		Version:           cloudfiles.Version,
+		ServiceID:         cloudfiles.ServiceID,
+		ServiceVersion:    cloudfiles.ServiceVersion,
 		Name:              cloudfiles.Name,
 		NewName:           fastly.String(cloudfiles.Name),
 		User:              fastly.String(cloudfiles.User),
@@ -107,63 +107,63 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateCloudfilesInput, error) {
 	}
 
 	// Set new values if set by user.
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.User.Valid {
+	if c.User.WasSet {
 		input.User = fastly.String(c.User.Value)
 	}
 
-	if c.AccessKey.Valid {
+	if c.AccessKey.WasSet {
 		input.AccessKey = fastly.String(c.AccessKey.Value)
 	}
 
-	if c.BucketName.Valid {
+	if c.BucketName.WasSet {
 		input.BucketName = fastly.String(c.BucketName.Value)
 	}
 
-	if c.Path.Valid {
+	if c.Path.WasSet {
 		input.Path = fastly.String(c.Path.Value)
 	}
 
-	if c.Region.Valid {
+	if c.Region.WasSet {
 		input.Region = fastly.String(c.Region.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
-	if c.Period.Valid {
+	if c.Period.WasSet {
 		input.Period = fastly.Uint(c.Period.Value)
 	}
 
-	if c.GzipLevel.Valid {
+	if c.GzipLevel.WasSet {
 		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
-	if c.TimestampFormat.Valid {
+	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
-	if c.PublicKey.Valid {
+	if c.PublicKey.WasSet {
 		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
@@ -182,6 +182,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Cloudfiles logging endpoint %s (service %s version %d)", cloudfiles.Name, cloudfiles.ServiceID, cloudfiles.Version)
+	text.Success(out, "Updated Cloudfiles logging endpoint %s (service %s version %d)", cloudfiles.Name, cloudfiles.ServiceID, cloudfiles.ServiceVersion)
 	return nil
 }

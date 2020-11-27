@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list healthchecks.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List healthchecks on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	healthChecks, err := c.Globals.Client.ListHealthChecks(&c.Input)
 	if err != nil {
@@ -47,14 +47,14 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME", "METHOD", "HOST", "PATH")
 		for _, healthCheck := range healthChecks {
-			tw.AddLine(healthCheck.ServiceID, healthCheck.Version, healthCheck.Name, healthCheck.Method, healthCheck.Host, healthCheck.Path)
+			tw.AddLine(healthCheck.ServiceID, healthCheck.ServiceVersion, healthCheck.Name, healthCheck.Method, healthCheck.Host, healthCheck.Path)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, healthCheck := range healthChecks {
 		fmt.Fprintf(out, "\tHealthcheck %d/%d\n", i+1, len(healthChecks))
 		text.PrintHealthCheck(out, "\t\t", healthCheck)

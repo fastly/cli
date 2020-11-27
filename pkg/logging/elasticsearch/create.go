@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create Elasticsearch logging endpoints.
@@ -76,62 +76,62 @@ func (c *CreateCommand) createInput() (*fastly.CreateElasticsearchInput, error) 
 		return nil, errors.ErrNoServiceID
 	}
 
-	input.Service = serviceID
-	input.Version = c.Version
-	input.Name = fastly.String(c.EndpointName)
-	input.Index = fastly.String(c.Index)
-	input.URL = fastly.String(c.URL)
+	input.ServiceID = serviceID
+	input.ServiceVersion = c.Version
+	input.Name = c.EndpointName
+	input.Index = c.Index
+	input.URL = c.URL
 
-	if c.Pipeline.Valid {
-		input.Pipeline = fastly.String(c.Pipeline.Value)
+	if c.Pipeline.WasSet {
+		input.Pipeline = c.Pipeline.Value
 	}
 
-	if c.RequestMaxEntries.Valid {
-		input.RequestMaxEntries = fastly.Uint(c.RequestMaxEntries.Value)
+	if c.RequestMaxEntries.WasSet {
+		input.RequestMaxEntries = c.RequestMaxEntries.Value
 	}
 
-	if c.RequestMaxBytes.Valid {
-		input.RequestMaxBytes = fastly.Uint(c.RequestMaxBytes.Value)
+	if c.RequestMaxBytes.WasSet {
+		input.RequestMaxBytes = c.RequestMaxBytes.Value
 	}
 
-	if c.User.Valid {
-		input.User = fastly.String(c.User.Value)
+	if c.User.WasSet {
+		input.User = c.User.Value
 	}
 
-	if c.Password.Valid {
-		input.Password = fastly.String(c.Password.Value)
+	if c.Password.WasSet {
+		input.Password = c.Password.Value
 	}
 
-	if c.TLSCACert.Valid {
-		input.TLSCACert = fastly.String(c.TLSCACert.Value)
+	if c.TLSCACert.WasSet {
+		input.TLSCACert = c.TLSCACert.Value
 	}
 
-	if c.TLSClientCert.Valid {
-		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
+	if c.TLSClientCert.WasSet {
+		input.TLSClientCert = c.TLSClientCert.Value
 	}
 
-	if c.TLSClientKey.Valid {
-		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
+	if c.TLSClientKey.WasSet {
+		input.TLSClientKey = c.TLSClientKey.Value
 	}
 
-	if c.TLSHostname.Valid {
-		input.TLSHostname = fastly.String(c.TLSHostname.Value)
+	if c.TLSHostname.WasSet {
+		input.TLSHostname = c.TLSHostname.Value
 	}
 
-	if c.Format.Valid {
-		input.Format = fastly.String(c.Format.Value)
+	if c.Format.WasSet {
+		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.ResponseCondition.Valid {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.Placement.Valid {
-		input.Placement = fastly.String(c.Placement.Value)
+	if c.Placement.WasSet {
+		input.Placement = c.Placement.Value
 	}
 
 	return &input, nil
@@ -149,6 +149,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Elasticsearch logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Created Elasticsearch logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 	return nil
 }

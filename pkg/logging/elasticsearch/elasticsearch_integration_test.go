@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestElasticsearchCreate(t *testing.T) {
@@ -259,8 +259,8 @@ var errTest = errors.New("fixture error")
 
 func createElasticsearchOK(i *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -287,8 +287,8 @@ func createElasticsearchError(i *fastly.CreateElasticsearchInput) (*fastly.Elast
 func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
 	return []*fastly.Elasticsearch{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			ResponseCondition: "Prevent default logging",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -307,8 +307,8 @@ func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticse
 			FormatVersion:     2,
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Index:             "analytics",
 			URL:               "example.com",
@@ -382,8 +382,8 @@ Version: 1
 
 func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -428,8 +428,8 @@ Placement: none
 
 func updateElasticsearchOK(i *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,

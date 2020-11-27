@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestBigQueryCreate(t *testing.T) {
@@ -259,9 +259,9 @@ var errTest = errors.New("fixture error")
 
 func createBigQueryOK(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -271,9 +271,9 @@ func createBigQueryError(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error
 
 func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
 	return []*fastly.BigQuery{
-		&fastly.BigQuery{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+		{
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			ProjectID:         "my-project",
 			Dataset:           "raw-logs",
@@ -285,9 +285,9 @@ func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 			Placement:         "none",
 			ResponseCondition: "Prevent default logging",
 		},
-		&fastly.BigQuery{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+		{
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			ProjectID:         "my-project",
 			Dataset:           "analytics",
@@ -349,8 +349,8 @@ Version: 1
 
 func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		ProjectID:         "my-project",
 		Dataset:           "raw-logs",
@@ -386,8 +386,8 @@ Format version: 0
 
 func updateBigQueryOK(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ProjectID:         "my-project",
 		Dataset:           "raw-logs",

@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update Scalyr logging endpoints.
@@ -61,17 +61,17 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateScalyrInput, error) {
 	}
 
 	scalyr, err := c.Globals.Client.GetScalyr(&fastly.GetScalyrInput{
-		Service: serviceID,
-		Name:    c.EndpointName,
-		Version: c.Version,
+		ServiceID:      serviceID,
+		Name:           c.EndpointName,
+		ServiceVersion: c.Version,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	input := fastly.UpdateScalyrInput{
-		Service:           scalyr.ServiceID,
-		Version:           scalyr.Version,
+		ServiceID:         scalyr.ServiceID,
+		ServiceVersion:    scalyr.ServiceVersion,
 		Name:              scalyr.Name,
 		NewName:           fastly.String(scalyr.Name),
 		Format:            fastly.String(scalyr.Format),
@@ -82,31 +82,31 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateScalyrInput, error) {
 		Placement:         fastly.String(scalyr.Placement),
 	}
 
-	if c.NewName.Valid {
+	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = fastly.String(c.Format.Value)
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
 	}
 
-	if c.Token.Valid {
+	if c.Token.WasSet {
 		input.Token = fastly.String(c.Token.Value)
 	}
 
-	if c.Region.Valid {
+	if c.Region.WasSet {
 		input.Region = fastly.String(c.Region.Value)
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
 	}
 
@@ -125,6 +125,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Scalyr logging endpoint %s (service %s version %d)", scalyr.Name, scalyr.ServiceID, scalyr.Version)
+	text.Success(out, "Updated Scalyr logging endpoint %s (service %s version %d)", scalyr.Name, scalyr.ServiceID, scalyr.ServiceVersion)
 	return nil
 }

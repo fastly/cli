@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestCreatePapertrailInput(t *testing.T) {
@@ -23,18 +23,18 @@ func TestCreatePapertrailInput(t *testing.T) {
 			name: "required values set flag serviceID",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreatePapertrailInput{
-				Service: "123",
-				Version: 2,
-				Name:    "log",
-				Address: "example.com",
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				Address:        "example.com",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreatePapertrailInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "log",
 				Address:           "example.com",
 				Port:              22,
@@ -72,16 +72,16 @@ func TestUpdatePapertrailInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetPapertrailFn: getPapertrailOK},
 			want: &fastly.UpdatePapertrailInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
-				NewName:           "logs",
-				Address:           "example.com",
-				Port:              22,
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
+				NewName:           fastly.String("logs"),
+				Address:           fastly.String("example.com"),
+				Port:              fastly.Uint(22),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Uint(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
 			},
 		},
 		{
@@ -89,16 +89,16 @@ func TestUpdatePapertrailInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api:  mock.API{GetPapertrailFn: getPapertrailOK},
 			want: &fastly.UpdatePapertrailInput{
-				Service:           "123",
-				Version:           2,
+				ServiceID:         "123",
+				ServiceVersion:    2,
 				Name:              "logs",
-				NewName:           "new1",
-				Address:           "new2",
-				Port:              23,
-				Format:            "new3",
-				FormatVersion:     3,
-				ResponseCondition: "new4",
-				Placement:         "new5",
+				NewName:           fastly.String("new1"),
+				Address:           fastly.String("new2"),
+				Port:              fastly.Uint(23),
+				Format:            fastly.String("new3"),
+				FormatVersion:     fastly.Uint(3),
+				ResponseCondition: fastly.String("new4"),
+				Placement:         fastly.String("new5"),
 			},
 		},
 		{
@@ -133,11 +133,11 @@ func createCommandAll() *CreateCommand {
 		EndpointName:      "log",
 		Version:           2,
 		Address:           "example.com",
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "none"},
-		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 22},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
+		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 22},
 	}
 }
 
@@ -162,13 +162,13 @@ func updateCommandAll() *UpdateCommand {
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new1"},
-		Address:           common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new2"},
-		Port:              common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 23},
-		Format:            common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new3"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{Valid: true}, Value: 3},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new4"},
-		Placement:         common.OptionalString{Optional: common.Optional{Valid: true}, Value: "new5"},
+		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
+		Address:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
+		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 23},
+		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
+		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
+		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 	}
 }
 
@@ -180,8 +180,8 @@ func updateCommandMissingServiceID() *UpdateCommand {
 
 func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Address:           "example.com",
 		Port:              22,

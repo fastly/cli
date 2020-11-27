@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // CreateCommand calls the Fastly API to create Amazon S3 logging endpoints.
@@ -82,62 +82,62 @@ func (c *CreateCommand) createInput() (*fastly.CreateS3Input, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	input.Service = serviceID
-	input.Version = c.Version
+	input.ServiceID = serviceID
+	input.ServiceVersion = c.Version
 	input.Name = c.EndpointName
 	input.BucketName = c.BucketName
 	input.AccessKey = c.AccessKey
 	input.SecretKey = c.SecretKey
 
-	if c.Domain.Valid {
+	if c.Domain.WasSet {
 		input.Domain = c.Domain.Value
 	}
 
-	if c.Path.Valid {
+	if c.Path.WasSet {
 		input.Path = c.Path.Value
 	}
 
-	if c.Period.Valid {
+	if c.Period.WasSet {
 		input.Period = c.Period.Value
 	}
 
-	if c.GzipLevel.Valid {
+	if c.GzipLevel.WasSet {
 		input.GzipLevel = c.GzipLevel.Value
 	}
 
-	if c.Format.Valid {
+	if c.Format.WasSet {
 		input.Format = c.Format.Value
 	}
 
-	if c.FormatVersion.Valid {
+	if c.FormatVersion.WasSet {
 		input.FormatVersion = c.FormatVersion.Value
 	}
 
-	if c.MessageType.Valid {
+	if c.MessageType.WasSet {
 		input.MessageType = c.MessageType.Value
 	}
 
-	if c.ResponseCondition.Valid {
+	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = c.ResponseCondition.Value
 	}
 
-	if c.TimestampFormat.Valid {
+	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = c.TimestampFormat.Value
 	}
 
-	if c.Placement.Valid {
+	if c.Placement.WasSet {
 		input.Placement = c.Placement.Value
 	}
 
-	if c.PublicKey.Valid {
+	if c.PublicKey.WasSet {
 		input.PublicKey = c.PublicKey.Value
 	}
 
-	if c.ServerSideEncryptionKMSKeyID.Valid {
+	if c.ServerSideEncryptionKMSKeyID.WasSet {
 		input.ServerSideEncryptionKMSKeyID = c.ServerSideEncryptionKMSKeyID.Value
 	}
 
-	if c.Redundancy.Valid {
+	if c.Redundancy.WasSet {
 		switch c.Redundancy.Value {
 		case string(fastly.S3RedundancyStandard):
 			input.Redundancy = fastly.S3RedundancyStandard
@@ -146,7 +146,7 @@ func (c *CreateCommand) createInput() (*fastly.CreateS3Input, error) {
 		}
 	}
 
-	if c.ServerSideEncryption.Valid {
+	if c.ServerSideEncryption.WasSet {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
 			input.ServerSideEncryption = fastly.S3ServerSideEncryptionAES
@@ -170,6 +170,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created S3 logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Created S3 logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 	return nil
 }

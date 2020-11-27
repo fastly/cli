@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update packages.
@@ -41,9 +41,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Uploading package...")
 	_, err = c.Globals.Client.UpdatePackage(&fastly.UpdatePackageInput{
-		Service:     c.serviceID,
-		Version:     c.version,
-		PackagePath: c.path,
+		ServiceID:      c.serviceID,
+		ServiceVersion: c.version,
+		PackagePath:    c.path,
 	})
 	if err != nil {
 		return fmt.Errorf("error uploading package: %w", err)

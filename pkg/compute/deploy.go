@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 	"github.com/kennygrant/sanitize"
 )
 
@@ -76,10 +76,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// Set the version we want to operate on.
 	// If version not provided infer the latest ideal version from the service.
-	if !c.version.Valid {
+	if !c.version.WasSet {
 		progress.Step("Fetching latest version...")
 		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
-			Service: serviceID,
+			ServiceID: serviceID,
 		})
 		if err != nil {
 			return fmt.Errorf("error listing service versions: %w", err)
@@ -102,8 +102,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Compare local package hashsum against existing service package version
 	// and exit early with message if identical.
 	if p, err := c.Globals.Client.GetPackage(&fastly.GetPackageInput{
-		Service: serviceID,
-		Version: version.Number,
+		ServiceID:      serviceID,
+		ServiceVersion: version.Number,
 	}); err == nil {
 		hashSum, err := getHashSum(c.path)
 		if err != nil {
@@ -119,11 +119,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// If a version wasn't supplied and the ideal version is currently active
 	// or locked, clone it.
-	if !c.version.Valid && version.Active || version.Locked {
+	if !c.version.WasSet && version.Active || version.Locked {
 		progress.Step("Cloning latest version...")
 		version, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
-			Service: serviceID,
-			Version: version.Number,
+			ServiceID:      serviceID,
+			ServiceVersion: version.Number,
 		})
 		if err != nil {
 			return fmt.Errorf("error cloning latest service version: %w", err)
@@ -132,9 +132,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Uploading package...")
 	_, err = c.Globals.Client.UpdatePackage(&fastly.UpdatePackageInput{
-		Service:     serviceID,
-		Version:     version.Number,
-		PackagePath: c.path,
+		ServiceID:      serviceID,
+		ServiceVersion: version.Number,
+		PackagePath:    c.path,
 	})
 	if err != nil {
 		return fmt.Errorf("error uploading package: %w", err)
@@ -143,8 +143,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Activating version...")
 
 	_, err = c.Globals.Client.ActivateVersion(&fastly.ActivateVersionInput{
-		Service: serviceID,
-		Version: version.Number,
+		ServiceID:      serviceID,
+		ServiceVersion: version.Number,
 	})
 	if err != nil {
 		return fmt.Errorf("error activating version: %w", err)
@@ -166,8 +166,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
 
 	if domains, err := c.Globals.Client.ListDomains(&fastly.ListDomainsInput{
-		Service: serviceID,
-		Version: version.Number,
+		ServiceID:      serviceID,
+		ServiceVersion: version.Number,
 	}); err == nil {
 		text.Description(out, "View this service at", fmt.Sprintf("https://%s", domains[0].Name))
 	}

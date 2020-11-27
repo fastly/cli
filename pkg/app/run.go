@@ -53,7 +53,7 @@ import (
 	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/cli/pkg/version"
 	"github.com/fastly/cli/pkg/whoami"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 

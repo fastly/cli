@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestKafkaCreate(t *testing.T) {
@@ -267,8 +267,8 @@ var errTest = errors.New("fixture error")
 
 func createKafkaOK(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -298,8 +298,8 @@ func createKafkaError(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 	return []*fastly.Kafka{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			ResponseCondition: "Prevent default logging",
 			Format:            `%h %l %u %t "%r" %>s %b`,
@@ -321,8 +321,8 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			Password:          "",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Topic:             "analytics",
 			Brokers:           "127.0.0.1,127.0.0.2",
@@ -409,8 +409,8 @@ Version: 1
 
 func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Brokers:           "127.0.0.1,127.0.0.2",
 		Topic:             "logs",
@@ -458,8 +458,8 @@ SASL authentication password:
 
 func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -479,8 +479,8 @@ func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 
 func updateKafkaSASL(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		ResponseCondition: "Prevent default logging",
 		Format:            `%h %l %u %t "%r" %>s %b`,

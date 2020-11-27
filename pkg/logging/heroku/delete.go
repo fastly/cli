@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // DeleteCommand calls the Fastly API to delete Heroku logging endpoints.
@@ -25,7 +25,7 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete a Heroku logging endpoint on a Fastly service version").Alias("remove")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	c.CmdClause.Flag("name", "The name of the Heroku logging object").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
@@ -36,12 +36,12 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	if err := c.Globals.Client.DeleteHeroku(&c.Input); err != nil {
 		return err
 	}
 
-	text.Success(out, "Deleted Heroku logging endpoint %s (service %s version %d)", c.Input.Name, c.Input.Service, c.Input.Version)
+	text.Success(out, "Deleted Heroku logging endpoint %s (service %s version %d)", c.Input.Name, c.Input.ServiceID, c.Input.ServiceVersion)
 	return nil
 }

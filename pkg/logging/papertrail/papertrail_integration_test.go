@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestPapertrailCreate(t *testing.T) {
@@ -255,9 +255,9 @@ var errTest = errors.New("fixture error")
 
 func createPapertrailOK(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
 	}, nil
 }
 
@@ -268,8 +268,8 @@ func createPapertrailError(i *fastly.CreatePapertrailInput) (*fastly.Papertrail,
 func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
 	return []*fastly.Papertrail{
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Address:           "example.com:123",
 			Port:              123,
@@ -279,8 +279,8 @@ func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, er
 			Placement:         "none",
 		},
 		{
-			ServiceID:         i.Service,
-			Version:           i.Version,
+			ServiceID:         i.ServiceID,
+			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			Address:           "127.0.0.1:456",
 			Port:              456,
@@ -331,8 +331,8 @@ Version: 1
 
 func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "logs",
 		Address:           "example.com:123",
 		Port:              123,
@@ -361,8 +361,8 @@ Placement: none
 
 func updatePapertrailOK(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
-		ServiceID:         i.Service,
-		Version:           i.Version,
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
 		Name:              "log",
 		Address:           "example.com:123",
 		Port:              123,

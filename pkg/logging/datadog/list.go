@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list Datadog logging endpoints.
@@ -26,7 +26,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List Datadog endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -36,7 +36,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	datadogs, err := c.Globals.Client.ListDatadog(&c.Input)
 	if err != nil {
@@ -47,18 +47,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, datadog := range datadogs {
-			tw.AddLine(datadog.ServiceID, datadog.Version, datadog.Name)
+			tw.AddLine(datadog.ServiceID, datadog.ServiceVersion, datadog.Name)
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.Service)
-	fmt.Fprintf(out, "Version: %d\n", c.Input.Version)
+	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
+	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, datadog := range datadogs {
 		fmt.Fprintf(out, "\tDatadog %d/%d\n", i+1, len(datadogs))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", datadog.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", datadog.Version)
+		fmt.Fprintf(out, "\t\tVersion: %d\n", datadog.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", datadog.Name)
 		fmt.Fprintf(out, "\t\tToken: %s\n", datadog.Token)
 		fmt.Fprintf(out, "\t\tRegion: %s\n", datadog.Region)
