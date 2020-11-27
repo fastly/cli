@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // DeleteCommand calls the Fastly API to delete a service.
@@ -25,7 +25,7 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete an item from a Fastly edge dictionary")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.Dictionary)
+	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
 	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
 	return &c
 }
@@ -36,13 +36,13 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	err := c.Globals.Client.DeleteDictionaryItem(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Deleted dictionary item %s (service %s, dicitonary %s)", c.Input.ItemKey, c.Input.Service, c.Input.Dictionary)
+	text.Success(out, "Deleted dictionary item %s (service %s, dicitonary %s)", c.Input.ItemKey, c.Input.ServiceID, c.Input.DictionaryID)
 	return nil
 }

@@ -8,14 +8,16 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // UpdateCommand calls the Fastly API to describe a service.
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
-	Input    fastly.UpdateDictionaryInput
+	input    fastly.UpdateDictionaryInput
+
+	newname common.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -25,9 +27,9 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update name of dictionary on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
-	c.CmdClause.Flag("name", "Old name of Dictionary").Short('n').Required().StringVar(&c.Input.Name)
-	c.CmdClause.Flag("new-name", "New name of Dictionary").Required().StringVar(&c.Input.NewName)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.input.ServiceVersion)
+	c.CmdClause.Flag("name", "Old name of Dictionary").Short('n').Required().StringVar(&c.input.Name)
+	c.CmdClause.Flag("new-name", "New name of Dictionary").Required().Action(c.newname.Set).StringVar(&c.newname.Value)
 	return &c
 }
 
@@ -37,18 +39,20 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.input.ServiceID = serviceID
 
-	d, err := c.Globals.Client.UpdateDictionary(&c.Input)
+	c.input.NewName = &c.newname.Value
+
+	d, err := c.Globals.Client.UpdateDictionary(&c.input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Updated dictionary %s to %s (service %s version %d)", c.Input.Name, d.Name, d.ServiceID, d.Version)
+	text.Success(out, "Updated dictionary %s to %s (service %s version %d)", c.input.Name, d.Name, d.ServiceID, d.ServiceVersion)
 
 	if c.Globals.Verbose() {
 		text.Output(out, "Service ID: %s", d.ServiceID)
-		text.Output(out, "Version: %d", d.Version)
+		text.Output(out, "Version: %d", d.ServiceVersion)
 		text.PrintDictionary(out, "", d)
 	}
 

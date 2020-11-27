@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to describe a service.
@@ -25,7 +25,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List items in a Fastly edge dictionary")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.Dictionary)
+	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
 	return &c
 }
 
@@ -35,14 +35,14 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	dictionaries, err := c.Globals.Client.ListDictionaryItems(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	text.Output(out, "Service ID: %s\n", c.Input.Service)
+	text.Output(out, "Service ID: %s\n", c.Input.ServiceID)
 	for i, dictionary := range dictionaries {
 		text.Output(out, "Item: %d/%d", i+1, len(dictionaries))
 		text.PrintDictionaryItem(out, "\t", dictionary)

@@ -12,7 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestDictionaryItemDescribe(t *testing.T) {
@@ -227,7 +227,7 @@ func TestDictionaryItemDelete(t *testing.T) {
 
 func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    i.Service,
+		ServiceID:    i.ServiceID,
 		DictionaryID: "456",
 		ItemKey:      i.ItemKey,
 		ItemValue:    "bar",
@@ -247,7 +247,7 @@ Last edited (UTC): 2001-02-03 04:05
 
 func describeDictionaryItemOKDeleted(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    i.Service,
+		ServiceID:    i.ServiceID,
 		DictionaryID: "456",
 		ItemKey:      i.ItemKey,
 		ItemValue:    "bar",
@@ -269,16 +269,16 @@ Deleted (UTC): 2001-02-03 04:06
 
 func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
 	return []*fastly.DictionaryItem{
-		&fastly.DictionaryItem{
-			ServiceID:    i.Service,
+		{
+			ServiceID:    i.ServiceID,
 			DictionaryID: "456",
 			ItemKey:      "foo",
 			ItemValue:    "bar",
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
-		&fastly.DictionaryItem{
-			ServiceID:    i.Service,
+		{
+			ServiceID:    i.ServiceID,
 			DictionaryID: "456",
 			ItemKey:      "baz",
 			ItemValue:    "bear",
@@ -309,8 +309,8 @@ Item: 2/2
 
 func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    i.Service,
-		DictionaryID: i.Dictionary,
+		ServiceID:    i.ServiceID,
+		DictionaryID: i.DictionaryID,
 		ItemKey:      i.ItemKey,
 		ItemValue:    i.ItemValue,
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
@@ -320,10 +320,10 @@ func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.Dictio
 
 func updateDictionaryItemOK(i *fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    i.Service,
-		DictionaryID: i.Dictionary,
+		ServiceID:    i.ServiceID,
+		DictionaryID: i.DictionaryID,
 		ItemKey:      i.ItemKey,
-		ItemValue:    i.ItemValue,
+		ItemValue:    *i.ItemValue,
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil

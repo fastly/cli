@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 func TestDictionaryDescribe(t *testing.T) {
@@ -205,15 +205,15 @@ func TestUpdateDictionary(t *testing.T) {
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args:      []string{"dictionary", "update", "--name", "oldname", "--new-name", "newname"},
+			args:      []string{"dictionary", "update", "--service-id", "123", "--name", "oldname", "--new-name", "newname"},
 			wantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args:      []string{"dictionary", "update", "--version", "1", "--new-name", "newname"},
+			args:      []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--new-name", "newname"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"dictionary", "update", "--version", "1", "--name", "oldname"},
+			args:      []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname"},
 			wantError: "error parsing arguments: required flag --new-name not provided",
 		},
 		{
@@ -253,38 +253,38 @@ func TestUpdateDictionary(t *testing.T) {
 
 func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-		CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly: false,
-		ID:        "456",
-		UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
+		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+		WriteOnly:      false,
+		ID:             "456",
+		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 
 func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-		CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly: false,
-		ID:        "456",
-		UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
-		DeletedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:08Z"),
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
+		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+		WriteOnly:      false,
+		ID:             "456",
+		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		DeletedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:08Z"),
 	}, nil
 }
 
 func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.Name,
-		CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly: false,
-		ID:        "456",
-		UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
+		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+		WriteOnly:      false,
+		ID:             "456",
+		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 
@@ -301,7 +301,7 @@ func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryIn
 func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
 	return []*fastly.DictionaryItem{
 		{
-			ServiceID:    i.Service,
+			ServiceID:    i.ServiceID,
 			DictionaryID: "456",
 			ItemKey:      "foo",
 			ItemValue:    "bar",
@@ -309,7 +309,7 @@ func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.Dictio
 			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 		{
-			ServiceID:    i.Service,
+			ServiceID:    i.ServiceID,
 			DictionaryID: "456",
 			ItemKey:      "baz",
 			ItemValue:    "bear",
@@ -335,35 +335,35 @@ func deleteDictionaryError(*fastly.DeleteDictionaryInput) error {
 func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, error) {
 	return []*fastly.Dictionary{
 		{
-			ServiceID: i.Service,
-			Version:   i.Version,
-			Name:      "dict-1",
-			CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-			WriteOnly: false,
-			ID:        "456",
-			UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           "dict-1",
+			CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			WriteOnly:      false,
+			ID:             "456",
+			UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 		{
-			ServiceID: i.Service,
-			Version:   i.Version,
-			Name:      "dict-2",
-			CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-			WriteOnly: false,
-			ID:        "456",
-			UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           "dict-2",
+			CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			WriteOnly:      false,
+			ID:             "456",
+			UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 	}, nil
 }
 
 func updateDictionaryOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID: i.Service,
-		Version:   i.Version,
-		Name:      i.NewName,
-		CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly: false,
-		ID:        "456",
-		UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           *i.NewName,
+		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+		WriteOnly:      false,
+		ID:             "456",
+		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 

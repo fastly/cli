@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/fastly"
+	"github.com/fastly/go-fastly/v2/fastly"
 )
 
 // ListCommand calls the Fastly API to list dictionaries
@@ -25,7 +25,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List all dictionaries on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	return &c
 }
 
@@ -35,7 +35,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = serviceID
+	c.Input.ServiceID = serviceID
 
 	dictionaries, err := c.Globals.Client.ListDictionaries(&c.Input)
 	if err != nil {
@@ -43,7 +43,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Output(out, "Service ID: %s", serviceID)
-	text.Output(out, "Version: %d", c.Input.Version)
+	text.Output(out, "Version: %d", c.Input.ServiceVersion)
 	for _, dictionary := range dictionaries {
 		text.PrintDictionary(out, "", dictionary)
 	}
