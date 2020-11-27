@@ -53,11 +53,12 @@ type API struct {
 	ListDictionariesFn func(*fastly.ListDictionariesInput) ([]*fastly.Dictionary, error)
 	UpdateDictionaryFn func(*fastly.UpdateDictionaryInput) (*fastly.Dictionary, error)
 
-	ListDictionaryItemsFn  func(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
-	GetDictionaryItemFn    func(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
-	CreateDictionaryItemFn func(*fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error)
-	UpdateDictionaryItemFn func(*fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error)
-	DeleteDictionaryItemFn func(*fastly.DeleteDictionaryItemInput) error
+	ListDictionaryItemsFn        func(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
+	GetDictionaryItemFn          func(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
+	CreateDictionaryItemFn       func(*fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error)
+	UpdateDictionaryItemFn       func(*fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error)
+	DeleteDictionaryItemFn       func(*fastly.DeleteDictionaryItemInput) error
+	BatchModifyDictionaryItemsFn func(*fastly.BatchModifyDictionaryItemsInput) error
 
 	GetDictionaryInfoFn func(*fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error)
 
@@ -419,6 +420,11 @@ func (m API) UpdateDictionaryItem(i *fastly.UpdateDictionaryItemInput) (*fastly.
 // DeleteDictionaryItem implements Interface.
 func (m API) DeleteDictionaryItem(i *fastly.DeleteDictionaryItemInput) error {
 	return m.DeleteDictionaryItemFn(i)
+}
+
+// BatchModifyDictionaryItems implements Interface.
+func (m API) BatchModifyDictionaryItems(i *fastly.BatchModifyDictionaryItemsInput) error {
+	return m.BatchModifyDictionaryItemsFn(i)
 }
 
 // GetDictionaryInfo implements Interface.

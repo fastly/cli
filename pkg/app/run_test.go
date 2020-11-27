@@ -636,6 +636,14 @@ COMMANDS
                                  Dictionary ID
         --key=KEY                Dictionary item key
 
+  dictionaryitem batchmodify --dictionary-id=DICTIONARY-ID --file=FILE [<flags>]
+    Update multiple items in a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --file=FILE              Batch update json file
+
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version
 

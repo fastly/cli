@@ -71,6 +71,7 @@ type Interface interface {
 	CreateDictionaryItem(*fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error)
 	UpdateDictionaryItem(*fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error)
 	DeleteDictionaryItem(*fastly.DeleteDictionaryItemInput) error
+	BatchModifyDictionaryItems(*fastly.BatchModifyDictionaryItemsInput) error
 
 	GetDictionaryInfo(*fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error)
 

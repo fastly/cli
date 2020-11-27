@@ -2,8 +2,13 @@ package edgedictionaryitem_test
 
 import (
 	"bytes"
+	"crypto/rand"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -225,6 +230,78 @@ func TestDictionaryItemDelete(t *testing.T) {
 	}
 }
 
+func TestDictionaryItemBatchModify(t *testing.T) {
+	for _, testcase := range []struct {
+		args       []string
+		api        mock.API
+		fileData   string
+		wantError  string
+		wantOutput string
+	}{
+		{
+			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123"},
+			wantError: "error parsing arguments: required flag ",
+		},
+		{
+			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456"},
+			wantError: "error parsing arguments: required flag --file not provided",
+		},
+		{
+			fileData:  `{invalid": "json"}`,
+			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "filePath"},
+			wantError: "invalid character 'i' looking for beginning of object key string",
+		},
+		{
+			fileData:  `{"valid": "json"}`,
+			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "filePath"},
+			wantError: "item key not found in file ",
+		},
+		{
+			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "missingFile"},
+			wantError: "open missingFile: no such file or directory",
+		},
+		{
+			fileData:  dictionaryItemBatchModifyInputOK,
+			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "filePath"},
+			api:       mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsError},
+			wantError: errTest.Error(),
+		},
+		{
+			fileData:   dictionaryItemBatchModifyInputOK,
+			args:       []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "filePath"},
+			api:        mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsOK},
+			wantOutput: "\nSUCCESS: Made 4 modifications of Dictionary 456 on service 123\n",
+		},
+	} {
+		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			filePath := tempFile(t, testcase.fileData)
+			defer os.RemoveAll(filePath)
+
+			// Insert temp file path into args when "filePath" is present as placeholder
+			for i, v := range testcase.args {
+				if v == "filePath" {
+					testcase.args[i] = filePath
+				}
+			}
+
+			var (
+				args                           = testcase.args
+				env                            = config.Environment{}
+				file                           = config.File{}
+				appConfigFile                  = "/dev/null"
+				clientFactory                  = mock.APIClient(testcase.api)
+				httpClient                     = http.DefaultClient
+				versioner     update.Versioner = nil
+				in            io.Reader        = nil
+				out           bytes.Buffer
+			)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertString(t, testcase.wantOutput, out.String())
+		})
+	}
+}
+
 func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
 		ServiceID:    i.ServiceID,
@@ -331,4 +408,72 @@ func updateDictionaryItemOK(i *fastly.UpdateDictionaryItemInput) (*fastly.Dictio
 
 func deleteDictionaryItemOK(i *fastly.DeleteDictionaryItemInput) error {
 	return nil
+}
+
+var dictionaryItemBatchModifyInputOK = `
+{
+	"items": [
+		{
+		  "op": "create",
+		  "item_key": "some_key",
+		  "item_value": "new_value"
+		},
+		{
+		  "op": "update",
+		  "item_key": "some_key",
+		  "item_value": "new_value"
+		},
+		{
+		  "op": "upsert",
+		  "item_key": "some_key",
+		  "item_value": "new_value"
+		},
+		{
+		  "op": "delete",
+		  "item_key": "some_key"
+		}
+	]
+}`
+
+func batchModifyDictionaryItemsOK(i *fastly.BatchModifyDictionaryItemsInput) error {
+	return nil
+}
+
+func batchModifyDictionaryItemsError(i *fastly.BatchModifyDictionaryItemsInput) error {
+	return errTest
+}
+
+var errTest = errors.New("an expected error ocurred")
+
+func tempFile(t *testing.T, contents string) string {
+	t.Helper()
+
+	p := make([]byte, 32)
+	n, err := rand.Read(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	filename := filepath.Join(
+		os.TempDir(),
+		fmt.Sprintf("fastly-%x", p[:n]),
+	)
+
+	if contents != "" {
+		f, err := os.Create(filename)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := fmt.Fprintln(f, contents); err != nil {
+			t.Fatal(err)
+		}
+		if err := f.Sync(); err != nil {
+			t.Fatal(err)
+		}
+		if err := f.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return filename
 }
