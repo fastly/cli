@@ -2,13 +2,10 @@ package edgedictionaryitem_test
 
 import (
 	"bytes"
-	"crypto/rand"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -274,8 +271,11 @@ func TestDictionaryItemBatchModify(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			filePath := tempFile(t, testcase.fileData)
-			defer os.RemoveAll(filePath)
+			var filePath string
+			if testcase.fileData != "" {
+				filePath = testutil.MakeTempFile(t, testcase.fileData)
+				defer os.RemoveAll(filePath)
+			}
 
 			// Insert temp file path into args when "filePath" is present as placeholder
 			for i, v := range testcase.args {
@@ -444,36 +444,3 @@ func batchModifyDictionaryItemsError(i *fastly.BatchModifyDictionaryItemsInput) 
 }
 
 var errTest = errors.New("an expected error ocurred")
-
-func tempFile(t *testing.T, contents string) string {
-	t.Helper()
-
-	p := make([]byte, 32)
-	n, err := rand.Read(p)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	filename := filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-%x", p[:n]),
-	)
-
-	if contents != "" {
-		f, err := os.Create(filename)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if _, err := fmt.Fprintln(f, contents); err != nil {
-			t.Fatal(err)
-		}
-		if err := f.Sync(); err != nil {
-			t.Fatal(err)
-		}
-		if err := f.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	return filename
-}

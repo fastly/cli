@@ -2,14 +2,11 @@ package configure_test
 
 import (
 	"bytes"
-	"crypto/rand"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -198,7 +195,7 @@ func TestConfigure(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			configFilePath := tempFile(t, testcase.configFileData)
+			configFilePath := testutil.MakeTempFile(t, testcase.configFileData)
 			defer os.RemoveAll(configFilePath)
 
 			var (
@@ -223,37 +220,4 @@ func TestConfigure(t *testing.T) {
 			}
 		})
 	}
-}
-
-func tempFile(t *testing.T, contents string) string {
-	t.Helper()
-
-	p := make([]byte, 32)
-	n, err := rand.Read(p)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	filename := filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-%x", p[:n]),
-	)
-
-	if contents != "" {
-		f, err := os.Create(filename)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if _, err := fmt.Fprintln(f, contents); err != nil {
-			t.Fatal(err)
-		}
-		if err := f.Sync(); err != nil {
-			t.Fatal(err)
-		}
-		if err := f.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	return filename
 }
