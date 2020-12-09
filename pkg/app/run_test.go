@@ -567,6 +567,8 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              Name of Dictionary
+        --write-only=WRITE-ONLY  Whether to mark this dictionary as write-only.
+                                 Can be true or false (defaults to false)
 
   dictionary describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Fastly edge dictionary

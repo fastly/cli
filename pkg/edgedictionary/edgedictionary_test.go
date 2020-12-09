@@ -76,13 +76,21 @@ func TestDictionaryCreate(t *testing.T) {
 	}{
 		{
 			args:      []string{"dictionary", "create", "--version", "1", "--service-id", "123"},
-			api:       mock.API{CreateDictionaryFn: createDictionaryOK},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			args:       []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist"},
 			api:        mock.API{CreateDictionaryFn: createDictionaryOK},
 			wantOutput: createDictionaryOutput,
+		},
+		{
+			args:       []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--write-only", "true"},
+			api:        mock.API{CreateDictionaryFn: createDictionaryOK},
+			wantOutput: createDictionaryOutputWriteOnly,
+		},
+		{
+			args:      []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--write-only", "fish"},
+			wantError: "strconv.ParseBool: parsing \"fish\": invalid syntax",
 		},
 		{
 			args:      []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist"},
@@ -282,7 +290,7 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 		ServiceVersion: i.ServiceVersion,
 		Name:           i.Name,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      false,
+		WriteOnly:      i.WriteOnly == true,
 		ID:             "456",
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
@@ -374,6 +382,7 @@ func updateDictionaryError(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary,
 var errTest = errors.New("an expected error ocurred")
 
 var createDictionaryOutput = "\nSUCCESS: Created dictionary denylist (service 123 version 1)\n"
+var createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (service 123 version 1)\n"
 var deleteDictionaryOutput = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 1)\n"
 var updateDictionaryOutput = "\nSUCCESS: Updated dictionary oldname to dict-1 (service 123 version 1)\n"
 

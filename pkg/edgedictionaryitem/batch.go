@@ -32,7 +32,7 @@ func NewBatchCommand(parent common.Registerer, globals *config.Data) *BatchComma
 	c.CmdClause = parent.Command("batchmodify", "Update multiple items in a Fastly edge dictionary")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
-	c.CmdClause.Flag("file", "Batch update json file").Required().StringVar(&c.file.Value)
+	c.CmdClause.Flag("file", "Batch update json file").Required().Action(c.file.Set).StringVar(&c.file.Value)
 	return &c
 }
 
