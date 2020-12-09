@@ -51,7 +51,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		infoInput := fastly.GetDictionaryInfoInput{
 			ServiceID:      c.Input.ServiceID,
 			ServiceVersion: c.Input.ServiceVersion,
-			ID:             c.manifest.Flag.ServiceID,
+			ID:             dictionary.ID,
 		}
 		info, err := c.Globals.Client.GetDictionaryInfo(&infoInput)
 		if err != nil {

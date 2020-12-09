@@ -308,12 +308,18 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 
 // getDictionaryInfoOK mocks the response from fastly.GetDictionaryInfo, which is not otherwise used
 // in the fastly-cli and will need to be updated here if that call changes
+// This function requires i.ID to equal "456" to enforce the input to this call matches the
+// response to GetDictionaryInfo in describeDictionaryOK
 func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
-	return &fastly.DictionaryInfo{
-		ItemCount:   2,
-		LastUpdated: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
-		Digest:      "digest_hash",
-	}, nil
+	if i.ID == "456" {
+		return &fastly.DictionaryInfo{
+			ItemCount:   2,
+			LastUpdated: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+			Digest:      "digest_hash",
+		}, nil
+	} else {
+		return nil, errFail
+	}
 }
 
 // listDictionaryItemsOK mocks the response from fastly.ListDictionaryItems which is primarily used
@@ -322,7 +328,7 @@ func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.Dictio
 	return []*fastly.DictionaryItem{
 		{
 			ServiceID:    i.ServiceID,
-			DictionaryID: "456",
+			DictionaryID: i.DictionaryID,
 			ItemKey:      "foo",
 			ItemValue:    "bar",
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
@@ -330,7 +336,7 @@ func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.Dictio
 		},
 		{
 			ServiceID:    i.ServiceID,
-			DictionaryID: "456",
+			DictionaryID: i.DictionaryID,
 			ItemKey:      "baz",
 			ItemValue:    "bear",
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
@@ -411,6 +417,7 @@ func updateDictionaryError(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary,
 }
 
 var errTest = errors.New("an expected error ocurred")
+var errFail = errors.New("this error should not be returned and indicates a failure in the code")
 
 var createDictionaryOutput = "\nSUCCESS: Created dictionary denylist (service 123 version 1)\n"
 var createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (service 123 version 1)\n"
