@@ -21,6 +21,10 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
+//
+// TODO(integralist) update to not use common.OptionalString once we have a
+// new Go-Fastly release that modifies UpdateDictionaryItemInput so that the
+// ItemValue is no longer optional.
 func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
