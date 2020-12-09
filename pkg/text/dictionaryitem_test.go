@@ -12,7 +12,6 @@ import (
 func TestPrintDictionaryItem(t *testing.T) {
 	for _, testcase := range []struct {
 		name           string
-		prefix         string
 		dictionaryItem *fastly.DictionaryItem
 		wantOutput     string
 	}{
@@ -24,7 +23,7 @@ func TestPrintDictionaryItem(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			text.PrintDictionaryItem(&buf, testcase.prefix, testcase.dictionaryItem)
+			text.PrintDictionaryItem(&buf, "", testcase.dictionaryItem)
 			testutil.AssertString(t, testcase.wantOutput, buf.String())
 		})
 	}
