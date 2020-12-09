@@ -1,7 +1,9 @@
 package edgedictionary
 
 import (
+	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
@@ -17,7 +19,8 @@ type UpdateCommand struct {
 	manifest manifest.Data
 	input    fastly.UpdateDictionaryInput
 
-	newname common.OptionalString
+	newname   common.OptionalString
+	writeOnly common.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -29,7 +32,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.input.ServiceVersion)
 	c.CmdClause.Flag("name", "Old name of Dictionary").Short('n').Required().StringVar(&c.input.Name)
-	c.CmdClause.Flag("new-name", "New name of Dictionary").Required().Action(c.newname.Set).StringVar(&c.newname.Value)
+	c.CmdClause.Flag("new-name", "New name of Dictionary").Action(c.newname.Set).StringVar(&c.newname.Value)
+	c.CmdClause.Flag("write-only", "Whether to mark this dictionary as write-only. Can be true or false (defaults to false)").Action(c.writeOnly.Set).StringVar(&c.writeOnly.Value)
 	return &c
 }
 
@@ -41,14 +45,28 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.input.ServiceID = serviceID
 
-	c.input.NewName = &c.newname.Value
+	if !c.newname.WasSet && !c.writeOnly.WasSet {
+		return errors.RemediationError{Inner: fmt.Errorf("error parsing arguments: required flag --new-name or --write-only not provided"), Remediation: ""}
+	}
+
+	if c.newname.WasSet {
+		c.input.NewName = &c.newname.Value
+	}
+
+	if c.writeOnly.WasSet {
+		writeOnly, err := strconv.ParseBool(c.writeOnly.Value)
+		if err != nil {
+			return err
+		}
+		c.input.WriteOnly = fastly.CBool(writeOnly)
+	}
 
 	d, err := c.Globals.Client.UpdateDictionary(&c.input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Updated dictionary %s to %s (service %s version %d)", c.input.Name, d.Name, d.ServiceID, d.ServiceVersion)
+	text.Success(out, "Updated dictionary %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 
 	if c.Globals.Verbose() {
 		text.Output(out, "Service ID: %s", d.ServiceID)

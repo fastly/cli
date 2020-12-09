@@ -590,13 +590,15 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
 
-  dictionary update --version=VERSION --name=NAME --new-name=NEW-NAME [<flags>]
+  dictionary update --version=VERSION --name=NAME [<flags>]
     Update name of dictionary on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              Old name of Dictionary
         --new-name=NEW-NAME      New name of Dictionary
+        --write-only=WRITE-ONLY  Whether to mark this dictionary as write-only.
+                                 Can be true or false (defaults to false)
 
   dictionaryitem list --dictionary-id=DICTIONARY-ID [<flags>]
     List items in a Fastly edge dictionary

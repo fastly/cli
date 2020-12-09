@@ -222,16 +222,26 @@ func TestUpdateDictionary(t *testing.T) {
 		},
 		{
 			args:      []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname"},
-			wantError: "error parsing arguments: required flag --new-name not provided",
+			wantError: "error parsing arguments: required flag --new-name or --write-only not provided",
 		},
 		{
 			args:       []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
-			api:        mock.API{UpdateDictionaryFn: updateDictionaryOK},
+			api:        mock.API{UpdateDictionaryFn: updateDictionaryNameOK},
+			wantOutput: updateDictionaryNameOutput,
+		},
+		{
+			args:       []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--write-only", "true"},
+			api:        mock.API{UpdateDictionaryFn: updateDictionaryNameOK},
+			wantOutput: updateDictionaryNameOutput,
+		},
+		{
+			args:       []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--write-only", "true"},
+			api:        mock.API{UpdateDictionaryFn: updateDictionaryWriteOnlyOK},
 			wantOutput: updateDictionaryOutput,
 		},
 		{
 			args:       []string{"dictionary", "update", "-v", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
-			api:        mock.API{UpdateDictionaryFn: updateDictionaryOK},
+			api:        mock.API{UpdateDictionaryFn: updateDictionaryNameOK},
 			wantOutput: updateDictionaryOutputVerbose,
 		},
 		{
@@ -296,8 +306,8 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 	}, nil
 }
 
-// These two are responses from other packages that will need to update if
-// the responses ever change.
+// getDictionaryInfoOK mocks the response from fastly.GetDictionaryInfo, which is not otherwise used
+// in the fastly-cli and will need to be updated here if that call changes
 func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
 	return &fastly.DictionaryInfo{
 		ItemCount:   2,
@@ -306,6 +316,8 @@ func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryIn
 	}, nil
 }
 
+// listDictionaryItemsOK mocks the response from fastly.ListDictionaryItems which is primarily used
+// in the fastly-cli.edgedictionaryitem package and will need to be updated here if that call changes
 func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
 	return []*fastly.DictionaryItem{
 		{
@@ -363,16 +375,35 @@ func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, 
 	}, nil
 }
 
-func updateDictionaryOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+func updateDictionaryNameOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
 		Name:           *i.NewName,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      false,
+		WriteOnly:      cbPtrIsTrue(i.WriteOnly),
 		ID:             "456",
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
+}
+
+func updateDictionaryWriteOnlyOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+	return &fastly.Dictionary{
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
+		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+		WriteOnly:      cbPtrIsTrue(i.WriteOnly),
+		ID:             "456",
+		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+	}, nil
+}
+
+func cbPtrIsTrue(cb *fastly.Compatibool) bool {
+	if cb != nil {
+		return *cb == true
+	}
+	return false
 }
 
 func updateDictionaryError(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
@@ -384,14 +415,15 @@ var errTest = errors.New("an expected error ocurred")
 var createDictionaryOutput = "\nSUCCESS: Created dictionary denylist (service 123 version 1)\n"
 var createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (service 123 version 1)\n"
 var deleteDictionaryOutput = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 1)\n"
-var updateDictionaryOutput = "\nSUCCESS: Updated dictionary oldname to dict-1 (service 123 version 1)\n"
+var updateDictionaryOutput = "\nSUCCESS: Updated dictionary oldname (service 123 version 1)\n"
+var updateDictionaryNameOutput = "\nSUCCESS: Updated dictionary dict-1 (service 123 version 1)\n"
 
 var updateDictionaryOutputVerbose = strings.Join(
 	[]string{
 		"Fastly API token not provided",
 		"Fastly API endpoint: https://api.fastly.com",
 		"",
-		strings.TrimSpace(updateDictionaryOutput),
+		strings.TrimSpace(updateDictionaryNameOutput),
 		describeDictionaryOutput,
 	},
 	"\n")
