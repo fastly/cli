@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// ListCommand calls the Fastly API to describe a service.
+// ListCommand calls the Fastly API to list dictionary items.
 type ListCommand struct {
 	common.Base
 	manifest manifest.Data

@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// CreateCommand calls the Fastly API to describe a service.
+// CreateCommand calls the Fastly API to create a dictionary.
 type CreateCommand struct {
 	common.Base
 	manifest manifest.Data

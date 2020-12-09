@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// UpdateCommand calls the Fastly API to describe a service.
+// UpdateCommand calls the Fastly API to update a dictionary item.
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data

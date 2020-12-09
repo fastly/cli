@@ -15,7 +15,7 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// BatchCommand calls the Fastly API to describe a service.
+// BatchCommand calls the Fastly API to batch update a dictionary.
 type BatchCommand struct {
 	common.Base
 	manifest manifest.Data

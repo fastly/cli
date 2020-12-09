@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// DescribeCommand calls the Fastly API to describe a service.
+// DescribeCommand calls the Fastly API to describe a dictionary.
 type DescribeCommand struct {
 	common.Base
 	manifest manifest.Data
