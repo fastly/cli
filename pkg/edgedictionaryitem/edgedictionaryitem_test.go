@@ -255,7 +255,7 @@ func TestDictionaryItemBatchModify(t *testing.T) {
 		},
 		{
 			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "missingFile"},
-			wantError: "open missingFile: no such file or directory",
+			wantError: "open missingFile",
 		},
 		{
 			fileData:  dictionaryItemBatchModifyInputOK,
