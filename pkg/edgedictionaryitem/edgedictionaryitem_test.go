@@ -27,20 +27,20 @@ func TestDictionaryItemDescribe(t *testing.T) {
 		{
 			args:      []string{"dictionaryitem", "describe", "--service-id", "123", "--key", "foo"},
 			api:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
-			wantError: "error parsing arguments: required flag --name not provided",
+			wantError: "error parsing arguments: required flag --dictionary-id not provided",
 		},
 		{
-			args:      []string{"dictionaryitem", "describe", "--service-id", "123", "--name", "dict-1"},
+			args:      []string{"dictionaryitem", "describe", "--service-id", "123", "--dictionary-id", "456"},
 			api:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantError: "error parsing arguments: required flag --key not provided",
 		},
 		{
-			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--name", "dict-1", "--key", "foo"},
+			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--dictionary-id", "456", "--key", "foo"},
 			api:        mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantOutput: describeDictionaryItemOutput,
 		},
 		{
-			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--name", "dict-1", "--key", "foo-deleted"},
+			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--dictionary-id", "456", "--key", "foo-deleted"},
 			api:        mock.API{GetDictionaryItemFn: describeDictionaryItemOKDeleted},
 			wantOutput: describeDictionaryItemOutputDeleted,
 		},
@@ -305,7 +305,7 @@ func TestDictionaryItemBatchModify(t *testing.T) {
 func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
 		ServiceID:    i.ServiceID,
-		DictionaryID: "456",
+		DictionaryID: i.DictionaryID,
 		ItemKey:      i.ItemKey,
 		ItemValue:    "bar",
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
@@ -325,7 +325,7 @@ Last edited (UTC): 2001-02-03 04:05
 func describeDictionaryItemOKDeleted(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
 		ServiceID:    i.ServiceID,
-		DictionaryID: "456",
+		DictionaryID: i.DictionaryID,
 		ItemKey:      i.ItemKey,
 		ItemValue:    "bar",
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
@@ -348,7 +348,7 @@ func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.Dictio
 	return []*fastly.DictionaryItem{
 		{
 			ServiceID:    i.ServiceID,
-			DictionaryID: "456",
+			DictionaryID: i.DictionaryID,
 			ItemKey:      "foo",
 			ItemValue:    "bar",
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
@@ -356,7 +356,7 @@ func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.Dictio
 		},
 		{
 			ServiceID:    i.ServiceID,
-			DictionaryID: "456",
+			DictionaryID: i.DictionaryID,
 			ItemKey:      "baz",
 			ItemValue:    "bear",
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),

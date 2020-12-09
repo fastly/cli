@@ -25,7 +25,7 @@ func NewDescribeCommand(parent common.Registerer, globals *config.Data) *Describ
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly edge dictionary item").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("name", "Name of dictionary").Short('n').Required().StringVar(&c.Input.DictionaryID)
+	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
 	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
 	return &c
 }

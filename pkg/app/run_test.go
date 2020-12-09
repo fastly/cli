@@ -603,11 +603,12 @@ COMMANDS
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
 
-  dictionaryitem describe --name=NAME --key=KEY [<flags>]
+  dictionaryitem describe --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
     Show detailed information about a Fastly edge dictionary item
 
     -s, --service-id=SERVICE-ID  Service ID
-    -n, --name=NAME              Name of dictionary
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
         --key=KEY                Dictionary item key
 
   dictionaryitem create --dictionary-id=DICTIONARY-ID --key=KEY --value=VALUE [<flags>]
