@@ -307,7 +307,7 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 }
 
 // getDictionaryInfoOK mocks the response from fastly.GetDictionaryInfo, which is not otherwise used
-// in the fastly-cli and will need to be updated here if that call changes
+// in the fastly-cli and will need to be updated here if that call changes.
 // This function requires i.ID to equal "456" to enforce the input to this call matches the
 // response to GetDictionaryInfo in describeDictionaryOK
 func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {

@@ -46,7 +46,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 
 	if !c.newname.WasSet && !c.writeOnly.WasSet {
-		return errors.RemediationError{Inner: fmt.Errorf("error parsing arguments: required flag --new-name or --write-only not provided"), Remediation: ""}
+		return errors.RemediationError{Inner: fmt.Errorf("error parsing arguments: required flag --new-name or --write-only not provided"), Remediation: "To fix this error, provide at least one of the aforementioned flags"}
 	}
 
 	if c.newname.WasSet {
