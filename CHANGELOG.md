@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.21.0](https://github.com/fastly/cli/releases/tag/v0.21.0) (2020-12-14)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.20.0...v0.21.0)
+
+**Enhancements:**
+
+- Adds support for managing edge dictionaries [\#159](https://github.com/fastly/cli/pull/159)
+
 ## [v0.20.0](https://github.com/fastly/cli/releases/tag/v0.20.0) (2020-11-24)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.19.0...v0.20.0)
