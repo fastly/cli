@@ -17,6 +17,8 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/configure"
 	"github.com/fastly/cli/pkg/domain"
+	"github.com/fastly/cli/pkg/edgedictionary"
+	"github.com/fastly/cli/pkg/edgedictionaryitem"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/healthcheck"
 	"github.com/fastly/cli/pkg/logging"
@@ -155,6 +157,21 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	healthcheckDescribe := healthcheck.NewDescribeCommand(healthcheckRoot.CmdClause, &globals)
 	healthcheckUpdate := healthcheck.NewUpdateCommand(healthcheckRoot.CmdClause, &globals)
 	healthcheckDelete := healthcheck.NewDeleteCommand(healthcheckRoot.CmdClause, &globals)
+
+	dictionaryRoot := edgedictionary.NewRootCommand(app, &globals)
+	dictionaryCreate := edgedictionary.NewCreateCommand(dictionaryRoot.CmdClause, &globals)
+	dictionaryDescribe := edgedictionary.NewDescribeCommand(dictionaryRoot.CmdClause, &globals)
+	dictionaryDelete := edgedictionary.NewDeleteCommand(dictionaryRoot.CmdClause, &globals)
+	dictionaryList := edgedictionary.NewListCommand(dictionaryRoot.CmdClause, &globals)
+	dictionaryUpdate := edgedictionary.NewUpdateCommand(dictionaryRoot.CmdClause, &globals)
+
+	dictionaryItemRoot := edgedictionaryitem.NewRootCommand(app, &globals)
+	dictionaryItemList := edgedictionaryitem.NewListCommand(dictionaryItemRoot.CmdClause, &globals)
+	dictionaryItemDescribe := edgedictionaryitem.NewDescribeCommand(dictionaryItemRoot.CmdClause, &globals)
+	dictionaryItemCreate := edgedictionaryitem.NewCreateCommand(dictionaryItemRoot.CmdClause, &globals)
+	dictionaryItemUpdate := edgedictionaryitem.NewUpdateCommand(dictionaryItemRoot.CmdClause, &globals)
+	dictionaryItemDelete := edgedictionaryitem.NewDeleteCommand(dictionaryItemRoot.CmdClause, &globals)
+	dictionaryItemBatchModify := edgedictionaryitem.NewBatchCommand(dictionaryItemRoot.CmdClause, &globals)
 
 	loggingRoot := logging.NewRootCommand(app, &globals)
 
@@ -380,6 +397,21 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		healthcheckDescribe,
 		healthcheckUpdate,
 		healthcheckDelete,
+
+		dictionaryRoot,
+		dictionaryCreate,
+		dictionaryDescribe,
+		dictionaryDelete,
+		dictionaryList,
+		dictionaryUpdate,
+
+		dictionaryItemRoot,
+		dictionaryItemList,
+		dictionaryItemDescribe,
+		dictionaryItemCreate,
+		dictionaryItemUpdate,
+		dictionaryItemDelete,
+		dictionaryItemBatchModify,
 
 		loggingRoot,
 

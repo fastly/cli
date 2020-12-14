@@ -47,6 +47,21 @@ type API struct {
 	GetPackageFn    func(*fastly.GetPackageInput) (*fastly.Package, error)
 	UpdatePackageFn func(*fastly.UpdatePackageInput) (*fastly.Package, error)
 
+	CreateDictionaryFn func(*fastly.CreateDictionaryInput) (*fastly.Dictionary, error)
+	GetDictionaryFn    func(*fastly.GetDictionaryInput) (*fastly.Dictionary, error)
+	DeleteDictionaryFn func(*fastly.DeleteDictionaryInput) error
+	ListDictionariesFn func(*fastly.ListDictionariesInput) ([]*fastly.Dictionary, error)
+	UpdateDictionaryFn func(*fastly.UpdateDictionaryInput) (*fastly.Dictionary, error)
+
+	ListDictionaryItemsFn        func(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
+	GetDictionaryItemFn          func(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
+	CreateDictionaryItemFn       func(*fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error)
+	UpdateDictionaryItemFn       func(*fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error)
+	DeleteDictionaryItemFn       func(*fastly.DeleteDictionaryItemInput) error
+	BatchModifyDictionaryItemsFn func(*fastly.BatchModifyDictionaryItemsInput) error
+
+	GetDictionaryInfoFn func(*fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error)
+
 	CreateBigQueryFn func(*fastly.CreateBigQueryInput) (*fastly.BigQuery, error)
 	ListBigQueriesFn func(*fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 	GetBigQueryFn    func(*fastly.GetBigQueryInput) (*fastly.BigQuery, error)
@@ -355,6 +370,66 @@ func (m API) GetPackage(i *fastly.GetPackageInput) (*fastly.Package, error) {
 // UpdatePackage implements Interface.
 func (m API) UpdatePackage(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
 	return m.UpdatePackageFn(i)
+}
+
+// CreateDictionary implements Interface.
+func (m API) CreateDictionary(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
+	return m.CreateDictionaryFn(i)
+}
+
+// GetDictionary implements Interface.
+func (m API) GetDictionary(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
+	return m.GetDictionaryFn(i)
+}
+
+// DeleteDictionary implements Interface.
+func (m API) DeleteDictionary(i *fastly.DeleteDictionaryInput) error {
+	return m.DeleteDictionaryFn(i)
+}
+
+// ListDictionaries implements Interface.
+func (m API) ListDictionaries(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, error) {
+	return m.ListDictionariesFn(i)
+}
+
+// UpdateDictionary implements Interface.
+func (m API) UpdateDictionary(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+	return m.UpdateDictionaryFn(i)
+}
+
+// ListDictionaryItems implements Interface.
+func (m API) ListDictionaryItems(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
+	return m.ListDictionaryItemsFn(i)
+}
+
+// GetDictionaryItem implements Interface.
+func (m API) GetDictionaryItem(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
+	return m.GetDictionaryItemFn(i)
+}
+
+// CreateDictionaryItem implements Interface.
+func (m API) CreateDictionaryItem(i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
+	return m.CreateDictionaryItemFn(i)
+}
+
+// UpdateDictionaryItem implements Interface.
+func (m API) UpdateDictionaryItem(i *fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error) {
+	return m.UpdateDictionaryItemFn(i)
+}
+
+// DeleteDictionaryItem implements Interface.
+func (m API) DeleteDictionaryItem(i *fastly.DeleteDictionaryItemInput) error {
+	return m.DeleteDictionaryItemFn(i)
+}
+
+// BatchModifyDictionaryItems implements Interface.
+func (m API) BatchModifyDictionaryItems(i *fastly.BatchModifyDictionaryItemsInput) error {
+	return m.BatchModifyDictionaryItemsFn(i)
+}
+
+// GetDictionaryInfo implements Interface.
+func (m API) GetDictionaryInfo(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
+	return m.GetDictionaryInfoFn(i)
 }
 
 // CreateBigQuery implements Interface.

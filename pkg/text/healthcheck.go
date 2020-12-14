@@ -9,7 +9,7 @@ import (
 )
 
 // PrintHealthCheck pretty prints a fastly.HealthCheck structure in verbose
-// format to a given io.Writer. Consumers can provider an prefix string which
+// format to a given io.Writer. Consumers can provide a prefix string which
 // will be used as a prefix to each line, useful for indentation.
 func PrintHealthCheck(out io.Writer, prefix string, h *fastly.HealthCheck) {
 	out = textio.NewPrefixWriter(out, prefix)

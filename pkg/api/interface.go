@@ -60,6 +60,21 @@ type Interface interface {
 	GetPackage(*fastly.GetPackageInput) (*fastly.Package, error)
 	UpdatePackage(*fastly.UpdatePackageInput) (*fastly.Package, error)
 
+	CreateDictionary(*fastly.CreateDictionaryInput) (*fastly.Dictionary, error)
+	GetDictionary(*fastly.GetDictionaryInput) (*fastly.Dictionary, error)
+	DeleteDictionary(*fastly.DeleteDictionaryInput) error
+	ListDictionaries(*fastly.ListDictionariesInput) ([]*fastly.Dictionary, error)
+	UpdateDictionary(*fastly.UpdateDictionaryInput) (*fastly.Dictionary, error)
+
+	ListDictionaryItems(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
+	GetDictionaryItem(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
+	CreateDictionaryItem(*fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error)
+	UpdateDictionaryItem(*fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error)
+	DeleteDictionaryItem(*fastly.DeleteDictionaryItemInput) error
+	BatchModifyDictionaryItems(*fastly.BatchModifyDictionaryItemsInput) error
+
+	GetDictionaryInfo(*fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error)
+
 	CreateBigQuery(*fastly.CreateBigQueryInput) (*fastly.BigQuery, error)
 	ListBigQueries(*fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 	GetBigQuery(*fastly.GetBigQueryInput) (*fastly.BigQuery, error)

@@ -111,6 +111,8 @@ COMMANDS
   domain           Manipulate Fastly service version domains
   backend          Manipulate Fastly service version backends
   healthcheck      Manipulate Fastly service version healthchecks
+  dictionary       Manipulate Fastly edge dictionaries
+  dictionaryitem   Manipulate Fastly edge dictionary items
   logging          Manipulate Fastly service version logging endpoints
   stats            View statistics (historical and realtime) for a Fastly
                    service
@@ -558,6 +560,94 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              Healthcheck name
+
+  dictionary create --version=VERSION --name=NAME [<flags>]
+    Create a Fastly edge dictionary on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              Name of Dictionary
+        --write-only=WRITE-ONLY  Whether to mark this dictionary as write-only.
+                                 Can be true or false (defaults to false)
+
+  dictionary describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              Name of Dictionary
+
+  dictionary delete --version=VERSION --name=NAME [<flags>]
+    Delete a Fastly edge dictionary from a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              Name of Dictionary
+
+  dictionary list --version=VERSION [<flags>]
+    List all dictionaries on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  dictionary update --version=VERSION --name=NAME [<flags>]
+    Update name of dictionary on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              Old name of Dictionary
+        --new-name=NEW-NAME      New name of Dictionary
+        --write-only=WRITE-ONLY  Whether to mark this dictionary as write-only.
+                                 Can be true or false (defaults to false)
+
+  dictionaryitem list --dictionary-id=DICTIONARY-ID [<flags>]
+    List items in a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+
+  dictionaryitem describe --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
+    Show detailed information about a Fastly edge dictionary item
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --key=KEY                Dictionary item key
+
+  dictionaryitem create --dictionary-id=DICTIONARY-ID --key=KEY --value=VALUE [<flags>]
+    Create a new item on a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --key=KEY                Dictionary item key
+        --value=VALUE            Dictionary item value
+
+  dictionaryitem update --dictionary-id=DICTIONARY-ID --key=KEY --value=VALUE [<flags>]
+    Update or insert an item on a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --key=KEY                Dictionary item key
+        --value=VALUE            Dictionary item value
+
+  dictionaryitem delete --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
+    Delete an item from a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --key=KEY                Dictionary item key
+
+  dictionaryitem batchmodify --dictionary-id=DICTIONARY-ID --file=FILE [<flags>]
+    Update multiple items in a Fastly edge dictionary
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --file=FILE              Batch update json file
 
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version

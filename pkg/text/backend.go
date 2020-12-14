@@ -9,7 +9,7 @@ import (
 )
 
 // PrintBackend pretty prints a fastly.Backend structure in verbose format
-// to a given io.Writer. Consumers can provider an prefix string which will
+// to a given io.Writer. Consumers can provide a prefix string which will
 // be used as a prefix to each line, useful for indentation.
 func PrintBackend(out io.Writer, prefix string, b *fastly.Backend) {
 	out = textio.NewPrefixWriter(out, prefix)
