@@ -117,7 +117,7 @@ func (r Rust) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found rustup at %s\n", p)
 
-	// 2) Check that the `1.43.0` toolchain is installed
+	// 2) Check that the desired toolchain version is installed
 	//
 	// We use rustup to assert that the toolchain is installed by streaming the output of
 	// `rustup toolchain list` and looking for a toolchain whose prefix matches our desired
