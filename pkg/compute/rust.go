@@ -389,7 +389,8 @@ func getLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version,
 
 	var versions []*semver.Version
 	for _, v := range crate.Versions {
-		if version, err := semver.NewVersion(v.Version); err == nil {
+		// Parse version string and only append if not a prerelease.
+		if version, err := semver.NewVersion(v.Version); err == nil && version.Prerelease() == "" {
 			versions = append(versions, version)
 		}
 	}
