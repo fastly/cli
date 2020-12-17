@@ -266,6 +266,18 @@ func (r Rust) Initialize(out io.Writer) error { return nil }
 // Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
 func (r Rust) Build(out io.Writer, verbose bool) error {
+	args := []string{"update"}
+	if verbose {
+		args = append(args, "--verbose")
+	}
+	// Execute `cargo update` command, to ensure we are using latest version
+	// of fastly-sys transient dependency and avoid misleading/confusing
+	// compiler error messages.
+	cmd := common.NewStreamingExec("cargo", args, os.Environ(), verbose, out)
+	if err := cmd.Exec(); err != nil {
+		return err
+	}
+
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
 	if err := m.Read("Cargo.toml"); err != nil {
@@ -276,7 +288,7 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	// Specify the toolchain using the `cargo +<version>` syntax.
 	toolchain := fmt.Sprintf("+%s", RustToolchainVersion)
 
-	args := []string{
+	args = []string{
 		toolchain,
 		"build",
 		"--bin",
@@ -296,7 +308,7 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
-	cmd := common.NewStreamingExec("cargo", args, env, verbose, out)
+	cmd = common.NewStreamingExec("cargo", args, env, verbose, out)
 	if err := cmd.Exec(); err != nil {
 		return err
 	}
