@@ -347,6 +347,11 @@ func TestGetLatestCrateVersion(t *testing.T) {
 			inputClient: &versionClient{[]string{"1.2.3", "0.8.3", "0.3.2"}},
 			wantVersion: semver.MustParse("1.2.3"),
 		},
+		{
+			name:        "contains pre-release",
+			inputClient: &versionClient{[]string{"0.2.3", "0.8.3", "0.3.2", "0.9.0-beta.2"}},
+			wantVersion: semver.MustParse("0.8.3"),
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			v, err := getLatestCrateVersion(testcase.inputClient, "fastly")

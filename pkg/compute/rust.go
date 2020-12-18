@@ -117,7 +117,7 @@ func (r Rust) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found rustup at %s\n", p)
 
-	// 2) Check that the `1.43.0` toolchain is installed
+	// 2) Check that the desired toolchain version is installed
 	//
 	// We use rustup to assert that the toolchain is installed by streaming the output of
 	// `rustup toolchain list` and looking for a toolchain whose prefix matches our desired
@@ -231,16 +231,23 @@ func (r Rust) Verify(out io.Writer) error {
 		return newCargoUpdateRemediationErr(err, latestFastly.String())
 	}
 
-	// If fastly-sys version doesn't meet our constraint of being within the
-	// minor range, error with dual remediation steps.
-	if ok := fastlySysConstraint.Check(fastlySysVersion); !ok {
-		return newCargoUpdateRemediationErr(fmt.Errorf("fastly crate not up-to-date"), latestFastly.String())
-	}
-
 	fastlyVersion, err := getCrateVersionFromMetadata(metadata, "fastly")
 	// If fastly crate not found, error with dual remediation steps.
 	if err != nil {
 		return newCargoUpdateRemediationErr(err, latestFastly.String())
+	}
+
+	// If fastly crate version is a prerelease, exit early. We assume that the
+	// user knows what they are doing and avoids any confusing messaging to
+	// "upgrade" to an older version.
+	if fastlyVersion.Prerelease() != "" {
+		return nil
+	}
+
+	// If fastly-sys version doesn't meet our constraint of being within the
+	// minor range, error with dual remediation steps.
+	if ok := fastlySysConstraint.Check(fastlySysVersion); !ok {
+		return newCargoUpdateRemediationErr(fmt.Errorf("fastly crate not up-to-date"), latestFastly.String())
 	}
 
 	// If fastly crate version is lower than the latest, suggest user should
@@ -382,7 +389,8 @@ func getLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version,
 
 	var versions []*semver.Version
 	for _, v := range crate.Versions {
-		if version, err := semver.NewVersion(v.Version); err == nil {
+		// Parse version string and only append if not a prerelease.
+		if version, err := semver.NewVersion(v.Version); err == nil && version.Prerelease() == "" {
 			versions = append(versions, version)
 		}
 	}

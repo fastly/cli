@@ -431,6 +431,28 @@ func TestBuildRust(t *testing.T) {
 			wantRemediationError: "fastly = \"^0.4.0\"",
 		},
 		{
+			name:           "fastly crate prerelease",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
+			cargoManifest: strings.Join([]string{
+				"[package]",
+				"name = \"test\"",
+				"version = \"0.1.0\"\n",
+				"[dependencies]",
+				"fastly = \"0.6.0-beta2\"",
+			}, "\n"),
+			cargoLock: strings.Join([]string{
+				"[[package]]",
+				"name = \"fastly-sys\"",
+				"version = \"0.3.7-beta2\"\n",
+				"[[package]]",
+				"name = \"fastly\"",
+				"version = \"0.6.0-beta2\"",
+			}, "\n"),
+			client:             versionClient{[]string{"0.5.0"}},
+			wantOutputContains: "Built rust package test",
+		},
+		{
 			name:               "Rust success",
 			args:               []string{"compute", "build"},
 			fastlyManifest:     "name = \"test\"\nlanguage = \"rust\"\n",
