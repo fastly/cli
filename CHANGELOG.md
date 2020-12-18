@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.21.1](https://github.com/fastly/cli/releases/tag/v0.21.1) (2020-12-18)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.21.0...v0.21.1)
+
+**Bug fixes:**
+
+- CLI shouldn't recommend Rust crate prerelease versions [\#168](https://github.com/fastly/cli/issues/168)
+- Run cargo update before attempting to build Rust compute packages [\#179](https://github.com/fastly/cli/pull/179)
+
 ## [v0.21.0](https://github.com/fastly/cli/releases/tag/v0.21.0) (2020-12-14)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.20.0...v0.21.0)
