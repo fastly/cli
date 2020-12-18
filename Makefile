@@ -48,11 +48,6 @@ staticcheck:
 lint:
 	golint ./{cmd,pkg}/...
 
-.PHONY: fossa
-fossa:
-	fossa analyze -e $$FOSSA_API_ENDPOINT
-	fossa test -e $$FOSSA_API_ENDPOINT
-
 .PHONY: test
 test:
 	go test -race ./{cmd,pkg}/...
