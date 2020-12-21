@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// DeleteCommand calls the Fastly API to delete Amazon Kinesis logging endpoints.
+// DeleteCommand calls the Fastly API to delete an Amazon Kinesis logging endpoint.
 type DeleteCommand struct {
 	common.Base
 	manifest manifest.Data

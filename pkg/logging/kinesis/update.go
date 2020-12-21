@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// UpdateCommand calls the Fastly API to update Amazon Kinesis logging endpoints.
+// UpdateCommand calls the Fastly API to update an Amazon Kinesis logging endpoint.
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data

@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent common.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("kinesis", "Manipulate Fastly service version Kinesis logging endpoints")
+	c.CmdClause = parent.Command("kinesis", "Manipulate a Kinesis logging endpoint for a specific Fastly service version")
 	return &c
 }
 
