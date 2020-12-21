@@ -11,13 +11,13 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// CreateCommand calls the Fastly API to create OpenStack logging endpoints.
+// CreateCommand calls the Fastly API to create an OpenStack logging endpoint.
 type CreateCommand struct {
 	common.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shaddow common.Base method Name().
+	EndpointName string // Can't shadow common.Base method Name().
 	Version      int
 	BucketName   string
 	AccessKey    string
@@ -45,14 +45,13 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause = parent.Command("create", "Create an OpenStack logging endpoint on a Fastly service version").Alias("add")
 
 	c.CmdClause.Flag("name", "The name of the OpenStack logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
-
 	c.CmdClause.Flag("bucket", "The name of your OpenStack container").Required().StringVar(&c.BucketName)
 	c.CmdClause.Flag("access-key", "Your OpenStack account access key").Required().StringVar(&c.AccessKey)
 	c.CmdClause.Flag("user", "The username for your OpenStack account").Required().StringVar(&c.User)
 	c.CmdClause.Flag("url", "Your OpenStack auth url").Required().StringVar(&c.URL)
 
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("public-key", "A PGP public key that Fastly will use to encrypt your log files before writing them to disk").Action(c.PublicKey.Set).StringVar(&c.PublicKey.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to").Action(c.Path.Set).StringVar(&c.Path.Value)
 	c.CmdClause.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Period.Set).UintVar(&c.Period.Value)

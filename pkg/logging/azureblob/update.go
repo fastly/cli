@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// UpdateCommand calls the Fastly API to update Azure Blob Storage logging endpoints.
+// UpdateCommand calls the Fastly API to update an Azure Blob Storage logging endpoint.
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
@@ -45,10 +45,10 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 
 	c.CmdClause = parent.Command("update", "Update an Azure Blob Storage logging endpoint on a Fastly service version")
 
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
 	c.CmdClause.Flag("name", "The name of the Azure Blob Storage logging object").Short('n').Required().StringVar(&c.EndpointName)
 
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Azure Blob Storage logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("container", "The name of the Azure Blob Storage container in which to store logs").Action(c.Container.Set).StringVar(&c.Container.Value)
 	c.CmdClause.Flag("account-name", "The unique Azure Blob Storage namespace in which your data objects are stored").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)

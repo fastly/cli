@@ -11,13 +11,13 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// CreateCommand calls the Fastly API to create Amazon S3 logging endpoints.
+// CreateCommand calls the Fastly API to create an Amazon S3 logging endpoint.
 type CreateCommand struct {
 	common.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shaddow common.Base method Name().
+	EndpointName string // Can't shadow common.Base method Name().
 	Version      int
 	BucketName   string
 	AccessKey    string
@@ -48,13 +48,12 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause = parent.Command("create", "Create an Amazon S3 logging endpoint on a Fastly service version").Alias("add")
 
 	c.CmdClause.Flag("name", "The name of the S3 logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
-
 	c.CmdClause.Flag("bucket", "Your S3 bucket name").Required().StringVar(&c.BucketName)
 	c.CmdClause.Flag("access-key", "Your S3 account access key").Required().StringVar(&c.AccessKey)
 	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Required().StringVar(&c.SecretKey)
 
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("domain", "The domain of the S3 endpoint").Action(c.Domain.Set).StringVar(&c.Domain.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to").Action(c.Path.Set).StringVar(&c.Path.Value)
 	c.CmdClause.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Period.Set).UintVar(&c.Period.Value)

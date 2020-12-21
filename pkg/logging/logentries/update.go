@@ -11,13 +11,13 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// UpdateCommand calls the Fastly API to update Logentries logging endpoints.
+// UpdateCommand calls the Fastly API to update a Logentries logging endpoint.
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shaddow common.Base method Name().
+	EndpointName string // Can't shadow common.Base method Name().
 	Version      int
 
 	// optional
@@ -39,10 +39,10 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 
 	c.CmdClause = parent.Command("update", "Update a Logentries logging endpoint on a Fastly service version")
 
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
 	c.CmdClause.Flag("name", "The name of the Logentries logging object").Short('n').Required().StringVar(&c.EndpointName)
 
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Logentries logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)

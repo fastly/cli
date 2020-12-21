@@ -654,7 +654,6 @@ COMMANDS
 
     -n, --name=NAME              The name of the BigQuery logging object. Used
                                  as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --project-id=PROJECT-ID  Your Google Cloud Platform project ID
         --dataset=DATASET        Your BigQuery dataset
@@ -665,6 +664,7 @@ COMMANDS
         --secret-key=SECRET-KEY  Your Google Cloud Platform account secret key.
                                  The private_key field in your service account
                                  authentication JSON.
+    -s, --service-id=SERVICE-ID  Service ID
         --template-suffix=TEMPLATE-SUFFIX
                                  BigQuery table name suffix template
         --format=FORMAT          Apache style log formatting. Must produce JSON
@@ -703,9 +703,9 @@ COMMANDS
   logging bigquery update --version=VERSION --name=NAME [<flags>]
     Update a BigQuery logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the BigQuery logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the BigQuery logging object
         --project-id=PROJECT-ID  Your Google Cloud Platform project ID
         --dataset=DATASET        Your BigQuery dataset
@@ -740,20 +740,20 @@ COMMANDS
   logging bigquery delete --version=VERSION --name=NAME [<flags>]
     Delete a BigQuery logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the BigQuery logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging s3 create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --secret-key=SECRET-KEY [<flags>]
     Create an Amazon S3 logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the S3 logging object. Used as a
                                  primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --bucket=BUCKET          Your S3 bucket name
         --access-key=ACCESS-KEY  Your S3 account access key
         --secret-key=SECRET-KEY  Your S3 account secret key
+    -s, --service-id=SERVICE-ID  Service ID
         --domain=DOMAIN          The domain of the S3 endpoint
         --path=PATH              The path to upload logs to
         --period=PERIOD          How frequently log files are finalized so they
@@ -808,9 +808,9 @@ COMMANDS
   logging s3 update --version=VERSION --name=NAME [<flags>]
     Update a S3 logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the S3 logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the S3 logging object
         --bucket=BUCKET          Your S3 bucket name
         --access-key=ACCESS-KEY  Your S3 account access key
@@ -855,9 +855,9 @@ COMMANDS
   logging s3 delete --version=VERSION --name=NAME [<flags>]
     Delete a S3 logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the S3 logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging kinesis create --name=NAME --version=VERSION --stream-name=STREAM-NAME --access-key=ACCESS-KEY --secret-key=SECRET-KEY --region=REGION [<flags>]
     Create an Amazon Kinesis logging endpoint on a Fastly service version
@@ -939,9 +939,9 @@ COMMANDS
 
     -n, --name=NAME                The name of the Syslog logging object. Used
                                    as a primary key for API access
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
         --address=ADDRESS          A hostname or IPv4 address
+    -s, --service-id=SERVICE-ID    Service ID
         --port=PORT                The port number
         --use-tls                  Whether to use TLS for secure logging. Can be
                                    either true or false
@@ -992,9 +992,9 @@ COMMANDS
   logging syslog update --version=VERSION --name=NAME [<flags>]
     Update a Syslog logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
     -n, --name=NAME                The name of the Syslog logging object
+    -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the Syslog logging object
         --address=ADDRESS          A hostname or IPv4 address
         --port=PORT                The port number
@@ -1033,17 +1033,17 @@ COMMANDS
   logging syslog delete --version=VERSION --name=NAME [<flags>]
     Delete a Syslog logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Syslog logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging logentries create --name=NAME --version=VERSION [<flags>]
     Create a Logentries logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Logentries logging object. Used
                                  as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
+    -s, --service-id=SERVICE-ID  Service ID
         --port=PORT              The port number
         --use-tls                Whether to use TLS for secure logging. Can be
                                  either true or false
@@ -1084,9 +1084,9 @@ COMMANDS
   logging logentries update --version=VERSION --name=NAME [<flags>]
     Update a Logentries logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Logentries logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Logentries logging object
         --port=PORT              The port number
         --use-tls                Whether to use TLS for secure logging. Can be
@@ -1114,18 +1114,18 @@ COMMANDS
   logging logentries delete --version=VERSION --name=NAME [<flags>]
     Delete a Logentries logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Logentries logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging papertrail create --name=NAME --version=VERSION --address=ADDRESS [<flags>]
     Create a Papertrail logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Papertrail logging object. Used
                                  as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --address=ADDRESS        A hostname or IPv4 address
+    -s, --service-id=SERVICE-ID  Service ID
         --port=PORT              The port number
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -1162,9 +1162,9 @@ COMMANDS
   logging papertrail update --version=VERSION --name=NAME [<flags>]
     Update a Papertrail logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Papertrail logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Papertrail logging object
         --address=ADDRESS        A hostname or IPv4 address
         --port=PORT              The port number
@@ -1189,18 +1189,18 @@ COMMANDS
   logging papertrail delete --version=VERSION --name=NAME [<flags>]
     Delete a Papertrail logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Papertrail logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging sumologic create --name=NAME --version=VERSION --url=URL [<flags>]
     Create a Sumologic logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Sumologic logging object. Used
                                  as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --url=URL                The URL to POST to
+    -s, --service-id=SERVICE-ID  Service ID
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -1239,9 +1239,9 @@ COMMANDS
   logging sumologic update --version=VERSION --name=NAME [<flags>]
     Update a Sumologic logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Sumologic logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Sumologic logging object
         --url=URL                The URL to POST to
         --format=FORMAT          Apache style log formatting
@@ -1268,16 +1268,15 @@ COMMANDS
   logging sumologic delete --version=VERSION --name=NAME [<flags>]
     Delete a Sumologic logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Sumologic logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging gcs create --name=NAME --version=VERSION --user=USER --bucket=BUCKET --secret-key=SECRET-KEY [<flags>]
     Create a GCS logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the GCS logging object. Used as a
                                  primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --user=USER              Your GCS service account email address. The
                                  client_email field in your service account
@@ -1286,6 +1285,7 @@ COMMANDS
         --secret-key=SECRET-KEY  Your GCS account secret key. The private_key
                                  field in your service account authentication
                                  JSON
+    -s, --service-id=SERVICE-ID  Service ID
         --period=PERIOD          How frequently log files are finalized so they
                                  can be available for reading (in seconds,
                                  default 3600)
@@ -1332,9 +1332,9 @@ COMMANDS
   logging gcs update --version=VERSION --name=NAME [<flags>]
     Update a GCS logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the GCS logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the GCS logging object
         --bucket=BUCKET          The bucket of the GCS bucket
         --user=USER              Your GCS service account email address. The
@@ -1375,21 +1375,21 @@ COMMANDS
   logging gcs delete --version=VERSION --name=NAME [<flags>]
     Delete a GCS logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the GCS logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging ftp create --name=NAME --version=VERSION --address=ADDRESS --user=USER --password=PASSWORD [<flags>]
     Create an FTP logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the FTP logging object. Used as a
                                  primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --address=ADDRESS        An hostname or IPv4 address
         --user=USER              The username for the server (can be anonymous)
         --password=PASSWORD      The password for the server (for anonymous use
                                  an email address)
+    -s, --service-id=SERVICE-ID  Service ID
         --port=PORT              The port number
         --path=PATH              The path to upload log files to. If the path
                                  ends in / then it is treated as a directory
@@ -1431,9 +1431,9 @@ COMMANDS
   logging ftp update --version=VERSION --name=NAME [<flags>]
     Update an FTP logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the FTP logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the FTP logging object
         --address=ADDRESS        An hostname or IPv4 address
         --port=PORT              The port number
@@ -1473,18 +1473,18 @@ COMMANDS
   logging ftp delete --version=VERSION --name=NAME [<flags>]
     Delete an FTP logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the FTP logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging splunk create --name=NAME --version=VERSION --url=URL [<flags>]
     Create a Splunk logging endpoint on a Fastly service version
 
     -n, --name=NAME                The name of the Splunk logging object. Used
                                    as a primary key for API access
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
         --url=URL                  The URL to POST to
+    -s, --service-id=SERVICE-ID    Service ID
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
         --tls-hostname=TLS-HOSTNAME
@@ -1530,9 +1530,9 @@ COMMANDS
   logging splunk update --version=VERSION --name=NAME [<flags>]
     Update a Splunk logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
     -n, --name=NAME                The name of the Splunk logging object
+    -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the Splunk logging object
         --url=URL                  The URL to POST to.
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
@@ -1566,19 +1566,19 @@ COMMANDS
   logging splunk delete --version=VERSION --name=NAME [<flags>]
     Delete a Splunk logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Splunk logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging scalyr create --name=NAME --version=VERSION --auth-token=AUTH-TOKEN [<flags>]
     Create a Scalyr logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Scalyr logging object. Used as
                                  a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://www.scalyr.com/keys)
+    -s, --service-id=SERVICE-ID  Service ID
         --region=REGION          The region that log data will be sent to. One
                                  of US or EU. Defaults to US if undefined
         --format=FORMAT          Apache style log formatting
@@ -1611,9 +1611,9 @@ COMMANDS
   logging scalyr update --version=VERSION --name=NAME [<flags>]
     Update a Scalyr logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Scalyr logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Scalyr logging object
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
@@ -1635,19 +1635,19 @@ COMMANDS
   logging scalyr delete --version=VERSION --name=NAME [<flags>]
     Delete a Scalyr logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Scalyr logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging loggly create --name=NAME --version=VERSION --auth-token=AUTH-TOKEN [<flags>]
     Create a Loggly logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Loggly logging object. Used as
                                  a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://www.loggly.com/docs/customer-token-authentication-token/)
+    -s, --service-id=SERVICE-ID  Service ID
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -1678,9 +1678,9 @@ COMMANDS
   logging loggly update --version=VERSION --name=NAME [<flags>]
     Update a Loggly logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Loggly logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Loggly logging object
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://www.loggly.com/docs/customer-token-authentication-token/)
@@ -1700,20 +1700,20 @@ COMMANDS
   logging loggly delete --version=VERSION --name=NAME [<flags>]
     Delete a Loggly logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Loggly logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging honeycomb create --name=NAME --version=VERSION --dataset=DATASET --auth-token=AUTH-TOKEN [<flags>]
     Create a Honeycomb logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Honeycomb logging object. Used
                                  as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --dataset=DATASET        The Honeycomb Dataset you want to log to
         --auth-token=AUTH-TOKEN  The Write Key from the Account page of your
                                  Honeycomb account
+    -s, --service-id=SERVICE-ID  Service ID
         --format=FORMAT          Apache style log formatting. Your log must
                                  produce valid JSON that Honeycomb can ingest
         --format-version=FORMAT-VERSION
@@ -1745,9 +1745,9 @@ COMMANDS
   logging honeycomb update --version=VERSION --name=NAME [<flags>]
     Update a Honeycomb logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Honeycomb logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Honeycomb logging object
         --format=FORMAT          Apache style log formatting. Your log must
                                  produce valid JSON that Honeycomb can ingest
@@ -1769,20 +1769,20 @@ COMMANDS
   logging honeycomb delete --version=VERSION --name=NAME [<flags>]
     Delete a Honeycomb logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Honeycomb logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging heroku create --name=NAME --version=VERSION --url=URL --auth-token=AUTH-TOKEN [<flags>]
     Create a Heroku logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Heroku logging object. Used as
                                  a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --url=URL                The url to stream logs to
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://devcenter.heroku.com/articles/add-on-partner-log-integration)
+    -s, --service-id=SERVICE-ID  Service ID
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -1813,9 +1813,9 @@ COMMANDS
   logging heroku update --version=VERSION --name=NAME [<flags>]
     Update a Heroku logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Heroku logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Heroku logging object
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
@@ -1836,22 +1836,22 @@ COMMANDS
   logging heroku delete --version=VERSION --name=NAME [<flags>]
     Delete a Heroku logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Heroku logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging sftp create --name=NAME --version=VERSION --address=ADDRESS --user=USER --ssh-known-hosts=SSH-KNOWN-HOSTS [<flags>]
     Create an SFTP logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the SFTP logging object. Used as a
                                  primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --address=ADDRESS        The hostname or IPv4 addres
         --user=USER              The username for the server
         --ssh-known-hosts=SSH-KNOWN-HOSTS
                                  A list of host keys for all hosts we can
                                  connect to over SFTP
+    -s, --service-id=SERVICE-ID  Service ID
         --port=PORT              The port number
         --password=PASSWORD      The password for the server. If both password
                                  and secret_key are passed, secret_key will be
@@ -1906,9 +1906,9 @@ COMMANDS
   logging sftp update --version=VERSION --name=NAME [<flags>]
     Update an SFTP logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the SFTP logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the SFTP logging object
         --address=ADDRESS        The hostname or IPv4 address
         --port=PORT              The port number
@@ -1955,20 +1955,20 @@ COMMANDS
   logging sftp delete --version=VERSION --name=NAME [<flags>]
     Delete an SFTP logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the SFTP logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging logshuttle create --name=NAME --version=VERSION --url=URL --auth-token=AUTH-TOKEN [<flags>]
     Create a Logshuttle logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Logshuttle logging object. Used
                                  as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --url=URL                Your Log Shuttle endpoint url
         --auth-token=AUTH-TOKEN  The data authentication token associated with
                                  this endpoint
+    -s, --service-id=SERVICE-ID  Service ID
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -1999,9 +1999,9 @@ COMMANDS
   logging logshuttle update --version=VERSION --name=NAME [<flags>]
     Update a Logshuttle logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Logshuttle logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Logshuttle logging object
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
@@ -2022,20 +2022,20 @@ COMMANDS
   logging logshuttle delete --version=VERSION --name=NAME [<flags>]
     Delete a Logshuttle logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Logshuttle logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging cloudfiles create --name=NAME --version=VERSION --user=USER --access-key=ACCESS-KEY --bucket=BUCKET [<flags>]
     Create a Cloudfiles logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Cloudfiles logging object. Used
                                  as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --user=USER              The username for your Cloudfile account
         --access-key=ACCESS-KEY  Your Cloudfile account access key
         --bucket=BUCKET          The name of your Cloudfiles container
+    -s, --service-id=SERVICE-ID  Service ID
         --path=PATH              The path to upload logs to
         --region=REGION          The region to stream logs to. One of:
                                  DFW-Dallas, ORD-Chicago, IAD-Northern Virginia,
@@ -2084,9 +2084,9 @@ COMMANDS
   logging cloudfiles update --version=VERSION --name=NAME [<flags>]
     Update a Cloudfiles logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Cloudfiles logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Cloudfiles logging object
         --user=USER              The username for your Cloudfile account
         --access-key=ACCESS-KEY  Your Cloudfile account access key
@@ -2125,20 +2125,20 @@ COMMANDS
   logging cloudfiles delete --version=VERSION --name=NAME [<flags>]
     Delete a Cloudfiles logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Cloudfiles logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging digitalocean create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --secret-key=SECRET-KEY [<flags>]
     Create a DigitalOcean Spaces logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the DigitalOcean Spaces logging
                                  object. Used as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --bucket=BUCKET          The name of the DigitalOcean Space
         --access-key=ACCESS-KEY  Your DigitalOcean Spaces account access key
         --secret-key=SECRET-KEY  Your DigitalOcean Spaces account secret key
+    -s, --service-id=SERVICE-ID  Service ID
         --domain=DOMAIN          The domain of the DigitalOcean Spaces endpoint
                                  (default 'nyc3.digitaloceanspaces.com')
         --path=PATH              The path to upload logs to
@@ -2187,10 +2187,10 @@ COMMANDS
   logging digitalocean update --version=VERSION --name=NAME [<flags>]
     Update a DigitalOcean Spaces logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the DigitalOcean Spaces logging
                                  object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the DigitalOcean Spaces logging
                                  object
         --bucket=BUCKET          The name of the DigitalOcean Space
@@ -2229,17 +2229,16 @@ COMMANDS
   logging digitalocean delete --version=VERSION --name=NAME [<flags>]
     Delete a DigitalOcean Spaces logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the DigitalOcean Spaces logging
                                  object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging elasticsearch create --name=NAME --version=VERSION --index=INDEX --url=URL [<flags>]
     Create an Elasticsearch logging endpoint on a Fastly service version
 
     -n, --name=NAME                The name of the Elasticsearch logging object.
                                    Used as a primary key for API access
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
         --index=INDEX              The name of the Elasticsearch index to send
                                    documents (logs) to. The index must follow
@@ -2251,6 +2250,7 @@ COMMANDS
                                    with a pound symbol. For example, #{%F} will
                                    interpolate as YYYY-MM-DD with today's date
         --url=URL                  The URL to stream logs to. Must use HTTPS.
+    -s, --service-id=SERVICE-ID    Service ID
         --pipeline=PIPELINE        The ID of the Elasticsearch ingest pipeline
                                    to apply pre-process transformations to
                                    before indexing. For example my_pipeline_id.
@@ -2308,9 +2308,9 @@ COMMANDS
   logging elasticsearch update --version=VERSION --name=NAME [<flags>]
     Update an Elasticsearch logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
     -n, --name=NAME                The name of the Elasticsearch logging object
+    -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the Elasticsearch logging object
         --index=INDEX              The name of the Elasticsearch index to send
                                    documents (logs) to. The index must follow
@@ -2365,16 +2365,15 @@ COMMANDS
   logging elasticsearch delete --version=VERSION --name=NAME [<flags>]
     Delete an Elasticsearch logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Elasticsearch logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging azureblob create --name=NAME --version=VERSION --container=CONTAINER --account-name=ACCOUNT-NAME --sas-token=SAS-TOKEN [<flags>]
     Create an Azure Blob Storage logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Azure Blob Storage logging
                                  object. Used as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --container=CONTAINER    The name of the Azure Blob Storage container in
                                  which to store logs
@@ -2385,6 +2384,7 @@ COMMANDS
                                  write access to the blob service objects. Be
                                  sure to update your token before it expires or
                                  the logging functionality will not work
+    -s, --service-id=SERVICE-ID  Service ID
         --path=PATH              The path to upload logs to
         --period=PERIOD          How frequently log files are finalized so they
                                  can be available for reading (in seconds,
@@ -2431,10 +2431,10 @@ COMMANDS
   logging azureblob update --version=VERSION --name=NAME [<flags>]
     Update an Azure Blob Storage logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Azure Blob Storage logging
                                  object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Azure Blob Storage logging
                                  object
         --container=CONTAINER    The name of the Azure Blob Storage container in
@@ -2477,19 +2477,19 @@ COMMANDS
   logging azureblob delete --version=VERSION --name=NAME [<flags>]
     Delete an Azure Blob Storage logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Azure Blob Storage logging
                                  object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging datadog create --name=NAME --version=VERSION --auth-token=AUTH-TOKEN [<flags>]
     Create a Datadog logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Datadog logging object. Used as
                                  a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --auth-token=AUTH-TOKEN  The API key from your Datadog account
+    -s, --service-id=SERVICE-ID  Service ID
         --region=REGION          The region that log data will be sent to. One
                                  of US or EU. Defaults to US if undefined
         --format=FORMAT          Apache style log formatting. For details on the
@@ -2524,9 +2524,9 @@ COMMANDS
   logging datadog update --version=VERSION --name=NAME [<flags>]
     Update a Datadog logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Datadog logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Datadog logging object
         --auth-token=AUTH-TOKEN  The API key from your Datadog account
         --region=REGION          The region that log data will be sent to. One
@@ -2549,19 +2549,19 @@ COMMANDS
   logging datadog delete --version=VERSION --name=NAME [<flags>]
     Delete a Datadog logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Datadog logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging https create --name=NAME --version=VERSION --url=URL [<flags>]
     Create an HTTPS logging endpoint on a Fastly service version
 
     -n, --name=NAME                The name of the HTTPS logging object. Used as
                                    a primary key for API access
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
         --url=URL                  URL that log data will be sent to. Must use
                                    the https protocol
+    -s, --service-id=SERVICE-ID    Service ID
         --content-type=CONTENT-TYPE
                                    Content type of the header sent with the
                                    request
@@ -2630,9 +2630,9 @@ COMMANDS
   logging https update --version=VERSION --name=NAME [<flags>]
     Update an HTTPS logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
     -n, --name=NAME                The name of the HTTPS logging object
+    -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the HTTPS logging object
         --url=URL                  URL that log data will be sent to. Must use
                                    the https protocol
@@ -2690,20 +2690,20 @@ COMMANDS
   logging https delete --version=VERSION --name=NAME [<flags>]
     Delete an HTTPS logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the HTTPS logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging kafka create --name=NAME --version=VERSION --topic=TOPIC --brokers=BROKERS [<flags>]
     Create a Kafka logging endpoint on a Fastly service version
 
     -n, --name=NAME                The name of the Kafka logging object. Used as
                                    a primary key for API access
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
         --topic=TOPIC              The Kafka topic to send logs to
         --brokers=BROKERS          A comma-separated list of IP addresses or
                                    hostnames of Kafka brokers
+    -s, --service-id=SERVICE-ID    Service ID
         --compression-codec=COMPRESSION-CODEC
                                    The codec used for compression of your logs.
                                    One of: gzip, snappy, lz4
@@ -2772,9 +2772,9 @@ COMMANDS
   logging kafka update --version=VERSION --name=NAME [<flags>]
     Update a Kafka logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID    Service ID
         --version=VERSION          Number of service version
     -n, --name=NAME                The name of the Kafka logging object
+    -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the Kafka logging object
         --topic=TOPIC              The Kafka topic to send logs to
         --brokers=BROKERS          A comma-separated list of IP addresses or
@@ -2833,16 +2833,15 @@ COMMANDS
   logging kafka delete --version=VERSION --name=NAME [<flags>]
     Delete a Kafka logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Kafka logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging googlepubsub create --name=NAME --version=VERSION --user=USER --secret-key=SECRET-KEY --topic=TOPIC --project-id=PROJECT-ID [<flags>]
     Create a Google Cloud Pub/Sub logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
                                  object. Used as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --user=USER              Your Google Cloud Platform service account
                                  email address. The client_email field in your
@@ -2853,6 +2852,7 @@ COMMANDS
         --topic=TOPIC            The Google Cloud Pub/Sub topic to which logs
                                  will be published
         --project-id=PROJECT-ID  The ID of your Google Cloud Platform project
+    -s, --service-id=SERVICE-ID  Service ID
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -2885,10 +2885,10 @@ COMMANDS
   logging googlepubsub update --version=VERSION --name=NAME [<flags>]
     Update a Google Cloud Pub/Sub logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
                                  object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Google Cloud Pub/Sub logging
                                  object
         --user=USER              Your Google Cloud Platform service account
@@ -2917,22 +2917,22 @@ COMMANDS
   logging googlepubsub delete --version=VERSION --name=NAME [<flags>]
     Delete a Google Cloud Pub/Sub logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
                                  object
+    -s, --service-id=SERVICE-ID  Service ID
 
   logging openstack create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --user=USER --url=URL [<flags>]
     Create an OpenStack logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the OpenStack logging object. Used
                                  as a primary key for API access
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
         --bucket=BUCKET          The name of your OpenStack container
         --access-key=ACCESS-KEY  Your OpenStack account access key
         --user=USER              The username for your OpenStack account
         --url=URL                Your OpenStack auth url
+    -s, --service-id=SERVICE-ID  Service ID
         --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
                                  encrypt your log files before writing them to
                                  disk
@@ -2978,9 +2978,9 @@ COMMANDS
   logging openstack update --version=VERSION --name=NAME [<flags>]
     Update an OpenStack logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the OpenStack logging object
+    -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the OpenStack logging object
         --bucket=BUCKET          The name of the Openstack Space
         --access-key=ACCESS-KEY  Your OpenStack account access key
@@ -3017,9 +3017,9 @@ COMMANDS
   logging openstack delete --version=VERSION --name=NAME [<flags>]
     Delete an OpenStack logging endpoint on a Fastly service version
 
-    -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the OpenStack logging object
+    -s, --service-id=SERVICE-ID  Service ID
 
   stats regions
     List stats regions

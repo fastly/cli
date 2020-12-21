@@ -11,13 +11,13 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// CreateCommand calls the Fastly API to create HTTPS logging endpoints.
+// CreateCommand calls the Fastly API to create an HTTPS logging endpoint.
 type CreateCommand struct {
 	common.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shaddow common.Base method Name().
+	EndpointName string // Can't shadow common.Base method Name().
 	Version      int
 	URL          string
 
@@ -48,11 +48,10 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause = parent.Command("create", "Create an HTTPS logging endpoint on a Fastly service version").Alias("add")
 
 	c.CmdClause.Flag("name", "The name of the HTTPS logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
-
 	c.CmdClause.Flag("url", "URL that log data will be sent to. Must use the https protocol").Required().StringVar(&c.URL)
 
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("content-type", "Content type of the header sent with the request").Action(c.ContentType.Set).StringVar(&c.ContentType.Value)
 	c.CmdClause.Flag("header-name", "Name of the custom header sent with the request").Action(c.HeaderName.Set).StringVar(&c.HeaderName.Value)
 	c.CmdClause.Flag("header-value", "Value of the custom header sent with the request").Action(c.HeaderValue.Set).StringVar(&c.HeaderValue.Value)

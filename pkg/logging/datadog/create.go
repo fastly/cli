@@ -11,13 +11,13 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// CreateCommand calls the Fastly API to create Datadog logging endpoints.
+// CreateCommand calls the Fastly API to create a Datadog logging endpoint.
 type CreateCommand struct {
 	common.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shaddow common.Base method Name().
+	EndpointName string // Can't shadow common.Base method Name().
 	Token        string
 	Version      int
 
@@ -38,11 +38,10 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause = parent.Command("create", "Create a Datadog logging endpoint on a Fastly service version").Alias("add")
 
 	c.CmdClause.Flag("name", "The name of the Datadog logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
-
 	c.CmdClause.Flag("auth-token", "The API key from your Datadog account").Required().StringVar(&c.Token)
 
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting. For details on the default value refer to the documentation (https://developer.fastly.com/reference/api/logging/datadog/)").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
