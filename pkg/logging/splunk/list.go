@@ -64,6 +64,8 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tToken: %s\n", splunk.Token)
 		fmt.Fprintf(out, "\t\tTLS CA certificate: %s\n", splunk.TLSCACert)
 		fmt.Fprintf(out, "\t\tTLS hostname: %s\n", splunk.TLSHostname)
+		fmt.Fprintf(out, "\t\tTLS client certificate: %s\n", splunk.TLSClientCert)
+		fmt.Fprintf(out, "\t\tTLS client key: %s\n", splunk.TLSClientKey)
 		fmt.Fprintf(out, "\t\tFormat: %s\n", splunk.Format)
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", splunk.FormatVersion)
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", splunk.ResponseCondition)

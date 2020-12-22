@@ -50,6 +50,8 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Token: %s\n", splunk.Token)
 	fmt.Fprintf(out, "TLS CA certificate: %s\n", splunk.TLSCACert)
 	fmt.Fprintf(out, "TLS hostname: %s\n", splunk.TLSHostname)
+	fmt.Fprintf(out, "TLS client certificate: %s\n", splunk.TLSClientCert)
+	fmt.Fprintf(out, "TLS client key: %s\n", splunk.TLSClientKey)
 	fmt.Fprintf(out, "Format: %s\n", splunk.Format)
 	fmt.Fprintf(out, "Format version: %d\n", splunk.FormatVersion)
 	fmt.Fprintf(out, "Response condition: %s\n", splunk.ResponseCondition)
