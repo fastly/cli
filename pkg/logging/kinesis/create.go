@@ -40,7 +40,6 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 
 	// required
 	c.CmdClause.Flag("name", "The name of the Kinesis logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("service-id", "Service ID").Required().Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
 	c.CmdClause.Flag("stream-name", "The Amazon Kinesis stream to send logs to").Required().StringVar(&c.StreamName)
 	c.CmdClause.Flag("access-key", "The access key associated with the target Amazon Kinesis stream").Required().StringVar(&c.AccessKey)
@@ -48,6 +47,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("region", "The AWS region where the Kinesis stream exists").Required().StringVar(&c.Region)
 
 	// optional
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
