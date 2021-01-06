@@ -54,7 +54,7 @@ import (
 	"github.com/fastly/cli/pkg/version"
 	"github.com/fastly/cli/pkg/whoami"
 	"github.com/fastly/go-fastly/v2/fastly"
-	"gopkg.in/alecthomas/kingpin.v3-unstable"
+	"github.com/fastly/kingpin"
 )
 
 var (

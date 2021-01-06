@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
-	"gopkg.in/alecthomas/kingpin.v3-unstable"
+	"github.com/fastly/kingpin"
 )
 
 // Command is an interface that abstracts over all of the concrete command
