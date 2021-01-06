@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.21.2](https://github.com/fastly/cli/releases/tag/v0.21.2) (2021-01-06)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.21.1...v0.21.2)
+
+**Bug fixes:**
+
+- Switch from third-party dependency to our own mirror [\#184](https://github.com/fastly/cli/pull/184)
+
 ## [v0.21.1](https://github.com/fastly/cli/releases/tag/v0.21.1) (2020-12-18)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.21.0...v0.21.1)
