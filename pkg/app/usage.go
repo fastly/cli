@@ -9,7 +9,7 @@ import (
 	"text/template"
 
 	"github.com/fastly/cli/pkg/text"
-	"gopkg.in/alecthomas/kingpin.v3-unstable"
+	"github.com/fastly/kingpin"
 )
 
 type usageJSON struct {
