@@ -24,6 +24,8 @@ type CreateCommand struct {
 	// optional
 	TLSHostname       common.OptionalString
 	TLSCACert         common.OptionalString
+	TLSClientCert     common.OptionalString
+	TLSClientKey      common.OptionalString
 	Format            common.OptionalString
 	FormatVersion     common.OptionalUint
 	ResponseCondition common.OptionalString
@@ -47,6 +49,8 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 
 	c.CmdClause.Flag("tls-ca-cert", "A secure certificate to authenticate the server with. Must be in PEM format").Action(c.TLSCACert.Set).StringVar(&c.TLSCACert.Value)
 	c.CmdClause.Flag("tls-hostname", "The hostname used to verify the server's certificate. It can either be the Common Name or a Subject Alternative Name (SAN)").Action(c.TLSHostname.Set).StringVar(&c.TLSHostname.Value)
+	c.CmdClause.Flag("tls-client-cert", "The client certificate used to make authenticated requests. Must be in PEM format").Action(c.TLSClientCert.Set).StringVar(&c.TLSClientCert.Value)
+	c.CmdClause.Flag("tls-client-key", "The client private key used to make authenticated requests. Must be in PEM format").Action(c.TLSClientKey.Set).StringVar(&c.TLSClientKey.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
@@ -76,6 +80,14 @@ func (c *CreateCommand) createInput() (*fastly.CreateSplunkInput, error) {
 
 	if c.TLSCACert.WasSet {
 		input.TLSCACert = c.TLSCACert.Value
+	}
+
+	if c.TLSClientCert.WasSet {
+		input.TLSClientCert = c.TLSClientCert.Value
+	}
+
+	if c.TLSClientKey.WasSet {
+		input.TLSClientKey = c.TLSClientKey.Value
 	}
 
 	if c.Format.WasSet {

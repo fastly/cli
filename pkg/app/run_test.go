@@ -1491,6 +1491,12 @@ COMMANDS
                                    The hostname used to verify the server's
                                    certificate. It can either be the Common Name
                                    or a Subject Alternative Name (SAN)
+        --tls-client-cert=TLS-CLIENT-CERT
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
         --format=FORMAT            Apache style log formatting
         --format-version=FORMAT-VERSION
                                    The version of the custom logging format used
@@ -1535,6 +1541,12 @@ COMMANDS
                                    The hostname used to verify the server's
                                    certificate. It can either be the Common Name
                                    or a Subject Alternative Name (SAN)
+        --tls-client-cert=TLS-CLIENT-CERT
+                                   The client certificate used to make
+                                   authenticated requests. Must be in PEM format
+        --tls-client-key=TLS-CLIENT-KEY
+                                   The client private key used to make
+                                   authenticated requests. Must be in PEM format
         --format=FORMAT            Apache style log formatting
         --format-version=FORMAT-VERSION
                                    The version of the custom logging format used

@@ -44,6 +44,8 @@ func TestCreateSplunkInput(t *testing.T) {
 				Token:             "tkn",
 				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
 				TLSHostname:       "example.com",
+				TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+				TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
 			},
 		},
 		{
@@ -86,6 +88,8 @@ func TestUpdateSplunkInput(t *testing.T) {
 				Token:             fastly.String("tkn"),
 				TLSCACert:         fastly.String("-----BEGIN CERTIFICATE-----foo"),
 				TLSHostname:       fastly.String("example.com"),
+				TLSClientCert:     fastly.String("-----BEGIN CERTIFICATE-----bar"),
+				TLSClientKey:      fastly.String("-----BEGIN PRIVATE KEY-----bar"),
 			},
 		},
 		{
@@ -105,6 +109,8 @@ func TestUpdateSplunkInput(t *testing.T) {
 				Token:             fastly.String("new6"),
 				TLSCACert:         fastly.String("new7"),
 				TLSHostname:       fastly.String("new8"),
+				TLSClientCert:     fastly.String("new9"),
+				TLSClientKey:      fastly.String("new10"),
 			},
 		},
 		{
@@ -147,6 +153,8 @@ func createCommandAll() *CreateCommand {
 		Token:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "tkn"},
 		TLSCACert:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
 		TLSHostname:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "example.com"},
+		TLSClientCert:     common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
+		TLSClientKey:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
 	}
 }
 
@@ -180,6 +188,8 @@ func updateCommandAll() *UpdateCommand {
 		Token:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
 		TLSCACert:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
 		TLSHostname:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
+		TLSClientCert:     common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
+		TLSClientKey:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
 	}
 }
 
@@ -202,5 +212,7 @@ func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 		Token:             "tkn",
 		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
 		TLSHostname:       "example.com",
+		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
 	}, nil
 }

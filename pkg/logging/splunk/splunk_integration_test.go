@@ -279,6 +279,8 @@ func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 			Token:             "tkn",
 			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
 			TLSHostname:       "example.com",
+			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
 		},
 		{
 			ServiceID:         i.ServiceID,
@@ -292,6 +294,8 @@ func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 			Token:             "tkn1",
 			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
 			TLSHostname:       "example.com",
+			TLSClientCert:     "-----BEGIN CERTIFICATE-----qux",
+			TLSClientKey:      "-----BEGIN PRIVATE KEY-----qux",
 		},
 	}, nil
 }
@@ -319,6 +323,8 @@ Version: 1
 		Token: tkn
 		TLS CA certificate: -----BEGIN CERTIFICATE-----foo
 		TLS hostname: example.com
+		TLS client certificate: -----BEGIN CERTIFICATE-----bar
+		TLS client key: -----BEGIN PRIVATE KEY-----bar
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -331,6 +337,8 @@ Version: 1
 		Token: tkn1
 		TLS CA certificate: -----BEGIN CERTIFICATE-----foo
 		TLS hostname: example.com
+		TLS client certificate: -----BEGIN CERTIFICATE-----qux
+		TLS client key: -----BEGIN PRIVATE KEY-----qux
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -347,6 +355,8 @@ func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 		FormatVersion:     2,
 		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
 		TLSHostname:       "example.com",
+		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
 		ResponseCondition: "Prevent default logging",
 		Placement:         "none",
 		Token:             "tkn",
@@ -365,6 +375,8 @@ URL: example.com
 Token: tkn
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo
 TLS hostname: example.com
+TLS client certificate: -----BEGIN CERTIFICATE-----bar
+TLS client key: -----BEGIN PRIVATE KEY-----bar
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Response condition: Prevent default logging
@@ -380,6 +392,8 @@ func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 		Token:             "tkn",
 		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
 		TLSHostname:       "example.com",
+		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
