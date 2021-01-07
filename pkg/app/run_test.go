@@ -859,6 +859,81 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the S3 logging object
 
+  logging kinesis create --name=NAME --version=VERSION --stream-name=STREAM-NAME --access-key=ACCESS-KEY --secret-key=SECRET-KEY --region=REGION [<flags>]
+    Create an Amazon Kinesis logging endpoint on a Fastly service version
+
+    -n, --name=NAME                The name of the Kinesis logging object. Used
+                                   as a primary key for API access
+        --version=VERSION          Number of service version
+        --stream-name=STREAM-NAME  The Amazon Kinesis stream to send logs to
+        --access-key=ACCESS-KEY    The access key associated with the target
+                                   Amazon Kinesis stream
+        --secret-key=SECRET-KEY    The secret key associated with the target
+                                   Amazon Kinesis stream
+        --region=REGION            The AWS region where the Kinesis stream
+                                   exists
+    -s, --service-id=SERVICE-ID    Service ID
+        --format=FORMAT            Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+
+  logging kinesis list --version=VERSION [<flags>]
+    List Kinesis endpoints on a Fastly service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+
+  logging kinesis describe --version=VERSION --name=NAME [<flags>]
+    Show detailed information about a Kinesis logging endpoint on a Fastly
+    service version
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Kinesis logging object
+
+  logging kinesis update --version=VERSION --name=NAME [<flags>]
+    Update a Kinesis logging endpoint on a Fastly service version
+
+        --version=VERSION          Number of service version
+    -n, --name=NAME                The name of the Kinesis logging object
+    -s, --service-id=SERVICE-ID    Service ID
+        --new-name=NEW-NAME        New name of the Kinesis logging object
+        --stream-name=STREAM-NAME  Your Kinesis stream name
+        --access-key=ACCESS-KEY    Your Kinesis account access key
+        --secret-key=SECRET-KEY    Your Kinesis account secret key
+        --region=REGION            The AWS region where the Kinesis stream
+                                   exists
+        --format=FORMAT            Apache style log formatting
+        --format-version=FORMAT-VERSION
+                                   The version of the custom logging format used
+                                   for the configured endpoint. Can be either 2
+                                   (default) or 1
+        --response-condition=RESPONSE-CONDITION
+                                   The name of an existing condition in the
+                                   configured endpoint, or leave blank to always
+                                   execute
+        --placement=PLACEMENT      Where in the generated VCL the logging call
+                                   should be placed, overriding any
+                                   format_version default. Can be none or
+                                   waf_debug
+
+  logging kinesis delete --version=VERSION --name=NAME [<flags>]
+    Delete a Kinesis logging endpoint on a Fastly service version
+
+        --version=VERSION        Number of service version
+    -n, --name=NAME              The name of the Kinesis logging object
+    -s, --service-id=SERVICE-ID  Service ID
+
   logging syslog create --name=NAME --version=VERSION --address=ADDRESS [<flags>]
     Create a Syslog logging endpoint on a Fastly service version
 

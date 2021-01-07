@@ -74,6 +74,12 @@ type API struct {
 	UpdateS3Fn func(*fastly.UpdateS3Input) (*fastly.S3, error)
 	DeleteS3Fn func(*fastly.DeleteS3Input) error
 
+	CreateKinesisFn func(*fastly.CreateKinesisInput) (*fastly.Kinesis, error)
+	ListKinesesFn   func(*fastly.ListKinesesInput) ([]*fastly.Kinesis, error)
+	GetKinesisFn    func(*fastly.GetKinesisInput) (*fastly.Kinesis, error)
+	UpdateKinesisFn func(*fastly.UpdateKinesisInput) (*fastly.Kinesis, error)
+	DeleteKinesisFn func(*fastly.DeleteKinesisInput) error
+
 	CreateSyslogFn func(*fastly.CreateSyslogInput) (*fastly.Syslog, error)
 	ListSyslogsFn  func(*fastly.ListSyslogsInput) ([]*fastly.Syslog, error)
 	GetSyslogFn    func(*fastly.GetSyslogInput) (*fastly.Syslog, error)
@@ -480,6 +486,31 @@ func (m API) UpdateS3(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 // DeleteS3 implements Interface.
 func (m API) DeleteS3(i *fastly.DeleteS3Input) error {
 	return m.DeleteS3Fn(i)
+}
+
+// CreateKinesis implements Interface.
+func (m API) CreateKinesis(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
+	return m.CreateKinesisFn(i)
+}
+
+// ListKineses implements Interface.
+func (m API) ListKineses(i *fastly.ListKinesesInput) ([]*fastly.Kinesis, error) {
+	return m.ListKinesesFn(i)
+}
+
+// GetKinesis implements Interface.
+func (m API) GetKinesis(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
+	return m.GetKinesisFn(i)
+}
+
+// UpdateKinesis implements Interface.
+func (m API) UpdateKinesis(i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
+	return m.UpdateKinesisFn(i)
+}
+
+// DeleteKinesis implements Interface.
+func (m API) DeleteKinesis(i *fastly.DeleteKinesisInput) error {
+	return m.DeleteKinesisFn(i)
 }
 
 // CreateSyslog implements Interface.
