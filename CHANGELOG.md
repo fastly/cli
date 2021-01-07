@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.22.0](https://github.com/fastly/cli/releases/tag/v0.22.0) (2021-01-07)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.21.2...v0.22.0)
+
+**Enhancements:**
+
+- Add support for TLS client and batch size options for splunk [\#183](https://github.com/fastly/cli/pull/183)
+- Add support for Kinesis logging endpoint [\#177](https://github.com/fastly/cli/pull/177)
+
 ## [v0.21.2](https://github.com/fastly/cli/releases/tag/v0.21.2) (2021-01-06)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.21.1...v0.21.2)
