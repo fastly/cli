@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -19,10 +20,6 @@ func main() {
 	var env config.Environment
 	env.Read(parseEnv(os.Environ()))
 
-	// Some configuration options can come from a config file.
-	var file config.File
-	file.Read(config.FilePath) // ignore error
-
 	// All of the work of building the set of commands and subcommands, wiring
 	// them together, picking which one to call, and executing it, occurs in a
 	// helper function, Run. We parameterize all of the dependencies so we can
@@ -38,6 +35,19 @@ func main() {
 		in             io.Reader = os.Stdin
 		out            io.Writer = common.NewSyncWriter(os.Stdout)
 	)
+
+	// Some configuration options can come from a config file.
+	var file config.File
+	err := file.Read(config.FilePath) // ignore error
+	if err != nil {
+		// Acquire global CLI configuration file
+		err := file.Load("http://integralist-cli-dynamic-config.com.global.prod.fastly.net/", httpClient)
+		if err != nil {
+			fmt.Println(err)
+			// TODO: offer remediation step
+			os.Exit(1)
+		}
+	}
 
 	// Main is basically just a shim to call Run, so we do that here.
 	if err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, versioner, in, out); err != nil {

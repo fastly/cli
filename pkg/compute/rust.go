@@ -16,6 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
 )
@@ -198,7 +199,7 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error getting Cargo.toml path: %w", err)
 	}
 
-	if !common.FileExists(fpath) {
+	if !filesystem.FileExists(fpath) {
 		return fmt.Errorf("%s not found", fpath)
 	}
 
@@ -207,7 +208,7 @@ func (r Rust) Verify(out io.Writer) error {
 	// 5) Verify `fastly` and  `fastly-sys` crate version
 	//
 	// A valid and up-to-date version of the fastly-sys crate is required.
-	if !common.FileExists(fpath) {
+	if !filesystem.FileExists(fpath) {
 		return fmt.Errorf("%s not found", fpath)
 	}
 
@@ -342,11 +343,11 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 
 	// Check if bin directory exists and create if not.
 	binDir := filepath.Join(dir, "bin")
-	if err := common.MakeDirectoryIfNotExists(binDir); err != nil {
+	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
 		return fmt.Errorf("creating bin directory: %w", err)
 	}
 
-	err = common.CopyFile(src, dst)
+	err = filesystem.CopyFile(src, dst)
 	if err != nil {
 		return fmt.Errorf("copying wasm binary: %w", err)
 	}

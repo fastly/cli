@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
@@ -240,7 +241,7 @@ func createPackageArchive(files []string, destination string) error {
 
 	for _, src := range files {
 		dst := filepath.Join(dir, src)
-		if err = common.CopyFile(src, dst); err != nil {
+		if err = filesystem.CopyFile(src, dst); err != nil {
 			return fmt.Errorf("error copying file: %w", err)
 		}
 	}
@@ -272,7 +273,7 @@ func fileNameWithoutExtension(filename string) string {
 func getIgnoredFiles(filePath string) (files map[string]bool, err error) {
 	files = make(map[string]bool)
 
-	if !common.FileExists(filePath) {
+	if !filesystem.FileExists(filePath) {
 		return files, nil
 	}
 

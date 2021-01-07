@@ -13,7 +13,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/mholt/archiver/v3"
@@ -473,7 +473,7 @@ func makeBuildEnvironment(t *testing.T, fastlyIgnoreContent string) (rootdir str
 	} {
 		fromFilename := filepath.Join("testdata", "build", filepath.Join(filename...))
 		toFilename := filepath.Join(rootdir, filepath.Join(filename...))
-		if err := common.CopyFile(fromFilename, toFilename); err != nil {
+		if err := filesystem.CopyFile(fromFilename, toFilename); err != nil {
 			t.Fatal(err)
 		}
 	}
