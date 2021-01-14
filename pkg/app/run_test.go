@@ -114,6 +114,7 @@ COMMANDS
   dictionary       Manipulate Fastly edge dictionaries
   dictionaryitem   Manipulate Fastly edge dictionary items
   logging          Manipulate Fastly service version logging endpoints
+  logs             Compute@Edge Log Tailing
   stats            View statistics (historical and realtime) for a Fastly
                    service
 `) + "\n\n"
@@ -3020,6 +3021,21 @@ COMMANDS
         --version=VERSION        Number of service version
     -n, --name=NAME              The name of the OpenStack logging object
     -s, --service-id=SERVICE-ID  Service ID
+
+  logs tail [<flags>]
+    Tail Compute@Edge logs
+
+    -s, --service-id=SERVICE-ID  Service ID
+        --from=FROM              From time, in unix seconds
+        --to=TO                  To time, in unix seconds
+        --sort-buffer=1s         Sort buffer is how long to buffer logs,
+                                 attempting to sort them before printing,
+                                 defaults to 1s (second)
+        --search-padding=2s      Search padding is how much of a window on
+                                 either side of From and To to use for
+                                 searching, defaults to 2s (seconds)
+        --stream=STREAM          Stream specifies which of 'stdout' or 'stderr'
+                                 to output, defaults to undefined (all streams)
 
   stats regions
     List stats regions
