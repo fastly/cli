@@ -49,12 +49,12 @@ func TestCreateSFTPInput(t *testing.T) {
 				Path:              "/log",
 				Period:            3600,
 				FormatVersion:     2,
-				GzipLevel:         2,
 				Format:            `%h %l %u %t "%r" %>s %b`,
 				ResponseCondition: "Prevent default logging",
 				MessageType:       "classic",
 				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 				Placement:         "none",
+				CompressionCodec:  "zstd",
 			},
 		},
 		{
@@ -99,12 +99,13 @@ func TestUpdateSFTPInput(t *testing.T) {
 				Path:              fastly.String("new8"),
 				Period:            fastly.Uint(3601),
 				FormatVersion:     fastly.Uint(3),
-				GzipLevel:         fastly.Uint(3),
+				GzipLevel:         fastly.Uint(0),
 				Format:            fastly.String("new9"),
 				ResponseCondition: fastly.String("new10"),
 				TimestampFormat:   fastly.String("new11"),
 				Placement:         fastly.String("new12"),
 				MessageType:       fastly.String("new13"),
+				CompressionCodec:  fastly.String("new14"),
 			},
 		},
 		{
@@ -161,11 +162,11 @@ func createCommandAll() *CreateCommand {
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
 		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -202,11 +203,12 @@ func updateCommandAll() *UpdateCommand {
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 0},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new12"},
 		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new13"},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new14"},
 	}
 }
 
@@ -232,11 +234,11 @@ func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 		Period:            3600,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
-		GzipLevel:         2,
 		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
+		CompressionCodec:  "zstd",
 	}, nil
 }
 

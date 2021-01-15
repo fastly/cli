@@ -77,6 +77,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", sftp.ResponseCondition)
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", sftp.TimestampFormat)
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", sftp.Placement)
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", sftp.CompressionCodec)
 	}
 	fmt.Fprintln(out)
 

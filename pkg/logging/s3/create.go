@@ -43,6 +43,7 @@ type CreateCommand struct {
 	PublicKey                    common.OptionalString
 	ServerSideEncryption         common.OptionalString
 	ServerSideEncryptionKMSKeyID common.OptionalString
+	CompressionCodec             common.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -76,6 +77,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("public-key", "A PGP public key that Fastly will use to encrypt your log files before writing them to disk").Action(c.PublicKey.Set).StringVar(&c.PublicKey.Value)
 	c.CmdClause.Flag("server-side-encryption", "Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms").Action(c.ServerSideEncryption.Set).EnumVar(&c.ServerSideEncryption.Value, string(fastly.S3ServerSideEncryptionAES), string(fastly.S3ServerSideEncryptionKMS))
 	c.CmdClause.Flag("server-side-encryption-kms-key-id", "Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms").Action(c.ServerSideEncryptionKMSKeyID.Set).StringVar(&c.ServerSideEncryptionKMSKeyID.Value)
+	c.CmdClause.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
 
 	return &c
 }
@@ -111,6 +113,12 @@ func (c *CreateCommand) createInput() (*fastly.CreateS3Input, error) {
 	} else if !c.AccessKey.WasSet && c.SecretKey.WasSet {
 		return nil, fmt.Errorf("error parsing arguments: required flag --access-key not provided")
 
+	}
+
+	// The following blocks enforces the mutual exclusivity of the
+	// CompressionCodec and GzipLevel flags.
+	if c.CompressionCodec.WasSet && c.GzipLevel.WasSet {
+		return nil, fmt.Errorf("error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag")
 	}
 
 	if c.AccessKey.WasSet {
@@ -171,6 +179,10 @@ func (c *CreateCommand) createInput() (*fastly.CreateS3Input, error) {
 
 	if c.ServerSideEncryptionKMSKeyID.WasSet {
 		input.ServerSideEncryptionKMSKeyID = c.ServerSideEncryptionKMSKeyID.Value
+	}
+
+	if c.CompressionCodec.WasSet {
+		input.CompressionCodec = c.CompressionCodec.Value
 	}
 
 	if c.Redundancy.WasSet {

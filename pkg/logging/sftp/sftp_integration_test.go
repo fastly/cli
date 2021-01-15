@@ -45,6 +45,10 @@ func TestSFTPCreate(t *testing.T) {
 			api:       mock.API{CreateSFTPFn: createSFTPError},
 			wantError: errTest.Error(),
 		},
+		{
+			args:      []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--ssh-known-hosts", knownHosts(), "--port", "80", "--compression-codec", "zstd", "--gzip-level", "9"},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (
@@ -249,8 +253,9 @@ var errTest = errors.New("fixture error")
 
 func createSFTPOK(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	s := fastly.SFTP{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		ServiceID:        i.ServiceID,
+		ServiceVersion:   i.ServiceVersion,
+		CompressionCodec: "zstd",
 	}
 
 	if i.Name != "" {
@@ -279,13 +284,13 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 			SSHKnownHosts:     knownHosts(),
 			Path:              "/logs",
 			Period:            3600,
-			GzipLevel:         2,
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
 			MessageType:       "classic",
 			ResponseCondition: "Prevent default logging",
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
+			CompressionCodec:  "zstd",
 		},
 		{
 			ServiceID:         i.ServiceID,
@@ -300,13 +305,13 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 			SSHKnownHosts:     knownHosts(),
 			Path:              "/analytics",
 			Period:            3600,
-			GzipLevel:         3,
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			MessageType:       "classic",
 			FormatVersion:     2,
 			ResponseCondition: "Prevent default logging",
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
+			CompressionCodec:  "zstd",
 		},
 	}, nil
 }
@@ -339,13 +344,14 @@ Version: 1
 		SSH known hosts: `+knownHosts()+`
 		Path: /logs
 		Period: 3600
-		GZip level: 2
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Message type: classic
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
+		Compression codec: zstd
 	SFTP 2/2
 		Service ID: 123
 		Version: 1
@@ -359,13 +365,14 @@ Version: 1
 		SSH known hosts: `+knownHosts()+`
 		Path: /analytics
 		Period: 3600
-		GZip level: 3
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Message type: classic
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
+		Compression codec: zstd
 `) + "\n\n"
 
 func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
@@ -389,6 +396,7 @@ func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
+		CompressionCodec:  "zstd",
 	}, nil
 }
 
@@ -416,6 +424,7 @@ Message type: classic
 Response condition: Prevent default logging
 Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Placement: none
+Compression codec: zstd
 `) + "\n"
 
 func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
@@ -432,13 +441,13 @@ func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 		SSHKnownHosts:     knownHosts(),
 		Path:              "/logs",
 		Period:            3600,
-		GzipLevel:         3,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
+		CompressionCodec:  "zstd",
 	}, nil
 }
 

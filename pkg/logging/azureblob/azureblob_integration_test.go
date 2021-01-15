@@ -45,6 +45,11 @@ func TestBlobStorageCreate(t *testing.T) {
 			api:       mock.API{CreateBlobStorageFn: createBlobStorageError},
 			wantError: errTest.Error(),
 		},
+		{
+			args:      []string{"logging", "azureblob", "create", "--service-id", "123", "--version", "1", "--name", "log", "--account-name", "account", "--container", "log", "--sas-token", "abc", "--compression-codec", "zstd", "--gzip-level", "9"},
+			api:       mock.API{CreateBlobStorageFn: createBlobStorageError},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (
@@ -258,13 +263,13 @@ func createBlobStorageOK(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage,
 		SASToken:          "token",
 		Period:            3600,
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		GzipLevel:         9,
 		PublicKey:         pgpPublicKey(),
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		MessageType:       "classic",
 		Placement:         "none",
 		ResponseCondition: "Prevent default logging",
+		CompressionCodec:  "zstd",
 	}
 
 	return &s, nil
@@ -286,13 +291,13 @@ func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage,
 			SASToken:          "token",
 			Period:            3600,
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			GzipLevel:         9,
 			PublicKey:         pgpPublicKey(),
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
 			MessageType:       "classic",
 			Placement:         "none",
 			ResponseCondition: "Prevent default logging",
+			CompressionCodec:  "zstd",
 		},
 		{
 			ServiceID:         i.ServiceID,
@@ -303,7 +308,6 @@ func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage,
 			SASToken:          "token",
 			Path:              "/logs",
 			Period:            86400,
-			GzipLevel:         9,
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
 			MessageType:       "classic",
@@ -311,6 +315,7 @@ func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage,
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
 			PublicKey:         pgpPublicKey(),
+			CompressionCodec:  "zstd",
 		},
 	}, nil
 }
@@ -339,7 +344,7 @@ Version: 1
 		SAS token: token
 		Path: /logs
 		Period: 3600
-		GZip level: 9
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -348,6 +353,7 @@ Version: 1
 		Placement: none
 		Public key: `+pgpPublicKey()+`
 		File max bytes: 0
+		Compression codec: zstd
 	BlobStorage 2/2
 		Service ID: 123
 		Version: 1
@@ -357,7 +363,7 @@ Version: 1
 		SAS token: token
 		Path: /logs
 		Period: 86400
-		GZip level: 9
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -366,6 +372,7 @@ Version: 1
 		Placement: none
 		Public key: `+pgpPublicKey()+`
 		File max bytes: 0
+		Compression codec: zstd
 `) + "\n\n"
 
 func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
@@ -378,7 +385,7 @@ func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error
 		SASToken:          "token",
 		Path:              "/logs",
 		Period:            3600,
-		GzipLevel:         9,
+		GzipLevel:         0,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
@@ -386,6 +393,7 @@ func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
 		PublicKey:         pgpPublicKey(),
+		CompressionCodec:  "zstd",
 	}, nil
 }
 
@@ -402,7 +410,7 @@ Account name: account
 SAS token: token
 Path: /logs
 Period: 3600
-GZip level: 9
+GZip level: 0
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Response condition: Prevent default logging
@@ -411,6 +419,7 @@ Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Placement: none
 Public key: `+pgpPublicKey()+`
 File max bytes: 0
+Compression codec: zstd
 `) + "\n"
 
 func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
@@ -423,7 +432,6 @@ func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage,
 		SASToken:          "token",
 		Path:              "/logs",
 		Period:            3600,
-		GzipLevel:         9,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
@@ -431,6 +439,7 @@ func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage,
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
 		PublicKey:         pgpPublicKey(),
+		CompressionCodec:  "zstd",
 	}, nil
 }
 

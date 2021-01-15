@@ -41,6 +41,7 @@ type UpdateCommand struct {
 	Redundancy                   common.OptionalString
 	ServerSideEncryption         common.OptionalString
 	ServerSideEncryptionKMSKeyID common.OptionalString
+	CompressionCodec             common.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -75,6 +76,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("public-key", "A PGP public key that Fastly will use to encrypt your log files before writing them to disk").Action(c.PublicKey.Set).StringVar(&c.PublicKey.Value)
 	c.CmdClause.Flag("server-side-encryption", "Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms").Action(c.ServerSideEncryption.Set).EnumVar(&c.ServerSideEncryption.Value, string(fastly.S3ServerSideEncryptionAES), string(fastly.S3ServerSideEncryptionKMS))
 	c.CmdClause.Flag("server-side-encryption-kms-key-id", "Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms").Action(c.ServerSideEncryptionKMSKeyID.Set).StringVar(&c.ServerSideEncryptionKMSKeyID.Value)
+	c.CmdClause.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
 
 	return &c
 }
@@ -158,6 +160,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateS3Input, error) {
 
 	if c.ServerSideEncryptionKMSKeyID.WasSet {
 		input.ServerSideEncryptionKMSKeyID = fastly.String(c.ServerSideEncryptionKMSKeyID.Value)
+	}
+
+	if c.CompressionCodec.WasSet {
+		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
 	}
 
 	if c.Redundancy.WasSet {

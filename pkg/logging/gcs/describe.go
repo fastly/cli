@@ -59,6 +59,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Message type: %s\n", gcs.MessageType)
 	fmt.Fprintf(out, "Timestamp format: %s\n", gcs.TimestampFormat)
 	fmt.Fprintf(out, "Placement: %s\n", gcs.Placement)
+	fmt.Fprintf(out, "Compression codec: %s\n", gcs.CompressionCodec)
 
 	return nil
 }

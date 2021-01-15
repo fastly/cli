@@ -45,6 +45,10 @@ func TestGCSCreate(t *testing.T) {
 			api:       mock.API{CreateGCSFn: createGCSError},
 			wantError: errTest.Error(),
 		},
+		{
+			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400", "--compression-codec", "zstd", "--gzip-level", "9"},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (
@@ -270,13 +274,14 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
 			Path:              "logs/",
 			Period:            3600,
-			GzipLevel:         9,
+			GzipLevel:         0,
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
 			MessageType:       "classic",
 			ResponseCondition: "Prevent default logging",
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
+			CompressionCodec:  "zstd",
 		},
 		{
 			ServiceID:         i.ServiceID,
@@ -287,13 +292,14 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
 			Path:              "logs/",
 			Period:            86400,
-			GzipLevel:         9,
+			GzipLevel:         0,
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
 			MessageType:       "classic",
 			ResponseCondition: "Prevent default logging",
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
+			CompressionCodec:  "zstd",
 		},
 	}, nil
 }
@@ -322,13 +328,14 @@ Version: 1
 		Secret key: -----BEGIN RSA PRIVATE KEY-----foo
 		Path: logs/
 		Period: 3600
-		GZip level: 9
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
+		Compression codec: zstd
 	GCS 2/2
 		Service ID: 123
 		Version: 1
@@ -338,13 +345,14 @@ Version: 1
 		Secret key: -----BEGIN RSA PRIVATE KEY-----foo
 		Path: logs/
 		Period: 86400
-		GZip level: 9
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
+		Compression codec: zstd
 `) + "\n\n"
 
 func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
@@ -357,13 +365,14 @@ func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
 		Path:              "logs/",
 		Period:            3600,
-		GzipLevel:         9,
+		GzipLevel:         0,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
+		CompressionCodec:  "zstd",
 	}, nil
 }
 
@@ -380,13 +389,14 @@ User: foo@example.com
 Secret key: -----BEGIN RSA PRIVATE KEY-----foo
 Path: logs/
 Period: 3600
-GZip level: 9
+GZip level: 0
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Response condition: Prevent default logging
 Message type: classic
 Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Placement: none
+Compression codec: zstd
 `) + "\n"
 
 func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
@@ -399,13 +409,14 @@ func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
 		Path:              "logs/",
 		Period:            3600,
-		GzipLevel:         9,
+		GzipLevel:         0,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
 		MessageType:       "classic",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
+		CompressionCodec:  "zstd",
 	}, nil
 }
 

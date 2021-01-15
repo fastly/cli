@@ -82,6 +82,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tRedundancy: %s\n", s3.Redundancy)
 		fmt.Fprintf(out, "\t\tServer-side encryption: %s\n", s3.ServerSideEncryption)
 		fmt.Fprintf(out, "\t\tServer-side encryption KMS key ID: %s\n", s3.ServerSideEncryption)
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", s3.CompressionCodec)
 	}
 	fmt.Fprintln(out)
 

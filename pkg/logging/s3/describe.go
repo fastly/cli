@@ -68,6 +68,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Redundancy: %s\n", s3.Redundancy)
 	fmt.Fprintf(out, "Server-side encryption: %s\n", s3.ServerSideEncryption)
 	fmt.Fprintf(out, "Server-side encryption KMS key ID: %s\n", s3.ServerSideEncryption)
+	fmt.Fprintf(out, "Compression codec: %s\n", s3.CompressionCodec)
 
 	return nil
 }

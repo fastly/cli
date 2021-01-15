@@ -45,11 +45,11 @@ func TestCreateFTPInput(t *testing.T) {
 				Path:              "/logs",
 				Period:            3600,
 				FormatVersion:     2,
-				GzipLevel:         2,
 				Format:            `%h %l %u %t "%r" %>s %b`,
 				ResponseCondition: "Prevent default logging",
 				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 				Placement:         "none",
+				CompressionCodec:  "zstd",
 			},
 		},
 		{
@@ -102,11 +102,12 @@ func TestUpdateFTPInput(t *testing.T) {
 				Path:              fastly.String("new5"),
 				Period:            fastly.Uint(3601),
 				FormatVersion:     fastly.Uint(3),
-				GzipLevel:         fastly.Uint8(3),
+				GzipLevel:         fastly.Uint8(0),
 				Format:            fastly.String("new6"),
 				ResponseCondition: fastly.String("new7"),
 				TimestampFormat:   fastly.String("new8"),
 				Placement:         fastly.String("new9"),
+				CompressionCodec:  fastly.String("new11"),
 			},
 		},
 		{
@@ -148,12 +149,12 @@ func createCommandAll() *CreateCommand {
 		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 22},
 		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "/logs"},
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
-		GzipLevel:         common.OptionalUint8{Optional: common.Optional{WasSet: true}, Value: 2},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -186,12 +187,13 @@ func updateCommandAll() *UpdateCommand {
 		PublicKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
 		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:         common.OptionalUint8{Optional: common.Optional{WasSet: true}, Value: 3},
+		GzipLevel:         common.OptionalUint8{Optional: common.Optional{WasSet: true}, Value: 0},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
 	}
 }
 
@@ -212,11 +214,12 @@ func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 		Password:          "password",
 		Path:              "/logs",
 		Period:            3600,
-		GzipLevel:         2,
+		GzipLevel:         0,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
+		CompressionCodec:  "zstd",
 	}, nil
 }

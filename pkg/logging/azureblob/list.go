@@ -75,6 +75,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", azureblob.Placement)
 		fmt.Fprintf(out, "\t\tPublic key: %s\n", azureblob.PublicKey)
 		fmt.Fprintf(out, "\t\tFile max bytes: %d\n", azureblob.FileMaxBytes)
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", azureblob.CompressionCodec)
 	}
 	fmt.Fprintln(out)
 

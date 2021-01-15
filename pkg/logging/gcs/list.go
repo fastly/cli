@@ -73,6 +73,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", gcs.MessageType)
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", gcs.TimestampFormat)
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", gcs.Placement)
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", gcs.CompressionCodec)
 	}
 	fmt.Fprintln(out)
 

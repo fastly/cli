@@ -46,13 +46,14 @@ func TestCreateCloudfilesInput(t *testing.T) {
 				Region:            "abc",
 				Placement:         "none",
 				Period:            3600,
-				GzipLevel:         2,
+				GzipLevel:         0,
 				Format:            `%h %l %u %t "%r" %>s %b`,
 				FormatVersion:     2,
 				ResponseCondition: "Prevent default logging",
 				MessageType:       "classic",
 				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 				PublicKey:         pgpPublicKey(),
+				CompressionCodec:  "zstd",
 			},
 		},
 		{
@@ -103,7 +104,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 				Region:            fastly.String("new5"),
 				Placement:         fastly.String("new6"),
 				Period:            fastly.Uint(3601),
-				GzipLevel:         fastly.Uint(3),
+				GzipLevel:         fastly.Uint(0),
 				Format:            fastly.String("new7"),
 				FormatVersion:     fastly.Uint(3),
 				ResponseCondition: fastly.String("new8"),
@@ -111,6 +112,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 				TimestampFormat:   fastly.String("new10"),
 				PublicKey:         fastly.String("new11"),
 				User:              fastly.String("new12"),
+				CompressionCodec:  fastly.String("new13"),
 			},
 		},
 		{
@@ -153,13 +155,13 @@ func createCommandAll() *CreateCommand {
 		Region:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "abc"},
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
-		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
 		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		PublicKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: pgpPublicKey()},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -191,7 +193,7 @@ func updateCommandAll() *UpdateCommand {
 		Region:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 0},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
@@ -199,6 +201,7 @@ func updateCommandAll() *UpdateCommand {
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
 		PublicKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
 		User:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new12"},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new13"},
 	}
 }
 
@@ -220,13 +223,14 @@ func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 		Region:            "abc",
 		Placement:         "none",
 		Period:            3600,
-		GzipLevel:         2,
+		GzipLevel:         0,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
 		MessageType:       "classic",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		PublicKey:         pgpPublicKey(),
+		CompressionCodec:  "zstd",
 	}, nil
 }
 
