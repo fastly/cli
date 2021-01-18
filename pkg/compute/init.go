@@ -46,7 +46,7 @@ var (
 		"rust": {
 			{
 				Name:   "Default",
-				Path:   "https://github.com/fastly/fastly-template-rust-default.git",
+				Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
 				Branch: "0.5.0",
 			},
 		},
