@@ -11,13 +11,13 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// UpdateCommand calls the Fastly API to update HTTPS logging endpoints.
+// UpdateCommand calls the Fastly API to update an HTTPS logging endpoint.
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shaddow common.Base method Name().
+	EndpointName string // Can't shadow common.Base method Name().
 	Version      int
 
 	// optional
@@ -49,10 +49,10 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 
 	c.CmdClause = parent.Command("update", "Update an HTTPS logging endpoint on a Fastly service version")
 
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
 	c.CmdClause.Flag("name", "The name of the HTTPS logging object").Short('n').Required().StringVar(&c.EndpointName)
 
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the HTTPS logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("url", "URL that log data will be sent to. Must use the https protocol").Action(c.URL.Set).StringVar(&c.URL.Value)
 	c.CmdClause.Flag("content-type", "Content type of the header sent with the request").Action(c.ContentType.Set).StringVar(&c.ContentType.Value)

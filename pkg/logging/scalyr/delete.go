@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// DeleteCommand calls the Fastly API to delete Scalyr logging endpoints.
+// DeleteCommand calls the Fastly API to delete a Scalyr logging endpoint.
 type DeleteCommand struct {
 	common.Base
 	manifest manifest.Data
@@ -24,9 +24,12 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	c.Globals = globals
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete a Scalyr logging endpoint on a Fastly service version").Alias("remove")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
 	c.CmdClause.Flag("name", "The name of the Scalyr logging object").Short('n').Required().StringVar(&c.Input.Name)
+
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+
 	return &c
 }
 

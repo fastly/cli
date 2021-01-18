@@ -11,13 +11,13 @@ import (
 	"github.com/fastly/go-fastly/v2/fastly"
 )
 
-// UpdateCommand calls the Fastly API to update Splunk logging endpoints.
+// UpdateCommand calls the Fastly API to update a Splunk logging endpoint.
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shaddow common.Base method Name().
+	EndpointName string // Can't shadow common.Base method Name().
 	Version      int
 
 	// optional
@@ -42,10 +42,10 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 
 	c.CmdClause = parent.Command("update", "Update a Splunk logging endpoint on a Fastly service version")
 
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
 	c.CmdClause.Flag("name", "The name of the Splunk logging object").Short('n').Required().StringVar(&c.EndpointName)
 
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Splunk logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("url", "The URL to POST to.").Action(c.URL.Set).StringVar(&c.URL.Value)
 	c.CmdClause.Flag("tls-ca-cert", "A secure certificate to authenticate the server with. Must be in PEM format").Action(c.TLSCACert.Set).StringVar(&c.TLSCACert.Value)
