@@ -152,6 +152,8 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 		return err
 	}
 
+	f.LastVersionCheck = time.Now().Format(time.RFC3339)
+
 	// Create the destination directory for the config file
 	basePath := filepath.Dir(FilePath)
 	err = filesystem.MakeDirectoryIfNotExists(basePath)
