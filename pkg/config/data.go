@@ -123,9 +123,6 @@ type File struct {
 	Email            string `toml:"email"`
 	Endpoint         string `toml:"endpoint"`
 	LastVersionCheck string `toml:"last_version_check"`
-
-	// Allow the API endpoint itself to be dynamically switched if we wanted it to
-	APIEndpoint string `toml:"api_endpoint"`
 }
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
@@ -134,12 +131,13 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	fmt.Println("We were unable to locate a local configuration file required to use the CLI.")
 	fmt.Println("We will create that file for you now.")
 
-	f.APIEndpoint = configEndpoint
+	// This will be overridden by the value returned from the API
+	f.Endpoint = configEndpoint
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, f.APIEndpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, f.Endpoint, nil)
 	if err != nil {
 		return err
 	}
