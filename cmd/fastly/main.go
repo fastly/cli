@@ -15,6 +15,8 @@ import (
 	"github.com/fastly/cli/pkg/update"
 )
 
+const configEndpoint = "http://integralist-cli-dynamic-config.com.global.prod.fastly.net/"
+
 func main() {
 	// Some configuration options can come from env vars.
 	var env config.Environment
@@ -41,7 +43,7 @@ func main() {
 	err := file.Read(config.FilePath) // ignore error
 	if err != nil {
 		// Acquire global CLI configuration file
-		err := file.Load("http://integralist-cli-dynamic-config.com.global.prod.fastly.net/", httpClient)
+		err := file.Load(configEndpoint, httpClient)
 		if err != nil {
 			fmt.Println(err)
 			// TODO: offer remediation step
