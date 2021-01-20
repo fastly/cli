@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -51,10 +52,33 @@ func main() {
 		}
 	}
 
+	doneWithUpdate := make(chan bool)
+	stale := false
+
+	// Validate if configuration is older than 24hrs
+	if check.Stale(file.LastVersionCheck) {
+		fmt.Println("STALE!")
+		stale = true
+		go func() {
+			file.Load(configEndpoint, httpClient)
+			doneWithUpdate <- true
+		}()
+	}
+
 	// Main is basically just a shim to call Run, so we do that here.
 	if err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, versioner, in, out); err != nil {
 		errors.Deduce(err).Print(os.Stderr)
 		os.Exit(1)
+	}
+
+	// If the command being run finishes before the latest config is written back
+	// to disk, then wait for the write operation to complete.
+	//
+	// I use a variable instead of calling check.Stale() again, incase the file
+	// object has indeed been updated already and is no longer considered stale!
+	if stale {
+		fmt.Println("Writing updated configuration to disk.") // TODO: only print for verbose logging
+		<-doneWithUpdate
 	}
 }
 

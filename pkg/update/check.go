@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/config"
 )
 
@@ -44,7 +45,7 @@ type checkResult struct {
 //     defer f()
 //
 func CheckAsync(ctx context.Context, file config.File, configFilePath string, currentVersion string, v Versioner) (printResults func(io.Writer)) {
-	if t, _ := time.Parse(time.RFC3339, file.LastVersionCheck); !t.Before(time.Now().Add(-24 * time.Hour)) {
+	if !check.Stale(file.LastVersionCheck) {
 		return func(io.Writer) {} // no-op
 	}
 
