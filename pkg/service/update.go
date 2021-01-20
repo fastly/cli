@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v2/fastly"
+	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 // UpdateCommand calls the Fastly API to create services.
@@ -66,7 +66,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	// set original value, and then afterwards check if we can use the flag value
-	c.updateInput.ID = s.ID
+	c.updateInput.ServiceID = s.ID
 	c.updateInput.Name = fastly.String(s.Name)
 	c.updateInput.Comment = fastly.String(s.Comment)
 

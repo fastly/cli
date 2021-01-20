@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v2/fastly"
+	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update a dictionary item.
@@ -16,8 +16,6 @@ type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
 	Input    fastly.UpdateDictionaryItemInput
-
-	itemvalue common.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -33,7 +31,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
 	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
-	c.CmdClause.Flag("value", "Dictionary item value").Required().Action(c.itemvalue.Set).StringVar(&c.itemvalue.Value)
+	c.CmdClause.Flag("value", "Dictionary item value").Required().StringVar(&c.Input.ItemValue)
 	return &c
 }
 
@@ -44,8 +42,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
-
-	c.Input.ItemValue = &c.itemvalue.Value
 
 	dictionary, err := c.Globals.Client.UpdateDictionaryItem(&c.Input)
 	if err != nil {

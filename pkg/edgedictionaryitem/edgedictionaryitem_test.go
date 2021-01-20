@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
-	"github.com/fastly/go-fastly/v2/fastly"
+	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 func TestDictionaryItemDescribe(t *testing.T) {
@@ -400,7 +400,7 @@ func updateDictionaryItemOK(i *fastly.UpdateDictionaryItemInput) (*fastly.Dictio
 		ServiceID:    i.ServiceID,
 		DictionaryID: i.DictionaryID,
 		ItemKey:      i.ItemKey,
-		ItemValue:    *i.ItemValue,
+		ItemValue:    i.ItemValue,
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil

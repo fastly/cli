@@ -9,14 +9,14 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v2/fastly"
+	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 // ListCommand calls the Fastly API to list Amazon Kinesis logging endpoints.
 type ListCommand struct {
 	common.Base
 	manifest manifest.Data
-	Input    fastly.ListKinesesInput
+	Input    fastly.ListKinesisInput
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -38,7 +38,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
-	kineses, err := c.Globals.Client.ListKineses(&c.Input)
+	kineses, err := c.Globals.Client.ListKinesis(&c.Input)
 	if err != nil {
 		return err
 	}

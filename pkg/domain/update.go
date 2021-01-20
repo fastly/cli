@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v2/fastly"
+	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update domains.
@@ -19,6 +19,7 @@ type UpdateCommand struct {
 	getInput    fastly.GetDomainInput
 	updateInput fastly.UpdateDomainInput
 
+	NewName common.OptionalString
 	Comment common.OptionalString
 }
 
@@ -30,7 +31,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.getInput.ServiceVersion)
 	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.getInput.Name)
-	c.CmdClause.Flag("new-name", "New domain name").StringVar(&c.updateInput.NewName)
+	c.CmdClause.Flag("new-name", "New domain name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	return &c
 }
@@ -44,7 +45,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.getInput.ServiceID = serviceID
 
 	// If neither arguments are provided, error with useful message.
-	if c.updateInput.NewName == "" && !c.Comment.WasSet {
+	if !c.NewName.WasSet && !c.Comment.WasSet {
 		return fmt.Errorf("error parsing arguments: must provide either --new-name or --comment to update domain")
 	}
 
@@ -59,8 +60,8 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	// Set original value, and then afterwards check if we can use the flag value.
 	c.updateInput.Comment = &d.Comment
 
-	if c.updateInput.NewName == "" {
-		c.updateInput.NewName = d.Name
+	if c.NewName.WasSet {
+		c.updateInput.NewName = fastly.String(c.NewName.Value)
 	}
 	if c.Comment.WasSet {
 		c.updateInput.Comment = fastly.String(c.Comment.Value)

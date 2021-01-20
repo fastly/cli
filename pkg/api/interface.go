@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/fastly/go-fastly/v2/fastly"
+	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some
@@ -88,7 +88,7 @@ type Interface interface {
 	DeleteS3(*fastly.DeleteS3Input) error
 
 	CreateKinesis(*fastly.CreateKinesisInput) (*fastly.Kinesis, error)
-	ListKineses(*fastly.ListKinesesInput) ([]*fastly.Kinesis, error)
+	ListKinesis(*fastly.ListKinesisInput) ([]*fastly.Kinesis, error)
 	GetKinesis(*fastly.GetKinesisInput) (*fastly.Kinesis, error)
 	UpdateKinesis(*fastly.UpdateKinesisInput) (*fastly.Kinesis, error)
 	DeleteKinesis(*fastly.DeleteKinesisInput) error

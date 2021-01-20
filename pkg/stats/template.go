@@ -6,7 +6,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/fastly/go-fastly/v2/fastly"
+	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/mitchellh/mapstructure"
 )
 

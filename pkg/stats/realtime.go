@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v2/fastly"
+	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 // RealtimeCommand exposes the Realtime Metrics API.
@@ -65,7 +65,7 @@ func loopJSON(client api.RealtimeStatsInterface, service string, out io.Writer) 
 		}
 
 		err := client.GetRealtimeStatsJSON(&fastly.GetRealtimeStatsInput{
-			Service:   service,
+			ServiceID: service,
 			Timestamp: timestamp,
 		}, &envelope)
 		if err != nil {
@@ -87,7 +87,7 @@ func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) 
 		var envelope realtimeResponse
 
 		err := client.GetRealtimeStatsJSON(&fastly.GetRealtimeStatsInput{
-			Service:   service,
+			ServiceID: service,
 			Timestamp: timestamp,
 		}, &envelope)
 		if err != nil {
