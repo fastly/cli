@@ -32,6 +32,8 @@ github.com/emirpasic/gods v1.12.0 h1:QAUIPSaCu4G+POclxeqb3F+WPpdKqFGlw36+yOzGlrg
 github.com/emirpasic/gods v1.12.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
 github.com/fastly/go-fastly/v2 v2.1.0 h1:VQWCFiUZyCcknyxyhiQwU0MjLYzeK4g1mLo/US2r/P0=
 github.com/fastly/go-fastly/v2 v2.1.0/go.mod h1:+gom+YR+9Q5I4biSk/ZjHQGWXxqpRxC3YDVYQcRpZwQ=
+github.com/fastly/go-fastly/v3 v3.0.0 h1:TtTkBnBO5CcPTAUgBL/vcoS5VL5LaKfXV6cilX8bn8U=
+github.com/fastly/go-fastly/v3 v3.0.0/go.mod h1:1GAnpEjDwBQD6DZgrgO5RoIawXFqrYC1K+JOkgZXCPk=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible h1:FhrXlfhgGCS+uc6YwyiFUt04alnjpoX7vgDKJxS6Qbk=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible/go.mod h1:U8UynVoU1SQaqD2I4ZqgYd5lx3A1ipQYn4aSt2Y5h6c=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=

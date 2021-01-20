@@ -54,7 +54,7 @@ import (
 	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/cli/pkg/version"
 	"github.com/fastly/cli/pkg/whoami"
-	"github.com/fastly/go-fastly/v2/fastly"
+	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/fastly/kingpin"
 )
 
