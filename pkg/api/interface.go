@@ -88,7 +88,7 @@ type Interface interface {
 	DeleteS3(*fastly.DeleteS3Input) error
 
 	CreateKinesis(*fastly.CreateKinesisInput) (*fastly.Kinesis, error)
-	ListKineses(*fastly.ListKinesesInput) ([]*fastly.Kinesis, error)
+	ListKinesis(*fastly.ListKinesisInput) ([]*fastly.Kinesis, error)
 	GetKinesis(*fastly.GetKinesisInput) (*fastly.Kinesis, error)
 	UpdateKinesis(*fastly.UpdateKinesisInput) (*fastly.Kinesis, error)
 	DeleteKinesis(*fastly.DeleteKinesisInput) error

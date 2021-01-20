@@ -16,7 +16,7 @@ import (
 type ListCommand struct {
 	common.Base
 	manifest manifest.Data
-	Input    fastly.ListKinesesInput
+	Input    fastly.ListKinesisInput
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -38,7 +38,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
-	kineses, err := c.Globals.Client.ListKineses(&c.Input)
+	kineses, err := c.Globals.Client.ListKinesis(&c.Input)
 	if err != nil {
 		return err
 	}

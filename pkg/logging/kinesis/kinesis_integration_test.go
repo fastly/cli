@@ -66,32 +66,32 @@ func TestKinesisList(t *testing.T) {
 	}{
 		{
 			args:       []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListKinesesFn: listKinesesOK},
+			api:        mock.API{ListKinesisFn: listKinesesOK},
 			wantOutput: listKinesesShortOutput,
 		},
 		{
 			args:       []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListKinesesFn: listKinesesOK},
+			api:        mock.API{ListKinesisFn: listKinesesOK},
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
 			args:       []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListKinesesFn: listKinesesOK},
+			api:        mock.API{ListKinesisFn: listKinesesOK},
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
 			args:       []string{"logging", "kinesis", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListKinesesFn: listKinesesOK},
+			api:        mock.API{ListKinesisFn: listKinesesOK},
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
 			args:       []string{"logging", "-v", "kinesis", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListKinesesFn: listKinesesOK},
+			api:        mock.API{ListKinesisFn: listKinesesOK},
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
 			args:      []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListKinesesFn: listKinesesError},
+			api:       mock.API{ListKinesisFn: listKinesesError},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -265,7 +265,7 @@ func createKinesisError(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
-func listKinesesOK(i *fastly.ListKinesesInput) ([]*fastly.Kinesis, error) {
+func listKinesesOK(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	return []*fastly.Kinesis{
 		{
 			ServiceID:         i.ServiceID,
@@ -296,7 +296,7 @@ func listKinesesOK(i *fastly.ListKinesesInput) ([]*fastly.Kinesis, error) {
 	}, nil
 }
 
-func listKinesesError(i *fastly.ListKinesesInput) ([]*fastly.Kinesis, error) {
+func listKinesesError(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
