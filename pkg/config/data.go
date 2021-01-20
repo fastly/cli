@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
@@ -154,7 +153,7 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	}
 
 	// Create the destination directory for the config file
-	basePath := strings.Split(FilePath, "config.toml")[0]
+	basePath := filepath.Dir(FilePath)
 	err = filesystem.MakeDirectoryIfNotExists(basePath)
 	if err != nil {
 		return err
