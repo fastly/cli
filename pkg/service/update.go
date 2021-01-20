@@ -66,7 +66,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	// set original value, and then afterwards check if we can use the flag value
-	c.updateInput.ID = s.ID
+	c.updateInput.ServiceID = s.ID
 	c.updateInput.Name = fastly.String(s.Name)
 	c.updateInput.Comment = fastly.String(s.Comment)
 

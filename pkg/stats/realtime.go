@@ -65,7 +65,7 @@ func loopJSON(client api.RealtimeStatsInterface, service string, out io.Writer) 
 		}
 
 		err := client.GetRealtimeStatsJSON(&fastly.GetRealtimeStatsInput{
-			Service:   service,
+			ServiceID: service,
 			Timestamp: timestamp,
 		}, &envelope)
 		if err != nil {
@@ -87,7 +87,7 @@ func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) 
 		var envelope realtimeResponse
 
 		err := client.GetRealtimeStatsJSON(&fastly.GetRealtimeStatsInput{
-			Service:   service,
+			ServiceID: service,
 			Timestamp: timestamp,
 		}, &envelope)
 		if err != nil {
