@@ -62,7 +62,7 @@ func main() {
 	// Validate if configuration is older than 24hrs
 	if check.Stale(file.LastVersionCheck) {
 		fmt.Println("Your local application configuration is out-of-date.")
-		fmt.Println("We'll refresh this for you in the background and it'll be used next time.")
+		fmt.Print("We'll refresh this for you in the background and it'll be used next time.\n\n")
 
 		wait = true
 		go func() {
@@ -87,7 +87,7 @@ func main() {
 	// I use a variable instead of calling check.Stale() again, incase the file
 	// object has indeed been updated already and is no longer considered stale!
 	if wait {
-		fmt.Println("Writing updated configuration to disk.")
+		fmt.Println("\nWriting updated configuration to disk.")
 		<-waitForWrite
 		fmt.Println("Configuration file updated successfully.")
 	}
