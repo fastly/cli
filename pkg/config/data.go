@@ -127,7 +127,6 @@ type File struct {
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
 func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
-
 	// This will be overridden by the value returned from the API
 	f.Endpoint = configEndpoint
 

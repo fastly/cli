@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
 )
 
@@ -45,8 +46,11 @@ func main() {
 	var file config.File
 	err := file.Read(config.FilePath)
 	if err != nil {
-		fmt.Println("We were unable to locate a local configuration file required to use the CLI.")
-		fmt.Println("We will create that file for you now.")
+		text.Output(out, `
+			We were unable to locate a local configuration file required to use the CLI.
+			We will create that file for you now.
+		`)
+		text.Break(out)
 
 		err := file.Load(configEndpoint, httpClient)
 		if err != nil {
@@ -63,8 +67,10 @@ func main() {
 
 	// Validate if configuration is older than 24hrs
 	if check.Stale(file.LastVersionCheck) {
-		fmt.Println("Your local application configuration is out-of-date.")
-		fmt.Print("We'll refresh this for you in the background and it'll be used next time.\n\n")
+		text.Warning(out, `
+Your local application configuration is out-of-date.
+We'll refresh this for you in the background and it'll be used next time.
+		`)
 
 		wait = true
 		go func() {
@@ -89,9 +95,8 @@ func main() {
 	// I use a variable instead of calling check.Stale() again, incase the file
 	// object has indeed been updated already and is no longer considered stale!
 	if wait {
-		fmt.Println("\nWriting updated configuration to disk.")
 		<-waitForWrite
-		fmt.Println("Configuration file updated successfully.")
+		text.Info(out, "Successfully wrote updated application configuration file to disk.")
 	}
 }
 
