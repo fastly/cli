@@ -16,6 +16,8 @@ import (
 	"github.com/fastly/cli/pkg/update"
 )
 
+// configEndpoint represents the API endpoint where we'll pull the dynamic
+// configuration file from.
 const configEndpoint = "http://integralist-cli-dynamic-config.com.global.prod.fastly.net/"
 
 func main() {
