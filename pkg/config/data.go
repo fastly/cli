@@ -127,8 +127,6 @@ type File struct {
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
 func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
-	fmt.Println("We were unable to locate a local configuration file required to use the CLI.")
-	fmt.Println("We will create that file for you now.")
 
 	// This will be overridden by the value returned from the API
 	f.Endpoint = configEndpoint

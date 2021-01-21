@@ -39,29 +39,39 @@ func main() {
 		out            io.Writer = common.NewSyncWriter(os.Stdout)
 	)
 
-	// Some configuration options can come from a config file.
+	// Extract a subset of configuration options from the local application directory.
 	var file config.File
-	err := file.Read(config.FilePath) // ignore error
+	err := file.Read(config.FilePath)
 	if err != nil {
-		// Acquire global CLI configuration file
+		fmt.Println("We were unable to locate a local configuration file required to use the CLI.")
+		fmt.Println("We will create that file for you now.")
+
 		err := file.Load(configEndpoint, httpClient)
 		if err != nil {
 			fmt.Println(err)
-			// TODO: offer remediation step
-			os.Exit(1)
+			os.Exit(1) // TODO: offer a clearer remediation step
 		}
 	}
 
-	doneWithUpdate := make(chan bool)
-	stale := false
+	// When the local configuration file is stale we'll need to acquire the
+	// latest version and write that back to disk. To ensure the CLI program
+	// doesn't complete before the write has finished, we block via a channel.
+	waitForWrite := make(chan bool)
+	wait := false
 
 	// Validate if configuration is older than 24hrs
 	if check.Stale(file.LastVersionCheck) {
-		fmt.Println("STALE!")
-		stale = true
+		fmt.Println("Your local application configuration is out-of-date.")
+		fmt.Println("We'll refresh this for you in the background and it'll be used next time.")
+
+		wait = true
 		go func() {
-			file.Load(configEndpoint, httpClient)
-			doneWithUpdate <- true
+			err := file.Load(configEndpoint, httpClient)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1) // TODO: offer a clearer remediation step
+			}
+			waitForWrite <- true
 		}()
 	}
 
@@ -76,9 +86,10 @@ func main() {
 	//
 	// I use a variable instead of calling check.Stale() again, incase the file
 	// object has indeed been updated already and is no longer considered stale!
-	if stale {
-		fmt.Println("Writing updated configuration to disk.") // TODO: only print for verbose logging
-		<-doneWithUpdate
+	if wait {
+		fmt.Println("Writing updated configuration to disk.")
+		<-waitForWrite
+		fmt.Println("Configuration file updated successfully.")
 	}
 }
 
