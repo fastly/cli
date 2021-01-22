@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.23.0](https://github.com/fastly/cli/releases/tag/v0.23.0) (2021-01-22)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.22.0...v0.23.0)
+
+**Enhancements:**
+
+- Update Go-Fastly dependency to v3.0.0 [\#193](https://github.com/fastly/cli/pull/193)
+- Support for Compute@Edge Log Tailing [\#192](https://github.com/fastly/cli/pull/192)
+
+**Bug fixes:**
+
+- Resolve issues with Rust integration tests. [\#194](https://github.com/fastly/cli/pull/194)
+- Update URL for default Rust starter [\#191](https://github.com/fastly/cli/pull/191)
+
 ## [v0.22.0](https://github.com/fastly/cli/releases/tag/v0.22.0) (2021-01-07)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.21.2...v0.22.0)
@@ -29,10 +43,6 @@
 ## [v0.21.0](https://github.com/fastly/cli/releases/tag/v0.21.0) (2020-12-14)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.20.0...v0.21.0)
-
-**Enhancements:**
-
-- Adds support for managing edge dictionaries [\#159](https://github.com/fastly/cli/pull/159)
 
 ## [v0.20.0](https://github.com/fastly/cli/releases/tag/v0.20.0) (2020-11-24)
 
@@ -82,6 +92,7 @@
 
 **Enhancements:**
 
+- Adds support for managing edge dictionaries [\#159](https://github.com/fastly/cli/pull/159)
 - Bump supported Rust toolchain version to 1.46 [\#156](https://github.com/fastly/cli/pull/156)
 - Add service search command [\#152](https://github.com/fastly/cli/pull/152)
 
@@ -111,10 +122,6 @@
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.14.0...v0.15.0)
 
-**Enhancements:**
-
-- Adds OpenStack logging support [\#132](https://github.com/fastly/cli/pull/132)
-
 ## [v0.14.0](https://github.com/fastly/cli/releases/tag/v0.14.0) (2020-06-25)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.13.0...v0.14.0)
@@ -129,6 +136,7 @@
 
 **Enhancements:**
 
+- Adds OpenStack logging support [\#132](https://github.com/fastly/cli/pull/132)
 - Allow compute services to be initialised from an existing service ID [\#125](https://github.com/fastly/cli/pull/125)
 
 **Bug fixes:**
