@@ -5,6 +5,8 @@ SHELL := /bin/bash -o pipefail
 # the output is consistent across environments.
 VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
 
+TESTARGS ?= ./{cmd,pkg}/...
+
 LDFLAGS = -ldflags "\
  -X 'github.com/fastly/cli/pkg/version.AppVersion=${VERSION}' \
  -X 'github.com/fastly/cli/pkg/version.GitRevision=$(shell git rev-parse --short HEAD || echo unknown)' \
@@ -50,8 +52,7 @@ lint:
 
 .PHONY: test
 test:
-	go test -race ./{cmd,pkg}/...
-
+	go test -race $(TESTARGS)
 .PHONY: build
 build:
 	go build ./cmd/fastly
