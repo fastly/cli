@@ -127,6 +127,14 @@ func (f *File) Read(filename string) error {
 }
 
 // Write the File to filename on disk.
+//
+// NOTE: the expected workflow for this method is for the caller to have
+// modified the public field(s) first so that we can write new content to the
+// config file from the receiver object itself.
+//
+// EXAMPLE:
+// file.LastVersionCheck = time.Now().Format(time.RFC3339)
+// file.Write(configFilePath)
 func (f *File) Write(filename string) error {
 	fp, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
 	if err != nil {
@@ -141,8 +149,8 @@ func (f *File) Write(filename string) error {
 	return nil
 }
 
-// Environment represents all of the configuration parmaeters that can come from
-// environment variables.
+// Environment represents all of the configuration parameters that can come
+// from environment variables.
 type Environment struct {
 	Token    string
 	Endpoint string

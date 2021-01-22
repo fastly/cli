@@ -7,6 +7,7 @@ import (
 )
 
 // Filename is the name of the package manifest file.
+// It is expected to be a project specific configuration file.
 const Filename = "fastly.toml"
 
 // Source enumerates where a manifest parameter is taken from.
@@ -101,7 +102,7 @@ type File struct {
 	exists bool
 }
 
-// Exists yeilds whether the manifest exists.
+// Exists yields whether the manifest exists.
 func (f *File) Exists() bool {
 	return f.exists
 }
