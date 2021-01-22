@@ -229,6 +229,8 @@ type Interface interface {
 
 	GetRegions() (*fastly.RegionsResponse, error)
 	GetStatsJSON(*fastly.GetStatsInput, interface{}) error
+
+	CreateManagedLogging(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

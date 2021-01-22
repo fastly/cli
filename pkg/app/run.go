@@ -47,6 +47,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/splunk"
 	"github.com/fastly/cli/pkg/logging/sumologic"
 	"github.com/fastly/cli/pkg/logging/syslog"
+	"github.com/fastly/cli/pkg/logs"
 	"github.com/fastly/cli/pkg/service"
 	"github.com/fastly/cli/pkg/serviceversion"
 	"github.com/fastly/cli/pkg/stats"
@@ -351,6 +352,9 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	openstackUpdate := openstack.NewUpdateCommand(openstackRoot.CmdClause, &globals)
 	openstackDelete := openstack.NewDeleteCommand(openstackRoot.CmdClause, &globals)
 
+	logsRoot := logs.NewRootCommand(app, &globals)
+	logsTail := logs.NewTailCommand(logsRoot.CmdClause, &globals)
+
 	statsRoot := stats.NewRootCommand(app, &globals)
 	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
@@ -597,6 +601,9 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		openstackDescribe,
 		openstackUpdate,
 		openstackDelete,
+
+		logsRoot,
+		logsTail,
 
 		statsRoot,
 		statsRegions,

@@ -216,6 +216,8 @@ type API struct {
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
 	GetStatsJSONFn func(i *fastly.GetStatsInput, dst interface{}) error
+
+	CreateManagedLoggingFn func(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 }
 
 // GetTokenSelf implements Interface.
@@ -1076,4 +1078,9 @@ func (m API) GetRegions() (*fastly.RegionsResponse, error) {
 // GetStatsJSON implements Interface.
 func (m API) GetStatsJSON(i *fastly.GetStatsInput, dst interface{}) error {
 	return m.GetStatsJSONFn(i, dst)
+}
+
+// CreateManagedLogging implements Interface.
+func (m API) CreateManagedLogging(i *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error) {
+	return m.CreateManagedLoggingFn(i)
 }
