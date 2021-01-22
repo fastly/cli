@@ -66,7 +66,7 @@ func main() {
 	wait := false
 
 	// Validate if configuration is older than 24hrs
-	if check.Stale(file.LastVersionCheck) {
+	if check.Stale(file.LastVersionCheck, "24h") {
 		text.Warning(out, `
 Your local application configuration is out-of-date.
 We'll refresh this for you in the background and it'll be used next time.
