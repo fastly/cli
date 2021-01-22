@@ -199,7 +199,7 @@ func TestInit(t *testing.T) {
 
 		{
 			name:       "with from repository and branch",
-			args:       []string{"compute", "init", "--from", "https://github.com/fastly/fastly-template-rust-default.git", "--branch", "master"},
+			args:       []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -359,6 +359,20 @@ func TestInit(t *testing.T) {
 	}
 }
 
+// TestBuildRust validates that the rust ecosystem is in place and accurate.
+//
+// NOTE:
+// The defined tests rely on some key pieces of information:
+//
+// 1. The `fastly` crate internally consumes a `fastly-sys` crate.
+// 2. The `fastly-sys` create didn't exist until `fastly` 0.4.0.
+// 3. Users of `fastly` should always have the latest `fastly-sys`.
+// 4. Users of `fastly` shouldn't need to know about `fastly-sys`.
+// 5. Each test has a 'default' Cargo.toml created for it.
+// 6. Each test can override the default Cargo.toml by defining a `cargoManifest`.
+//
+// You can locate the default Cargo.toml here:
+// pkg/compute/testdata/build/Cargo.toml
 func TestBuildRust(t *testing.T) {
 	if os.Getenv("TEST_COMPUTE_BUILD_RUST") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
@@ -379,28 +393,28 @@ func TestBuildRust(t *testing.T) {
 		{
 			name:      "no fastly.toml manifest",
 			args:      []string{"compute", "build"},
-			client:    versionClient{[]string{"0.0.0"}},
+			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
 		},
 		{
 			name:           "empty language",
 			args:           []string{"compute", "build"},
 			fastlyManifest: "name = \"test\"\n",
-			client:         versionClient{[]string{"0.0.0"}},
+			client:         versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError:      "language cannot be empty, please provide a language",
 		},
 		{
 			name:           "empty name",
 			args:           []string{"compute", "build"},
 			fastlyManifest: "language = \"rust\"\n",
-			client:         versionClient{[]string{"0.0.0"}},
+			client:         versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError:      "name cannot be empty, please provide a name",
 		},
 		{
 			name:           "unknown language",
 			args:           []string{"compute", "build"},
 			fastlyManifest: "name = \"test\"\nlanguage = \"javascript\"\n",
-			client:         versionClient{[]string{"0.0.0"}},
+			client:         versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError:      "unsupported language javascript",
 		},
 		{
@@ -408,27 +422,34 @@ func TestBuildRust(t *testing.T) {
 			args:           []string{"compute", "build"},
 			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
 			cargoManifest:  "[package]\nname = \"test\"",
-			client:         versionClient{[]string{"0.4.0"}},
+			client:         versionClient{fastlyVersions: []string{"0.4.0"}},
 			wantError:      "reading cargo metadata",
 		},
 		{
-			name:                 "fastly-sys crate not found",
-			args:                 []string{"compute", "build"},
-			fastlyManifest:       "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoManifest:        "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.3.2\"",
-			cargoLock:            "[[package]]\nname = \"test\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
-			client:               versionClient{[]string{"0.4.0"}},
+			name:           "fastly-sys crate not found",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
+			cargoManifest:  "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.3.2\"",
+			cargoLock:      "[[package]]\nname = \"test\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
+			client: versionClient{
+				fastlyVersions:    []string{"0.4.0"},
+				fastlySysVersions: []string{"0.0.0"}, // included to stop REST API failing to not find crate
+			},
 			wantError:            "fastly-sys crate not found",
 			wantRemediationError: "fastly = \"^0.4.0\"",
 		},
 		{
-			name:                 "fastly-sys crate out-of-date",
-			args:                 []string{"compute", "build"},
-			fastlyManifest:       "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoLock:            "[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.2\"",
-			client:               versionClient{[]string{"0.4.0"}},
+			name:           "fastly-sys crate out-of-date",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
+			cargoManifest:  "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.4.0\"",
+			cargoLock:      "[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.7\"",
+			client: versionClient{
+				fastlyVersions:    []string{"0.5.0"},
+				fastlySysVersions: []string{"0.4.0"},
+			},
 			wantError:            "fastly crate not up-to-date",
-			wantRemediationError: "fastly = \"^0.4.0\"",
+			wantRemediationError: "fastly = \"^0.5.0\"",
 		},
 		{
 			name:           "fastly crate prerelease",
@@ -439,25 +460,32 @@ func TestBuildRust(t *testing.T) {
 				"name = \"test\"",
 				"version = \"0.1.0\"\n",
 				"[dependencies]",
-				"fastly = \"0.6.0-beta2\"",
+				"fastly = \"0.6.0\"",
 			}, "\n"),
 			cargoLock: strings.Join([]string{
 				"[[package]]",
 				"name = \"fastly-sys\"",
-				"version = \"0.3.7-beta2\"\n",
+				"version = \"0.3.7\"\n",
 				"[[package]]",
 				"name = \"fastly\"",
-				"version = \"0.6.0-beta2\"",
+				"version = \"0.6.0\"",
 			}, "\n"),
-			client:             versionClient{[]string{"0.5.0"}},
+			client: versionClient{
+				fastlyVersions:    []string{"0.6.0"},
+				fastlySysVersions: []string{"0.3.7"},
+			},
 			wantOutputContains: "Built rust package test",
 		},
 		{
-			name:               "Rust success",
-			args:               []string{"compute", "build"},
-			fastlyManifest:     "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoLock:          "[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"\n\n[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.2\"",
-			client:             versionClient{[]string{"0.0.0"}},
+			name:           "Rust success",
+			args:           []string{"compute", "build"},
+			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
+			cargoManifest:  "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.6.0\"",
+			cargoLock:      "[[package]]\nname = \"fastly\"\nversion = \"0.6.0\"\n\n[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.7\"",
+			client: versionClient{
+				fastlyVersions:    []string{"0.6.0"},
+				fastlySysVersions: []string{"0.3.7"},
+			},
 			wantOutputContains: "Built rust package test",
 		},
 	} {
@@ -1315,14 +1343,24 @@ func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 }
 
 type versionClient struct {
-	versions []string
+	fastlyVersions    []string
+	fastlySysVersions []string
 }
 
-func (v versionClient) Do(*http.Request) (*http.Response, error) {
+func (v versionClient) Do(req *http.Request) (*http.Response, error) {
+	var vs []string
+
+	if strings.Contains(req.URL.String(), "crates/fastly-sys/") {
+		vs = v.fastlySysVersions
+	}
+	if strings.Contains(req.URL.String(), "crates/fastly/") {
+		vs = v.fastlyVersions
+	}
+
 	rec := httptest.NewRecorder()
 
 	var versions []string
-	for _, vv := range v.versions {
+	for _, vv := range vs {
 		versions = append(versions, fmt.Sprintf(`{"num":"%s"}`, vv))
 	}
 
