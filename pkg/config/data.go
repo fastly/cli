@@ -115,6 +115,29 @@ var FilePath = func() string {
 // DefaultEndpoint is the default Fastly API endpoint.
 const DefaultEndpoint = "https://api.fastly.com"
 
+type ConfigFastly struct {
+	//
+}
+
+type ConfigCLI struct {
+	//
+}
+
+type ConfigUser struct {
+	//
+}
+
+type ConfigRust struct {
+	//
+}
+
+type ConfigFile struct {
+	Fastly      ConfigFastly
+	CLI         ConfigCLI
+	User        ConfigUser
+	ComputeEdge map[string]ConfigRust // TODO: rethink this
+}
+
 // File represents all of the configuration parameters that can end up in the
 // config file. At some point, it may expand to include e.g. user profiles.
 type File struct {
