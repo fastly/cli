@@ -100,7 +100,12 @@ func TestCheckAsync(t *testing.T) {
 			versioner:      mock.Versioner{Version: "0.0.1"},
 		},
 		{
-			name:           "no last_check new version",
+			name: "no last_check new version",
+			file: config.ConfigFile{
+				CLI: config.ConfigCLI{
+					TTL: "24h",
+				},
+			},
 			currentVersion: "0.0.1",
 			versioner:      mock.Versioner{Version: "0.0.2"},
 			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",

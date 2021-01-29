@@ -1,6 +1,8 @@
 package check
 
-import "time"
+import (
+	"time"
+)
 
 // Stale validates if the given time is older than the given duration.
 //
