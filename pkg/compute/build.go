@@ -146,7 +146,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "rust",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client),
+			Toolchain:       NewRust(c.client, c.Globals),
 		})
 	default:
 		return fmt.Errorf("unsupported language %s", lang)

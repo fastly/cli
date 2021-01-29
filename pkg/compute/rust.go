@@ -15,18 +15,11 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
-)
-
-const (
-	// RustToolchainVersion is the `rustup` toolchain string for the compiler
-	// that we support
-	RustToolchainVersion = "1.49.0"
-	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
-	WasmWasiTarget = "wasm32-wasi"
 )
 
 // CargoPackage models the package configuration properties of a Rust Cargo
@@ -89,11 +82,15 @@ func (m *CargoMetadata) Read() error {
 // Rust is an implements Toolchain for the Rust language.
 type Rust struct {
 	client api.HTTPClient
+	config *config.Data
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient) *Rust {
-	return &Rust{client}
+func NewRust(client api.HTTPClient, config *config.Data) *Rust {
+	return &Rust{
+		client: client,
+		config: config,
+	}
 }
 
 // SourceDirectory implements the Toolchain interface and returns the source
@@ -131,7 +128,7 @@ func (r Rust) Verify(out io.Writer) error {
 	// We use rustup to assert that the toolchain is installed by streaming the output of
 	// `rustup toolchain list` and looking for a toolchain whose prefix matches our desired
 	// version.
-	fmt.Fprintf(out, "Checking if Rust %s is installed...\n", RustToolchainVersion)
+	fmt.Fprintf(out, "Checking if Rust %s is installed...\n", r.config.File.Language.Rust.ToolchainVersion)
 
 	cmd := exec.Command("rustup", "toolchain", "list")
 	stdoutStderr, err := cmd.CombinedOutput()
@@ -143,7 +140,7 @@ func (r Rust) Verify(out io.Writer) error {
 	scanner.Split(bufio.ScanLines)
 	var found bool
 	for scanner.Scan() {
-		if strings.HasPrefix(scanner.Text(), RustToolchainVersion) {
+		if strings.HasPrefix(scanner.Text(), r.config.File.Language.Rust.ToolchainVersion) {
 			found = true
 			break
 		}
@@ -151,8 +148,8 @@ func (r Rust) Verify(out io.Writer) error {
 
 	if !found {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("rust toolchain %s not found", RustToolchainVersion),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("rustup toolchain install "+RustToolchainVersion)),
+			Inner:       fmt.Errorf("rust toolchain %s not found", r.config.File.Language.Rust.ToolchainVersion),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("rustup toolchain install "+r.config.File.Language.Rust.ToolchainVersion)),
 		}
 	}
 
@@ -162,9 +159,9 @@ func (r Rust) Verify(out io.Writer) error {
 	// output of `rustup target list` and looking for the the `wasm32-wasi` value. If not found,
 	// we error with help text suggesting how to install.
 
-	fmt.Fprintf(out, "Checking if %s target is installed...\n", WasmWasiTarget)
+	fmt.Fprintf(out, "Checking if %s target is installed...\n", r.config.File.Language.Rust.WasmWasiTarget)
 
-	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", RustToolchainVersion)
+	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", r.config.File.Language.Rust.ToolchainVersion)
 	stdoutStderr, err = cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error executing rustup: %w", err)
@@ -174,7 +171,7 @@ func (r Rust) Verify(out io.Writer) error {
 	scanner.Split(bufio.ScanWords)
 	found = false
 	for scanner.Scan() {
-		if scanner.Text() == WasmWasiTarget {
+		if scanner.Text() == r.config.File.Language.Rust.WasmWasiTarget {
 			found = true
 			break
 		}
@@ -182,8 +179,8 @@ func (r Rust) Verify(out io.Writer) error {
 
 	if !found {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("rust target %s not found", WasmWasiTarget),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", WasmWasiTarget, RustToolchainVersion))),
+			Inner:       fmt.Errorf("rust target %s not found", r.config.File.Language.Rust.WasmWasiTarget),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", r.config.File.Language.Rust.WasmWasiTarget, r.config.File.Language.Rust.ToolchainVersion))),
 		}
 	}
 
@@ -302,7 +299,7 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	binName := m.Package.Name
 
 	// Specify the toolchain using the `cargo +<version>` syntax.
-	toolchain := fmt.Sprintf("+%s", RustToolchainVersion)
+	toolchain := fmt.Sprintf("+%s", r.config.File.Language.Rust.ToolchainVersion)
 
 	args = []string{
 		toolchain,
@@ -311,7 +308,7 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 		binName,
 		"--release",
 		"--target",
-		WasmWasiTarget,
+		r.config.File.Language.Rust.WasmWasiTarget,
 		"--color",
 		"always",
 	}
@@ -338,7 +335,7 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	if err := metadata.Read(); err != nil {
 		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
-	src := filepath.Join(metadata.TargetDirectory, WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", binName))
+	src := filepath.Join(metadata.TargetDirectory, r.config.File.Language.Rust.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", binName))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 
 	// Check if bin directory exists and create if not.

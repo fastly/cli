@@ -146,8 +146,12 @@ type ConfigLanguage struct {
 }
 
 type ConfigRust struct {
+	// ToolchainVersion is the `rustup` toolchain string for the compiler that we
+	// support
 	ToolchainVersion string `toml:"toolchain_version"`
-	WasmWasiTarget   string `toml:"wasm_wasi_target"`
+
+	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
+	WasmWasiTarget string `toml:"wasm_wasi_target"`
 }
 
 // Load gets the configuration file from the CLI API endpoint and encodes it

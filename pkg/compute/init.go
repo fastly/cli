@@ -150,7 +150,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:        "rust",
 			DisplayName: "Rust",
 			StarterKits: starterKits["rust"],
-			Toolchain:   NewRust(c.client),
+			Toolchain:   NewRust(c.client, c.Globals),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
