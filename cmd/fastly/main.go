@@ -21,6 +21,8 @@ import (
 // configuration file from.
 const configEndpoint = "http://integralist-cli-dynamic-config.com.global.prod.fastly.net/"
 
+const configUpdateSuccessful = "Successfully wrote updated application configuration file to disk."
+
 func main() {
 	// Some configuration options can come from env vars.
 	var env config.Environment
@@ -86,6 +88,34 @@ We'll refresh this for you in the background and it'll be used next time.
 	// Main is basically just a shim to call Run, so we do that here.
 	if err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, versioner, in, out); err != nil {
 		errors.Deduce(err).Print(os.Stderr)
+
+		// NOTE: would have been nice to (above the if statement on line 89) just
+		// do something like...
+		//
+		// if wait {
+		//   defer func(){
+		//     <-waitForWrite
+		//     text.Info(out, configUpdateSuccessful)
+		//   }()
+		// }
+		//
+		// ...as I would have been able to avoid duplicating the following if
+		// statement in two places (here when catching errors, and then later on
+		// line 119 if there was no error).
+		//
+		// The problem with defer is that it doesn't work when os.Exit() is
+		// encountered, so you either use something like runtime.Goexit() which is
+		// pretty hairy and introduces other changes like `defer os.Exit(0)` at the
+		// top of the main() function OR we we re-architecture the call flow which
+		// isn't ideal either.
+		//
+		// So I've opted for duplication.
+		//
+		if wait {
+			<-waitForWrite
+			text.Info(out, configUpdateSuccessful)
+		}
+
 		os.Exit(1)
 	}
 
@@ -96,7 +126,7 @@ We'll refresh this for you in the background and it'll be used next time.
 	// object has indeed been updated already and is no longer considered stale!
 	if wait {
 		<-waitForWrite
-		text.Info(out, "Successfully wrote updated application configuration file to disk.")
+		text.Info(out, configUpdateSuccessful)
 	}
 }
 
