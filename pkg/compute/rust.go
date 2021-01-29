@@ -161,6 +161,13 @@ func (r Rust) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Checking if %s target is installed...\n", r.config.File.Language.Rust.WasmWasiTarget)
 
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+	//
+	// TODO: decide if this is safe or not. It should be as the only affected
+	// user should be the person making the local configuration change.
+	//
+	/* #nosec */
 	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", r.config.File.Language.Rust.ToolchainVersion)
 	stdoutStderr, err = cmd.CombinedOutput()
 	if err != nil {
