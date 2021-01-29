@@ -54,7 +54,7 @@ const (
 // (e.g. an email address). Otherwise, parameters should be defined in specific
 // command structs, and parsed as flags.
 type Data struct {
-	File File
+	File ConfigFile
 	Env  Environment
 	Flag Flag
 
@@ -72,8 +72,8 @@ func (d *Data) Token() (string, Source) {
 		return d.Env.Token, SourceEnvironment
 	}
 
-	if d.File.Token != "" {
-		return d.File.Token, SourceFile
+	if d.File.User.Token != "" {
+		return d.File.User.Token, SourceFile
 	}
 
 	return "", SourceUndefined
@@ -94,8 +94,8 @@ func (d *Data) Endpoint() (string, Source) {
 		return d.Env.Endpoint, SourceEnvironment
 	}
 
-	if d.File.Endpoint != DefaultEndpoint && d.File.Endpoint != "" {
-		return d.File.Endpoint, SourceFile
+	if d.File.Fastly.APIEndpoint != DefaultEndpoint && d.File.Fastly.APIEndpoint != "" {
+		return d.File.Fastly.APIEndpoint, SourceFile
 	}
 
 	return DefaultEndpoint, SourceDefault // this method should not fail
@@ -123,13 +123,17 @@ type ConfigFile struct {
 }
 
 type ConfigFastly struct {
-	APIEndpoint string
+	APIEndpoint string `toml:"api_endpoint"`
 }
 
+// TODO: decide on whether we either have RemoteConfig be a FQD so it's not
+// just /cli/config but also the scheme/host etc OR do we have another field
+// for the host/domain (e.g. RemoteEndppoint) and we renamed RemoteConfig to be
+// RemotePath instead.
 type ConfigCLI struct {
-	RemoteConfig string
+	RemoteConfig string `toml:"remote_config"`
 	TTL          string
-	LastChecked  string
+	LastChecked  string `toml:"last_checked"`
 }
 
 type ConfigUser struct {
@@ -146,25 +150,13 @@ type ConfigRust struct {
 	WasmWasiTarget   string `toml:"wasm_wasi_target"`
 }
 
-// File represents all of the configuration parameters that can end up in the
-// config file. At some point, it may expand to include e.g. user profiles.
-type File struct {
-	Token            string `toml:"token"`
-	Email            string `toml:"email"`
-	Endpoint         string `toml:"endpoint"`
-	LastVersionCheck string `toml:"last_version_check"`
-}
-
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
-func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
-	// This will be overridden by the value returned from the API
-	f.Endpoint = configEndpoint
-
+func (f *ConfigFile) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, f.Endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, configEndpoint, nil)
 	if err != nil {
 		return err
 	}
@@ -180,7 +172,7 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 		return err
 	}
 
-	f.LastVersionCheck = time.Now().Format(time.RFC3339)
+	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 
 	// Create the destination directory for the config file
 	basePath := filepath.Dir(FilePath)
@@ -194,7 +186,7 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 }
 
 // Read the File and populate its fields from the filename on disk.
-func (f *File) Read(fpath string) error {
+func (f *ConfigFile) Read(fpath string) error {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
 	// Disabling as we need to load the config.toml from the user's file system.
@@ -208,16 +200,16 @@ func (f *File) Read(fpath string) error {
 	return err
 }
 
-// Write the File to filename on disk.
+// Write the instance of ConfigFile to a local application config file.
 //
 // NOTE: the expected workflow for this method is for the caller to have
 // modified the public field(s) first so that we can write new content to the
 // config file from the receiver object itself.
 //
 // EXAMPLE:
-// file.LastVersionCheck = time.Now().Format(time.RFC3339)
+// file.CLI.LastChecked = time.Now().Format(time.RFC3339)
 // file.Write(configFilePath)
-func (f *File) Write(filename string) error {
+func (f *ConfigFile) Write(filename string) error {
 	fp, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
 	if err != nil {
 		return fmt.Errorf("error creating config file: %w", err)

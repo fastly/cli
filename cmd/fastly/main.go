@@ -19,8 +19,12 @@ import (
 
 // configEndpoint represents the API endpoint where we'll pull the dynamic
 // configuration file from.
-const configEndpoint = "http://integralist-cli-dynamic-config.com.global.prod.fastly.net/"
+//
+// TODO: ensure this is a production domain like https://api.fastly.com
+const configEndpoint = "http://integralist-cli-dynamic-config.com.global.prod.fastly.net/cli/config"
 
+// configUpdateSuccessful represents the message shown to a user when their
+// application configuration has been updated successfully.
 const configUpdateSuccessful = "Successfully wrote updated application configuration file to disk."
 
 func main() {
@@ -45,7 +49,7 @@ func main() {
 	)
 
 	// Extract a subset of configuration options from the local application directory.
-	var file config.File
+	var file config.ConfigFile
 	err := file.Read(config.FilePath)
 	if err != nil {
 		text.Output(out, `
@@ -67,8 +71,8 @@ func main() {
 	waitForWrite := make(chan bool)
 	wait := false
 
-	// Validate if configuration is older than 24hrs
-	if check.Stale(file.LastVersionCheck, "24h") {
+	// Validate if configuration is older than its TTL
+	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
 		text.Warning(out, `
 Your local application configuration is out-of-date.
 We'll refresh this for you in the background and it'll be used next time.
@@ -76,11 +80,15 @@ We'll refresh this for you in the background and it'll be used next time.
 
 		wait = true
 		go func() {
-			err := file.Load(configEndpoint, httpClient)
+			// NOTE: we no longer use the hardcoded configDomain/configPath
+			// constants. Instead we rely on the values inside of the application
+			// configuration file to determine where to load the config from.
+			err := file.Load(file.CLI.RemoteConfig, httpClient)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1) // TODO: offer a clearer remediation step
 			}
+
 			waitForWrite <- true
 		}()
 	}
@@ -106,7 +114,7 @@ We'll refresh this for you in the background and it'll be used next time.
 		// The problem with defer is that it doesn't work when os.Exit() is
 		// encountered, so you either use something like runtime.Goexit() which is
 		// pretty hairy and introduces other changes like `defer os.Exit(0)` at the
-		// top of the main() function OR we we re-architecture the call flow which
+		// top of the main() function OR we re-architecture the call flow which
 		// isn't ideal either.
 		//
 		// So I've opted for duplication.

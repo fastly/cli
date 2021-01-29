@@ -34,18 +34,18 @@ type checkResult struct {
 	err          error
 }
 
-// CheckAsync is a helper function for Check. If the LastVersionCheck time is
-// more than 24 hours ago, launch a goroutine to perform the Check using the
-// provided context. Return a function that will print an informative message to
-// the writer if there is a newer version available.
+// CheckAsync is a helper function for Check. If the app config's LastChecked
+// time has past the specified TTL, launch a goroutine to perform the Check
+// using the provided context. Return a function that will print an informative
+// message to the writer if there is a newer version available.
 //
 // Callers should invoke CheckAsync via
 //
 //     f := CheckAsync(...)
 //     defer f()
 //
-func CheckAsync(ctx context.Context, file config.File, configFilePath string, currentVersion string, v Versioner) (printResults func(io.Writer)) {
-	if !check.Stale(file.LastVersionCheck, "24h") {
+func CheckAsync(ctx context.Context, file config.ConfigFile, configFilePath string, currentVersion string, v Versioner) (printResults func(io.Writer)) {
+	if !check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
 		return func(io.Writer) {} // no-op
 	}
 
@@ -60,7 +60,7 @@ func CheckAsync(ctx context.Context, file config.File, configFilePath string, cu
 		if result.err == nil {
 			// `fastly configure` may have changed the file contents.
 			if err := file.Read(configFilePath); err == nil {
-				file.LastVersionCheck = time.Now().Format(time.RFC3339)
+				file.CLI.LastChecked = time.Now().Format(time.RFC3339)
 				file.Write(configFilePath)
 			}
 		}

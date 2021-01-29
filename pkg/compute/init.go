@@ -213,7 +213,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if len(authors) == 0 {
 		label := "Author: "
 		var defaultEmail string
-		if email := c.Globals.File.Email; email != "" {
+		if email := c.Globals.File.User.Email; email != "" {
 			defaultEmail = email
 			label = fmt.Sprintf("%s[%s] ", label, email)
 		}
