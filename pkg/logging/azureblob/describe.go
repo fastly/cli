@@ -60,6 +60,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Timestamp format: %s\n", azureblob.TimestampFormat)
 	fmt.Fprintf(out, "Placement: %s\n", azureblob.Placement)
 	fmt.Fprintf(out, "Public key: %s\n", azureblob.PublicKey)
+	fmt.Fprintf(out, "File max bytes: %d\n", azureblob.FileMaxBytes)
 
 	return nil
 }

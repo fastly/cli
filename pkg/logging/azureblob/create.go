@@ -34,6 +34,7 @@ type CreateCommand struct {
 	TimestampFormat   common.OptionalString
 	Placement         common.OptionalString
 	PublicKey         common.OptionalString
+	FileMaxBytes      common.OptionalUint
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -61,6 +62,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 	c.CmdClause.Flag("public-key", "A PGP public key that Fastly will use to encrypt your log files before writing them to disk").Action(c.PublicKey.Set).StringVar(&c.PublicKey.Value)
+	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).UintVar(&c.FileMaxBytes.Value)
 
 	return &c
 }
@@ -119,6 +121,10 @@ func (c *CreateCommand) createInput() (*fastly.CreateBlobStorageInput, error) {
 
 	if c.PublicKey.WasSet {
 		input.PublicKey = c.PublicKey.Value
+	}
+
+	if c.FileMaxBytes.WasSet {
+		input.FileMaxBytes = c.FileMaxBytes.Value
 	}
 
 	return &input, nil
