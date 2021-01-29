@@ -115,27 +115,35 @@ var FilePath = func() string {
 // DefaultEndpoint is the default Fastly API endpoint.
 const DefaultEndpoint = "https://api.fastly.com"
 
+type ConfigFile struct {
+	Fastly   ConfigFastly
+	CLI      ConfigCLI
+	User     ConfigUser
+	Language ConfigLanguage
+}
+
 type ConfigFastly struct {
-	//
+	APIEndpoint string
 }
 
 type ConfigCLI struct {
-	//
+	RemoteConfig string
+	TTL          string
+	LastChecked  string
 }
 
 type ConfigUser struct {
-	//
+	Token string
+	Email string
+}
+
+type ConfigLanguage struct {
+	Rust ConfigRust
 }
 
 type ConfigRust struct {
-	//
-}
-
-type ConfigFile struct {
-	Fastly      ConfigFastly
-	CLI         ConfigCLI
-	User        ConfigUser
-	ComputeEdge map[string]ConfigRust // TODO: rethink this
+	ToolchainVersion string `toml:"toolchain_version"`
+	WasmWasiTarget   string `toml:"wasm_wasi_target"`
 }
 
 // File represents all of the configuration parameters that can end up in the
