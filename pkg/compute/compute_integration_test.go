@@ -33,7 +33,7 @@ func TestInit(t *testing.T) {
 	for _, testcase := range []struct {
 		name             string
 		args             []string
-		configFile       config.File
+		configFile       config.ConfigFile
 		api              mock.API
 		manifest         string
 		wantFiles        []string
@@ -49,9 +49,13 @@ func TestInit(t *testing.T) {
 			wantError: "no token provided",
 		},
 		{
-			name:       "unkown repository",
-			args:       []string{"compute", "init", "--from", "https://example.com/template"},
-			configFile: config.File{Token: "123"},
+			name: "unkown repository",
+			args: []string{"compute", "init", "--from", "https://example.com/template"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -65,9 +69,13 @@ func TestInit(t *testing.T) {
 			wantError: "error fetching package template:",
 		},
 		{
-			name:       "create service error",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "create service error",
+			args: []string{"compute", "init"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -76,9 +84,13 @@ func TestInit(t *testing.T) {
 			wantError: "error creating service: fixture error",
 		},
 		{
-			name:       "create domain error",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "create domain error",
+			args: []string{"compute", "init"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -89,9 +101,13 @@ func TestInit(t *testing.T) {
 			wantError: "error creating domain: fixture error",
 		},
 		{
-			name:       "create backend error",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "create backend error",
+			args: []string{"compute", "init"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -104,9 +120,13 @@ func TestInit(t *testing.T) {
 			wantError: "error creating backend: fixture error",
 		},
 		{
-			name:       "with name",
-			args:       []string{"compute", "init", "--name", "test"},
-			configFile: config.File{Token: "123"},
+			name: "with name",
+			args: []string{"compute", "init", "--name", "test"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -122,9 +142,13 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "test"`,
 		},
 		{
-			name:       "with service",
-			args:       []string{"compute", "init", "-s", "test"},
-			configFile: config.File{Token: "123"},
+			name: "with service",
+			args: []string{"compute", "init", "-s", "test"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -142,9 +166,13 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "test"`,
 		},
 		{
-			name:       "with description",
-			args:       []string{"compute", "init", "--description", "test"},
-			configFile: config.File{Token: "123"},
+			name: "with description",
+			args: []string{"compute", "init", "--description", "test"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -160,9 +188,13 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `description = "test"`,
 		},
 		{
-			name:       "with author",
-			args:       []string{"compute", "init", "--author", "test@example.com"},
-			configFile: config.File{Token: "123"},
+			name: "with author",
+			args: []string{"compute", "init", "--author", "test@example.com"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -178,9 +210,13 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `authors = ["test@example.com"]`,
 		},
 		{
-			name:       "with multiple authors",
-			args:       []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
-			configFile: config.File{Token: "123"},
+			name: "with multiple authors",
+			args: []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -197,9 +233,13 @@ func TestInit(t *testing.T) {
 		},
 
 		{
-			name:       "with from repository and branch",
-			args:       []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
-			configFile: config.File{Token: "123"},
+			name: "with from repository and branch",
+			args: []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -214,9 +254,13 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
-			name:       "with existing package manifest",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "with existing package manifest",
+			args: []string{"compute", "init"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			manifest: strings.Join([]string{
 				"manifest_version = \"1\"",
 				"service_id = \"1234\"",
@@ -244,9 +288,11 @@ func TestInit(t *testing.T) {
 		{
 			name: "default",
 			args: []string{"compute", "init"},
-			configFile: config.File{
-				Token: "123",
-				Email: "test@example.com",
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+					Email: "test@example.com",
+				},
 			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -274,9 +320,13 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
-			name:       "with default name inferred from directory",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "with default name inferred from directory",
+			args: []string{"compute", "init"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -287,9 +337,13 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "fastly-init`,
 		},
 		{
-			name:       "with AssemblyScript language",
-			args:       []string{"compute", "init", "--language", "assemblyscript"},
-			configFile: config.File{Token: "123"},
+			name: "with AssemblyScript language",
+			args: []string{"compute", "init", "--language", "assemblyscript"},
+			configFile: config.ConfigFile{
+				User: config.ConfigUser{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -535,7 +589,7 @@ func TestBuildRust(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.File{}
+				file                           = config.ConfigFile{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = testcase.client
@@ -632,7 +686,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.File{}
+				file                           = config.ConfigFile{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = http.DefaultClient
@@ -902,7 +956,7 @@ func TestDeploy(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.File{}
+				file                           = config.ConfigFile{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -985,7 +1039,7 @@ func TestUpdate(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.File{}
+				file                           = config.ConfigFile{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -1041,7 +1095,7 @@ func TestValidate(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.File{}
+				file                           = config.ConfigFile{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = http.DefaultClient

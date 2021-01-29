@@ -89,7 +89,7 @@ func TestCheck(t *testing.T) {
 func TestCheckAsync(t *testing.T) {
 	for _, testcase := range []struct {
 		name           string
-		file           config.File
+		file           config.ConfigFile
 		currentVersion string
 		versioner      update.Versioner
 		wantOutput     string
@@ -106,8 +106,12 @@ func TestCheckAsync(t *testing.T) {
 			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",
 		},
 		{
-			name:           "recent last_check new version",
-			file:           config.File{LastVersionCheck: time.Now().Add(-4 * time.Hour).Format(time.RFC3339)},
+			name: "recent last_check new version",
+			file: config.ConfigFile{
+				CLI: config.ConfigCLI{
+					LastChecked: time.Now().Add(-4 * time.Hour).Format(time.RFC3339),
+				},
+			},
 			currentVersion: "0.0.1",
 			versioner:      mock.Versioner{Version: "0.0.2"},
 		},

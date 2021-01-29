@@ -43,7 +43,7 @@ func TestHistorical(t *testing.T) {
 			var (
 				args                            = testcase.args
 				env                             = config.Environment{}
-				file                            = config.File{}
+				file                            = config.ConfigFile{}
 				configFileName                  = "/dev/null"
 				clientFactory                   = mock.APIClient(testcase.api)
 				httpClient                      = http.DefaultClient

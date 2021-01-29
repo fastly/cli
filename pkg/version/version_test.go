@@ -18,7 +18,7 @@ func TestVersion(t *testing.T) {
 	var (
 		args                            = []string{"version"}
 		env                             = config.Environment{}
-		file                            = config.File{}
+		file                            = config.ConfigFile{}
 		configFileName                  = "/dev/null"
 		clientFactory                   = mock.APIClient(mock.API{})
 		httpClient     api.HTTPClient   = nil

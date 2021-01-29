@@ -50,9 +50,10 @@ func TestApplication(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var (
+				//
 				args                            = testcase.args
 				env                             = config.Environment{}
-				file                            = config.File{}
+				file                            = config.ConfigFile{}
 				configFilePath                  = "/dev/null"
 				clientFactory                   = mock.APIClient(mock.API{})
 				httpClient     api.HTTPClient   = nil

@@ -151,7 +151,7 @@ type ConfigRust struct {
 }
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
-// from memory into config.File.
+// from memory into config.ConfigFile.
 func (f *ConfigFile) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

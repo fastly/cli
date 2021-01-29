@@ -657,7 +657,6 @@ func Run(args []string, env config.Environment, file config.ConfigFile, configFi
 		// distinguish `fastly help` from e.g. `fastly help configure` than this
 		// check.
 		if len(args) > 0 && args[len(args)-1] == "help" {
-			var buf bytes.Buffer
 			fmt.Fprintln(&buf, "For help on a specific command, try e.g.")
 			fmt.Fprintln(&buf, "")
 			fmt.Fprintln(&buf, "\tfastly help configure")

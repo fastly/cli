@@ -25,7 +25,7 @@ func TestWhoami(t *testing.T) {
 		name       string
 		args       []string
 		env        config.Environment
-		file       config.File
+		file       config.ConfigFile
 		client     api.HTTPClient
 		wantError  string
 		wantOutput string
