@@ -74,8 +74,8 @@ We'll refresh this for you in the background and it'll be used next time.
 
 		wait = true
 		go func() {
-			// NOTE: we no longer use the hardcoded configDomain/configPath
-			// constants. Instead we rely on the values inside of the application
+			// NOTE: we no longer use the hardcoded config.RemoteEndpoint constant.
+			// Instead we rely on the values inside of the application
 			// configuration file to determine where to load the config from.
 			err := file.Load(file.CLI.RemoteConfig, httpClient)
 			if err != nil {
