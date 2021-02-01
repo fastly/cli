@@ -38,6 +38,30 @@ const (
 
 	// FilePermissions is the default file permissions for the config file.
 	FilePermissions = 0600
+
+	// RemoteEndpoint represents the API endpoint where we'll pull the dynamic
+	// configuration file from.
+	//
+	// TODO: ensure this is a production domain like https://api.fastly.com
+	RemoteEndpoint = "http://integralist-cli-dynamic-config.com.global.prod.fastly.net/cli/config"
+
+	// UpdateSuccessful represents the message shown to a user when their
+	// application configuration has been updated successfully.
+	UpdateSuccessful = "Successfully wrote updated application configuration file to disk."
+
+	// Defaults is the default template of our local application config.
+	Defaults = `[fastly]
+api_endpoint = "https://api.fastly.com"
+
+[cli]
+remote_config = "%s"
+ttl = "1h"
+last_checked = "%s"
+
+[language]
+  [language.rust]
+  toolchain_version = "1.46.0"
+  wasm_wasi_target = "wasm32-wasi"`
 )
 
 // Data holds global-ish configuration data from all sources: environment
@@ -212,23 +236,9 @@ func (f *ConfigFile) Read(fpath string) error {
 //
 // TODO: refactor when go 1.16 arrives to use the //go:embed directive
 // https://tip.golang.org/pkg/embed/
-func (f *ConfigFile) LoadDefaults() error {
-	defaults := `[fastly]
-api_endpoint = "https://api.fastly.com"
-
-[cli]
-remote_config = "http://integralist-cli-dynamic-config.com.global.prod.fastly.net/cli/config"
-ttl = "1h"
-last_checked = "%s"
-
-[language]
-  [language.rust]
-  toolchain_version = "1.46.0"
-  wasm_wasi_target = "wasm32-wasi"`
-
-	defaults = fmt.Sprintf(defaults, time.Now().Format(time.RFC3339))
-
-	if err := toml.Unmarshal([]byte(defaults), f); err != nil {
+func (f *ConfigFile) LoadDefaults(defaults string, remote_config string, last_checked string) error {
+	config := fmt.Sprintf(defaults, remote_config, last_checked)
+	if err := toml.Unmarshal([]byte(config), f); err != nil {
 		return err
 	}
 

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/check"
@@ -16,16 +17,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
 )
-
-// configEndpoint represents the API endpoint where we'll pull the dynamic
-// configuration file from.
-//
-// TODO: ensure this is a production domain like https://api.fastly.com
-const configEndpoint = "http://integralist-cli-dynamic-config.com.global.prod.fastly.net/cli/config"
-
-// configUpdateSuccessful represents the message shown to a user when their
-// application configuration has been updated successfully.
-const configUpdateSuccessful = "Successfully wrote updated application configuration file to disk."
 
 func main() {
 	// Some configuration options can come from env vars.
@@ -58,9 +49,9 @@ func main() {
 		`)
 		text.Break(out)
 
-		err := file.Load(configEndpoint, httpClient)
+		err := file.Load(config.RemoteEndpoint, httpClient)
 		if err != nil {
-			err = file.LoadDefaults()
+			err = file.LoadDefaults(config.Defaults, config.RemoteEndpoint, time.Now().Format(time.RFC3339))
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1) // TODO: offer a clearer remediation step
@@ -130,7 +121,7 @@ We'll refresh this for you in the background and it'll be used next time.
 		//
 		if wait {
 			<-waitForWrite
-			text.Info(out, configUpdateSuccessful)
+			text.Info(out, config.UpdateSuccessful)
 		}
 
 		os.Exit(1)
@@ -143,7 +134,7 @@ We'll refresh this for you in the background and it'll be used next time.
 	// object has indeed been updated already and is no longer considered stale!
 	if wait {
 		<-waitForWrite
-		text.Info(out, configUpdateSuccessful)
+		text.Info(out, config.UpdateSuccessful)
 	}
 }
 
