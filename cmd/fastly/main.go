@@ -49,7 +49,6 @@ func main() {
 	)
 
 	// Extract a subset of configuration options from the local application directory.
-	fmt.Println(config.FilePath)
 	var file config.ConfigFile
 	err := file.Read(config.FilePath)
 	if err != nil {
