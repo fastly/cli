@@ -60,8 +60,11 @@ func main() {
 
 		err := file.Load(configEndpoint, httpClient)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1) // TODO: offer a clearer remediation step
+			err = file.LoadDefaults()
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1) // TODO: offer a clearer remediation step
+			}
 		}
 	}
 
@@ -97,8 +100,12 @@ We'll refresh this for you in the background and it'll be used next time.
 	if err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, versioner, in, out); err != nil {
 		errors.Deduce(err).Print(os.Stderr)
 
-		// NOTE: would have been nice to (above the if statement on line 89) just
-		// do something like...
+		// NOTE: if we have an error processing the command, then we should be sure
+		// to wait for the async file write to complete (otherwise we'll end up in
+		// a situation where there is a local application configuration file but
+		// with incomplete contents).
+		//
+		// It would have been nice to just do something like...
 		//
 		// if wait {
 		//   defer func(){
@@ -107,9 +114,11 @@ We'll refresh this for you in the background and it'll be used next time.
 		//   }()
 		// }
 		//
-		// ...as I would have been able to avoid duplicating the following if
-		// statement in two places (here when catching errors, and then later on
-		// line 119 if there was no error).
+		// ...and to have this a bit further up the script, as it would have meant
+		// I could avoid duplicating the following if statement in two places.
+		//
+		// As it is, I have to wait for the async write operation here and also at
+		// the end of the main function.
 		//
 		// The problem with defer is that it doesn't work when os.Exit() is
 		// encountered, so you either use something like runtime.Goexit() which is
