@@ -63,7 +63,7 @@ func TestServiceCreate(t *testing.T) {
 			var (
 				args                            = testcase.args
 				env                             = config.Environment{}
-				file                            = config.ConfigFile{}
+				file                            = config.File{}
 				configFileName                  = "/dev/null"
 				clientFactory                   = mock.APIClient(testcase.api)
 				httpClient                      = http.DefaultClient
@@ -120,7 +120,7 @@ func TestServiceList(t *testing.T) {
 			var (
 				args                            = testcase.args
 				env                             = config.Environment{}
-				file                            = config.ConfigFile{}
+				file                            = config.File{}
 				configFileName                  = "/dev/null"
 				clientFactory                   = mock.APIClient(testcase.api)
 				httpClient                      = http.DefaultClient
@@ -182,7 +182,7 @@ func TestServiceDescribe(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -224,7 +224,7 @@ func TestServiceSearch(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -323,7 +323,7 @@ func TestServiceUpdate(t *testing.T) {
 			var (
 				args                            = testcase.args
 				env                             = config.Environment{}
-				file                            = config.ConfigFile{}
+				file                            = config.File{}
 				configFileName                  = "/dev/null"
 				clientFactory                   = mock.APIClient(testcase.api)
 				httpClient                      = http.DefaultClient
@@ -370,7 +370,7 @@ func TestServiceDelete(t *testing.T) {
 			var (
 				args                            = testcase.args
 				env                             = config.Environment{}
-				file                            = config.ConfigFile{}
+				file                            = config.File{}
 				configFileName                  = "/dev/null"
 				clientFactory                   = mock.APIClient(testcase.api)
 				httpClient                      = http.DefaultClient

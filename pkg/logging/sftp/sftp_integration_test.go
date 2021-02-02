@@ -50,7 +50,7 @@ func TestSFTPCreate(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -107,7 +107,7 @@ func TestSFTPList(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -148,7 +148,7 @@ func TestSFTPDescribe(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -203,7 +203,7 @@ func TestSFTPUpdate(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -244,7 +244,7 @@ func TestSFTPDelete(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient

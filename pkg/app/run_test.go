@@ -53,7 +53,7 @@ func TestApplication(t *testing.T) {
 				//
 				args                            = testcase.args
 				env                             = config.Environment{}
-				file                            = config.ConfigFile{}
+				file                            = config.File{}
 				configFilePath                  = "/dev/null"
 				clientFactory                   = mock.APIClient(mock.API{})
 				httpClient     api.HTTPClient   = nil

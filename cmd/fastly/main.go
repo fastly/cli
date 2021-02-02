@@ -40,7 +40,7 @@ func main() {
 	)
 
 	// Extract a subset of configuration options from the local application directory.
-	var file config.ConfigFile
+	var file config.File
 	err := file.Read(config.FilePath)
 	if err != nil {
 		text.Output(out, `

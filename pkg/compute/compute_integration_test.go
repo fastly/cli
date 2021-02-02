@@ -33,7 +33,7 @@ func TestInit(t *testing.T) {
 	for _, testcase := range []struct {
 		name             string
 		args             []string
-		configFile       config.ConfigFile
+		configFile       config.File
 		api              mock.API
 		manifest         string
 		wantFiles        []string
@@ -51,7 +51,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "unkown repository",
 			args: []string{"compute", "init", "--from", "https://example.com/template"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -71,7 +71,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "create service error",
 			args: []string{"compute", "init"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -86,7 +86,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "create domain error",
 			args: []string{"compute", "init"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -103,7 +103,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "create backend error",
 			args: []string{"compute", "init"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -122,7 +122,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "with name",
 			args: []string{"compute", "init", "--name", "test"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -144,7 +144,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "with service",
 			args: []string{"compute", "init", "-s", "test"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -168,7 +168,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "with description",
 			args: []string{"compute", "init", "--description", "test"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -190,7 +190,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "with author",
 			args: []string{"compute", "init", "--author", "test@example.com"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -212,7 +212,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "with multiple authors",
 			args: []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -235,7 +235,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "with from repository and branch",
 			args: []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -256,7 +256,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "with existing package manifest",
 			args: []string{"compute", "init"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -288,7 +288,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "default",
 			args: []string{"compute", "init"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 					Email: "test@example.com",
@@ -322,7 +322,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "with default name inferred from directory",
 			args: []string{"compute", "init"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -339,7 +339,7 @@ func TestInit(t *testing.T) {
 		{
 			name: "with AssemblyScript language",
 			args: []string{"compute", "init", "--language", "assemblyscript"},
-			configFile: config.ConfigFile{
+			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
 				},
@@ -436,7 +436,7 @@ func TestBuildRust(t *testing.T) {
 	for _, testcase := range []struct {
 		name                 string
 		args                 []string
-		applicationConfig    config.ConfigFile
+		applicationConfig    config.File
 		fastlyManifest       string
 		cargoManifest        string
 		cargoLock            string
@@ -491,7 +491,7 @@ func TestBuildRust(t *testing.T) {
 			name = "test"`,
 			client:    versionClient{fastlyVersions: []string{"0.4.0"}},
 			wantError: "reading cargo metadata",
-			applicationConfig: config.ConfigFile{
+			applicationConfig: config.File{
 				Language: config.ConfigLanguage{
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.46.0",
@@ -522,7 +522,7 @@ func TestBuildRust(t *testing.T) {
 			[[package]]
 			name = "fastly"
 			version = "0.3.2"`,
-			applicationConfig: config.ConfigFile{
+			applicationConfig: config.File{
 				Language: config.ConfigLanguage{
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.46.0",
@@ -555,7 +555,7 @@ func TestBuildRust(t *testing.T) {
 			[[package]]
 			name = "fastly-sys"
 			version = "0.3.7"`,
-			applicationConfig: config.ConfigFile{
+			applicationConfig: config.File{
 				Language: config.ConfigLanguage{
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.46.0",
@@ -577,7 +577,7 @@ func TestBuildRust(t *testing.T) {
 			manifest_version = 1
 			name = "test"
 			language = "rust"`,
-			applicationConfig: config.ConfigFile{
+			applicationConfig: config.File{
 				Language: config.ConfigLanguage{
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.46.0",
@@ -628,7 +628,7 @@ func TestBuildRust(t *testing.T) {
 			[[package]]
 			name = "fastly-sys"
 			version = "0.3.7"`,
-			applicationConfig: config.ConfigFile{
+			applicationConfig: config.File{
 				Language: config.ConfigLanguage{
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.46.0",
@@ -764,7 +764,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = http.DefaultClient
@@ -1034,7 +1034,7 @@ func TestDeploy(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -1117,7 +1117,7 @@ func TestUpdate(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
@@ -1173,7 +1173,7 @@ func TestValidate(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.ConfigFile{}
+				file                           = config.File{}
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = http.DefaultClient

@@ -89,7 +89,7 @@ func TestCheck(t *testing.T) {
 func TestCheckAsync(t *testing.T) {
 	for _, testcase := range []struct {
 		name           string
-		file           config.ConfigFile
+		file           config.File
 		currentVersion string
 		versioner      update.Versioner
 		wantOutput     string
@@ -101,7 +101,7 @@ func TestCheckAsync(t *testing.T) {
 		},
 		{
 			name: "no last_check new version",
-			file: config.ConfigFile{
+			file: config.File{
 				CLI: config.ConfigCLI{
 					TTL: "24h",
 				},
@@ -112,7 +112,7 @@ func TestCheckAsync(t *testing.T) {
 		},
 		{
 			name: "recent last_check new version",
-			file: config.ConfigFile{
+			file: config.File{
 				CLI: config.ConfigCLI{
 					LastChecked: time.Now().Add(-4 * time.Hour).Format(time.RFC3339),
 				},

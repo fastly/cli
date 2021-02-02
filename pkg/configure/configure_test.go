@@ -33,7 +33,7 @@ func TestConfigure(t *testing.T) {
 		name           string
 		args           []string
 		env            config.Environment
-		file           config.ConfigFile
+		file           config.File
 		api            mock.API
 		configFileData string
 		stdin          string

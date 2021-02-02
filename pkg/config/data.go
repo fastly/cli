@@ -78,7 +78,7 @@ last_checked = "%s"
 // (e.g. an email address). Otherwise, parameters should be defined in specific
 // command structs, and parsed as flags.
 type Data struct {
-	File ConfigFile
+	File File
 	Env  Environment
 	Flag Flag
 
@@ -139,7 +139,7 @@ var FilePath = func() string {
 // DefaultEndpoint is the default Fastly API endpoint.
 const DefaultEndpoint = "https://api.fastly.com"
 
-type ConfigFile struct {
+type File struct {
 	Fastly   ConfigFastly
 	CLI      ConfigCLI
 	User     ConfigUser
@@ -179,8 +179,8 @@ type ConfigRust struct {
 }
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
-// from memory into config.ConfigFile.
-func (f *ConfigFile) Load(configEndpoint string, httpClient api.HTTPClient) error {
+// from memory into config.File.
+func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -213,8 +213,8 @@ func (f *ConfigFile) Load(configEndpoint string, httpClient api.HTTPClient) erro
 	return f.Write(FilePath)
 }
 
-// Read the File and populate its fields from the filename on disk.
-func (f *ConfigFile) Read(fpath string) error {
+// Read decodes a toml file from the local disk into config.File.
+func (f *File) Read(fpath string) error {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
 	// Disabling as we need to load the config.toml from the user's file system.
@@ -228,7 +228,7 @@ func (f *ConfigFile) Read(fpath string) error {
 	return err
 }
 
-// LoadDefaults populates config.ConfigFile with default values.
+// LoadDefaults populates config.File with default values.
 //
 // This is used in the scenario where the remote endpoint containing dynamic
 // configuration data has either failed to load or we've been unsuccessful in
@@ -236,7 +236,7 @@ func (f *ConfigFile) Read(fpath string) error {
 //
 // TODO: refactor when go 1.16 arrives to use the //go:embed directive
 // https://tip.golang.org/pkg/embed/
-func (f *ConfigFile) LoadDefaults(defaults string, remote_config string, last_checked string) error {
+func (f *File) LoadDefaults(defaults string, remote_config string, last_checked string) error {
 	config := fmt.Sprintf(defaults, remote_config, last_checked)
 	if err := toml.Unmarshal([]byte(config), f); err != nil {
 		return err
@@ -245,7 +245,7 @@ func (f *ConfigFile) LoadDefaults(defaults string, remote_config string, last_ch
 	return f.Write(FilePath)
 }
 
-// Write the instance of ConfigFile to a local application config file.
+// Write the instance of File to a local application config file.
 //
 // NOTE: the expected workflow for this method is for the caller to have
 // modified the public field(s) first so that we can write new content to the
@@ -254,7 +254,7 @@ func (f *ConfigFile) LoadDefaults(defaults string, remote_config string, last_ch
 // EXAMPLE:
 // file.CLI.LastChecked = time.Now().Format(time.RFC3339)
 // file.Write(configFilePath)
-func (f *ConfigFile) Write(filename string) error {
+func (f *File) Write(filename string) error {
 	fp, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
 	if err != nil {
 		return fmt.Errorf("error creating config file: %w", err)

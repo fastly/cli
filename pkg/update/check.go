@@ -44,7 +44,7 @@ type checkResult struct {
 //     f := CheckAsync(...)
 //     defer f()
 //
-func CheckAsync(ctx context.Context, file config.ConfigFile, configFilePath string, currentVersion string, v Versioner) (printResults func(io.Writer)) {
+func CheckAsync(ctx context.Context, file config.File, configFilePath string, currentVersion string, v Versioner) (printResults func(io.Writer)) {
 	if !check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
 		return func(io.Writer) {} // no-op
 	}
