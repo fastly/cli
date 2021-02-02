@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.24.0](https://github.com/fastly/cli/releases/tag/v0.24.0) (2021-02-02)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.23.0...v0.24.0)
+
+**Enhancements:**
+
+- Add static content starter kit [\#197](https://github.com/fastly/cli/pull/197)
+- 🦀 Update rust toolchain [\#196](https://github.com/fastly/cli/pull/196)
+
+**Bug fixes:**
+
+- Fix go vet error related to missing docstring [\#198](https://github.com/fastly/cli/pull/198)
+
 ## [v0.23.0](https://github.com/fastly/cli/releases/tag/v0.23.0) (2021-01-22)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.22.0...v0.23.0)
