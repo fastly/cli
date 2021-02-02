@@ -30,6 +30,7 @@ import (
 )
 
 type (
+	// TailCommand represents the CLI subcommand for Log Tailing.
 	TailCommand struct {
 		common.Base
 		manifest manifest.Data
