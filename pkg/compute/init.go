@@ -47,7 +47,7 @@ var (
 			{
 				Name:   "Default",
 				Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-				Branch: "0.5.0",
+				Branch: "0.6.0",
 			},
 		},
 	}
