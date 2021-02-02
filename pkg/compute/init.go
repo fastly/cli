@@ -49,6 +49,11 @@ var (
 				Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
 				Branch: "0.6.0",
 			},
+			{
+				Name:   "Static content (S3/GCS)",
+				Path:   "https://github.com/fastly/compute-starter-kit-rust-static-content.git",
+				Tag:    "v1",
+			},
 		},
 	}
 )
