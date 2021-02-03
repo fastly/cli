@@ -201,6 +201,13 @@ func (c *TailCommand) tail(out io.Writer) {
 		// Check that our request was successful. If the server is
 		// having trouble, retry after waiting for some time.
 		if resp.StatusCode != http.StatusOK {
+			// If the response was a 404, the from time was
+			// not valid, give them an error stating this and exit.
+			if resp.StatusCode == http.StatusNotFound &&
+				c.cfg.from != 0 {
+				text.Error(out, "specified 'from' time %d not found, either too far in the past or future", c.cfg.from)
+				os.Exit(1)
+			}
 			// In an effort to clean up the output, do not print on
 			// 503's.
 			if resp.StatusCode != http.StatusServiceUnavailable {
@@ -213,8 +220,9 @@ func (c *TailCommand) tail(out io.Writer) {
 				time.Sleep(1 * time.Second)
 				continue
 			}
-			// Failing at this point is unrecoverable,
-			return
+			// Failing at this point is unrecoverable.
+			text.Error(out, "unrecoverable error, response code: %d", resp.StatusCode)
+			os.Exit(1)
 		}
 
 		// Read and parse response, send batches to the output loop.
