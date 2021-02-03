@@ -75,6 +75,14 @@ func TestInit(t *testing.T) {
 				User: config.ConfigUser{
 					Token: "123",
 				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
+				},
 			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -89,6 +97,14 @@ func TestInit(t *testing.T) {
 			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
+				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
 				},
 			},
 			api: mock.API{
@@ -106,6 +122,14 @@ func TestInit(t *testing.T) {
 			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
+				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
 				},
 			},
 			api: mock.API{
@@ -125,6 +149,14 @@ func TestInit(t *testing.T) {
 			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
+				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
 				},
 			},
 			api: mock.API{
@@ -147,6 +179,14 @@ func TestInit(t *testing.T) {
 			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
+				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
 				},
 			},
 			api: mock.API{
@@ -172,6 +212,14 @@ func TestInit(t *testing.T) {
 				User: config.ConfigUser{
 					Token: "123",
 				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
+				},
 			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -194,6 +242,14 @@ func TestInit(t *testing.T) {
 				User: config.ConfigUser{
 					Token: "123",
 				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
+				},
 			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -215,6 +271,14 @@ func TestInit(t *testing.T) {
 			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
+				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
 				},
 			},
 			api: mock.API{
@@ -239,6 +303,14 @@ func TestInit(t *testing.T) {
 				User: config.ConfigUser{
 					Token: "123",
 				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
+				},
 			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -259,6 +331,14 @@ func TestInit(t *testing.T) {
 			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
+				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
 				},
 			},
 			manifest: strings.Join([]string{
@@ -293,6 +373,14 @@ func TestInit(t *testing.T) {
 					Token: "123",
 					Email: "test@example.com",
 				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
+				},
 			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -326,6 +414,14 @@ func TestInit(t *testing.T) {
 				User: config.ConfigUser{
 					Token: "123",
 				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "rust",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						Branch:   "0.6.0",
+					},
+				},
 			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -342,6 +438,14 @@ func TestInit(t *testing.T) {
 			configFile: config.File{
 				User: config.ConfigUser{
 					Token: "123",
+				},
+				StarterKits: []config.ConfigStarterKit{
+					{
+						Language: "assemblyscript",
+						Name:     "Default",
+						Path:     "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
+						Tag:      "v0.2.0",
+					},
 				},
 			},
 			api: mock.API{

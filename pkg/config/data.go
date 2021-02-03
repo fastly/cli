@@ -50,6 +50,7 @@ const (
 	UpdateSuccessful = "Successfully wrote updated application configuration file to disk."
 
 	// Defaults is the default template of our local application config.
+	// TODO: once go 1.16 is released move this to a go embedded file.
 	Defaults = `[fastly]
 api_endpoint = "https://api.fastly.com"
 
@@ -61,7 +62,27 @@ last_checked = "%s"
 [language]
   [language.rust]
   toolchain_version = "1.46.0"
-  wasm_wasi_target = "wasm32-wasi"`
+  wasm_wasi_target = "wasm32-wasi"
+
+[[starter-kits]]
+  lang = "assemblyscript"
+  name = "Default"
+  path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
+  tag = "v0.2.0"
+[[starter-kits]]
+  lang = "rust"
+  name = "Default"
+  path = "https://github.com/fastly/compute-starter-kit-rust-default.git"
+  branch = "0.6.0"
+[[starter-kits]]
+  lang = "rust"
+  name = "Beacon"
+  path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination.git"
+[[starter-kits]]
+  lang = "rust"
+  name = "Static content (S3/GCS)"
+  path = "https://github.com/fastly/compute-starter-kit-rust-static-content.git"
+	tag  = "v1"`
 )
 
 // Data holds global-ish configuration data from all sources: environment
@@ -139,36 +160,39 @@ var FilePath = func() string {
 // DefaultEndpoint is the default Fastly API endpoint.
 const DefaultEndpoint = "https://api.fastly.com"
 
+// File represents our dynamic application toml configuration.
 type File struct {
-	Fastly   ConfigFastly
-	CLI      ConfigCLI
-	User     ConfigUser
-	Language ConfigLanguage
+	Fastly      ConfigFastly       `toml:"fastly"`
+	CLI         ConfigCLI          `toml:"cli"`
+	User        ConfigUser         `toml:"user"`
+	Language    ConfigLanguage     `toml:"language"`
+	StarterKits []ConfigStarterKit `toml:"starter-kits"`
 }
 
+// ConfigFastly represents fastly specific configuration.
 type ConfigFastly struct {
 	APIEndpoint string `toml:"api_endpoint"`
 }
 
-// TODO: decide on whether we either have RemoteConfig be a FQD so it's not
-// just /cli/config but also the scheme/host etc OR do we have another field
-// for the host/domain (e.g. RemoteEndppoint) and we renamed RemoteConfig to be
-// RemotePath instead.
+// ConfigCLI represents CLI specific configuration.
 type ConfigCLI struct {
 	RemoteConfig string `toml:"remote_config"`
-	TTL          string
+	TTL          string `toml:"ttl"`
 	LastChecked  string `toml:"last_checked"`
 }
 
+// ConfigUser represents user specific configuration.
 type ConfigUser struct {
-	Token string
-	Email string
+	Token string `toml:"token"`
+	Email string `toml:"email"`
 }
 
+// ConfigLanguage represents C@E language specific configuration.
 type ConfigLanguage struct {
-	Rust ConfigRust
+	Rust ConfigRust `toml:"rust"`
 }
 
+// ConfigLanguage represents Rust C@E language specific configuration.
 type ConfigRust struct {
 	// ToolchainVersion is the `rustup` toolchain string for the compiler that we
 	// support
@@ -176,6 +200,28 @@ type ConfigRust struct {
 
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
 	WasmWasiTarget string `toml:"wasm_wasi_target"`
+}
+
+// ConfigStarterKit represents starter kit specific configuration.
+type ConfigStarterKit struct {
+	Language string `toml:"lang"`
+	Name     string `toml:"name"`
+	Path     string `toml:"path"`
+	Tag      string `toml:"tag"`
+	Branch   string `toml:"branch"`
+}
+
+// FilterKits filters out kits that don't match the requested language.
+func (f *File) FilterKits(lang string) []ConfigStarterKit {
+	var kits []ConfigStarterKit
+
+	for _, sk := range f.StarterKits {
+		if sk.Language == lang {
+			kits = append(kits, sk)
+		}
+	}
+
+	return kits
 }
 
 // Load gets the configuration file from the CLI API endpoint and encodes it

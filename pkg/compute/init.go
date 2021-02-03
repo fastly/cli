@@ -36,36 +36,7 @@ var (
 	domainNameRegEx           = regexp.MustCompile(`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`)
 	fastlyOrgRegEx            = regexp.MustCompile(`^https:\/\/github\.com\/fastly`)
 	fastlyFileIgnoreListRegEx = regexp.MustCompile(`\.github|LICENSE|SECURITY\.md|CHANGELOG\.md|screenshot\.png`)
-	starterKits               = map[string][]StarterKit{
-		"assemblyscript": {
-			{
-				Name: "Default",
-				Path: "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
-				Tag:  "v0.2.0",
-			},
-		},
-		"rust": {
-			{
-				Name:   "Default",
-				Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-				Branch: "0.6.0",
-			},
-			{
-				Name: "Static content (S3/GCS)",
-				Path: "https://github.com/fastly/compute-starter-kit-rust-static-content.git",
-				Tag:  "v1",
-			},
-		},
-	}
 )
-
-// StarterKit models a Compute@Edge package template and its git location.
-type StarterKit struct {
-	Name   string
-	Path   string
-	Branch string
-	Tag    string
-}
 
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
@@ -149,13 +120,13 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
 			DisplayName: "Rust",
-			StarterKits: starterKits["rust"],
+			StarterKits: c.Globals.File.FilterKits("rust"),
 			Toolchain:   NewRust(c.client, c.Globals),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
 			DisplayName: "AssemblyScript (beta)",
-			StarterKits: starterKits["assemblyscript"],
+			StarterKits: c.Globals.File.FilterKits("assemblyscript"),
 			Toolchain:   NewAssemblyScript(),
 		}),
 	}
@@ -599,7 +570,7 @@ func validateLanguageOption(languages []*Language) func(string) error {
 	}
 }
 
-func validateTemplateOptionOrURL(templates []StarterKit) func(string) error {
+func validateTemplateOptionOrURL(templates []config.ConfigStarterKit) func(string) error {
 	return func(input string) error {
 		msg := "must be a valid option or Git URL"
 		if input == "" {
