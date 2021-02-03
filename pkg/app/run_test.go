@@ -50,7 +50,6 @@ func TestApplication(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var (
-				//
 				args                            = testcase.args
 				env                             = config.Environment{}
 				file                            = config.File{}
