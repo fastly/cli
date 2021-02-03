@@ -6,7 +6,7 @@
 
 **Bug fixes:**
 
-- Logs Tail: Give the user better feedback when --from flag errors [\#201](https://github.com/fastly/cli/pull/201)
+- Logs Tail: Give the user better feedback when `--from` flag errors [\#201](https://github.com/fastly/cli/pull/201)
 
 ## [v0.24.0](https://github.com/fastly/cli/releases/tag/v0.24.0) (2021-02-02)
 
