@@ -226,9 +226,13 @@ func (r Rust) Verify(out io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
-	latestFastlySys, err := getLatestCrateVersion(r.client, "fastly-sys")
+
+	latestFastlySys, err := semver.NewVersion(r.config.File.Language.Rust.FastlySys)
 	if err != nil {
 		return fmt.Errorf("error fetching latest crate version: %w", err)
+	}
+	if latestFastlySys.Prerelease() != "" {
+		return fmt.Errorf("error fetching latest crate version")
 	}
 
 	// Create a semver constraint to be within the latest minor range or above.

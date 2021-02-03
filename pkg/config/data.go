@@ -63,6 +63,7 @@ last_checked = "%s"
   [language.rust]
   toolchain_version = "1.46.0"
   wasm_wasi_target = "wasm32-wasi"
+	fastly_sys = "0.3.7"
 
 [[starter-kits]]
   lang = "assemblyscript"
@@ -200,6 +201,9 @@ type ConfigRust struct {
 
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
 	WasmWasiTarget string `toml:"wasm_wasi_target"`
+
+	// FastlySys is the internal Rust ABI version that should be supported.
+	FastlySys string `toml:"fastly_sys"`
 }
 
 // ConfigStarterKit represents starter kit specific configuration.

@@ -633,14 +633,14 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.49.0",
 						WasmWasiTarget:   "wasm32-wasi",
+						FastlySys:        "0.0.0", // included to prevent an error when creating new semantic version instance
 					},
 				},
 			},
 			client: versionClient{
-				fastlyVersions:    []string{"0.4.0"},
-				fastlySysVersions: []string{"0.0.0"}, // included to stop REST API failing to not find crate
+				fastlyVersions: []string{"0.4.0"},
 			},
-			wantError:            "fastly-sys crate not found",
+			wantError:            "fastly-sys crate not found", // because fastly <0.4.0 has no fastly-sys
 			wantRemediationError: "fastly = \"^0.4.0\"",
 		},
 		{
@@ -666,12 +666,12 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.49.0",
 						WasmWasiTarget:   "wasm32-wasi",
+						FastlySys:        "0.4.0", // included to prevent an error when creating new semantic version instance (we use this as a semver constraint value)
 					},
 				},
 			},
 			client: versionClient{
-				fastlyVersions:    []string{"0.5.0"},
-				fastlySysVersions: []string{"0.4.0"},
+				fastlyVersions: []string{"0.5.0"},
 			},
 			wantError:            "fastly crate not up-to-date",
 			wantRemediationError: "fastly = \"^0.5.0\"",
@@ -688,6 +688,7 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.49.0",
 						WasmWasiTarget:   "wasm32-wasi",
+						FastlySys:        "0.0.0", // included to prevent an error when creating new semantic version instance
 					},
 				},
 			},
@@ -707,8 +708,7 @@ func TestBuildRust(t *testing.T) {
 			name = "fastly"
 			version = "0.6.0"`,
 			client: versionClient{
-				fastlyVersions:    []string{"0.6.0"},
-				fastlySysVersions: []string{"0.3.7"},
+				fastlyVersions: []string{"0.6.0"},
 			},
 			wantOutputContains: "Built rust package test",
 		},
@@ -739,12 +739,12 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.49.0",
 						WasmWasiTarget:   "wasm32-wasi",
+						FastlySys:        "0.0.0", // included to prevent an error when creating new semantic version instance
 					},
 				},
 			},
 			client: versionClient{
-				fastlyVersions:    []string{"0.6.0"},
-				fastlySysVersions: []string{"0.3.7"},
+				fastlyVersions: []string{"0.6.0"},
 			},
 			wantOutputContains: "Built rust package test",
 		},
