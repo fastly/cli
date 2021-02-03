@@ -205,7 +205,7 @@ func (c *TailCommand) tail(out io.Writer) {
 			// not valid, give them an error stating this and exit.
 			if resp.StatusCode == http.StatusNotFound &&
 				c.cfg.from != 0 {
-				text.Error(out, "specified from time %d not found, either too far in the past or future", c.cfg.from)
+				text.Error(out, "specified 'from' time %d not found, either too far in the past or future", c.cfg.from)
 				os.Exit(1)
 			}
 			// In an effort to clean up the output, do not print on
