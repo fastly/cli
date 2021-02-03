@@ -28,7 +28,7 @@ jobs:
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v2
       with:
-        version: latest
+        version: v2.4.1
         args: release --rm-dist --release-notes=RELEASE_CHANGELOG.md
       env:
         GOVERSION: ${{ env.GOVERSION }}
