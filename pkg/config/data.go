@@ -63,7 +63,7 @@ last_checked = "%s"
   [language.rust]
   toolchain_version = "1.46.0"
   wasm_wasi_target = "wasm32-wasi"
-	fastly_sys = "0.3.7"
+  fastly_sys = "0.3.7"
 
 [[starter-kits]]
   lang = "assemblyscript"
