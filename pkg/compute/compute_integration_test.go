@@ -51,7 +51,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "unkown repository",
-			args:       []string{"compute", "init", "--from", "https://example.com/template"},
+			args:       []string{"compute", "init", "--from", "https://example.com/template", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -67,7 +67,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "create service error",
-			args:       []string{"compute", "init"},
+			args:       []string{"compute", "init", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -78,7 +78,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "create domain error",
-			args:       []string{"compute", "init"},
+			args:       []string{"compute", "init", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -91,7 +91,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "create backend error",
-			args:       []string{"compute", "init"},
+			args:       []string{"compute", "init", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -106,7 +106,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "with name",
-			args:       []string{"compute", "init", "--name", "test"},
+			args:       []string{"compute", "init", "--name", "test", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -124,7 +124,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "with service",
-			args:       []string{"compute", "init", "-s", "test"},
+			args:       []string{"compute", "init", "-s", "test", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -144,7 +144,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "with description",
-			args:       []string{"compute", "init", "--description", "test"},
+			args:       []string{"compute", "init", "--description", "test", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -162,7 +162,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "with author",
-			args:       []string{"compute", "init", "--author", "test@example.com"},
+			args:       []string{"compute", "init", "--author", "test@example.com", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -180,7 +180,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "with multiple authors",
-			args:       []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
+			args:       []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -199,7 +199,7 @@ func TestInit(t *testing.T) {
 
 		{
 			name:       "with from repository and branch",
-			args:       []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
+			args:       []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -216,7 +216,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "with existing package manifest",
-			args:       []string{"compute", "init"},
+			args:       []string{"compute", "init", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			manifest: strings.Join([]string{
 				"service_id = \"1234\"",
@@ -243,7 +243,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "default",
-			args: []string{"compute", "init"},
+			args: []string{"compute", "init", "--backend-port", "80"},
 			configFile: config.File{
 				Token: "123",
 				Email: "test@example.com",
@@ -275,7 +275,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "with default name inferred from directory",
-			args:       []string{"compute", "init"},
+			args:       []string{"compute", "init", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -288,7 +288,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:       "with AssemblyScript language",
-			args:       []string{"compute", "init", "--language", "assemblyscript"},
+			args:       []string{"compute", "init", "--language", "assemblyscript", "--backend-port", "80"},
 			configFile: config.File{Token: "123"},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
