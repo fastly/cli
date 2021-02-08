@@ -69,16 +69,16 @@ type StarterKit struct {
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
 	common.Base
-	client   api.HTTPClient
-	manifest manifest.Data
-	language string
-	from     string
-	branch   string
-	tag      string
-	path     string
-	domain   string
-	backend  string
-	port     uint
+	client      api.HTTPClient
+	manifest    manifest.Data
+	language    string
+	from        string
+	branch      string
+	tag         string
+	path        string
+	domain      string
+	backend     string
+	backendPort uint
 }
 
 // NewInitCommand returns a usable command registered under the parent.
@@ -99,7 +99,7 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.domain)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.backend)
-	c.CmdClause.Flag("port", "A port number for the package backend").UintVar(&c.port)
+	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.backendPort)
 
 	return &c
 }
@@ -298,8 +298,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if c.port == 0 {
-		c.port = 80
+	if c.backendPort == 0 {
+		c.backendPort = 80
 
 		input, err := text.Input(out, "Backend port number: [80] ", in)
 		if err != nil {
@@ -311,7 +311,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return fmt.Errorf("error converting input %w", err)
 		}
 
-		c.port = uint(portnumber)
+		c.backendPort = uint(portnumber)
 	}
 
 	text.Break(out)
@@ -388,7 +388,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		ServiceVersion: version,
 		Name:           c.backend,
 		Address:        c.backend,
-		Port:           c.port,
+		Port:           c.backendPort,
 	})
 	if err != nil {
 		return fmt.Errorf("error creating backend: %w", err)
