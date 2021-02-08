@@ -78,6 +78,7 @@ type InitCommand struct {
 	path     string
 	domain   string
 	backend  string
+	port     uint
 }
 
 // NewInitCommand returns a usable command registered under the parent.
@@ -96,8 +97,9 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
-	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.path)
-	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.path)
+	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.domain)
+	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.backend)
+	c.CmdClause.Flag("port", "A port number for the package backend").UintVar(&c.port)
 
 	return &c
 }
@@ -296,6 +298,22 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
+	if c.port == 0 {
+		c.port = 80
+
+		input, err := text.Input(out, "Backend port number: [80] ", in)
+		if err != nil {
+			return fmt.Errorf("error reading input %w", err)
+		}
+
+		portnumber, err := strconv.Atoi(input)
+		if err != nil {
+			return fmt.Errorf("error converting input %w", err)
+		}
+
+		c.port = uint(portnumber)
+	}
+
 	text.Break(out)
 
 	if !c.Globals.Verbose() {
@@ -370,6 +388,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		ServiceVersion: version,
 		Name:           c.backend,
 		Address:        c.backend,
+		Port:           c.port,
 	})
 	if err != nil {
 		return fmt.Errorf("error creating backend: %w", err)
