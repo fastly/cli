@@ -579,9 +579,9 @@ func TestBuildRust(t *testing.T) {
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
-			language = "javascript"`,
+			language = "foobar"`,
 			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
-			wantError: "unsupported language javascript",
+			wantError: "unsupported language foobar",
 		},
 		{
 			name: "error reading cargo metadata",
