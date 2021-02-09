@@ -42,8 +42,9 @@ const (
 	// RemoteEndpoint represents the API endpoint where we'll pull the dynamic
 	// configuration file from.
 	//
-	// TODO: ensure this is changed to https://developer.fastly.com/cli/config
-	RemoteEndpoint = "https://config.edgecompute.app/config.toml"
+	// NOTE: once the configuration is stored locally, it will allow for
+	// overriding this default endpoint.
+	RemoteEndpoint = "https://developer.fastly.com/api/internal/cli-config"
 
 	// UpdateSuccessful represents the message shown to a user when their
 	// application configuration has been updated successfully.
