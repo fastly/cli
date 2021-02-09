@@ -668,16 +668,16 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.49.0",
 						WasmWasiTarget:   "wasm32-wasi",
-						FastlySysMin:     "0.3.7",
-						FastlySysMax:     "0.6.0",
+						FastlySysMin:     "0.4.0", // the version in 0.6.0 is actually ^0.3.6 so this causes the constraint to fail
+						FastlySysMax:     "0.9.0",
 					},
 				},
 			},
 			client: versionClient{
-				fastlyVersions: []string{"0.5.0"},
+				fastlyVersions: []string{"0.6.0"},
 			},
 			wantError:            "fastly crate not up-to-date",
-			wantRemediationError: "fastly = \"^0.5.0\"",
+			wantRemediationError: "fastly = \"^0.6.0\"",
 		},
 		{
 			name: "fastly crate prerelease",
