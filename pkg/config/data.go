@@ -48,42 +48,6 @@ const (
 	// UpdateSuccessful represents the message shown to a user when their
 	// application configuration has been updated successfully.
 	UpdateSuccessful = "Successfully wrote updated application configuration file to disk."
-
-	// Defaults is the default template of our local application config.
-	// TODO: once go 1.16 is released move this to a go embedded file.
-	Defaults = `[fastly]
-api_endpoint = "https://api.fastly.com"
-
-[cli]
-remote_config = "%s"
-ttl = "1h"
-last_checked = "%s"
-
-[language]
-  [language.rust]
-  toolchain_version = "1.46.0"
-  wasm_wasi_target = "wasm32-wasi"
-  fastly_sys = "0.3.7"
-
-[[starter-kits]]
-  lang = "assemblyscript"
-  name = "Default"
-  path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
-  tag = "v0.2.0"
-[[starter-kits]]
-  lang = "rust"
-  name = "Default"
-  path = "https://github.com/fastly/compute-starter-kit-rust-default.git"
-  branch = "0.6.0"
-[[starter-kits]]
-  lang = "rust"
-  name = "Beacon"
-  path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination.git"
-[[starter-kits]]
-  lang = "rust"
-  name = "Static content (S3/GCS)"
-  path = "https://github.com/fastly/compute-starter-kit-rust-static-content.git"
-	tag  = "v1"`
 )
 
 // Data holds global-ish configuration data from all sources: environment
@@ -276,23 +240,6 @@ func (f *File) Read(fpath string) error {
 	}
 	err = toml.Unmarshal(bs, f)
 	return err
-}
-
-// LoadDefaults populates config.File with default values.
-//
-// This is used in the scenario where the remote endpoint containing dynamic
-// configuration data has either failed to load or we've been unsuccessful in
-// writing the data back to disk.
-//
-// TODO: refactor when go 1.16 arrives to use the //go:embed directive
-// https://tip.golang.org/pkg/embed/
-func (f *File) LoadDefaults(defaults string, remote_config string, last_checked string) error {
-	config := fmt.Sprintf(defaults, remote_config, last_checked)
-	if err := toml.Unmarshal([]byte(config), f); err != nil {
-		return err
-	}
-
-	return f.Write(FilePath)
 }
 
 // Write the instance of File to a local application config file.

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/check"
@@ -51,11 +50,8 @@ func main() {
 
 		err := file.Load(config.RemoteEndpoint, httpClient)
 		if err != nil {
-			err = file.LoadDefaults(config.Defaults, config.RemoteEndpoint, time.Now().Format(time.RFC3339))
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1) // TODO: offer a clearer remediation step
-			}
+			fmt.Println(err)
+			os.Exit(1) // TODO: offer a clearer remediation step
 		}
 	}
 
