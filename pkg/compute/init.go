@@ -295,6 +295,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 		if c.backend == "" || c.backend == "originless" {
 			c.backend = "127.0.0.1"
+			c.backendPort = uint(80)
 		}
 	}
 
