@@ -42,8 +42,8 @@ const (
 	// RemoteEndpoint represents the API endpoint where we'll pull the dynamic
 	// configuration file from.
 	//
-	// TODO: ensure this is a production domain like https://api.fastly.com
-	RemoteEndpoint = "http://integralist-cli-dynamic-config.com.global.prod.fastly.net/cli/config"
+	// TODO: ensure this is changed to https://developer.fastly.com/cli/config
+	RemoteEndpoint = "https://config.edgecompute.app/config.toml"
 
 	// UpdateSuccessful represents the message shown to a user when their
 	// application configuration has been updated successfully.
