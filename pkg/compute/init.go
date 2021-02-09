@@ -299,8 +299,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if c.backendPort == 0 {
-		c.backendPort = 80
-
 		input, err := text.Input(out, "Backend port number: [80] ", in)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
@@ -308,7 +306,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		portnumber, err := strconv.Atoi(input)
 		if err != nil {
-			return fmt.Errorf("error converting input %w", err)
+			text.Warning(out, "error converting input: %v. We'll use the default port number: [80].", err)
+			portnumber = 80
 		}
 
 		c.backendPort = uint(portnumber)
