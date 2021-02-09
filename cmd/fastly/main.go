@@ -38,15 +38,28 @@ func main() {
 		out            io.Writer = common.NewSyncWriter(os.Stdout)
 	)
 
+	// We have to manually handle the inclusion of the verbose flag here because
+	// Kingpin doesn't evaluate the provided arguments until app.Run which
+	// happens later in the file and yet we need to know if we should be printing
+	// output related to the application configuration file in this file.
+	var verboseOutput bool
+	for _, seg := range args {
+		if seg == "-v" || seg == "-verbose" || seg == "--verbose" {
+			verboseOutput = true
+		}
+	}
+
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
 	err := file.Read(config.FilePath)
 	if err != nil {
-		text.Output(out, `
-			We were unable to locate a local configuration file required to use the CLI.
-			We will create that file for you now.
-		`)
-		text.Break(out)
+		if verboseOutput {
+			text.Output(out, `
+				We were unable to locate a local configuration file required to use the CLI.
+				We will create that file for you now.
+			`)
+			text.Break(out)
+		}
 
 		err := file.Load(config.RemoteEndpoint, httpClient)
 		if err != nil {
@@ -63,10 +76,12 @@ func main() {
 
 	// Validate if configuration is older than its TTL
 	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
-		text.Warning(out, `
+		if verboseOutput {
+			text.Warning(out, `
 Your local application configuration is out-of-date.
 We'll refresh this for you in the background and it'll be used next time.
-		`)
+			`)
+		}
 
 		wait = true
 		go func() {
@@ -117,7 +132,9 @@ We'll refresh this for you in the background and it'll be used next time.
 		//
 		if wait {
 			<-waitForWrite
-			text.Info(out, config.UpdateSuccessful)
+			if verboseOutput {
+				text.Info(out, config.UpdateSuccessful)
+			}
 		}
 
 		os.Exit(1)
@@ -130,7 +147,9 @@ We'll refresh this for you in the background and it'll be used next time.
 	// object has indeed been updated already and is no longer considered stale!
 	if wait {
 		<-waitForWrite
-		text.Info(out, config.UpdateSuccessful)
+		if verboseOutput {
+			text.Info(out, config.UpdateSuccessful)
+		}
 	}
 }
 
