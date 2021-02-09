@@ -73,7 +73,8 @@ func TestConfigure(t *testing.T) {
 				`  [language.rust]`,
 				`    toolchain_version = ""`,
 				`    wasm_wasi_target = ""`,
-				`    fastly_sys = ""`,
+				`    fastly_sys_min = ""`,
+				`    fastly_sys_max = ""`,
 			},
 		},
 		{
@@ -110,7 +111,8 @@ func TestConfigure(t *testing.T) {
 				`  [language.rust]`,
 				`    toolchain_version = ""`,
 				`    wasm_wasi_target = ""`,
-				`    fastly_sys = ""`,
+				`    fastly_sys_min = ""`,
+				`    fastly_sys_max = ""`,
 			},
 		},
 		{
@@ -144,7 +146,8 @@ func TestConfigure(t *testing.T) {
 				`  [language.rust]`,
 				`    toolchain_version = ""`,
 				`    wasm_wasi_target = ""`,
-				`    fastly_sys = ""`,
+				`    fastly_sys_min = ""`,
+				`    fastly_sys_max = ""`,
 			},
 		},
 		{
@@ -181,7 +184,8 @@ func TestConfigure(t *testing.T) {
 				`  [language.rust]`,
 				`    toolchain_version = ""`,
 				`    wasm_wasi_target = ""`,
-				`    fastly_sys = ""`,
+				`    fastly_sys_min = ""`,
+				`    fastly_sys_max = ""`,
 			},
 		},
 		{
@@ -216,7 +220,8 @@ func TestConfigure(t *testing.T) {
 				`  [language.rust]`,
 				`    toolchain_version = ""`,
 				`    wasm_wasi_target = ""`,
-				`    fastly_sys = ""`,
+				`    fastly_sys_min = ""`,
+				`    fastly_sys_max = ""`,
 			},
 		},
 		{
@@ -254,7 +259,8 @@ func TestConfigure(t *testing.T) {
 				`  [language.rust]`,
 				`    toolchain_version = ""`,
 				`    wasm_wasi_target = ""`,
-				`    fastly_sys = ""`,
+				`    fastly_sys_min = ""`,
+				`    fastly_sys_max = ""`,
 			},
 		},
 		{

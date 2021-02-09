@@ -227,14 +227,7 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
 
-	latestFastlySys, err := semver.NewVersion(r.config.File.Language.Rust.FastlySys)
-	if err != nil {
-		return fmt.Errorf("error fetching latest crate version: %w", err)
-	}
-
-	// Create a semver constraint to be within the latest minor range or above.
-	// TODO(phamann): Update this to major when fastly-sys hits 1.x.x.
-	fastlySysConstraint, err := semver.NewConstraint(fmt.Sprintf("~%d.%d.0", latestFastlySys.Major(), latestFastlySys.Minor()))
+	fastlySysConstraint, err := semver.NewConstraint(fmt.Sprintf(">= %s <= %s", r.config.File.Language.Rust.FastlySysMin, r.config.File.Language.Rust.FastlySysMax))
 	if err != nil {
 		return fmt.Errorf("error parsing latest crate version: %w", err)
 	}
@@ -258,8 +251,7 @@ func (r Rust) Verify(out io.Writer) error {
 		return nil
 	}
 
-	// If fastly-sys version doesn't meet our constraint of being within the
-	// minor range, error with dual remediation steps.
+	// If fastly-sys version doesn't meet our constraint, error with dual remediation steps.
 	if ok := fastlySysConstraint.Check(fastlySysVersion); !ok {
 		return newCargoUpdateRemediationErr(fmt.Errorf("fastly crate not up-to-date"), latestFastly.String())
 	}

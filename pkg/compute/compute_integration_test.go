@@ -633,7 +633,9 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.49.0",
 						WasmWasiTarget:   "wasm32-wasi",
-						FastlySys:        "0.0.0", // included to prevent an error when creating new semantic version instance
+						// include the min/max to prevent an error when creating new semver constraint
+						FastlySysMin: "0.0.0",
+						FastlySysMax: "0.0.0",
 					},
 				},
 			},
@@ -666,7 +668,8 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.49.0",
 						WasmWasiTarget:   "wasm32-wasi",
-						FastlySys:        "0.4.0", // included to prevent an error when creating new semantic version instance (we use this as a semver constraint value)
+						FastlySysMin:     "0.3.7",
+						FastlySysMax:     "0.6.0",
 					},
 				},
 			},
@@ -688,7 +691,8 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.49.0",
 						WasmWasiTarget:   "wasm32-wasi",
-						FastlySys:        "0.0.0", // included to prevent an error when creating new semantic version instance
+						FastlySysMin:     "0.3.0",
+						FastlySysMax:     "0.6.0",
 					},
 				},
 			},
@@ -739,7 +743,8 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.ConfigRust{
 						ToolchainVersion: "1.49.0",
 						WasmWasiTarget:   "wasm32-wasi",
-						FastlySys:        "0.0.0", // included to prevent an error when creating new semantic version instance
+						FastlySysMin:     "0.3.0",
+						FastlySysMax:     "0.6.0",
 					},
 				},
 			},
