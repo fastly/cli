@@ -127,11 +127,11 @@ const DefaultEndpoint = "https://api.fastly.com"
 
 // File represents our dynamic application toml configuration.
 type File struct {
-	Fastly      ConfigFastly       `toml:"fastly"`
-	CLI         ConfigCLI          `toml:"cli"`
-	User        ConfigUser         `toml:"user"`
-	Language    ConfigLanguage     `toml:"language"`
-	StarterKits []ConfigStarterKit `toml:"starter-kits"`
+	Fastly      ConfigFastly              `toml:"fastly"`
+	CLI         ConfigCLI                 `toml:"cli"`
+	User        ConfigUser                `toml:"user"`
+	Language    ConfigLanguage            `toml:"language"`
+	StarterKits ConfigStarterKitLanguages `toml:"starter-kits"`
 }
 
 // ConfigFastly represents fastly specific configuration.
@@ -173,26 +173,18 @@ type ConfigRust struct {
 	FastlySysMax string `toml:"fastly_sys_max"`
 }
 
-// ConfigStarterKit represents starter kit specific configuration.
-type ConfigStarterKit struct {
-	Language string `toml:"lang"`
-	Name     string `toml:"name"`
-	Path     string `toml:"path"`
-	Tag      string `toml:"tag"`
-	Branch   string `toml:"branch"`
+// ConfigStarterKitLanguages represents language specific starter kits.
+type ConfigStarterKitLanguages struct {
+	AssemblyScript []ConfigStarterKit `toml:"assemblyscript"`
+	Rust           []ConfigStarterKit `toml:"rust"`
 }
 
-// FilterKits filters out kits that don't match the requested language.
-func (f *File) FilterKits(lang string) []ConfigStarterKit {
-	var kits []ConfigStarterKit
-
-	for _, sk := range f.StarterKits {
-		if sk.Language == lang {
-			kits = append(kits, sk)
-		}
-	}
-
-	return kits
+// ConfigStarterKit represents starter kit specific configuration.
+type ConfigStarterKit struct {
+	Name   string `toml:"name"`
+	Path   string `toml:"path"`
+	Tag    string `toml:"tag"`
+	Branch string `toml:"branch"`
 }
 
 // Load gets the configuration file from the CLI API endpoint and encodes it

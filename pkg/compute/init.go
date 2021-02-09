@@ -120,13 +120,13 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
 			DisplayName: "Rust",
-			StarterKits: c.Globals.File.FilterKits("rust"),
+			StarterKits: c.Globals.File.StarterKits.Rust,
 			Toolchain:   NewRust(c.client, c.Globals),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
 			DisplayName: "AssemblyScript (beta)",
-			StarterKits: c.Globals.File.FilterKits("assemblyscript"),
+			StarterKits: c.Globals.File.StarterKits.AssemblyScript,
 			Toolchain:   NewAssemblyScript(),
 		}),
 	}
