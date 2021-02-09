@@ -285,6 +285,8 @@ COMMANDS
                                    package
         --backend=BACKEND          A hostname, IPv4, or IPv6 address for the
                                    package backend
+        --backend-port=BACKEND-PORT
+                                   A port number for the package backend
 
   compute build [<flags>]
     Build a Compute@Edge package locally
