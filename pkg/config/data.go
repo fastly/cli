@@ -167,11 +167,9 @@ type ConfigRust struct {
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
 	WasmWasiTarget string `toml:"wasm_wasi_target"`
 
-	// FastlySysMin is the minimum internal Rust ABI version that should be supported.
-	FastlySysMin string `toml:"fastly_sys_min"`
-
-	// FastlySysMax is the maximum internal Rust ABI version that should be supported.
-	FastlySysMax string `toml:"fastly_sys_max"`
+	// FastlySysConstraint is a free-form semver constraint for the internal Rust
+	// ABI version that should be supported.
+	FastlySysConstraint string `toml:"fastly_sys_constraint"`
 }
 
 // ConfigStarterKitLanguages represents language specific starter kits.

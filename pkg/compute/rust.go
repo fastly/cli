@@ -227,7 +227,7 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
 
-	fastlySysConstraint, err := semver.NewConstraint(fmt.Sprintf(">= %s <= %s", r.config.File.Language.Rust.FastlySysMin, r.config.File.Language.Rust.FastlySysMax))
+	fastlySysConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.FastlySysConstraint)
 	if err != nil {
 		return fmt.Errorf("error parsing latest crate version: %w", err)
 	}
