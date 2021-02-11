@@ -361,7 +361,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					Remediation: fmt.Sprintf("see more at https://fastly.dev/learning/compute/#create-a-new-fastly-account-and-invite-your-collaborators"),
 				}
 			}
-		  return fmt.Errorf("error creating service: %w", err)
+			return fmt.Errorf("error creating service: %w", err)
 		}
 		version = 1
 		undoStack.Push(func() error {
