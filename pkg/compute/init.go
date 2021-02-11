@@ -354,13 +354,14 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Type:    "wasm",
 			Comment: description,
 		})
-		if strings.Contains(err.Error(), "Valid values for 'type' are: 'vcl'") {
-			return errors.RemediationError{
-				Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge feature flag enabled on your Fastly account"),
-				Remediation: fmt.Sprintf("see more at https://fastly.dev/learning/compute/#create-a-new-fastly-account-and-invite-your-collaborators"),
+		if err != nil {
+			if strings.Contains(err.Error(), "Valid values for 'type' are: 'vcl'") {
+				return errors.RemediationError{
+					Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge feature flag enabled on your Fastly account"),
+					Remediation: fmt.Sprintf("see more at https://fastly.dev/learning/compute/#create-a-new-fastly-account-and-invite-your-collaborators"),
+				}
 			}
-		} else if err != nil {
-			return fmt.Errorf("error creating service: %w", err)
+		  return fmt.Errorf("error creating service: %w", err)
 		}
 		version = 1
 		undoStack.Push(func() error {
