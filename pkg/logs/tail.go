@@ -213,7 +213,12 @@ func (c *TailCommand) tail(out io.Writer) {
 			if resp.StatusCode != http.StatusServiceUnavailable {
 				text.Warning(out, "non-200 resp %d", resp.StatusCode)
 			}
+
+			// Reuse the connection for the retry, or cleanup in the
+			// case of Exit.
 			io.Copy(ioutil.Discard, resp.Body)
+			resp.Body.Close()
+
 			// Try the response again after a 1 second wait.
 			if resp.StatusCode/100 == 5 && resp.StatusCode != 501 ||
 				resp.StatusCode == 429 {
