@@ -78,8 +78,7 @@ func main() {
 	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
 		if verboseOutput {
 			text.Warning(out, `
-Your local application configuration is out-of-date.
-We'll refresh this for you in the background and it'll be used next time.
+Compatibility and versioning information for the Fastly CLI is being updated in the background.  The updated data will be used next time you execute a fastly command.
 			`)
 		}
 
