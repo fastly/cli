@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.24.2](https://github.com/fastly/cli/releases/tag/v0.24.2) (2021-02-15)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.24.1...v0.24.2)
+
+**Bug fixes:**
+
+- LogTail: Properly close response body [\#205](https://github.com/fastly/cli/pull/205)
+- Add port prompt for compute init [\#203](https://github.com/fastly/cli/pull/203)
+- Update GitHub Action to not use commit hash [\#200](https://github.com/fastly/cli/pull/200)
+
 ## [v0.24.1](https://github.com/fastly/cli/releases/tag/v0.24.1) (2021-02-03)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.24.0...v0.24.1)
