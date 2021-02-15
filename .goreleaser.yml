@@ -49,7 +49,7 @@ archives:
 brews:
   - name: fastly
     ids: [nix]
-    github:
+    tap:
       owner: fastly
       name: homebrew-tap
     skip_upload: auto
