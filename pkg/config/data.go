@@ -48,7 +48,7 @@ const (
 
 	// UpdateSuccessful represents the message shown to a user when their
 	// application configuration has been updated successfully.
-	UpdateSuccessful = "Successfully wrote updated application configuration file to disk."
+	UpdateSuccessful = "Successfully updated platform compatibility and versioning information."
 )
 
 // Data holds global-ish configuration data from all sources: environment
