@@ -29,6 +29,8 @@ builds:
     id: generate-usage
     goos: [linux]
     goarch: [amd64]
+    binary: 'fastly-usage' # we rename the binary to prevent an error caused by the earlier 'linux/amd64' step
+                           # which already creates a 'fastly' binary in '/usr/local/bin'.
     hooks:
       post:
         - cmd: "scripts/documentation.sh {{ .Path }}"
