@@ -355,6 +355,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Comment: description,
 		})
 		if err != nil {
+			if strings.Contains(err.Error(), "Valid values for 'type' are: 'vcl'") {
+				return errors.RemediationError{
+					Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge feature flag enabled on your Fastly account"),
+					Remediation: "See more at https://fastly.dev/learning/compute/#create-a-new-fastly-account-and-invite-your-collaborators",
+				}
+			}
 			return fmt.Errorf("error creating service: %w", err)
 		}
 		version = 1
