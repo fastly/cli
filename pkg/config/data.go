@@ -49,6 +49,10 @@ const (
 	// UpdateSuccessful represents the message shown to a user when their
 	// application configuration has been updated successfully.
 	UpdateSuccessful = "Successfully updated platform compatibility and versioning information."
+
+	// ConfigRequestTimeout is how long we'll wait for the CLI API endpoint to
+	// return a response before timing out the request.
+	ConfigRequestTimeout = 3 * time.Second
 )
 
 // Data holds global-ish configuration data from all sources: environment
@@ -189,7 +193,7 @@ type ConfigStarterKit struct {
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
 func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), ConfigRequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, configEndpoint, nil)
