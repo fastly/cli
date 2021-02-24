@@ -654,7 +654,7 @@ func TestBuildRust(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.4.0"},
 			},
-			wantError:            "fastly-sys crate not found", // because fastly <0.4.0 has no fastly-sys
+			wantError:            "fastly-sys crate not found", // fastly 0.3.3 is where fastly-sys was introduced
 			wantRemediationError: "fastly = \"^0.4.0\"",
 		},
 		{
