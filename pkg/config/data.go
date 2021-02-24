@@ -135,6 +135,21 @@ var FilePath = func() string {
 // DefaultEndpoint is the default Fastly API endpoint.
 const DefaultEndpoint = "https://api.fastly.com"
 
+// LegacyFile represents the old toml configuration format.
+//
+// NOTE: this exists to catch situations where an existing CLI user upgrades
+// their version of the CLI and ends up trying to use the latest iteration of
+// the toml configuration. We don't want them to have to re-enter their email
+// or token, so we'll decode the existing config file into the LegacyFile type
+// and then extract those details later when constructing the proper File type.
+//
+// I had tried to make this an unexported type but it seemed the toml decoder
+// would fail to unmarshal the configuration unless it was an exported type.
+type LegacyFile struct {
+	Token string `toml:"token"`
+	Email string `toml:"email"`
+}
+
 // File represents our dynamic application toml configuration.
 type File struct {
 	Fastly      ConfigFastly              `toml:"fastly"`
@@ -142,6 +157,10 @@ type File struct {
 	User        ConfigUser                `toml:"user"`
 	Language    ConfigLanguage            `toml:"language"`
 	StarterKits ConfigStarterKitLanguages `toml:"starter-kits"`
+
+	// We store off a possible legacy configuration so that we can later extract
+	// the relevant email and token values that may pre-exist.
+	Legacy LegacyFile `toml:"legacy"`
 }
 
 // ConfigFastly represents fastly specific configuration.
@@ -219,6 +238,14 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 
 	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 
+	if f.Legacy.Token != "" {
+		f.User.Token = f.Legacy.Token
+	}
+
+	if f.Legacy.Email != "" {
+		f.User.Email = f.Legacy.Email
+	}
+
 	// Create the destination directory for the config file
 	basePath := filepath.Dir(FilePath)
 	err = filesystem.MakeDirectoryIfNotExists(basePath)
@@ -253,10 +280,15 @@ func (f *File) Read(fpath string) error {
 	}
 
 	if endpoint := tree.Get("endpoint"); endpoint != nil {
-		err := os.Remove(fpath)
+		var lf LegacyFile
+
+		err := toml.Unmarshal(bs, &lf)
 		if err != nil {
 			return err
 		}
+
+		f.Legacy = lf
+
 		return ErrLegacyConfig
 	}
 

@@ -54,10 +54,17 @@ func main() {
 	err := file.Read(configFilePath)
 	if err != nil {
 		if verboseOutput {
-			text.Output(out, `
-				We were unable to locate a local configuration file required to use the CLI.
-				We will create that file for you now.
-			`)
+			if err == config.ErrLegacyConfig {
+				text.Output(out, `
+					We found your local configuration file (required to use the CLI) was using a legacy format.
+					We will upgrade that file for you now.
+				`)
+			} else {
+				text.Output(out, `
+					We were unable to locate a local configuration file required to use the CLI.
+					We will create that file for you now.
+				`)
+			}
 			text.Break(out)
 		}
 
@@ -77,7 +84,7 @@ func main() {
 	// Validate if configuration is older than its TTL
 	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
 		if verboseOutput {
-			text.Warning(out, `
+			text.Info(out, `
 Compatibility and versioning information for the Fastly CLI is being updated in the background.  The updated data will be used next time you execute a fastly command.
 			`)
 		}
