@@ -75,6 +75,10 @@ func TestConfigure(t *testing.T) {
     fastly_sys_constraint = ""
 
 [starter-kits]
+
+[legacy]
+  token = ""
+  email = ""
 `,
 		},
 		{
@@ -113,6 +117,10 @@ func TestConfigure(t *testing.T) {
     fastly_sys_constraint = ""
 
 [starter-kits]
+
+[legacy]
+  token = ""
+  email = ""
 `,
 		},
 		{
@@ -148,6 +156,10 @@ func TestConfigure(t *testing.T) {
     fastly_sys_constraint = ""
 
 [starter-kits]
+
+[legacy]
+  token = ""
+  email = ""
 `,
 		},
 		{
@@ -186,6 +198,10 @@ func TestConfigure(t *testing.T) {
     fastly_sys_constraint = ""
 
 [starter-kits]
+
+[legacy]
+  token = ""
+  email = ""
 `,
 		},
 		{
@@ -222,6 +238,10 @@ func TestConfigure(t *testing.T) {
     fastly_sys_constraint = ""
 
 [starter-kits]
+
+[legacy]
+  token = ""
+  email = ""
 `,
 		},
 		{
@@ -261,6 +281,10 @@ func TestConfigure(t *testing.T) {
     fastly_sys_constraint = ""
 
 [starter-kits]
+
+[legacy]
+  token = ""
+  email = ""
 `,
 		},
 		{
