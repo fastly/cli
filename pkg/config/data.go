@@ -158,7 +158,7 @@ type ConfigLanguage struct {
 	Rust ConfigRust `toml:"rust"`
 }
 
-// ConfigLanguage represents Rust C@E language specific configuration.
+// ConfigRust represents Rust C@E language specific configuration.
 type ConfigRust struct {
 	// ToolchainVersion is the `rustup` toolchain string for the compiler that we
 	// support
