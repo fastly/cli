@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -54,6 +55,10 @@ const (
 	// return a response before timing out the request.
 	ConfigRequestTimeout = 3 * time.Second
 )
+
+// ErrLegacyConfig indicates that the local configuration file is using the
+// legacy format.
+var ErrLegacyConfig = errors.New("The configuration file is in the legacy format.")
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -237,6 +242,24 @@ func (f *File) Read(fpath string) error {
 		return err
 	}
 	err = toml.Unmarshal(bs, f)
+
+	// The top-level 'endpoint' key is what we're using to identify whether the
+	// local config.toml file is using the legacy format. If we find that key,
+	// then we must delete the file and return an error so that the calling code
+	// can take the appropriate action of creating the file anew.
+	tree, err := toml.LoadBytes(bs)
+	if err != nil {
+		return err
+	}
+
+	if endpoint := tree.Get("endpoint"); endpoint != nil {
+		err := os.Remove(fpath)
+		if err != nil {
+			return err
+		}
+		return ErrLegacyConfig
+	}
+
 	return err
 }
 
