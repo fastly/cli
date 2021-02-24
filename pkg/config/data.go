@@ -58,7 +58,7 @@ const (
 
 // ErrLegacyConfig indicates that the local configuration file is using the
 // legacy format.
-var ErrLegacyConfig = errors.New("The configuration file is in the legacy format.")
+var ErrLegacyConfig = errors.New("the configuration file is in the legacy format")
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
