@@ -44,7 +44,7 @@ func main() {
 	// output related to the application configuration file in this file.
 	var verboseOutput bool
 	for _, seg := range args {
-		if seg == "-v" || seg == "-verbose" || seg == "--verbose" {
+		if seg == "-v" || seg == "--verbose" {
 			verboseOutput = true
 		}
 	}
