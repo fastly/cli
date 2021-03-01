@@ -56,13 +56,13 @@ func main() {
 		if verboseOutput {
 			if err == config.ErrLegacyConfig {
 				text.Output(out, `
-					We found your local configuration file (required to use the CLI) was using a legacy format.
-					We will upgrade that file for you now.
+					Found your local configuration file (required to use the CLI) was using a legacy format.
+					File is being upgraded now.
 				`)
 			} else {
 				text.Output(out, `
-					We were unable to locate a local configuration file required to use the CLI.
-					We will create that file for you now.
+					Unable to locate a local configuration file (required to use the CLI).
+					File is being created now.
 				`)
 			}
 			text.Break(out)
