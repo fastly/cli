@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -70,8 +69,11 @@ func main() {
 
 		err := file.Load(config.RemoteEndpoint, httpClient)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1) // TODO: offer a clearer remediation step
+			errors.RemediationError{
+				Inner:       err,
+				Remediation: errors.NetworkRemediation,
+			}.Print(os.Stderr)
+			os.Exit(1)
 		}
 	}
 
@@ -96,8 +98,11 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 			// configuration file to determine where to load the config from.
 			err := file.Load(file.CLI.RemoteConfig, httpClient)
 			if err != nil {
-				fmt.Println(err)
-				os.Exit(1) // TODO: offer a clearer remediation step
+				errors.RemediationError{
+					Inner:       err,
+					Remediation: errors.NetworkRemediation,
+				}.Print(os.Stderr)
+				os.Exit(1)
 			}
 
 			waitForWrite <- true
