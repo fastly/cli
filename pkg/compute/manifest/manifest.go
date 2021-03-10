@@ -2,13 +2,20 @@ package manifest
 
 import (
 	"os"
+	"strconv"
+	"strings"
 
+	"github.com/fastly/cli/pkg/errors"
 	toml "github.com/pelletier/go-toml"
 )
 
 // Filename is the name of the package manifest file.
 // It is expected to be a project specific configuration file.
 const Filename = "fastly.toml"
+
+// ManifestLatestVersion represents the latest known manifest schema version
+// supported by the CLI.
+const ManifestLatestVersion = 1
 
 // Source enumerates where a manifest parameter is taken from.
 type Source uint8
@@ -92,12 +99,13 @@ func (d *Data) Authors() ([]string, Source) {
 // File represents all of the configuration parameters in the fastly.toml
 // manifest file schema.
 type File struct {
-	Version     int      `toml:"version"`
-	Name        string   `toml:"name"`
-	Description string   `toml:"description"`
-	Authors     []string `toml:"authors"`
-	Language    string   `toml:"language"`
-	ServiceID   string   `toml:"service_id"`
+	ManifestVersion string   `toml:"manifest_version"`
+	Version         int      `toml:"version"`
+	Name            string   `toml:"name"`
+	Description     string   `toml:"description"`
+	Authors         []string `toml:"authors"`
+	Language        string   `toml:"language"`
+	ServiceID       string   `toml:"service_id"`
 
 	exists bool
 }
@@ -121,7 +129,29 @@ func (f *File) Read(fpath string) error {
 	err = toml.Unmarshal(bs, f)
 	if err == nil {
 		f.exists = true
+
+		if f.ManifestVersion == "" {
+			return errors.ErrMissingManifestVersion
+		}
+
+		// historically before settling on an integer type, the manifest_version
+		// was using a form of semantic versioning which never went above 0.1.0
+		if strings.Contains(f.ManifestVersion, ".") {
+			if f.ManifestVersion != "0.1.0" {
+				return errors.ErrUnrecognisedManifestVersion
+			}
+		} else {
+			manifestVersion, err := strconv.Atoi(f.ManifestVersion)
+			if err != nil {
+				return errors.ErrUnrecognisedManifestVersion
+			}
+
+			if manifestVersion < 1 || manifestVersion > ManifestLatestVersion {
+				return errors.ErrUnrecognisedManifestVersion
+			}
+		}
 	}
+
 	return err
 }
 

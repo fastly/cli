@@ -218,6 +218,7 @@ func TestInit(t *testing.T) {
 			args:       []string{"compute", "init"},
 			configFile: config.File{Token: "123"},
 			manifest: strings.Join([]string{
+				"manifest_version = \"1\"",
 				"service_id = \"1234\"",
 				"name = \"test\"",
 				"language = \"rust\"",
@@ -396,40 +397,53 @@ func TestBuildRust(t *testing.T) {
 			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
 		},
 		{
-			name:           "empty language",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "name = \"test\"\n",
-			client:         versionClient{fastlyVersions: []string{"0.0.0"}},
-			wantError:      "language cannot be empty, please provide a language",
+			name: "empty language",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"`,
+			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
+			wantError: "language cannot be empty, please provide a language",
 		},
 		{
-			name:           "empty name",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "language = \"rust\"\n",
-			client:         versionClient{fastlyVersions: []string{"0.0.0"}},
-			wantError:      "name cannot be empty, please provide a name",
+			name: "empty name",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			language = "rust"`,
+			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
+			wantError: "name cannot be empty, please provide a name",
 		},
 		{
-			name:           "unknown language",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "name = \"test\"\nlanguage = \"javascript\"\n",
-			client:         versionClient{fastlyVersions: []string{"0.0.0"}},
-			wantError:      "unsupported language javascript",
+			name: "unknown language",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"
+			language = "javascript"`,
+			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
+			wantError: "unsupported language javascript",
 		},
 		{
-			name:           "error reading cargo metadata",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoManifest:  "[package]\nname = \"test\"",
-			client:         versionClient{fastlyVersions: []string{"0.4.0"}},
-			wantError:      "reading cargo metadata",
+			name: "error reading cargo metadata",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"
+			language = "rust"`,
+			cargoManifest: "[package]\nname = \"test\"",
+			client:        versionClient{fastlyVersions: []string{"0.4.0"}},
+			wantError:     "reading cargo metadata",
 		},
 		{
-			name:           "fastly-sys crate not found",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoManifest:  "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.3.2\"",
-			cargoLock:      "[[package]]\nname = \"test\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
+			name: "fastly-sys crate not found",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"
+			language = "rust"`,
+			cargoManifest: "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.3.2\"",
+			cargoLock:     "[[package]]\nname = \"test\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
 			client: versionClient{
 				fastlyVersions:    []string{"0.4.0"},
 				fastlySysVersions: []string{"0.0.0"}, // included to stop REST API failing to not find crate
@@ -438,11 +452,14 @@ func TestBuildRust(t *testing.T) {
 			wantRemediationError: "fastly = \"^0.4.0\"",
 		},
 		{
-			name:           "fastly-sys crate out-of-date",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoManifest:  "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.4.0\"",
-			cargoLock:      "[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.7\"",
+			name: "fastly-sys crate out-of-date",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"
+			language = "rust"`,
+			cargoManifest: "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.4.0\"",
+			cargoLock:     "[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.7\"",
 			client: versionClient{
 				fastlyVersions:    []string{"0.5.0"},
 				fastlySysVersions: []string{"0.4.0"},
@@ -451,9 +468,12 @@ func TestBuildRust(t *testing.T) {
 			wantRemediationError: "fastly = \"^0.5.0\"",
 		},
 		{
-			name:           "fastly crate prerelease",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
+			name: "fastly crate prerelease",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"
+			language = "rust"`,
 			cargoManifest: strings.Join([]string{
 				"[package]",
 				"name = \"test\"",
@@ -476,11 +496,14 @@ func TestBuildRust(t *testing.T) {
 			wantOutputContains: "Built rust package test",
 		},
 		{
-			name:           "Rust success",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "name = \"test\"\nlanguage = \"rust\"\n",
-			cargoManifest:  "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.6.0\"",
-			cargoLock:      "[[package]]\nname = \"fastly\"\nversion = \"0.6.0\"\n\n[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.7\"",
+			name: "Rust success",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"
+			language = "rust"`,
+			cargoManifest: "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.6.0\"",
+			cargoLock:     "[[package]]\nname = \"fastly\"\nversion = \"0.6.0\"\n\n[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.7\"",
 			client: versionClient{
 				fastlyVersions:    []string{"0.6.0"},
 				fastlySysVersions: []string{"0.3.7"},
@@ -551,27 +574,37 @@ func TestBuildAssemblyScript(t *testing.T) {
 			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
 		},
 		{
-			name:           "empty language",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "name = \"test\"\n",
-			wantError:      "language cannot be empty, please provide a language",
+			name: "empty language",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"`,
+			wantError: "language cannot be empty, please provide a language",
 		},
 		{
-			name:           "empty name",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "language = \"assemblyscript\"\n",
-			wantError:      "name cannot be empty, please provide a name",
+			name: "empty name",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			language = "assemblyscript"`,
+			wantError: "name cannot be empty, please provide a name",
 		},
 		{
-			name:           "unknown language",
-			args:           []string{"compute", "build"},
-			fastlyManifest: "name = \"test\"\nlanguage = \"javascript\"\n",
-			wantError:      "unsupported language javascript",
+			name: "unknown language",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"
+			language = "javascript"`,
+			wantError: "unsupported language javascript",
 		},
 		{
-			name:               "AssemblyScript success",
-			args:               []string{"compute", "build"},
-			fastlyManifest:     "name = \"test\"\nlanguage = \"assemblyscript\"\n",
+			name: "AssemblyScript success",
+			args: []string{"compute", "build"},
+			fastlyManifest: `
+			manifest_version = "1"
+			name = "test"
+			language = "assemblyscript"`,
 			wantOutputContains: "Built assemblyscript package test",
 		},
 	} {
