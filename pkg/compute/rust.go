@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -46,7 +47,7 @@ type CargoManifest struct {
 
 // Read the contents of the Cargo.toml manifest from filename.
 func (m *CargoManifest) Read(fpath string) error {
-	bs, err := os.ReadFile(fpath)
+	bs, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return err
 	}
@@ -379,7 +380,7 @@ func getLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version,
 		return nil, fmt.Errorf("error fetching latest crate version: %s", resp.Status)
 	}
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

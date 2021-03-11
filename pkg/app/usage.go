@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"strings"
 	"text/template"
 
@@ -90,7 +91,7 @@ func UsageJSON(app *kingpin.Application) (string, error) {
 // re-assigned to the app via app.Writers after calling Usage.
 func Usage(args []string, app *kingpin.Application, out, err io.Writer) string {
 	var buf bytes.Buffer
-	app.Writers(&buf, io.Discard)
+	app.Writers(&buf, ioutil.Discard)
 	app.UsageContext(&kingpin.UsageContext{
 		Template: CompactUsageTemplate,
 		Funcs:    UsageTemplateFuncs,

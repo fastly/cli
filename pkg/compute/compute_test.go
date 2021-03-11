@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -480,7 +481,7 @@ func makeBuildEnvironment(t *testing.T, fastlyIgnoreContent string) (rootdir str
 
 	if fastlyIgnoreContent != "" {
 		filename := filepath.Join(rootdir, IgnoreFilePath)
-		if err := os.WriteFile(filename, []byte(fastlyIgnoreContent), 0777); err != nil {
+		if err := ioutil.WriteFile(filename, []byte(fastlyIgnoreContent), 0777); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -122,7 +123,7 @@ type File struct {
 
 // Read the File and populate its fields from the filename on disk.
 func (f *File) Read(fpath string) error {
-	bs, err := os.ReadFile(fpath)
+	bs, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return err
 	}

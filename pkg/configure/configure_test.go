@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -213,7 +214,7 @@ func TestConfigure(t *testing.T) {
 				testutil.AssertStringContains(t, out.String(), s)
 			}
 			if testcase.wantError == "" {
-				p, err := os.ReadFile(configFilePath)
+				p, err := ioutil.ReadFile(configFilePath)
 				testutil.AssertNoError(t, err)
 				testutil.AssertString(t, strings.Join(testcase.wantFile, "\n")+"\n", string(p))
 			}

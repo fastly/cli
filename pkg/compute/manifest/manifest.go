@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"io/ioutil"
 	"os"
 
 	toml "github.com/pelletier/go-toml"
@@ -109,7 +110,7 @@ func (f *File) Exists() bool {
 
 // Read loads the manifest file content from disk.
 func (f *File) Read(fpath string) error {
-	bs, err := os.ReadFile(fpath)
+	bs, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return err
 	}

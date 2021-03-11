@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -348,7 +349,7 @@ func TestInit(t *testing.T) {
 				testutil.AssertStringContains(t, buf.String(), s)
 			}
 			if testcase.manifestIncludes != "" {
-				content, err := os.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
+				content, err := ioutil.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -884,7 +885,7 @@ func TestDeploy(t *testing.T) {
 				testutil.AssertStringContains(t, buf.String(), s)
 			}
 			if testcase.manifestIncludes != "" {
-				content, err := os.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
+				content, err := ioutil.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -1027,7 +1028,7 @@ func TestValidate(t *testing.T) {
 func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) {
 	t.Helper()
 
-	rootdir, err := os.MkdirTemp("", "fastly-init-*")
+	rootdir, err := ioutil.TempDir("", "fastly-init-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1038,7 +1039,7 @@ func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) 
 
 	if manifestContent != "" {
 		filename := filepath.Join(rootdir, compute.ManifestFilename)
-		if err := os.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
+		if err := ioutil.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -1049,7 +1050,7 @@ func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) 
 func makeRustBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifestContent, cargoLockContent string) (rootdir string) {
 	t.Helper()
 
-	rootdir, err := os.MkdirTemp("", "fastly-build-*")
+	rootdir, err := ioutil.TempDir("", "fastly-build-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1070,21 +1071,21 @@ func makeRustBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifest
 
 	if fastlyManifestContent != "" {
 		filename := filepath.Join(rootdir, compute.ManifestFilename)
-		if err := os.WriteFile(filename, []byte(fastlyManifestContent), 0777); err != nil {
+		if err := ioutil.WriteFile(filename, []byte(fastlyManifestContent), 0777); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	if cargoManifestContent != "" {
 		filename := filepath.Join(rootdir, "Cargo.toml")
-		if err := os.WriteFile(filename, []byte(cargoManifestContent), 0777); err != nil {
+		if err := ioutil.WriteFile(filename, []byte(cargoManifestContent), 0777); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	if cargoLockContent != "" {
 		filename := filepath.Join(rootdir, "Cargo.lock")
-		if err := os.WriteFile(filename, []byte(cargoLockContent), 0777); err != nil {
+		if err := ioutil.WriteFile(filename, []byte(cargoLockContent), 0777); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -1095,7 +1096,7 @@ func makeRustBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifest
 func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent string) (rootdir string) {
 	t.Helper()
 
-	rootdir, err := os.MkdirTemp("", "fastly-build-*")
+	rootdir, err := ioutil.TempDir("", "fastly-build-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1115,7 +1116,7 @@ func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent stri
 
 	if fastlyManifestContent != "" {
 		filename := filepath.Join(rootdir, compute.ManifestFilename)
-		if err := os.WriteFile(filename, []byte(fastlyManifestContent), 0777); err != nil {
+		if err := ioutil.WriteFile(filename, []byte(fastlyManifestContent), 0777); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -1132,7 +1133,7 @@ func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent stri
 func makeDeployEnvironment(t *testing.T, manifestContent string) (rootdir string) {
 	t.Helper()
 
-	rootdir, err := os.MkdirTemp("", "fastly-deploy-*")
+	rootdir, err := ioutil.TempDir("", "fastly-deploy-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1151,7 +1152,7 @@ func makeDeployEnvironment(t *testing.T, manifestContent string) (rootdir string
 
 	if manifestContent != "" {
 		filename := filepath.Join(rootdir, compute.ManifestFilename)
-		if err := os.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
+		if err := ioutil.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
 			t.Fatal(err)
 		}
 	}

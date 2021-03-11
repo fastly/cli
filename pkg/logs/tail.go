@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -215,7 +216,7 @@ func (c *TailCommand) tail(out io.Writer) {
 
 			// Reuse the connection for the retry, or cleanup in the
 			// case of Exit.
-			io.Copy(io.Discard, resp.Body)
+			io.Copy(ioutil.Discard, resp.Body)
 			resp.Body.Close()
 
 			// Try the response again after a 1 second wait.

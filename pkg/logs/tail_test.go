@@ -1,8 +1,8 @@
 package logs
 
 import (
+	"io/ioutil"
 	"net/http"
-	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -104,7 +104,7 @@ func TestSplitByReqID(t *testing.T) {
 // TestParseResponseData validates we're correctly decoding a batch JSON log
 // response into a logs.Batch type.
 func TestParseResponseData(t *testing.T) {
-	data, err := os.ReadFile(responseFile)
+	data, err := ioutil.ReadFile(responseFile)
 	if err != nil {
 		t.Fatalf("cannot read from file: %v", err)
 	}
