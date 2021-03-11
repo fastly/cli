@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"time"
@@ -87,7 +86,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	// bindings, because we need to do things like track where a config
 	// parameter came from.
 	app := kingpin.New("fastly", "A tool to interact with the Fastly API")
-	app.Writers(out, ioutil.Discard) // don't let kingpin write error output
+	app.Writers(out, io.Discard) // don't let kingpin write error output
 	app.UsageContext(&kingpin.UsageContext{
 		Template: VerboseUsageTemplate,
 		Funcs:    UsageTemplateFuncs,
@@ -617,17 +616,17 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	// swapping the writer with a no-op and then restoring the real writer
 	// afterwards. This ensures usage text is only written once to the writer
 	// and gives us greater control over our error formatting.
-	app.Writers(ioutil.Discard, ioutil.Discard)
+	app.Writers(io.Discard, io.Discard)
 	name, err := app.Parse(args)
 	if err != nil && !argsIsHelpJSON(args) { // Ignore error if `help --format json`
-		usage := Usage(args, app, out, ioutil.Discard)
+		usage := Usage(args, app, out, io.Discard)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("error parsing arguments: %w", err)}
 	}
 	if ctx, _ := app.ParseContext(args); contextHasHelpFlag(ctx) {
-		usage := Usage(args, app, out, ioutil.Discard)
+		usage := Usage(args, app, out, io.Discard)
 		return errors.RemediationError{Prefix: usage}
 	}
-	app.Writers(out, ioutil.Discard)
+	app.Writers(out, io.Discard)
 
 	// As the `help` command model gets privately added as a side-effect of
 	// kingping.Parse, we cannot add the `--format json` flag to the model.
@@ -649,9 +648,9 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	// larger and more verbose help formatting is used.
 	if name == "help" {
 		var buf bytes.Buffer
-		app.Writers(&buf, ioutil.Discard)
+		app.Writers(&buf, io.Discard)
 		app.Parse(args)
-		app.Writers(out, ioutil.Discard)
+		app.Writers(out, io.Discard)
 
 		// The full-fat output of `fastly help` should have a hint at the bottom
 		// for more specific help. Unfortunately I don't know of a better way to
@@ -720,7 +719,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 
 	command, found := common.SelectCommand(name, commands)
 	if !found {
-		usage := Usage(args, app, out, ioutil.Discard)
+		usage := Usage(args, app, out, io.Discard)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
 	}
 
