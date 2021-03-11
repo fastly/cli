@@ -122,7 +122,7 @@ eval "$(fastly --completion-script-zsh)"
 
 ## Development
 
-The Fastly CLI requires [Go 1.13 or above](https://golang.org). Clone this repo
+The Fastly CLI requires [Go 1.16 or above](https://golang.org). Clone this repo
 to any path and type `make` to run all of the tests and generate a development
 build locally.
 

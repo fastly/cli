@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -13,12 +12,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
+	toml "github.com/pelletier/go-toml"
 )
 
 const (
@@ -46,8 +45,12 @@ type CargoManifest struct {
 }
 
 // Read the contents of the Cargo.toml manifest from filename.
-func (m *CargoManifest) Read(filename string) error {
-	_, err := toml.DecodeFile(filename, m)
+func (m *CargoManifest) Read(fpath string) error {
+	bs, err := os.ReadFile(fpath)
+	if err != nil {
+		return err
+	}
+	err = toml.Unmarshal(bs, m)
 	return err
 }
 
@@ -376,7 +379,7 @@ func getLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version,
 		return nil, fmt.Errorf("error fetching latest crate version: %s", resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

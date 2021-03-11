@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -58,10 +57,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "abcdef"`,
 				`email = "test@example.com"`,
 				`endpoint = "http://local.dev"`,
 				`last_version_check = ""`,
+				`token = "abcdef"`,
 			},
 		},
 		{
@@ -82,10 +81,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "abcdef"`,
 				`email = "test@example.com"`,
 				`endpoint = "http://staging.dev"`,
 				`last_version_check = ""`,
+				`token = "abcdef"`,
 			},
 		},
 		{
@@ -103,10 +102,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "abcdef"`,
 				`email = "test@example.com"`,
 				`endpoint = "https://api.fastly.com"`,
 				`last_version_check = ""`,
+				`token = "abcdef"`,
 			},
 		},
 		{
@@ -127,10 +126,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "1234"`,
 				`email = "test@example.com"`,
 				`endpoint = "https://api.fastly.com"`,
 				`last_version_check = ""`,
+				`token = "1234"`,
 			},
 		},
 		{
@@ -149,10 +148,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "hello"`,
 				`email = "test@example.com"`,
 				`endpoint = "https://api.fastly.com"`,
 				`last_version_check = ""`,
+				`token = "hello"`,
 			},
 		},
 		{
@@ -174,10 +173,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "new_token"`,
 				`email = "test@example.com"`,
 				`endpoint = "https://api.fastly.com"`,
 				`last_version_check = ""`,
+				`token = "new_token"`,
 			},
 		},
 		{
@@ -214,7 +213,7 @@ func TestConfigure(t *testing.T) {
 				testutil.AssertStringContains(t, out.String(), s)
 			}
 			if testcase.wantError == "" {
-				p, err := ioutil.ReadFile(configFilePath)
+				p, err := os.ReadFile(configFilePath)
 				testutil.AssertNoError(t, err)
 				testutil.AssertString(t, strings.Join(testcase.wantFile, "\n")+"\n", string(p))
 			}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"github.com/fastly/cli/pkg/common"
@@ -49,7 +48,7 @@ func (c *BatchCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	jsonBytes, err := ioutil.ReadAll(jsonFile)
+	jsonBytes, err := io.ReadAll(jsonFile)
 	if err != nil {
 		return err
 	}

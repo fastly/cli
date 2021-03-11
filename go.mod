@@ -1,9 +1,8 @@
 module github.com/fastly/cli
 
-go 1.14
+go 1.16
 
 require (
-	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/semver/v3 v3.1.0
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
@@ -24,6 +23,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.0
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/nicksnyder/go-i18n v1.10.1 // indirect
+	github.com/pelletier/go-toml v1.8.1
 	github.com/pierrec/lz4 v2.3.0+incompatible // indirect
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
