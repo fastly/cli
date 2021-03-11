@@ -12,12 +12,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
+	toml "github.com/pelletier/go-toml"
 )
 
 const (
@@ -45,8 +45,17 @@ type CargoManifest struct {
 }
 
 // Read the contents of the Cargo.toml manifest from filename.
-func (m *CargoManifest) Read(filename string) error {
-	_, err := toml.DecodeFile(filename, m)
+func (m *CargoManifest) Read(fpath string) error {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable.
+	// Disabling as we need to load the Cargo.toml from the user's file system.
+	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+	/* #nosec */
+	bs, err := os.ReadFile(fpath)
+	if err != nil {
+		return err
+	}
+	err = toml.Unmarshal(bs, m)
 	return err
 }
 

@@ -79,7 +79,7 @@ Verify it works by running `fastly version`.
 ```
 $ fastly version
 Fastly CLI version vX.Y.Z (abc0001)
-Built with go version go1.13.1 linux/amd64
+Built with go version go1.16 linux/amd64
 ```
 
 The Fastly CLI will notify you if a new version is available, and can update

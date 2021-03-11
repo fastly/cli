@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/BurntSushi/toml"
 	"github.com/fastly/cli/pkg/api"
+	toml "github.com/pelletier/go-toml"
 )
 
 // Source enumerates where a config parameter is taken from.
@@ -121,8 +121,17 @@ type File struct {
 }
 
 // Read the File and populate its fields from the filename on disk.
-func (f *File) Read(filename string) error {
-	_, err := toml.DecodeFile(filename, f)
+func (f *File) Read(fpath string) error {
+	// G304 (CWE-22): Potential file inclusion via variable.
+	// gosec flagged this:
+	// Disabling as we need to load the config.toml from the user's file system.
+	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+	/* #nosec */
+	bs, err := os.ReadFile(fpath)
+	if err != nil {
+		return err
+	}
+	err = toml.Unmarshal(bs, f)
 	return err
 }
 

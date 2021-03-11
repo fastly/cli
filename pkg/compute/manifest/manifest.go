@@ -3,7 +3,7 @@ package manifest
 import (
 	"os"
 
-	"github.com/BurntSushi/toml"
+	toml "github.com/pelletier/go-toml"
 )
 
 // Filename is the name of the package manifest file.
@@ -108,8 +108,17 @@ func (f *File) Exists() bool {
 }
 
 // Read loads the manifest file content from disk.
-func (f *File) Read(filename string) error {
-	_, err := toml.DecodeFile(filename, f)
+func (f *File) Read(fpath string) error {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable.
+	// Disabling as we need to load the fastly.toml from the user's file system.
+	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+	/* #nosec */
+	bs, err := os.ReadFile(fpath)
+	if err != nil {
+		return err
+	}
+	err = toml.Unmarshal(bs, f)
 	if err == nil {
 		f.exists = true
 	}
