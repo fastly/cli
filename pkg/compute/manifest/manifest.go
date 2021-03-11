@@ -1,7 +1,6 @@
 package manifest
 
 import (
-	"io/ioutil"
 	"os"
 
 	toml "github.com/pelletier/go-toml"
@@ -115,7 +114,7 @@ func (f *File) Read(fpath string) error {
 	// Disabling as we need to load the fastly.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
-	bs, err := ioutil.ReadFile(fpath)
+	bs, err := os.ReadFile(fpath)
 	if err != nil {
 		return err
 	}

@@ -52,7 +52,7 @@ func (m *CargoManifest) Read(fpath string) error {
 	// Disabling as we need to load the Cargo.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
-	bs, err := ioutil.ReadFile(fpath)
+	bs, err := os.ReadFile(fpath)
 	if err != nil {
 		return err
 	}
