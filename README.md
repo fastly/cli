@@ -79,7 +79,7 @@ Verify it works by running `fastly version`.
 ```
 $ fastly version
 Fastly CLI version vX.Y.Z (abc0001)
-Built with go version go1.13.1 linux/amd64
+Built with go version go1.16 linux/amd64
 ```
 
 The Fastly CLI will notify you if a new version is available, and can update
@@ -122,7 +122,7 @@ eval "$(fastly --completion-script-zsh)"
 
 ## Development
 
-The Fastly CLI requires [Go 1.13 or above](https://golang.org). Clone this repo
+The Fastly CLI requires [Go 1.16 or above](https://golang.org). Clone this repo
 to any path and type `make` to run all of the tests and generate a development
 build locally.
 

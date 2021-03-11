@@ -1,7 +1,7 @@
 package testutil
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -9,7 +9,7 @@ import (
 func MakeTempFile(t *testing.T, contents string) string {
 	t.Helper()
 
-	tmpfile, err := ioutil.TempFile("", "fastly-*")
+	tmpfile, err := os.CreateTemp("", "fastly-*")
 	if err != nil {
 		t.Fatal(err)
 	}
