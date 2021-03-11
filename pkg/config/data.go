@@ -123,6 +123,11 @@ type File struct {
 
 // Read the File and populate its fields from the filename on disk.
 func (f *File) Read(fpath string) error {
+	// G304 (CWE-22): Potential file inclusion via variable.
+	// gosec flagged this:
+	// Disabling as we need to load the config.toml from the user's file system.
+	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+	/* #nosec */
 	bs, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return err
