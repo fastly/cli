@@ -3,7 +3,7 @@ package manifest
 import (
 	"os"
 
-	toml "github.com/pelletier/go-toml"
+	"github.com/BurntSushi/toml"
 )
 
 // Filename is the name of the package manifest file.
@@ -108,12 +108,8 @@ func (f *File) Exists() bool {
 }
 
 // Read loads the manifest file content from disk.
-func (f *File) Read(fpath string) error {
-	bs, err := os.ReadFile(fpath)
-	if err != nil {
-		return err
-	}
-	err = toml.Unmarshal(bs, f)
+func (f *File) Read(filename string) error {
+	_, err := toml.DecodeFile(filename, f)
 	if err == nil {
 		f.exists = true
 	}

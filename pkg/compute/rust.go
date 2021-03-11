@@ -12,12 +12,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	toml "github.com/pelletier/go-toml"
 )
 
 const (
@@ -45,12 +45,8 @@ type CargoManifest struct {
 }
 
 // Read the contents of the Cargo.toml manifest from filename.
-func (m *CargoManifest) Read(fpath string) error {
-	bs, err := os.ReadFile(fpath)
-	if err != nil {
-		return err
-	}
-	err = toml.Unmarshal(bs, m)
+func (m *CargoManifest) Read(filename string) error {
+	_, err := toml.DecodeFile(filename, m)
 	return err
 }
 
