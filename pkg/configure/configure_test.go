@@ -57,10 +57,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "abcdef"`,
 				`email = "test@example.com"`,
 				`endpoint = "http://local.dev"`,
 				`last_version_check = ""`,
+				`token = "abcdef"`,
 			},
 		},
 		{
@@ -81,10 +81,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "abcdef"`,
 				`email = "test@example.com"`,
 				`endpoint = "http://staging.dev"`,
 				`last_version_check = ""`,
+				`token = "abcdef"`,
 			},
 		},
 		{
@@ -102,10 +102,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "abcdef"`,
 				`email = "test@example.com"`,
 				`endpoint = "https://api.fastly.com"`,
 				`last_version_check = ""`,
+				`token = "abcdef"`,
 			},
 		},
 		{
@@ -126,10 +126,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "1234"`,
 				`email = "test@example.com"`,
 				`endpoint = "https://api.fastly.com"`,
 				`last_version_check = ""`,
+				`token = "1234"`,
 			},
 		},
 		{
@@ -148,10 +148,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "hello"`,
 				`email = "test@example.com"`,
 				`endpoint = "https://api.fastly.com"`,
 				`last_version_check = ""`,
+				`token = "hello"`,
 			},
 		},
 		{
@@ -173,10 +173,10 @@ func TestConfigure(t *testing.T) {
 				"You can find your configuration file at",
 			},
 			wantFile: []string{
-				`token = "new_token"`,
 				`email = "test@example.com"`,
 				`endpoint = "https://api.fastly.com"`,
 				`last_version_check = ""`,
+				`token = "new_token"`,
 			},
 		},
 		{
