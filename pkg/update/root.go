@@ -9,6 +9,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/version"
 )
@@ -68,7 +69,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if err := os.Rename(latestPath, currentPath); err != nil {
-		if err := common.CopyFile(latestPath, currentPath); err != nil {
+		if err := filesystem.CopyFile(latestPath, currentPath); err != nil {
 			progress.Fail()
 			return fmt.Errorf("error moving latest binary in place: %w", err)
 		}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -52,7 +53,7 @@ func (a AssemblyScript) Verify(out io.Writer) error {
 		return fmt.Errorf("getting package.json path: %w", err)
 	}
 
-	if !common.FileExists(fpath) {
+	if !filesystem.FileExists(fpath) {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("package.json not found"),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm init")),
@@ -85,7 +86,7 @@ func (a AssemblyScript) Verify(out io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("getting asc path: %w", err)
 	}
-	if !common.FileExists(path) {
+	if !filesystem.FileExists(path) {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`asc` binary not found in %s", p),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev assemblyscript")),
@@ -126,7 +127,7 @@ func (a AssemblyScript) Initialize(out io.Writer) error {
 		return fmt.Errorf("getting package.json path: %w", err)
 	}
 
-	if !common.FileExists(fpath) {
+	if !filesystem.FileExists(fpath) {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("package.json not found"),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm init")),
@@ -151,7 +152,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 		return fmt.Errorf("getting current working directory: %w", err)
 	}
 	binDir := filepath.Join(pwd, "bin")
-	if err := common.MakeDirectoryIfNotExists(binDir); err != nil {
+	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
 		return fmt.Errorf("making bin directory: %w", err)
 	}
 

@@ -101,9 +101,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Persisting configuration...")
 
 	// Set everything in the File struct based on provided user input.
-	c.Globals.File.Token = token
-	c.Globals.File.Email = user.Login
-	c.Globals.File.Endpoint = endpoint
+	c.Globals.File.User.Token = token
+	c.Globals.File.User.Email = user.Login
+	c.Globals.File.Fastly.APIEndpoint = endpoint
 
 	// Make sure the config file directory exists.
 	dir := filepath.Dir(c.configFilePath)

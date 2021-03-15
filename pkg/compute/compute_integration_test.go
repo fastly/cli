@@ -49,9 +49,13 @@ func TestInit(t *testing.T) {
 			wantError: "no token provided",
 		},
 		{
-			name:       "unkown repository",
-			args:       []string{"compute", "init", "--from", "https://example.com/template"},
-			configFile: config.File{Token: "123"},
+			name: "unkown repository",
+			args: []string{"compute", "init", "--from", "https://example.com/template"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -65,9 +69,22 @@ func TestInit(t *testing.T) {
 			wantError: "error fetching package template:",
 		},
 		{
-			name:       "create service error",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "create service error",
+			args: []string{"compute", "init"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -76,9 +93,22 @@ func TestInit(t *testing.T) {
 			wantError: "error creating service: fixture error",
 		},
 		{
-			name:       "create domain error",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "create domain error",
+			args: []string{"compute", "init"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -89,9 +119,22 @@ func TestInit(t *testing.T) {
 			wantError: "error creating domain: fixture error",
 		},
 		{
-			name:       "create backend error",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "create backend error",
+			args: []string{"compute", "init"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -104,9 +147,22 @@ func TestInit(t *testing.T) {
 			wantError: "error creating backend: fixture error",
 		},
 		{
-			name:       "with name",
-			args:       []string{"compute", "init", "--name", "test"},
-			configFile: config.File{Token: "123"},
+			name: "with name",
+			args: []string{"compute", "init", "--name", "test"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -122,9 +178,22 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "test"`,
 		},
 		{
-			name:       "with service",
-			args:       []string{"compute", "init", "-s", "test"},
-			configFile: config.File{Token: "123"},
+			name: "with service",
+			args: []string{"compute", "init", "-s", "test"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -142,9 +211,22 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "test"`,
 		},
 		{
-			name:       "with description",
-			args:       []string{"compute", "init", "--description", "test"},
-			configFile: config.File{Token: "123"},
+			name: "with description",
+			args: []string{"compute", "init", "--description", "test"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -160,9 +242,22 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `description = "test"`,
 		},
 		{
-			name:       "with author",
-			args:       []string{"compute", "init", "--author", "test@example.com"},
-			configFile: config.File{Token: "123"},
+			name: "with author",
+			args: []string{"compute", "init", "--author", "test@example.com"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -178,9 +273,22 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `authors = ["test@example.com"]`,
 		},
 		{
-			name:       "with multiple authors",
-			args:       []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
-			configFile: config.File{Token: "123"},
+			name: "with multiple authors",
+			args: []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -197,9 +305,22 @@ func TestInit(t *testing.T) {
 		},
 
 		{
-			name:       "with from repository and branch",
-			args:       []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
-			configFile: config.File{Token: "123"},
+			name: "with from repository and branch",
+			args: []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -214,9 +335,22 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
-			name:       "with existing package manifest",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "with existing package manifest",
+			args: []string{"compute", "init"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			manifest: strings.Join([]string{
 				"manifest_version = \"1\"",
 				"service_id = \"1234\"",
@@ -245,8 +379,19 @@ func TestInit(t *testing.T) {
 			name: "default",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				Token: "123",
-				Email: "test@example.com",
+				User: config.User{
+					Token: "123",
+					Email: "test@example.com",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
 			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
@@ -274,9 +419,22 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
-			name:       "with default name inferred from directory",
-			args:       []string{"compute", "init"},
-			configFile: config.File{Token: "123"},
+			name: "with default name inferred from directory",
+			args: []string{"compute", "init"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -287,9 +445,22 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "fastly-init`,
 		},
 		{
-			name:       "with AssemblyScript language",
-			args:       []string{"compute", "init", "--language", "assemblyscript"},
-			configFile: config.File{Token: "123"},
+			name: "with AssemblyScript language",
+			args: []string{"compute", "init", "--language", "assemblyscript"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+				},
+				StarterKits: config.StarterKitLanguages{
+					AssemblyScript: []config.StarterKit{
+						{
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
+							Tag:  "v0.2.0",
+						},
+					},
+				},
+			},
 			api: mock.API{
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
@@ -382,6 +553,7 @@ func TestBuildRust(t *testing.T) {
 	for _, testcase := range []struct {
 		name                 string
 		args                 []string
+		applicationConfig    config.File
 		fastlyManifest       string
 		cargoManifest        string
 		cargoLock            string
@@ -420,9 +592,9 @@ func TestBuildRust(t *testing.T) {
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
-			language = "javascript"`,
+			language = "foobar"`,
 			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
-			wantError: "unsupported language javascript",
+			wantError: "unsupported language foobar",
 		},
 		{
 			name: "error reading cargo metadata",
@@ -431,9 +603,22 @@ func TestBuildRust(t *testing.T) {
 			manifest_version = 1
 			name = "test"
 			language = "rust"`,
-			cargoManifest: "[package]\nname = \"test\"",
-			client:        versionClient{fastlyVersions: []string{"0.4.0"}},
-			wantError:     "reading cargo metadata",
+			cargoManifest: `
+			[package]
+			name = "test"`,
+			client:    versionClient{fastlyVersions: []string{"0.4.0"}},
+			wantError: "reading cargo metadata",
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						// TODO: pull actual version from .github/workflows/pr_test.yml
+						// when doing local run of integration tests.
+						ToolchainVersion:    "1.49.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: "0.0.0",
+					},
+				},
+			},
 		},
 		{
 			name: "fastly-sys crate not found",
@@ -442,13 +627,34 @@ func TestBuildRust(t *testing.T) {
 			manifest_version = 1
 			name = "test"
 			language = "rust"`,
-			cargoManifest: "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.3.2\"",
-			cargoLock:     "[[package]]\nname = \"test\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"fastly\"\nversion = \"0.3.2\"",
-			client: versionClient{
-				fastlyVersions:    []string{"0.4.0"},
-				fastlySysVersions: []string{"0.0.0"}, // included to stop REST API failing to not find crate
+			cargoManifest: `
+			[package]
+			name = "test"
+			version = "0.1.0"
+
+			[dependencies]
+			fastly = "=0.3.2"`,
+			cargoLock: `
+			[[package]]
+			name = "test"
+			version = "0.1.0"
+
+			[[package]]
+			name = "fastly"
+			version = "0.3.2"`,
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						ToolchainVersion:    "1.49.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: "0.0.0",
+					},
+				},
 			},
-			wantError:            "fastly-sys crate not found",
+			client: versionClient{
+				fastlyVersions: []string{"0.4.0"},
+			},
+			wantError:            "fastly-sys crate not found", // fastly 0.3.3 is where fastly-sys was introduced
 			wantRemediationError: "fastly = \"^0.4.0\"",
 		},
 		{
@@ -458,14 +664,31 @@ func TestBuildRust(t *testing.T) {
 			manifest_version = 1
 			name = "test"
 			language = "rust"`,
-			cargoManifest: "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.4.0\"",
-			cargoLock:     "[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.7\"",
+			cargoManifest: `
+			[package]
+			name = "test"
+			version = "0.1.0"
+
+			[dependencies]
+			fastly = "=0.4.0"`,
+			cargoLock: `
+			[[package]]
+			name = "fastly-sys"
+			version = "0.3.7"`,
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						ToolchainVersion:    "1.49.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: ">= 0.4.0 <= 0.9.0", // the fastly-sys version in 0.6.0 is actually ^0.3.6 so a minimum of 0.4.0 causes the constraint to fail
+					},
+				},
+			},
 			client: versionClient{
-				fastlyVersions:    []string{"0.5.0"},
-				fastlySysVersions: []string{"0.4.0"},
+				fastlyVersions: []string{"0.6.0"},
 			},
 			wantError:            "fastly crate not up-to-date",
-			wantRemediationError: "fastly = \"^0.5.0\"",
+			wantRemediationError: "fastly = \"^0.6.0\"",
 		},
 		{
 			name: "fastly crate prerelease",
@@ -474,39 +697,68 @@ func TestBuildRust(t *testing.T) {
 			manifest_version = 1
 			name = "test"
 			language = "rust"`,
-			cargoManifest: strings.Join([]string{
-				"[package]",
-				"name = \"test\"",
-				"version = \"0.1.0\"\n",
-				"[dependencies]",
-				"fastly = \"0.6.0\"",
-			}, "\n"),
-			cargoLock: strings.Join([]string{
-				"[[package]]",
-				"name = \"fastly-sys\"",
-				"version = \"0.3.7\"\n",
-				"[[package]]",
-				"name = \"fastly\"",
-				"version = \"0.6.0\"",
-			}, "\n"),
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						ToolchainVersion:    "1.49.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
+					},
+				},
+			},
+			cargoManifest: `
+			[package]
+			name = "test"
+			version = "0.1.0"
+
+			[dependencies]
+			fastly = "0.6.0"`,
+			cargoLock: `
+			[[package]]
+			name = "fastly-sys"
+			version = "0.3.7"
+
+			[[package]]
+			name = "fastly"
+			version = "0.6.0"`,
 			client: versionClient{
-				fastlyVersions:    []string{"0.6.0"},
-				fastlySysVersions: []string{"0.3.7"},
+				fastlyVersions: []string{"0.6.0"},
 			},
 			wantOutputContains: "Built rust package test",
 		},
 		{
 			name: "Rust success",
 			args: []string{"compute", "build"},
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						ToolchainVersion:    "1.49.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
+					},
+				},
+			},
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
 			language = "rust"`,
-			cargoManifest: "[package]\nname = \"test\"\nversion = \"0.1.0\"\n\n[dependencies]\nfastly = \"=0.6.0\"",
-			cargoLock:     "[[package]]\nname = \"fastly\"\nversion = \"0.6.0\"\n\n[[package]]\nname = \"fastly-sys\"\nversion = \"0.3.7\"",
+			cargoManifest: `
+			[package]
+			name = "test"
+			version = "0.1.0"
+
+			[dependencies]
+			fastly = "=0.6.0"`,
+			cargoLock: `
+			[[package]]
+			name = "fastly"
+			version = "0.6.0"
+
+			[[package]]
+			name = "fastly-sys"
+			version = "0.3.7"`,
 			client: versionClient{
-				fastlyVersions:    []string{"0.6.0"},
-				fastlySysVersions: []string{"0.3.7"},
+				fastlyVersions: []string{"0.6.0"},
 			},
 			wantOutputContains: "Built rust package test",
 		},
@@ -535,7 +787,7 @@ func TestBuildRust(t *testing.T) {
 			var (
 				args                           = testcase.args
 				env                            = config.Environment{}
-				file                           = config.File{}
+				file                           = testcase.applicationConfig
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = testcase.client
