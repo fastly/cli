@@ -56,29 +56,31 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `[fastly]
-  api_endpoint = "http://local.dev"
-
+			wantFile: `
 [cli]
+  last_checked = ""
   remote_config = ""
   ttl = ""
-  last_checked = ""
 
-[user]
-  token = "abcdef"
-  email = "test@example.com"
+[fastly]
+  api_endpoint = "http://local.dev"
 
 [language]
+
   [language.rust]
+    fastly_sys_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
-    fastly_sys_constraint = ""
+
+[legacy]
+  email = ""
+  token = ""
 
 [starter-kits]
 
-[legacy]
-  token = ""
-  email = ""
+[user]
+  email = "test@example.com"
+  token = "abcdef"
 `,
 		},
 		{
@@ -98,29 +100,31 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `[fastly]
-  api_endpoint = "http://staging.dev"
-
+			wantFile: `
 [cli]
+  last_checked = ""
   remote_config = ""
   ttl = ""
-  last_checked = ""
 
-[user]
-  token = "abcdef"
-  email = "test@example.com"
+[fastly]
+  api_endpoint = "http://staging.dev"
 
 [language]
+
   [language.rust]
+    fastly_sys_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
-    fastly_sys_constraint = ""
+
+[legacy]
+  email = ""
+  token = ""
 
 [starter-kits]
 
-[legacy]
-  token = ""
-  email = ""
+[user]
+  email = "test@example.com"
+  token = "abcdef"
 `,
 		},
 		{
@@ -137,29 +141,31 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `[fastly]
-  api_endpoint = "https://api.fastly.com"
-
+			wantFile: `
 [cli]
+  last_checked = ""
   remote_config = ""
   ttl = ""
-  last_checked = ""
 
-[user]
-  token = "abcdef"
-  email = "test@example.com"
+[fastly]
+  api_endpoint = "https://api.fastly.com"
 
 [language]
+
   [language.rust]
+    fastly_sys_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
-    fastly_sys_constraint = ""
+
+[legacy]
+  email = ""
+  token = ""
 
 [starter-kits]
 
-[legacy]
-  token = ""
-  email = ""
+[user]
+  email = "test@example.com"
+  token = "abcdef"
 `,
 		},
 		{
@@ -179,29 +185,31 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `[fastly]
-  api_endpoint = "https://api.fastly.com"
-
+			wantFile: `
 [cli]
+  last_checked = ""
   remote_config = ""
   ttl = ""
-  last_checked = ""
 
-[user]
-  token = "1234"
-  email = "test@example.com"
+[fastly]
+  api_endpoint = "https://api.fastly.com"
 
 [language]
+
   [language.rust]
+    fastly_sys_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
-    fastly_sys_constraint = ""
+
+[legacy]
+  email = ""
+  token = ""
 
 [starter-kits]
 
-[legacy]
-  token = ""
-  email = ""
+[user]
+  email = "test@example.com"
+  token = "1234"
 `,
 		},
 		{
@@ -219,29 +227,31 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `[fastly]
-  api_endpoint = "https://api.fastly.com"
-
+			wantFile: `
 [cli]
+  last_checked = ""
   remote_config = ""
   ttl = ""
-  last_checked = ""
 
-[user]
-  token = "hello"
-  email = "test@example.com"
+[fastly]
+  api_endpoint = "https://api.fastly.com"
 
 [language]
+
   [language.rust]
+    fastly_sys_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
-    fastly_sys_constraint = ""
+
+[legacy]
+  email = ""
+  token = ""
 
 [starter-kits]
 
-[legacy]
-  token = ""
-  email = ""
+[user]
+  email = "test@example.com"
+  token = "hello"
 `,
 		},
 		{
@@ -262,29 +272,31 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `[fastly]
-  api_endpoint = "https://api.fastly.com"
-
+			wantFile: `
 [cli]
+  last_checked = ""
   remote_config = ""
   ttl = ""
-  last_checked = ""
 
-[user]
-  token = "new_token"
-  email = "test@example.com"
+[fastly]
+  api_endpoint = "https://api.fastly.com"
 
 [language]
+
   [language.rust]
+    fastly_sys_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
-    fastly_sys_constraint = ""
+
+[legacy]
+  email = ""
+  token = ""
 
 [starter-kits]
 
-[legacy]
-  token = ""
-  email = ""
+[user]
+  email = "test@example.com"
+  token = "new_token"
 `,
 		},
 		{

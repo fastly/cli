@@ -570,7 +570,7 @@ func validateLanguageOption(languages []*Language) func(string) error {
 	}
 }
 
-func validateTemplateOptionOrURL(templates []config.ConfigStarterKit) func(string) error {
+func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) error {
 	return func(input string) error {
 		msg := "must be a valid option or Git URL"
 		if input == "" {

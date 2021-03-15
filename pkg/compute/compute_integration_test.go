@@ -52,7 +52,7 @@ func TestInit(t *testing.T) {
 			name: "unkown repository",
 			args: []string{"compute", "init", "--from", "https://example.com/template"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
 			},
@@ -72,11 +72,11 @@ func TestInit(t *testing.T) {
 			name: "create service error",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -96,11 +96,11 @@ func TestInit(t *testing.T) {
 			name: "create domain error",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -122,11 +122,11 @@ func TestInit(t *testing.T) {
 			name: "create backend error",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -150,11 +150,11 @@ func TestInit(t *testing.T) {
 			name: "with name",
 			args: []string{"compute", "init", "--name", "test"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -181,11 +181,11 @@ func TestInit(t *testing.T) {
 			name: "with service",
 			args: []string{"compute", "init", "-s", "test"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -214,11 +214,11 @@ func TestInit(t *testing.T) {
 			name: "with description",
 			args: []string{"compute", "init", "--description", "test"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -245,11 +245,11 @@ func TestInit(t *testing.T) {
 			name: "with author",
 			args: []string{"compute", "init", "--author", "test@example.com"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -276,11 +276,11 @@ func TestInit(t *testing.T) {
 			name: "with multiple authors",
 			args: []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -308,11 +308,11 @@ func TestInit(t *testing.T) {
 			name: "with from repository and branch",
 			args: []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -338,11 +338,11 @@ func TestInit(t *testing.T) {
 			name: "with existing package manifest",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -379,12 +379,12 @@ func TestInit(t *testing.T) {
 			name: "default",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 					Email: "test@example.com",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -422,11 +422,11 @@ func TestInit(t *testing.T) {
 			name: "with default name inferred from directory",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					Rust: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
@@ -448,11 +448,11 @@ func TestInit(t *testing.T) {
 			name: "with AssemblyScript language",
 			args: []string{"compute", "init", "--language", "assemblyscript"},
 			configFile: config.File{
-				User: config.ConfigUser{
+				User: config.User{
 					Token: "123",
 				},
-				StarterKits: config.ConfigStarterKitLanguages{
-					AssemblyScript: []config.ConfigStarterKit{
+				StarterKits: config.StarterKitLanguages{
+					AssemblyScript: []config.StarterKit{
 						{
 							Name: "Default",
 							Path: "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
@@ -609,8 +609,8 @@ func TestBuildRust(t *testing.T) {
 			client:    versionClient{fastlyVersions: []string{"0.4.0"}},
 			wantError: "reading cargo metadata",
 			applicationConfig: config.File{
-				Language: config.ConfigLanguage{
-					Rust: config.ConfigRust{
+				Language: config.Language{
+					Rust: config.Rust{
 						// TODO: pull actual version from .github/workflows/pr_test.yml
 						// when doing local run of integration tests.
 						ToolchainVersion:    "1.49.0",
@@ -643,8 +643,8 @@ func TestBuildRust(t *testing.T) {
 			name = "fastly"
 			version = "0.3.2"`,
 			applicationConfig: config.File{
-				Language: config.ConfigLanguage{
-					Rust: config.ConfigRust{
+				Language: config.Language{
+					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: "0.0.0",
@@ -676,8 +676,8 @@ func TestBuildRust(t *testing.T) {
 			name = "fastly-sys"
 			version = "0.3.7"`,
 			applicationConfig: config.File{
-				Language: config.ConfigLanguage{
-					Rust: config.ConfigRust{
+				Language: config.Language{
+					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.4.0 <= 0.9.0", // the fastly-sys version in 0.6.0 is actually ^0.3.6 so a minimum of 0.4.0 causes the constraint to fail
@@ -698,8 +698,8 @@ func TestBuildRust(t *testing.T) {
 			name = "test"
 			language = "rust"`,
 			applicationConfig: config.File{
-				Language: config.ConfigLanguage{
-					Rust: config.ConfigRust{
+				Language: config.Language{
+					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
@@ -730,8 +730,8 @@ func TestBuildRust(t *testing.T) {
 			name: "Rust success",
 			args: []string{"compute", "build"},
 			applicationConfig: config.File{
-				Language: config.ConfigLanguage{
-					Rust: config.ConfigRust{
+				Language: config.Language{
+					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",

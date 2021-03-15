@@ -33,7 +33,7 @@ type Toolchain interface {
 type Language struct {
 	Name            string
 	DisplayName     string
-	StarterKits     []config.ConfigStarterKit
+	StarterKits     []config.StarterKit
 	SourceDirectory string
 	IncludeFiles    []string
 
@@ -44,7 +44,7 @@ type Language struct {
 type LanguageOptions struct {
 	Name            string
 	DisplayName     string
-	StarterKits     []config.ConfigStarterKit
+	StarterKits     []config.StarterKit
 	SourceDirectory string
 	IncludeFiles    []string
 	Toolchain       Toolchain

@@ -102,7 +102,7 @@ func TestCheckAsync(t *testing.T) {
 		{
 			name: "no last_check new version",
 			file: config.File{
-				CLI: config.ConfigCLI{
+				CLI: config.CLI{
 					TTL: "24h",
 				},
 			},
@@ -113,7 +113,7 @@ func TestCheckAsync(t *testing.T) {
 		{
 			name: "recent last_check new version",
 			file: config.File{
-				CLI: config.ConfigCLI{
+				CLI: config.CLI{
 					LastChecked: time.Now().Add(-4 * time.Hour).Format(time.RFC3339),
 				},
 			},

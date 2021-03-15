@@ -152,42 +152,42 @@ type LegacyFile struct {
 
 // File represents our dynamic application toml configuration.
 type File struct {
-	Fastly      ConfigFastly              `toml:"fastly"`
-	CLI         ConfigCLI                 `toml:"cli"`
-	User        ConfigUser                `toml:"user"`
-	Language    ConfigLanguage            `toml:"language"`
-	StarterKits ConfigStarterKitLanguages `toml:"starter-kits"`
+	Fastly      Fastly              `toml:"fastly"`
+	CLI         CLI                 `toml:"cli"`
+	User        User                `toml:"user"`
+	Language    Language            `toml:"language"`
+	StarterKits StarterKitLanguages `toml:"starter-kits"`
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.
 	Legacy LegacyFile `toml:"legacy"`
 }
 
-// ConfigFastly represents fastly specific configuration.
-type ConfigFastly struct {
+// Fastly represents fastly specific configuration.
+type Fastly struct {
 	APIEndpoint string `toml:"api_endpoint"`
 }
 
-// ConfigCLI represents CLI specific configuration.
-type ConfigCLI struct {
+// CLI represents CLI specific configuration.
+type CLI struct {
 	RemoteConfig string `toml:"remote_config"`
 	TTL          string `toml:"ttl"`
 	LastChecked  string `toml:"last_checked"`
 }
 
-// ConfigUser represents user specific configuration.
-type ConfigUser struct {
+// User represents user specific configuration.
+type User struct {
 	Token string `toml:"token"`
 	Email string `toml:"email"`
 }
 
-// ConfigLanguage represents C@E language specific configuration.
-type ConfigLanguage struct {
-	Rust ConfigRust `toml:"rust"`
+// Language represents C@E language specific configuration.
+type Language struct {
+	Rust Rust `toml:"rust"`
 }
 
-// ConfigRust represents Rust C@E language specific configuration.
-type ConfigRust struct {
+// Rust represents Rust C@E language specific configuration.
+type Rust struct {
 	// ToolchainVersion is the `rustup` toolchain string for the compiler that we
 	// support
 	ToolchainVersion string `toml:"toolchain_version"`
@@ -200,14 +200,14 @@ type ConfigRust struct {
 	FastlySysConstraint string `toml:"fastly_sys_constraint"`
 }
 
-// ConfigStarterKitLanguages represents language specific starter kits.
-type ConfigStarterKitLanguages struct {
-	AssemblyScript []ConfigStarterKit `toml:"assemblyscript"`
-	Rust           []ConfigStarterKit `toml:"rust"`
+// StarterKitLanguages represents language specific starter kits.
+type StarterKitLanguages struct {
+	AssemblyScript []StarterKit `toml:"assemblyscript"`
+	Rust           []StarterKit `toml:"rust"`
 }
 
-// ConfigStarterKit represents starter kit specific configuration.
-type ConfigStarterKit struct {
+// StarterKit represents starter kit specific configuration.
+type StarterKit struct {
 	Name   string `toml:"name"`
 	Path   string `toml:"path"`
 	Tag    string `toml:"tag"`
@@ -269,6 +269,9 @@ func (f *File) Read(fpath string) error {
 		return err
 	}
 	err = toml.Unmarshal(bs, f)
+	if err != nil {
+		return err
+	}
 
 	// The top-level 'endpoint' key is what we're using to identify whether the
 	// local config.toml file is using the legacy format. If we find that key,
@@ -292,7 +295,7 @@ func (f *File) Read(fpath string) error {
 		return ErrLegacyConfig
 	}
 
-	return err
+	return nil
 }
 
 // Write the instance of File to a local application config file.
