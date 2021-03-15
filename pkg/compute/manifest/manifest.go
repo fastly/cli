@@ -96,16 +96,81 @@ func (d *Data) Authors() ([]string, Source) {
 	return []string{}, SourceUndefined
 }
 
+// ManifestVersion represents the currently supported schema for the
+// fastly.toml manifest file that determines the configuration for a
+// compute@edge service.
+type ManifestVersion struct {
+	int
+}
+
+// UnmarshalText manages multiple scenarios where historically the manifest
+// version was a string value and not an integer.
+//
+// Example mappings:
+//
+// "0.1.0" -> 1
+// "1"     -> 1
+// 1       -> 1
+// "1.0.0" -> 1
+// 0.1     -> 1
+// "0.2.0" -> 1
+// "2.0.0" -> 2
+//
+// We also constrain the version so that if a user has a manifest_version
+// defined as "99.0.0" then we won't accidentally store it as the integer 99
+// but instead will return an error because it exceeds the current
+// ManifestLatestVersion version of 1.
+func (v *ManifestVersion) UnmarshalText(text []byte) error {
+	var err error
+
+	s := string(text)
+
+	if v.int, err = strconv.Atoi(s); err == nil {
+		return nil
+	}
+
+	if f, err := strconv.ParseFloat(s, 32); err == nil {
+		intfl := int(f)
+		if intfl == 0 {
+			v.int = 1
+		} else {
+			v.int = intfl
+		}
+		return nil
+	}
+
+	if strings.Contains(s, ".") {
+		segs := strings.Split(s, ".")
+
+		// A length of 3 presumes a semver (e.g. 0.1.0)
+		if len(segs) == 3 {
+			if segs[0] != "0" {
+				if v.int, err = strconv.Atoi(segs[0]); err == nil {
+					if v.int > ManifestLatestVersion {
+						return errors.ErrUnrecognisedManifestVersion
+					}
+					return nil
+				}
+			} else {
+				v.int = 1
+				return nil
+			}
+		}
+	}
+
+	return errors.ErrUnrecognisedManifestVersion
+}
+
 // File represents all of the configuration parameters in the fastly.toml
 // manifest file schema.
 type File struct {
-	ManifestVersion string   `toml:"manifest_version"`
-	Version         int      `toml:"version"`
-	Name            string   `toml:"name"`
-	Description     string   `toml:"description"`
-	Authors         []string `toml:"authors"`
-	Language        string   `toml:"language"`
-	ServiceID       string   `toml:"service_id"`
+	ManifestVersion ManifestVersion `toml:"manifest_version"`
+	Version         int             `toml:"version"`
+	Name            string          `toml:"name"`
+	Description     string          `toml:"description"`
+	Authors         []string        `toml:"authors"`
+	Language        string          `toml:"language"`
+	ServiceID       string          `toml:"service_id"`
 
 	exists bool
 }
@@ -126,33 +191,19 @@ func (f *File) Read(fpath string) error {
 	if err != nil {
 		return err
 	}
+
 	err = toml.Unmarshal(bs, f)
-	if err == nil {
-		f.exists = true
-
-		if f.ManifestVersion == "" {
-			return errors.ErrMissingManifestVersion
-		}
-
-		// historically before settling on an integer type, the manifest_version
-		// was using a form of semantic versioning which never went above 0.1.0
-		if strings.Contains(f.ManifestVersion, ".") {
-			if f.ManifestVersion != "0.1.0" {
-				return errors.ErrUnrecognisedManifestVersion
-			}
-		} else {
-			manifestVersion, err := strconv.Atoi(f.ManifestVersion)
-			if err != nil {
-				return errors.ErrUnrecognisedManifestVersion
-			}
-
-			if manifestVersion < 1 || manifestVersion > ManifestLatestVersion {
-				return errors.ErrUnrecognisedManifestVersion
-			}
-		}
+	if err != nil {
+		return err
 	}
 
-	return err
+	f.exists = true
+
+	if f.ManifestVersion.int == 0 {
+		return errors.ErrMissingManifestVersion
+	}
+
+	return nil
 }
 
 // Write persists the manifest content to disk.

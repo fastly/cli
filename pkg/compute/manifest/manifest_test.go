@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestManifest(t *testing.T) {
 		expectedError error
 	}{
 		"valid: semver": {
-			manifest: "fastly-valid.toml",
+			manifest: "fastly-valid-semver.toml",
 			valid:    true,
 		},
 		"valid: integer": {
@@ -24,17 +25,17 @@ func TestManifest(t *testing.T) {
 			valid:    true,
 		},
 		"invalid: missing manifest_version": {
-			manifest:      "fastly-invalid.toml",
+			manifest:      "fastly-invalid-missing-version.toml",
 			valid:         false,
 			expectedError: errs.ErrMissingManifestVersion,
 		},
 		"invalid: manifest_version Atoi error": {
-			manifest:      "fastly-invalid-version.toml",
+			manifest:      "fastly-invalid-unrecognised.toml",
 			valid:         false,
 			expectedError: errs.ErrUnrecognisedManifestVersion,
 		},
-		"unrecognised: manifest_version set to unknown version": {
-			manifest:      "fastly-unrecognised.toml",
+		"unrecognised: manifest_version exceeded limit": {
+			manifest:      "fastly-invalid-version-exceeded.toml",
 			valid:         false,
 			expectedError: errs.ErrUnrecognisedManifestVersion,
 		},
@@ -59,8 +60,8 @@ func TestManifest(t *testing.T) {
 			} else {
 				// otherwise if we expect the manifest to be invalid/unrecognised then
 				// the error should match our expectations.
-				if err != tc.expectedError {
-					t.Fatalf("incorrect error type: %s", err)
+				if !errors.As(err, &tc.expectedError) {
+					t.Fatalf("incorrect error type: %T, expected: %T", err, tc.expectedError)
 				}
 			}
 		})
