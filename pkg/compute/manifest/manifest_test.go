@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -43,6 +44,7 @@ func TestManifest(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			var m File
+			m.SetOutput(os.Stdout)
 
 			path, err := filepath.Abs(filepath.Join(prefix, tc.manifest))
 			if err != nil {

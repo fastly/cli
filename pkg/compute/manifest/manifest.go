@@ -1,11 +1,13 @@
 package manifest
 
 import (
+	"io"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
 )
 
@@ -180,11 +182,17 @@ type File struct {
 	ServiceID       string   `toml:"service_id"`
 
 	exists bool
+	output io.Writer
 }
 
 // Exists yields whether the manifest exists.
 func (f *File) Exists() bool {
 	return f.exists
+}
+
+// SetOutput sets the output stream for any messages.
+func (f *File) SetOutput(output io.Writer) {
+	f.output = output
 }
 
 // Read loads the manifest file content from disk.
@@ -208,6 +216,9 @@ func (f *File) Read(fpath string) error {
 
 	if f.ManifestVersion.int == 0 {
 		f.ManifestVersion.int = 1
+
+		// TODO: Provide link to v1 schema once published publicly.
+		text.Warning(f.output, "The fastly.toml was missing a manifest_version so the schema version 1 will be used.")
 	}
 
 	return nil
