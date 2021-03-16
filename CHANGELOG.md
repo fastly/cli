@@ -1,6 +1,14 @@
 # Changelog
 
-## [v0.25.0](https://github.com/fastly/cli/releases/tag/v0.25.0) (2021-03-15)
+## [v0.25.1](https://github.com/fastly/cli/releases/tag/v0.25.1) (2021-03-16)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.25.0...v0.25.1)
+
+**Bug fixes:**
+
+- The manifest\_version should default to 1 if missing. [\#214](https://github.com/fastly/cli/pull/214)
+
+## [v0.25.0](https://github.com/fastly/cli/releases/tag/v0.25.0) (2021-03-16)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.24.2...v0.25.0)
 
