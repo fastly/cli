@@ -227,6 +227,7 @@ func (f *File) Read(fpath string) error {
 		// global output is passed around.
 		once.Do(func() {
 			text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
+			text.Break(f.output)
 		})
 	}
 
