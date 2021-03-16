@@ -207,7 +207,7 @@ func (f *File) Read(fpath string) error {
 	f.exists = true
 
 	if f.ManifestVersion.int == 0 {
-		return errors.ErrMissingManifestVersion
+		f.ManifestVersion.int = 1
 	}
 
 	return nil

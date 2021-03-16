@@ -24,10 +24,9 @@ func TestManifest(t *testing.T) {
 			manifest: "fastly-valid-integer.toml",
 			valid:    true,
 		},
-		"invalid: missing manifest_version": {
-			manifest:      "fastly-invalid-missing-version.toml",
-			valid:         false,
-			expectedError: errs.ErrMissingManifestVersion,
+		"invalid: missing manifest_version causes default to be set": {
+			manifest: "fastly-invalid-missing-version.toml",
+			valid:    true,
 		},
 		"invalid: manifest_version Atoi error": {
 			manifest:      "fastly-invalid-unrecognised.toml",
