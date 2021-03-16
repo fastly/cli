@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.25.2](https://github.com/fastly/cli/releases/tag/v0.25.2) (2021-03-16)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.25.1...v0.25.2)
+
+**Bug fixes:**
+
+- Fix duplicate warning messages and missing SetOutput\(\). [\#216](https://github.com/fastly/cli/pull/216)
+
 ## [v0.25.1](https://github.com/fastly/cli/releases/tag/v0.25.1) (2021-03-16)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.25.0...v0.25.1)
