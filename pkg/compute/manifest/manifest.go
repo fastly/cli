@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
@@ -33,6 +34,8 @@ const (
 	// SourceFlag indicates the parameter came from an explicit flag.
 	SourceFlag
 )
+
+var once sync.Once
 
 // Data holds global-ish manifest data from manifest files, and flag sources.
 // It has methods to give each parameter to the components that need it,
@@ -218,7 +221,14 @@ func (f *File) Read(fpath string) error {
 		f.ManifestVersion.int = 1
 
 		// TODO: Provide link to v1 schema once published publicly.
-		text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
+		//
+		// NOTE: the use of once is a quick-fix to side-step duplicate outputs.
+		// To fix this properly will require a refactor of the structure of how our
+		// global output is passed around.
+		once.Do(func() {
+			text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
+			text.Break(f.output)
+		})
 	}
 
 	return nil

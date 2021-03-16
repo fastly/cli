@@ -103,6 +103,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Verifying package manifest...")
 
 	var m manifest.File
+	m.SetOutput(c.Globals.Output)
 	if err := m.Read(ManifestFilename); err != nil {
 		return fmt.Errorf("error reading package manifest: %w", err)
 	}
