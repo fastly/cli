@@ -22,6 +22,7 @@ type LockCommand struct {
 func NewLockCommand(parent common.Registerer, globals *config.Data) *LockCommand {
 	var c LockCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("lock", "Lock a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)

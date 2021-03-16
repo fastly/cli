@@ -21,6 +21,7 @@ type SearchCommand struct {
 func NewSearchCommand(parent common.Registerer, globals *config.Data) *SearchCommand {
 	var c SearchCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("search", "Search for a Fastly service by name")
 	c.CmdClause.Flag("name", "Service name").Short('n').StringVar(&c.Input.Name)

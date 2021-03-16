@@ -29,6 +29,7 @@ type DeployCommand struct {
 func NewDeployCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *DeployCommand {
 	var c DeployCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)

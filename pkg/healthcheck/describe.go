@@ -23,6 +23,7 @@ type DescribeCommand struct {
 func NewDescribeCommand(parent common.Registerer, globals *config.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("describe", "Show detailed information about a healthcheck on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)

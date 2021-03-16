@@ -40,6 +40,7 @@ type CreateCommand struct {
 func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an Azure Blob Storage logging endpoint on a Fastly service version").Alias("add")
 
