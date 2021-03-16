@@ -22,6 +22,7 @@ type ListCommand struct {
 func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List all dictionaries on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)

@@ -100,6 +100,7 @@ type (
 func NewTailCommand(parent common.Registerer, globals *config.Data) *TailCommand {
 	var c TailCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("tail", "Tail Compute@Edge logs")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)

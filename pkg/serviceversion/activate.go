@@ -22,6 +22,7 @@ type ActivateCommand struct {
 func NewActivateCommand(parent common.Registerer, globals *config.Data) *ActivateCommand {
 	var c ActivateCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("activate", "Activate a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)

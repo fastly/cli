@@ -44,6 +44,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	var c CreateCommand
 
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an SFTP logging endpoint on a Fastly service version").Alias("add")
 

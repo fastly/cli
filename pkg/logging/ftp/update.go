@@ -41,6 +41,7 @@ type UpdateCommand struct {
 func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 
 	c.CmdClause = parent.Command("update", "Update an FTP logging endpoint on a Fastly service version")

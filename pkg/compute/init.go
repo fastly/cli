@@ -58,6 +58,7 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 	var c InitCommand
 	c.Globals = globals
 	c.client = client
+	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
 	c.CmdClause.Flag("service-id", "Existing service ID to use. By default, this command creates a new service").Short('s').StringVar(&c.manifest.Flag.ServiceID)

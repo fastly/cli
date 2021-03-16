@@ -50,8 +50,6 @@ func main() {
 
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
-	file.SetOutput(out)
-
 	err := file.Read(configFilePath)
 	if err != nil {
 		if verboseOutput {

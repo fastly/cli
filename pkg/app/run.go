@@ -76,8 +76,9 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	globals := config.Data{
-		File: file,
-		Env:  env,
+		File:   file,
+		Env:    env,
+		Output: out,
 	}
 
 	// Set up the main application root, including global flags, and then each

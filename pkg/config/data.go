@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -74,9 +75,10 @@ var ErrLegacyConfig = errors.New("the configuration file is in the legacy format
 // (e.g. an email address). Otherwise, parameters should be defined in specific
 // command structs, and parsed as flags.
 type Data struct {
-	File File
-	Env  Environment
-	Flag Flag
+	File   File
+	Env    Environment
+	Output io.Writer
+	Flag   Flag
 
 	Client    api.Interface
 	RTSClient api.RealtimeStatsInterface
