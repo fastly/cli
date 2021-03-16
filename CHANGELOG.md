@@ -1,11 +1,30 @@
 # Changelog
 
+## [v0.25.0](https://github.com/fastly/cli/releases/tag/v0.25.0) (2021-03-15)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.24.2...v0.25.0)
+
+**Enhancements:**
+
+- Replace deprecated ioutil functions with go 1.16. [\#212](https://github.com/fastly/cli/pull/212)
+- Replace TOML parser [\#211](https://github.com/fastly/cli/pull/211)
+- Implement manifest\_version into the fastly.toml [\#210](https://github.com/fastly/cli/pull/210)
+- Dynamic Configuration [\#187](https://github.com/fastly/cli/pull/187)
+
+**Bug fixes:**
+
+- Log output should be simplified when running in CI [\#175](https://github.com/fastly/cli/issues/175)
+- Override error message in compute init [\#204](https://github.com/fastly/cli/pull/204)
+
 ## [v0.24.2](https://github.com/fastly/cli/releases/tag/v0.24.2) (2021-02-15)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.24.1...v0.24.2)
 
 **Bug fixes:**
 
+- Fix CI binary overlap [\#209](https://github.com/fastly/cli/pull/209)
+- Fix CI workflow by switching from old syntax to new [\#208](https://github.com/fastly/cli/pull/208)
+- Fix goreleaser version lookup [\#207](https://github.com/fastly/cli/pull/207)
 - LogTail: Properly close response body [\#205](https://github.com/fastly/cli/pull/205)
 - Add port prompt for compute init [\#203](https://github.com/fastly/cli/pull/203)
 - Update GitHub Action to not use commit hash [\#200](https://github.com/fastly/cli/pull/200)
@@ -16,7 +35,7 @@
 
 **Bug fixes:**
 
-- Logs Tail: Give the user better feedback when `--from` flag errors [\#201](https://github.com/fastly/cli/pull/201)
+- Logs Tail: Give the user better feedback when --from flag errors [\#201](https://github.com/fastly/cli/pull/201)
 
 ## [v0.24.0](https://github.com/fastly/cli/releases/tag/v0.24.0) (2021-02-02)
 
@@ -75,6 +94,10 @@
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.20.0...v0.21.0)
 
+**Enhancements:**
+
+- Adds support for managing edge dictionaries [\#159](https://github.com/fastly/cli/pull/159)
+
 ## [v0.20.0](https://github.com/fastly/cli/releases/tag/v0.20.0) (2020-11-24)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.19.0...v0.20.0)
@@ -123,7 +146,6 @@
 
 **Enhancements:**
 
-- Adds support for managing edge dictionaries [\#159](https://github.com/fastly/cli/pull/159)
 - Bump supported Rust toolchain version to 1.46 [\#156](https://github.com/fastly/cli/pull/156)
 - Add service search command [\#152](https://github.com/fastly/cli/pull/152)
 
@@ -153,6 +175,10 @@
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.14.0...v0.15.0)
 
+**Enhancements:**
+
+- Adds OpenStack logging support [\#132](https://github.com/fastly/cli/pull/132)
+
 ## [v0.14.0](https://github.com/fastly/cli/releases/tag/v0.14.0) (2020-06-25)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.13.0...v0.14.0)
@@ -167,7 +193,6 @@
 
 **Enhancements:**
 
-- Adds OpenStack logging support [\#132](https://github.com/fastly/cli/pull/132)
 - Allow compute services to be initialised from an existing service ID [\#125](https://github.com/fastly/cli/pull/125)
 
 **Bug fixes:**
@@ -214,7 +239,6 @@
 **Enhancements:**
 
 - Adds Google Cloud Pub/Sub logging endpoint support [\#96](https://github.com/fastly/cli/pull/96)
-- Adds Kafka logging endpoint support [\#95](https://github.com/fastly/cli/pull/95)
 - Adds Datadog logging endpoint support [\#92](https://github.com/fastly/cli/pull/92)
 - Adds HTTPS logging endpoint support [\#91](https://github.com/fastly/cli/pull/91)
 - Adds Elasticsearch logging endpoint support [\#90](https://github.com/fastly/cli/pull/90)
@@ -230,6 +254,7 @@
 
 **Enhancements:**
 
+- Adds Kafka logging endpoint support [\#95](https://github.com/fastly/cli/pull/95)
 - Adds DigitalOcean Spaces logging endpoint support [\#80](https://github.com/fastly/cli/pull/80)
 - Adds Rackspace Cloudfiles logging endpoint support [\#79](https://github.com/fastly/cli/pull/79)
 - Adds Log Shuttle logging endpoint support [\#78](https://github.com/fastly/cli/pull/78)
@@ -238,6 +263,7 @@
 - Adds Honeycomb logging endpoint support [\#75](https://github.com/fastly/cli/pull/75)
 - Adds Loggly logging endpoint support [\#74](https://github.com/fastly/cli/pull/74)
 - Adds Scalyr logging endpoint support [\#73](https://github.com/fastly/cli/pull/73)
+- Verify fastly crate version during compute build. [\#67](https://github.com/fastly/cli/pull/67)
 - Basic support for historical & realtime stats [\#66](https://github.com/fastly/cli/pull/66)
 - Adds Splunk endpoint [\#64](https://github.com/fastly/cli/pull/64)
 - Adds FTP logging endpoint support [\#63](https://github.com/fastly/cli/pull/63)
@@ -257,7 +283,6 @@
 **Enhancements:**
 
 - Add a --force flag to compute build to skip verification steps. [\#68](https://github.com/fastly/cli/pull/68)
-- Verify fastly crate version during compute build. [\#67](https://github.com/fastly/cli/pull/67)
 - Improve `compute build` rust compilation error messaging [\#60](https://github.com/fastly/cli/pull/60)
 - Adds Syslog logging endpoint support [\#55](https://github.com/fastly/cli/pull/55)
 
