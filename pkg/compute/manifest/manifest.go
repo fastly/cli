@@ -218,7 +218,7 @@ func (f *File) Read(fpath string) error {
 		f.ManifestVersion.int = 1
 
 		// TODO: Provide link to v1 schema once published publicly.
-		text.Warning(f.output, "The fastly.toml was missing a manifest_version so the schema version 1 will be used.")
+		text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
 	}
 
 	return nil
