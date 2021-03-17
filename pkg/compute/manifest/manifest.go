@@ -105,12 +105,9 @@ func (d *Data) Authors() ([]string, Source) {
 // manifest file that determines the configuration for a compute@edge service.
 //
 // NOTE: the File object has a field called ManifestVersion which this type is
-// assigned, while that object also has a Version field. The reason we don't
-// name this type ManifestVersion is to appease the static analysis linter
-// which complains re: stutter in the import manifest.ManifestVersion.
-//
-// In the near future release the `Version` field will be removed and so there
-// will be less ambiguity around what this type refers to.
+// assigned. The reason we don't name this type ManifestVersion is to appease
+// the static analysis linter which complains re: stutter in the import
+// manifest.ManifestVersion.
 type Version int
 
 // UnmarshalText manages multiple scenarios where historically the manifest
@@ -175,7 +172,6 @@ func (v *Version) UnmarshalText(text []byte) error {
 // manifest file schema.
 type File struct {
 	ManifestVersion Version  `toml:"manifest_version"`
-	Version         int      `toml:"version"`
 	Name            string   `toml:"name"`
 	Description     string   `toml:"description"`
 	Authors         []string `toml:"authors"`
