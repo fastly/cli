@@ -12,6 +12,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/useragent"
 	toml "github.com/pelletier/go-toml"
 )
 
@@ -227,6 +228,7 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 		return err
 	}
 
+	req.Header.Set("User-Agent", useragent.Name)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return err

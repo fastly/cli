@@ -12,7 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/version"
+	"github.com/fastly/cli/pkg/useragent"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -47,7 +47,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	req.Header.Set("Fastly-Key", token)
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", version.UserAgent)
+	req.Header.Set("User-Agent", useragent.Name)
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("error executing API request: %w", err)

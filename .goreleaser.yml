@@ -11,9 +11,9 @@ builds:
   - <<: &build_defaults
       main: ./cmd/fastly
       ldflags:
-        - -s -w -X "github.com/fastly/cli/pkg/version.AppVersion={{ .Version }}"
-        - -X "github.com/fastly/cli/pkg/version.GitRevision={{ .ShortCommit }}"
-        - -X "github.com/fastly/cli/pkg/version.GoVersion={{ .Env.GOVERSION }}"
+        - -s -w -X "github.com/fastly/cli/pkg/revision.AppVersion={{ .Version }}"
+        - -X "github.com/fastly/cli/pkg/revision.GitCommit={{ .ShortCommit }}"
+        - -X "github.com/fastly/cli/pkg/revision.GoVersion={{ .Env.GOVERSION }}"
     id: macos
     goos: [darwin]
     goarch: [amd64]
