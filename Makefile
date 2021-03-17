@@ -53,6 +53,7 @@ lint:
 .PHONY: test
 test:
 	go test -race $(TESTARGS)
+
 .PHONY: build
 build:
 	go build ./cmd/fastly
