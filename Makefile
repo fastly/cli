@@ -8,9 +8,9 @@ VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD
 TESTARGS ?= ./{cmd,pkg}/...
 
 LDFLAGS = -ldflags "\
- -X 'github.com/fastly/cli/pkg/version.AppVersion=${VERSION}' \
- -X 'github.com/fastly/cli/pkg/version.GitRevision=$(shell git rev-parse --short HEAD || echo unknown)' \
- -X 'github.com/fastly/cli/pkg/version.GoVersion=$(shell go version)' \
+ -X 'github.com/fastly/cli/pkg/revision.AppVersion=${VERSION}' \
+ -X 'github.com/fastly/cli/pkg/revision.GitCommit=$(shell git rev-parse --short HEAD || echo unknown)' \
+ -X 'github.com/fastly/cli/pkg/revision.GoVersion=$(shell go version)' \
  "
 
 fastly:

@@ -47,6 +47,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/sumologic"
 	"github.com/fastly/cli/pkg/logging/syslog"
 	"github.com/fastly/cli/pkg/logs"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/service"
 	"github.com/fastly/cli/pkg/serviceversion"
 	"github.com/fastly/cli/pkg/stats"
@@ -724,10 +725,10 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
 	}
 
-	if versioner != nil && name != "update" && !version.IsPreRelease(version.AppVersion) {
+	if versioner != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel() // push cancel on the defer stack first...
-		f := update.CheckAsync(ctx, file, configFilePath, version.AppVersion, versioner)
+		f := update.CheckAsync(ctx, file, configFilePath, revision.AppVersion, versioner)
 		defer f(out) // ...and the printing function second, so we hit the timeout
 	}
 

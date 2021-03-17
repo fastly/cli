@@ -10,8 +10,8 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/version"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -35,7 +35,7 @@ func NewRootCommand(parent common.Registerer, v Versioner, client api.HTTPClient
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	progress := text.NewQuietProgress(out)
 
-	current, latest, shouldUpdate, err := Check(context.Background(), version.AppVersion, c.versioner)
+	current, latest, shouldUpdate, err := Check(context.Background(), revision.AppVersion, c.versioner)
 	if err != nil {
 		return fmt.Errorf("error checking for latest version: %w", err)
 	}
