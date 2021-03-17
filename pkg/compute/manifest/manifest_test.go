@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"errors"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -40,6 +41,29 @@ func TestManifest(t *testing.T) {
 			expectedError: errs.ErrUnrecognisedManifestVersion,
 		},
 	}
+
+	// NOTE: the fixture file "fastly-invalid-missing-version.toml" will be
+	// overwritten by the test as the internal logic is supposed to add back into
+	// the manifest a manifest_version field if one isn't found.
+	//
+	// To ensure future test runs complete successfully we do an initial read of
+	// the data and then write it back out when the tests have completed.
+	path, err := filepath.Abs(filepath.Join(prefix, "fastly-invalid-missing-version.toml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		err = ioutil.WriteFile(path, b, 0644)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

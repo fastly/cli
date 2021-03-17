@@ -111,9 +111,7 @@ func (d *Data) Authors() ([]string, Source) {
 //
 // In the near future release the `Version` field will be removed and so there
 // will be less ambiguity around what this type refers to.
-type Version struct {
-	int
-}
+type Version int
 
 // UnmarshalText manages multiple scenarios where historically the manifest
 // version was a string value and not an integer.
@@ -133,20 +131,19 @@ type Version struct {
 // but instead will return an error because it exceeds the current
 // ManifestLatestVersion version of 1.
 func (v *Version) UnmarshalText(text []byte) error {
-	var err error
-
 	s := string(text)
 
-	if v.int, err = strconv.Atoi(s); err == nil {
+	if i, err := strconv.Atoi(s); err == nil {
+		*v = Version(i)
 		return nil
 	}
 
 	if f, err := strconv.ParseFloat(s, 32); err == nil {
 		intfl := int(f)
 		if intfl == 0 {
-			v.int = 1
+			*v = 1
 		} else {
-			v.int = intfl
+			*v = Version(intfl)
 		}
 		return nil
 	}
@@ -157,14 +154,15 @@ func (v *Version) UnmarshalText(text []byte) error {
 		// A length of 3 presumes a semver (e.g. 0.1.0)
 		if len(segs) == 3 {
 			if segs[0] != "0" {
-				if v.int, err = strconv.Atoi(segs[0]); err == nil {
-					if v.int > ManifestLatestVersion {
+				if i, err := strconv.Atoi(segs[0]); err == nil {
+					if i > ManifestLatestVersion {
 						return errors.ErrUnrecognisedManifestVersion
 					}
+					*v = Version(i)
 					return nil
 				}
 			} else {
-				v.int = 1
+				*v = 1
 				return nil
 			}
 		}
@@ -217,8 +215,8 @@ func (f *File) Read(fpath string) error {
 
 	f.exists = true
 
-	if f.ManifestVersion.int == 0 {
-		f.ManifestVersion.int = 1
+	if f.ManifestVersion == 0 {
+		f.ManifestVersion = 1
 
 		// TODO: Provide link to v1 schema once published publicly.
 		//
@@ -228,6 +226,7 @@ func (f *File) Read(fpath string) error {
 		once.Do(func() {
 			text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
 			text.Break(f.output)
+			f.Write(fpath)
 		})
 	}
 
