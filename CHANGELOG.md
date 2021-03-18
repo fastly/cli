@@ -1,5 +1,20 @@
 # Changelog
 
+## [v0.26.0](https://github.com/fastly/cli/releases/tag/v0.26.0) (2021-03-18)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.25.2...v0.26.0)
+
+**Enhancements:**
+
+- Remove version from fastly.toml manifest. [\#222](https://github.com/fastly/cli/pull/222)
+- Don't run "cargo update" before building rust app. [\#221](https://github.com/fastly/cli/pull/221)
+
+**Bug fixes:**
+
+- Loading remote config.toml should fail gracefully. [\#223](https://github.com/fastly/cli/pull/223)
+- Update the fastly.toml manifest if missing manifest\_version. [\#220](https://github.com/fastly/cli/pull/220)
+- Refactor UserAgent. [\#219](https://github.com/fastly/cli/pull/219)
+
 ## [v0.25.2](https://github.com/fastly/cli/releases/tag/v0.25.2) (2021-03-16)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.25.1...v0.25.2)
