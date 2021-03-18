@@ -55,7 +55,7 @@ const (
 
 	// ConfigRequestTimeout is how long we'll wait for the CLI API endpoint to
 	// return a response before timing out the request.
-	ConfigRequestTimeout = 3 * time.Second
+	ConfigRequestTimeout = 5 * time.Second
 )
 
 // ErrLegacyConfig indicates that the local configuration file is using the

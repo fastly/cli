@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -83,6 +84,8 @@ func main() {
 	waitForWrite := make(chan bool)
 	wait := false
 
+	var errLoadConfig error
+
 	// Validate if configuration is older than its TTL
 	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
 		if verboseOutput {
@@ -98,11 +101,10 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 			// configuration file to determine where to load the config from.
 			err := file.Load(file.CLI.RemoteConfig, httpClient)
 			if err != nil {
-				errors.RemediationError{
-					Inner:       err,
-					Remediation: errors.NetworkRemediation,
-				}.Print(os.Stderr)
-				os.Exit(1)
+				errLoadConfig = errors.RemediationError{
+					Inner:       fmt.Errorf("there was a problem updating the versioning information for the Fastly CLI:\n\n%w", err),
+					Remediation: errors.BugRemediation,
+				}
 			}
 
 			waitForWrite <- true
@@ -123,29 +125,29 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 		// if wait {
 		//   defer func(){
 		//     <-waitForWrite
-		//     text.Info(out, configUpdateSuccessful)
+		//     afterWrite(verboseOutput, errLoadConfig, out)
 		//   }()
 		// }
 		//
 		// ...and to have this a bit further up the script, as it would have meant
-		// I could avoid duplicating the following if statement in two places.
+		// we could avoid duplicating the following if statement in two places.
 		//
-		// As it is, I have to wait for the async write operation here and also at
+		// As it is, we have to wait for the async write operation here and also at
 		// the end of the main function.
 		//
 		// The problem with defer is that it doesn't work when os.Exit() is
 		// encountered, so you either use something like runtime.Goexit() which is
-		// pretty hairy and introduces other changes like `defer os.Exit(0)` at the
-		// top of the main() function OR we re-architecture the call flow which
-		// isn't ideal either.
+		// pretty hairy and requires other changes like `defer os.Exit(0)` at the
+		// top of the main() function (it also has some funky side-effects related
+		// to how any other goroutines will persist and errors within those could
+		// cause other unexpected behaviour). The alternative is we re-architecture
+		// the entire call flow which isn't ideal either.
 		//
-		// So I've opted for duplication.
+		// So we've opted for duplication.
 		//
 		if wait {
 			<-waitForWrite
-			if verboseOutput {
-				text.Info(out, config.UpdateSuccessful)
-			}
+			afterWrite(verboseOutput, errLoadConfig, out)
 		}
 
 		os.Exit(1)
@@ -158,9 +160,19 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 	// object has indeed been updated already and is no longer considered stale!
 	if wait {
 		<-waitForWrite
-		if verboseOutput {
-			text.Info(out, config.UpdateSuccessful)
-		}
+		afterWrite(verboseOutput, errLoadConfig, out)
+	}
+}
+
+// afterWrite determines what to do once our waitForWrite channel has received
+// a message. The message indicates either the file was written successfully or
+// that an error had occurred and so we should display an error message.
+func afterWrite(verboseOutput bool, errLoadConfig error, out io.Writer) {
+	if verboseOutput && errLoadConfig == nil {
+		text.Info(out, config.UpdateSuccessful)
+	}
+	if errLoadConfig != nil {
+		errLoadConfig.(errors.RemediationError).Print(os.Stderr)
 	}
 }
 
