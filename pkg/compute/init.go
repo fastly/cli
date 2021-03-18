@@ -464,9 +464,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	fmt.Fprintf(progress, "Setting service ID in manifest to %q...\n", service.ID)
 	m.ServiceID = service.ID
 
-	fmt.Fprintf(progress, "Setting version in manifest to %d...\n", version)
-	m.Version = version
-
 	fmt.Fprintf(progress, "Setting language in manifest to %s...\n", language.Name)
 	m.Language = language.Name
 

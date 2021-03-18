@@ -1120,12 +1120,10 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifestIncludes: "version = 2",
 			wantOutput: []string{
 				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
-				"Updating package manifest...",
 				"Deployed package (service 123, version 2)",
 			},
 		},
