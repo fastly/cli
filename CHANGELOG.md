@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.26.1](https://github.com/fastly/cli/releases/tag/v0.26.1) (2021-03-19)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.26.0...v0.26.1)
+
+**Bug fixes:**
+
+- Fix manifest\_version as a section bug. [\#225](https://github.com/fastly/cli/pull/225)
+
 ## [v0.26.0](https://github.com/fastly/cli/releases/tag/v0.26.0) (2021-03-18)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.25.2...v0.26.0)
