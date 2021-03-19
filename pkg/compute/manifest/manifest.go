@@ -23,6 +23,9 @@ const Filename = "fastly.toml"
 // supported by the CLI.
 const ManifestLatestVersion = 1
 
+// FilePermissions represents a read/write file mode.
+const FilePermissions = 0666
+
 // Source enumerates where a manifest parameter is taken from.
 type Source uint8
 
@@ -299,7 +302,7 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 		return buf, err
 	}
 
-	err := os.WriteFile(fpath, buf.Bytes(), 0666)
+	err := os.WriteFile(fpath, buf.Bytes(), FilePermissions)
 	if err != nil {
 		return buf, err
 	}
