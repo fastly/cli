@@ -262,8 +262,7 @@ func containsManifestSection(bs []byte) (bool, error) {
 		return false, err
 	}
 
-	_, ok := tree.GetArray("manifest_version").(*toml.Tree)
-	if ok {
+	if _, ok := tree.GetArray("manifest_version").(*toml.Tree); ok {
 		return true, nil
 	}
 
