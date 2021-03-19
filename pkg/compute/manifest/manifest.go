@@ -275,7 +275,7 @@ func containsManifestSection(bs []byte) (bool, error) {
 // stripManifestSection reads the manifest line-by-line storing the lines that
 // don't contain `[manifest_version]` into a buffer to be written back to disk.
 //
-// It would've been better if we could of relied on the toml library to delete
+// It would've been better if we could have relied on the toml library to delete
 // the section but unfortunately that means it would end up deleting the entire
 // block and not just the key specified. Meaning if the manifest_version key
 // was in the middle of the manifest with other keys below it, deleting the
