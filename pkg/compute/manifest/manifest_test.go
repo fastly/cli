@@ -2,7 +2,6 @@ package manifest
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,6 +29,10 @@ func TestManifest(t *testing.T) {
 			manifest: "fastly-invalid-missing-version.toml",
 			valid:    true,
 		},
+		"invalid: manifest_version as a section causes default to be set": {
+			manifest: "fastly-invalid-section-version.toml",
+			valid:    true,
+		},
 		"invalid: manifest_version Atoi error": {
 			manifest:      "fastly-invalid-unrecognised.toml",
 			valid:         false,
@@ -42,28 +45,35 @@ func TestManifest(t *testing.T) {
 		},
 	}
 
-	// NOTE: the fixture file "fastly-invalid-missing-version.toml" will be
-	// overwritten by the test as the internal logic is supposed to add back into
-	// the manifest a manifest_version field if one isn't found.
+	// NOTE: the fixture files "fastly-invalid-missing-version.toml" and
+	// "fastly-invalid-section-version.toml" will be overwritten by the test as
+	// the internal logic is supposed to add back into the manifest a
+	// manifest_version field if one isn't found (or is invalid).
 	//
 	// To ensure future test runs complete successfully we do an initial read of
 	// the data and then write it back out when the tests have completed.
-	path, err := filepath.Abs(filepath.Join(prefix, "fastly-invalid-missing-version.toml"))
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	defer func() {
-		err = ioutil.WriteFile(path, b, 0644)
+	for _, fpath := range []string{
+		"fastly-invalid-missing-version.toml",
+		"fastly-invalid-section-version.toml",
+	} {
+		path, err := filepath.Abs(filepath.Join(prefix, fpath))
 		if err != nil {
 			t.Fatal(err)
 		}
-	}()
+
+		b, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		defer func(path string, b []byte) {
+			err := os.WriteFile(path, b, 0644)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(path, b)
+	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
