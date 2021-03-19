@@ -285,11 +285,7 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		if scanner.Text() != "[manifest_version]" {
-			_, err := buf.Write(scanner.Bytes())
-			if err != nil {
-				return buf, err
-			}
-			_, err = buf.WriteString("\n")
+			_, err := buf.Write(append(scanner.Bytes(), []byte("\n"))))
 			if err != nil {
 				return buf, err
 			}
