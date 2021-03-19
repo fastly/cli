@@ -1,6 +1,9 @@
 package manifest
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -19,6 +22,9 @@ const Filename = "fastly.toml"
 // ManifestLatestVersion represents the latest known manifest schema version
 // supported by the CLI.
 const ManifestLatestVersion = 1
+
+// FilePermissions represents a read/write file mode.
+const FilePermissions = 0666
 
 // Source enumerates where a manifest parameter is taken from.
 type Source uint8
@@ -204,6 +210,28 @@ func (f *File) Read(fpath string) error {
 		return err
 	}
 
+	// NOTE: temporary fix needed because of a bug that appeared in v0.25.0 where
+	// the manifest_version was stored in fastly.toml as a 'section', e.g.
+	// `[manifest_version]`.
+	//
+	// This subsequently would cause errors when trying to unmarshal the data, so
+	// we need to identify if it exists in the file (as a section) and remove it.
+	//
+	// We do this before trying to unmarshal the toml data into a go data
+	// structure otherwise we'll see errors from the toml library.
+	manifestSection, err := containsManifestSection(bs)
+	if err != nil {
+		return fmt.Errorf("failed to parse the fastly.toml manifest: %w", err)
+	}
+
+	if manifestSection {
+		buf, err := stripManifestSection(bytes.NewReader(bs), fpath)
+		if err != nil {
+			return errors.ErrInvalidManifestVersion
+		}
+		bs = buf.Bytes()
+	}
+
 	err = toml.Unmarshal(bs, f)
 	if err != nil {
 		return err
@@ -227,6 +255,59 @@ func (f *File) Read(fpath string) error {
 	}
 
 	return nil
+}
+
+// containsManifestSection loads the slice of bytes into a toml tree structure
+// before checking if the manifest_version is defined as a toml section block.
+func containsManifestSection(bs []byte) (bool, error) {
+	tree, err := toml.LoadBytes(bs)
+	if err != nil {
+		return false, err
+	}
+
+	if _, ok := tree.GetArray("manifest_version").(*toml.Tree); ok {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// stripManifestSection reads the manifest line-by-line storing the lines that
+// don't contain `[manifest_version]` into a buffer to be written back to disk.
+//
+// It would've been better if we could have relied on the toml library to delete
+// the section but unfortunately that means it would end up deleting the entire
+// block and not just the key specified. Meaning if the manifest_version key
+// was in the middle of the manifest with other keys below it, deleting the
+// manifest_version would cause all keys below it to be deleted as they would
+// all be considered part of that section block.
+func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
+	var bs []byte
+	buf := bytes.NewBuffer(bs)
+
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		if scanner.Text() != "[manifest_version]" {
+			_, err := buf.Write(scanner.Bytes())
+			if err != nil {
+				return buf, err
+			}
+			_, err = buf.WriteString("\n")
+			if err != nil {
+				return buf, err
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return buf, err
+	}
+
+	err := os.WriteFile(fpath, buf.Bytes(), FilePermissions)
+	if err != nil {
+		return buf, err
+	}
+
+	return buf, nil
 }
 
 // Write persists the manifest content to disk.

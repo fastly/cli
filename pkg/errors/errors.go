@@ -15,3 +15,7 @@ var ErrMissingManifestVersion = RemediationError{Inner: fmt.Errorf("no manifest_
 // ErrUnrecognisedManifestVersion means an invalid manifest (fastly.toml)
 // version has been specified.
 var ErrUnrecognisedManifestVersion = RemediationError{Inner: fmt.Errorf("unrecognised manifest_version found in the fastly.toml"), Remediation: BugRemediation}
+
+// ErrInvalidManifestVersion means the manifest_version is defined as a toml
+// section.
+var ErrInvalidManifestVersion = RemediationError{Inner: fmt.Errorf("failed to parse fastly.toml when checking if manifest_version was valid"), Remediation: "Delete `[manifest_version]` from the fastly.toml if present"}
