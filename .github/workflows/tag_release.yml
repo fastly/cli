@@ -15,6 +15,9 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: '1.16.x'
+    - name: Set GOVERSION
+      id: set_goversion
+      run: echo "GOVERSION=$(go version)" >> $GITHUB_ENV
     - name: Install Ruby
       uses: actions/setup-ruby@v1
       with:
