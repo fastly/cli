@@ -78,6 +78,36 @@ func main() {
 		}
 	}
 
+	// We have seen a situation where loading data from the remote
+	// config endpoint has caused a user to end up with a config in the
+	// non-legacy format but with empty values.
+	//
+	// It's unclear how this happens and so as a temporary measure we'll check if
+	// the in-memory data structure is missing a specific value that's set by the
+	// CLI, and if so we'll know something bad has happened because at this point
+	// we expect the data structure to have a non-empty string value.
+	//
+	// If we discover we're in that scenario we'll attempt to re-load the
+	// configuration from the remote endpoint.
+	if file.CLI.LastChecked == "" {
+		if verboseOutput {
+			text.Warning(out, `
+				There was a problem loading the compatibility and versioning information for the Fastly CLI.
+				The operation will be retried as this configuration is required.
+			`)
+			text.Break(out)
+		}
+
+		err := file.Load(config.RemoteEndpoint, httpClient)
+		if err != nil {
+			errors.RemediationError{
+				Inner:       err,
+				Remediation: errors.NetworkRemediation,
+			}.Print(os.Stderr)
+			os.Exit(1)
+		}
+	}
+
 	// When the local configuration file is stale we'll need to acquire the
 	// latest version and write that back to disk. To ensure the CLI program
 	// doesn't complete before the write has finished, we block via a channel.

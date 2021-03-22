@@ -235,6 +235,10 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("fetching remote configuration: expected '200 OK', received '%s'", resp.Status)
+	}
+
 	err = toml.NewDecoder(resp.Body).Decode(f)
 	if err != nil {
 		return err
