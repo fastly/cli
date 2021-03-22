@@ -11,7 +11,9 @@ import (
 func Stale(lastVersionCheck string, dur string) bool {
 	d, err := time.ParseDuration("-" + dur)
 	if err != nil {
-		return false
+		// if there' is no duration provided, then we should presume the loading of
+		// remote configuration failed and that we should retry that operation.
+		return true
 	}
 
 	if t, _ := time.Parse(time.RFC3339, lastVersionCheck); !t.Before(time.Now().Add(d)) {

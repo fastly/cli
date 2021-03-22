@@ -115,10 +115,12 @@ func TestCheckAsync(t *testing.T) {
 			file: config.File{
 				CLI: config.CLI{
 					LastChecked: time.Now().Add(-4 * time.Hour).Format(time.RFC3339),
+					TTL:         "5m",
 				},
 			},
 			currentVersion: "0.0.1",
 			versioner:      mock.Versioner{Version: "0.0.2"},
+			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
