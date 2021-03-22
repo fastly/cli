@@ -78,7 +78,7 @@ func main() {
 		}
 	}
 
-	// We currently have seen a situation where loading data from the remote
+	// We have seen a situation where loading data from the remote
 	// config endpoint has caused a user to end up with a config in the
 	// non-legacy format but with empty values.
 	//
