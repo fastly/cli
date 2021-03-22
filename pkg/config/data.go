@@ -235,6 +235,10 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return errors.New("non-200 OK response")
+	}
+
 	err = toml.NewDecoder(resp.Body).Decode(f)
 	if err != nil {
 		return err
