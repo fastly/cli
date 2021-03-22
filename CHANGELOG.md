@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.26.2](https://github.com/fastly/cli/releases/tag/v0.26.2) (2021-03-22)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.26.1...v0.26.2)
+
+**Enhancements:**
+
+- Extra error handling around loading remote configuration data. [\#229](https://github.com/fastly/cli/pull/229)
+
+**Bug fixes:**
+
+- fastly compute build exits with error 1 [\#227](https://github.com/fastly/cli/issues/227)
+- Set GOVERSION for goreleaser. [\#228](https://github.com/fastly/cli/pull/228)
+
 ## [v0.26.1](https://github.com/fastly/cli/releases/tag/v0.26.1) (2021-03-19)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.26.0...v0.26.1)
