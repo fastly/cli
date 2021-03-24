@@ -106,14 +106,27 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		Shield:              fastly.String(b.Shield),
 		UseSSL:              fastly.CBool(b.UseSSL),
 		SSLCheckCert:        fastly.CBool(b.SSLCheckCert),
-		SSLCACert:           fastly.String(b.SSLCACert),
-		SSLClientCert:       fastly.String(b.SSLClientCert),
-		SSLClientKey:        fastly.String(b.SSLClientKey),
 		SSLCertHostname:     fastly.String(b.SSLCertHostname),
 		SSLSNIHostname:      fastly.String(b.SSLSNIHostname),
-		MinTLSVersion:       fastly.String(b.MinTLSVersion),
-		MaxTLSVersion:       fastly.String(b.MaxTLSVersion),
 		SSLCiphers:          b.SSLCiphers,
+	}
+
+	// Avoid setting certain fields that prove to cause the API to fail when
+	// provided with zero values.
+	if b.MinTLSVersion != "" {
+		input.MinTLSVersion = fastly.String(b.MinTLSVersion)
+	}
+	if b.MaxTLSVersion != "" {
+		input.MaxTLSVersion = fastly.String(b.MaxTLSVersion)
+	}
+	if b.SSLCACert != "" {
+		input.SSLCACert = fastly.String(b.SSLCACert)
+	}
+	if b.SSLClientCert != "" {
+		input.SSLClientCert = fastly.String(b.SSLClientCert)
+	}
+	if b.SSLClientKey != "" {
+		input.SSLClientKey = fastly.String(b.SSLClientKey)
 	}
 
 	// Set values to existing ones to prevent accidental overwrite if empty.
