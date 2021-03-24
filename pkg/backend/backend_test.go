@@ -38,6 +38,11 @@ func TestBackendCreate(t *testing.T) {
 			api:        mock.API{CreateBackendFn: createBackendOK},
 			wantOutput: "Created backend www.test.com (service 123 version 1)",
 		},
+		{
+			args:       []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "127.0.0.1", "--name", "www.test.com", "--use-ssl", "--verbose"},
+			api:        mock.API{CreateBackendFn: createBackendOK},
+			wantOutput: "SSL to the backend was set but no port was specified, so default port :443 will be used",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (

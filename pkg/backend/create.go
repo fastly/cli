@@ -14,7 +14,7 @@ type CreateCommand struct {
 	common.Base
 	Input fastly.CreateBackendInput
 
-	// We must store all of the boolean flags seperatly to the input structure
+	// We must store all of the boolean flags separately to the input structure
 	// so they can be casted to go-fastly's custom `Compatibool` type later.
 	AutoLoadbalance bool
 	UseSSL          bool
@@ -66,6 +66,13 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.AutoLoadbalance = fastly.Compatibool(c.AutoLoadbalance)
 	c.Input.UseSSL = fastly.Compatibool(c.UseSSL)
 	c.Input.SSLCheckCert = fastly.Compatibool(c.SSLCheckCert)
+
+	if c.UseSSL && c.Input.Port == 0 {
+		if c.Globals.Flag.Verbose {
+			text.Warning(out, "SSL to the backend was set but no port was specified, so default port :443 will be used")
+			c.Input.Port = 443
+		}
+	}
 
 	b, err := c.Globals.Client.CreateBackend(&c.Input)
 	if err != nil {
