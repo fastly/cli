@@ -15,9 +15,8 @@ import (
 // UpdateCommand calls the Fastly API to create services.
 type UpdateCommand struct {
 	common.Base
-	manifest    manifest.Data
-	getInput    fastly.GetServiceInput
-	updateInput fastly.UpdateServiceInput
+	manifest manifest.Data
+	input    fastly.UpdateServiceInput
 
 	// TODO(integralist):
 	// Ensure consistency in capitalization, should be lowercase to avoid
@@ -46,7 +45,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.getInput.ID = serviceID
+	c.input.ServiceID = serviceID
 
 	// TODO(integralist):
 	// Validation such as this should become redundant once Go-Fastly is
@@ -61,25 +60,14 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("error parsing arguments: must provide either --name or --comment to update service")
 	}
 
-	s, err := c.Globals.Client.GetService(&c.getInput)
-	if err != nil {
-		return err
-	}
-
-	// set original value, and then afterwards check if we can use the flag value
-	c.updateInput.ServiceID = s.ID
-	c.updateInput.Name = fastly.String(s.Name)
-	c.updateInput.Comment = fastly.String(s.Comment)
-
-	// update field value as required
 	if c.name.WasSet {
-		c.updateInput.Name = fastly.String(c.name.Value)
+		c.input.Name = fastly.String(c.name.Value)
 	}
 	if c.comment.WasSet {
-		c.updateInput.Comment = fastly.String(c.comment.Value)
+		c.input.Comment = fastly.String(c.comment.Value)
 	}
 
-	s, err = c.Globals.Client.UpdateService(&c.updateInput)
+	s, err := c.Globals.Client.UpdateService(&c.input)
 	if err != nil {
 		return err
 	}
