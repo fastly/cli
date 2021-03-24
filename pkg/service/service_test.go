@@ -491,10 +491,6 @@ func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
 	}, nil
 }
 
-func getServiceError(*fastly.GetServiceInput) (*fastly.Service, error) {
-	return nil, errTest
-}
-
 func describeServiceOK(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
 		ID:         "123",

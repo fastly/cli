@@ -363,14 +363,6 @@ Versions: 2
 		Last edited (UTC): 2015-03-14 12:59
 `) + "\n\n"
 
-func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
-	return &fastly.Service{
-		ID:      "12345",
-		Name:    "Foo",
-		Comment: "Bar",
-	}, nil
-}
-
 func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
 		Number:    i.ServiceVersion,
