@@ -313,14 +313,15 @@ func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.Diction
 	}, nil
 }
 
-var describeDictionaryItemOutput = strings.TrimSpace(`
-Service ID: 123
+var describeDictionaryItemOutput = `
+SUCCESS: Updated dictionary item (service 123)
+
 Dictionary ID: 456
 Item Key: foo
 Item Value: bar
 Created (UTC): 2001-02-03 04:05
 Last edited (UTC): 2001-02-03 04:05
-`) + "\n"
+`
 
 func describeDictionaryItemOKDeleted(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
