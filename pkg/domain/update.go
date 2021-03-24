@@ -15,9 +15,8 @@ import (
 // UpdateCommand calls the Fastly API to update domains.
 type UpdateCommand struct {
 	common.Base
-	manifest    manifest.Data
-	getInput    fastly.GetDomainInput
-	updateInput fastly.UpdateDomainInput
+	manifest manifest.Data
+	input    fastly.UpdateDomainInput
 
 	NewName common.OptionalString
 	Comment common.OptionalString
@@ -29,8 +28,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update a domain on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.getInput.ServiceVersion)
-	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.getInput.Name)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.input.ServiceVersion)
+	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.input.Name)
 	c.CmdClause.Flag("new-name", "New domain name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	return &c
@@ -42,30 +41,21 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.getInput.ServiceID = serviceID
+	c.input.ServiceID = serviceID
 
 	// If neither arguments are provided, error with useful message.
 	if !c.NewName.WasSet && !c.Comment.WasSet {
 		return fmt.Errorf("error parsing arguments: must provide either --new-name or --comment to update domain")
 	}
 
-	d, err := c.Globals.Client.GetDomain(&c.getInput)
-	if err != nil {
-		return err
-	}
-
-	c.updateInput.ServiceID = d.ServiceID
-	c.updateInput.ServiceVersion = d.ServiceVersion
-	c.updateInput.Name = d.Name
-
 	if c.NewName.WasSet {
-		c.updateInput.NewName = fastly.String(c.NewName.Value)
+		c.input.NewName = fastly.String(c.NewName.Value)
 	}
 	if c.Comment.WasSet {
-		c.updateInput.Comment = fastly.String(c.Comment.Value)
+		c.input.Comment = fastly.String(c.Comment.Value)
 	}
 
-	d, err = c.Globals.Client.UpdateDomain(&c.updateInput)
+	d, err := c.Globals.Client.UpdateDomain(&c.input)
 	if err != nil {
 		return err
 	}
