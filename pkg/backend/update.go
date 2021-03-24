@@ -86,83 +86,12 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	// Copy existing values from GET to UpdateBackendInput strcuture
 	input := &fastly.UpdateBackendInput{
 		ServiceID:      b.ServiceID,
 		ServiceVersion: b.ServiceVersion,
 		Name:           b.Name,
-		NewName:        fastly.String(b.Name),
 	}
 
-	// Avoid setting fields unless they have a value to set.
-	if b.AutoLoadbalance {
-		input.AutoLoadbalance = fastly.CBool(b.AutoLoadbalance)
-	}
-	if b.UseSSL {
-		input.UseSSL = fastly.CBool(b.UseSSL)
-	}
-	if b.SSLCheckCert {
-		input.SSLCheckCert = fastly.CBool(b.SSLCheckCert)
-	}
-	if b.Address != "" {
-		input.Address = fastly.String(b.Address)
-	}
-	if b.Port != 0 {
-		input.Port = fastly.Uint(b.Port)
-	}
-	if b.OverrideHost != "" {
-		input.OverrideHost = fastly.String(b.OverrideHost)
-	}
-	if b.ConnectTimeout != 0 {
-		input.ConnectTimeout = fastly.Uint(b.ConnectTimeout)
-	}
-	if b.MaxConn != 0 {
-		input.MaxConn = fastly.Uint(b.MaxConn)
-	}
-	if b.FirstByteTimeout != 0 {
-		input.FirstByteTimeout = fastly.Uint(b.FirstByteTimeout)
-	}
-	if b.BetweenBytesTimeout != 0 {
-		input.BetweenBytesTimeout = fastly.Uint(b.BetweenBytesTimeout)
-	}
-	if b.Weight != 0 {
-		input.Weight = fastly.Uint(b.Weight)
-	}
-	if b.RequestCondition != "" {
-		input.RequestCondition = fastly.String(b.RequestCondition)
-	}
-	if b.HealthCheck != "" {
-		input.HealthCheck = fastly.String(b.HealthCheck)
-	}
-	if b.Shield != "" {
-		input.Shield = fastly.String(b.Shield)
-	}
-	if b.MinTLSVersion != "" {
-		input.MinTLSVersion = fastly.String(b.MinTLSVersion)
-	}
-	if b.MaxTLSVersion != "" {
-		input.MaxTLSVersion = fastly.String(b.MaxTLSVersion)
-	}
-	if b.SSLCACert != "" {
-		input.SSLCACert = fastly.String(b.SSLCACert)
-	}
-	if b.SSLClientCert != "" {
-		input.SSLClientCert = fastly.String(b.SSLClientCert)
-	}
-	if b.SSLClientKey != "" {
-		input.SSLClientKey = fastly.String(b.SSLClientKey)
-	}
-	if b.SSLCertHostname != "" {
-		input.SSLCertHostname = fastly.String(b.SSLCertHostname)
-	}
-	if b.SSLSNIHostname != "" {
-		input.SSLSNIHostname = fastly.String(b.SSLSNIHostname)
-	}
-	if len(b.SSLCiphers) > 0 {
-		input.SSLCiphers = b.SSLCiphers
-	}
-
-	// Set values to existing ones to prevent accidental overwrite if empty.
 	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
