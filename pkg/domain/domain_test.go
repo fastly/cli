@@ -340,7 +340,6 @@ func updateDomainOK(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
 		Name:           *i.NewName,
-		Comment:        *i.Comment,
 	}, nil
 }
 

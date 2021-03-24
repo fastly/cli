@@ -56,9 +56,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	c.updateInput.ServiceID = d.ServiceID
 	c.updateInput.ServiceVersion = d.ServiceVersion
-
-	// Set original value, and then afterwards check if we can use the flag value.
-	c.updateInput.Comment = &d.Comment
+	c.updateInput.Name = d.Name
 
 	if c.NewName.WasSet {
 		c.updateInput.NewName = fastly.String(c.NewName.Value)
