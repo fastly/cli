@@ -128,11 +128,8 @@ func TestVersionUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateVersionFn: updateVersionOK,
-			},
+			args:       []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
+			api:        mock.API{UpdateVersionFn: updateVersionOK},
 			wantOutput: "Updated service 123 version 1",
 		},
 		{
@@ -141,11 +138,8 @@ func TestVersionUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --comment not provided",
 		},
 		{
-			args: []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateVersionFn: updateVersionError,
-			},
+			args:      []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
+			api:       mock.API{UpdateVersionFn: updateVersionError},
 			wantError: errTest.Error(),
 		},
 	} {

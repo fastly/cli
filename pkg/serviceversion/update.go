@@ -15,9 +15,8 @@ import (
 // UpdateCommand calls the Fastly API to update a service version.
 type UpdateCommand struct {
 	common.Base
-	manifest    manifest.Data
-	getInput    fastly.GetServiceInput
-	updateInput fastly.UpdateVersionInput
+	manifest manifest.Data
+	input    fastly.UpdateVersionInput
 
 	comment common.OptionalString
 }
@@ -30,7 +29,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to update").Required().IntVar(&c.updateInput.ServiceVersion)
+	c.CmdClause.Flag("version", "Number of version you wish to update").Required().IntVar(&c.input.ServiceVersion)
 
 	// TODO(integralist):
 	// Make 'comment' field mandatory once we roll out a new release of Go-Fastly
@@ -48,31 +47,21 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 
-	c.getInput.ID = serviceID
+	c.input.ServiceID = serviceID
 
 	if !c.comment.WasSet {
 		return fmt.Errorf("error parsing arguments: required flag --comment not provided")
 	}
 
-	s, err := c.Globals.Client.GetService(&c.getInput)
-	if err != nil {
-		return err
-	}
-
-	// Set original value, and then afterwards check if we can use the flag value.
-	c.updateInput.ServiceID = serviceID
-	c.updateInput.Comment = &s.Comment
-
-	// Update field value as required.
 	if c.comment.WasSet {
-		c.updateInput.Comment = fastly.String(c.comment.Value)
+		c.input.Comment = fastly.String(c.comment.Value)
 	}
 
-	v, err := c.Globals.Client.UpdateVersion(&c.updateInput)
+	v, err := c.Globals.Client.UpdateVersion(&c.input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Updated service %s version %d", v.ServiceID, c.updateInput.ServiceVersion)
+	text.Success(out, "Updated service %s version %d", v.ServiceID, c.input.ServiceVersion)
 	return nil
 }
