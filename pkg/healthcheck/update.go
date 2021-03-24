@@ -15,7 +15,7 @@ import (
 type UpdateCommand struct {
 	common.Base
 	manifest manifest.Data
-	Input    fastly.GetHealthCheckInput
+	input    fastly.UpdateHealthCheckInput
 
 	NewName          common.OptionalString
 	Comment          common.OptionalString
@@ -40,8 +40,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause = parent.Command("update", "Update a healthcheck on a Fastly service version")
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
-	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.input.ServiceVersion)
+	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Required().StringVar(&c.input.Name)
 
 	c.CmdClause.Flag("new-name", "Healthcheck name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
@@ -65,82 +65,57 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.ServiceID = serviceID
+	c.input.ServiceID = serviceID
 
-	h, err := c.Globals.Client.GetHealthCheck(&c.Input)
-	if err != nil {
-		return err
-	}
-
-	// Copy existing values from GET to UpdateHealthCheckInput strcuture
-	input := &fastly.UpdateHealthCheckInput{
-		ServiceID:        h.ServiceID,
-		ServiceVersion:   h.ServiceVersion,
-		Name:             h.Name,
-		NewName:          fastly.String(h.Name),
-		Comment:          fastly.String(h.Comment),
-		Method:           fastly.String(h.Method),
-		Host:             fastly.String(h.Host),
-		Path:             fastly.String(h.Path),
-		HTTPVersion:      fastly.String(h.HTTPVersion),
-		Timeout:          fastly.Uint(h.Timeout),
-		CheckInterval:    fastly.Uint(h.CheckInterval),
-		ExpectedResponse: fastly.Uint(h.ExpectedResponse),
-		Window:           fastly.Uint(h.Window),
-		Threshold:        fastly.Uint(h.Threshold),
-		Initial:          fastly.Uint(h.Initial),
-	}
-
-	// Set values to existing ones to prevent accidental overwrite if empty.
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		c.input.NewName = fastly.String(c.NewName.Value)
 	}
 
 	if c.Comment.WasSet {
-		input.Comment = fastly.String(c.Comment.Value)
+		c.input.Comment = fastly.String(c.Comment.Value)
 	}
 
 	if c.Method.WasSet {
-		input.Method = fastly.String(c.Method.Value)
+		c.input.Method = fastly.String(c.Method.Value)
 	}
 
 	if c.Host.WasSet {
-		input.Host = fastly.String(c.Host.Value)
+		c.input.Host = fastly.String(c.Host.Value)
 	}
 
 	if c.Path.WasSet {
-		input.Path = fastly.String(c.Path.Value)
+		c.input.Path = fastly.String(c.Path.Value)
 	}
 
 	if c.HTTPVersion.WasSet {
-		input.HTTPVersion = fastly.String(c.HTTPVersion.Value)
+		c.input.HTTPVersion = fastly.String(c.HTTPVersion.Value)
 	}
 
 	if c.Timeout.WasSet {
-		input.Timeout = fastly.Uint(c.Timeout.Value)
+		c.input.Timeout = fastly.Uint(c.Timeout.Value)
 	}
 
 	if c.CheckInterval.WasSet {
-		input.CheckInterval = fastly.Uint(c.CheckInterval.Value)
+		c.input.CheckInterval = fastly.Uint(c.CheckInterval.Value)
 	}
 
 	if c.ExpectedResponse.WasSet {
-		input.ExpectedResponse = fastly.Uint(c.ExpectedResponse.Value)
+		c.input.ExpectedResponse = fastly.Uint(c.ExpectedResponse.Value)
 	}
 
 	if c.Window.WasSet {
-		input.Window = fastly.Uint(c.Window.Value)
+		c.input.Window = fastly.Uint(c.Window.Value)
 	}
 
 	if c.Threshold.WasSet {
-		input.Threshold = fastly.Uint(c.Threshold.Value)
+		c.input.Threshold = fastly.Uint(c.Threshold.Value)
 	}
 
 	if c.Initial.WasSet {
-		input.Initial = fastly.Uint(c.Initial.Value)
+		c.input.Initial = fastly.Uint(c.Initial.Value)
 	}
 
-	h, err = c.Globals.Client.UpdateHealthCheck(input)
+	h, err := c.Globals.Client.UpdateHealthCheck(&c.input)
 	if err != nil {
 		return err
 	}
