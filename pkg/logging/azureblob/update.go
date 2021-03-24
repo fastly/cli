@@ -75,36 +75,12 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateBlobStorageInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	azureblob, err := c.Globals.Client.GetBlobStorage(&fastly.GetBlobStorageInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateBlobStorageInput{
-		ServiceID:         azureblob.ServiceID,
-		ServiceVersion:    azureblob.ServiceVersion,
-		Name:              azureblob.Name,
-		NewName:           fastly.String(azureblob.Name),
-		Path:              fastly.String(azureblob.Path),
-		AccountName:       fastly.String(azureblob.AccountName),
-		Container:         fastly.String(azureblob.Container),
-		SASToken:          fastly.String(azureblob.SASToken),
-		Period:            fastly.Uint(azureblob.Period),
-		TimestampFormat:   fastly.String(azureblob.TimestampFormat),
-		GzipLevel:         fastly.Uint(azureblob.GzipLevel),
-		PublicKey:         fastly.String(azureblob.PublicKey),
-		Format:            fastly.String(azureblob.Format),
-		FormatVersion:     fastly.Uint(azureblob.FormatVersion),
-		MessageType:       fastly.String(azureblob.MessageType),
-		Placement:         fastly.String(azureblob.Placement),
-		ResponseCondition: fastly.String(azureblob.ResponseCondition),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
-	// Set new values if set by user.
 	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
