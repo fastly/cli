@@ -77,34 +77,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateCloudfilesInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	cloudfiles, err := c.Globals.Client.GetCloudfiles(&fastly.GetCloudfilesInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateCloudfilesInput{
-		ServiceID:         cloudfiles.ServiceID,
-		ServiceVersion:    cloudfiles.ServiceVersion,
-		Name:              cloudfiles.Name,
-		NewName:           fastly.String(cloudfiles.Name),
-		User:              fastly.String(cloudfiles.User),
-		AccessKey:         fastly.String(cloudfiles.AccessKey),
-		BucketName:        fastly.String(cloudfiles.BucketName),
-		Path:              fastly.String(cloudfiles.Path),
-		Region:            fastly.String(cloudfiles.Region),
-		Placement:         fastly.String(cloudfiles.Placement),
-		Period:            fastly.Uint(cloudfiles.Period),
-		GzipLevel:         fastly.Uint(cloudfiles.GzipLevel),
-		Format:            fastly.String(cloudfiles.Format),
-		FormatVersion:     fastly.Uint(cloudfiles.FormatVersion),
-		ResponseCondition: fastly.String(cloudfiles.ResponseCondition),
-		MessageType:       fastly.String(cloudfiles.MessageType),
-		TimestampFormat:   fastly.String(cloudfiles.TimestampFormat),
-		PublicKey:         fastly.String(cloudfiles.PublicKey),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.

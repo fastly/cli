@@ -175,27 +175,13 @@ func TestCloudfilesUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetCloudfilesFn:    getCloudfilesError,
-				UpdateCloudfilesFn: updateCloudfilesOK,
-			},
+			args:      []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateCloudfilesFn: updateCloudfilesError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetCloudfilesFn:    getCloudfilesOK,
-				UpdateCloudfilesFn: updateCloudfilesError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetCloudfilesFn:    getCloudfilesOK,
-				UpdateCloudfilesFn: updateCloudfilesOK,
-			},
+			args:       []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateCloudfilesFn: updateCloudfilesOK},
 			wantOutput: "Updated Cloudfiles logging endpoint log (service 123 version 1)",
 		},
 	} {

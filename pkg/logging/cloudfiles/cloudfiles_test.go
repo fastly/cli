@@ -83,24 +83,9 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			cmd:  updateCommandNoUpdate(),
 			api:  mock.API{GetCloudfilesFn: getCloudfilesOK},
 			want: &fastly.UpdateCloudfilesInput{
-				ServiceID:         "123",
-				ServiceVersion:    2,
-				Name:              "logs",
-				NewName:           fastly.String("logs"),
-				User:              fastly.String("user"),
-				AccessKey:         fastly.String("key"),
-				BucketName:        fastly.String("bucket"),
-				Path:              fastly.String("/logs"),
-				Region:            fastly.String("abc"),
-				Placement:         fastly.String("none"),
-				Period:            fastly.Uint(3600),
-				GzipLevel:         fastly.Uint(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				MessageType:       fastly.String("classic"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				PublicKey:         fastly.String(pgpPublicKey()),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
@@ -110,7 +95,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			want: &fastly.UpdateCloudfilesInput{
 				ServiceID:         "123",
 				ServiceVersion:    2,
-				Name:              "logs",
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				AccessKey:         fastly.String("new2"),
 				BucketName:        fastly.String("new3"),
@@ -189,7 +174,7 @@ func updateCommandNoUpdate() *UpdateCommand {
 		Base:         common.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		Version:      2,
-		EndpointName: "logs",
+		EndpointName: "log",
 	}
 }
 
