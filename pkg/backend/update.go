@@ -86,37 +86,12 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	// Copy existing values from GET to UpdateBackendInput strcuture
 	input := &fastly.UpdateBackendInput{
-		ServiceID:           b.ServiceID,
-		ServiceVersion:      b.ServiceVersion,
-		Name:                b.Name,
-		NewName:             fastly.String(b.Name),
-		Address:             fastly.String(b.Address),
-		Port:                fastly.Uint(b.Port),
-		OverrideHost:        fastly.String(b.OverrideHost),
-		ConnectTimeout:      fastly.Uint(b.ConnectTimeout),
-		MaxConn:             fastly.Uint(b.MaxConn),
-		FirstByteTimeout:    fastly.Uint(b.FirstByteTimeout),
-		BetweenBytesTimeout: fastly.Uint(b.BetweenBytesTimeout),
-		AutoLoadbalance:     fastly.CBool(b.AutoLoadbalance),
-		Weight:              fastly.Uint(b.Weight),
-		RequestCondition:    fastly.String(b.RequestCondition),
-		HealthCheck:         fastly.String(b.HealthCheck),
-		Shield:              fastly.String(b.Shield),
-		UseSSL:              fastly.CBool(b.UseSSL),
-		SSLCheckCert:        fastly.CBool(b.SSLCheckCert),
-		SSLCACert:           fastly.String(b.SSLCACert),
-		SSLClientCert:       fastly.String(b.SSLClientCert),
-		SSLClientKey:        fastly.String(b.SSLClientKey),
-		SSLCertHostname:     fastly.String(b.SSLCertHostname),
-		SSLSNIHostname:      fastly.String(b.SSLSNIHostname),
-		MinTLSVersion:       fastly.String(b.MinTLSVersion),
-		MaxTLSVersion:       fastly.String(b.MaxTLSVersion),
-		SSLCiphers:          b.SSLCiphers,
+		ServiceID:      b.ServiceID,
+		ServiceVersion: b.ServiceVersion,
+		Name:           b.Name,
 	}
 
-	// Set values to existing ones to prevent accidental overwrite if empty.
 	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
