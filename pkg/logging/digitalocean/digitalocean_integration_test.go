@@ -175,27 +175,13 @@ func TestDigitalOceanUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetDigitalOceanFn:    getDigitalOceanError,
-				UpdateDigitalOceanFn: updateDigitalOceanOK,
-			},
+			args:      []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateDigitalOceanFn: updateDigitalOceanError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetDigitalOceanFn:    getDigitalOceanOK,
-				UpdateDigitalOceanFn: updateDigitalOceanError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetDigitalOceanFn:    getDigitalOceanOK,
-				UpdateDigitalOceanFn: updateDigitalOceanOK,
-			},
+			args:       []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateDigitalOceanFn: updateDigitalOceanOK},
 			wantOutput: "Updated DigitalOcean Spaces logging endpoint log (service 123 version 1)",
 		},
 	} {

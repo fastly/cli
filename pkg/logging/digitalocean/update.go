@@ -77,34 +77,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateDigitalOceanInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	digitalocean, err := c.Globals.Client.GetDigitalOcean(&fastly.GetDigitalOceanInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateDigitalOceanInput{
-		ServiceID:         digitalocean.ServiceID,
-		ServiceVersion:    digitalocean.ServiceVersion,
-		Name:              digitalocean.Name,
-		NewName:           fastly.String(digitalocean.Name),
-		BucketName:        fastly.String(digitalocean.BucketName),
-		Domain:            fastly.String(digitalocean.Domain),
-		AccessKey:         fastly.String(digitalocean.AccessKey),
-		SecretKey:         fastly.String(digitalocean.SecretKey),
-		Path:              fastly.String(digitalocean.Path),
-		Period:            fastly.Uint(digitalocean.Period),
-		GzipLevel:         fastly.Uint(digitalocean.GzipLevel),
-		Format:            fastly.String(digitalocean.Format),
-		FormatVersion:     fastly.Uint(digitalocean.FormatVersion),
-		ResponseCondition: fastly.String(digitalocean.ResponseCondition),
-		MessageType:       fastly.String(digitalocean.MessageType),
-		TimestampFormat:   fastly.String(digitalocean.TimestampFormat),
-		Placement:         fastly.String(digitalocean.Placement),
-		PublicKey:         fastly.String(digitalocean.PublicKey),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.
