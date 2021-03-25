@@ -13,13 +13,13 @@ import (
 )
 
 // Check if the CLI can be updated.
-func Check(ctx context.Context, currentVersion string, v Versioner) (current, latest semver.Version, shouldUpdate bool, err error) {
+func Check(ctx context.Context, currentVersion string, cliVersioner Versioner) (current, latest semver.Version, shouldUpdate bool, err error) {
 	current, err = semver.Parse(strings.TrimPrefix(currentVersion, "v"))
 	if err != nil {
 		return current, latest, false, fmt.Errorf("error reading current version: %w", err)
 	}
 
-	latest, err = v.LatestVersion(ctx)
+	latest, err = cliVersioner.LatestVersion(ctx)
 	if err != nil {
 		return current, latest, false, fmt.Errorf("error fetching latest version: %w", err)
 	}
@@ -44,14 +44,14 @@ type checkResult struct {
 //     f := CheckAsync(...)
 //     defer f()
 //
-func CheckAsync(ctx context.Context, file config.File, configFilePath string, currentVersion string, v Versioner) (printResults func(io.Writer)) {
+func CheckAsync(ctx context.Context, file config.File, configFilePath string, currentVersion string, cliVersioner Versioner) (printResults func(io.Writer)) {
 	if !check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
 		return func(io.Writer) {} // no-op
 	}
 
 	results := make(chan checkResult, 1)
 	go func() {
-		current, latest, shouldUpdate, err := Check(ctx, currentVersion, v)
+		current, latest, shouldUpdate, err := Check(ctx, currentVersion, cliVersioner)
 		results <- checkResult{current, latest, shouldUpdate, err}
 	}()
 

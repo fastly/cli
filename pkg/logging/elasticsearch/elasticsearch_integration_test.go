@@ -50,11 +50,11 @@ func TestElasticsearchCreate(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
 		})
@@ -107,11 +107,11 @@ func TestElasticsearchList(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, out.String())
 		})
@@ -148,11 +148,11 @@ func TestElasticsearchDescribe(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, out.String())
 		})
@@ -189,11 +189,11 @@ func TestElasticsearchUpdate(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
 		})
@@ -230,11 +230,11 @@ func TestElasticsearchDelete(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
 		})

@@ -56,12 +56,12 @@ func TestApplication(t *testing.T) {
 				configFilePath                  = "/dev/null"
 				clientFactory                   = mock.APIClient(mock.API{})
 				httpClient     api.HTTPClient   = nil
-				versioner      update.Versioner = nil
+				cliVersioner   update.Versioner = nil
 				stdin          io.Reader        = nil
 				stdout         bytes.Buffer
 				stderr         bytes.Buffer
 			)
-			err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, versioner, stdin, &stdout)
+			err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, cliVersioner, stdin, &stdout)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}

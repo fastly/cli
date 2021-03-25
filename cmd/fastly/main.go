@@ -33,7 +33,7 @@ func main() {
 		configFilePath           = config.FilePath // write-only for `fastly configure`
 		clientFactory            = app.FastlyAPIClient
 		httpClient               = http.DefaultClient
-		versioner                = update.NewGitHub(context.Background())
+		cliVersioner             = update.NewGitHub(context.Background(), "fastly", "cli")
 		in             io.Reader = os.Stdin
 		out            io.Writer = common.NewSyncWriter(os.Stdout)
 	)
@@ -142,7 +142,7 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 	}
 
 	// Main is basically just a shim to call Run, so we do that here.
-	if err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, versioner, in, out); err != nil {
+	if err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, cliVersioner, in, out); err != nil {
 		errors.Deduce(err).Print(os.Stderr)
 
 		// NOTE: if we have an error processing the command, then we should be sure
