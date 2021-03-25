@@ -171,27 +171,13 @@ func TestElasticsearchUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetElasticsearchFn:    getElasticsearchError,
-				UpdateElasticsearchFn: updateElasticsearchOK,
-			},
+			args:      []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateElasticsearchFn: updateElasticsearchError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetElasticsearchFn:    getElasticsearchOK,
-				UpdateElasticsearchFn: updateElasticsearchError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetElasticsearchFn:    getElasticsearchOK,
-				UpdateElasticsearchFn: updateElasticsearchOK,
-			},
+			args:       []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateElasticsearchFn: updateElasticsearchOK},
 			wantOutput: "Updated Elasticsearch logging endpoint log (service 123 version 1)",
 		},
 	} {
