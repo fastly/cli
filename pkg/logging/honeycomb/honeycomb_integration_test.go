@@ -171,27 +171,13 @@ func TestHoneycombUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetHoneycombFn:    getHoneycombError,
-				UpdateHoneycombFn: updateHoneycombOK,
-			},
+			args:      []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateHoneycombFn: updateHoneycombError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetHoneycombFn:    getHoneycombOK,
-				UpdateHoneycombFn: updateHoneycombError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetHoneycombFn:    getHoneycombOK,
-				UpdateHoneycombFn: updateHoneycombOK,
-			},
+			args:       []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateHoneycombFn: updateHoneycombOK},
 			wantOutput: "Updated Honeycomb logging endpoint log (service 123 version 1)",
 		},
 	} {
