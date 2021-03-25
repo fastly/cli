@@ -72,16 +72,9 @@ func TestUpdateScalyrInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetScalyrFn: getScalyrOK},
 			want: &fastly.UpdateScalyrInput{
-				ServiceID:         "123",
-				ServiceVersion:    2,
-				Name:              "logs",
-				NewName:           fastly.String("logs"),
-				Token:             fastly.String("tkn"),
-				Region:            fastly.String("US"),
-				FormatVersion:     fastly.Uint(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
@@ -91,7 +84,7 @@ func TestUpdateScalyrInput(t *testing.T) {
 			want: &fastly.UpdateScalyrInput{
 				ServiceID:         "123",
 				ServiceVersion:    2,
-				Name:              "logs",
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Token:             fastly.String("new2"),
 				FormatVersion:     fastly.Uint(3),
