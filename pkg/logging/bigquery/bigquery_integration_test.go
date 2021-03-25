@@ -170,27 +170,13 @@ func TestBigQueryUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetBigQueryFn:    getBigQueryError,
-				UpdateBigQueryFn: updateBigQueryOK,
-			},
+			args:      []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateBigQueryFn: updateBigQueryError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetBigQueryFn:    getBigQueryOK,
-				UpdateBigQueryFn: updateBigQueryError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetBigQueryFn:    getBigQueryOK,
-				UpdateBigQueryFn: updateBigQueryOK,
-			},
+			args:       []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateBigQueryFn: updateBigQueryOK},
 			wantOutput: "Updated BigQuery logging endpoint log (service 123 version 1)",
 		},
 	} {

@@ -68,33 +68,12 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateBigQueryInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	bq, err := c.Globals.Client.GetBigQuery(&fastly.GetBigQueryInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateBigQueryInput{
-		ServiceID:         bq.ServiceID,
-		ServiceVersion:    bq.ServiceVersion,
-		Name:              bq.Name,
-		NewName:           fastly.String(bq.Name),
-		ProjectID:         fastly.String(bq.ProjectID),
-		Dataset:           fastly.String(bq.Dataset),
-		Table:             fastly.String(bq.Table),
-		Template:          fastly.String(bq.Template),
-		User:              fastly.String(bq.User),
-		SecretKey:         fastly.String(bq.SecretKey),
-		Format:            fastly.String(bq.Format),
-		ResponseCondition: fastly.String(bq.ResponseCondition),
-		Placement:         fastly.String(bq.Placement),
-		FormatVersion:     fastly.Uint(bq.FormatVersion),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
-	// Set new values if set by user.
 	if c.NewName.WasSet {
 		input.NewName = fastly.String(c.NewName.Value)
 	}
