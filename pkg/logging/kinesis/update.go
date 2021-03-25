@@ -65,28 +65,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKinesisInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	kinesis, err := c.Globals.Client.GetKinesis(&fastly.GetKinesisInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateKinesisInput{
-		ServiceID:         kinesis.ServiceID,
-		ServiceVersion:    kinesis.ServiceVersion,
-		Name:              kinesis.Name,
-		NewName:           fastly.String(kinesis.Name),
-		StreamName:        fastly.String(kinesis.StreamName),
-		Region:            fastly.String(kinesis.Region),
-		AccessKey:         fastly.String(kinesis.AccessKey),
-		SecretKey:         fastly.String(kinesis.SecretKey),
-		Format:            fastly.String(kinesis.Format),
-		FormatVersion:     fastly.Uint(kinesis.FormatVersion),
-		ResponseCondition: fastly.String(kinesis.ResponseCondition),
-		Placement:         fastly.String(kinesis.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {
