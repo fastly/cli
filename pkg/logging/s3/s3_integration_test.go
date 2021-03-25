@@ -167,27 +167,13 @@ func TestS3Update(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetS3Fn:    getS3Error,
-				UpdateS3Fn: updateS3OK,
-			},
+			args:      []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateS3Fn: updateS3Error},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetS3Fn:    getS3OK,
-				UpdateS3Fn: updateS3Error,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetS3Fn:    getS3OK,
-				UpdateS3Fn: updateS3OK,
-			},
+			args:       []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateS3Fn: updateS3OK},
 			wantOutput: "Updated S3 logging endpoint log (service 123 version 1)",
 		},
 	} {
