@@ -167,27 +167,13 @@ func TestLogglyUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "loggly", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogglyFn:    getLogglyError,
-				UpdateLogglyFn: updateLogglyOK,
-			},
+			args:      []string{"logging", "loggly", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateLogglyFn: updateLogglyError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "loggly", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogglyFn:    getLogglyOK,
-				UpdateLogglyFn: updateLogglyError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "loggly", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogglyFn:    getLogglyOK,
-				UpdateLogglyFn: updateLogglyOK,
-			},
+			args:       []string{"logging", "loggly", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateLogglyFn: updateLogglyOK},
 			wantOutput: "Updated Loggly logging endpoint log (service 123 version 1)",
 		},
 	} {
