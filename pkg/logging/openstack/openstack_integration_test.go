@@ -179,27 +179,13 @@ func TestOpenstackUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetOpenstackFn:    getOpenstackError,
-				UpdateOpenstackFn: updateOpenstackOK,
-			},
+			args:      []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateOpenstackFn: updateOpenstackError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetOpenstackFn:    getOpenstackOK,
-				UpdateOpenstackFn: updateOpenstackError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetOpenstackFn:    getOpenstackOK,
-				UpdateOpenstackFn: updateOpenstackOK,
-			},
+			args:       []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateOpenstackFn: updateOpenstackOK},
 			wantOutput: "Updated OpenStack logging endpoint log (service 123 version 1)",
 		},
 	} {
