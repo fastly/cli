@@ -81,36 +81,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSFTPInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	sftp, err := c.Globals.Client.GetSFTP(&fastly.GetSFTPInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateSFTPInput{
-		ServiceID:         sftp.ServiceID,
-		ServiceVersion:    sftp.ServiceVersion,
-		Name:              sftp.Name,
-		NewName:           fastly.String(sftp.Name),
-		Address:           fastly.String(sftp.Address),
-		Port:              fastly.Uint(sftp.Port),
-		PublicKey:         fastly.String(sftp.PublicKey),
-		SecretKey:         fastly.String(sftp.SecretKey),
-		SSHKnownHosts:     fastly.String(sftp.SSHKnownHosts),
-		User:              fastly.String(sftp.User),
-		Password:          fastly.String(sftp.Password),
-		Path:              fastly.String(sftp.Path),
-		Period:            fastly.Uint(sftp.Period),
-		Format:            fastly.String(sftp.Format),
-		FormatVersion:     fastly.Uint(sftp.FormatVersion),
-		GzipLevel:         fastly.Uint(uint(sftp.GzipLevel)), // TODO (v2): consistent type.
-		MessageType:       fastly.String(sftp.MessageType),
-		ResponseCondition: fastly.String(sftp.ResponseCondition),
-		TimestampFormat:   fastly.String(sftp.TimestampFormat),
-		Placement:         fastly.String(sftp.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {
