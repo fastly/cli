@@ -75,33 +75,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateFTPInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	ftp, err := c.Globals.Client.GetFTP(&fastly.GetFTPInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateFTPInput{
-		ServiceID:         ftp.ServiceID,
-		ServiceVersion:    ftp.ServiceVersion,
-		Name:              ftp.Name,
-		NewName:           fastly.String(ftp.Name),
-		Address:           fastly.String(ftp.Address),
-		Port:              fastly.Uint(ftp.Port),
-		PublicKey:         fastly.String(ftp.PublicKey),
-		Username:          fastly.String(ftp.Username),
-		Password:          fastly.String(ftp.Password),
-		Path:              fastly.String(ftp.Path),
-		Period:            fastly.Uint(ftp.Period),
-		FormatVersion:     fastly.Uint(ftp.FormatVersion),
-		GzipLevel:         fastly.Uint8(ftp.GzipLevel),
-		Format:            fastly.String(ftp.Format),
-		ResponseCondition: fastly.String(ftp.ResponseCondition),
-		TimestampFormat:   fastly.String(ftp.TimestampFormat),
-		Placement:         fastly.String(ftp.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.
