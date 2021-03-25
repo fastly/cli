@@ -69,30 +69,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSplunkInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	splunk, err := c.Globals.Client.GetSplunk(&fastly.GetSplunkInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateSplunkInput{
-		ServiceID:         splunk.ServiceID,
-		ServiceVersion:    splunk.ServiceVersion,
-		Name:              splunk.Name,
-		NewName:           fastly.String(splunk.Name),
-		URL:               fastly.String(splunk.URL),
-		Format:            fastly.String(splunk.Format),
-		FormatVersion:     fastly.Uint(splunk.FormatVersion),
-		ResponseCondition: fastly.String(splunk.ResponseCondition),
-		Placement:         fastly.String(splunk.Placement),
-		Token:             fastly.String(splunk.Token),
-		TLSCACert:         fastly.String(splunk.TLSCACert),
-		TLSHostname:       fastly.String(splunk.TLSHostname),
-		TLSClientCert:     fastly.String(splunk.TLSClientCert),
-		TLSClientKey:      fastly.String(splunk.TLSClientKey),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.
