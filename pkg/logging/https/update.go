@@ -83,37 +83,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateHTTPSInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	https, err := c.Globals.Client.GetHTTPS(&fastly.GetHTTPSInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateHTTPSInput{
-		ServiceID:         https.ServiceID,
-		ServiceVersion:    https.ServiceVersion,
-		Name:              https.Name,
-		NewName:           fastly.String(https.Name),
-		ResponseCondition: fastly.String(https.ResponseCondition),
-		Format:            fastly.String(https.Format),
-		URL:               fastly.String(https.URL),
-		RequestMaxEntries: fastly.Uint(https.RequestMaxEntries),
-		RequestMaxBytes:   fastly.Uint(https.RequestMaxBytes),
-		ContentType:       fastly.String(https.ContentType),
-		HeaderName:        fastly.String(https.HeaderName),
-		HeaderValue:       fastly.String(https.HeaderValue),
-		Method:            fastly.String(https.Method),
-		JSONFormat:        fastly.String(https.JSONFormat),
-		Placement:         fastly.String(https.Placement),
-		TLSCACert:         fastly.String(https.TLSCACert),
-		TLSClientCert:     fastly.String(https.TLSClientCert),
-		TLSClientKey:      fastly.String(https.TLSClientKey),
-		TLSHostname:       fastly.String(https.TLSHostname),
-		MessageType:       fastly.String(https.MessageType),
-		FormatVersion:     fastly.Uint(https.FormatVersion),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {
