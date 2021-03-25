@@ -61,26 +61,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateDatadogInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	datadog, err := c.Globals.Client.GetDatadog(&fastly.GetDatadogInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateDatadogInput{
-		ServiceID:         datadog.ServiceID,
-		ServiceVersion:    datadog.ServiceVersion,
-		Name:              datadog.Name,
-		NewName:           fastly.String(datadog.Name),
-		Token:             fastly.String(datadog.Token),
-		Region:            fastly.String(datadog.Region),
-		Format:            fastly.String(datadog.Format),
-		FormatVersion:     fastly.Uint(datadog.FormatVersion),
-		ResponseCondition: fastly.String(datadog.ResponseCondition),
-		Placement:         fastly.String(datadog.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {

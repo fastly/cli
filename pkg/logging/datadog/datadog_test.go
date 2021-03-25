@@ -72,16 +72,9 @@ func TestUpdateDatadogInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetDatadogFn: getDatadogOK},
 			want: &fastly.UpdateDatadogInput{
-				ServiceID:         "123",
-				ServiceVersion:    2,
-				Name:              "logs",
-				NewName:           fastly.String("logs"),
-				Region:            fastly.String("US"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				Token:             fastly.String("tkn"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
@@ -91,7 +84,7 @@ func TestUpdateDatadogInput(t *testing.T) {
 			want: &fastly.UpdateDatadogInput{
 				ServiceID:         "123",
 				ServiceVersion:    2,
-				Name:              "logs",
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Region:            fastly.String("new2"),
 				Format:            fastly.String("new3"),
@@ -151,7 +144,7 @@ func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
 		Base:         common.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName: "logs",
+		EndpointName: "log",
 		Version:      2,
 	}
 }
