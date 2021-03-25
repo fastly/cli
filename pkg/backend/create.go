@@ -69,7 +69,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	if c.UseSSL && c.Input.Port == 0 {
 		if c.Globals.Flag.Verbose {
-			text.Warning(out, "SSL to the backend was set but no port was specified, so default port :443 will be used")
+			text.Warning(out, "Use-ssl was set but no port was specified, so default port 443 will be used")
 			c.Input.Port = 443
 		}
 	}
