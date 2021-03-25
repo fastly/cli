@@ -179,27 +179,13 @@ func TestGooglePubSubUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetPubsubFn:    getGooglePubSubError,
-				UpdatePubsubFn: updateGooglePubSubOK,
-			},
+			args:      []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdatePubsubFn: updateGooglePubSubError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetPubsubFn:    getGooglePubSubOK,
-				UpdatePubsubFn: updateGooglePubSubError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetPubsubFn:    getGooglePubSubOK,
-				UpdatePubsubFn: updateGooglePubSubOK,
-			},
+			args:       []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdatePubsubFn: updateGooglePubSubOK},
 			wantOutput: "Updated Google Cloud Pub/Sub logging endpoint log (service 123 version 1)",
 		},
 	} {
