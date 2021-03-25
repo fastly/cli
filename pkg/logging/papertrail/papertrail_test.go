@@ -72,16 +72,9 @@ func TestUpdatePapertrailInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetPapertrailFn: getPapertrailOK},
 			want: &fastly.UpdatePapertrailInput{
-				ServiceID:         "123",
-				ServiceVersion:    2,
-				Name:              "logs",
-				NewName:           fastly.String("logs"),
-				Address:           fastly.String("example.com"),
-				Port:              fastly.Uint(22),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
@@ -91,7 +84,7 @@ func TestUpdatePapertrailInput(t *testing.T) {
 			want: &fastly.UpdatePapertrailInput{
 				ServiceID:         "123",
 				ServiceVersion:    2,
-				Name:              "logs",
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Address:           fastly.String("new2"),
 				Port:              fastly.Uint(23),

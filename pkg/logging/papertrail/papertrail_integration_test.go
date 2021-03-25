@@ -167,27 +167,13 @@ func TestPapertrailUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetPapertrailFn:    getPapertrailError,
-				UpdatePapertrailFn: updatePapertrailOK,
-			},
+			args:      []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdatePapertrailFn: updatePapertrailError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetPapertrailFn:    getPapertrailOK,
-				UpdatePapertrailFn: updatePapertrailError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetPapertrailFn:    getPapertrailOK,
-				UpdatePapertrailFn: updatePapertrailOK,
-			},
+			args:       []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdatePapertrailFn: updatePapertrailOK},
 			wantOutput: "Updated Papertrail logging endpoint log (service 123 version 1)",
 		},
 	} {
