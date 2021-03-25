@@ -73,32 +73,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateGCSInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	gcs, err := c.Globals.Client.GetGCS(&fastly.GetGCSInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateGCSInput{
-		ServiceID:         gcs.ServiceID,
-		ServiceVersion:    gcs.ServiceVersion,
-		Name:              gcs.Name,
-		NewName:           fastly.String(gcs.Name),
-		Bucket:            fastly.String(gcs.Bucket),
-		User:              fastly.String(gcs.User),
-		SecretKey:         fastly.String(gcs.SecretKey),
-		Path:              fastly.String(gcs.Path),
-		Period:            fastly.Uint(gcs.Period),
-		FormatVersion:     fastly.Uint(gcs.FormatVersion),
-		GzipLevel:         fastly.Uint8(gcs.GzipLevel),
-		Format:            fastly.String(gcs.Format),
-		MessageType:       fastly.String(gcs.MessageType),
-		ResponseCondition: fastly.String(gcs.ResponseCondition),
-		TimestampFormat:   fastly.String(gcs.TimestampFormat),
-		Placement:         fastly.String(gcs.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.

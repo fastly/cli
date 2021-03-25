@@ -175,27 +175,13 @@ func TestGCSUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetGCSFn:    getGCSError,
-				UpdateGCSFn: updateGCSOK,
-			},
+			args:      []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateGCSFn: updateGCSError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetGCSFn:    getGCSOK,
-				UpdateGCSFn: updateGCSError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetGCSFn:    getGCSOK,
-				UpdateGCSFn: updateGCSOK,
-			},
+			args:       []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateGCSFn: updateGCSOK},
 			wantOutput: "Updated GCS logging endpoint log (service 123 version 1)",
 		},
 	} {
