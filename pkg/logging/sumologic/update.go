@@ -61,26 +61,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSumologicInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	sumologic, err := c.Globals.Client.GetSumologic(&fastly.GetSumologicInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateSumologicInput{
-		ServiceID:         sumologic.ServiceID,
-		ServiceVersion:    sumologic.ServiceVersion,
-		Name:              sumologic.Name,
-		NewName:           fastly.String(sumologic.Name),
-		URL:               fastly.String(sumologic.URL),
-		Format:            fastly.String(sumologic.Format),
-		ResponseCondition: fastly.String(sumologic.ResponseCondition),
-		MessageType:       fastly.String(sumologic.MessageType),
-		FormatVersion:     fastly.Int(sumologic.FormatVersion),
-		Placement:         fastly.String(sumologic.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.

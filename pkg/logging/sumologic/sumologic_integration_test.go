@@ -167,27 +167,13 @@ func TestSumologicUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSumologicFn:    getSumologicError,
-				UpdateSumologicFn: updateSumologicOK,
-			},
+			args:      []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateSumologicFn: updateSumologicError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSumologicFn:    getSumologicOK,
-				UpdateSumologicFn: updateSumologicError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSumologicFn:    getSumologicOK,
-				UpdateSumologicFn: updateSumologicOK,
-			},
+			args:       []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateSumologicFn: updateSumologicOK},
 			wantOutput: "Updated Sumologic logging endpoint log (service 123 version 1)",
 		},
 	} {
