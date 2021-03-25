@@ -171,35 +171,18 @@ func TestKafkaUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetKafkaFn:    getKafkaError,
-				UpdateKafkaFn: updateKafkaOK,
-			},
+			args:      []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateKafkaFn: updateKafkaError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetKafkaFn:    getKafkaOK,
-				UpdateKafkaFn: updateKafkaError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetKafkaFn:    getKafkaOK,
-				UpdateKafkaFn: updateKafkaOK,
-			},
+			args:       []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateKafkaFn: updateKafkaOK},
 			wantOutput: "Updated Kafka logging endpoint log (service 123 version 1)",
 		},
 		{
-			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--parse-log-keyvals", "--max-batch-size", "1024", "--use-sasl", "--auth-method", "plain", "--username", "user", "--password", "password"},
-			api: mock.API{
-				GetKafkaFn:    getKafkaOK,
-				UpdateKafkaFn: updateKafkaSASL,
-			},
+			args:       []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--parse-log-keyvals", "--max-batch-size", "1024", "--use-sasl", "--auth-method", "plain", "--username", "user", "--password", "password"},
+			api:        mock.API{UpdateKafkaFn: updateKafkaSASL},
 			wantOutput: "Updated Kafka logging endpoint log (service 123 version 1)",
 		},
 	} {

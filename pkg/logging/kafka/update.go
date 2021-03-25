@@ -89,15 +89,6 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	kafka, err := c.Globals.Client.GetKafka(&fastly.GetKafkaInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	if c.UseSASL.WasSet && c.UseSASL.Value && (c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "") {
 		return nil, fmt.Errorf("the --auth-method, --username, and --password flags must be present when using the --use-sasl flag")
 	}
@@ -107,28 +98,9 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 	}
 
 	input := fastly.UpdateKafkaInput{
-		ServiceID:         kafka.ServiceID,
-		ServiceVersion:    kafka.ServiceVersion,
-		Name:              kafka.Name,
-		NewName:           fastly.String(kafka.Name),
-		Brokers:           fastly.String(kafka.Brokers),
-		Topic:             fastly.String(kafka.Topic),
-		RequiredACKs:      fastly.String(kafka.RequiredACKs),
-		UseTLS:            fastly.CBool(kafka.UseTLS),
-		CompressionCodec:  fastly.String(kafka.CompressionCodec),
-		Format:            fastly.String(kafka.Format),
-		FormatVersion:     fastly.Uint(kafka.FormatVersion),
-		ResponseCondition: fastly.String(kafka.ResponseCondition),
-		Placement:         fastly.String(kafka.Placement),
-		TLSCACert:         fastly.String(kafka.TLSCACert),
-		TLSHostname:       fastly.String(kafka.TLSHostname),
-		TLSClientCert:     fastly.String(kafka.TLSClientCert),
-		TLSClientKey:      fastly.String(kafka.TLSClientKey),
-		ParseLogKeyvals:   fastly.CBool(kafka.ParseLogKeyvals),
-		RequestMaxBytes:   fastly.Uint(kafka.RequestMaxBytes),
-		AuthMethod:        fastly.String(kafka.AuthMethod),
-		User:              fastly.String(kafka.User),
-		Password:          fastly.String(kafka.Password),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {
