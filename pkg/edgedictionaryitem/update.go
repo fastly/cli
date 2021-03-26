@@ -44,12 +44,13 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
-	dictionary, err := c.Globals.Client.UpdateDictionaryItem(&c.Input)
+	d, err := c.Globals.Client.UpdateDictionaryItem(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	text.Output(out, "Service ID: %s", c.Input.ServiceID)
-	text.PrintDictionaryItem(out, "", dictionary)
+	text.Success(out, "Updated dictionary item (service %s)", d.ServiceID)
+	text.Break(out)
+	text.PrintDictionaryItem(out, "", d)
 	return nil
 }

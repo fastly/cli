@@ -73,16 +73,9 @@ func TestUpdateHerokuInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetHerokuFn: getHerokuOK},
 			want: &fastly.UpdateHerokuInput{
-				ServiceID:         "123",
-				ServiceVersion:    2,
-				Name:              "logs",
-				NewName:           fastly.String("logs"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				Token:             fastly.String("tkn"),
-				URL:               fastly.String("example.com"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
@@ -92,7 +85,7 @@ func TestUpdateHerokuInput(t *testing.T) {
 			want: &fastly.UpdateHerokuInput{
 				ServiceID:         "123",
 				ServiceVersion:    2,
-				Name:              "logs",
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Format:            fastly.String("new2"),
 				FormatVersion:     fastly.Uint(3),

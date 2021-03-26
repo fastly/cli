@@ -61,26 +61,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateScalyrInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	scalyr, err := c.Globals.Client.GetScalyr(&fastly.GetScalyrInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateScalyrInput{
-		ServiceID:         scalyr.ServiceID,
-		ServiceVersion:    scalyr.ServiceVersion,
-		Name:              scalyr.Name,
-		NewName:           fastly.String(scalyr.Name),
-		Format:            fastly.String(scalyr.Format),
-		FormatVersion:     fastly.Uint(scalyr.FormatVersion),
-		Token:             fastly.String(scalyr.Token),
-		Region:            fastly.String(scalyr.Region),
-		ResponseCondition: fastly.String(scalyr.ResponseCondition),
-		Placement:         fastly.String(scalyr.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {

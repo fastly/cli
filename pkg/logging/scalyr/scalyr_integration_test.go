@@ -176,27 +176,13 @@ func TestScalyrUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "scalyr", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetScalyrFn:    getScalyrError,
-				UpdateScalyrFn: updateScalyrOK,
-			},
+			args:      []string{"logging", "scalyr", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateScalyrFn: updateScalyrError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "scalyr", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetScalyrFn:    getScalyrOK,
-				UpdateScalyrFn: updateScalyrError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "scalyr", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetScalyrFn:    getScalyrOK,
-				UpdateScalyrFn: updateScalyrOK,
-			},
+			args:       []string{"logging", "scalyr", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateScalyrFn: updateScalyrOK},
 			wantOutput: "Updated Scalyr logging endpoint log (service 123 version 1)",
 		},
 	} {

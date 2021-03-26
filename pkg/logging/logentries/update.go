@@ -63,27 +63,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateLogentriesInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	logentries, err := c.Globals.Client.GetLogentries(&fastly.GetLogentriesInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateLogentriesInput{
-		ServiceID:         logentries.ServiceID,
-		ServiceVersion:    logentries.ServiceVersion,
-		Name:              logentries.Name,
-		NewName:           fastly.String(logentries.Name),
-		Port:              fastly.Uint(logentries.Port),
-		UseTLS:            fastly.CBool(logentries.UseTLS),
-		Token:             fastly.String(logentries.Token),
-		Format:            fastly.String(logentries.Format),
-		FormatVersion:     fastly.Uint(logentries.FormatVersion),
-		ResponseCondition: fastly.String(logentries.ResponseCondition),
-		Placement:         fastly.String(logentries.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.

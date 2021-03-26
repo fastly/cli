@@ -76,18 +76,9 @@ func TestUpdateKinesisInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetKinesisFn: getKinesisOK},
 			want: &fastly.UpdateKinesisInput{
-				ServiceID:         "123",
-				ServiceVersion:    2,
-				Name:              "logs",
-				NewName:           fastly.String("logs"),
-				StreamName:        fastly.String("stream"),
-				AccessKey:         fastly.String("access"),
-				SecretKey:         fastly.String("secret"),
-				Region:            fastly.String("us-east-1"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
@@ -97,7 +88,7 @@ func TestUpdateKinesisInput(t *testing.T) {
 			want: &fastly.UpdateKinesisInput{
 				ServiceID:         "123",
 				ServiceVersion:    2,
-				Name:              "logs",
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				StreamName:        fastly.String("new2"),
 				AccessKey:         fastly.String("new3"),
@@ -163,7 +154,7 @@ func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
 		Base:         common.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName: "logs",
+		EndpointName: "log",
 		Version:      2,
 	}
 }
@@ -172,7 +163,7 @@ func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
 		Base:              common.Base{Globals: &config.Data{Client: nil}},
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "logs",
+		EndpointName:      "log",
 		Version:           2,
 		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
 		StreamName:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},

@@ -65,28 +65,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdatePubsubInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	googlepubsub, err := c.Globals.Client.GetPubsub(&fastly.GetPubsubInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdatePubsubInput{
-		ServiceID:         googlepubsub.ServiceID,
-		ServiceVersion:    googlepubsub.ServiceVersion,
-		Name:              googlepubsub.Name,
-		NewName:           fastly.String(googlepubsub.Name),
-		User:              fastly.String(googlepubsub.User),
-		SecretKey:         fastly.String(googlepubsub.SecretKey),
-		ProjectID:         fastly.String(googlepubsub.ProjectID),
-		Topic:             fastly.String(googlepubsub.Topic),
-		Format:            fastly.String(googlepubsub.Format),
-		FormatVersion:     fastly.Uint(googlepubsub.FormatVersion),
-		Placement:         fastly.String(googlepubsub.Placement),
-		ResponseCondition: fastly.String(googlepubsub.ResponseCondition),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {

@@ -167,27 +167,13 @@ func TestHTTPSUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetHTTPSFn:    getHTTPSError,
-				UpdateHTTPSFn: updateHTTPSOK,
-			},
+			args:      []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateHTTPSFn: updateHTTPSError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetHTTPSFn:    getHTTPSOK,
-				UpdateHTTPSFn: updateHTTPSError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetHTTPSFn:    getHTTPSOK,
-				UpdateHTTPSFn: updateHTTPSOK,
-			},
+			args:       []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateHTTPSFn: updateHTTPSOK},
 			wantOutput: "Updated HTTPS logging endpoint log (service 123 version 1)",
 		},
 	} {

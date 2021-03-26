@@ -128,11 +128,8 @@ func TestVersionUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateVersionFn: updateVersionOK,
-			},
+			args:       []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
+			api:        mock.API{UpdateVersionFn: updateVersionOK},
 			wantOutput: "Updated service 123 version 1",
 		},
 		{
@@ -141,11 +138,8 @@ func TestVersionUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --comment not provided",
 		},
 		{
-			args: []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateVersionFn: updateVersionError,
-			},
+			args:      []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
+			api:       mock.API{UpdateVersionFn: updateVersionError},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -368,14 +362,6 @@ Versions: 2
 		Created (UTC): 2001-03-03 04:05
 		Last edited (UTC): 2015-03-14 12:59
 `) + "\n\n"
-
-func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
-	return &fastly.Service{
-		ID:      "12345",
-		Name:    "Foo",
-		Comment: "Bar",
-	}, nil
-}
 
 func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{

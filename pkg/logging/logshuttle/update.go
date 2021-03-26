@@ -62,26 +62,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateLogshuttleInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	logshuttle, err := c.Globals.Client.GetLogshuttle(&fastly.GetLogshuttleInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateLogshuttleInput{
-		ServiceID:         logshuttle.ServiceID,
-		ServiceVersion:    logshuttle.ServiceVersion,
-		Name:              logshuttle.Name,
-		NewName:           fastly.String(logshuttle.Name),
-		Format:            fastly.String(logshuttle.Format),
-		FormatVersion:     fastly.Uint(logshuttle.FormatVersion),
-		URL:               fastly.String(logshuttle.URL),
-		Token:             fastly.String(logshuttle.Token),
-		ResponseCondition: fastly.String(logshuttle.ResponseCondition),
-		Placement:         fastly.String(logshuttle.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.

@@ -175,27 +175,13 @@ func TestDomainUpdate(t *testing.T) {
 			wantError: "error parsing arguments: must provide either --new-name or --comment to update domain",
 		},
 		{
-			args: []string{"domain", "update", "--service-id", "123", "--version", "2", "--name", "www.test.com", "--new-name", "www.example.com"},
-			api: mock.API{
-				GetDomainFn:    getDomainError,
-				UpdateDomainFn: updateDomainOK,
-			},
+			args:      []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
+			api:       mock.API{UpdateDomainFn: updateDomainError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
-			api: mock.API{
-				GetDomainFn:    getDomainError,
-				UpdateDomainFn: updateDomainError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
-			api: mock.API{
-				GetDomainFn:    getDomainOK,
-				UpdateDomainFn: updateDomainOK,
-			},
+			args:       []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
+			api:        mock.API{UpdateDomainFn: updateDomainOK},
 			wantOutput: "Updated domain www.example.com (service 123 version 1)",
 		},
 	} {
@@ -340,7 +326,6 @@ func updateDomainOK(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
 		Name:           *i.NewName,
-		Comment:        *i.Comment,
 	}, nil
 }
 

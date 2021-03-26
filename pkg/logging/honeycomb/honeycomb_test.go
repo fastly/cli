@@ -73,16 +73,9 @@ func TestUpdateHoneycombInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetHoneycombFn: getHoneycombOK},
 			want: &fastly.UpdateHoneycombInput{
-				ServiceID:         "123",
-				ServiceVersion:    2,
-				Name:              "logs",
-				NewName:           fastly.String("logs"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				Token:             fastly.String("tkn"),
-				Dataset:           fastly.String("logs"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
@@ -92,7 +85,7 @@ func TestUpdateHoneycombInput(t *testing.T) {
 			want: &fastly.UpdateHoneycombInput{
 				ServiceID:         "123",
 				ServiceVersion:    2,
-				Name:              "logs",
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Format:            fastly.String("new2"),
 				FormatVersion:     fastly.Uint(3),

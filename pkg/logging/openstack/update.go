@@ -77,34 +77,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateOpenstackInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	openstack, err := c.Globals.Client.GetOpenstack(&fastly.GetOpenstackInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateOpenstackInput{
-		ServiceID:         openstack.ServiceID,
-		ServiceVersion:    openstack.ServiceVersion,
-		Name:              openstack.Name,
-		NewName:           fastly.String(openstack.Name),
-		BucketName:        fastly.String(openstack.BucketName),
-		AccessKey:         fastly.String(openstack.AccessKey),
-		User:              fastly.String(openstack.User),
-		URL:               fastly.String(openstack.URL),
-		Path:              fastly.String(openstack.Path),
-		Period:            fastly.Uint(openstack.Period),
-		GzipLevel:         fastly.Uint(openstack.GzipLevel),
-		Format:            fastly.String(openstack.Format),
-		FormatVersion:     fastly.Uint(openstack.FormatVersion),
-		ResponseCondition: fastly.String(openstack.ResponseCondition),
-		MessageType:       fastly.String(openstack.MessageType),
-		TimestampFormat:   fastly.String(openstack.TimestampFormat),
-		Placement:         fastly.String(openstack.Placement),
-		PublicKey:         fastly.String(openstack.PublicKey),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.

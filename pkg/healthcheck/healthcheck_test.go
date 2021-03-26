@@ -171,26 +171,16 @@ func TestHealthCheckUpdate(t *testing.T) {
 		},
 		{
 			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "2", "--name", "www.test.com", "--new-name", "www.example.com"},
-			api: mock.API{
-				GetHealthCheckFn:    getHealthCheckError,
-				UpdateHealthCheckFn: updateHealthCheckOK,
-			},
+			api:  mock.API{UpdateHealthCheckFn: updateHealthCheckOK},
+		},
+		{
+			args:      []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
+			api:       mock.API{UpdateHealthCheckFn: updateHealthCheckError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
-			api: mock.API{
-				GetHealthCheckFn:    getHealthCheckError,
-				UpdateHealthCheckFn: updateHealthCheckError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
-			api: mock.API{
-				GetHealthCheckFn:    getHealthCheckOK,
-				UpdateHealthCheckFn: updateHealthCheckOK,
-			},
+			args:       []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
+			api:        mock.API{UpdateHealthCheckFn: updateHealthCheckOK},
 			wantOutput: "Updated healthcheck www.example.com (service 123 version 1)",
 		},
 	} {
@@ -376,7 +366,6 @@ func updateHealthCheckOK(i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck,
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
 		Name:           *i.NewName,
-		Comment:        *i.Comment,
 	}, nil
 }
 

@@ -167,27 +167,13 @@ func TestKinesisUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--region", "us-west-1"},
-			api: mock.API{
-				GetKinesisFn:    getKinesisError,
-				UpdateKinesisFn: updateKinesisOK,
-			},
+			args:      []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateKinesisFn: updateKinesisError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetKinesisFn:    getKinesisOK,
-				UpdateKinesisFn: updateKinesisError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--region", "us-west-1"},
-			api: mock.API{
-				GetKinesisFn:    getKinesisOK,
-				UpdateKinesisFn: updateKinesisOK,
-			},
+			args:       []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--region", "us-west-1"},
+			api:        mock.API{UpdateKinesisFn: updateKinesisOK},
 			wantOutput: "Updated Kinesis logging endpoint log (service 123 version 1)",
 		},
 	} {

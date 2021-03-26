@@ -59,25 +59,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateLogglyInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	loggly, err := c.Globals.Client.GetLoggly(&fastly.GetLogglyInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateLogglyInput{
-		ServiceID:         loggly.ServiceID,
-		ServiceVersion:    loggly.ServiceVersion,
-		Name:              loggly.Name,
-		NewName:           fastly.String(loggly.Name),
-		Format:            fastly.String(loggly.Format),
-		FormatVersion:     fastly.Uint(loggly.FormatVersion),
-		Token:             fastly.String(loggly.Token),
-		ResponseCondition: fastly.String(loggly.ResponseCondition),
-		Placement:         fastly.String(loggly.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {

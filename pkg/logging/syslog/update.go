@@ -75,33 +75,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSyslogInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	syslog, err := c.Globals.Client.GetSyslog(&fastly.GetSyslogInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateSyslogInput{
-		ServiceID:         syslog.ServiceID,
-		ServiceVersion:    syslog.ServiceVersion,
-		Name:              syslog.Name,
-		NewName:           fastly.String(syslog.Name),
-		Address:           fastly.String(syslog.Address),
-		Port:              fastly.Uint(syslog.Port),
-		UseTLS:            fastly.CBool(syslog.UseTLS),
-		TLSCACert:         fastly.String(syslog.TLSCACert),
-		TLSHostname:       fastly.String(syslog.TLSHostname),
-		TLSClientCert:     fastly.String(syslog.TLSClientCert),
-		TLSClientKey:      fastly.String(syslog.TLSClientKey),
-		Token:             fastly.String(syslog.Token),
-		Format:            fastly.String(syslog.Format),
-		FormatVersion:     fastly.Uint(syslog.FormatVersion),
-		MessageType:       fastly.String(syslog.MessageType),
-		ResponseCondition: fastly.String(syslog.ResponseCondition),
-		Placement:         fastly.String(syslog.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.

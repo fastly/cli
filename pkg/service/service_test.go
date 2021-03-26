@@ -255,67 +255,38 @@ func TestServiceUpdate(t *testing.T) {
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args: []string{"service", "update", "--service-id", "12345"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateServiceFn: updateServiceOK,
-			},
+			args:      []string{"service", "update", "--service-id", "12345"},
+			api:       mock.API{UpdateServiceFn: updateServiceOK},
 			wantError: "error parsing arguments: must provide either --name or --comment to update service",
 		},
 		{
-			args: []string{"service", "update", "--service-id", "12345", "--name", "Foo"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateServiceFn: updateServiceOK,
-			},
+			args:       []string{"service", "update", "--service-id", "12345", "--name", "Foo"},
+			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args: []string{"service", "update", "--service-id", "12345", "-n=Foo"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateServiceFn: updateServiceOK,
-			},
+			args:       []string{"service", "update", "--service-id", "12345", "-n=Foo"},
+			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args: []string{"service", "update", "--service-id", "12345", "--name", "Foo"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateServiceFn: updateServiceOK,
-			},
+			args:       []string{"service", "update", "--service-id", "12345", "--name", "Foo"},
+			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args: []string{"service", "update", "--service-id", "12345", "--name", "Foo", "--comment", "Hello"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateServiceFn: updateServiceOK,
-			},
+			args:       []string{"service", "update", "--service-id", "12345", "--name", "Foo", "--comment", "Hello"},
+			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args: []string{"service", "update", "--service-id", "12345", "-n", "Foo", "--comment", "Hello"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateServiceFn: updateServiceOK,
-			},
+			args:       []string{"service", "update", "--service-id", "12345", "-n", "Foo", "--comment", "Hello"},
+			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args: []string{"service", "update", "--service-id", "12345", "-n", "Foo"},
-			api: mock.API{
-				GetServiceFn:    getServiceError,
-				UpdateServiceFn: updateServiceOK,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"service", "update", "--service-id", "12345", "-n", "Foo"},
-			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				UpdateServiceFn: updateServiceError,
-			},
+			args:      []string{"service", "update", "--service-id", "12345", "-n", "Foo"},
+			api:       mock.API{UpdateServiceFn: updateServiceError},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -518,10 +489,6 @@ func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
 		Name:    "Foo",
 		Comment: "Bar",
 	}, nil
-}
-
-func getServiceError(*fastly.GetServiceInput) (*fastly.Service, error) {
-	return nil, errTest
 }
 
 func describeServiceOK(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
@@ -753,9 +720,7 @@ Versions: 2
 
 func updateServiceOK(i *fastly.UpdateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:      "12345",
-		Name:    *i.Name,
-		Comment: *i.Comment,
+		ID: "12345",
 	}, nil
 }
 

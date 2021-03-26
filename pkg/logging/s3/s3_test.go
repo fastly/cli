@@ -86,27 +86,9 @@ func TestUpdateS3Input(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetS3Fn: getS3OK},
 			want: &fastly.UpdateS3Input{
-				ServiceID:                    "123",
-				ServiceVersion:               2,
-				Name:                         "logs",
-				NewName:                      fastly.String("logs"),
-				BucketName:                   fastly.String("bucket"),
-				AccessKey:                    fastly.String("access"),
-				SecretKey:                    fastly.String("secret"),
-				Domain:                       fastly.String("domain"),
-				Path:                         fastly.String("path"),
-				Period:                       fastly.Uint(3600),
-				GzipLevel:                    fastly.Uint(2),
-				Format:                       fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:                fastly.Uint(2),
-				MessageType:                  fastly.String("classic"),
-				ResponseCondition:            fastly.String("Prevent default logging"),
-				TimestampFormat:              fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:                    fastly.String("none"),
-				PublicKey:                    fastly.String(pgpPublicKey()),
-				Redundancy:                   fastly.S3RedundancyStandard,
-				ServerSideEncryption:         fastly.S3ServerSideEncryptionAES,
-				ServerSideEncryptionKMSKeyID: fastly.String("kmskey"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
@@ -116,7 +98,7 @@ func TestUpdateS3Input(t *testing.T) {
 			want: &fastly.UpdateS3Input{
 				ServiceID:                    "123",
 				ServiceVersion:               2,
-				Name:                         "logs",
+				Name:                         "log",
 				NewName:                      fastly.String("new1"),
 				BucketName:                   fastly.String("new2"),
 				AccessKey:                    fastly.String("new3"),
@@ -200,7 +182,7 @@ func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
 		Base:         common.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName: "logs",
+		EndpointName: "log",
 		Version:      2,
 	}
 }
@@ -209,7 +191,7 @@ func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
 		Base:                         common.Base{Globals: &config.Data{Client: nil}},
 		manifest:                     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:                 "logs",
+		EndpointName:                 "log",
 		Version:                      2,
 		NewName:                      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
 		BucketName:                   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},

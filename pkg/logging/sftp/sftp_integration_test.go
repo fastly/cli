@@ -175,27 +175,13 @@ func TestSFTPUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSFTPFn:    getSFTPError,
-				UpdateSFTPFn: updateSFTPOK,
-			},
+			args:      []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateSFTPFn: updateSFTPError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSFTPFn:    getSFTPOK,
-				UpdateSFTPFn: updateSFTPError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSFTPFn:    getSFTPOK,
-				UpdateSFTPFn: updateSFTPOK,
-			},
+			args:       []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateSFTPFn: updateSFTPOK},
 			wantOutput: "Updated SFTP logging endpoint log (service 123 version 1)",
 		},
 	} {

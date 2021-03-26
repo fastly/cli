@@ -171,27 +171,13 @@ func TestHerokuUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetHerokuFn:    getHerokuError,
-				UpdateHerokuFn: updateHerokuOK,
-			},
+			args:      []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateHerokuFn: updateHerokuError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetHerokuFn:    getHerokuOK,
-				UpdateHerokuFn: updateHerokuError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetHerokuFn:    getHerokuOK,
-				UpdateHerokuFn: updateHerokuOK,
-			},
+			args:       []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateHerokuFn: updateHerokuOK},
 			wantOutput: "Updated Heroku logging endpoint log (service 123 version 1)",
 		},
 	} {

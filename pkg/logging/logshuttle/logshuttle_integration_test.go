@@ -171,27 +171,13 @@ func TestLogshuttleUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogshuttleFn:    getLogshuttleError,
-				UpdateLogshuttleFn: updateLogshuttleOK,
-			},
+			args:      []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateLogshuttleFn: updateLogshuttleError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogshuttleFn:    getLogshuttleOK,
-				UpdateLogshuttleFn: updateLogshuttleError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogshuttleFn:    getLogshuttleOK,
-				UpdateLogshuttleFn: updateLogshuttleOK,
-			},
+			args:       []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateLogshuttleFn: updateLogshuttleOK},
 			wantOutput: "Updated Logshuttle logging endpoint log (service 123 version 1)",
 		},
 	} {

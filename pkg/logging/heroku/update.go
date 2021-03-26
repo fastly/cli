@@ -61,26 +61,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateHerokuInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	heroku, err := c.Globals.Client.GetHeroku(&fastly.GetHerokuInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateHerokuInput{
-		ServiceID:         heroku.ServiceID,
-		ServiceVersion:    heroku.ServiceVersion,
-		Name:              heroku.Name,
-		NewName:           fastly.String(heroku.Name),
-		Format:            fastly.String(heroku.Format),
-		FormatVersion:     fastly.Uint(heroku.FormatVersion),
-		Token:             fastly.String(heroku.Token),
-		URL:               fastly.String(heroku.URL),
-		ResponseCondition: fastly.String(heroku.ResponseCondition),
-		Placement:         fastly.String(heroku.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {

@@ -175,27 +175,13 @@ func TestBlobStorageUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "azureblob", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetBlobStorageFn:    getBlobStorageError,
-				UpdateBlobStorageFn: updateBlobStorageOK,
-			},
+			args:      []string{"logging", "azureblob", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateBlobStorageFn: updateBlobStorageError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "azureblob", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetBlobStorageFn:    getBlobStorageOK,
-				UpdateBlobStorageFn: updateBlobStorageError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "azureblob", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetBlobStorageFn:    getBlobStorageOK,
-				UpdateBlobStorageFn: updateBlobStorageOK,
-			},
+			args:       []string{"logging", "azureblob", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateBlobStorageFn: updateBlobStorageOK},
 			wantOutput: "Updated Azure Blob Storage logging endpoint log (service 123 version 1)",
 		},
 	} {

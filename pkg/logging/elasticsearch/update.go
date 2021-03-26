@@ -77,35 +77,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateElasticsearchInput, error) 
 		return nil, errors.ErrNoServiceID
 	}
 
-	elasticsearch, err := c.Globals.Client.GetElasticsearch(&fastly.GetElasticsearchInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateElasticsearchInput{
-		ServiceID:         elasticsearch.ServiceID,
-		ServiceVersion:    elasticsearch.ServiceVersion,
-		Name:              elasticsearch.Name,
-		NewName:           fastly.String(elasticsearch.Name),
-		ResponseCondition: fastly.String(elasticsearch.ResponseCondition),
-		Format:            fastly.String(elasticsearch.Format),
-		Index:             fastly.String(elasticsearch.Index),
-		URL:               fastly.String(elasticsearch.URL),
-		Pipeline:          fastly.String(elasticsearch.Pipeline),
-		User:              fastly.String(elasticsearch.User),
-		Password:          fastly.String(elasticsearch.Password),
-		RequestMaxEntries: fastly.Uint(elasticsearch.RequestMaxEntries),
-		RequestMaxBytes:   fastly.Uint(elasticsearch.RequestMaxBytes),
-		Placement:         fastly.String(elasticsearch.Placement),
-		TLSCACert:         fastly.String(elasticsearch.TLSCACert),
-		TLSClientCert:     fastly.String(elasticsearch.TLSClientCert),
-		TLSClientKey:      fastly.String(elasticsearch.TLSClientKey),
-		TLSHostname:       fastly.String(elasticsearch.TLSHostname),
-		FormatVersion:     fastly.Uint(elasticsearch.FormatVersion),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {

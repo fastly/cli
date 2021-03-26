@@ -163,7 +163,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 		{
 			args:       []string{"dictionaryitem", "update", "--service-id", "123", "--dictionary-id", "456", "--key", "foo", "--value", "bar"},
 			api:        mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
-			wantOutput: describeDictionaryItemOutput,
+			wantOutput: updateDictionaryItemOutput,
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -313,14 +313,23 @@ func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.Diction
 	}, nil
 }
 
-var describeDictionaryItemOutput = strings.TrimSpace(`
-Service ID: 123
+var describeDictionaryItemOutput = `Service ID: 123
 Dictionary ID: 456
 Item Key: foo
 Item Value: bar
 Created (UTC): 2001-02-03 04:05
 Last edited (UTC): 2001-02-03 04:05
-`) + "\n"
+`
+
+var updateDictionaryItemOutput = `
+SUCCESS: Updated dictionary item (service 123)
+
+Dictionary ID: 456
+Item Key: foo
+Item Value: bar
+Created (UTC): 2001-02-03 04:05
+Last edited (UTC): 2001-02-03 04:05
+`
 
 func describeDictionaryItemOKDeleted(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{

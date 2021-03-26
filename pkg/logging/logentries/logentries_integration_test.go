@@ -163,27 +163,13 @@ func TestLogentriesUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogentriesFn:    getLogentriesError,
-				UpdateLogentriesFn: updateLogentriesOK,
-			},
+			args:      []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateLogentriesFn: updateLogentriesError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogentriesFn:    getLogentriesOK,
-				UpdateLogentriesFn: updateLogentriesError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetLogentriesFn:    getLogentriesOK,
-				UpdateLogentriesFn: updateLogentriesOK,
-			},
+			args:       []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateLogentriesFn: updateLogentriesOK},
 			wantOutput: "Updated Logentries logging endpoint log (service 123 version 1)",
 		},
 	} {

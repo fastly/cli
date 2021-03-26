@@ -84,37 +84,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateS3Input, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	s3, err := c.Globals.Client.GetS3(&fastly.GetS3Input{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateS3Input{
-		ServiceID:                    s3.ServiceID,
-		ServiceVersion:               s3.ServiceVersion,
-		Name:                         s3.Name,
-		NewName:                      fastly.String(s3.Name),
-		BucketName:                   fastly.String(s3.BucketName),
-		Domain:                       fastly.String(s3.Domain),
-		AccessKey:                    fastly.String(s3.AccessKey),
-		SecretKey:                    fastly.String(s3.SecretKey),
-		Path:                         fastly.String(s3.Path),
-		Period:                       fastly.Uint(s3.Period),
-		GzipLevel:                    fastly.Uint(s3.GzipLevel),
-		Format:                       fastly.String(s3.Format),
-		FormatVersion:                fastly.Uint(s3.FormatVersion),
-		ResponseCondition:            fastly.String(s3.ResponseCondition),
-		MessageType:                  fastly.String(s3.MessageType),
-		TimestampFormat:              fastly.String(s3.TimestampFormat),
-		Redundancy:                   s3.Redundancy,
-		Placement:                    fastly.String(s3.Placement),
-		PublicKey:                    fastly.String(s3.PublicKey),
-		ServerSideEncryption:         s3.ServerSideEncryption,
-		ServerSideEncryptionKMSKeyID: fastly.String(s3.ServerSideEncryptionKMSKeyID),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {

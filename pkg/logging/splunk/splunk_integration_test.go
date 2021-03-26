@@ -167,27 +167,13 @@ func TestSplunkUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSplunkFn:    getSplunkError,
-				UpdateSplunkFn: updateSplunkOK,
-			},
+			args:      []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateSplunkFn: updateSplunkError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSplunkFn:    getSplunkOK,
-				UpdateSplunkFn: updateSplunkError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSplunkFn:    getSplunkOK,
-				UpdateSplunkFn: updateSplunkOK,
-			},
+			args:       []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateSplunkFn: updateSplunkOK},
 			wantOutput: "Updated Splunk logging endpoint log (service 123 version 1)",
 		},
 	} {

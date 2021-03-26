@@ -61,26 +61,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdatePapertrailInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	papertrail, err := c.Globals.Client.GetPapertrail(&fastly.GetPapertrailInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdatePapertrailInput{
-		ServiceID:         papertrail.ServiceID,
-		ServiceVersion:    papertrail.ServiceVersion,
-		Name:              papertrail.Name,
-		NewName:           fastly.String(papertrail.Name),
-		Address:           fastly.String(papertrail.Address),
-		Port:              fastly.Uint(papertrail.Port),
-		FormatVersion:     fastly.Uint(papertrail.FormatVersion),
-		Format:            fastly.String(papertrail.Format),
-		ResponseCondition: fastly.String(papertrail.ResponseCondition),
-		Placement:         fastly.String(papertrail.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	// Set new values if set by user.

@@ -72,17 +72,9 @@ func TestUpdateLogentriesInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api:  mock.API{GetLogentriesFn: getLogentriesOK},
 			want: &fastly.UpdateLogentriesInput{
-				ServiceID:         "123",
-				ServiceVersion:    2,
-				Name:              "logs",
-				NewName:           fastly.String("logs"),
-				Port:              fastly.Uint(22),
-				UseTLS:            fastly.CBool(true),
-				Token:             fastly.String("tkn"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Uint(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
 			},
 		},
 		{
@@ -92,7 +84,7 @@ func TestUpdateLogentriesInput(t *testing.T) {
 			want: &fastly.UpdateLogentriesInput{
 				ServiceID:         "123",
 				ServiceVersion:    2,
-				Name:              "logs",
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Port:              fastly.Uint(23),
 				UseTLS:            fastly.CBool(true),
@@ -153,7 +145,7 @@ func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
 		Base:         common.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName: "logs",
+		EndpointName: "log",
 		Version:      2,
 	}
 }

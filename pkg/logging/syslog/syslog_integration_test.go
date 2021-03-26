@@ -167,27 +167,13 @@ func TestSyslogUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSyslogFn:    getSyslogError,
-				UpdateSyslogFn: updateSyslogOK,
-			},
+			args:      []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateSyslogFn: updateSyslogError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSyslogFn:    getSyslogOK,
-				UpdateSyslogFn: updateSyslogError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetSyslogFn:    getSyslogOK,
-				UpdateSyslogFn: updateSyslogOK,
-			},
+			args:       []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateSyslogFn: updateSyslogOK},
 			wantOutput: "Updated Syslog logging endpoint log (service 123 version 1)",
 		},
 	} {

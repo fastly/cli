@@ -61,26 +61,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateHoneycombInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
-	honeycomb, err := c.Globals.Client.GetHoneycomb(&fastly.GetHoneycombInput{
-		ServiceID:      serviceID,
-		Name:           c.EndpointName,
-		ServiceVersion: c.Version,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	input := fastly.UpdateHoneycombInput{
-		ServiceID:         honeycomb.ServiceID,
-		ServiceVersion:    honeycomb.ServiceVersion,
-		Name:              honeycomb.Name,
-		NewName:           fastly.String(honeycomb.Name),
-		Format:            fastly.String(honeycomb.Format),
-		FormatVersion:     fastly.Uint(honeycomb.FormatVersion),
-		Token:             fastly.String(honeycomb.Token),
-		Dataset:           fastly.String(honeycomb.Dataset),
-		ResponseCondition: fastly.String(honeycomb.ResponseCondition),
-		Placement:         fastly.String(honeycomb.Placement),
+		ServiceID:      serviceID,
+		ServiceVersion: c.Version,
+		Name:           c.EndpointName,
 	}
 
 	if c.NewName.WasSet {

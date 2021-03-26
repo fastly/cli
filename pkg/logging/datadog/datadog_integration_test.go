@@ -167,27 +167,13 @@ func TestDatadogUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetDatadogFn:    getDatadogError,
-				UpdateDatadogFn: updateDatadogOK,
-			},
+			args:      []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:       mock.API{UpdateDatadogFn: updateDatadogError},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetDatadogFn:    getDatadogOK,
-				UpdateDatadogFn: updateDatadogError,
-			},
-			wantError: errTest.Error(),
-		},
-		{
-			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api: mock.API{
-				GetDatadogFn:    getDatadogOK,
-				UpdateDatadogFn: updateDatadogOK,
-			},
+			args:       []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api:        mock.API{UpdateDatadogFn: updateDatadogOK},
 			wantOutput: "Updated Datadog logging endpoint log (service 123 version 1)",
 		},
 	} {
