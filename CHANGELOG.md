@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.26.3](https://github.com/fastly/cli/releases/tag/v0.26.3) (2021-03-26)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.26.2...v0.26.3)
+
+**Enhancements:**
+
+- Default to port 443 if UseSSL set. [\#234](https://github.com/fastly/cli/pull/234)
+
+**Bug fixes:**
+
+- Ensure all UPDATE operations don't set optional fields. [\#235](https://github.com/fastly/cli/pull/235)
+- Avoid setting fields that cause API to fail when given zero value. [\#233](https://github.com/fastly/cli/pull/233)
+
 ## [v0.26.2](https://github.com/fastly/cli/releases/tag/v0.26.2) (2021-03-22)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.26.1...v0.26.2)
