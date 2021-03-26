@@ -33,7 +33,7 @@ func main() {
 		configFilePath           = config.FilePath // write-only for `fastly configure`
 		clientFactory            = app.FastlyAPIClient
 		httpClient               = http.DefaultClient
-		cliVersioner             = update.NewGitHub(context.Background(), "fastly", "cli")
+		cliVersioner             = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
 		in             io.Reader = os.Stdin
 		out            io.Writer = common.NewSyncWriter(os.Stdout)
 	)

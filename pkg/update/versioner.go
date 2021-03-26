@@ -25,12 +25,13 @@ type Versioner interface {
 // GitHub is a versioner that uses GitHub releases.
 type GitHub struct {
 	client *github.Client
+	binary string
 	org    string
 	repo   string
 }
 
 // NewGitHub returns a usable GitHub versioner utilizing the provided token.
-func NewGitHub(ctx context.Context, org string, repo string) *GitHub {
+func NewGitHub(ctx context.Context, org string, repo string, binary string) *GitHub {
 	var (
 		githubClient = github.NewClient(nil)
 	)
@@ -38,6 +39,7 @@ func NewGitHub(ctx context.Context, org string, repo string) *GitHub {
 		client: githubClient,
 		org:    org,
 		repo:   repo,
+		binary: binary,
 	}
 }
 
@@ -87,7 +89,7 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	}
 	defer rc.Close()
 
-	archivePath := filepath.Join(os.TempDir(), fmt.Sprintf("%s_%s.tgz", g.org, version))
+	archivePath := filepath.Join(os.TempDir(), fmt.Sprintf("%s_%s.tgz", g.binary, version))
 	dst, err := os.Create(archivePath)
 	if err != nil {
 		return filename, fmt.Errorf("error creating temp file: %w", err)
@@ -103,12 +105,12 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 		return filename, fmt.Errorf("error closing release file: %w", err)
 	}
 
-	binaryPath := filepath.Join(os.TempDir(), fmt.Sprintf("%s_%s_%d", g.org, version, time.Now().UnixNano()))
-	if err := archiver.NewTarGz().Extract(archivePath, g.org, binaryPath); err != nil {
+	binaryPath := filepath.Join(os.TempDir(), fmt.Sprintf("%s_%s_%d", g.binary, version, time.Now().UnixNano()))
+	if err := archiver.NewTarGz().Extract(archivePath, g.binary, binaryPath); err != nil {
 		return filename, fmt.Errorf("error extracting binary: %w", err)
 	}
 
-	return filepath.Join(binaryPath, g.org), nil
+	return filepath.Join(binaryPath, g.binary), nil
 }
 
 func (g GitHub) getReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
@@ -139,7 +141,7 @@ func (g GitHub) getReleaseID(ctx context.Context, version semver.Version) (id in
 }
 
 func (g GitHub) getAssetID(assets []github.ReleaseAsset, version semver.Version) (id int64, err error) {
-	target := fmt.Sprintf("%s_v%s_%s-%s.tar.gz", g.org, version, runtime.GOOS, runtime.GOARCH)
+	target := fmt.Sprintf("%s_v%s_%s-%s.tar.gz", g.binary, version, runtime.GOOS, runtime.GOARCH)
 	for _, asset := range assets {
 		if asset.GetName() == target {
 			return asset.GetID(), nil
