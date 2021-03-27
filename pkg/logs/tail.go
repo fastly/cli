@@ -17,15 +17,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/tomnomnom/linkheader"
-
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-
 	"github.com/fastly/go-fastly/v3/fastly"
+	"github.com/tomnomnom/linkheader"
 )
 
 type (
@@ -186,15 +184,15 @@ func (c *TailCommand) tail(out io.Writer) {
 		}
 
 		req, err := http.NewRequest("GET", path, nil)
-		req.Header.Add("Fastly-Key", c.token)
 		if err != nil {
 			text.Error(out, "unable to create new request: %v", err)
 			os.Exit(1)
 		}
+		req.Header.Add("Fastly-Key", c.token)
 
 		resp, err := c.doReq(req)
 		if err != nil {
-			text.Error(out, "unable to request: %v", err)
+			text.Error(out, "unable to execute request: %v", err)
 			os.Exit(1)
 		}
 
@@ -208,6 +206,7 @@ func (c *TailCommand) tail(out io.Writer) {
 				text.Error(out, "specified 'from' time %d not found, either too far in the past or future", c.cfg.from)
 				os.Exit(1)
 			}
+
 			// In an effort to clean up the output, do not print on
 			// 503's.
 			if resp.StatusCode != http.StatusServiceUnavailable {
@@ -225,6 +224,7 @@ func (c *TailCommand) tail(out io.Writer) {
 				time.Sleep(1 * time.Second)
 				continue
 			}
+
 			// Failing at this point is unrecoverable.
 			text.Error(out, "unrecoverable error, response code: %d", resp.StatusCode)
 			os.Exit(1)
@@ -232,6 +232,7 @@ func (c *TailCommand) tail(out io.Writer) {
 
 		// Read and parse response, send batches to the output loop.
 		scanner := bufio.NewScanner(resp.Body)
+
 		// Use a 10MB buffer for the bufio scanner, as we don't know
 		// how big some of the responses will be.
 		const tmb = 10 << 20
@@ -246,7 +247,7 @@ func (c *TailCommand) tail(out io.Writer) {
 			if err != nil {
 				// We can't parse the response, attempt to
 				// re-request from the last window & batch.
-				text.Warning(out, "unable to parse resp body: %v", err)
+				text.Warning(out, "unable to parse response body: %v", err)
 				path = makeNewPath(out, path, curWindow, lastBatchID)
 				continue
 			}
@@ -270,6 +271,7 @@ func (c *TailCommand) tail(out io.Writer) {
 			if err != io.ErrUnexpectedEOF {
 				text.Warning(out, "error scanning response body: %v", err)
 			}
+
 			// Something happened in the scanner, re-request the
 			// current batchID.
 			path = makeNewPath(out, path, curWindow, lastBatchID)
@@ -288,7 +290,6 @@ func (c *TailCommand) tail(out io.Writer) {
 		lastBatchID = ""
 		path = makeNewPath(out, path, curWindow, lastBatchID)
 	}
-
 }
 
 // adjustTimes adjusts the passed in from and to flags based on the
