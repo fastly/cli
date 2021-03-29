@@ -22,11 +22,11 @@ func TestVersion(t *testing.T) {
 		configFileName                  = "/dev/null"
 		clientFactory                   = mock.APIClient(mock.API{})
 		httpClient     api.HTTPClient   = nil
-		versioner      update.Versioner = mock.Versioner{Version: "v1.2.3"}
+		cliVersioner   update.Versioner = mock.Versioner{Version: "v1.2.3"}
 		in             io.Reader        = nil
 		out            bytes.Buffer
 	)
-	err := app.Run(args, env, file, configFileName, clientFactory, httpClient, versioner, in, &out)
+	err := app.Run(args, env, file, configFileName, clientFactory, httpClient, cliVersioner, in, &out)
 	testutil.AssertNoError(t, err)
 	testutil.AssertString(t, strings.Join([]string{
 		"Fastly CLI version v0.0.0-unknown (unknown)",

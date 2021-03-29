@@ -18,15 +18,15 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	common.Base
-	versioner Versioner
-	client    api.HTTPClient
+	cliVersioner Versioner
+	client       api.HTTPClient
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent common.Registerer, v Versioner, client api.HTTPClient) *RootCommand {
+func NewRootCommand(parent common.Registerer, cliVersioner Versioner, client api.HTTPClient) *RootCommand {
 	var c RootCommand
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")
-	c.versioner = v
+	c.cliVersioner = cliVersioner
 	c.client = client
 	return &c
 }
@@ -35,7 +35,7 @@ func NewRootCommand(parent common.Registerer, v Versioner, client api.HTTPClient
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	progress := text.NewQuietProgress(out)
 
-	current, latest, shouldUpdate, err := Check(context.Background(), revision.AppVersion, c.versioner)
+	current, latest, shouldUpdate, err := Check(context.Background(), revision.AppVersion, c.cliVersioner)
 	if err != nil {
 		return fmt.Errorf("error checking for latest version: %w", err)
 	}
@@ -48,7 +48,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	progress.Step("Fetching latest release...")
-	latestPath, err := c.versioner.Download(context.Background(), latest)
+	latestPath, err := c.cliVersioner.Download(context.Background(), latest)
 	if err != nil {
 		progress.Fail()
 		return fmt.Errorf("error downloading latest release: %w", err)

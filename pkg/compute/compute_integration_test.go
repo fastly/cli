@@ -499,12 +499,12 @@ func TestInit(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = bytes.NewBufferString(testcase.stdin)
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
+			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, file := range testcase.wantFiles {
 				if _, err := os.Stat(filepath.Join(rootdir, file)); err != nil {
@@ -791,12 +791,12 @@ func TestBuildRust(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = testcase.client
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
+			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
@@ -888,12 +888,12 @@ func TestBuildAssemblyScript(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
+			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
@@ -1156,12 +1156,12 @@ func TestDeploy(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
+			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, buf.String(), s)
@@ -1239,12 +1239,12 @@ func TestUpdate(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
+			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, buf.String(), s)
@@ -1295,12 +1295,12 @@ func TestValidate(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, out)
+			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, buf.String(), testcase.wantOutput)
 		})

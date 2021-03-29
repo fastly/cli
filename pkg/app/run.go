@@ -73,7 +73,7 @@ var (
 // The Run helper should NOT output any error-related information to the out
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
-func Run(args []string, env config.Environment, file config.File, configFilePath string, cf APIClientFactory, httpClient api.HTTPClient, versioner update.Versioner, in io.Reader, out io.Writer) error {
+func Run(args []string, env config.Environment, file config.File, configFilePath string, cf APIClientFactory, httpClient api.HTTPClient, cliVersioner update.Versioner, in io.Reader, out io.Writer) error {
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	globals := config.Data{
@@ -115,7 +115,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	configureRoot := configure.NewRootCommand(app, configFilePath, configure.APIClientFactory(cf), &globals)
 	whoamiRoot := whoami.NewRootCommand(app, httpClient, &globals)
 	versionRoot := version.NewRootCommand(app)
-	updateRoot := update.NewRootCommand(app, versioner, httpClient)
+	updateRoot := update.NewRootCommand(app, cliVersioner, httpClient)
 
 	serviceRoot := service.NewRootCommand(app, &globals)
 	serviceCreate := service.NewCreateCommand(serviceRoot.CmdClause, &globals)
@@ -725,10 +725,10 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
 	}
 
-	if versioner != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
+	if cliVersioner != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel() // push cancel on the defer stack first...
-		f := update.CheckAsync(ctx, file, configFilePath, revision.AppVersion, versioner)
+		f := update.CheckAsync(ctx, file, configFilePath, revision.AppVersion, cliVersioner)
 		defer f(out) // ...and the printing function second, so we hit the timeout
 	}
 

@@ -46,11 +46,11 @@ func TestSyslogCreate(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
 		})
@@ -103,11 +103,11 @@ func TestSyslogList(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, out.String())
 		})
@@ -144,11 +144,11 @@ func TestSyslogDescribe(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, out.String())
 		})
@@ -185,11 +185,11 @@ func TestSyslogUpdate(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
 		})
@@ -226,11 +226,11 @@ func TestSyslogDelete(t *testing.T) {
 				appConfigFile                  = "/dev/null"
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
 		})

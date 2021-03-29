@@ -323,11 +323,11 @@ func TestConfigure(t *testing.T) {
 				file                           = testcase.file
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
-				versioner     update.Versioner = nil
+				cliVersioner  update.Versioner = nil
 				in            io.Reader        = strings.NewReader(testcase.stdin)
 				out           bytes.Buffer
 			)
-			err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, versioner, in, &out)
+			err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, cliVersioner, in, &out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, out.String(), s)
