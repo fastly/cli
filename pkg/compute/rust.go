@@ -303,13 +303,13 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	if verbose {
 		args = append(args, "--verbose")
 	}
-	// Add debuginfo RUSTFLAGS to command environment to ensure DWARF debug
+	// Append debuginfo RUSTFLAGS to command environment to ensure DWARF debug
 	// information (such as, source mappings) are compiled into the binary.
-	env := append(os.Environ(), `RUSTFLAGS=-C debuginfo=2`)
+	os.Setenv("RUSTFLAGS", os.Getenv("RUSTFLAGS")+` -C debuginfo=2`)
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
-	cmd := common.NewStreamingExec("cargo", args, env, verbose, out)
+	cmd := common.NewStreamingExec("cargo", args, os.Environ(), verbose, out)
 	if err := cmd.Exec(); err != nil {
 		return err
 	}
