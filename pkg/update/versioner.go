@@ -25,9 +25,10 @@ type Versioner interface {
 // GitHub is a versioner that uses GitHub releases.
 type GitHub struct {
 	client *github.Client
-	binary string
 	org    string
 	repo   string
+	binary string // name of compiled binary
+	local  string // name to use for binary once extracted
 }
 
 // NewGitHub returns a usable GitHub versioner utilizing the provided token.
@@ -41,6 +42,15 @@ func NewGitHub(ctx context.Context, org string, repo string, binary string) *Git
 		repo:   repo,
 		binary: binary,
 	}
+}
+
+// RenameLocalBinary will rename the downloaded binary.
+//
+// NOTE: this exists so that we can, for example, rename a binary such as
+// 'viceroy' to something less ambiguous like 'fastly-localtesting'.
+func (g *GitHub) RenameLocalBinary(s string) error {
+	g.local = s
+	return nil
 }
 
 // LatestVersion implements the Versioner interface.
@@ -110,7 +120,16 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 		return filename, fmt.Errorf("error extracting binary: %w", err)
 	}
 
-	return filepath.Join(binaryPath, g.binary), nil
+	latestPath := filepath.Join(binaryPath, g.binary)
+
+	if g.local != "" {
+		if err := os.Rename(latestPath, filepath.Join(binaryPath, g.local)); err != nil {
+			return filename, fmt.Errorf("error renaming binary: %w", err)
+		}
+		latestPath = filepath.Join(binaryPath, g.local)
+	}
+
+	return latestPath, nil
 }
 
 func (g GitHub) getReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
