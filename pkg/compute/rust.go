@@ -305,7 +305,12 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	}
 	// Append debuginfo RUSTFLAGS to command environment to ensure DWARF debug
 	// information (such as, source mappings) are compiled into the binary.
-	os.Setenv("RUSTFLAGS", os.Getenv("RUSTFLAGS")+` -C debuginfo=2`)
+	rustflags := "-C debuginfo=2"
+	if val, ok := os.LookupEnv("RUSTFLAGS"); ok {
+		os.Setenv("RUSTFLAGS", fmt.Sprintf("%s %s", val, rustflags))
+	} else {
+		os.Setenv("RUSTFLAGS", rustflags)
+	}
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
