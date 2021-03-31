@@ -137,6 +137,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	computeInit := compute.NewInitCommand(computeRoot.CmdClause, httpClient, &globals)
 	computeBuild := compute.NewBuildCommand(computeRoot.CmdClause, httpClient, &globals)
 	computeDeploy := compute.NewDeployCommand(computeRoot.CmdClause, httpClient, &globals)
+	computePublish := compute.NewPublishCommand(computeRoot.CmdClause, &globals, computeBuild, computeDeploy)
 	computeUpdate := compute.NewUpdateCommand(computeRoot.CmdClause, httpClient, &globals)
 	computeValidate := compute.NewValidateCommand(computeRoot.CmdClause, &globals)
 
@@ -387,6 +388,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		computeInit,
 		computeBuild,
 		computeDeploy,
+		computePublish,
 		computeUpdate,
 		computeValidate,
 
