@@ -18,14 +18,14 @@ type PublishCommand struct {
 	deploy   *DeployCommand
 
 	// Deploy fields
-	path    string
+	path    common.OptionalString
 	version common.OptionalInt
 
 	// Build fields
-	name       string
-	lang       string
-	includeSrc bool
-	force      bool
+	name       common.OptionalString
+	lang       common.OptionalString
+	includeSrc common.OptionalBool
+	force      common.OptionalBool
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
@@ -41,13 +41,13 @@ func NewPublishCommand(parent common.Registerer, globals *config.Data, build *Bu
 	// Deploy flags
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of version to activate").Action(c.version.Set).IntVar(&c.version.Value)
-	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.path)
+	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
 
 	// Build flags
-	c.CmdClause.Flag("name", "Package name").StringVar(&c.name)
-	c.CmdClause.Flag("language", "Language type").StringVar(&c.lang)
-	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.includeSrc)
-	c.CmdClause.Flag("force", "Skip verification steps and force build").BoolVar(&c.force)
+	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
+	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
+	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
+	c.CmdClause.Flag("force", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
 
 	return &c
 }
@@ -61,10 +61,18 @@ func NewPublishCommand(parent common.Registerer, globals *config.Data, build *Bu
 // the progress indicator.
 func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Reset the fields on the BuildCommand based on PublishCommand values.
-	c.build.PackageName = c.name
-	c.build.Lang = c.lang
-	c.build.IncludeSrc = c.includeSrc
-	c.build.Force = c.force
+	if c.name.WasSet {
+		c.build.PackageName = c.name.Value
+	}
+	if c.lang.WasSet {
+		c.build.Lang = c.lang.Value
+	}
+	if c.includeSrc.WasSet {
+		c.build.IncludeSrc = c.includeSrc.Value
+	}
+	if c.force.WasSet {
+		c.build.Force = c.force.Value
+	}
 
 	err = c.build.Exec(in, out)
 	if err != nil {
@@ -74,8 +82,12 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 
 	// Reset the fields on the DeployCommand based on PublishCommand values.
-	c.deploy.Path = c.path
-	c.deploy.Version = c.version
+	if c.path.WasSet {
+		c.deploy.Path = c.path.Value
+	}
+	if c.version.WasSet {
+		c.deploy.Version = c.version // deploy's field is a common.OptionalInt
+	}
 
 	err = c.deploy.Exec(in, out)
 	if err != nil {
