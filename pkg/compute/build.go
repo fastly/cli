@@ -65,11 +65,14 @@ func NewLanguage(options *LanguageOptions) *Language {
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	common.Base
-	client     api.HTTPClient
-	name       string
-	lang       string
-	includeSrc bool
-	force      bool
+	client api.HTTPClient
+
+	// NOTE: these are public so that the "publish" composite command can set the
+	// values appropriately before calling the Exec() function.
+	PackageName string
+	Lang        string
+	IncludeSrc  bool
+	Force       bool
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
@@ -78,10 +81,10 @@ func NewBuildCommand(parent common.Registerer, client api.HTTPClient, globals *c
 	c.Globals = globals
 	c.client = client
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
-	c.CmdClause.Flag("name", "Package name").StringVar(&c.name)
-	c.CmdClause.Flag("language", "Language type").StringVar(&c.lang)
-	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.includeSrc)
-	c.CmdClause.Flag("force", "Skip verification steps and force build").BoolVar(&c.force)
+	c.CmdClause.Flag("name", "Package name").StringVar(&c.PackageName)
+	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
+	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.IncludeSrc)
+	c.CmdClause.Flag("force", "Skip verification steps and force build").BoolVar(&c.Force)
 	return &c
 }
 
@@ -111,8 +114,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Language from flag takes priority, otherwise infer from manifest and
 	// error if neither are provided. Sanitize by trim and lowercase.
 	var lang string
-	if c.lang != "" {
-		lang = c.lang
+	if c.Lang != "" {
+		lang = c.Lang
 	} else if m.Language != "" {
 		lang = m.Language
 	} else {
@@ -124,8 +127,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// error if neither are provided. Sanitize value to ensure it is a safe
 	// filepath, replacing spaces with hyphens etc.
 	var name string
-	if c.name != "" {
-		name = c.name
+	if c.PackageName != "" {
+		name = c.PackageName
 	} else if m.Name != "" {
 		name = m.Name
 	} else {
@@ -153,7 +156,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("unsupported language %s", lang)
 	}
 
-	if !c.force {
+	if !c.Force {
 		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", lang))
 
 		err = language.Verify(progress)
@@ -188,7 +191,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	files = append(files, binFiles...)
 
-	if c.includeSrc {
+	if c.IncludeSrc {
 		srcFiles, err := getNonIgnoredFiles(language.SourceDirectory, ignoreFiles)
 		if err != nil {
 			return err

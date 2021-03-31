@@ -303,9 +303,16 @@ COMMANDS
         --version=VERSION        Number of version to activate
     -p, --path=PATH              Path to package
 
-  compute publish
-    Runs "build" then "deploy" using fastly.toml manifest configuration
+  compute publish [<flags>]
+    Composite of "build", then "deploy"
 
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of version to activate
+    -p, --path=PATH              Path to package
+        --name=NAME              Package name
+        --language=LANGUAGE      Language type
+        --include-source         Include source code in built package
+        --force                  Skip verification steps and force build
 
   compute update --service-id=SERVICE-ID --version=VERSION --path=PATH
     Update a package on a Fastly Compute@Edge service version

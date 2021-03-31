@@ -1193,7 +1193,7 @@ func TestPublish(t *testing.T) {
 		manifestIncludes  string
 	}{
 		{
-			name: "success",
+			name: "success no command flags",
 			args: []string{"compute", "publish", "-t", "123"},
 			applicationConfig: config.File{
 				Language: config.Language{
@@ -1241,6 +1241,119 @@ func TestPublish(t *testing.T) {
 				"Validating package...",
 				"Fetching latest version...",
 				"Cloning latest version...",
+				"Uploading package...",
+				"Activating version...",
+				"Manage this service at:",
+				"https://manage.fastly.com/configure/services/123",
+				"View this service at:",
+				"https://directly-careful-coyote.edgecompute.app",
+				"Deployed package (service 123, version 2)",
+			},
+		},
+		{
+			name: "success with build command flags",
+			args: []string{"compute", "publish", "-t", "123", "--name", "test", "--language", "rust", "--include-source", "--force"},
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						ToolchainVersion:    "1.49.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 1
+			service_id = "123"
+			name = "test"
+			language = "rust"`,
+			cargoManifest: `
+			[package]
+			name = "test"
+			version = "0.1.0"
+
+			[dependencies]
+			fastly = "=0.6.0"`,
+			cargoLock: `
+			[[package]]
+			name = "fastly"
+			version = "0.6.0"
+
+			[[package]]
+			name = "fastly-sys"
+			version = "0.3.7"`,
+			client: versionClient{
+				fastlyVersions: []string{"0.6.0"},
+			},
+			api: mock.API{
+				ListVersionsFn:    listVersionsActiveOk,
+				GetPackageFn:      getPackageOk,
+				CloneVersionFn:    cloneVersionOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			wantOutput: []string{
+				"Built rust package test",
+				"Reading package manifest...",
+				"Validating package...",
+				"Fetching latest version...",
+				"Cloning latest version...",
+				"Uploading package...",
+				"Activating version...",
+				"Manage this service at:",
+				"https://manage.fastly.com/configure/services/123",
+				"View this service at:",
+				"https://directly-careful-coyote.edgecompute.app",
+				"Deployed package (service 123, version 2)",
+			},
+		},
+		{
+			name: "success with deploy command flags",
+			args: []string{"compute", "publish", "-t", "123", "--version", "2", "--path", "pkg/test.tar.gz"},
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						ToolchainVersion:    "1.49.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 1
+			service_id = "123"
+			name = "test"
+			language = "rust"`,
+			cargoManifest: `
+			[package]
+			name = "test"
+			version = "0.1.0"
+
+			[dependencies]
+			fastly = "=0.6.0"`,
+			cargoLock: `
+			[[package]]
+			name = "fastly"
+			version = "0.6.0"
+
+			[[package]]
+			name = "fastly-sys"
+			version = "0.3.7"`,
+			client: versionClient{
+				fastlyVersions: []string{"0.6.0"},
+			},
+			api: mock.API{
+				ListVersionsFn:    listVersionsActiveOk,
+				GetPackageFn:      getPackageOk,
+				CloneVersionFn:    cloneVersionOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			wantOutput: []string{
+				"Built rust package test",
+				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
