@@ -304,7 +304,7 @@ COMMANDS
     -p, --path=PATH              Path to package
 
   compute publish [<flags>]
-    Composite of "build", then "deploy"
+    Build a Compute@Edge package and deploy it to a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of version to activate
