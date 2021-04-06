@@ -304,7 +304,7 @@ COMMANDS
     -p, --path=PATH              Path to package
 
   compute publish [<flags>]
-    Build a Compute@Edge package and deploy it to a Fastly service
+    Build and deploy a Compute@Edge package to a Fastly service
 
         --name=NAME              Package name
         --language=LANGUAGE      Language type
