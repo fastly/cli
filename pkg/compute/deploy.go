@@ -35,9 +35,13 @@ func NewDeployCommand(parent common.Registerer, client api.HTTPClient, globals *
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
+
+	// NOTE: when updating these flags, be sure to update the composite command:
+	// `compute publish`.
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of version to activate").Action(c.Version.Set).IntVar(&c.Version.Value)
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
+
 	return &c
 }
 
