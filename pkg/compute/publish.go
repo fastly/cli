@@ -1,7 +1,6 @@
 package compute
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/common"
@@ -76,7 +75,7 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	err = c.build.Exec(in, out)
 	if err != nil {
-		return fmt.Errorf("error building package: %w", err)
+		return err
 	}
 
 	text.Break(out)
@@ -91,7 +90,7 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	err = c.deploy.Exec(in, out)
 	if err != nil {
-		return fmt.Errorf("error deploying package: %w", err)
+		return err
 	}
 
 	return nil
