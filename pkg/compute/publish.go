@@ -36,7 +36,7 @@ func NewPublishCommand(parent common.Registerer, globals *config.Data, build *Bu
 	c.manifest.File.Read(manifest.Filename)
 	c.build = build
 	c.deploy = deploy
-	c.CmdClause = parent.Command("publish", "Build a Compute@Edge package and deploy it to a Fastly service")
+	c.CmdClause = parent.Command("publish", "Build and deploy a Compute@Edge package to a Fastly service")
 
 	// Deploy flags
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
