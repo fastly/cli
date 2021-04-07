@@ -165,7 +165,7 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{end -}}
 {{end -}}
 {{define "FormatCommandName" -}}
-{{if .Parent}}{{.Parent.Name}} {{end -}}{{.Name -}}
+{{if .Parent}}{{if .Parent.Parent}}{{.Parent.Parent.Name}} {{end -}}{{.Parent.Name}} {{end -}}{{.Name -}}
 {{end -}}
 {{if .Context.SelectedCommand -}}
 {{T "USAGE"|Bold}}
