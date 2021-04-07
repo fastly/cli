@@ -8,16 +8,82 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"strings"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
+	"github.com/fastly/kingpin"
 	"github.com/mholt/archiver/v3"
 )
+
+// TestPublishFlagDivergence validates that the manually curated list of flags
+// within the `compute publish` command doesn't fall out of sync with the
+// `compute build` and `compute deploy` commands from which publish is composed.
+func TestPublishFlagDivergence(t *testing.T) {
+	var cfg config.Data
+	acmd := kingpin.New("foo", "bar")
+
+	rcmd := NewRootCommand(acmd, &cfg)
+	bcmd := NewBuildCommand(rcmd.CmdClause, client{}, &cfg)
+	dcmd := NewDeployCommand(rcmd.CmdClause, client{}, &cfg)
+	pcmd := NewPublishCommand(rcmd.CmdClause, &cfg, bcmd, dcmd)
+
+	buildFlags := getFlags(bcmd.CmdClause)
+	deployFlags := getFlags(dcmd.CmdClause)
+	publishFlags := getFlags(pcmd.CmdClause)
+
+	var (
+		expect []string
+		have   []string
+	)
+
+	iter := buildFlags.MapRange()
+	for iter.Next() {
+		expect = append(expect, fmt.Sprintf("%s", iter.Key()))
+	}
+	iter = deployFlags.MapRange()
+	for iter.Next() {
+		expect = append(expect, fmt.Sprintf("%s", iter.Key()))
+	}
+
+	iter = publishFlags.MapRange()
+	for iter.Next() {
+		have = append(have, fmt.Sprintf("%s", iter.Key()))
+	}
+
+	sort.Strings(expect)
+	sort.Strings(have)
+
+	errMsg := "the flags between build/deploy and publish don't match"
+
+	if len(expect) != len(have) {
+		t.Fatal(errMsg)
+	}
+
+	for i, v := range expect {
+		if have[i] != v {
+			t.Fatalf("%s, expected: %s, got: %s", errMsg, v, have[i])
+		}
+	}
+}
+
+type client struct{}
+
+func (c client) Do(*http.Request) (*http.Response, error) {
+	var resp http.Response
+	return &resp, nil
+}
+
+func getFlags(cmd *kingpin.CmdClause) reflect.Value {
+	return reflect.ValueOf(cmd).Elem().FieldByName("cmdMixin").FieldByName("flagGroup").Elem().FieldByName("long")
+}
 
 func TestCreatePackageArchive(t *testing.T) {
 	for _, testcase := range []struct {

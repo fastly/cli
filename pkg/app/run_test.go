@@ -303,6 +303,17 @@ COMMANDS
         --version=VERSION        Number of version to activate
     -p, --path=PATH              Path to package
 
+  compute publish [<flags>]
+    Build and deploy a Compute@Edge package to a Fastly service
+
+        --name=NAME              Package name
+        --language=LANGUAGE      Language type
+        --include-source         Include source code in built package
+        --force                  Skip verification steps and force build
+    -s, --service-id=SERVICE-ID  Service ID
+        --version=VERSION        Number of version to activate
+    -p, --path=PATH              Path to package
+
   compute update --service-id=SERVICE-ID --version=VERSION --path=PATH
     Update a package on a Fastly Compute@Edge service version
 

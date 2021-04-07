@@ -16,6 +16,10 @@ LDFLAGS = -ldflags "\
 fastly:
 	@go build -trimpath $(LDFLAGS) -o "$@" ./cmd/fastly
 
+# useful for attaching a debugger such as https://github.com/go-delve/delve
+debug:
+	@go build -gcflags="all=-N -l" -o "fastly" ./cmd/fastly
+
 .PHONY: all
 all: tidy fmt vet staticcheck lint gosec test build install
 

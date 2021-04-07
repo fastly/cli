@@ -21,8 +21,11 @@ import (
 type DeployCommand struct {
 	common.Base
 	manifest manifest.Data
-	path     string
-	version  common.OptionalInt
+
+	// NOTE: these are public so that the "publish" composite command can set the
+	// values appropriately before calling the Exec() function.
+	Path    string
+	Version common.OptionalInt
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -32,9 +35,13 @@ func NewDeployCommand(parent common.Registerer, client api.HTTPClient, globals *
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
+
+	// NOTE: when updating these flags, be sure to update the composite command:
+	// `compute publish`.
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version to activate").Action(c.version.Set).IntVar(&c.version.Value)
-	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.path)
+	c.CmdClause.Flag("version", "Number of version to activate").Action(c.Version.Set).IntVar(&c.Version.Value)
+	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
+
 	return &c
 }
 
@@ -59,7 +66,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// If path flag was empty, default to package tar inside pkg directory
 	// and get filename from the manifest.
-	if c.path == "" {
+	if c.Path == "" {
 		progress.Step("Reading package manifest...")
 
 		name, source := c.manifest.Name()
@@ -67,7 +74,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return fmt.Errorf("error reading package manifest")
 		}
 
-		c.path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(name)))
+		c.Path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(name)))
 	}
 
 	serviceID, source := c.manifest.ServiceID()
@@ -77,7 +84,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// Set the version we want to operate on.
 	// If version not provided infer the latest ideal version from the service.
-	if !c.version.WasSet {
+	if !c.Version.WasSet {
 		progress.Step("Fetching latest version...")
 		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
 			ServiceID: serviceID,
@@ -91,12 +98,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return fmt.Errorf("error finding latest service version")
 		}
 	} else {
-		version = &fastly.Version{Number: c.version.Value}
+		version = &fastly.Version{Number: c.Version.Value}
 	}
 
 	progress.Step("Validating package...")
 
-	if err := validate(c.path); err != nil {
+	if err := validate(c.Path); err != nil {
 		return err
 	}
 
@@ -106,7 +113,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		ServiceID:      serviceID,
 		ServiceVersion: version.Number,
 	}); err == nil {
-		hashSum, err := getHashSum(c.path)
+		hashSum, err := getHashSum(c.Path)
 		if err != nil {
 			return fmt.Errorf("error getting package hashsum: %w", err)
 		}
@@ -120,7 +127,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// If a version wasn't supplied and the ideal version is currently active
 	// or locked, clone it.
-	if !c.version.WasSet && version.Active || version.Locked {
+	if !c.Version.WasSet && version.Active || version.Locked {
 		progress.Step("Cloning latest version...")
 		version, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      serviceID,
@@ -135,7 +142,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	_, err = c.Globals.Client.UpdatePackage(&fastly.UpdatePackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version.Number,
-		PackagePath:    c.path,
+		PackagePath:    c.Path,
 	})
 	if err != nil {
 		return fmt.Errorf("error uploading package: %w", err)
