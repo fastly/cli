@@ -390,6 +390,8 @@ func prependSpecRefToManifest(fp io.ReadWriteSeeker) error {
 		}
 	}
 
+	fp.Seek(0, 0)
+
 	return nil
 }
 

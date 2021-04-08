@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -128,5 +129,63 @@ func TestManifest(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestManifestPrepend(t *testing.T) {
+	prefix := filepath.Join("../", "testdata", "init")
+
+	// NOTE: the fixture file "fastly-invalid-missing-version.toml" will be
+	// overwritten by the test as the internal logic is supposed to add into the
+	// manifest a reference to the fastly.toml specification.
+	//
+	// To ensure future test runs complete successfully we do an initial read of
+	// the data and then write it back out when the tests have completed.
+
+	fpath := "fastly-invalid-missing-version.toml"
+
+	path, err := filepath.Abs(filepath.Join(prefix, fpath))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func(path string, b []byte) {
+		err := os.WriteFile(path, b, 0644)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}(path, b)
+
+	f, err := os.OpenFile(path, os.O_RDWR, 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = prependSpecRefToManifest(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bs, err := io.ReadAll(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	content := string(bs)
+
+	line1 := "# fastly.toml reference"
+	line2 := "# https://developer.fastly.com/reference/fastly-toml/"
+
+	if !strings.Contains(content, line1) || !strings.Contains(content, line2) {
+		t.Fatal("missing fastly.toml specification reference link")
+	}
+
+	if err = f.Close(); err != nil {
+		t.Fatal(err)
 	}
 }
