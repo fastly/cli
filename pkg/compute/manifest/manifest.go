@@ -242,13 +242,13 @@ func (f *File) Read(fpath string) error {
 	if f.ManifestVersion == 0 {
 		f.ManifestVersion = 1
 
-		// TODO: Provide link to v1 schema once published publicly.
-		//
 		// NOTE: the use of once is a quick-fix to side-step duplicate outputs.
 		// To fix this properly will require a refactor of the structure of how our
 		// global output is passed around.
 		once.Do(func() {
 			text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
+			text.Break(f.output)
+			text.Output(f.output, "Refer to the fastly.toml package manifest format: https://developer.fastly.com/reference/fastly-toml/")
 			text.Break(f.output)
 			f.Write(fpath)
 		})
@@ -316,15 +316,80 @@ func (f *File) Write(filename string) error {
 	if err != nil {
 		return err
 	}
+
 	if err := toml.NewEncoder(fp).Encode(f); err != nil {
 		return err
 	}
+
+	if err := prependSpecRefToManifest(fp); err != nil {
+		return err
+	}
+
 	if err := fp.Sync(); err != nil {
 		return err
 	}
+
 	if err := fp.Close(); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+// prependSpecRefToManifest checks if the manifest contains a reference to the
+// manifest specification and, if not, prepends it to the top of the file.
+//
+// NOTE: We want to prepend a link to the fastly.toml reference but we also
+// don't want to break the user experience if we have a problem (as writing
+// this reference isn't critical to the operations the user is carrying out),
+// so we don't handle the returned error but instead only proceed to attempt
+// a WRITE to the file when there was no error seeking the start of the file.
+//
+// We have to seek to the start of the file so we can read back the contents,
+// then once we have the contents stored we have to seek back to the start a
+// second time so we can inject our reference link and start writing back out
+// the toml contents.
+//
+// Although we don't want to error when attempting to seek the file, we do
+// want to return an error if there was a problem writing the content to the
+// buffer or if there was a problem flushing the buffer back to the io.Writer
+// because this would indicate a problem with us getting back all of the
+// original content.
+func prependSpecRefToManifest(fp io.ReadWriteSeeker) error {
+	line1 := "# fastly.toml reference"
+	line2 := "# https://developer.fastly.com/reference/fastly-toml/"
+
+	if _, err := fp.Seek(0, 0); err == nil {
+		content := make([]string, 0)
+		scanner := bufio.NewScanner(fp)
+
+		for scanner.Scan() {
+			content = append(content, scanner.Text())
+		}
+
+		if err := scanner.Err(); err != nil {
+			return err
+		}
+
+		if content[0] != line1 || content[1] != line2 {
+			if _, err := fp.Seek(0, 0); err == nil {
+				writer := bufio.NewWriter(fp)
+				writer.WriteString(fmt.Sprintf("%s\n%s\n\n", line1, line2))
+
+				for _, line := range content {
+					_, err := writer.WriteString(line + "\n")
+					if err != nil {
+						return err
+					}
+				}
+
+				if err := writer.Flush(); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
