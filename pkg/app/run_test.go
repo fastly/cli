@@ -287,6 +287,8 @@ COMMANDS
                                    package backend
         --backend-port=BACKEND-PORT
                                    A port number for the package backend
+        --force                    Skip non-empty directory verification step
+                                   and force new project creation
 
   compute build [<flags>]
     Build a Compute@Edge package locally

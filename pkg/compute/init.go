@@ -74,7 +74,7 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.domain)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.backend)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.backendPort)
-	c.CmdClause.Flag("force", "Whether a non-empty project directory should be ignored").BoolVar(&c.forceNonEmpty)
+	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.forceNonEmpty)
 
 	return &c
 }
