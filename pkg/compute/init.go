@@ -90,14 +90,16 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Output(out, "Press ^C at any time to quit.")
 	text.Break(out)
 
-	files, err := os.ReadDir(".")
+	cont, err := verifyDirectory(out, in)
 	if err != nil {
 		return err
 	}
 
-	if len(files) > 0 {
-		text.Warning(out, "The current directory isn't empty. This might prevent the CLI from building your project if there are conflicting language configuration files.")
-		text.Break(out)
+	if !cont {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("project directory not empty"),
+			Remediation: errors.ExistingDirRemediation,
+		}
 	}
 
 	var progress text.Progress
@@ -499,6 +501,41 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Success(out, "Initialized service %s", service.ID)
 	return nil
+}
+
+// verifyDirectory indicates if the user wants to continue with the execution
+// flow when presented with a prompt that suggests the current directory isn't
+// empty.
+func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
+	files, err := os.ReadDir(".")
+	if err != nil {
+		return false, err
+	}
+
+	if len(files) > 0 {
+		dir, err := os.Getwd()
+		if err != nil {
+			return false, err
+		}
+
+		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/n] ", dir)
+		cont, err := text.Input(out, label, in)
+		if err != nil {
+			return false, fmt.Errorf("error reading input %w", err)
+		}
+
+		contl := strings.ToLower(cont)
+
+		if contl == "n" || contl == "no" {
+			return false, nil
+		}
+
+		if contl == "y" || contl == "yes" {
+			return true, nil
+		}
+	}
+
+	return true, nil
 }
 
 func verifyDestination(path string, verbose io.Writer) (abspath string, err error) {
