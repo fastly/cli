@@ -419,6 +419,37 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
+			name: "non empty directory",
+			args: []string{"compute", "init"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+					Email: "test@example.com",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
+			manifestIncludes: `authors = ["test@example.com"]`,
+			wantOutput: []string{
+				"The current directory isn't empty.",
+			},
+			manifest: `name = "test"`,
+		},
+		{
 			name: "with default name inferred from directory",
 			args: []string{"compute", "init"},
 			configFile: config.File{
