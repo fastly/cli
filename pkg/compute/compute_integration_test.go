@@ -336,7 +336,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with existing package manifest",
-			args: []string{"compute", "init"},
+			args: []string{"compute", "init", "--force"}, // --force will ignore that the directory isn't empty
 			configFile: config.File{
 				User: config.User{
 					Token: "123",
@@ -443,11 +443,8 @@ func TestInit(t *testing.T) {
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendOK,
 			},
-			manifestIncludes: `authors = ["test@example.com"]`,
-			wantOutput: []string{
-				"The current directory isn't empty.",
-			},
-			manifest: `name = "test"`,
+			wantError: "project directory not empty",
+			manifest:  `name = "test"`, // causes a file to be created as part of test setup
 		},
 		{
 			name: "with default name inferred from directory",

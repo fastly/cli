@@ -41,16 +41,17 @@ var (
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
 	common.Base
-	client      api.HTTPClient
-	manifest    manifest.Data
-	language    string
-	from        string
-	branch      string
-	tag         string
-	path        string
-	domain      string
-	backend     string
-	backendPort uint
+	client        api.HTTPClient
+	manifest      manifest.Data
+	language      string
+	from          string
+	branch        string
+	tag           string
+	path          string
+	domain        string
+	backend       string
+	backendPort   uint
+	forceNonEmpty bool
 }
 
 // NewInitCommand returns a usable command registered under the parent.
@@ -73,6 +74,7 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.domain)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.backend)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.backendPort)
+	c.CmdClause.Flag("force", "Whether a non-empty project directory should be ignored").BoolVar(&c.forceNonEmpty)
 
 	return &c
 }
@@ -95,7 +97,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	if !cont {
+	if !c.forceNonEmpty && !cont {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("project directory not empty"),
 			Remediation: errors.ExistingDirRemediation,
@@ -533,6 +535,8 @@ func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
 		if contl == "y" || contl == "yes" {
 			return true, nil
 		}
+
+		return false, nil
 	}
 
 	return true, nil
