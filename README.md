@@ -19,17 +19,14 @@
 
 ## Usage
 
-The Fastly CLI interacts with [the Fastly API][api] via an [API token][tokens].
-You'll need to [create an API token][create] for yourself, and then provide it
-to the Fastly CLI in one of three ways:
+The Fastly CLI interacts with [the Fastly API][api] via an [API token][authentication].  You'll need to create an API token for yourself, and then provide it to the Fastly CLI in one of three ways:
 
 1. Stored in a config file by running `fastly configure`
 1. Explicitly via the `--token, -t` flag
 1. Implicitly via the `FASTLY_API_TOKEN` environment variable
 
-[api]: https://docs.fastly.com/api
-[tokens]: https://docs.fastly.com/api/auth#tokens
-[create]: https://docs.fastly.com/en/guides/using-api-tokens#creating-api-tokens
+[api]: https://developer.fastly.com/reference/api/
+[authentication]: https://developer.fastly.com/reference/api/#authentication
 
 To see an overview of all commands, simply run `fastly` with no arguments.
 Succinct help about any command or subcommand is available via the `-h, --help`
