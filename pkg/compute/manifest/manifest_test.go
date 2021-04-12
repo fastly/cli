@@ -105,7 +105,7 @@ func TestManifest(t *testing.T) {
 				//
 				// This is validating the write operation called when the
 				// manifest_version is invalid. We have a separate test function for
-				// validating the function that prepends the reference.
+				// validating the function that prepends the reference more explicitly.
 				if tc.checkRef {
 					b, err := os.ReadFile(path)
 					if err != nil {
