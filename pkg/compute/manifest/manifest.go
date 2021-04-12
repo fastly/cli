@@ -41,10 +41,10 @@ const (
 	SourceFlag
 
 	// SpecIntro
-	SpecIntro = "# This file describes a Fastly compute@edge package. To learn more visit:"
+	SpecIntro = "This file describes a Fastly compute@edge package. To learn more visit:"
 
 	// SpecURL
-	SpecURL = "# https://developer.fastly.com/reference/fastly-toml/"
+	SpecURL = "https://developer.fastly.com/reference/fastly-toml/"
 )
 
 var once sync.Once
