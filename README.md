@@ -2,7 +2,7 @@
   <h3 align="center">Fastly CLI</h3>
   <p align="center">A CLI for interacting with the Fastly platform.</p>
   <p align="center">
-      <a href="https://developer.fastly.com/reference/cli/"><img alt="Documentation" src="http://img.shields.io/badge/go-documentation-blue.svg"></a>
+      <a href="https://developer.fastly.com/reference/cli/"><img alt="Documentation" src="https://img.shields.io/badge/cli-reference-yellow"></a>
       <a href="https://github.com/fastly/cli/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/fastly/cli" /></a>
       <a href="#License"><img alt="Apache 2.0 License" src="https://img.shields.io/github/license/fastly/cli" /></a>
       <a href="https://goreportcard.com/report/github.com/fastly/cli"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/fastly/cli" /></a>
