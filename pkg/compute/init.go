@@ -90,6 +90,16 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Output(out, "Press ^C at any time to quit.")
 	text.Break(out)
 
+	files, err := os.ReadDir(".")
+	if err != nil {
+		return err
+	}
+
+	if len(files) > 0 {
+		text.Warning(out, "The current directory isn't empty. This might prevent the CLI from building your project if there are conflicting language configuration files.")
+		text.Break(out)
+	}
+
 	var progress text.Progress
 	if c.Globals.Verbose() {
 		progress = text.NewVerboseProgress(out)
