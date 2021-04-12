@@ -15,21 +15,21 @@ import (
 	toml "github.com/pelletier/go-toml"
 )
 
-// Filename is the name of the package manifest file.
-// It is expected to be a project specific configuration file.
-const Filename = "fastly.toml"
-
-// ManifestLatestVersion represents the latest known manifest schema version
-// supported by the CLI.
-const ManifestLatestVersion = 1
-
-// FilePermissions represents a read/write file mode.
-const FilePermissions = 0666
-
 // Source enumerates where a manifest parameter is taken from.
 type Source uint8
 
 const (
+	// Filename is the name of the package manifest file.
+	// It is expected to be a project specific configuration file.
+	Filename = "fastly.toml"
+
+	// ManifestLatestVersion represents the latest known manifest schema version
+	// supported by the CLI.
+	ManifestLatestVersion = 1
+
+	// FilePermissions represents a read/write file mode.
+	FilePermissions = 0666
+
 	// SourceUndefined indicates the parameter isn't provided in any of the
 	// available sources, similar to "not found".
 	SourceUndefined Source = iota
@@ -39,6 +39,12 @@ const (
 
 	// SourceFlag indicates the parameter came from an explicit flag.
 	SourceFlag
+
+	// SpecIntro
+	SpecIntro = "# This file describes a Fastly compute@edge package. To learn more visit:"
+
+	// SpecURL
+	SpecURL = "# https://developer.fastly.com/reference/fastly-toml/"
 )
 
 var once sync.Once
@@ -356,9 +362,6 @@ func (f *File) Write(filename string) error {
 // because this would indicate a problem with us getting back all of the
 // original content.
 func prependSpecRefToManifest(fp io.ReadWriteSeeker) error {
-	line1 := "# fastly.toml reference"
-	line2 := "# https://developer.fastly.com/reference/fastly-toml/"
-
 	if _, err := fp.Seek(0, 0); err == nil {
 		content := make([]string, 0)
 		scanner := bufio.NewScanner(fp)
@@ -371,10 +374,10 @@ func prependSpecRefToManifest(fp io.ReadWriteSeeker) error {
 			return err
 		}
 
-		if content[0] != line1 || content[1] != line2 {
+		if content[0] != SpecIntro || content[1] != SpecURL {
 			if _, err := fp.Seek(0, 0); err == nil {
 				writer := bufio.NewWriter(fp)
-				writer.WriteString(fmt.Sprintf("%s\n%s\n\n", line1, line2))
+				writer.WriteString(fmt.Sprintf("# %s\n# %s\n\n", SpecIntro, SpecURL))
 
 				for _, line := range content {
 					_, err := writer.WriteString(line + "\n")

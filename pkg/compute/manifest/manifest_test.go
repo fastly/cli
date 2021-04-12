@@ -114,10 +114,7 @@ func TestManifest(t *testing.T) {
 
 					content := string(b)
 
-					line1 := "# fastly.toml reference"
-					line2 := "# https://developer.fastly.com/reference/fastly-toml/"
-
-					if !strings.Contains(content, line1) || !strings.Contains(content, line2) {
+					if !strings.Contains(content, SpecIntro) || !strings.Contains(content, SpecURL) {
 						t.Fatal("missing fastly.toml specification reference link")
 					}
 				}
@@ -178,10 +175,7 @@ func TestManifestPrepend(t *testing.T) {
 
 	content := string(bs)
 
-	line1 := "# fastly.toml reference"
-	line2 := "# https://developer.fastly.com/reference/fastly-toml/"
-
-	if !strings.Contains(content, line1) || !strings.Contains(content, line2) {
+	if !strings.Contains(content, SpecIntro) || !strings.Contains(content, SpecURL) {
 		t.Fatal("missing fastly.toml specification reference link")
 	}
 
