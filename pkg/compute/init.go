@@ -536,6 +536,8 @@ func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
 			return true, nil
 		}
 
+		// NOTE: be defensive and default to short-circuiting the execution flow if
+		// the input is unrecognised.
 		return false, nil
 	}
 
