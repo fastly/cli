@@ -10,44 +10,12 @@
 </div>
 
 ## Quick links
-- [Installation](INSTALL.md)
-- [Usage](#Usage)
-- [Bash/ZSH completion](#bashzsh-shell-completion)
+- [Installation](https://developer.fastly.com/reference/cli/#installing)
+- [Shell auto-completion](https://developer.fastly.com/reference/cli/#shell-auto-completion)
+- [Configuring](https://developer.fastly.com/reference/cli/#configuring)
+- [Commands](https://developer.fastly.com/reference/cli/#command-groups)
 - [Development](DEVELOP.md)
 - [Testing](TESTING.md)
-- [Issues](#Issues)
-
-## Usage
-
-The Fastly CLI interacts with [the Fastly API][api] via an [API token][authentication].  You'll need to create an API token for yourself, and then provide it to the Fastly CLI in one of three ways:
-
-1. Stored in a config file by running `fastly configure`
-1. Explicitly via the `--token, -t` flag
-1. Implicitly via the `FASTLY_API_TOKEN` environment variable
-
-[api]: https://developer.fastly.com/reference/api/
-[authentication]: https://developer.fastly.com/reference/api/#authentication
-
-To see an overview of all commands, simply run `fastly` with no arguments.
-Succinct help about any command or subcommand is available via the `-h, --help`
-flag. Verbose help about any command or subcommand is available via the help
-argument, e.g. `fastly help service`.
-
-## Bash/ZSH shell completion
-The CLI can generate completions for all commands, subcommands and flags.
-
-By specifying `--completion-bash` as the first argument, the CLI will show possible subcommands. By ending your argv with `--`, hints for flags will be shown.
-
-### Configuring your shell
-To install the completions source them in your `bash_profile` (or equivalent):
-```
-eval "$(fastly --completion-script-bash)"
-```
-
-Or for ZSH in your `zshrc`:
-```
-eval "$(fastly --completion-script-zsh)"
-```
 
 ## Contributing
 
