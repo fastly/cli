@@ -15,21 +15,21 @@ import (
 	toml "github.com/pelletier/go-toml"
 )
 
-// Filename is the name of the package manifest file.
-// It is expected to be a project specific configuration file.
-const Filename = "fastly.toml"
-
-// ManifestLatestVersion represents the latest known manifest schema version
-// supported by the CLI.
-const ManifestLatestVersion = 1
-
-// FilePermissions represents a read/write file mode.
-const FilePermissions = 0666
-
 // Source enumerates where a manifest parameter is taken from.
 type Source uint8
 
 const (
+	// Filename is the name of the package manifest file.
+	// It is expected to be a project specific configuration file.
+	Filename = "fastly.toml"
+
+	// ManifestLatestVersion represents the latest known manifest schema version
+	// supported by the CLI.
+	ManifestLatestVersion = 1
+
+	// FilePermissions represents a read/write file mode.
+	FilePermissions = 0666
+
 	// SourceUndefined indicates the parameter isn't provided in any of the
 	// available sources, similar to "not found".
 	SourceUndefined Source = iota
@@ -39,6 +39,12 @@ const (
 
 	// SourceFlag indicates the parameter came from an explicit flag.
 	SourceFlag
+
+	// SpecIntro informs the user of what the manifest file is for.
+	SpecIntro = "This file describes a Fastly Compute@Edge package. To learn more visit:"
+
+	// SpecURL points to the fastly.toml manifest specification reference.
+	SpecURL = "https://developer.fastly.com/reference/fastly-toml/"
 )
 
 var once sync.Once
@@ -242,13 +248,13 @@ func (f *File) Read(fpath string) error {
 	if f.ManifestVersion == 0 {
 		f.ManifestVersion = 1
 
-		// TODO: Provide link to v1 schema once published publicly.
-		//
 		// NOTE: the use of once is a quick-fix to side-step duplicate outputs.
 		// To fix this properly will require a refactor of the structure of how our
 		// global output is passed around.
 		once.Do(func() {
 			text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
+			text.Break(f.output)
+			text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
 			text.Break(f.output)
 			f.Write(fpath)
 		})
@@ -316,15 +322,79 @@ func (f *File) Write(filename string) error {
 	if err != nil {
 		return err
 	}
+
 	if err := toml.NewEncoder(fp).Encode(f); err != nil {
 		return err
 	}
+
+	if err := prependSpecRefToManifest(fp); err != nil {
+		return err
+	}
+
 	if err := fp.Sync(); err != nil {
 		return err
 	}
+
 	if err := fp.Close(); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+// prependSpecRefToManifest checks if the manifest contains a reference to the
+// manifest specification and, if not, prepends it to the top of the file.
+//
+// NOTE: We want to prepend a link to the fastly.toml reference but we also
+// don't want to break the user experience if we have a problem (as writing
+// this reference isn't critical to the operations the user is carrying out),
+// so we don't handle the returned error but instead only proceed to attempt
+// a WRITE to the file when there was no error seeking the start of the file.
+//
+// We have to seek to the start of the file so we can read back the contents,
+// then once we have the contents stored we have to seek back to the start a
+// second time so we can inject our reference link and start writing back out
+// the toml contents.
+//
+// Although we don't want to error when attempting to seek the file, we do
+// want to return an error if there was a problem writing the content to the
+// buffer or if there was a problem flushing the buffer back to the io.Writer
+// because this would indicate a problem with us getting back all of the
+// original content.
+func prependSpecRefToManifest(fp io.ReadWriteSeeker) error {
+	if _, err := fp.Seek(0, 0); err == nil {
+		content := make([]string, 0)
+		scanner := bufio.NewScanner(fp)
+
+		for scanner.Scan() {
+			content = append(content, scanner.Text())
+		}
+
+		if err := scanner.Err(); err != nil {
+			return err
+		}
+
+		if content[0] != SpecIntro || content[1] != SpecURL {
+			if _, err := fp.Seek(0, 0); err == nil {
+				writer := bufio.NewWriter(fp)
+				writer.WriteString(fmt.Sprintf("# %s\n# %s\n\n", SpecIntro, SpecURL))
+
+				for _, line := range content {
+					_, err := writer.WriteString(line + "\n")
+					if err != nil {
+						return err
+					}
+				}
+
+				if err := writer.Flush(); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	fp.Seek(0, 0)
+
 	return nil
 }
 
