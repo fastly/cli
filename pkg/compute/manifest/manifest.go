@@ -254,7 +254,7 @@ func (f *File) Read(fpath string) error {
 		once.Do(func() {
 			text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
 			text.Break(f.output)
-			text.Output(f.output, "Refer to the fastly.toml package manifest format: https://developer.fastly.com/reference/fastly-toml/")
+			text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
 			text.Break(f.output)
 			f.Write(fpath)
 		})
