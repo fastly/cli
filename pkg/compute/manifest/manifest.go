@@ -40,10 +40,10 @@ const (
 	// SourceFlag indicates the parameter came from an explicit flag.
 	SourceFlag
 
-	// SpecIntro
+	// SpecIntro informs the user of what the manifest file is for.
 	SpecIntro = "This file describes a Fastly compute@edge package. To learn more visit:"
 
-	// SpecURL
+	// SpecURL points to the fastly.toml manifest specification reference.
 	SpecURL = "https://developer.fastly.com/reference/fastly-toml/"
 )
 
