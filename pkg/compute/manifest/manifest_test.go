@@ -132,14 +132,14 @@ func TestManifest(t *testing.T) {
 func TestManifestPrepend(t *testing.T) {
 	prefix := filepath.Join("../", "testdata", "init")
 
-	// NOTE: the fixture file "fastly-invalid-missing-version.toml" will be
+	// NOTE: the fixture file "fastly-missing-spec-url.toml" will be
 	// overwritten by the test as the internal logic is supposed to add into the
 	// manifest a reference to the fastly.toml specification.
 	//
 	// To ensure future test runs complete successfully we do an initial read of
 	// the data and then write it back out when the tests have completed.
 
-	fpath := "fastly-invalid-missing-version.toml"
+	fpath := "fastly-missing-spec-url.toml"
 
 	path, err := filepath.Abs(filepath.Join(prefix, fpath))
 	if err != nil {
