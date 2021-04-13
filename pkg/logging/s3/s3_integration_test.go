@@ -24,8 +24,28 @@ func TestS3Create(t *testing.T) {
 		wantOutput string
 	}{
 		{
+			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log"},
+			wantError: "error parsing arguments: the --access-key and --secret-key flags or the --iam-role flag must be provided",
+		},
+		{
 			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo"},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
+		},
+		{
+			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "bar"},
+			wantError: "error parsing arguments: required flag --access-key not provided",
+		},
+		{
+			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
+		},
+		{
+			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
+		},
+		{
+			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
 			args:       []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar"},
@@ -34,6 +54,16 @@ func TestS3Create(t *testing.T) {
 		},
 		{
 			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar"},
+			api:       mock.API{CreateS3Fn: createS3Error},
+			wantError: errTest.Error(),
+		},
+		{
+			args:       []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			api:        mock.API{CreateS3Fn: createS3OK},
+			wantOutput: "Created S3 logging endpoint log2 (service 123 version 1)",
+		},
+		{
+			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
 			api:       mock.API{CreateS3Fn: createS3Error},
 			wantError: errTest.Error(),
 		},
@@ -176,6 +206,11 @@ func TestS3Update(t *testing.T) {
 			api:        mock.API{UpdateS3Fn: updateS3OK},
 			wantOutput: "Updated S3 logging endpoint log (service 123 version 1)",
 		},
+		{
+			args:       []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--access-key", "foo", "--secret-key", "bar", "--iam-role", ""},
+			api:        mock.API{UpdateS3Fn: updateS3OK},
+			wantOutput: "Updated S3 logging endpoint log (service 123 version 1)",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (
@@ -260,6 +295,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			BucketName:                   "my-logs",
 			AccessKey:                    "1234",
 			SecretKey:                    "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
+			IAMRole:                      "",
 			Domain:                       "https://s3.us-east-1.amazonaws.com",
 			Path:                         "logs/",
 			Period:                       3600,

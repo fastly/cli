@@ -8,13 +8,12 @@ require (
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
-	github.com/fastly/go-fastly/v3 v3.0.0
+	github.com/fastly/go-fastly/v3 v3.5.0
 	github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible
 	github.com/fatih/color v1.7.0
 	github.com/frankban/quicktest v1.5.0 // indirect
 	github.com/google/go-cmp v0.3.1
 	github.com/google/go-github/v28 v28.1.1
-	github.com/google/jsonapi v0.0.0-20200226002910-c8283f632fb7 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mattn/go-colorable v0.1.7 // indirect

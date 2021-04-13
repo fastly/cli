@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/common"
@@ -20,8 +21,12 @@ type CreateCommand struct {
 	EndpointName string // Can't shadow common.Base method Name().
 	Version      int
 	BucketName   string
-	AccessKey    string
-	SecretKey    string
+
+	// mutual exclusions
+	// AccessKey + SecretKey or IAMRole must be provided
+	AccessKey common.OptionalString
+	SecretKey common.OptionalString
+	IAMRole   common.OptionalString
 
 	// optional
 	Domain                       common.OptionalString
@@ -51,8 +56,10 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("name", "The name of the S3 logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
 	c.CmdClause.Flag("bucket", "Your S3 bucket name").Required().StringVar(&c.BucketName)
-	c.CmdClause.Flag("access-key", "Your S3 account access key").Required().StringVar(&c.AccessKey)
-	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Required().StringVar(&c.SecretKey)
+
+	c.CmdClause.Flag("access-key", "Your S3 account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
+	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
+	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("domain", "The domain of the S3 endpoint").Action(c.Domain.Set).StringVar(&c.Domain.Value)
@@ -86,8 +93,37 @@ func (c *CreateCommand) createInput() (*fastly.CreateS3Input, error) {
 	input.ServiceVersion = c.Version
 	input.Name = c.EndpointName
 	input.BucketName = c.BucketName
-	input.AccessKey = c.AccessKey
-	input.SecretKey = c.SecretKey
+
+	// The following block checks for invalid permutations of the ways in
+	// which the AccessKey + SecretKey and IAMRole flags can be
+	// provided. This is necessary because either the AccessKey and
+	// SecretKey or the IAMRole is required, but they are mutually
+	// exclusive. The kingpin library lacks a way to express this constraint
+	// via the flag specification API so we enforce it manually here.
+	if !c.AccessKey.WasSet && !c.SecretKey.WasSet && !c.IAMRole.WasSet {
+		return nil, fmt.Errorf("error parsing arguments: the --access-key and --secret-key flags or the --iam-role flag must be provided")
+	} else if (c.AccessKey.WasSet || c.SecretKey.WasSet) && c.IAMRole.WasSet {
+		// Enforce mutual exclusion
+		return nil, fmt.Errorf("error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag")
+	} else if c.AccessKey.WasSet && !c.SecretKey.WasSet {
+		return nil, fmt.Errorf("error parsing arguments: required flag --secret-key not provided")
+
+	} else if !c.AccessKey.WasSet && c.SecretKey.WasSet {
+		return nil, fmt.Errorf("error parsing arguments: required flag --access-key not provided")
+
+	}
+
+	if c.AccessKey.WasSet {
+		input.AccessKey = c.AccessKey.Value
+	}
+
+	if c.SecretKey.WasSet {
+		input.SecretKey = c.SecretKey.Value
+	}
+
+	if c.IAMRole.WasSet {
+		input.IAMRole = c.IAMRole.Value
+	}
 
 	if c.Domain.WasSet {
 		input.Domain = c.Domain.Value

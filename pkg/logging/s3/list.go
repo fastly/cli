@@ -62,8 +62,13 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tVersion: %d\n", s3.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", s3.Name)
 		fmt.Fprintf(out, "\t\tBucket: %s\n", s3.BucketName)
-		fmt.Fprintf(out, "\t\tAccess key: %s\n", s3.AccessKey)
-		fmt.Fprintf(out, "\t\tSecret key: %s\n", s3.SecretKey)
+		if s3.AccessKey != "" || s3.SecretKey != "" {
+			fmt.Fprintf(out, "\t\tAccess key: %s\n", s3.AccessKey)
+			fmt.Fprintf(out, "\t\tSecret key: %s\n", s3.SecretKey)
+		}
+		if s3.IAMRole != "" {
+			fmt.Fprintf(out, "\t\tIAM role: %s\n", s3.IAMRole)
+		}
 		fmt.Fprintf(out, "\t\tPath: %s\n", s3.Path)
 		fmt.Fprintf(out, "\t\tPeriod: %d\n", s3.Period)
 		fmt.Fprintf(out, "\t\tGZip level: %d\n", s3.GzipLevel)

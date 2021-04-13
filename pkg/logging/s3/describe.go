@@ -48,8 +48,13 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", s3.ServiceVersion)
 	fmt.Fprintf(out, "Name: %s\n", s3.Name)
 	fmt.Fprintf(out, "Bucket: %s\n", s3.BucketName)
-	fmt.Fprintf(out, "Access key: %s\n", s3.AccessKey)
-	fmt.Fprintf(out, "Secret key: %s\n", s3.SecretKey)
+	if s3.AccessKey != "" || s3.SecretKey != "" {
+		fmt.Fprintf(out, "Access key: %s\n", s3.AccessKey)
+		fmt.Fprintf(out, "Secret key: %s\n", s3.SecretKey)
+	}
+	if s3.IAMRole != "" {
+		fmt.Fprintf(out, "IAM role: %s\n", s3.IAMRole)
+	}
 	fmt.Fprintf(out, "Path: %s\n", s3.Path)
 	fmt.Fprintf(out, "Period: %d\n", s3.Period)
 	fmt.Fprintf(out, "GZip level: %d\n", s3.GzipLevel)
