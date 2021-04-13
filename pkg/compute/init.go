@@ -41,16 +41,17 @@ var (
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
 	common.Base
-	client      api.HTTPClient
-	manifest    manifest.Data
-	language    string
-	from        string
-	branch      string
-	tag         string
-	path        string
-	domain      string
-	backend     string
-	backendPort uint
+	client        api.HTTPClient
+	manifest      manifest.Data
+	language      string
+	from          string
+	branch        string
+	tag           string
+	path          string
+	domain        string
+	backend       string
+	backendPort   uint
+	forceNonEmpty bool
 }
 
 // NewInitCommand returns a usable command registered under the parent.
@@ -73,6 +74,7 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.domain)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.backend)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.backendPort)
+	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.forceNonEmpty)
 
 	return &c
 }
@@ -89,6 +91,18 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
 	text.Break(out)
+
+	cont, err := verifyDirectory(out, in)
+	if err != nil {
+		return err
+	}
+
+	if !c.forceNonEmpty && !cont {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("project directory not empty"),
+			Remediation: errors.ExistingDirRemediation,
+		}
+	}
 
 	var progress text.Progress
 	if c.Globals.Verbose() {
@@ -489,6 +503,45 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Success(out, "Initialized service %s", service.ID)
 	return nil
+}
+
+// verifyDirectory indicates if the user wants to continue with the execution
+// flow when presented with a prompt that suggests the current directory isn't
+// empty.
+func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
+	files, err := os.ReadDir(".")
+	if err != nil {
+		return false, err
+	}
+
+	if len(files) > 0 {
+		dir, err := os.Getwd()
+		if err != nil {
+			return false, err
+		}
+
+		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/n] ", dir)
+		cont, err := text.Input(out, label, in)
+		if err != nil {
+			return false, fmt.Errorf("error reading input %w", err)
+		}
+
+		contl := strings.ToLower(cont)
+
+		if contl == "n" || contl == "no" {
+			return false, nil
+		}
+
+		if contl == "y" || contl == "yes" {
+			return true, nil
+		}
+
+		// NOTE: be defensive and default to short-circuiting the execution flow if
+		// the input is unrecognised.
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func verifyDestination(path string, verbose io.Writer) (abspath string, err error) {

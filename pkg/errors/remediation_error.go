@@ -80,3 +80,9 @@ var BugRemediation = strings.Join([]string{
 var ServiceIDRemediation = strings.Join([]string{
 	"Please provide one via the --service-id flag or within your package manifest",
 }, " ")
+
+// ExistingDirRemediation suggests moving to another directory and retrying.
+var ExistingDirRemediation = strings.Join([]string{
+	"Please create a new directory and initialize a new project using:",
+	"`fastly compute init`.",
+}, " ")

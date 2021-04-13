@@ -336,7 +336,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with existing package manifest",
-			args: []string{"compute", "init"},
+			args: []string{"compute", "init", "--force"}, // --force will ignore that the directory isn't empty
 			configFile: config.File{
 				User: config.User{
 					Token: "123",
@@ -417,6 +417,34 @@ func TestInit(t *testing.T) {
 				"Fetching package template...",
 				"Updating package manifest...",
 			},
+		},
+		{
+			name: "non empty directory",
+			args: []string{"compute", "init"},
+			configFile: config.File{
+				User: config.User{
+					Token: "123",
+					Email: "test@example.com",
+				},
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
+							Branch: "0.6.0",
+						},
+					},
+				},
+			},
+			api: mock.API{
+				GetTokenSelfFn:  tokenOK,
+				GetUserFn:       getUserOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
+			},
+			wantError: "project directory not empty",
+			manifest:  `name = "test"`, // causes a file to be created as part of test setup
 		},
 		{
 			name: "with default name inferred from directory",
