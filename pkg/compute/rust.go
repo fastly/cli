@@ -2,6 +2,7 @@ package compute
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -132,7 +133,7 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error executing rustup: %w", err)
 	}
 
-	reader := bufio.NewReader(strings.NewReader(string(stdoutStderr)))
+	reader := bufio.NewReader(bytes.NewReader(stdoutStderr))
 	line, err := reader.ReadString('\n')
 	if err != nil {
 		return fmt.Errorf("error reading rustup output: %w", err)
