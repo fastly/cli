@@ -18,7 +18,6 @@ func TestManifest(t *testing.T) {
 		manifest      string
 		valid         bool
 		expectedError error
-		checkRef      bool
 	}{
 		"valid: semver": {
 			manifest: "fastly-valid-semver.toml",
@@ -31,7 +30,6 @@ func TestManifest(t *testing.T) {
 		"invalid: missing manifest_version causes default to be set": {
 			manifest: "fastly-invalid-missing-version.toml",
 			valid:    true,
-			checkRef: true,
 		},
 		"invalid: manifest_version as a section causes default to be set": {
 			manifest: "fastly-invalid-section-version.toml",
@@ -95,28 +93,6 @@ func TestManifest(t *testing.T) {
 				// that's unexpected behaviour.
 				if err != nil {
 					t.Fatal(err)
-				}
-
-				// NOTE: we only assign checkRef to one of the invalid test cases, even
-				// though in practice the reference link will be added anytime a write
-				// operation is executed on the manifest file, because as far as the
-				// test suite is concerned it's constrained by the use of `once.Do()`
-				// at the package level of the manifest package.
-				//
-				// This is validating the write operation called when the
-				// manifest_version is invalid. We have a separate test function for
-				// validating the function that prepends the reference more explicitly.
-				if tc.checkRef {
-					b, err := os.ReadFile(path)
-					if err != nil {
-						t.Fatal(err)
-					}
-
-					content := string(b)
-
-					if !strings.Contains(content, SpecIntro) || !strings.Contains(content, SpecURL) {
-						t.Fatal("missing fastly.toml specification reference link")
-					}
 				}
 			} else {
 				// otherwise if we expect the manifest to be invalid/unrecognised then
