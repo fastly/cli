@@ -125,7 +125,7 @@ func (r Rust) Verify(out io.Writer) error {
 	fmt.Fprintf(out, "Found rustup at %s\n", p)
 
 	// 2) Check that the desired rustup version is installed
-	fmt.Fprintf(out, "Checking if rustup 1.23.0 or higher is installed...\n")
+	fmt.Fprintf(out, "Checking if rustup %s is installed...\n", r.config.File.Language.Rust.RustupConstraint)
 
 	cmd := exec.Command("rustup", "--version")
 	stdoutStderr, err := cmd.CombinedOutput()
@@ -140,7 +140,7 @@ func (r Rust) Verify(out io.Writer) error {
 	}
 	parts := strings.Split(line, " ")
 	// Either `rustup <version> (<date>)` or `rustup <version> (<sha> <date>)`
-	if len(parts) < 3 {
+	if len(parts) != 3 && len(parts) != 4 {
 		return fmt.Errorf("error reading rustup version")
 	}
 	rustupVersion, err := semver.NewVersion(parts[1])
@@ -148,10 +148,13 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error parsing rustup version: %w", err)
 	}
 
-	constraint, _ := semver.NewConstraint(">= 1.23.0")
-	if !constraint.Check(rustupVersion) {
+	rustupConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.RustupConstraint)
+	if err != nil {
+		return fmt.Errorf("error parsing rustup constraint: %w", err)
+	}
+	if !rustupConstraint.Check(rustupVersion) {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("rustup 1.23.0 or higher not found"),
+			Inner:       fmt.Errorf("rustup constraint not met: %s", r.config.File.Language.Rust.RustupConstraint),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("rustup self update")),
 		}
 	}
