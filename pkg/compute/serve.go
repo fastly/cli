@@ -83,13 +83,32 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress := text.NewQuietProgress(out)
 
+	bin, err := getViceroy(progress, out, c.viceroyVersioner)
+	if err != nil {
+		return err
+	}
+
+	err = local(bin, out)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getViceroy returns the path to the installed binary.
+//
+// NOTE: if viceroy is installed then it is updated, otherwise download the
+// latest version and install it in the same directory as the application
+// configuration data.
+func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner) (string, error) {
 	progress.Step("Checking latest viceroy release...")
 
-	latest, err := c.viceroyVersioner.LatestVersion(context.Background())
+	latest, err := versioner.LatestVersion(context.Background())
 	if err != nil {
 		progress.Fail()
 
-		return errors.RemediationError{
+		return "", errors.RemediationError{
 			Inner:       fmt.Errorf("error fetching latest version: %w", err),
 			Remediation: errors.NetworkRemediation,
 		}
@@ -97,13 +116,13 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	dir, err := installDir()
 	if err != nil {
-		return errors.RemediationError{
+		return "", errors.RemediationError{
 			Inner:       err,
 			Remediation: errors.BugRemediation,
 		}
 	}
 
-	bin := filepath.Join(dir, c.viceroyVersioner.Name())
+	bin := filepath.Join(dir, versioner.Name())
 
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
@@ -114,86 +133,26 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	stdoutStderr, err := cmd.CombinedOutput()
 
 	if err != nil {
-		progress.Step("Fetching latest viceroy release...")
-
-		tmp, err := c.viceroyVersioner.Download(context.Background(), latest)
+		// Presumes an error reading viceroy version means it isn't installed.
+		err := installViceroy(progress, versioner, latest, bin)
 		if err != nil {
-			progress.Fail()
-			return fmt.Errorf("error downloading latest viceroy release: %w", err)
-		}
-
-		if err := os.Rename(tmp, bin); err != nil {
-			if err := filesystem.CopyFile(tmp, bin); err != nil {
-				progress.Fail()
-				return fmt.Errorf("error moving latest viceroy binary in place: %w", err)
-			}
+			return "", err
 		}
 	} else {
-		progress.Step("Checking installed viceroy version...")
-
-		var installedViceroyVersion string
-
-		viceroyError := errors.RemediationError{
-			Inner:       fmt.Errorf("viceroy version not found"),
-			Remediation: errors.BugRemediation,
-		}
-
-		// version output has the expected format: `viceroy 0.1.0`
-		segs := strings.Split(string(stdoutStderr), " ")
-
-		if len(segs) < 2 {
-			return viceroyError
-		}
-
-		installedViceroyVersion = segs[1]
-
-		if installedViceroyVersion == "" {
-			return viceroyError
-		}
-
-		current, err := semver.Parse(installedViceroyVersion)
+		version := string(stdoutStderr)
+		err := updateViceroy(progress, version, out, versioner, latest, bin)
 		if err != nil {
-			progress.Fail()
-
-			return errors.RemediationError{
-				Inner:       fmt.Errorf("error reading current version: %w", err),
-				Remediation: errors.BugRemediation,
-			}
-		}
-
-		if latest.GT(current) {
-			text.Output(out, "Current viceroy version: %s", current)
-			text.Output(out, "Latest viceroy version: %s", latest)
-
-			progress.Step("Fetching latest viceroy release...")
-			tmp, err := c.viceroyVersioner.Download(context.Background(), latest)
-			if err != nil {
-				progress.Fail()
-				return fmt.Errorf("error downloading latest viceroy release: %w", err)
-			}
-			defer os.RemoveAll(tmp)
-
-			progress.Step("Replacing viceroy binary...")
-
-			if err := os.Rename(tmp, bin); err != nil {
-				if err := filesystem.CopyFile(tmp, bin); err != nil {
-					progress.Fail()
-					return fmt.Errorf("error moving latest viceroy binary in place: %w", err)
-				}
-			}
+			return "", err
 		}
 	}
 
 	progress.Done()
 
-	err = c.Local(bin, out)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return bin, nil
 }
 
+// installDir identifies the directory where downloaded binaries should be
+// placed.
 func installDir() (string, error) {
 	if dir, err := os.UserConfigDir(); err == nil {
 		return filepath.Join(dir, "fastly"), nil
@@ -204,8 +163,88 @@ func installDir() (string, error) {
 	return "", fmt.Errorf("error locating directory to install viceroy")
 }
 
-// Local spawns a subprocess that runs the compiled binary.
-func (c *ServeCommand) Local(bin string, out io.Writer) error {
+// installViceroy downloads the latest release from GitHub.
+func installViceroy(progress text.Progress, versioner update.Versioner, latest semver.Version, bin string) error {
+	progress.Step("Fetching latest viceroy release...")
+
+	tmp, err := versioner.Download(context.Background(), latest)
+	if err != nil {
+		progress.Fail()
+		return fmt.Errorf("error downloading latest viceroy release: %w", err)
+	}
+
+	if err := os.Rename(tmp, bin); err != nil {
+		if err := filesystem.CopyFile(tmp, bin); err != nil {
+			progress.Fail()
+			return fmt.Errorf("error moving latest viceroy binary in place: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// updateViceroy checks if the currently installed version is out-of-date and
+// downloads the latest release from GitHub.
+func updateViceroy(progress text.Progress, version string, out io.Writer, versioner update.Versioner, latest semver.Version, bin string) error {
+	progress.Step("Checking installed viceroy version...")
+
+	var installedViceroyVersion string
+
+	viceroyError := errors.RemediationError{
+		Inner:       fmt.Errorf("viceroy version not found"),
+		Remediation: errors.BugRemediation,
+	}
+
+	// version output has the expected format: `viceroy 0.1.0`
+	segs := strings.Split(version, " ")
+
+	if len(segs) < 2 {
+		return viceroyError
+	}
+
+	installedViceroyVersion = segs[1]
+
+	if installedViceroyVersion == "" {
+		return viceroyError
+	}
+
+	current, err := semver.Parse(installedViceroyVersion)
+	if err != nil {
+		progress.Fail()
+
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("error reading current version: %w", err),
+			Remediation: errors.BugRemediation,
+		}
+	}
+
+	if latest.GT(current) {
+		text.Output(out, "Current viceroy version: %s", current)
+		text.Output(out, "Latest viceroy version: %s", latest)
+
+		progress.Step("Fetching latest viceroy release...")
+		tmp, err := versioner.Download(context.Background(), latest)
+		if err != nil {
+			progress.Fail()
+			return fmt.Errorf("error downloading latest viceroy release: %w", err)
+		}
+		defer os.RemoveAll(tmp)
+
+		progress.Step("Replacing viceroy binary...")
+
+		if err := os.Rename(tmp, bin); err != nil {
+			if err := filesystem.CopyFile(tmp, bin); err != nil {
+				progress.Fail()
+				return fmt.Errorf("error moving latest viceroy binary in place: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// local spawns a subprocess that runs the compiled binary.
+func local(bin string, out io.Writer) error {
 	sig := make(chan os.Signal, 1)
 
 	signals := []os.Signal{
