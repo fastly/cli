@@ -347,6 +347,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Public key: `+pgpPublicKey()+`
+		File max bytes: 0
 	BlobStorage 2/2
 		Service ID: 123
 		Version: 1
@@ -364,6 +365,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Public key: `+pgpPublicKey()+`
+		File max bytes: 0
 `) + "\n\n"
 
 func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
@@ -408,6 +410,7 @@ Message type: classic
 Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Placement: none
 Public key: `+pgpPublicKey()+`
+File max bytes: 0
 `) + "\n"
 
 func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {

@@ -2430,6 +2430,8 @@ COMMANDS
         --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
                                  encrypt your log files before writing them to
                                  disk
+        --file-max-bytes=FILE-MAX-BYTES
+                                 The maximum size of a log file in bytes
 
   logging azureblob list --version=VERSION [<flags>]
     List Azure Blob Storage logging endpoints on a Fastly service version
@@ -2491,6 +2493,8 @@ COMMANDS
         --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
                                  encrypt your log files before writing them to
                                  disk
+        --file-max-bytes=FILE-MAX-BYTES
+                                 The maximum size of a log file in bytes
 
   logging azureblob delete --version=VERSION --name=NAME [<flags>]
     Delete an Azure Blob Storage logging endpoint on a Fastly service version
