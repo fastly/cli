@@ -2,6 +2,7 @@ package compute
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -123,15 +124,50 @@ func (r Rust) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found rustup at %s\n", p)
 
-	// 2) Check that the desired toolchain version is installed
+	// 2) Check that the desired rustup version is installed
+	fmt.Fprintf(out, "Checking if rustup %s is installed...\n", r.config.File.Language.Rust.RustupConstraint)
+
+	cmd := exec.Command("rustup", "--version")
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error executing rustup: %w", err)
+	}
+
+	reader := bufio.NewReader(bytes.NewReader(stdoutStderr))
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("error reading rustup output: %w", err)
+	}
+	parts := strings.Split(line, " ")
+	// Either `rustup <version> (<date>)` or `rustup <version> (<sha> <date>)`
+	if len(parts) != 3 && len(parts) != 4 {
+		return fmt.Errorf("error reading rustup version")
+	}
+	rustupVersion, err := semver.NewVersion(parts[1])
+	if err != nil {
+		return fmt.Errorf("error parsing rustup version: %w", err)
+	}
+
+	rustupConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.RustupConstraint)
+	if err != nil {
+		return fmt.Errorf("error parsing rustup constraint: %w", err)
+	}
+	if !rustupConstraint.Check(rustupVersion) {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("rustup constraint not met: %s", r.config.File.Language.Rust.RustupConstraint),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("rustup self update")),
+		}
+	}
+
+	// 3) Check that the desired toolchain version is installed
 	//
 	// We use rustup to assert that the toolchain is installed by streaming the output of
 	// `rustup toolchain list` and looking for a toolchain whose prefix matches our desired
 	// version.
 	fmt.Fprintf(out, "Checking if Rust %s is installed...\n", r.config.File.Language.Rust.ToolchainVersion)
 
-	cmd := exec.Command("rustup", "toolchain", "list")
-	stdoutStderr, err := cmd.CombinedOutput()
+	cmd = exec.Command("rustup", "toolchain", "list")
+	stdoutStderr, err = cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error executing rustup: %w", err)
 	}
@@ -153,7 +189,7 @@ func (r Rust) Verify(out io.Writer) error {
 		}
 	}
 
-	// 3) Check `wasm32-wasi` target exists
+	// 4) Check `wasm32-wasi` target exists
 	//
 	// We use rustup to assert that the target is installed for our toolchain by streaming the
 	// output of `rustup target list` and looking for the the `wasm32-wasi` value. If not found,
@@ -193,7 +229,7 @@ func (r Rust) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found wasm32-wasi target\n")
 
-	// 4) Check Cargo.toml file exists in $PWD
+	// 5) Check Cargo.toml file exists in $PWD
 	//
 	// A valid Cargo.toml file is needed for the `cargo build` compilation
 	// process. Therefore, we assert whether one exists in the current $PWD.
@@ -209,7 +245,7 @@ func (r Rust) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found Cargo.toml at %s\n", fpath)
 
-	// 5) Verify `fastly` and  `fastly-sys` crate version
+	// 6) Verify `fastly` and  `fastly-sys` crate version
 	//
 	// A valid and up-to-date version of the fastly-sys crate is required.
 	if !filesystem.FileExists(fpath) {
