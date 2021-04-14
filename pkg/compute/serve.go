@@ -114,15 +114,7 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 		}
 	}
 
-	dir, err := installDir()
-	if err != nil {
-		return "", errors.RemediationError{
-			Inner:       err,
-			Remediation: errors.BugRemediation,
-		}
-	}
-
-	bin := filepath.Join(dir, versioner.Name())
+	bin := filepath.Join(InstallDir, versioner.Name())
 
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
@@ -151,17 +143,15 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	return bin, nil
 }
 
-// installDir identifies the directory where downloaded binaries should be
-// placed.
-func installDir() (string, error) {
+var InstallDir = func() string {
 	if dir, err := os.UserConfigDir(); err == nil {
-		return filepath.Join(dir, "fastly"), nil
+		return filepath.Join(dir, "fastly")
 	}
 	if dir, err := os.UserHomeDir(); err == nil {
-		return filepath.Join(dir, ".fastly"), nil
+		return filepath.Join(dir, ".fastly")
 	}
-	return "", fmt.Errorf("error locating directory to install viceroy")
-}
+	panic("unable to deduce user config dir or user home dir")
+}()
 
 // installViceroy downloads the latest release from GitHub.
 func installViceroy(progress text.Progress, versioner update.Versioner, latest semver.Version, bin string) error {
