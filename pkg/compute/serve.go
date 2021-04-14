@@ -1,8 +1,6 @@
 package compute
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -106,9 +104,15 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	bin := filepath.Join(dir, c.viceroyVersioner.Name())
+
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as the variables come from trusted sources.
+	/* #nosec */
 	cmd := exec.Command(bin, "--version")
 
 	stdoutStderr, err := cmd.CombinedOutput()
+
 	if err != nil {
 		progress.Step("Fetching latest viceroy release...")
 
@@ -134,20 +138,14 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Remediation: errors.BugRemediation,
 		}
 
-		scanner := bufio.NewScanner(bytes.NewReader(stdoutStderr))
-		scanner.Split(bufio.ScanLines)
+		// version output has the expected format: `viceroy 0.1.0`
+		segs := strings.Split(string(stdoutStderr), " ")
 
-		for scanner.Scan() {
-			// version output has the expected format: `viceroy 0.1.0`
-			segs := strings.Split(scanner.Text(), " ")
-
-			if len(segs) < 2 {
-				return viceroyError
-			}
-
-			installedViceroyVersion = segs[1]
-			break
+		if len(segs) < 2 {
+			return viceroyError
 		}
+
+		installedViceroyVersion = segs[1]
 
 		if installedViceroyVersion == "" {
 			return viceroyError
@@ -217,6 +215,10 @@ func (c *ServeCommand) Local(bin string, out io.Writer) error {
 
 	signal.Notify(sig, signals...)
 
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as the variables come from trusted sources.
+	/* #nosec */
 	cmd := exec.Command(bin, "bin/main.wasm", "-C", "fastly.toml")
 	cmd.Stdout = out
 	cmd.Stderr = out
