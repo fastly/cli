@@ -32,6 +32,17 @@ func TestCreateKinesisInput(t *testing.T) {
 			},
 		},
 		{
+			name: "required values set flag serviceID using IAM role",
+			cmd:  createCommandRequiredIAMRole(),
+			want: &fastly.CreateKinesisInput{
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				StreamName:     "stream",
+				IAMRole:        "arn:aws:iam::123456789012:role/KinesisAccess",
+			},
+		},
+		{
 			name: "all values set flag serviceID",
 			cmd:  createCommandAll(),
 			want: &fastly.CreateKinesisInput{
@@ -93,6 +104,7 @@ func TestUpdateKinesisInput(t *testing.T) {
 				StreamName:        fastly.String("new2"),
 				AccessKey:         fastly.String("new3"),
 				SecretKey:         fastly.String("new4"),
+				IAMRole:           fastly.String(""),
 				Region:            fastly.String("new5"),
 				Format:            fastly.String("new7"),
 				FormatVersion:     fastly.Uint(3),
@@ -123,8 +135,18 @@ func createCommandRequired() *CreateCommand {
 		EndpointName: "log",
 		Version:      2,
 		StreamName:   "stream",
-		AccessKey:    "access",
-		SecretKey:    "secret",
+		AccessKey:    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "access"},
+		SecretKey:    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "secret"},
+	}
+}
+
+func createCommandRequiredIAMRole() *CreateCommand {
+	return &CreateCommand{
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+		StreamName:   "stream",
+		IAMRole:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/KinesisAccess"},
 	}
 }
 
@@ -134,8 +156,8 @@ func createCommandAll() *CreateCommand {
 		EndpointName:      "logs",
 		Version:           2,
 		StreamName:        "stream",
-		AccessKey:         "access",
-		SecretKey:         "secret",
+		AccessKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "access"},
+		SecretKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "secret"},
 		Region:            "us-east-1",
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
@@ -169,6 +191,7 @@ func updateCommandAll() *UpdateCommand {
 		StreamName:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
 		AccessKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
 		SecretKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
+		IAMRole:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: ""},
 		Region:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},

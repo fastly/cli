@@ -63,8 +63,13 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tName: %s\n", kinesis.Name)
 		fmt.Fprintf(out, "\t\tStream name: %s\n", kinesis.StreamName)
 		fmt.Fprintf(out, "\t\tRegion: %s\n", kinesis.Region)
-		fmt.Fprintf(out, "\t\tAccess key: %s\n", kinesis.AccessKey)
-		fmt.Fprintf(out, "\t\tSecret key: %s\n", kinesis.SecretKey)
+		if kinesis.AccessKey != "" || kinesis.SecretKey != "" {
+			fmt.Fprintf(out, "\t\tAccess key: %s\n", kinesis.AccessKey)
+			fmt.Fprintf(out, "\t\tSecret key: %s\n", kinesis.SecretKey)
+		}
+		if kinesis.IAMRole != "" {
+			fmt.Fprintf(out, "\t\tIAM role: %s\n", kinesis.IAMRole)
+		}
 		fmt.Fprintf(out, "\t\tFormat: %s\n", kinesis.Format)
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", kinesis.FormatVersion)
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", kinesis.ResponseCondition)
