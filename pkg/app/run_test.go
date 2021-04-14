@@ -760,7 +760,7 @@ COMMANDS
     -n, --name=NAME              The name of the BigQuery logging object
     -s, --service-id=SERVICE-ID  Service ID
 
-  logging s3 create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --secret-key=SECRET-KEY [<flags>]
+  logging s3 create --name=NAME --version=VERSION --bucket=BUCKET [<flags>]
     Create an Amazon S3 logging endpoint on a Fastly service version
 
     -n, --name=NAME              The name of the S3 logging object. Used as a
@@ -769,6 +769,7 @@ COMMANDS
         --bucket=BUCKET          Your S3 bucket name
         --access-key=ACCESS-KEY  Your S3 account access key
         --secret-key=SECRET-KEY  Your S3 account secret key
+        --iam-role=IAM-ROLE      The IAM role ARN for logging
     -s, --service-id=SERVICE-ID  Service ID
         --domain=DOMAIN          The domain of the S3 endpoint
         --path=PATH              The path to upload logs to
@@ -831,6 +832,7 @@ COMMANDS
         --bucket=BUCKET          Your S3 bucket name
         --access-key=ACCESS-KEY  Your S3 account access key
         --secret-key=SECRET-KEY  Your S3 account secret key
+        --iam-role=IAM-ROLE      The IAM role ARN for logging
         --domain=DOMAIN          The domain of the S3 endpoint
         --path=PATH              The path to upload logs to
         --period=PERIOD          How frequently log files are finalized so they

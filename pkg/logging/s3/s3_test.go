@@ -21,7 +21,7 @@ func TestCreateS3Input(t *testing.T) {
 		wantError string
 	}{
 		{
-			name: "required values set flag serviceID",
+			name: "required values set flag serviceID using access credentials",
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateS3Input{
 				ServiceID:      "123",
@@ -30,6 +30,17 @@ func TestCreateS3Input(t *testing.T) {
 				BucketName:     "bucket",
 				AccessKey:      "access",
 				SecretKey:      "secret",
+			},
+		},
+		{
+			name: "required values set flag serviceID using IAM role",
+			cmd:  createCommandRequiredIAMRole(),
+			want: &fastly.CreateS3Input{
+				ServiceID:      "123",
+				ServiceVersion: 2,
+				Name:           "log",
+				BucketName:     "bucket",
+				IAMRole:        "arn:aws:iam::123456789012:role/S3Access",
 			},
 		},
 		{
@@ -103,6 +114,7 @@ func TestUpdateS3Input(t *testing.T) {
 				BucketName:                   fastly.String("new2"),
 				AccessKey:                    fastly.String("new3"),
 				SecretKey:                    fastly.String("new4"),
+				IAMRole:                      fastly.String(""),
 				Domain:                       fastly.String("new5"),
 				Path:                         fastly.String("new6"),
 				Period:                       fastly.Uint(3601),
@@ -142,8 +154,18 @@ func createCommandRequired() *CreateCommand {
 		EndpointName: "log",
 		Version:      2,
 		BucketName:   "bucket",
-		AccessKey:    "access",
-		SecretKey:    "secret",
+		AccessKey:    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "access"},
+		SecretKey:    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "secret"},
+	}
+}
+
+func createCommandRequiredIAMRole() *CreateCommand {
+	return &CreateCommand{
+		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		EndpointName: "log",
+		Version:      2,
+		BucketName:   "bucket",
+		IAMRole:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/S3Access"},
 	}
 }
 
@@ -153,8 +175,8 @@ func createCommandAll() *CreateCommand {
 		EndpointName:                 "logs",
 		Version:                      2,
 		BucketName:                   "bucket",
-		AccessKey:                    "access",
-		SecretKey:                    "secret",
+		AccessKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "access"},
+		SecretKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "secret"},
 		Domain:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "domain"},
 		Path:                         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "path"},
 		Period:                       common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
@@ -197,6 +219,7 @@ func updateCommandAll() *UpdateCommand {
 		BucketName:                   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
 		AccessKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
 		SecretKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
+		IAMRole:                      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: ""},
 		Domain:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 		Path:                         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
 		Period:                       common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},

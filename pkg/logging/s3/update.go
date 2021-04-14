@@ -26,6 +26,7 @@ type UpdateCommand struct {
 	BucketName                   common.OptionalString
 	AccessKey                    common.OptionalString
 	SecretKey                    common.OptionalString
+	IAMRole                      common.OptionalString
 	Domain                       common.OptionalString
 	Path                         common.OptionalString
 	Period                       common.OptionalUint
@@ -59,6 +60,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("bucket", "Your S3 bucket name").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
 	c.CmdClause.Flag("access-key", "Your S3 account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
 	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
+	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
 	c.CmdClause.Flag("domain", "The domain of the S3 endpoint").Action(c.Domain.Set).StringVar(&c.Domain.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to").Action(c.Path.Set).StringVar(&c.Path.Value)
 	c.CmdClause.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Period.Set).UintVar(&c.Period.Value)
@@ -104,6 +106,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateS3Input, error) {
 
 	if c.SecretKey.WasSet {
 		input.SecretKey = fastly.String(c.SecretKey.Value)
+	}
+
+	if c.IAMRole.WasSet {
+		input.IAMRole = fastly.String(c.IAMRole.Value)
 	}
 
 	if c.Domain.WasSet {
