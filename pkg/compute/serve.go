@@ -148,6 +148,9 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	return bin, nil
 }
 
+// NOTE: This is a package level variable as it makes testing the behaviour of
+// the package easier because the test code can replace the value when running
+// the test suite.
 var InstallDir = func() string {
 	if dir, err := os.UserConfigDir(); err == nil {
 		return filepath.Join(dir, "fastly")
