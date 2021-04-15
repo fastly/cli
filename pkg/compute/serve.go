@@ -125,7 +125,12 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	stdoutStderr, err := cmd.CombinedOutput()
 
 	if err != nil {
-		// Presumes an error reading viceroy version means it isn't installed.
+		// We presume an error executing `viceroy --version` means it isn't installed.
+		//
+		// NOTE: we can't use exec.LookPath("viceroy") because PATH is unreliable
+		// across OS platforms but also we actually install viceroy in the same
+		// location as the application configuration, which means it wouldn't be
+		// found looking up by the PATH env var.
 		err := installViceroy(progress, versioner, latest, bin)
 		if err != nil {
 			return "", err
