@@ -117,7 +117,7 @@ func main() {
 	var errLoadConfig error
 
 	// Validate if configuration is older than its TTL
-	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
+	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) || check.BinaryUpdated(file.CLI.TTL) {
 		if verboseOutput {
 			text.Info(out, `
 Compatibility and versioning information for the Fastly CLI is being updated in the background.  The updated data will be used next time you execute a fastly command.
