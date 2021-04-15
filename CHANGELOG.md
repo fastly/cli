@@ -1,5 +1,28 @@
 # Changelog
 
+## [v0.27.0](https://github.com/fastly/cli/releases/tag/v0.27.0) (2021-04-15)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.26.3...v0.27.0)
+
+**Enhancements:**
+
+- Support usage of IAM role in Kinesis logging endpoint [\#255](https://github.com/fastly/cli/pull/255)
+- Support usage of IAM role in S3 and Kinesis logging endpoints [\#253](https://github.com/fastly/cli/pull/253)
+- Add support for file\_max\_bytes configuration for azure logging endpoint [\#251](https://github.com/fastly/cli/pull/251)
+- Warn on empty directory [\#247](https://github.com/fastly/cli/pull/247)
+- Add `compute publish` subcommand. [\#242](https://github.com/fastly/cli/pull/242)
+- Allow local binary to be renamed. [\#240](https://github.com/fastly/cli/pull/240)
+- Retain RUSTFLAGS values from the environment [\#239](https://github.com/fastly/cli/pull/239)
+- Make GitHub Versioner configurable. [\#236](https://github.com/fastly/cli/pull/236)
+- Add support for compression\_codec to logging file sink endpoints [\#190](https://github.com/fastly/cli/pull/190)
+
+**Bug fixes:**
+
+- Remove flaky test logic. [\#249](https://github.com/fastly/cli/pull/249)
+- Check the rustup version [\#248](https://github.com/fastly/cli/pull/248)
+- Print all commands and subcommands in usage [\#244](https://github.com/fastly/cli/pull/244)
+- pkg/logs: fix typo in error message [\#238](https://github.com/fastly/cli/pull/238)
+
 ## [v0.26.3](https://github.com/fastly/cli/releases/tag/v0.26.3) (2021-03-26)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.26.2...v0.26.3)
