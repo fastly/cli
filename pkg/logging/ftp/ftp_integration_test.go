@@ -36,7 +36,7 @@ func TestFTPCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --password not provided",
 		},
 		{
-			args:       []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com"},
+			args:       []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--compression-codec", "zstd"},
 			api:        mock.API{CreateFTPFn: createFTPOK},
 			wantOutput: "Created FTP logging endpoint log (service 123 version 1)",
 		},
@@ -44,6 +44,10 @@ func TestFTPCreate(t *testing.T) {
 			args:      []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com"},
 			api:       mock.API{CreateFTPFn: createFTPError},
 			wantError: errTest.Error(),
+		},
+		{
+			args:      []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--compression-codec", "zstd", "--gzip-level", "9"},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -249,9 +253,10 @@ var errTest = errors.New("fixture error")
 
 func createFTPOK(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		ServiceID:        i.ServiceID,
+		ServiceVersion:   i.ServiceVersion,
+		Name:             i.Name,
+		CompressionCodec: i.CompressionCodec,
 	}, nil
 }
 
@@ -278,6 +283,7 @@ func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 			ResponseCondition: "Prevent default logging",
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
+			CompressionCodec:  "zstd",
 		},
 		{
 			ServiceID:         i.ServiceID,
@@ -296,6 +302,7 @@ func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 			ResponseCondition: "Prevent default logging",
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
+			CompressionCodec:  "zstd",
 		},
 	}, nil
 }
@@ -332,6 +339,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
+		Compression codec: zstd
 	FTP 2/2
 		Service ID: 123
 		Version: 1
@@ -349,6 +357,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
+		Compression codec: zstd
 `) + "\n\n"
 
 func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
@@ -369,6 +378,7 @@ func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
+		CompressionCodec:  "zstd",
 	}, nil
 }
 
@@ -393,6 +403,7 @@ Format version: 2
 Response condition: Prevent default logging
 Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Placement: none
+Compression codec: zstd
 `) + "\n"
 
 func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
@@ -413,6 +424,7 @@ func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
+		CompressionCodec:  "zstd",
 	}, nil
 }
 

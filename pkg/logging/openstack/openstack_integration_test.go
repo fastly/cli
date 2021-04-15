@@ -49,6 +49,10 @@ func TestOpenstackCreate(t *testing.T) {
 			api:       mock.API{CreateOpenstackFn: createOpenstackError},
 			wantError: errTest.Error(),
 		},
+		{
+			args:      []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--compression-codec", "zstd", "--gzip-level", "9"},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (
@@ -280,7 +284,7 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 			URL:               "https://example.com",
 			Path:              "logs/",
 			Period:            3600,
-			GzipLevel:         9,
+			GzipLevel:         0,
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
 			ResponseCondition: "Prevent default logging",
@@ -288,6 +292,7 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
 			PublicKey:         pgpPublicKey(),
+			CompressionCodec:  "zstd",
 		},
 		{
 			ServiceID:         i.ServiceID,
@@ -299,7 +304,7 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 			URL:               "https://two.example.com",
 			Path:              "logs/",
 			Period:            86400,
-			GzipLevel:         9,
+			GzipLevel:         0,
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:     2,
 			MessageType:       "classic",
@@ -307,6 +312,7 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 			Placement:         "none",
 			PublicKey:         pgpPublicKey(),
+			CompressionCodec:  "zstd",
 		},
 	}, nil
 }
@@ -336,7 +342,7 @@ Version: 1
 		URL: https://example.com
 		Path: logs/
 		Period: 3600
-		GZip level: 9
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -344,6 +350,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Public key: `+pgpPublicKey()+`
+		Compression codec: zstd
 	Openstack 2/2
 		Service ID: 123
 		Version: 1
@@ -354,7 +361,7 @@ Version: 1
 		URL: https://two.example.com
 		Path: logs/
 		Period: 86400
-		GZip level: 9
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -362,6 +369,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Public key: `+pgpPublicKey()+`
+		Compression codec: zstd
 `) + "\n\n"
 
 func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
@@ -375,7 +383,7 @@ func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 		URL:               "https://example.com",
 		Path:              "logs/",
 		Period:            3600,
-		GzipLevel:         9,
+		GzipLevel:         0,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
@@ -383,6 +391,7 @@ func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
 		PublicKey:         pgpPublicKey(),
+		CompressionCodec:  "zstd",
 	}, nil
 }
 
@@ -400,7 +409,7 @@ User: user
 URL: https://example.com
 Path: logs/
 Period: 3600
-GZip level: 9
+GZip level: 0
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Response condition: Prevent default logging
@@ -408,6 +417,7 @@ Message type: classic
 Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Placement: none
 Public key: `+pgpPublicKey()+`
+Compression codec: zstd
 `) + "\n"
 
 func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
@@ -421,7 +431,6 @@ func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error
 		URL:               "https://update.example.com",
 		Path:              "logs/",
 		Period:            3600,
-		GzipLevel:         9,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
@@ -429,6 +438,7 @@ func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
 		PublicKey:         pgpPublicKey(),
+		CompressionCodec:  "zstd",
 	}, nil
 }
 

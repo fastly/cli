@@ -61,6 +61,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Timestamp format: %s\n", openstack.TimestampFormat)
 	fmt.Fprintf(out, "Placement: %s\n", openstack.Placement)
 	fmt.Fprintf(out, "Public key: %s\n", openstack.PublicKey)
+	fmt.Fprintf(out, "Compression codec: %s\n", openstack.CompressionCodec)
 
 	return nil
 }

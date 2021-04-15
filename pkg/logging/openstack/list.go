@@ -75,6 +75,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", openstack.TimestampFormat)
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", openstack.Placement)
 		fmt.Fprintf(out, "\t\tPublic key: %s\n", openstack.PublicKey)
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", openstack.CompressionCodec)
 	}
 	fmt.Fprintln(out)
 

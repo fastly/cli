@@ -56,7 +56,6 @@ func TestCreateS3Input(t *testing.T) {
 				SecretKey:                    "secret",
 				Path:                         "path",
 				Period:                       3600,
-				GzipLevel:                    2,
 				Format:                       `%h %l %u %t "%r" %>s %b`,
 				MessageType:                  "classic",
 				FormatVersion:                2,
@@ -67,6 +66,7 @@ func TestCreateS3Input(t *testing.T) {
 				PublicKey:                    pgpPublicKey(),
 				ServerSideEncryptionKMSKeyID: "kmskey",
 				ServerSideEncryption:         fastly.S3ServerSideEncryptionAES,
+				CompressionCodec:             "zstd",
 			},
 		},
 		{
@@ -118,7 +118,7 @@ func TestUpdateS3Input(t *testing.T) {
 				Domain:                       fastly.String("new5"),
 				Path:                         fastly.String("new6"),
 				Period:                       fastly.Uint(3601),
-				GzipLevel:                    fastly.Uint(3),
+				GzipLevel:                    fastly.Uint(0),
 				Format:                       fastly.String("new7"),
 				FormatVersion:                fastly.Uint(3),
 				MessageType:                  fastly.String("new8"),
@@ -129,6 +129,7 @@ func TestUpdateS3Input(t *testing.T) {
 				ServerSideEncryption:         fastly.S3ServerSideEncryptionKMS,
 				ServerSideEncryptionKMSKeyID: fastly.String("new12"),
 				PublicKey:                    fastly.String("new13"),
+				CompressionCodec:             fastly.String("new14"),
 			},
 		},
 		{
@@ -180,7 +181,6 @@ func createCommandAll() *CreateCommand {
 		Domain:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "domain"},
 		Path:                         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "path"},
 		Period:                       common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
-		GzipLevel:                    common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
 		Format:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:                common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
 		MessageType:                  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
@@ -191,6 +191,7 @@ func createCommandAll() *CreateCommand {
 		Redundancy:                   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: string(fastly.S3RedundancyStandard)},
 		ServerSideEncryption:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionAES)},
 		ServerSideEncryptionKMSKeyID: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "kmskey"},
+		CompressionCodec:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -223,7 +224,7 @@ func updateCommandAll() *UpdateCommand {
 		Domain:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 		Path:                         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
 		Period:                       common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:                    common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		GzipLevel:                    common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 0},
 		Format:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
 		FormatVersion:                common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
 		MessageType:                  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
@@ -234,6 +235,7 @@ func updateCommandAll() *UpdateCommand {
 		ServerSideEncryption:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionKMS)},
 		ServerSideEncryptionKMSKeyID: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new12"},
 		PublicKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new13"},
+		CompressionCodec:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new14"},
 	}
 }
 
@@ -254,7 +256,6 @@ func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 		SecretKey:                    "secret",
 		Path:                         "path",
 		Period:                       3600,
-		GzipLevel:                    2,
 		Format:                       `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:                2,
 		ResponseCondition:            "Prevent default logging",
@@ -265,6 +266,7 @@ func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 		Redundancy:                   fastly.S3RedundancyStandard,
 		ServerSideEncryptionKMSKeyID: "kmskey",
 		ServerSideEncryption:         fastly.S3ServerSideEncryptionAES,
+		CompressionCodec:             "zstd",
 	}, nil
 }
 

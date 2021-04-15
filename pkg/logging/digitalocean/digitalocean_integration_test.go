@@ -45,6 +45,10 @@ func TestDigitalOceanCreate(t *testing.T) {
 			api:       mock.API{CreateDigitalOceanFn: createDigitalOceanError},
 			wantError: errTest.Error(),
 		},
+		{
+			args:      []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "abc", "--compression-codec", "zstd", "--gzip-level", "9"},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (

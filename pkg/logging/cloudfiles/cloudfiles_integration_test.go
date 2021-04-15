@@ -45,6 +45,10 @@ func TestCloudfilesCreate(t *testing.T) {
 			api:       mock.API{CreateCloudfilesFn: createCloudfilesError},
 			wantError: errTest.Error(),
 		},
+		{
+			args:      []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo", "--compression-codec", "zstd", "--gzip-level", "9"},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (

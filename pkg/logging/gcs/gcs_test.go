@@ -44,13 +44,12 @@ func TestCreateGCSInput(t *testing.T) {
 				Path:              "/logs",
 				Period:            3600,
 				FormatVersion:     2,
-				GzipLevel:         2,
 				Format:            `%h %l %u %t "%r" %>s %b`,
 				MessageType:       "classic",
 				ResponseCondition: "Prevent default logging",
 				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 				Placement:         "none",
-			},
+				CompressionCodec:  "zstd"},
 		},
 		{
 			name:      "error missing serviceID",
@@ -100,12 +99,13 @@ func TestUpdateGCSInput(t *testing.T) {
 				Path:              fastly.String("new5"),
 				Period:            fastly.Uint(3601),
 				FormatVersion:     fastly.Uint(3),
-				GzipLevel:         fastly.Uint8(3),
+				GzipLevel:         fastly.Uint8(0),
 				Format:            fastly.String("new6"),
 				ResponseCondition: fastly.String("new7"),
 				TimestampFormat:   fastly.String("new8"),
 				Placement:         fastly.String("new9"),
 				MessageType:       fastly.String("new10"),
+				CompressionCodec:  fastly.String("new11"),
 			},
 		},
 		{
@@ -146,13 +146,13 @@ func createCommandAll() *CreateCommand {
 		SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
 		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "/logs"},
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
-		GzipLevel:         common.OptionalUint8{Optional: common.Optional{WasSet: true}, Value: 2},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -183,13 +183,14 @@ func updateCommandAll() *UpdateCommand {
 		SecretKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
 		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:         common.OptionalUint8{Optional: common.Optional{WasSet: true}, Value: 3},
+		GzipLevel:         common.OptionalUint8{Optional: common.Optional{WasSet: true}, Value: 0},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
 		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
 	}
 }
 
@@ -209,12 +210,12 @@ func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 		SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
 		Path:              "/logs",
 		Period:            3600,
-		GzipLevel:         2,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		MessageType:       "classic",
 		ResponseCondition: "Prevent default logging",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
+		CompressionCodec:  "zstd",
 	}, nil
 }

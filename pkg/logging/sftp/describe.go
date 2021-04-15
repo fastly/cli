@@ -63,6 +63,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Response condition: %s\n", sftp.ResponseCondition)
 	fmt.Fprintf(out, "Timestamp format: %s\n", sftp.TimestampFormat)
 	fmt.Fprintf(out, "Placement: %s\n", sftp.Placement)
+	fmt.Fprintf(out, "Compression codec: %s\n", sftp.CompressionCodec)
 
 	return nil
 }

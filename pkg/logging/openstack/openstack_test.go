@@ -46,7 +46,6 @@ func TestCreateOpenstackInput(t *testing.T) {
 				URL:               "https://example.com",
 				Path:              "/log",
 				Period:            3600,
-				GzipLevel:         2,
 				Format:            `%h %l %u %t "%r" %>s %b`,
 				MessageType:       "classic",
 				FormatVersion:     2,
@@ -54,6 +53,7 @@ func TestCreateOpenstackInput(t *testing.T) {
 				TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 				Placement:         "none",
 				PublicKey:         pgpPublicKey(),
+				CompressionCodec:  "zstd",
 			},
 		},
 		{
@@ -94,7 +94,7 @@ func TestUpdateOpenstackInput(t *testing.T) {
 				URL:               fastly.String("new5"),
 				Path:              fastly.String("new6"),
 				Period:            fastly.Uint(3601),
-				GzipLevel:         fastly.Uint(3),
+				GzipLevel:         fastly.Uint(0),
 				Format:            fastly.String("new7"),
 				FormatVersion:     fastly.Uint(3),
 				ResponseCondition: fastly.String("new8"),
@@ -102,6 +102,7 @@ func TestUpdateOpenstackInput(t *testing.T) {
 				TimestampFormat:   fastly.String("new10"),
 				Placement:         fastly.String("new11"),
 				PublicKey:         fastly.String("new12"),
+				CompressionCodec:  fastly.String("new13"),
 			},
 		},
 		{
@@ -154,7 +155,6 @@ func createCommandAll() *CreateCommand {
 		URL:               "https://example.com",
 		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "/log"},
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
-		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
@@ -162,6 +162,7 @@ func createCommandAll() *CreateCommand {
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
 		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
 		PublicKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: pgpPublicKey()},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -193,7 +194,7 @@ func updateCommandAll() *UpdateCommand {
 		URL:               common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
 		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
 		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 0},
 		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
 		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
@@ -201,6 +202,7 @@ func updateCommandAll() *UpdateCommand {
 		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
 		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
 		PublicKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new12"},
+		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new13"},
 	}
 }
 
@@ -221,7 +223,6 @@ func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 		URL:               "https://example.com",
 		Path:              "/log",
 		Period:            3600,
-		GzipLevel:         2,
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
@@ -229,6 +230,7 @@ func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 		Placement:         "none",
 		PublicKey:         pgpPublicKey(),
+		CompressionCodec:  "zstd",
 	}, nil
 }
 

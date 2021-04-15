@@ -34,6 +34,7 @@ type UpdateCommand struct {
 	TimestampFormat   common.OptionalString
 	MessageType       common.OptionalString
 	Placement         common.OptionalString
+	CompressionCodec  common.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -62,6 +63,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
 	c.CmdClause.Flag("message-type", "How the message should be formatted. One of: classic (default), loggly, logplex or blank").Action(c.MessageType.Set).StringVar(&c.MessageType.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
+	c.CmdClause.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
 
 	return &c
 }
@@ -130,6 +132,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateGCSInput, error) {
 
 	if c.Placement.WasSet {
 		input.Placement = fastly.String(c.Placement.Value)
+	}
+
+	if c.CompressionCodec.WasSet {
+		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
 	}
 
 	return &input, nil

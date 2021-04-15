@@ -807,6 +807,15 @@ COMMANDS
         --server-side-encryption-kms-key-id=SERVER-SIDE-ENCRYPTION-KMS-KEY-ID
                                  Server-side KMS Key ID. Must be set if
                                  server-side-encryption is set to aws:kms
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging s3 list --version=VERSION [<flags>]
     List S3 endpoints on a Fastly service version
@@ -869,6 +878,15 @@ COMMANDS
         --server-side-encryption-kms-key-id=SERVER-SIDE-ENCRYPTION-KMS-KEY-ID
                                  Server-side KMS Key ID. Must be set if
                                  server-side-encryption is set to aws:kms
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging s3 delete --version=VERSION --name=NAME [<flags>]
     Delete a S3 logging endpoint on a Fastly service version
@@ -1334,6 +1352,15 @@ COMMANDS
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging gcs list --version=VERSION [<flags>]
     List GCS endpoints on a Fastly service version
@@ -1391,6 +1418,15 @@ COMMANDS
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging gcs delete --version=VERSION --name=NAME [<flags>]
     Delete a GCS logging endpoint on a Fastly service version
@@ -1433,6 +1469,15 @@ COMMANDS
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging ftp list --version=VERSION [<flags>]
     List FTP endpoints on a Fastly service version
@@ -1489,6 +1534,15 @@ COMMANDS
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging ftp delete --version=VERSION --name=NAME [<flags>]
     Delete an FTP logging endpoint on a Fastly service version
@@ -1908,6 +1962,15 @@ COMMANDS
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging sftp list --version=VERSION [<flags>]
     List SFTP endpoints on a Fastly service version
@@ -1971,6 +2034,15 @@ COMMANDS
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging sftp delete --version=VERSION --name=NAME [<flags>]
     Delete an SFTP logging endpoint on a Fastly service version
@@ -2086,6 +2158,15 @@ COMMANDS
         --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
                                  encrypt your log files before writing them to
                                  disk
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging cloudfiles list --version=VERSION [<flags>]
     List Cloudfiles endpoints on a Fastly service version
@@ -2141,6 +2222,15 @@ COMMANDS
         --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
                                  encrypt your log files before writing them to
                                  disk
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging cloudfiles delete --version=VERSION --name=NAME [<flags>]
     Delete a Cloudfiles logging endpoint on a Fastly service version
@@ -2188,6 +2278,15 @@ COMMANDS
         --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
                                  encrypt your log files before writing them to
                                  disk
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging digitalocean list --version=VERSION [<flags>]
     List DigitalOcean Spaces logging endpoints on a Fastly service version
@@ -2245,6 +2344,15 @@ COMMANDS
         --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
                                  encrypt your log files before writing them to
                                  disk
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging digitalocean delete --version=VERSION --name=NAME [<flags>]
     Delete a DigitalOcean Spaces logging endpoint on a Fastly service version
@@ -2434,6 +2542,15 @@ COMMANDS
                                  disk
         --file-max-bytes=FILE-MAX-BYTES
                                  The maximum size of a log file in bytes
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging azureblob list --version=VERSION [<flags>]
     List Azure Blob Storage logging endpoints on a Fastly service version
@@ -2497,6 +2614,15 @@ COMMANDS
                                  disk
         --file-max-bytes=FILE-MAX-BYTES
                                  The maximum size of a log file in bytes
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging azureblob delete --version=VERSION --name=NAME [<flags>]
     Delete an Azure Blob Storage logging endpoint on a Fastly service version
@@ -2984,6 +3110,15 @@ COMMANDS
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging openstack list --version=VERSION [<flags>]
     List OpenStack logging endpoints on a Fastly service version
@@ -3037,6 +3172,15 @@ COMMANDS
         --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
                                  encrypt your log files before writing them to
                                  disk
+        --compression-codec=COMPRESSION-CODEC
+                                 The codec used for compression of your logs.
+                                 Valid values are zstd, snappy, and gzip. If the
+                                 specified codec is "gzip", gzip_level will
+                                 default to 3. To specify a different level,
+                                 leave compression_codec blank and explicitly
+                                 set the level using gzip_level. Specifying both
+                                 compression_codec and gzip_level in the same
+                                 API request will result in an error.
 
   logging openstack delete --version=VERSION --name=NAME [<flags>]
     Delete an OpenStack logging endpoint on a Fastly service version

@@ -67,6 +67,10 @@ func TestS3Create(t *testing.T) {
 			api:       mock.API{CreateS3Fn: createS3Error},
 			wantError: errTest.Error(),
 		},
+		{
+			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access", "--compression-codec", "zstd", "--gzip-level", "9"},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
+		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var (
@@ -276,9 +280,10 @@ var errTest = errors.New("fixture error")
 
 func createS3OK(i *fastly.CreateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		ServiceID:        i.ServiceID,
+		ServiceVersion:   i.ServiceVersion,
+		Name:             i.Name,
+		CompressionCodec: "zstd",
 	}, nil
 }
 
@@ -299,7 +304,6 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			Domain:                       "https://s3.us-east-1.amazonaws.com",
 			Path:                         "logs/",
 			Period:                       3600,
-			GzipLevel:                    9,
 			Format:                       `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:                2,
 			MessageType:                  "classic",
@@ -310,6 +314,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			PublicKey:                    pgpPublicKey(),
 			ServerSideEncryption:         "aws:kms",
 			ServerSideEncryptionKMSKeyID: "1234",
+			CompressionCodec:             "zstd",
 		},
 		{
 			ServiceID:                    i.ServiceID,
@@ -321,7 +326,6 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			Domain:                       "https://s3.us-east-2.amazonaws.com",
 			Path:                         "logs/",
 			Period:                       86400,
-			GzipLevel:                    9,
 			Format:                       `%h %l %u %t "%r" %>s %b`,
 			FormatVersion:                2,
 			MessageType:                  "classic",
@@ -332,6 +336,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			PublicKey:                    pgpPublicKey(),
 			ServerSideEncryption:         "aws:kms",
 			ServerSideEncryptionKMSKeyID: "1234",
+			CompressionCodec:             "zstd",
 		},
 	}, nil
 }
@@ -360,7 +365,7 @@ Version: 1
 		Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
 		Path: logs/
 		Period: 3600
-		GZip level: 9
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -371,6 +376,7 @@ Version: 1
 		Redundancy: standard
 		Server-side encryption: aws:kms
 		Server-side encryption KMS key ID: aws:kms
+		Compression codec: zstd
 	S3 2/2
 		Service ID: 123
 		Version: 1
@@ -380,7 +386,7 @@ Version: 1
 		Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
 		Path: logs/
 		Period: 86400
-		GZip level: 9
+		GZip level: 0
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
@@ -391,6 +397,7 @@ Version: 1
 		Redundancy: standard
 		Server-side encryption: aws:kms
 		Server-side encryption KMS key ID: aws:kms
+		Compression codec: zstd
 `) + "\n\n"
 
 func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
@@ -404,7 +411,6 @@ func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 		Domain:                       "https://s3.us-east-1.amazonaws.com",
 		Path:                         "logs/",
 		Period:                       3600,
-		GzipLevel:                    9,
 		Format:                       `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:                2,
 		MessageType:                  "classic",
@@ -415,6 +421,7 @@ func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 		PublicKey:                    pgpPublicKey(),
 		ServerSideEncryption:         "aws:kms",
 		ServerSideEncryptionKMSKeyID: "1234",
+		CompressionCodec:             "zstd",
 	}, nil
 }
 
@@ -431,7 +438,7 @@ Access key: 1234
 Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
 Path: logs/
 Period: 3600
-GZip level: 9
+GZip level: 0
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Response condition: Prevent default logging
@@ -442,6 +449,7 @@ Public key: `+pgpPublicKey()+`
 Redundancy: standard
 Server-side encryption: aws:kms
 Server-side encryption KMS key ID: aws:kms
+Compression codec: zstd
 `) + "\n"
 
 func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
@@ -455,7 +463,6 @@ func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 		Domain:                       "https://s3.us-east-1.amazonaws.com",
 		Path:                         "logs/",
 		Period:                       3600,
-		GzipLevel:                    9,
 		Format:                       `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:                2,
 		MessageType:                  "classic",
@@ -466,6 +473,7 @@ func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 		PublicKey:                    pgpPublicKey(),
 		ServerSideEncryption:         "aws:kms",
 		ServerSideEncryptionKMSKeyID: "1234",
+		CompressionCodec:             "zstd",
 	}, nil
 }
 
