@@ -12,6 +12,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/useragent"
 	toml "github.com/pelletier/go-toml"
 )
@@ -173,10 +174,10 @@ type Fastly struct {
 
 // CLI represents CLI specific configuration.
 type CLI struct {
-	RemoteConfig  string `toml:"remote_config"`
-	TTL           string `toml:"ttl"`
-	LastChecked   string `toml:"last_checked"`
-	BinaryUpdated string `toml:"binary_updated"`
+	RemoteConfig string `toml:"remote_config"`
+	TTL          string `toml:"ttl"`
+	LastChecked  string `toml:"last_checked"`
+	Version      string `toml:"version"`
 }
 
 // User represents user specific configuration.
@@ -222,31 +223,6 @@ type StarterKit struct {
 	Branch string `toml:"branch"`
 }
 
-// ShouldFetch checks if the CLI binary was recently updated and if so it won't
-// treat the application configuration as cached (even if the TTL hasn't yet
-// expired) because the new binary might need to reference new configuration
-// fields that the old configuration doesn't have defined.
-//
-// NOTE: If any of the operations within this function fail, then we'll be
-// cautious and consider the binary updated so we can force a config update.
-func (f *File) ShouldFetch() bool {
-	d, err := time.ParseDuration("-" + f.CLI.TTL)
-	if err != nil {
-		return true
-	}
-
-	t, err := time.Parse(time.RFC3339, f.CLI.BinaryUpdated)
-	if err != nil {
-		return true
-	}
-
-	if t.Before(time.Now().Add(d)) {
-		return false
-	}
-
-	return true
-}
-
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
 func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
@@ -274,6 +250,7 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 		return err
 	}
 
+	f.CLI.Version = revision.SemVer(revision.AppVersion)
 	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 
 	if f.Legacy.Token != "" {

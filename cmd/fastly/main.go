@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
 )
@@ -78,6 +79,17 @@ func main() {
 		}
 	}
 
+	if file.CLI.Version != revision.SemVer(revision.AppVersion) {
+		err := file.Load(config.RemoteEndpoint, httpClient)
+		if err != nil {
+			errors.RemediationError{
+				Inner:       err,
+				Remediation: errors.NetworkRemediation,
+			}.Print(os.Stderr)
+			os.Exit(1)
+		}
+	}
+
 	// We have seen a situation where loading data from the remote
 	// config endpoint has caused a user to end up with a config in the
 	// non-legacy format but with empty values.
@@ -96,7 +108,7 @@ func main() {
 	// config data field to be provided and the old config currently cached won't
 	// have that. This means in that scenario we should force another fetch of
 	// the configuration.
-	if file.CLI.LastChecked == "" || file.ShouldFetch() {
+	if file.CLI.LastChecked == "" {
 		if verboseOutput && file.CLI.LastChecked == "" {
 			text.Warning(out, `
 				There was a problem loading the compatibility and versioning information for the Fastly CLI.

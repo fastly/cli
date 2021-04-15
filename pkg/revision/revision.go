@@ -2,6 +2,8 @@
 // the Makefile at build time via LDFLAGS.
 package revision
 
+import "strings"
+
 var (
 	// AppVersion is the semver for this version of the client, or
 	// "v0.0.0-unknown". Set by `make release`.
@@ -29,4 +31,16 @@ func init() {
 	if GoVersion == "" {
 		GoVersion = "go version unknown"
 	}
+}
+
+// SemVer accepts the application revision version, which is prefixed with a
+// `v` and also has a commit hash following the semantic version, and returns
+// just the semantic version.
+//
+// e.g. v1.0.0-xyz --> 1.0.0
+func SemVer(av string) string {
+	av = strings.TrimPrefix(av, "v")
+	seg := strings.Split(av, "-")
+
+	return seg[0]
 }
