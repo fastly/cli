@@ -1,0 +1,25 @@
+# This file describes a Fastly Compute@Edge package. To learn more visit:
+# https://developer.fastly.com/reference/fastly-toml/
+
+authors = ["phamann <patrick@fastly.com>"]
+description = "Default package template for Rust based edge compute projects."
+language = "rust"
+manifest_version = 1
+name = "Default Rust template"
+
+[testing]
+
+  [testing.backends]
+
+    [testing.backends.backend_a]
+
+      [testing.backends.backend_a.default]
+        url = "https://example.com/"
+
+      [testing.backends.backend_a.environments]
+
+        [testing.backends.backend_a.environments.local]
+          url = "http://localhost:1234/"
+
+        [testing.backends.backend_a.environments.prod]
+          url = "https://example.com/"
