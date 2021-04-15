@@ -6,9 +6,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
@@ -18,16 +20,19 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	common.Base
-	cliVersioner Versioner
-	client       api.HTTPClient
+	cliVersioner   Versioner
+	client         api.HTTPClient
+	configFilePath string
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent common.Registerer, cliVersioner Versioner, client api.HTTPClient) *RootCommand {
+func NewRootCommand(parent common.Registerer, configFilePath string, cliVersioner Versioner, client api.HTTPClient, globals *config.Data) *RootCommand {
 	var c RootCommand
+	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")
 	c.cliVersioner = cliVersioner
 	c.client = client
+	c.configFilePath = configFilePath
 	return &c
 }
 
@@ -73,6 +78,13 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 			progress.Fail()
 			return fmt.Errorf("error moving latest binary in place: %w", err)
 		}
+	}
+
+	c.Globals.File.CLI.BinaryUpdated = time.Now().Format(time.RFC3339)
+
+	// Write the file data to disk.
+	if err := c.Globals.File.Write(c.configFilePath); err != nil {
+		return fmt.Errorf("error saving config file: %w", err)
 	}
 
 	progress.Done()

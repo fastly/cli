@@ -58,6 +58,7 @@ func TestConfigure(t *testing.T) {
 			},
 			wantFile: `
 [cli]
+  binary_updated = ""
   last_checked = ""
   remote_config = ""
   ttl = ""
@@ -103,6 +104,7 @@ func TestConfigure(t *testing.T) {
 			},
 			wantFile: `
 [cli]
+  binary_updated = ""
   last_checked = ""
   remote_config = ""
   ttl = ""
@@ -145,6 +147,7 @@ func TestConfigure(t *testing.T) {
 			},
 			wantFile: `
 [cli]
+  binary_updated = ""
   last_checked = ""
   remote_config = ""
   ttl = ""
@@ -190,6 +193,7 @@ func TestConfigure(t *testing.T) {
 			},
 			wantFile: `
 [cli]
+  binary_updated = ""
   last_checked = ""
   remote_config = ""
   ttl = ""
@@ -233,6 +237,7 @@ func TestConfigure(t *testing.T) {
 			},
 			wantFile: `
 [cli]
+  binary_updated = ""
   last_checked = ""
   remote_config = ""
   ttl = ""
@@ -279,6 +284,7 @@ func TestConfigure(t *testing.T) {
 			},
 			wantFile: `
 [cli]
+  binary_updated = ""
   last_checked = ""
   remote_config = ""
   ttl = ""

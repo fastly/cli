@@ -115,7 +115,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	configureRoot := configure.NewRootCommand(app, configFilePath, configure.APIClientFactory(cf), &globals)
 	whoamiRoot := whoami.NewRootCommand(app, httpClient, &globals)
 	versionRoot := version.NewRootCommand(app)
-	updateRoot := update.NewRootCommand(app, cliVersioner, httpClient)
+	updateRoot := update.NewRootCommand(app, configFilePath, cliVersioner, httpClient, &globals)
 
 	serviceRoot := service.NewRootCommand(app, &globals)
 	serviceCreate := service.NewCreateCommand(serviceRoot.CmdClause, &globals)

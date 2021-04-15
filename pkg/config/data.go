@@ -173,9 +173,10 @@ type Fastly struct {
 
 // CLI represents CLI specific configuration.
 type CLI struct {
-	RemoteConfig string `toml:"remote_config"`
-	TTL          string `toml:"ttl"`
-	LastChecked  string `toml:"last_checked"`
+	RemoteConfig  string `toml:"remote_config"`
+	TTL           string `toml:"ttl"`
+	LastChecked   string `toml:"last_checked"`
+	BinaryUpdated string `toml:"binary_updated"`
 }
 
 // User represents user specific configuration.
@@ -219,6 +220,31 @@ type StarterKit struct {
 	Path   string `toml:"path"`
 	Tag    string `toml:"tag"`
 	Branch string `toml:"branch"`
+}
+
+// ShouldFetch checks if the CLI binary was recently updated and if so it won't
+// treat the application configuration as cached (even if the TTL hasn't yet
+// expired) because the new binary might need to reference new configuration
+// fields that the old configuration doesn't have defined.
+//
+// NOTE: If any of the operations within this function fail, then we'll be
+// cautious and consider the binary updated so we can force a config update.
+func (f *File) ShouldFetch() bool {
+	d, err := time.ParseDuration("-" + f.CLI.TTL)
+	if err != nil {
+		return true
+	}
+
+	t, err := time.Parse(time.RFC3339, f.CLI.BinaryUpdated)
+	if err != nil {
+		return true
+	}
+
+	if t.Before(time.Now().Add(d)) {
+		return false
+	}
+
+	return true
 }
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
