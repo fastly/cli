@@ -56,10 +56,6 @@ func makeEnvironment(downloadedFilename string, t *testing.T) (string, string) {
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
 	fpath := filepath.Join(rootdir, downloadedFilename)
 	if err := os.WriteFile(fpath, []byte("..."), 0777); err != nil {
 		t.Fatal(err)
