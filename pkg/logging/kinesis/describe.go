@@ -49,8 +49,13 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Name: %s\n", kinesis.Name)
 	fmt.Fprintf(out, "Stream name: %s\n", kinesis.StreamName)
 	fmt.Fprintf(out, "Region: %s\n", kinesis.Region)
-	fmt.Fprintf(out, "Access key: %s\n", kinesis.AccessKey)
-	fmt.Fprintf(out, "Secret key: %s\n", kinesis.SecretKey)
+	if kinesis.AccessKey != "" || kinesis.SecretKey != "" {
+		fmt.Fprintf(out, "Access key: %s\n", kinesis.AccessKey)
+		fmt.Fprintf(out, "Secret key: %s\n", kinesis.SecretKey)
+	}
+	if kinesis.IAMRole != "" {
+		fmt.Fprintf(out, "IAM role: %s\n", kinesis.IAMRole)
+	}
 	fmt.Fprintf(out, "Format: %s\n", kinesis.Format)
 	fmt.Fprintf(out, "Format version: %d\n", kinesis.FormatVersion)
 	fmt.Fprintf(out, "Response condition: %s\n", kinesis.ResponseCondition)

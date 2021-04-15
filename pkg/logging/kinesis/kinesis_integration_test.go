@@ -28,12 +28,42 @@ func TestKinesisCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
+			args:      []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--access-key", "foo"},
+			wantError: "error parsing arguments: required flag --secret-key not provided",
+		},
+		{
+			args:      []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--secret-key", "bar"},
+			wantError: "error parsing arguments: required flag --access-key not provided",
+		},
+		{
+			args:      []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
+			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
+		},
+		{
+			args:      []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--access-key", "foo", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
+			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
+		},
+		{
+			args:      []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--access-key", "foo", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
+			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
+		},
+		{
 			args:       []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--secret-key", "bar", "--region", "us-east-1"},
 			api:        mock.API{CreateKinesisFn: createKinesisOK},
 			wantOutput: "Created Kinesis logging endpoint log (service 123 version 1)",
 		},
 		{
 			args:      []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--secret-key", "bar", "--region", "us-east-1"},
+			api:       mock.API{CreateKinesisFn: createKinesisError},
+			wantError: errTest.Error(),
+		},
+		{
+			args:       []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--stream-name", "log", "--region", "us-east-1", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
+			api:        mock.API{CreateKinesisFn: createKinesisOK},
+			wantOutput: "Created Kinesis logging endpoint log2 (service 123 version 1)",
+		},
+		{
+			args:      []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--stream-name", "log", "--region", "us-east-1", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
 			api:       mock.API{CreateKinesisFn: createKinesisError},
 			wantError: errTest.Error(),
 		},
