@@ -97,7 +97,7 @@ func main() {
 	// have that. This means in that scenario we should force another fetch of
 	// the configuration.
 	if file.CLI.LastChecked == "" || file.ShouldFetch() {
-		if verboseOutput {
+		if verboseOutput && file.CLI.LastChecked == "" {
 			text.Warning(out, `
 				There was a problem loading the compatibility and versioning information for the Fastly CLI.
 				The operation will be retried as this configuration is required.
