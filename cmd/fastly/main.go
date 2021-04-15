@@ -101,15 +101,8 @@ func main() {
 	//
 	// If we discover we're in that scenario we'll attempt to re-load the
 	// configuration from the remote endpoint.
-	//
-	// Additionally, if the CLI binary was updated while the config data was
-	// still cached, then depending on the change set in the CLI there could be a
-	// breakage experienced because the updated CLI code might be expecting a new
-	// config data field to be provided and the old config currently cached won't
-	// have that. This means in that scenario we should force another fetch of
-	// the configuration.
 	if file.CLI.LastChecked == "" {
-		if verboseOutput && file.CLI.LastChecked == "" {
+		if verboseOutput {
 			text.Warning(out, `
 				There was a problem loading the compatibility and versioning information for the Fastly CLI.
 				The operation will be retried as this configuration is required.
