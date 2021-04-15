@@ -11,13 +11,25 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+//
+// There isn't an executable binary that exists in the test environment, so we
+// expect the spawning of a subprocess to call `<binary> --version` to fail and
+// subsequently the `installViceroy()` function to be called.
+//
+// The `installViceroy()` function will then think it has downloaded the latest
+// release as we have instructed the mock to provide that behaviour.
+//
+// Subsequently the `os.Rename()` will move the downloaded viceroy binary,
+// which is just a dummy file created by `makeEnvironment()`, into the intended
+// destination directory. The destination directory in the case of the test
+// environment is ...
 func TestGetViceroy(t *testing.T) {
 	binary := "foo"
-	dir, downloadedFile := makeEnvironment(binary, t)
+	downloadDir, installDir, downloadedFile := makeEnvironment(binary, t)
 
-	defer os.RemoveAll(dir) // clean up
+	defer os.RemoveAll(downloadDir) // clean up
 
-	InstallDir = dir
+	InstallDir = installDir
 
 	var out bytes.Buffer
 
@@ -29,37 +41,47 @@ func TestGetViceroy(t *testing.T) {
 		DownloadedFile: downloadedFile,
 	}
 
-	// There isn't an executable binary that exists in the test environment, so
-	// we expect the spawning of a subprocess to call `<binary> --version` to
-	// fail and subsequently the `installViceroy()` function to be called. This
-	// function will then think it has downloaded the latest release (as we mock
-	// that behaviour) and so we should see the correct output.
-	bin, err := getViceroy(progress, &out, versioner)
+	_, err := getViceroy(progress, &out, versioner)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if bin != downloadedFile {
-		t.Fatalf("want: %s, have: %s", downloadedFile, bin)
 	}
 
 	if !strings.Contains(out.String(), "✓ Fetching latest viceroy release") {
 		t.Fatalf("expected file to be downloaded successfully")
 	}
+
+	movedPath := filepath.Join(installDir, binary)
+
+	if _, err := os.Stat(movedPath); err != nil {
+		t.Fatalf("binary was not moved to the install directory: %s", err)
+	}
 }
 
-func makeEnvironment(downloadedFilename string, t *testing.T) (string, string) {
+// makeEnvironment creates a temporary directory for the test suite to utilise
+// when validating viceroy installation behaviours.
+//
+// It will create a file within the temporary directory to represent the call
+// to `versioner.Download()` being successful.
+//
+// It also creates a nested directory within the temp directory to represent
+// where the downloaded binary should be moved into.
+func makeEnvironment(downloadedFilename string, t *testing.T) (string, string, string) {
 	t.Helper()
 
-	rootdir, err := os.MkdirTemp("", "fastly-serve-*")
+	downloadDir, err := os.MkdirTemp("", "fastly-serve-*")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fpath := filepath.Join(rootdir, downloadedFilename)
+	fpath := filepath.Join(downloadDir, downloadedFilename)
 	if err := os.WriteFile(fpath, []byte("..."), 0777); err != nil {
 		t.Fatal(err)
 	}
 
-	return rootdir, fpath
+	installDir, err := os.MkdirTemp(downloadDir, "install")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return downloadDir, installDir, fpath
 }
