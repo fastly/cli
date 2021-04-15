@@ -6,15 +6,15 @@
 
 **Enhancements:**
 
-- Support usage of IAM role in Kinesis logging endpoint [\#255](https://github.com/fastly/cli/pull/255)
-- Support usage of IAM role in S3 and Kinesis logging endpoints [\#253](https://github.com/fastly/cli/pull/253)
-- Add support for file\_max\_bytes configuration for azure logging endpoint [\#251](https://github.com/fastly/cli/pull/251)
+- Support IAM role in Kinesis logging endpoint [\#255](https://github.com/fastly/cli/pull/255)
+- Support IAM role in S3 and Kinesis logging endpoints [\#253](https://github.com/fastly/cli/pull/253)
+- Add support for `file_max_bytes` configuration for Azure logging endpoint [\#251](https://github.com/fastly/cli/pull/251)
 - Warn on empty directory [\#247](https://github.com/fastly/cli/pull/247)
-- Add `compute publish` subcommand. [\#242](https://github.com/fastly/cli/pull/242)
-- Allow local binary to be renamed. [\#240](https://github.com/fastly/cli/pull/240)
-- Retain RUSTFLAGS values from the environment [\#239](https://github.com/fastly/cli/pull/239)
-- Make GitHub Versioner configurable. [\#236](https://github.com/fastly/cli/pull/236)
-- Add support for compression\_codec to logging file sink endpoints [\#190](https://github.com/fastly/cli/pull/190)
+- Add `compute publish` subcommand [\#242](https://github.com/fastly/cli/pull/242)
+- Allow local binary to be renamed [\#240](https://github.com/fastly/cli/pull/240)
+- Retain `RUSTFLAGS` values from the environment [\#239](https://github.com/fastly/cli/pull/239)
+- Make GitHub Versioner configurable [\#236](https://github.com/fastly/cli/pull/236)
+- Add support for `compression_codec` to logging file sink endpoints [\#190](https://github.com/fastly/cli/pull/190)
 
 **Bug fixes:**
 
