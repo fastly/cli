@@ -11,6 +11,8 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// TestGetViceroy validates that viceroy is installed to the appropriate
+// directory.
 //
 // There isn't an executable binary that exists in the test environment, so we
 // expect the spawning of a subprocess to call `<binary> --version` to fail and
