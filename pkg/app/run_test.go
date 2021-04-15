@@ -895,19 +895,20 @@ COMMANDS
     -n, --name=NAME              The name of the S3 logging object
     -s, --service-id=SERVICE-ID  Service ID
 
-  logging kinesis create --name=NAME --version=VERSION --stream-name=STREAM-NAME --access-key=ACCESS-KEY --secret-key=SECRET-KEY --region=REGION [<flags>]
+  logging kinesis create --name=NAME --version=VERSION --stream-name=STREAM-NAME --region=REGION [<flags>]
     Create an Amazon Kinesis logging endpoint on a Fastly service version
 
     -n, --name=NAME                The name of the Kinesis logging object. Used
                                    as a primary key for API access
         --version=VERSION          Number of service version
         --stream-name=STREAM-NAME  The Amazon Kinesis stream to send logs to
+        --region=REGION            The AWS region where the Kinesis stream
+                                   exists
         --access-key=ACCESS-KEY    The access key associated with the target
                                    Amazon Kinesis stream
         --secret-key=SECRET-KEY    The secret key associated with the target
                                    Amazon Kinesis stream
-        --region=REGION            The AWS region where the Kinesis stream
-                                   exists
+        --iam-role=IAM-ROLE        The IAM role ARN for logging
     -s, --service-id=SERVICE-ID    Service ID
         --format=FORMAT            Apache style log formatting
         --format-version=FORMAT-VERSION
@@ -947,6 +948,7 @@ COMMANDS
         --stream-name=STREAM-NAME  Your Kinesis stream name
         --access-key=ACCESS-KEY    Your Kinesis account access key
         --secret-key=SECRET-KEY    Your Kinesis account secret key
+        --iam-role=IAM-ROLE        The IAM role ARN for logging
         --region=REGION            The AWS region where the Kinesis stream
                                    exists
         --format=FORMAT            Apache style log formatting

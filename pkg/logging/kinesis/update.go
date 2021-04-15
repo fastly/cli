@@ -25,6 +25,7 @@ type UpdateCommand struct {
 	StreamName        common.OptionalString
 	AccessKey         common.OptionalString
 	SecretKey         common.OptionalString
+	IAMRole           common.OptionalString
 	Region            common.OptionalString
 	Format            common.OptionalString
 	FormatVersion     common.OptionalUint
@@ -49,6 +50,7 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("stream-name", "Your Kinesis stream name").Action(c.StreamName.Set).StringVar(&c.StreamName.Value)
 	c.CmdClause.Flag("access-key", "Your Kinesis account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
 	c.CmdClause.Flag("secret-key", "Your Kinesis account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
+	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
 	c.CmdClause.Flag("region", "The AWS region where the Kinesis stream exists").Action(c.Region.Set).StringVar(&c.Region.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
@@ -85,6 +87,10 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKinesisInput, error) {
 
 	if c.SecretKey.WasSet {
 		input.SecretKey = fastly.String(c.SecretKey.Value)
+	}
+
+	if c.IAMRole.WasSet {
+		input.IAMRole = fastly.String(c.IAMRole.Value)
 	}
 
 	if c.Region.WasSet {
