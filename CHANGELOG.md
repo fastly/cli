@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.27.1](https://github.com/fastly/cli/releases/tag/v0.27.1) (2021-04-16)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.27.0...v0.27.1)
+
+**Bug Fixes:**
+
+- Track CLI version [\#257](https://github.com/fastly/cli/pull/257)
+
 ## [v0.27.0](https://github.com/fastly/cli/releases/tag/v0.27.0) (2021-04-15)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.26.3...v0.27.0)
