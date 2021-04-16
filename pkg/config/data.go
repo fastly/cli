@@ -12,6 +12,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/useragent"
 	toml "github.com/pelletier/go-toml"
 )
@@ -176,6 +177,7 @@ type CLI struct {
 	RemoteConfig string `toml:"remote_config"`
 	TTL          string `toml:"ttl"`
 	LastChecked  string `toml:"last_checked"`
+	Version      string `toml:"version"`
 }
 
 // User represents user specific configuration.
@@ -248,6 +250,7 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 		return err
 	}
 
+	f.CLI.Version = revision.SemVer(revision.AppVersion)
 	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 
 	if f.Legacy.Token != "" {

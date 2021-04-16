@@ -61,6 +61,7 @@ func TestConfigure(t *testing.T) {
   last_checked = ""
   remote_config = ""
   ttl = ""
+  version = ""
 
 [fastly]
   api_endpoint = "http://local.dev"
@@ -106,6 +107,7 @@ func TestConfigure(t *testing.T) {
   last_checked = ""
   remote_config = ""
   ttl = ""
+  version = ""
 
 [fastly]
   api_endpoint = "http://staging.dev"
@@ -148,6 +150,7 @@ func TestConfigure(t *testing.T) {
   last_checked = ""
   remote_config = ""
   ttl = ""
+  version = ""
 
 [fastly]
   api_endpoint = "https://api.fastly.com"
@@ -193,6 +196,7 @@ func TestConfigure(t *testing.T) {
   last_checked = ""
   remote_config = ""
   ttl = ""
+  version = ""
 
 [fastly]
   api_endpoint = "https://api.fastly.com"
@@ -236,6 +240,7 @@ func TestConfigure(t *testing.T) {
   last_checked = ""
   remote_config = ""
   ttl = ""
+  version = ""
 
 [fastly]
   api_endpoint = "https://api.fastly.com"
@@ -282,6 +287,7 @@ func TestConfigure(t *testing.T) {
   last_checked = ""
   remote_config = ""
   ttl = ""
+  version = ""
 
 [fastly]
   api_endpoint = "https://api.fastly.com"
