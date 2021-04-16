@@ -53,6 +53,7 @@ func main() {
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
 	err := file.Read(configFilePath)
+
 	if err != nil {
 		if verboseOutput {
 			if err == config.ErrLegacyConfig {
@@ -68,18 +69,9 @@ func main() {
 			}
 			text.Break(out)
 		}
-
-		err := file.Load(config.RemoteEndpoint, httpClient)
-		if err != nil {
-			errors.RemediationError{
-				Inner:       err,
-				Remediation: errors.NetworkRemediation,
-			}.Print(os.Stderr)
-			os.Exit(1)
-		}
 	}
 
-	if file.CLI.Version != revision.SemVer(revision.AppVersion) {
+	if err != nil || file.CLI.Version != revision.SemVer(revision.AppVersion) {
 		err := file.Load(config.RemoteEndpoint, httpClient)
 		if err != nil {
 			errors.RemediationError{
