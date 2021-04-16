@@ -10,6 +10,7 @@ import (
 
 	"github.com/fastly/cli/pkg/env"
 	errs "github.com/fastly/cli/pkg/errors"
+	toml "github.com/pelletier/go-toml"
 )
 
 func TestManifest(t *testing.T) {
@@ -197,5 +198,72 @@ func TestDataServiceID(t *testing.T) {
 	_, src = d.ServiceID()
 	if src != SourceFile {
 		t.Fatal("expected SourceFile")
+	}
+}
+
+// This test validates that manually added changes, such as the toml
+// syntax for Viceroy local testing, are not accidentally deleted after
+// decoding and encoding flows.
+func TestManifestPersistsLocalServerSection(t *testing.T) {
+	fpath := filepath.Join("../", "testdata", "init", "fastly-viceroy-update.toml")
+
+	b, err := os.ReadFile(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func(fpath string, b []byte) {
+		err := os.WriteFile(fpath, b, 0644)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}(fpath, b)
+
+	original, err := toml.LoadFile(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ot := original.Get("local_server")
+	if ot == nil {
+		t.Fatal("expected [local_server] block to exist in fastly.toml but is missing")
+	}
+
+	osid := original.Get("service_id")
+	if osid != nil {
+		t.Fatal("did not expect service_id key to exist in fastly.toml but is present")
+	}
+
+	var m File
+
+	err = m.Read(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m.ServiceID = "a change occurred to the data structure"
+
+	err = m.Write(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	latest, err := toml.LoadFile(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lsid := latest.Get("service_id")
+	if lsid == nil {
+		t.Fatal("expected service_id key to exist in fastly.toml but is missing")
+	}
+
+	lt := latest.Get("local_server")
+	if lt == nil {
+		t.Fatal("expected [local_server] block to exist in fastly.toml but is missing")
+	}
+
+	if lt.(*toml.Tree).String() != ot.(*toml.Tree).String() {
+		t.Fatal("testing section between original and updated fastly.toml do not match")
 	}
 }

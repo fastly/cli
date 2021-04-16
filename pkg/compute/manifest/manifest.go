@@ -326,14 +326,29 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 
 // Write persists the manifest content to disk.
 func (f *File) Write(filename string) error {
-	fp, err := os.Create(filename)
+	fp, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		return err
 	}
 
-	if err := toml.NewEncoder(fp).Encode(f); err != nil {
+	tree, err := toml.LoadFile(filename)
+	if err != nil {
 		return err
 	}
+
+	bs, err := tree.Marshal()
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(filename, bs, FilePermissions)
+	if err != nil {
+		return err
+	}
+
+	// if err := toml.NewEncoder(fp).Encode(f); err != nil {
+	// 	return err
+	// }
 
 	if err := prependSpecRefToManifest(fp); err != nil {
 		return err
@@ -370,6 +385,7 @@ func (f *File) Write(filename string) error {
 // because this would indicate a problem with us getting back all of the
 // original content.
 func prependSpecRefToManifest(fp io.ReadWriteSeeker) error {
+	fmt.Println("HERE")
 	if _, err := fp.Seek(0, 0); err == nil {
 		content := make([]string, 0)
 		scanner := bufio.NewScanner(fp)
