@@ -21,6 +21,7 @@ type Streaming struct {
 	Env     []string
 	Output  io.Writer
 	Timeout time.Duration
+	process *os.Process
 }
 
 // Exec executes the compiler command and pipes the child process stdout and
@@ -46,6 +47,9 @@ func (s Streaming) Exec() error {
 	}
 	cmd.Env = append(os.Environ(), s.Env...)
 
+	// Store off Process so it can be killed by signals
+	s.process = cmd.Process
+
 	// Pipe the child process stdout and stderr to our own output writer.
 	var stderrBuf bytes.Buffer
 	cmd.Stdout = s.Output
@@ -59,5 +63,16 @@ func (s Streaming) Exec() error {
 		return fmt.Errorf("error during execution process%s", ctx)
 	}
 
+	return nil
+}
+
+// Kill enables subprocess created to be terminated early.
+func (s StreamingExec) Kill() error {
+	if s.process != nil {
+		err := s.process.Signal(os.Kill)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

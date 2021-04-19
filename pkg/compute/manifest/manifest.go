@@ -191,12 +191,13 @@ func (v *Version) UnmarshalText(text []byte) error {
 // File represents all of the configuration parameters in the fastly.toml
 // manifest file schema.
 type File struct {
-	ManifestVersion Version  `toml:"manifest_version"`
-	Name            string   `toml:"name"`
-	Description     string   `toml:"description"`
-	Authors         []string `toml:"authors"`
-	Language        string   `toml:"language"`
-	ServiceID       string   `toml:"service_id"`
+	ManifestVersion Version    `toml:"manifest_version"`
+	Name            string     `toml:"name"`
+	Description     string     `toml:"description"`
+	Authors         []string   `toml:"authors"`
+	Language        string     `toml:"language"`
+	ServiceID       string     `toml:"service_id"`
+	Tree            *toml.Tree `toml:"testing"`
 
 	exists bool
 	output io.Writer
@@ -326,29 +327,14 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 
 // Write persists the manifest content to disk.
 func (f *File) Write(filename string) error {
-	fp, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0755)
+	fp, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 
-	tree, err := toml.LoadFile(filename)
-	if err != nil {
+	if err := toml.NewEncoder(fp).Encode(f); err != nil {
 		return err
 	}
-
-	bs, err := tree.Marshal()
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(filename, bs, FilePermissions)
-	if err != nil {
-		return err
-	}
-
-	// if err := toml.NewEncoder(fp).Encode(f); err != nil {
-	// 	return err
-	// }
 
 	if err := prependSpecRefToManifest(fp); err != nil {
 		return err
@@ -385,7 +371,6 @@ func (f *File) Write(filename string) error {
 // because this would indicate a problem with us getting back all of the
 // original content.
 func prependSpecRefToManifest(fp io.ReadWriteSeeker) error {
-	fmt.Println("HERE")
 	if _, err := fp.Seek(0, 0); err == nil {
 		content := make([]string, 0)
 		scanner := bufio.NewScanner(fp)
