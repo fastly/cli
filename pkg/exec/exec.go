@@ -66,10 +66,10 @@ func (s Streaming) Exec() error {
 	return nil
 }
 
-// Kill enables subprocess created to be terminated early.
-func (s StreamingExec) Kill() error {
+// Signal enables spawned subprocess to accept given signal.
+func (s StreamingExec) Signal(signal os.Signal) error {
 	if s.process != nil {
-		err := s.process.Signal(os.Kill)
+		err := s.process.Signal(signal)
 		if err != nil {
 			return err
 		}

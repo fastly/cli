@@ -269,7 +269,7 @@ func local(bin string, out io.Writer, env string, verbose bool) error {
 		<-sig
 		signal.Stop(sig)
 
-		err := cmd.Kill()
+		err := cmd.Signal(os.Kill)
 		if err != nil {
 			log.Fatal(err)
 		}
