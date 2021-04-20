@@ -1,0 +1,37 @@
+FROM rust:latest
+
+WORKDIR /tmp
+
+# NOTE: I have presumed we'd pass these env vars via the Docker -e flag.
+RUN curl -L https://github.com/fastly/cli/releases/download/v${FASTLY_CLI_VERSION}/fastly_v${FASTLY_CLI_VERSION}_linux-${GOARCH}.tar.gz -o fastly.tgz
+RUN tar -xzf fastly.tgz
+RUN mv fastly /usr/bin
+
+# How do we incorporate dynamic config constraints?
+# e.g. `r.config.File.Language.Rust.RustupConstraint`
+#
+# NOTE: This isn't a problem for 'now' because:
+# rustup_constraint = ">= 1.23.0"
+# So by virtue of using `FROM rust:latest` we should satisfy the constraint.
+
+# Again, how do we incorporate the dynamic config?
+# We could use environment variable and in CI call the config endpoint to get
+# the value to pass into Docker container using -e flag.
+#
+# Alternatively, within the Docker build phase we could run the CLI with a
+# subcommand like `fastly version` which will trigger the dynamic configuration
+# to be pulled down and then locate the file and extract files necessary.
+RUN rustup toolchain install 1.49.0
+
+# See above comments re: values from dynamic config.
+RUN rustup target add wasm32-wasi --toolchain 1.49.0
+
+# NOTE: I don't believe we need to worry about fastly-sys constraint because
+# that only happens on `compute build` and is dependant on a Cargo.toml file
+# which is only present after running `compute init`. I don't think the
+# container image should contain that file. The container image should only
+# install the CLI and configure any foundational Rust dependencies.
+
+WORKDIR /app
+ENTRYPOINT ["/usr/bin/fastly"]
+CMD ["--help"]
