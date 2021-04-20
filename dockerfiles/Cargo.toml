@@ -1,0 +1,13 @@
+[package]
+name = "unused"
+version = "0.1.0"
+authors = []
+edition = "2018"
+
+[profile.release]
+debug = true
+
+[dependencies]
+fastly = "^0.7.1"
+log-fastly = "^0.2.0"
+log = "^0.4.11"

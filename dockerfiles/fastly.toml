@@ -1,0 +1,6 @@
+authors = ["unused"]
+description = "unused"
+language = "rust"
+manifest_version = 1
+name = "unused"
+service_id = "unused"
