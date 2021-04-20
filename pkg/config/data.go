@@ -253,11 +253,11 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	f.CLI.Version = revision.SemVer(revision.AppVersion)
 	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 
-	if f.Legacy.Token != "" {
+	if f.Legacy.Token != "" && f.User.Token == "" {
 		f.User.Token = f.Legacy.Token
 	}
 
-	if f.Legacy.Email != "" {
+	if f.Legacy.Email != "" && f.User.Email == "" {
 		f.User.Email = f.Legacy.Email
 	}
 
