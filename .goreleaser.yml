@@ -119,7 +119,7 @@ dockers:
     image_templates:
       - "ghcr.io/fastly/cli:{{ .Version }}-arm64"
     build_flag_templates:
-      - "--platform=linux/arm/v8"
+      - "--platform=linux/arm/v7"
   dockerfile: Dockerfile-assemblyscript
 - <<: *docker_opts
   <<: *386
@@ -130,6 +130,8 @@ dockers:
 - <<: *docker_opts
   <<: *arm64
   dockerfile: Dockerfile-rust
+  build_flag_templates:
+    - "--platform=linux/arm/v8"
 docker_manifests:
 - name_template: ghcr.io/fastly/cli:{{ .Version }}
   image_templates:
