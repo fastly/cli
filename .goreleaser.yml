@@ -122,13 +122,13 @@ dockers:
       - "--platform=linux/arm/v8"
   dockerfile: Dockerfile-assemblyscript
 - <<: *docker_opts
-  <<: &386
+  <<: *386
   dockerfile: Dockerfile-rust
 - <<: *docker_opts
-  <<: &amd64
+  <<: *amd64
   dockerfile: Dockerfile-rust
 - <<: *docker_opts
-  <<: &arm64
+  <<: *arm64
   dockerfile: Dockerfile-rust
 docker_manifests:
 - name_template: ghcr.io/fastly/cli:{{ .Version }}
