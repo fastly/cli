@@ -12,14 +12,10 @@ name = "Default Rust template"
   [testing.backends]
 
     [testing.backends.backend_a]
+      url = "https://example.com/"
 
-      [testing.backends.backend_a.default]
-        url = "https://example.com/"
+    [testing.backends.foo]
+      url = "https://foo.com/"
 
-      [testing.backends.backend_a.environments]
-
-        [testing.backends.backend_a.environments.local]
-          url = "http://localhost:1234/"
-
-        [testing.backends.backend_a.environments.prod]
-          url = "https://example.com/"
+    [testing.backends.qux]
+      url = "https://qux.com/"
