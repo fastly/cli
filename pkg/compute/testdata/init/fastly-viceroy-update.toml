@@ -7,15 +7,15 @@ language = "rust"
 manifest_version = 1
 name = "Default Rust template"
 
-[testing]
+[local_server]
 
-  [testing.backends]
+  [local_server.backends]
 
-    [testing.backends.backend_a]
+    [local_server.backends.backend_a]
       url = "https://example.com/"
 
-    [testing.backends.foo]
+    [local_server.backends.foo]
       url = "https://foo.com/"
 
-    [testing.backends.bar]
+    [local_server.backends.bar]
       url = "https://bar.com/"
