@@ -1,13 +1,20 @@
-# docker build -t fastly/cli/assemblyscript . -f ./Dockerfile-assemblyscript
-# docker run -it fastly/cli/assemblyscript
+FROM node:15.14.0
+LABEL maintainer="Developer Relations Team <support@fastly.com>"
 
-FROM node:latest
-
-COPY --from=fastly/cli /usr/bin/fastly /usr/bin/fastly
-
+WORKDIR /tmp
 RUN npm install --global npm@latest
 RUN npm install --save-dev assemblyscript
+
+RUN apt-get update && apt-get install -y curl jq
+RUN export FASTLY_CLI_VERSION=$(curl --silent https://api.github.com/repos/fastly/cli/releases/latest | jq -r .tag_name | cut -d 'v' -f 2) \
+  GOARCH=$(dpkg --print-architecture) \
+  && curl -vL "https://github.com/fastly/cli/releases/download/v${FASTLY_CLI_VERSION}/fastly_v${FASTLY_CLI_VERSION}_linux-$GOARCH.tar.gz" -o fastly.tar.gz
+RUN tar -xzf fastly.tar.gz
+RUN mv fastly /usr/bin
 
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/fastly"]
 CMD ["--help"]
+
+# docker build -t fastly/cli/assemblyscript . -f ./Dockerfile-assemblyscript
+# docker run -it fastly/cli/assemblyscript

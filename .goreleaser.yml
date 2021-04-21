@@ -95,46 +95,22 @@ snapshot:
 changelog:
   skip: true
 dockers:
-- <<: &docker_opts
+- <<: &build_opts
     use_buildx: true
     goos: linux
-  <<: &386
-    goarch: 386
-    image_templates:
-      - "ghcr.io/fastly/cli:{{ .Version }}-386"
-    build_flag_templates:
-      - "--platform=linux/386"
-  dockerfile: Dockerfile-assemblyscript
-- <<: *docker_opts
-  <<: &amd64
     goarch: amd64
     image_templates:
-      - "ghcr.io/fastly/cli:{{ .Version }}-amd64"
+      - "ghcr.io/fastly/cli:{{ .Version }}"
     build_flag_templates:
       - "--platform=linux/amd64"
+      - --label=title={{ .ProjectName }}
+      - --label=description={{ .ProjectName }}
+      - --label=url=https://github.com/fastly/cli
+      - --label=source=https://github.com/fastly/cli
+      - --label=version={{ .Version }}
+      - --label=created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=revision={{ .FullCommit }}
+      - --label=licenses=Apache-2.0
   dockerfile: Dockerfile-assemblyscript
-- <<: *docker_opts
-  <<: &arm64
-    goarch: arm64
-    image_templates:
-      - "ghcr.io/fastly/cli:{{ .Version }}-arm64"
-    build_flag_templates:
-      - "--platform=linux/arm/v7"
-  dockerfile: Dockerfile-assemblyscript
-- <<: *docker_opts
-  <<: *386
+- <<: *build_opts
   dockerfile: Dockerfile-rust
-- <<: *docker_opts
-  <<: *amd64
-  dockerfile: Dockerfile-rust
-- <<: *docker_opts
-  <<: *arm64
-  dockerfile: Dockerfile-rust
-  build_flag_templates:
-    - "--platform=linux/arm/v8"
-docker_manifests:
-- name_template: ghcr.io/fastly/cli:{{ .Version }}
-  image_templates:
-  - ghcr.io/fastly/cli:{{ .Version }}-386
-  - ghcr.io/fastly/cli:{{ .Version }}-amd64
-  - ghcr.io/fastly/cli:{{ .Version }}-arm64

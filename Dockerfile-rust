@@ -1,27 +1,21 @@
-# docker build -t fastly/cli/rust . -f ./Dockerfile-rust
-# docker run -it fastly/cli/rust
+FROM rust:1.51.0
+LABEL maintainer="Developer Relations Team <support@fastly.com>"
 
-FROM rust:latest
+ENV RUST_TOOLCHAIN=1.49.0
+RUN rustup toolchain install ${RUST_TOOLCHAIN}
+RUN rustup target add wasm32-wasi --toolchain ${RUST_TOOLCHAIN}
 
-COPY --from=fastly/cli /usr/bin/fastly /usr/bin/fastly
-
-# How do we incorporate the dynamic config constraint?
-# i.e. `r.config.File.Language.Rust.RustupConstraint`
-#
-# NOTE: This isn't a problem right now because:
-# rustup_constraint = ">= 1.23.0"
-# So by virtue of using `FROM rust:latest` we should satisfy the constraint.
-
-# TODO: curl the dynamic config endpoint and acquire the relevant values needed.
-RUN rustup toolchain install 1.49.0
-RUN rustup target add wasm32-wasi --toolchain 1.49.0
-
-# NOTE: I don't believe we need to worry about fastly-sys constraint because
-# that only happens on `compute build` and is dependant on a Cargo.toml file
-# which is only present after running `compute init`. I don't think the
-# container image should contain that file. The container image should only
-# install the CLI and configure any foundational Rust dependencies.
+WORKDIR /tmp
+RUN apt-get update && apt-get install -y curl jq
+RUN export FASTLY_CLI_VERSION=$(curl --silent https://api.github.com/repos/fastly/cli/releases/latest | jq -r .tag_name | cut -d 'v' -f 2) \
+  GOARCH=$(dpkg --print-architecture) \
+  && curl -vL "https://github.com/fastly/cli/releases/download/v${FASTLY_CLI_VERSION}/fastly_v${FASTLY_CLI_VERSION}_linux-$GOARCH.tar.gz" -o fastly.tar.gz
+RUN tar -xzf fastly.tar.gz
+RUN mv fastly /usr/bin
 
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/fastly"]
 CMD ["--help"]
+
+# docker build -t fastly/cli/rust . -f ./Dockerfile-rust
+# docker run -it fastly/cli/rust
