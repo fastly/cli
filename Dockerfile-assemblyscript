@@ -1,13 +1,17 @@
+# docker build -t fastly/cli/assemblyscript . -f ./Dockerfile-assemblyscript
+
 FROM node:latest
 
 WORKDIR /tmp
 
-# NOTE: I have presumed we'd pass these env vars via the Docker -e flag.
-RUN curl -L https://github.com/fastly/cli/releases/download/v${FASTLY_CLI_VERSION}/fastly_v${FASTLY_CLI_VERSION}_linux-${GOARCH}.tar.gz -o fastly.tgz
-RUN tar -xzf fastly.tgz
+RUN dpkg --print-architecture
+RUN apt-get update && apt-get install -y jq
+
+RUN export FASTLY_CLI_VERSION=$(curl --silent https://api.github.com/repos/fastly/cli/releases/latest | jq -r .tag_name | cut -d 'v' -f 2) GOARCH=amd64 \
+  && curl -vL "https://github.com/fastly/cli/releases/download/v${FASTLY_CLI_VERSION}/fastly_v${FASTLY_CLI_VERSION}_linux-$GOARCH.tar.gz" -o fastly.tar.gz
+RUN tar -xzf fastly.tar.gz
 RUN mv fastly /usr/bin
 
-RUN npm init
 RUN npm install --global npm@latest
 RUN npm install --save-dev assemblyscript
 
