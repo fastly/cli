@@ -1,12 +1,20 @@
 # Changelog
 
+## [v0.27.2](https://github.com/fastly/cli/releases/tag/v0.27.2) (2021-04-21)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.27.1...v0.27.2)
+
+**Bug fixes:**
+
+- Fix bug where legacy creds are reset after call to configure subcommand. [\#260](https://github.com/fastly/cli/pull/260)
+
 ## [v0.27.1](https://github.com/fastly/cli/releases/tag/v0.27.1) (2021-04-16)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.27.0...v0.27.1)
 
-**Bug Fixes:**
+**Bug fixes:**
 
-- Track CLI version [\#257](https://github.com/fastly/cli/pull/257)
+- Track CLI version. [\#257](https://github.com/fastly/cli/pull/257)
 
 ## [v0.27.0](https://github.com/fastly/cli/releases/tag/v0.27.0) (2021-04-15)
 
