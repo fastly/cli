@@ -17,5 +17,5 @@ name = "Default Rust template"
     [testing.backends.foo]
       url = "https://foo.com/"
 
-    [testing.backends.qux]
-      url = "https://qux.com/"
+    [testing.backends.bar]
+      url = "https://bar.com/"
