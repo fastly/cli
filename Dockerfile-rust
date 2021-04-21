@@ -5,23 +5,15 @@ FROM rust:latest
 
 COPY --from=fastly/cli /usr/bin/fastly /usr/bin/fastly
 
-# How do we incorporate dynamic config constraints?
-# e.g. `r.config.File.Language.Rust.RustupConstraint`
+# How do we incorporate the dynamic config constraint?
+# i.e. `r.config.File.Language.Rust.RustupConstraint`
 #
-# NOTE: This isn't a problem for 'now' because:
+# NOTE: This isn't a problem right now because:
 # rustup_constraint = ">= 1.23.0"
 # So by virtue of using `FROM rust:latest` we should satisfy the constraint.
 
-# Again, how do we incorporate the dynamic config?
-# We could use environment variable and in CI call the config endpoint to get
-# the value to pass into Docker container using -e flag.
-#
-# Alternatively, within the Docker build phase we could run the CLI with a
-# subcommand like `fastly version` which will trigger the dynamic configuration
-# to be pulled down and then locate the file and extract files necessary.
+# TODO: curl the dynamic config endpoint and acquire the relevant values needed.
 RUN rustup toolchain install 1.49.0
-
-# See above comments re: values from dynamic config.
 RUN rustup target add wasm32-wasi --toolchain 1.49.0
 
 # NOTE: I don't believe we need to worry about fastly-sys constraint because
