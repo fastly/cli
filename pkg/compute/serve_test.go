@@ -23,8 +23,7 @@ import (
 //
 // Subsequently the `os.Rename()` will move the downloaded viceroy binary,
 // which is just a dummy file created by `makeEnvironment()`, into the intended
-// destination directory. The destination directory in the case of the test
-// environment is ...
+// destination directory.
 func TestGetViceroy(t *testing.T) {
 	binary := "foo"
 	downloadDir, installDir, downloadedFile := makeEnvironment(binary, t)
