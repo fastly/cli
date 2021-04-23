@@ -4,12 +4,12 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html); therefore first determine the appropriate version tag based on the change set. If in doubt discuss with the team via Slack before releasing.
 
-1. Merge all PRs intended for the release into the `master` branch
-1. Checkout and update the master branch and ensure all tests are passing:
-    * `git checkout master`
+1. Merge all PRs intended for the release into the `main` branch
+1. Checkout and update the main branch and ensure all tests are passing:
+    * `git checkout main`
     * `git pull`
     * `make all`
-1. Update the [`CHANGELOG.md`](https://github.com/fastly/cli/blob/master/CHANGELOG.md):
+1. Update the [`CHANGELOG.md`](https://github.com/fastly/cli/blob/main/CHANGELOG.md):
     * Apply necessary labels (`enchancement`, `bug`, `documentation` etc) to all PRs intended for the release that you wish to appear in the `CHANGELOG.md`
     * **Only add labels for relevant changes**
     * `git checkout -b vx.x.x` where `vx.x.x` is your target version tag
@@ -17,10 +17,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
        * **Known Issue**: We've found that the diffs generated are non-deterministic. Just re-run `make changelog` until you get a diff with just the newest additions. For more details, visit [this link](https://github.com/github-changelog-generator/github-changelog-generator/issues/580#issuecomment-380952266).
     * `git add CHANGELOG.md && git commit -m "vx.x.x"`
 1. Send PR for the `CHANGELOG.md`
-1. Once approved and merged, checkout and update the `master` branch:
-    * `git checkout master`
+1. Once approved and merged, checkout and update the `main` branch:
+    * `git checkout main`
     * `git pull`
-1. Create a new tag for `master`:
+1. Create a new tag for `main`:
     * `git tag -s vx.x.x -m "vx.x.x"`
 1. Push the new tag:
     * `git push origin vx.x.x`
