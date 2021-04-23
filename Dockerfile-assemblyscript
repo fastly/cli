@@ -1,5 +1,5 @@
 FROM node:15.14.0
-LABEL maintainer="Developer Relations Team <support@fastly.com>"
+LABEL maintainer="Fastly OSS <oss@fastly.com>"
 
 WORKDIR /tmp
 RUN npm install --global npm@latest
