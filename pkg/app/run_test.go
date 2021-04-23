@@ -369,8 +369,7 @@ COMMANDS
     --language=LANGUAGE  Language type
     --include-source     Include source code in built package
     --force              Skip verification steps and force build
-    --env=ENV            The environment to use when selecting backend
-                         definitions
+    --env=ENV            The environment configuration to use (e.g. stage)
 
   compute update --version=VERSION --path=PATH [<flags>]
     Update a package on a Fastly Compute@Edge service version

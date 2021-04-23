@@ -1,14 +1,13 @@
 package update
 
 import (
-	"context"
 	"testing"
 )
 
 // TestName validates that the Name method returns the expected binary name.
 func TestName(t *testing.T) {
 	want := "binary"
-	gh := NewGitHub(context.Background(), "org", "repo", want)
+	gh := NewGitHub(GitHubOpts{"org", "repo", want})
 
 	if have := gh.Name(); have != want {
 		t.Fatalf("want: %s, have: %s", want, have)
@@ -20,7 +19,7 @@ func TestName(t *testing.T) {
 func TestRename(t *testing.T) {
 	want := "foobar"
 
-	gh := NewGitHub(context.Background(), "org", "repo", "binary")
+	gh := NewGitHub(GitHubOpts{"org", "repo", "binary"})
 	gh.RenameLocalBinary(want)
 
 	if have := gh.Name(); have != want {

@@ -3,7 +3,6 @@ package main
 import (
 	_ "embed"
 
-	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,13 +33,21 @@ func main() {
 	// the "real" versions that pull e.g. actual commandline arguments, the
 	// user's real environment, etc.
 	var (
-		args                       = os.Args[1:]
-		clientFactory              = app.FastlyAPIClient
-		httpClient                 = http.DefaultClient
-		in               io.Reader = os.Stdin
-		out              io.Writer = sync.NewWriter(os.Stdout)
-		versionerCLI               = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
-		versionerViceroy           = update.NewGitHub(context.Background(), "fastly", "viceroy", "viceroy")
+		args                    = os.Args[1:]
+		clientFactory           = app.FastlyAPIClient
+		httpClient              = http.DefaultClient
+		in            io.Reader = os.Stdin
+		out           io.Writer = sync.NewWriter(os.Stdout)
+		versionerCLI            = update.NewGitHub(update.GitHubOpts{
+			Org:    "fastly",
+			Repo:   "cli",
+			Binary: "fastly",
+		})
+		versionerViceroy = update.NewGitHub(update.GitHubOpts{
+			Org:    "fastly",
+			Repo:   "viceroy",
+			Binary: "viceroy",
+		})
 	)
 
 	// We have to manually handle the inclusion of the verbose flag here because

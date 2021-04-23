@@ -66,6 +66,8 @@ func TestGetViceroy(t *testing.T) {
 //
 // It also creates a nested directory within the temp directory to represent
 // where the downloaded binary should be moved into.
+//
+// TODO: refactor testutil.NewEnv() to support directory creation.
 func makeEnvironment(downloadedFilename string, t *testing.T) (string, string, string) {
 	t.Helper()
 
