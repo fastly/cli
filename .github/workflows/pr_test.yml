@@ -15,16 +15,16 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/go/bin
-        key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-gobin-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-bin-
+          ${{ runner.os }}-gobin-
     - name: Restore cache
       uses: actions/cache@v1
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-mod-
+          ${{ runner.os }}-gomod-
     - name: Install dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       run: make dependencies
@@ -67,9 +67,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-mod-
+          ${{ runner.os }}-gomod-
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:

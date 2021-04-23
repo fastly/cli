@@ -32,16 +32,20 @@ type GitHub struct {
 	local  string // name to use for binary once extracted
 }
 
+// GitHubOpts represents options to be passed to NewGitHub.
+type GitHubOpts struct {
+	Org    string
+	Repo   string
+	Binary string
+}
+
 // NewGitHub returns a usable GitHub versioner utilizing the provided token.
-func NewGitHub(ctx context.Context, org string, repo string, binary string) *GitHub {
-	var (
-		githubClient = github.NewClient(nil)
-	)
+func NewGitHub(opts GitHubOpts) *GitHub {
 	return &GitHub{
-		client: githubClient,
-		org:    org,
-		repo:   repo,
-		binary: binary,
+		client: github.NewClient(nil),
+		org:    opts.Org,
+		repo:   opts.Repo,
+		binary: opts.Binary,
 	}
 }
 

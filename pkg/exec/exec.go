@@ -5,9 +5,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -22,6 +25,31 @@ type Streaming struct {
 	Output  io.Writer
 	Timeout time.Duration
 	process *os.Process
+}
+
+// MonitorSignals spawns a goroutine that configures signal handling so that
+// the long running subprocess can be killed using SIGINT/SIGTERM.
+func (s *Streaming) MonitorSignals() {
+	go monitorSignals(s)
+}
+
+func monitorSignals(s *Streaming) {
+	sig := make(chan os.Signal, 1)
+
+	signals := []os.Signal{
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	}
+
+	signal.Notify(sig, signals...)
+
+	<-sig
+	signal.Stop(sig)
+
+	err := s.Signal(os.Kill)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Exec executes the compiler command and pipes the child process stdout and
@@ -48,6 +76,7 @@ func (s Streaming) Exec() error {
 	cmd.Env = append(os.Environ(), s.Env...)
 
 	// Store off Process so it can be killed by signals
+	//lint:ignore SA4005 because it doesn't fail on macOS but does when run in CI.
 	s.process = cmd.Process
 
 	// Pipe the child process stdout and stderr to our own output writer.
@@ -67,7 +96,7 @@ func (s Streaming) Exec() error {
 }
 
 // Signal enables spawned subprocess to accept given signal.
-func (s StreamingExec) Signal(signal os.Signal) error {
+func (s Streaming) Signal(signal os.Signal) error {
 	if s.process != nil {
 		err := s.process.Signal(signal)
 		if err != nil {

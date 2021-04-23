@@ -4,19 +4,17 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
@@ -59,7 +57,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("force", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
 
 	// Viceroy flags
-	c.CmdClause.Flag("env", "The environment to use when selecting backend definitions").Action(c.env.Set).StringVar(&c.env.Value)
+	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
 
 	return &c
 }
@@ -94,7 +92,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	err = local(bin, out, c.env.Value, c.Globals.Flag.Verbose)
+	err = local(bin, out, c.env.Value)
 	if err != nil {
 		return err
 	}
@@ -154,6 +152,9 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	return bin, nil
 }
 
+// InstallDir represents the directory where the Viceroy binary should be
+// installed.
+//
 // NOTE: This is a package level variable as it makes testing the behaviour of
 // the package easier because the test code can replace the value when running
 // the test suite.
@@ -203,12 +204,14 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 	segs := strings.Split(version, " ")
 
 	if len(segs) < 2 {
+		progress.Fail()
 		return viceroyError
 	}
 
 	installedViceroyVersion = segs[1]
 
 	if installedViceroyVersion == "" {
+		progress.Fail()
 		return viceroyError
 	}
 
@@ -248,32 +251,20 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin string, out io.Writer, env string, verbose bool) error {
-	sig := make(chan os.Signal, 1)
-
-	signals := []os.Signal{
-		syscall.SIGINT,
-		syscall.SIGTERM,
-	}
-
-	signal.Notify(sig, signals...)
-
-	args := []string{"bin/main.wasm", "-C", "fastly.toml"}
+func local(bin string, out io.Writer, env string) error {
 	if env != "" {
-		args = append(args, "--env", env)
+		env = "." + env
 	}
+	manifest := fmt.Sprintf("fastly%s.toml", env)
+	args := []string{"bin/main.wasm", "-C", manifest}
 
-	cmd := common.NewStreamingExec(bin, args, os.Environ(), verbose, out)
-
-	go func(sig chan os.Signal, cmd *common.StreamingExec) {
-		<-sig
-		signal.Stop(sig)
-
-		err := cmd.Signal(os.Kill)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(sig, cmd)
+	cmd := fstexec.Streaming{
+		Command: bin,
+		Args:    args,
+		Env:     os.Environ(),
+		Output:  out,
+	}
+	cmd.MonitorSignals()
 
 	if err := cmd.Exec(); err != nil {
 		return err

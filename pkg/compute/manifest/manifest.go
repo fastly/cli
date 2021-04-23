@@ -203,10 +203,13 @@ type File struct {
 	output io.Writer
 }
 
+// LocalServer represents a list of backends that should be mocked as per the
+// configuration values.
 type LocalServer struct {
 	Backends map[string]Backend `toml:"backends"`
 }
 
+// Backend represents a backend to be mocked by the local testing server.
 type Backend struct {
 	URL string `toml:"url"`
 }
