@@ -53,6 +53,7 @@ jobs:
         rust-toolchain: [1.49.0]
         platform: 
           - ubuntu-latest
+          - macos-latest
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Checkout code
