@@ -15,5 +15,5 @@ $ git remote add upstream git@github.com:fastly/cli.git
 ```bash
 $ make all
 ```
-1. Open a pull request against `upstream master`.
+1. Open a pull request against `upstream main`.
 1. Celebrate :tada:!
