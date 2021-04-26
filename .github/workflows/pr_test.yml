@@ -51,7 +51,8 @@ jobs:
         go-version: [1.16.x]
         node-version: [12]
         rust-toolchain: [1.49.0]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform: 
+          - ubuntu-latest
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Checkout code
