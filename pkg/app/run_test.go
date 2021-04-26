@@ -271,8 +271,6 @@ COMMANDS
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
 
-    -s, --service-id=SERVICE-ID    Existing service ID to use. By default, this
-                                   command creates a new service
     -n, --name=NAME                Name of package, defaulting to directory name
                                    of the --path destination
     -d, --description=DESCRIPTION  Description of the package
@@ -281,12 +279,6 @@ COMMANDS
     -f, --from=FROM                Git repository containing package template
     -p, --path=PATH                Destination to write the new package,
                                    defaulting to the current directory
-        --domain=DOMAIN            The name of the domain associated to the
-                                   package
-        --backend=BACKEND          A hostname, IPv4, or IPv6 address for the
-                                   package backend
-        --backend-port=BACKEND-PORT
-                                   A port number for the package backend
         --force                    Skip non-empty directory verification step
                                    and force new project creation
 
@@ -304,6 +296,12 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of version to activate
     -p, --path=PATH              Path to package
+        --domain=DOMAIN          The name of the domain associated to the
+                                 package
+        --backend=BACKEND        A hostname, IPv4, or IPv6 address for the
+                                 package backend
+        --backend-port=BACKEND-PORT
+                                 A port number for the package backend
 
   compute publish [<flags>]
     Build and deploy a Compute@Edge package to a Fastly service
@@ -315,6 +313,12 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of version to activate
     -p, --path=PATH              Path to package
+        --domain=DOMAIN          The name of the domain associated to the
+                                 package
+        --backend=BACKEND        A hostname, IPv4, or IPv6 address for the
+                                 package backend
+        --backend-port=BACKEND-PORT
+                                 A port number for the package backend
 
   compute update --service-id=SERVICE-ID --version=VERSION --path=PATH
     Update a package on a Fastly Compute@Edge service version

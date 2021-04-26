@@ -17,8 +17,11 @@ type PublishCommand struct {
 	deploy   *DeployCommand
 
 	// Deploy fields
-	path    common.OptionalString
-	version common.OptionalInt
+	path        common.OptionalString
+	version     common.OptionalInt
+	domain      common.OptionalString
+	backend     common.OptionalString
+	backendPort common.OptionalUint
 
 	// Build fields
 	name       common.OptionalString
@@ -47,6 +50,9 @@ func NewPublishCommand(parent common.Registerer, globals *config.Data, build *Bu
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of version to activate").Action(c.version.Set).IntVar(&c.version.Value)
 	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
+	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
+	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").Action(c.backend.Set).StringVar(&c.backend.Value)
+	c.CmdClause.Flag("backend-port", "A port number for the package backend").Action(c.backendPort.Set).UintVar(&c.backendPort.Value)
 
 	return &c
 }
@@ -86,6 +92,15 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.version.WasSet {
 		c.deploy.Version = c.version // deploy's field is a common.OptionalInt
+	}
+	if c.domain.WasSet {
+		c.deploy.Domain = c.domain.Value
+	}
+	if c.backend.WasSet {
+		c.deploy.Backend = c.backend.Value
+	}
+	if c.backendPort.WasSet {
+		c.deploy.BackendPort = c.backendPort.Value
 	}
 
 	err = c.deploy.Exec(in, out)

@@ -49,7 +49,7 @@ func TestInit(t *testing.T) {
 			wantError: "no token provided",
 		},
 		{
-			name: "unkown repository",
+			name: "unknown repository",
 			args: []string{"compute", "init", "--from", "https://example.com/template"},
 			configFile: config.File{
 				User: config.User{
@@ -67,84 +67,6 @@ func TestInit(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 			},
 			wantError: "error fetching package template:",
-		},
-		{
-			name: "create service error",
-			args: []string{"compute", "init"},
-			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
-				},
-			},
-			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceError,
-			},
-			wantError: "error creating service: fixture error",
-		},
-		{
-			name: "create domain error",
-			args: []string{"compute", "init"},
-			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
-				},
-			},
-			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainError,
-				DeleteServiceFn: deleteServiceOK,
-			},
-			wantError: "error creating domain: fixture error",
-		},
-		{
-			name: "create backend error",
-			args: []string{"compute", "init"},
-			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
-				},
-			},
-			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendError,
-				DeleteServiceFn: deleteServiceOK,
-				DeleteDomainFn:  deleteDomainOK,
-			},
-			wantError: "error creating backend: fixture error",
 		},
 		{
 			name: "with name",
@@ -167,39 +89,6 @@ func TestInit(t *testing.T) {
 				GetTokenSelfFn:  tokenOK,
 				GetUserFn:       getUserOk,
 				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
-			},
-			wantOutput: []string{
-				"Initializing...",
-				"Fetching package template...",
-				"Updating package manifest...",
-			},
-			manifestIncludes: `name = "test"`,
-		},
-		{
-			name: "with service",
-			args: []string{"compute", "init", "-s", "test"},
-			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
-				},
-			},
-			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				GetServiceFn:    getServiceOK,
-				ListVersionsFn:  listVersionsActiveOk,
-				CloneVersionFn:  cloneVersionOk,
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendOK,
 			},
@@ -303,7 +192,6 @@ func TestInit(t *testing.T) {
 			},
 			manifestIncludes: `authors = ["test1@example.com", "test2@example.com"]`,
 		},
-
 		{
 			name: "with from repository and branch",
 			args: []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
@@ -359,20 +247,9 @@ func TestInit(t *testing.T) {
 				"description = \"test\"",
 				"authors = [\"test@fastly.com\"]",
 			}, "\n"),
-			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				GetServiceFn:    getServiceOK,
-				ListVersionsFn:  listVersionsActiveOk,
-				CloneVersionFn:  cloneVersionOk,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
-			},
 			wantOutput: []string{
-				"Initializing...",
-				"Creating domain...",
-				"Creating backend...",
 				"Updating package manifest...",
+				"Initializing package...",
 			},
 		},
 		{
@@ -394,11 +271,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			manifestIncludes: `authors = ["test@example.com"]`,
 			wantFiles: []string{
@@ -411,9 +285,6 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Initializing...",
-				"Creating service...",
-				"Creating domain...",
-				"Creating backend...",
 				"Fetching package template...",
 				"Updating package manifest...",
 			},
@@ -945,6 +816,7 @@ func TestDeploy(t *testing.T) {
 		wantError        string
 		wantOutput       []string
 		manifestIncludes string
+		in               *strings.Reader // to handle text.Input prompts
 	}{
 		{
 			name:      "no fastly.toml manifest",
@@ -955,27 +827,58 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name:       "path with no service ID",
-			args:       []string{"compute", "deploy", "-p", "pkg/package.tar.gz"},
-			manifest:   "name = \"package\"\n",
-			wantError:  "error reading service: no service ID found. Please provide one via the --service-id flag or within your package manifest",
+			// If no Service ID defined via flag or manifest, then the expectation is
+			// for the service to be created via the API and for the returned ID to
+			// be stored into the manifest.
+			//
+			// Additionally it validates that the specified path (files generated by
+			// the test suite `makeDeployEnvironment` function) cause no issues.
+			name: "path with no service ID",
+			args: []string{"compute", "deploy", "-v", "-p", "pkg/package.tar.gz"},
+			in:   strings.NewReader(""),
+			api: mock.API{
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			manifest: "name = \"package\"\n",
 			wantOutput: []string{
-				// "Reading package manifest...",
+				"Setting service ID in manifest to \"12345\"...",
+				"Deployed package (service 12345, version 1)",
+			},
+		},
+		// Same validation as above with the exception that we use the default path
+		// parsing logic (i.e. we don't explicitly pass a path via `-p` flag).
+		{
+			name:     "empty service ID",
+			args:     []string{"compute", "deploy", "-v"},
+			manifest: "name = \"package\"\n",
+			in:       strings.NewReader(""),
+			api: mock.API{
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			wantOutput: []string{
+				"Setting service ID in manifest to \"12345\"...",
+				"Deployed package (service 12345, version 1)",
 			},
 		},
 		{
-			name:      "empty service ID",
-			args:      []string{"compute", "deploy"},
-			manifest:  "name = \"package\"\n",
-			wantError: "error reading service: no service ID found. Please provide one via the --service-id flag or within your package manifest",
-			wantOutput: []string{
-				"Reading package manifest...",
+			name: "latest version error",
+			args: []string{"compute", "deploy"},
+			api: mock.API{
+				GetServiceFn:   getServiceOK,
+				ListVersionsFn: listVersionsError,
 			},
-		},
-		{
-			name:      "latest version error",
-			args:      []string{"compute", "deploy"},
-			api:       mock.API{ListVersionsFn: listVersionsError},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error listing service versions: fixture error",
 			wantOutput: []string{
@@ -987,77 +890,93 @@ func TestDeploy(t *testing.T) {
 			name: "clone version error",
 			args: []string{"compute", "deploy"},
 			api: mock.API{
+				GetServiceFn:   getServiceOK,
 				ListVersionsFn: listVersionsActiveOk,
-				GetPackageFn:   getPackageOk,
 				CloneVersionFn: cloneVersionError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error cloning latest service version: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Validating package...",
 				"Fetching latest version...",
 				"Cloning latest version...",
 			},
 		},
 		{
 			name: "package API error",
-			args: []string{"compute", "deploy", "-t", "123"},
+			args: []string{"compute", "deploy"},
 			api: mock.API{
+				GetServiceFn:    getServiceOK,
 				ListVersionsFn:  listVersionsActiveOk,
-				GetPackageFn:    getPackageOk,
 				CloneVersionFn:  cloneVersionOk,
+				GetPackageFn:    getPackageOk,
 				UpdatePackageFn: updatePackageError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error uploading package: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Validating package...",
 				"Fetching latest version...",
 				"Cloning latest version...",
+				"Validating package...",
 				"Uploading package...",
 			},
 		},
+		// The following test additionally validates that the undoStack is executed
+		// as expected (e.g. the backend and domain resources are deleted).
 		{
 			name: "activate error",
-			args: []string{"compute", "deploy", "-t", "123"},
+			args: []string{"compute", "deploy"},
+			in:   strings.NewReader(""),
 			api: mock.API{
+				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
-				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
+				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionError,
+				DeleteBackendFn:   deleteBackendOK,
+				DeleteDomainFn:    deleteDomainOK,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error activating version: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Validating package...",
 				"Fetching latest version...",
 				"Cloning latest version...",
+				"Validating package...",
 				"Uploading package...",
+				"Creating domain...",
+				"Creating backend...",
 				"Activating version...",
 			},
 		},
 		{
 			name: "list domains error",
-			args: []string{"compute", "deploy", "-t", "123"},
+			args: []string{"compute", "deploy"},
+			in:   strings.NewReader(""),
 			api: mock.API{
+				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
-				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
+				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsError,
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Validating package...",
 				"Fetching latest version...",
 				"Cloning latest version...",
+				"Validating package...",
 				"Uploading package...",
+				"Creating domain...",
+				"Creating backend...",
 				"Activating version...",
 				"Manage this service at:",
 				"https://manage.fastly.com/configure/services/123",
@@ -1066,36 +985,43 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "indentical package",
-			args: []string{"compute", "deploy", "-t", "123"},
+			args: []string{"compute", "deploy"},
 			api: mock.API{
+				GetServiceFn:   getServiceOK,
 				ListVersionsFn: listVersionsActiveOk,
+				CloneVersionFn: cloneVersionOk,
 				GetPackageFn:   getPackageIdentical,
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Reading package manifest...",
 				"Fetching latest version...",
+				"Cloning latest version...",
 				"Validating package...",
 				"Skipping package deployment",
 			},
 		},
 		{
 			name: "success",
-			args: []string{"compute", "deploy", "-t", "123"},
+			args: []string{"compute", "deploy"},
+			in:   strings.NewReader(""),
 			api: mock.API{
+				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
-				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
+				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Validating package...",
 				"Fetching latest version...",
 				"Cloning latest version...",
+				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
@@ -1107,39 +1033,56 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with path",
-			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
+			args: []string{"compute", "deploy", "-p", "pkg/package.tar.gz", "-s", "123"},
+			in:   strings.NewReader(""),
 			api: mock.API{
+				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
-				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
+				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
-				"Validating package...",
 				"Fetching latest version...",
 				"Cloning latest version...",
+				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
+				"Manage this service at:",
+				"https://manage.fastly.com/configure/services/123",
+				"View this service at:",
+				"https://directly-careful-coyote.edgecompute.app",
 				"Deployed package (service 123, version 2)",
 			},
 		},
+		// The following test validates when the ideal latest version is 'inactive',
+		// then we don't clone the version as we can just go ahead and activate it.
 		{
 			name: "success with inactive version",
-			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
+			args: []string{"compute", "deploy", "-p", "pkg/package.tar.gz", "-s", "123"},
+			in:   strings.NewReader(""),
 			api: mock.API{
+				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsInactiveOk,
 				GetPackageFn:      getPackageOk,
-				CloneVersionFn:    cloneVersionOk,
 				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
-				"Validating package...",
 				"Fetching latest version...",
+				"Validating package...",
 				"Uploading package...",
+				"Creating domain...",
+				"Creating backend...",
 				"Activating version...",
 				"Deployed package (service 123, version 2)",
 			},
@@ -1147,15 +1090,22 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "success with version",
 			args: []string{"compute", "deploy", "-t", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
+			in:   strings.NewReader(""),
 			api: mock.API{
+				GetServiceFn:      getServiceOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Validating package...",
 				"Uploading package...",
+				"Creating domain...",
+				"Creating backend...",
 				"Activating version...",
 				"Deployed package (service 123, version 2)",
 			},
@@ -1190,15 +1140,19 @@ func TestDeploy(t *testing.T) {
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = http.DefaultClient
 				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
+				in            io.Reader        = testcase.in
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
+
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
+
 			testutil.AssertErrorContains(t, err, testcase.wantError)
+
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, buf.String(), s)
 			}
+
 			if testcase.manifestIncludes != "" {
 				content, err := os.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
 				if err != nil {
@@ -1206,7 +1160,6 @@ func TestDeploy(t *testing.T) {
 				}
 				testutil.AssertStringContains(t, string(content), testcase.manifestIncludes)
 			}
-
 		})
 	}
 }
@@ -1220,6 +1173,7 @@ func TestPublish(t *testing.T) {
 		cargoManifest     string
 		cargoLock         string
 		client            api.HTTPClient
+		in                io.Reader
 		api               mock.API
 		wantError         string
 		wantOutput        []string
@@ -1261,11 +1215,15 @@ func TestPublish(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
+			in: strings.NewReader(""),
 			api: mock.API{
+				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
-				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
+				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
@@ -1320,11 +1278,15 @@ func TestPublish(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
+			in: strings.NewReader(""),
 			api: mock.API{
+				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
-				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
+				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
@@ -1379,11 +1341,15 @@ func TestPublish(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
+			in: strings.NewReader(""),
 			api: mock.API{
+				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
-				GetPackageFn:      getPackageOk,
 				CloneVersionFn:    cloneVersionOk,
+				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
@@ -1429,7 +1395,7 @@ func TestPublish(t *testing.T) {
 				clientFactory                  = mock.APIClient(testcase.api)
 				httpClient                     = testcase.client
 				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
+				in            io.Reader        = testcase.in
 				buf           bytes.Buffer
 				out           io.Writer = common.NewSyncWriter(&buf)
 			)
