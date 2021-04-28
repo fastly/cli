@@ -22,6 +22,7 @@ type flagJSON struct {
 	Placeholder string `json:"placeholder"`
 	Required    bool   `json:"required"`
 	Default     string `json:"default"`
+	IsBool      bool   `json:"isBool"`
 }
 
 type commandJSON struct {
@@ -40,6 +41,7 @@ func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
 		flag.Placeholder = f.PlaceHolder
 		flag.Required = f.Required
 		flag.Default = strings.Join(f.Default, ",")
+		flag.IsBool = f.IsBoolFlag()
 		flags = append(flags, flag)
 	}
 	return flags
