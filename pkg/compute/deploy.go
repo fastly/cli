@@ -380,26 +380,23 @@ func pkgUpload(progress text.Progress, client api.Interface, serviceID string, v
 
 // cfgDomain configures the domain value.
 func cfgDomain(domain string, def string, out io.Writer, in io.Reader, f validator) (string, error) {
+	if domain != "" {
+		return domain, nil
+	}
+
+	rand.Seed(time.Now().UnixNano())
+
+	defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), def)
+
+	text.Break(out)
+
+	domain, err := text.Input(out, fmt.Sprintf("Domain: [%s] ", defaultDomain), in, f)
+	if err != nil {
+		return "", fmt.Errorf("error reading input %w", err)
+	}
+
 	if domain == "" {
-		rand.Seed(time.Now().UnixNano())
-
-		defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), def)
-
-		text.Break(out)
-
-		// TODO: variable shadowing (e.g. domain) like this can cause issues if the
-		// developer is unaware of the need to shadow, and they refactor the code
-		// which results in unexpected behaviour.
-		var err error
-		domain, err = text.Input(out, fmt.Sprintf("Domain: [%s] ", defaultDomain), in, f)
-
-		if err != nil {
-			return "", fmt.Errorf("error reading input %w", err)
-		}
-
-		if domain == "" {
-			return defaultDomain, nil
-		}
+		return defaultDomain, nil
 	}
 
 	return domain, nil
