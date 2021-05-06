@@ -158,6 +158,7 @@ SUBCOMMANDS
     Delete a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID
+    -f, --force                  Force the deletion of the service
 
   service search [<flags>]
     Search for a Fastly service by name
@@ -226,6 +227,7 @@ COMMANDS
     Delete a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID
+    -f, --force                  Force the deletion of the service
 
   service search [<flags>]
     Search for a Fastly service by name

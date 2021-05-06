@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -32,6 +33,12 @@ func NewUpdateCommand(parent common.Registerer, client api.HTTPClient, globals *
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	// Exit early if no token configured.
+	_, s := c.Globals.Token()
+	if s == config.SourceUndefined {
+		return errors.ErrNoToken
+	}
+
 	progress := text.NewQuietProgress(out)
 	defer func() {
 		if err != nil {

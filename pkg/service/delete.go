@@ -16,6 +16,7 @@ type DeleteCommand struct {
 	common.Base
 	manifest manifest.Data
 	Input    fastly.DeleteServiceInput
+	force    bool
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -26,6 +27,7 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete a Fastly service").Alias("remove")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.CmdClause.Flag("force", "Force the deletion of the service").Short('f').BoolVar(&c.force)
 	return &c
 }
 
@@ -36,6 +38,25 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ID = serviceID
+
+	if c.force {
+		s, err := c.Globals.Client.GetServiceDetails(&fastly.GetServiceInput{
+			ID: serviceID,
+		})
+		if err != nil {
+			return err
+		}
+
+		if s.ActiveVersion.Number != 0 {
+			_, err := c.Globals.Client.DeactivateVersion(&fastly.DeactivateVersionInput{
+				ServiceID:      serviceID,
+				ServiceVersion: s.ActiveVersion.Number,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	if err := c.Globals.Client.DeleteService(&c.Input); err != nil {
 		return err

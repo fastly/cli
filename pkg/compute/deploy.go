@@ -65,17 +65,19 @@ func NewDeployCommand(parent common.Registerer, client api.HTTPClient, globals *
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	// Exit early if no token configured.
+	_, s := c.Globals.Token()
+	if s == config.SourceUndefined {
+		return errors.ErrNoToken
+	}
+
 	var (
 		progress text.Progress
 		version  *fastly.Version
 		desc     string
 	)
 
-	if c.Globals.Verbose() {
-		progress = text.NewVerboseProgress(out)
-	} else {
-		progress = text.NewQuietProgress(out)
-	}
+	progress = newProgress(c.Globals.Verbose(), out)
 
 	defer func() {
 		if err != nil {
@@ -99,6 +101,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 	} else {
+		// There is no service and so we'll do a one time creation of the service
+		// and the associated domain/backend and store the Service ID within the
+		// manifest. On subsequent runs of the deploy subcommand we'll skip the
+		// service/domain/backend creation.
+		//
+		// NOTE: we're shadowing the `version` and `serviceID` variable.
 		version, serviceID, err = createService(progress, c.Globals.Client, name, desc)
 		if err != nil {
 			return err
@@ -109,11 +117,45 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				ID: serviceID,
 			})
 		})
+
+		// NOTE: We have to mark the progress as 'done' before prompting the user
+		// for input because otherwise the progress will overwrite the input
+		// prompt. This means after we've prompted the user for input we recreate a
+		// progress instance.
+		progress.Done()
+
+		domain, err := cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
+		if err != nil {
+			return err
+		}
+
+		backend, backendPort, err := cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
+		if err != nil {
+			return err
+		}
+
+		progress = newProgress(c.Globals.Verbose(), out)
+
+		err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
+		if err != nil {
+			return err
+		}
+
+		err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = updateManifestServiceID(ManifestFilename, progress, serviceID)
-	if err != nil {
-		return err
+	// We only want to update the manifest if it's the first time deploying and
+	// so we will have only just created a new service. If the Service ID is
+	// provided by the flag and not the file, then we'll also store that ID
+	// within the manifest.
+	if source == manifest.SourceUndefined || source != manifest.SourceFile {
+		err = updateManifestServiceID(ManifestFilename, progress, serviceID)
+		if err != nil {
+			return err
+		}
 	}
 
 	progress.Step("Validating package...")
@@ -130,26 +172,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	err = pkgUpload(progress, c.Globals.Client, serviceID, version.Number, path)
-	if err != nil {
-		return err
-	}
-
-	domain, err := cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
-	if err != nil {
-		return err
-	}
-
-	backend, backendPort, err := cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
-	if err != nil {
-		return err
-	}
-
-	err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
-	if err != nil {
-		return err
-	}
-
-	err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
 	if err != nil {
 		return err
 	}
@@ -180,6 +202,18 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, version.Number)
 	return nil
+}
+
+// newProgress checks if we're in verbose mode or not and returns an
+// appropriate progress type.
+//
+// NOTE: This function to reduce duplication of the logic in the subcommand's
+// Exec function.
+func newProgress(verbose bool, out io.Writer) text.Progress {
+	if verbose {
+		return text.NewVerboseProgress(out)
+	}
+	return text.NewQuietProgress(out)
 }
 
 // pkgPath generates a path that points to a package tar inside the pkg
@@ -351,6 +385,8 @@ func cfgDomain(domain string, def string, out io.Writer, in io.Reader, f validat
 
 		defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), def)
 
+		text.Break(out)
+
 		// TODO: variable shadowing (e.g. domain) like this can cause issues if the
 		// developer is unaware of the need to shadow, and they refactor the code
 		// which results in unexpected behaviour.
@@ -399,6 +435,8 @@ func cfgBackend(backend string, backendPort uint, out io.Writer, in io.Reader, f
 
 		backendPort = uint(portnumber)
 	}
+
+	text.Break(out)
 
 	return backend, backendPort, nil
 }

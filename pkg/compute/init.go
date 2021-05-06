@@ -66,12 +66,6 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 
 // Exec implements the command interface.
 func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	// Exit early if no token configured.
-	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	text.Output(out, "This utility will walk you through creating a Compute@Edge project. It only covers the most common items, and tries to guess sensible defaults.")
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
