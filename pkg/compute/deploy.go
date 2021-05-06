@@ -89,6 +89,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	undoStack := common.NewUndoStack()
+	defer func() { undoStack.RunIfError(out, err) }()
+
 	serviceID, source := c.manifest.ServiceID()
 	if source != manifest.SourceUndefined {
 		version, err = serviceVersion(serviceID, c.Globals.Client, c.Version, progress)
@@ -100,6 +103,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
+
+		undoStack.Push(func() error {
+			return c.Globals.Client.DeleteService(&fastly.DeleteServiceInput{
+				ID: serviceID,
+			})
+		})
 	}
 
 	err = updateManifestServiceID(ManifestFilename, progress, serviceID)
@@ -134,9 +143,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-
-	undoStack := common.NewUndoStack()
-	defer func() { undoStack.RunIfError(out, err) }()
 
 	err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
 	if err != nil {
@@ -402,6 +408,14 @@ func cfgBackend(backend string, backendPort uint, out io.Writer, in io.Reader, f
 func createDomain(progress text.Progress, client api.Interface, serviceID string, version int, domain string, undoStack common.Undoer) error {
 	progress.Step("Creating domain...")
 
+	undoStack.Push(func() error {
+		return client.DeleteDomain(&fastly.DeleteDomainInput{
+			ServiceID:      serviceID,
+			ServiceVersion: version,
+			Name:           domain,
+		})
+	})
+
 	_, err := client.CreateDomain(&fastly.CreateDomainInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
@@ -411,14 +425,6 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 		return fmt.Errorf("error creating domain: %w", err)
 	}
 
-	undoStack.Push(func() error {
-		return client.DeleteDomain(&fastly.DeleteDomainInput{
-			ServiceID:      serviceID,
-			ServiceVersion: version,
-			Name:           domain,
-		})
-	})
-
 	return nil
 }
 
@@ -426,6 +432,14 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 // of an error (i.e. will ensure the backend is deleted if there is an error).
 func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend string, backendPort uint, undoStack common.Undoer) error {
 	progress.Step("Creating backend...")
+
+	undoStack.Push(func() error {
+		return client.DeleteBackend(&fastly.DeleteBackendInput{
+			ServiceID:      serviceID,
+			ServiceVersion: version,
+			Name:           backend,
+		})
+	})
 
 	_, err := client.CreateBackend(&fastly.CreateBackendInput{
 		ServiceID:      serviceID,
@@ -437,14 +451,6 @@ func createBackend(progress text.Progress, client api.Interface, serviceID strin
 	if err != nil {
 		return fmt.Errorf("error creating backend: %w", err)
 	}
-
-	undoStack.Push(func() error {
-		return client.DeleteBackend(&fastly.DeleteBackendInput{
-			ServiceID:      serviceID,
-			ServiceVersion: version,
-			Name:           backend,
-		})
-	})
 
 	return nil
 }

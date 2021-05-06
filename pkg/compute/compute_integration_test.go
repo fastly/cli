@@ -57,14 +57,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
-				DeleteServiceFn: deleteServiceOK,
-				DeleteBackendFn: deleteBackendOK,
-				DeleteDomainFn:  deleteDomainOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			wantError: "error fetching package template:",
 		},
@@ -86,11 +80,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -117,11 +108,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -148,11 +136,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -179,11 +164,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -210,11 +192,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -308,11 +287,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			wantError: "project directory not empty",
 			manifest:  `name = "test"`, // causes a file to be created as part of test setup
@@ -335,11 +311,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			manifestIncludes: `name = "fastly-init`,
 		},
@@ -361,11 +334,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			api: mock.API{
-				GetTokenSelfFn:  tokenOK,
-				GetUserFn:       getUserOk,
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
-				CreateBackendFn: createBackendOK,
+				GetTokenSelfFn: tokenOK,
+				GetUserFn:      getUserOk,
 			},
 			manifestIncludes: `name = "fastly-init`,
 		},
@@ -713,7 +683,7 @@ func TestBuildRust(t *testing.T) {
 func TestBuildAssemblyScript(t *testing.T) {
 	if os.Getenv("TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
-		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
+		t.Skip("Set TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT and TEST_COMPUTE_BUILD to run this test")
 	}
 
 	for _, testcase := range []struct {
@@ -920,6 +890,80 @@ func TestDeploy(t *testing.T) {
 				"Cloning latest version...",
 				"Validating package...",
 				"Uploading package...",
+			},
+		},
+		// The following test doesn't provide a Service ID by either a flag nor the
+		// manifest, so this will result in the deploy script attempting to create
+		// a new service. We mock the API call to fail, and we expect to see a
+		// relevant error message related to that error.
+		{
+			name: "service create error",
+			args: []string{"compute", "deploy"},
+			api: mock.API{
+				CreateServiceFn: createServiceError,
+			},
+			manifest:  "name = \"package\"\n",
+			wantError: "error creating service: fixture error",
+			wantOutput: []string{
+				"Reading package manifest...",
+				"Creating service...",
+			},
+		},
+		// The following test doesn't provide a Service ID by either a flag nor the
+		// manifest, so this will result in the deploy script attempting to create
+		// a new service. We mock the service creation to be successful while we
+		// mock the domain API call to fail, and we expect to see a relevant error
+		// message related to that error.
+		{
+			name: "service domain error",
+			args: []string{"compute", "deploy"},
+			in:   strings.NewReader(""),
+			api: mock.API{
+				GetServiceFn:    getServiceOK,
+				CreateServiceFn: createServiceOK,
+				GetPackageFn:    getPackageOk,
+				UpdatePackageFn: updatePackageOk,
+				CreateDomainFn:  createDomainError,
+				DeleteDomainFn:  deleteDomainOK,
+				DeleteServiceFn: deleteServiceOK,
+			},
+			manifest:  "name = \"package\"\n",
+			wantError: "error creating domain: fixture error",
+			wantOutput: []string{
+				"Reading package manifest...",
+				"Creating service...",
+				"Validating package...",
+				"Uploading package...",
+				"Creating domain...",
+			},
+		},
+		// The following test mocks the backend API call to fail, and we expect to
+		// see a relevant error message related to that error.
+		{
+			name: "service backend error",
+			args: []string{"compute", "deploy"},
+			in:   strings.NewReader(""),
+			api: mock.API{
+				GetServiceFn:    getServiceOK,
+				ListVersionsFn:  listVersionsActiveOk,
+				CloneVersionFn:  cloneVersionOk,
+				GetPackageFn:    getPackageOk,
+				UpdatePackageFn: updatePackageOk,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendError,
+				DeleteBackendFn: deleteBackendOK,
+				DeleteDomainFn:  deleteDomainOK,
+			},
+			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
+			wantError: "error creating backend: fixture error",
+			wantOutput: []string{
+				"Reading package manifest...",
+				"Fetching latest version...",
+				"Cloning latest version...",
+				"Validating package...",
+				"Uploading package...",
+				"Creating domain...",
+				"Creating backend...",
 			},
 		},
 		// The following test additionally validates that the undoStack is executed
