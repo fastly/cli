@@ -44,11 +44,6 @@ func TestInit(t *testing.T) {
 		manifestIncludes string
 	}{
 		{
-			name:      "no token",
-			args:      []string{"compute", "init"},
-			wantError: "no token provided",
-		},
-		{
 			name: "unknown repository",
 			args: []string{"compute", "init", "--from", "https://example.com/template"},
 			configFile: config.File{
