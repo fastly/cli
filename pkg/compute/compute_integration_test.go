@@ -678,7 +678,7 @@ func TestBuildRust(t *testing.T) {
 func TestBuildAssemblyScript(t *testing.T) {
 	if os.Getenv("TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
-		t.Skip("Set TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT and TEST_COMPUTE_BUILD to run this test")
+		t.Skip("Set TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT or TEST_COMPUTE_BUILD to run this test")
 	}
 
 	for _, testcase := range []struct {
