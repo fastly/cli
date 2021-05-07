@@ -193,9 +193,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
-	text.Success(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
+	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
 	text.Description(out, "To compile the package, run", "fastly compute build")
 	text.Description(out, "To deploy the package, run", "fastly compute deploy")
+	text.Success(out, "Package initialized")
 
 	return nil
 }
