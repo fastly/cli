@@ -417,8 +417,10 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 func updateManifest(progress text.Progress, path string, name string, desc string, authors []string, lang *Language) (manifest.File, error) {
 	progress.Step("Updating package manifest...")
 
+	mp := filepath.Join(path, ManifestFilename)
+
 	var m manifest.File
-	if err := m.Read(filepath.Join(path, ManifestFilename)); err != nil {
+	if err := m.Read(mp); err != nil {
 		return m, fmt.Errorf("error reading package manifest: %w", err)
 	}
 
@@ -438,7 +440,7 @@ func updateManifest(progress text.Progress, path string, name string, desc strin
 	fmt.Fprintf(progress, "Setting language in manifest to %s...\n", lang.Name)
 	m.Language = lang.Name
 
-	if err := m.Write(filepath.Join(path, ManifestFilename)); err != nil {
+	if err := m.Write(mp); err != nil {
 		return m, fmt.Errorf("error saving package manifest: %w", err)
 	}
 

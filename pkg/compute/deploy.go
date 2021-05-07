@@ -79,7 +79,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	serviceID, sidSrc := c.manifest.ServiceID()
 	if sidSrc == manifest.SourceUndefined {
 		text.Output(out, "You don't currently have a service defined. This utility will walk you through defining the resources necessary to create a Compute@Edge service.")
-		text.Break(out)
 
 		domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
 		if err != nil {
