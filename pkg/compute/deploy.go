@@ -72,12 +72,37 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	var (
+		domain, backend string
+		backendPort     uint
+	)
+
+	serviceID, sidSrc := c.manifest.ServiceID()
+	if sidSrc == manifest.SourceUndefined {
+		text.Output(out, "You don't currently have a service defined. This utility will walk you through defining the resources necessary to create a Compute@Edge service.")
+		text.Break(out)
+
+		domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
+		if err != nil {
+			return err
+		}
+
+		backend, backendPort, err = cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
+		if err != nil {
+			return err
+		}
+	}
+
+	var (
 		progress text.Progress
 		version  *fastly.Version
 		desc     string
 	)
 
-	progress = newProgress(c.Globals.Verbose(), out)
+	if c.Globals.Verbose() {
+		progress = text.NewVerboseProgress(out)
+	} else {
+		progress = text.NewQuietProgress(out)
+	}
 
 	defer func() {
 		if err != nil {
@@ -94,13 +119,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	undoStack := common.NewUndoStack()
 	defer func() { undoStack.RunIfError(out, err) }()
 
-	serviceID, source := c.manifest.ServiceID()
-	if source != manifest.SourceUndefined {
-		version, err = serviceVersion(serviceID, c.Globals.Client, c.Version, progress)
-		if err != nil {
-			return err
-		}
-	} else {
+	if sidSrc == manifest.SourceUndefined {
 		// There is no service and so we'll do a one time creation of the service
 		// and the associated domain/backend and store the Service ID within the
 		// manifest. On subsequent runs of the deploy subcommand we'll skip the
@@ -118,24 +137,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			})
 		})
 
-		// NOTE: We have to mark the progress as 'done' before prompting the user
-		// for input because otherwise the progress will overwrite the input
-		// prompt. This means after we've prompted the user for input we recreate a
-		// progress instance.
-		progress.Done()
-
-		domain, err := cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
-		if err != nil {
-			return err
-		}
-
-		backend, backendPort, err := cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
-		if err != nil {
-			return err
-		}
-
-		progress = newProgress(c.Globals.Verbose(), out)
-
 		err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
 		if err != nil {
 			return err
@@ -145,13 +146,18 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
+	} else {
+		version, err = serviceVersion(serviceID, c.Globals.Client, c.Version, progress)
+		if err != nil {
+			return err
+		}
 	}
 
 	// We only want to update the manifest if it's the first time deploying and
 	// so we will have only just created a new service. If the Service ID is
 	// provided by the flag and not the file, then we'll also store that ID
 	// within the manifest.
-	if source == manifest.SourceUndefined || source != manifest.SourceFile {
+	if sidSrc == manifest.SourceUndefined || sidSrc != manifest.SourceFile {
 		err = updateManifestServiceID(ManifestFilename, progress, serviceID)
 		if err != nil {
 			return err
@@ -202,18 +208,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, version.Number)
 	return nil
-}
-
-// newProgress checks if we're in verbose mode or not and returns an
-// appropriate progress type.
-//
-// NOTE: This function to reduce duplication of the logic in the subcommand's
-// Exec function.
-func newProgress(verbose bool, out io.Writer) text.Progress {
-	if verbose {
-		return text.NewVerboseProgress(out)
-	}
-	return text.NewQuietProgress(out)
 }
 
 // pkgPath generates a path that points to a package tar inside the pkg

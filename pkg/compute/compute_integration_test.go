@@ -791,6 +791,7 @@ func TestDeploy(t *testing.T) {
 		{
 			name:      "no fastly.toml manifest",
 			args:      []string{"compute", "deploy", "--token", "123"},
+			in:        strings.NewReader(""),
 			wantError: "error reading package manifest",
 			wantOutput: []string{
 				"Reading package manifest...",
@@ -899,6 +900,7 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "service create error",
 			args: []string{"compute", "deploy", "--token", "123"},
+			in:   strings.NewReader(""),
 			api: mock.API{
 				CreateServiceFn: createServiceError,
 			},
