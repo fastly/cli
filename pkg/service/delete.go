@@ -27,7 +27,7 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete a Fastly service").Alias("remove")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("force", "Force the deletion of the service").Short('f').BoolVar(&c.force)
+	c.CmdClause.Flag("force", "Force deletion of an active service").Short('f').BoolVar(&c.force)
 	return &c
 }
 
