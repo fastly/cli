@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/common"
@@ -59,7 +60,10 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if err := c.Globals.Client.DeleteService(&c.Input); err != nil {
-		return err
+		return errors.RemediationError{
+			Inner:       err,
+			Remediation: fmt.Sprintf("Try %s\n", text.Bold("fastly service delete --force")),
+		}
 	}
 
 	text.Success(out, "Deleted service ID %s", c.Input.ID)
