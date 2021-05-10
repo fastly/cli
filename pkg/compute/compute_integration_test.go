@@ -844,7 +844,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "latest version error",
+			name: "list versions error",
 			args: []string{"compute", "deploy", "--token", "123"},
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
@@ -852,10 +852,6 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error listing service versions: fixture error",
-			wantOutput: []string{
-				"Reading package manifest...",
-				"Fetching latest version...",
-			},
 		},
 		{
 			name: "clone version error",
@@ -867,11 +863,31 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error cloning latest service version: fixture error",
-			wantOutput: []string{
-				"Reading package manifest...",
-				"Fetching latest version...",
-				"Cloning latest version...",
+		},
+		{
+			name: "list domains error",
+			args: []string{"compute", "deploy", "--token", "123"},
+			api: mock.API{
+				GetServiceFn:   getServiceOK,
+				ListVersionsFn: listVersionsActiveOk,
+				CloneVersionFn: cloneVersionOk,
+				ListDomainsFn:  listDomainsError,
 			},
+			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
+			wantError: "error fetching service domains: fixture error",
+		},
+		{
+			name: "list backends error",
+			args: []string{"compute", "deploy", "--token", "123"},
+			api: mock.API{
+				GetServiceFn:   getServiceOK,
+				ListVersionsFn: listVersionsActiveOk,
+				CloneVersionFn: cloneVersionOk,
+				ListDomainsFn:  listDomainsOk,
+				ListBackendsFn: listBackendsError,
+			},
+			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
+			wantError: "error fetching service backends: fixture error",
 		},
 		{
 			name: "package API error",
@@ -880,6 +896,8 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:    getServiceOK,
 				ListVersionsFn:  listVersionsActiveOk,
 				CloneVersionFn:  cloneVersionOk,
+				ListDomainsFn:   listDomainsOk,
+				ListBackendsFn:  listBackendsOk,
 				GetPackageFn:    getPackageOk,
 				UpdatePackageFn: updatePackageError,
 			},
@@ -887,8 +905,6 @@ func TestDeploy(t *testing.T) {
 			wantError: "error uploading package: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Fetching latest version...",
-				"Cloning latest version...",
 				"Validating package...",
 				"Uploading package...",
 			},
@@ -976,6 +992,8 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionError,
@@ -984,37 +1002,9 @@ func TestDeploy(t *testing.T) {
 			wantError: "error activating version: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Fetching latest version...",
-				"Cloning latest version...",
 				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
-			},
-		},
-		{
-			name: "list domains error",
-			args: []string{"compute", "deploy", "--token", "123"},
-			in:   strings.NewReader(""),
-			api: mock.API{
-				GetServiceFn:      getServiceOK,
-				ListVersionsFn:    listVersionsActiveOk,
-				CloneVersionFn:    cloneVersionOk,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsError,
-			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
-			wantOutput: []string{
-				"Reading package manifest...",
-				"Fetching latest version...",
-				"Cloning latest version...",
-				"Validating package...",
-				"Uploading package...",
-				"Activating version...",
-				"Manage this service at:",
-				"https://manage.fastly.com/configure/services/123",
-				"Deployed package (service 123, version 2)",
 			},
 		},
 		{
@@ -1024,13 +1014,13 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:   getServiceOK,
 				ListVersionsFn: listVersionsActiveOk,
 				CloneVersionFn: cloneVersionOk,
+				ListDomainsFn:  listDomainsOk,
+				ListBackendsFn: listBackendsOk,
 				GetPackageFn:   getPackageIdentical,
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Fetching latest version...",
-				"Cloning latest version...",
 				"Validating package...",
 				"Skipping package deployment",
 			},
@@ -1043,16 +1033,15 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Reading package manifest...",
-				"Fetching latest version...",
-				"Cloning latest version...",
 				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
@@ -1071,16 +1060,14 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
-				"Fetching latest version...",
-				"Cloning latest version...",
-				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
@@ -1099,14 +1086,14 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsInactiveOk,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
-				"Fetching latest version...",
 				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
@@ -1119,10 +1106,11 @@ func TestDeploy(t *testing.T) {
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
@@ -1242,19 +1230,18 @@ func TestPublish(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				ListBackendsFn:    listBackendsOk,
+				ListDomainsFn:     listDomainsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
 			},
 			wantOutput: []string{
 				"Built rust package test",
 				"Reading package manifest...",
 				"Validating package...",
-				"Fetching latest version...",
-				"Cloning latest version...",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
@@ -1305,19 +1292,18 @@ func TestPublish(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				ListBackendsFn:    listBackendsOk,
+				ListDomainsFn:     listDomainsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
 			},
 			wantOutput: []string{
 				"Built rust package test",
 				"Reading package manifest...",
 				"Validating package...",
-				"Fetching latest version...",
-				"Cloning latest version...",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
@@ -1368,12 +1354,13 @@ func TestPublish(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
 				CloneVersionFn:    cloneVersionOk,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
 				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
 			},
 			wantOutput: []string{
 				"Built rust package test",
@@ -1938,6 +1925,16 @@ func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 }
 
 func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+	return nil, errTest
+}
+
+func listBackendsOk(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
+	return []*fastly.Backend{
+		{Name: "foobar"},
+	}, nil
+}
+
+func listBackendsError(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return nil, errTest
 }
 
