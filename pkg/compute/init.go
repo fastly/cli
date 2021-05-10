@@ -195,6 +195,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
 	text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
+	text.Description(out, "To learn about deploying Compute@Edge projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
 	text.Success(out, "Initialized package %s", text.Bold(m.Name))
 
 	return nil
