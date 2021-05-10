@@ -66,7 +66,7 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 
 // Exec implements the command interface.
 func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	text.Output(out, "This utility will walk you through creating a Compute@Edge project. It only covers the most common items, and tries to guess sensible defaults.")
+	text.Output(out, "Creating a new Compute@Edge project.")
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
 	text.Break(out)
@@ -194,8 +194,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 
 	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
-	text.Description(out, "To compile the package, run", "fastly compute build")
-	text.Description(out, "To deploy the package, run", "fastly compute deploy")
+	text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
 	text.Success(out, "Initialized package %s", text.Bold(m.Name))
 
 	return nil
