@@ -24,9 +24,15 @@ import (
 	"github.com/kennygrant/sanitize"
 )
 
+type invalidResource int
+
 const (
-	defaultTopLevelDomain = "edgecompute.app"
-	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
+	defaultTopLevelDomain                 = "edgecompute.app"
+	manageServiceBaseURL                  = "https://manage.fastly.com/configure/services/"
+	resourceNone          invalidResource = iota
+	resourceBoth
+	resourceDomain
+	resourceBackend
 )
 
 // DeployCommand deploys an artifact previously produced by build.
@@ -74,11 +80,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var (
 		domain, backend string
 		backendPort     uint
+		invalidService  bool
+		version         *fastly.Version
 	)
 
 	serviceID, sidSrc := c.manifest.ServiceID()
 	if sidSrc == manifest.SourceUndefined {
-		text.Output(out, "You don't currently have a service defined. This utility will walk you through defining the resources necessary to create a Compute@Edge service.")
+		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
+		text.Break(out)
+		text.Output(out, "Press ^C at any time to quit.")
 
 		domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
 		if err != nil {
@@ -89,11 +99,53 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
+	} else {
+		// Because a service_id exists in the fastly.toml doesn't mean it's valid
+		// e.g. it could be missing either a domain or backend resource. So we
+		// check and allow the user to configure these settings before continuing.
+		v, ok, invalidType, err := validateService(serviceID, c.Globals.Client, c.Version)
+		if err != nil {
+			return err
+		}
+
+		// v will only be nil if the initial service version request failed, but if
+		// that happens the above error check will catch the error and return it
+		// before we reach here. We don't assign directly to `version` as I don't
+		// like variable shadowing and prefer to be explicit as it avoids having to
+		// declare related variables separately.
+		version = v
+
+		if !ok {
+			invalidService = true
+
+			text.Output(out, "Service '%s' is missing required domain or backend. These must be added before the Compute@Edge service can be deployed.", serviceID)
+
+			switch invalidType {
+			case resourceBoth:
+				domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
+				if err != nil {
+					return err
+				}
+				backend, backendPort, err = cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
+				if err != nil {
+					return err
+				}
+			case resourceDomain:
+				domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
+				if err != nil {
+					return err
+				}
+			case resourceBackend:
+				backend, backendPort, err = cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
+				if err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	var (
 		progress text.Progress
-		version  *fastly.Version
 		desc     string
 	)
 
@@ -135,18 +187,20 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				ID: serviceID,
 			})
 		})
+	}
 
+	// We can't create the domain/backend earlier in the logic flow as it
+	// requires the use of a text.Progress which overwrites the current line
+	// (i.e. it would cause any text prompts to be hidden) and so we prompt for
+	// as much information as possible at the top of the Exec function and after
+	// we have all the information do we proceed with the creation of resources.
+	if sidSrc == manifest.SourceUndefined || invalidService {
 		err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
 		if err != nil {
 			return err
 		}
 
 		err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
-		if err != nil {
-			return err
-		}
-	} else {
-		version, err = serviceVersion(serviceID, c.Globals.Client, c.Version, progress)
 		if err != nil {
 			return err
 		}
@@ -230,8 +284,48 @@ func pkgPath(path string, progress text.Progress, name string, source manifest.S
 	return path, nil
 }
 
+// validateService checks if the service version has a domain and backend
+// defined.
+func validateService(serviceID string, client api.Interface, version common.OptionalInt) (*fastly.Version, bool, invalidResource, error) {
+	v, err := serviceVersion(serviceID, client, version)
+	if err != nil {
+		return nil, false, resourceNone, err
+	}
+
+	domains, err := client.ListDomains(&fastly.ListDomainsInput{
+		ServiceID:      serviceID,
+		ServiceVersion: v.Number,
+	})
+	if err != nil {
+		return v, false, resourceNone, fmt.Errorf("error fetching service domains: %w", err)
+	}
+
+	backends, err := client.ListBackends(&fastly.ListBackendsInput{
+		ServiceID:      serviceID,
+		ServiceVersion: v.Number,
+	})
+	if err != nil {
+		return v, false, resourceNone, fmt.Errorf("error fetching service backends: %w", err)
+	}
+
+	ld := len(domains)
+	lb := len(backends)
+
+	if ld == 0 && lb == 0 {
+		return v, false, resourceBoth, nil
+	}
+	if ld == 0 {
+		return v, false, resourceDomain, nil
+	}
+	if lb == 0 {
+		return v, false, resourceBackend, nil
+	}
+
+	return v, true, resourceNone, nil
+}
+
 // serviceVersion returns the version for the given service.
-func serviceVersion(serviceID string, client api.Interface, versionFlag common.OptionalInt, progress text.Progress) (*fastly.Version, error) {
+func serviceVersion(serviceID string, client api.Interface, versionFlag common.OptionalInt) (*fastly.Version, error) {
 	_, err := client.GetService(&fastly.GetServiceInput{
 		ID: serviceID,
 	})
@@ -244,9 +338,8 @@ func serviceVersion(serviceID string, client api.Interface, versionFlag common.O
 	if versionFlag.WasSet {
 		version = &fastly.Version{Number: versionFlag.Value}
 	} else {
-		progress.Step("Fetching latest version...")
 		var err error
-		version, err = pkgVersion(serviceID, progress, client)
+		version, err = pkgVersion(serviceID, client)
 		if err != nil {
 			return nil, err
 		}
@@ -256,7 +349,7 @@ func serviceVersion(serviceID string, client api.Interface, versionFlag common.O
 }
 
 // pkgVersion acquires the ideal version to associate with a compute package.
-func pkgVersion(serviceID string, progress text.Progress, client api.Interface) (*fastly.Version, error) {
+func pkgVersion(serviceID string, client api.Interface) (*fastly.Version, error) {
 	versions, err := client.ListVersions(&fastly.ListVersionsInput{
 		ServiceID: serviceID,
 	})
@@ -270,8 +363,6 @@ func pkgVersion(serviceID string, progress text.Progress, client api.Interface) 
 	}
 
 	if version.Active || version.Locked {
-		progress.Step("Cloning latest version...")
-
 		version, err := client.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      serviceID,
 			ServiceVersion: version.Number,
