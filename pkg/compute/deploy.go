@@ -155,10 +155,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
+	undoStack := common.NewUndoStack()
+
 	defer func() {
 		if err != nil {
 			progress.Fail() // progress.Done is handled inline
 		}
+		undoStack.RunIfError(out, err)
 	}()
 
 	name, source := c.manifest.Name()
@@ -166,9 +169,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-
-	undoStack := common.NewUndoStack()
-	defer func() { undoStack.RunIfError(out, err) }()
 
 	if sidSrc == manifest.SourceUndefined {
 		// There is no service and so we'll do a one time creation of the service
