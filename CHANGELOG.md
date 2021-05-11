@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.28.0](https://github.com/fastly/cli/releases/tag/v0.28.0) (2021-05-11)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.27.2...v0.28.0)
+
+**Enhancements:**
+
+- Add isBool to command flags [\#267](https://github.com/fastly/cli/pull/267)
+- Move service creation to `fastly compute deploy`. [\#266](https://github.com/fastly/cli/pull/266)
+
+**Bug fixes:**
+
+- Fix --force flag not being respected. [\#272](https://github.com/fastly/cli/pull/272)
+- Clean-out service\_id from manifest when deleting a service. [\#268](https://github.com/fastly/cli/pull/268)
+
 ## [v0.27.2](https://github.com/fastly/cli/releases/tag/v0.27.2) (2021-04-21)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.27.1...v0.27.2)
