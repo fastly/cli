@@ -71,15 +71,16 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Output(out, "Press ^C at any time to quit.")
 	text.Break(out)
 
-	cont, err := verifyDirectory(out, in)
-	if err != nil {
-		return err
-	}
-
-	if !c.forceNonEmpty && !cont {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("project directory not empty"),
-			Remediation: errors.ExistingDirRemediation,
+	if !c.forceNonEmpty {
+		cont, err := verifyDirectory(out, in)
+		if err != nil {
+			return err
+		}
+		if !cont {
+			return errors.RemediationError{
+				Inner:       fmt.Errorf("project directory not empty"),
+				Remediation: errors.ExistingDirRemediation,
+			}
 		}
 	}
 
