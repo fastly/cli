@@ -16,6 +16,14 @@ type UndoStack struct {
 	states []UndoFn
 }
 
+// Undoer represents the API of an UndoStack.
+type Undoer interface {
+	Pop() UndoFn
+	Push(elem UndoFn)
+	Len() int
+	RunIfError(w io.Writer, err error)
+}
+
 // NewUndoStack constructs a new UndoStack.
 func NewUndoStack() *UndoStack {
 	s := make([]UndoFn, 0, 1)

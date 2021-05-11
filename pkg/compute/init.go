@@ -4,8 +4,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	mathRand "math/rand"
-	"net"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute/manifest"
@@ -21,14 +18,9 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v3/fastly"
+
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
-)
-
-const (
-	defaultTopLevelDomain = "edgecompute.app"
-	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
 )
 
 var (
@@ -48,9 +40,6 @@ type InitCommand struct {
 	branch        string
 	tag           string
 	path          string
-	domain        string
-	backend       string
-	backendPort   uint
 	forceNonEmpty bool
 }
 
@@ -62,7 +51,6 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
-	c.CmdClause.Flag("service-id", "Existing service ID to use. By default, this command creates a new service").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.manifest.File.Name)
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
@@ -71,9 +59,6 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
-	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.domain)
-	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.backend)
-	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.backendPort)
 	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.forceNonEmpty)
 
 	return &c
@@ -81,13 +66,7 @@ func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *co
 
 // Exec implements the command interface.
 func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	// Exit early if no token configured.
-	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
-	text.Output(out, "This utility will walk you through creating a Compute@Edge project. It only covers the most common items, and tries to guess sensible defaults.")
+	text.Output(out, "Creating a new Compute@Edge project.")
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
 	text.Break(out)
@@ -117,18 +96,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}()
 
-	undoStack := common.NewUndoStack()
-	defer func() { undoStack.RunIfError(out, err) }()
-
 	var (
-		source      manifest.Source
-		serviceID   string
-		service     *fastly.Service
-		version     int
-		name        string
-		description string
-		authors     []string
-		language    *Language
+		name     string
+		desc     string
+		authors  []string
+		language *Language
+		from     string
 	)
 
 	languages := []*Language{
@@ -146,23 +119,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}),
 	}
 
-	name, _ = c.manifest.Name()
-	description, _ = c.manifest.Description()
-	authors, _ = c.manifest.Authors()
-
-	serviceID, source = c.manifest.ServiceID()
-	if source != manifest.SourceUndefined {
-		service, err = c.Globals.Client.GetService(&fastly.GetServiceInput{
-			ID: serviceID,
-		})
-		if err != nil {
-			return fmt.Errorf("error fetching service details: %w", err)
-		}
-
-		name = service.Name
-		description = service.Comment
-	}
-
 	if c.path == "" && !c.manifest.File.Exists() {
 		fmt.Fprintf(progress, "--path not specified, using current directory\n")
 		path, err := os.Getwd()
@@ -178,127 +134,34 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	c.path = abspath
 
-	if name == "" {
-		defaultName := filepath.Base(c.path)
-		name, err = text.Input(out, fmt.Sprintf("Name: [%s] ", defaultName), in)
-		if err != nil {
-			return fmt.Errorf("error reading input: %w", err)
-		}
-		if name == "" {
-			name = defaultName
-		}
+	name, _ = c.manifest.Name()
+	name, err = pkgName(name, c.path, in, out)
+	if err != nil {
+		return err
 	}
 
-	if description == "" {
-		description, err = text.Input(out, "Description: ", in)
-		if err != nil {
-			return fmt.Errorf("error reading input: %w", err)
-		}
+	desc, _ = c.manifest.Description()
+	desc, err = pkgDesc(desc, in, out)
+	if err != nil {
+		return err
 	}
 
-	if len(authors) == 0 {
-		label := "Author: "
-		var defaultEmail string
-		if email := c.Globals.File.User.Email; email != "" {
-			defaultEmail = email
-			label = fmt.Sprintf("%s[%s] ", label, email)
-		}
-
-		author, err := text.Input(out, label, in)
-		if err != nil {
-			return fmt.Errorf("error reading input %w", err)
-		}
-		if author != "" {
-			authors = []string{author}
-		} else {
-			authors = []string{defaultEmail}
-		}
+	authors, _ = c.manifest.Authors()
+	authors, err = pkgAuthors(authors, c.Globals.File.User.Email, in, out)
+	if err != nil {
+		return err
 	}
 
-	if c.language == "" {
-		text.Output(out, "%s", text.Bold("Language:"))
-		for i, lang := range languages {
-			text.Output(out, "[%d] %s", i+1, lang.DisplayName)
-		}
-		option, err := text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
-		if err != nil {
-			return fmt.Errorf("reading input %w", err)
-		}
-		if option == "" {
-			option = "1"
-		}
-		if i, err := strconv.Atoi(option); err == nil {
-			language = languages[i-1]
-		} else {
-			return fmt.Errorf("selecting language")
-		}
-	} else {
-		for _, l := range languages {
-			if strings.EqualFold(c.language, l.Name) {
-				language = l
-			}
-		}
+	language, err = pkgLang(c.language, languages, in, out)
+	if err != nil {
+		return err
 	}
 
-	if c.from == "" && !c.manifest.File.Exists() {
-		text.Output(out, "%s", text.Bold("Starter kit:"))
-		for i, kit := range language.StarterKits {
-			text.Output(out, "[%d] %s (%s)", i+1, kit.Name, kit.Path)
-		}
-		option, err := text.Input(out, "Choose option or type URL: [1] ", in, validateTemplateOptionOrURL(language.StarterKits))
-		if err != nil {
-			return fmt.Errorf("error reading input %w", err)
-		}
-		if option == "" {
-			option = "1"
-		}
+	manifestExist := c.manifest.File.Exists()
 
-		if i, err := strconv.Atoi(option); err == nil {
-			template := language.StarterKits[i-1]
-			c.from = template.Path
-			c.branch = template.Branch
-			c.tag = template.Tag
-		} else {
-			c.from = option
-		}
-	}
-
-	if c.domain == "" {
-		mathRand.Seed(time.Now().UnixNano())
-		defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), defaultTopLevelDomain)
-		c.domain, err = text.Input(out, fmt.Sprintf("Domain: [%s] ", defaultDomain), in, validateDomain)
-		if err != nil {
-			return fmt.Errorf("error reading input %w", err)
-		}
-		if c.domain == "" {
-			c.domain = defaultDomain
-		}
-	}
-
-	if c.backend == "" {
-		c.backend, err = text.Input(out, "Backend (originless, hostname or IP address): [originless] ", in, validateBackend)
-		if err != nil {
-			return fmt.Errorf("error reading input %w", err)
-		}
-		if c.backend == "" || c.backend == "originless" {
-			c.backend = "127.0.0.1"
-			c.backendPort = uint(80)
-		}
-	}
-
-	if c.backendPort == 0 {
-		input, err := text.Input(out, "Backend port number: [80] ", in)
-		if err != nil {
-			return fmt.Errorf("error reading input %w", err)
-		}
-
-		portnumber, err := strconv.Atoi(input)
-		if err != nil {
-			text.Warning(out, "error converting input: %v. We'll use the default port number: [80].", err)
-			portnumber = 80
-		}
-
-		c.backendPort = uint(portnumber)
+	from, branch, tag, err := pkgFrom(c.from, c.branch, c.tag, manifestExist, language.StarterKits, in, out)
+	if err != nil {
+		return err
 	}
 
 	text.Break(out)
@@ -307,182 +170,16 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
-	// If we have an existing service, get the ideal version.
-	// Otherwise create a new service and set version to 1.
-	if serviceID != "" {
-		versions, err := c.Globals.Client.ListVersions(&fastly.ListVersionsInput{
-			ServiceID: serviceID,
-		})
+	if from != "" && !manifestExist {
+		err := pkgFetch(from, branch, tag, c.path, progress)
 		if err != nil {
-			return fmt.Errorf("error listing service versions: %w", err)
+			return err
 		}
-
-		v, err := getLatestIdealVersion(versions)
-		if err != nil {
-			return fmt.Errorf("error finding latest service version")
-		}
-
-		if v.Active || v.Locked {
-			progress.Step("Cloning latest version...")
-			v, err = c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
-				ServiceID:      serviceID,
-				ServiceVersion: v.Number,
-			})
-			if err != nil {
-				return fmt.Errorf("error cloning latest service version: %w", err)
-			}
-		}
-
-		version = v.Number
-	} else {
-		progress.Step("Creating service...")
-		service, err = c.Globals.Client.CreateService(&fastly.CreateServiceInput{
-			Name:    name,
-			Type:    "wasm",
-			Comment: description,
-		})
-		if err != nil {
-			if strings.Contains(err.Error(), "Valid values for 'type' are: 'vcl'") {
-				return errors.RemediationError{
-					Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge feature flag enabled on your Fastly account"),
-					Remediation: "See more at https://fastly.dev/learning/compute/#create-a-new-fastly-account-and-invite-your-collaborators",
-				}
-			}
-			return fmt.Errorf("error creating service: %w", err)
-		}
-		version = 1
-		undoStack.Push(func() error {
-			return c.Globals.Client.DeleteService(&fastly.DeleteServiceInput{
-				ID: service.ID,
-			})
-		})
 	}
 
-	progress.Step("Creating domain...")
-	_, err = c.Globals.Client.CreateDomain(&fastly.CreateDomainInput{
-		ServiceID:      service.ID,
-		ServiceVersion: version,
-		Name:           c.domain,
-	})
+	m, err := updateManifest(progress, c.path, name, desc, authors, language)
 	if err != nil {
-		return fmt.Errorf("error creating domain: %w", err)
-	}
-	undoStack.Push(func() error {
-		return c.Globals.Client.DeleteDomain(&fastly.DeleteDomainInput{
-			ServiceID:      service.ID,
-			ServiceVersion: version,
-			Name:           c.domain,
-		})
-	})
-
-	progress.Step("Creating backend...")
-	_, err = c.Globals.Client.CreateBackend(&fastly.CreateBackendInput{
-		ServiceID:      service.ID,
-		ServiceVersion: version,
-		Name:           c.backend,
-		Address:        c.backend,
-		Port:           c.backendPort,
-	})
-	if err != nil {
-		return fmt.Errorf("error creating backend: %w", err)
-	}
-	undoStack.Push(func() error {
-		return c.Globals.Client.DeleteBackend(&fastly.DeleteBackendInput{
-			ServiceID:      service.ID,
-			ServiceVersion: version,
-			Name:           c.backend,
-		})
-	})
-
-	if c.from != "" && !c.manifest.File.Exists() {
-		progress.Step("Fetching package template...")
-		tempdir, err := tempDir("package-init")
-		if err != nil {
-			return fmt.Errorf("error creating temporary path for package template: %w", err)
-		}
-		defer os.RemoveAll(tempdir)
-
-		if c.branch != "" && c.tag != "" {
-			return fmt.Errorf("cannot use both git branch and tag name")
-		}
-
-		var ref plumbing.ReferenceName
-		if c.branch != "" {
-			ref = plumbing.NewBranchReferenceName(c.branch)
-		}
-		if c.tag != "" {
-			ref = plumbing.NewTagReferenceName(c.tag)
-		}
-
-		if _, err := git.PlainClone(tempdir, false, &git.CloneOptions{
-			URL:           c.from,
-			ReferenceName: ref,
-			Depth:         1,
-			Progress:      progress,
-		}); err != nil {
-			return fmt.Errorf("error fetching package template: %w", err)
-		}
-
-		if err := os.RemoveAll(filepath.Join(tempdir, ".git")); err != nil {
-			return fmt.Errorf("error removing git metadata from package template: %w", err)
-		}
-
-		if err := filepath.Walk(tempdir, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err // abort
-			}
-			if info.IsDir() {
-				return nil // descend
-			}
-			rel, err := filepath.Rel(tempdir, path)
-			if err != nil {
-				return err
-			}
-			// Filter any files we want to ignore in Fastly-owned templates.
-			if fastlyOrgRegEx.MatchString(c.from) && fastlyFileIgnoreListRegEx.MatchString(rel) {
-				return nil
-			}
-			dst := filepath.Join(c.path, rel)
-			if err := os.MkdirAll(filepath.Dir(dst), 0750); err != nil {
-				return err
-			}
-			if err := filesystem.CopyFile(path, dst); err != nil {
-				return err
-			}
-			return nil
-		}); err != nil {
-			return fmt.Errorf("error copying files from package template: %w", err)
-		}
-	}
-
-	progress.Step("Updating package manifest...")
-
-	var m manifest.File
-	if err := m.Read(filepath.Join(c.path, ManifestFilename)); err != nil {
-		return fmt.Errorf("error reading package manifest: %w", err)
-	}
-
-	fmt.Fprintf(progress, "Setting package name in manifest to %q...\n", name)
-	m.Name = name
-
-	if description != "" {
-		fmt.Fprintf(progress, "Setting description in manifest to %s...\n", description)
-		m.Description = description
-	}
-
-	if len(authors) > 0 {
-		fmt.Fprintf(progress, "Setting authors in manifest to %s...\n", strings.Join(authors, ", "))
-		m.Authors = authors
-	}
-
-	fmt.Fprintf(progress, "Setting service ID in manifest to %q...\n", service.ID)
-	m.ServiceID = service.ID
-
-	fmt.Fprintf(progress, "Setting language in manifest to %s...\n", language.Name)
-	m.Language = language.Name
-
-	if err := m.Write(filepath.Join(c.path, ManifestFilename)); err != nil {
-		return fmt.Errorf("error saving package manifest: %w", err)
+		return err
 	}
 
 	progress.Step("Initializing package...")
@@ -497,12 +194,257 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 
 	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
-	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, service.ID))
-	text.Description(out, "To compile the package, run", "fastly compute build")
-	text.Description(out, "To deploy the package, run", "fastly compute deploy")
+	text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
+	text.Description(out, "To learn about deploying Compute@Edge projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
+	text.Success(out, "Initialized package %s", text.Bold(m.Name))
 
-	text.Success(out, "Initialized service %s", service.ID)
 	return nil
+}
+
+// pkgName prompts the user for a package name unless already defined either
+// via the corresponding CLI flag or the manifest file.
+//
+// It will use a default of the current directory path if no value provided by
+// the user via the prompt.
+func pkgName(name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
+	defaultName := filepath.Base(dirPath)
+
+	if name == "" {
+		var err error
+
+		name, err = text.Input(out, fmt.Sprintf("Name: [%s] ", defaultName), in)
+		if err != nil {
+			return "", fmt.Errorf("error reading input: %w", err)
+		}
+
+		if name == "" {
+			name = defaultName
+		}
+	}
+
+	return name, nil
+}
+
+// pkgDesc prompts the user for a package description unless already defined
+// either via the corresponding CLI flag or the manifest file.
+func pkgDesc(desc string, in io.Reader, out io.Writer) (string, error) {
+	if desc == "" {
+		var err error
+
+		desc, err = text.Input(out, "Description: ", in)
+		if err != nil {
+			return "", fmt.Errorf("error reading input: %w", err)
+		}
+	}
+
+	return desc, nil
+}
+
+// pkgAuthors prompts the user for a package name unless already defined either
+// via the corresponding CLI flag or the manifest file.
+//
+// It will use a default of the user's email found within the manifest, if set
+// there, otherwise the value will be an empty slice.
+func pkgAuthors(authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
+	if len(authors) == 0 {
+		label := "Author: "
+
+		if manifestEmail != "" {
+			label = fmt.Sprintf("%s[%s] ", label, manifestEmail)
+		}
+
+		author, err := text.Input(out, label, in)
+		if err != nil {
+			return []string{}, fmt.Errorf("error reading input %w", err)
+		}
+
+		if author != "" {
+			authors = []string{author}
+		} else {
+			authors = []string{manifestEmail}
+		}
+	}
+
+	return authors, nil
+}
+
+// pkgLang prompts the user for a package language unless already defined
+// either via the corresponding CLI flag or the manifest file.
+func pkgLang(lang string, languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
+	var language *Language
+
+	if lang == "" {
+		text.Output(out, "%s", text.Bold("Language:"))
+		for i, lang := range languages {
+			text.Output(out, "[%d] %s", i+1, lang.DisplayName)
+		}
+		option, err := text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
+		if err != nil {
+			return nil, fmt.Errorf("reading input %w", err)
+		}
+		if option == "" {
+			option = "1"
+		}
+		if i, err := strconv.Atoi(option); err == nil {
+			language = languages[i-1]
+		} else {
+			return nil, fmt.Errorf("selecting language")
+		}
+	} else {
+		for _, l := range languages {
+			if strings.EqualFold(lang, l.Name) {
+				language = l
+			}
+		}
+	}
+
+	return language, nil
+}
+
+// pkgFrom prompts the user for a package starter kit unless already defined
+// either via the corresponding CLI flag or the manifest file.
+//
+// It returns the path to the starter kit, and the corresponding branch/tag,
+// otherwise if there' is an error converting the prompt input, then the option
+// number is returned along with the branch/tag that was potentially provided
+// via the corresponding CLI flag or manifest content.
+func pkgFrom(from string, branch string, tag string, manifestExist bool, kits []config.StarterKit, in io.Reader, out io.Writer) (string, string, string, error) {
+	if from == "" && !manifestExist {
+		text.Output(out, "%s", text.Bold("Starter kit:"))
+		for i, kit := range kits {
+			text.Output(out, "[%d] %s (%s)", i+1, kit.Name, kit.Path)
+		}
+		option, err := text.Input(out, "Choose option or type URL: [1] ", in, validateTemplateOptionOrURL(kits))
+		if err != nil {
+			return "", "", "", fmt.Errorf("error reading input %w", err)
+		}
+		if option == "" {
+			option = "1"
+		}
+
+		if i, err := strconv.Atoi(option); err == nil {
+			template := kits[i-1]
+			from = template.Path
+			branch = template.Branch
+			tag = template.Tag
+		} else {
+			from = option
+		}
+	}
+
+	return from, branch, tag, nil
+}
+
+// pkgFetch clones the given repo (from) into a temp directory, then copies
+// specific files to the destination directory (path).
+func pkgFetch(from string, branch string, tag string, fpath string, progress text.Progress) error {
+	progress.Step("Fetching package template...")
+
+	tempdir, err := tempDir("package-init")
+	if err != nil {
+		return fmt.Errorf("error creating temporary path for package template: %w", err)
+	}
+	defer os.RemoveAll(tempdir)
+
+	if branch != "" && tag != "" {
+		return fmt.Errorf("cannot use both git branch and tag name")
+	}
+
+	var ref plumbing.ReferenceName
+
+	if branch != "" {
+		ref = plumbing.NewBranchReferenceName(branch)
+	}
+
+	if tag != "" {
+		ref = plumbing.NewTagReferenceName(tag)
+	}
+
+	_, err = git.PlainClone(tempdir, false, &git.CloneOptions{
+		URL:           from,
+		ReferenceName: ref,
+		Depth:         1,
+		Progress:      progress,
+	})
+	if err != nil {
+		return fmt.Errorf("error fetching package template: %w", err)
+	}
+
+	if err := os.RemoveAll(filepath.Join(tempdir, ".git")); err != nil {
+		return fmt.Errorf("error removing git metadata from package template: %w", err)
+	}
+
+	err = filepath.Walk(tempdir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err // abort
+		}
+
+		if info.IsDir() {
+			return nil // descend
+		}
+
+		rel, err := filepath.Rel(tempdir, path)
+		if err != nil {
+			return err
+		}
+
+		// Filter any files we want to ignore in Fastly-owned templates.
+		if fastlyOrgRegEx.MatchString(from) && fastlyFileIgnoreListRegEx.MatchString(rel) {
+			return nil
+		}
+
+		dst := filepath.Join(fpath, rel)
+		if err := os.MkdirAll(filepath.Dir(dst), 0750); err != nil {
+			return err
+		}
+
+		if err := filesystem.CopyFile(path, dst); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("error copying files from package template: %w", err)
+	}
+
+	return nil
+}
+
+// updateManifest updates the manifest with data acquired from various sources.
+// e.g. prompting the user, existing manifest file.
+func updateManifest(progress text.Progress, path string, name string, desc string, authors []string, lang *Language) (manifest.File, error) {
+	progress.Step("Updating package manifest...")
+
+	mp := filepath.Join(path, ManifestFilename)
+
+	var m manifest.File
+	if err := m.Read(mp); err != nil {
+		return m, fmt.Errorf("error reading package manifest: %w", err)
+	}
+
+	fmt.Fprintf(progress, "Setting package name in manifest to %q...\n", name)
+	m.Name = name
+
+	if desc != "" {
+		fmt.Fprintf(progress, "Setting description in manifest to %s...\n", desc)
+		m.Description = desc
+	}
+
+	if len(authors) > 0 {
+		fmt.Fprintf(progress, "Setting authors in manifest to %s...\n", strings.Join(authors, ", "))
+		m.Authors = authors
+	}
+
+	fmt.Fprintf(progress, "Setting language in manifest to %s...\n", lang.Name)
+	m.Language = lang.Name
+
+	if err := m.Write(mp); err != nil {
+		return m, fmt.Errorf("error saving package manifest: %w", err)
+	}
+
+	return m, nil
 }
 
 // verifyDirectory indicates if the user wants to continue with the execution
@@ -638,31 +580,4 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 		}
 		return nil
 	}
-}
-
-func validateBackend(input string) error {
-	var isHost bool
-	if _, err := net.LookupHost(input); err == nil {
-		isHost = true
-	}
-	var isAddr bool
-	if _, err := net.LookupAddr(input); err == nil {
-		isHost = true
-	}
-	isEmpty := input == ""
-	isOriginless := strings.ToLower(input) == "originless"
-	if !isEmpty && !isOriginless && !isHost && !isAddr {
-		return fmt.Errorf(`must be "originless" or a valid hostname, IPv4, or IPv6 address`)
-	}
-	return nil
-}
-
-func validateDomain(input string) error {
-	if input == "" {
-		return nil
-	}
-	if !domainNameRegEx.MatchString(input) {
-		return fmt.Errorf("must be valid domain name")
-	}
-	return nil
 }

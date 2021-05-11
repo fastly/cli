@@ -36,6 +36,14 @@ rust-toolchain
 # Ignore IDEs
 .idea
 
+# Ignore Vim
+# https://github.com/github/gitignore/blob/41ec05833ae00be887bab36fceaee63611e86189/Global/Vim.gitignore
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
 # Ignore OS files
 .DS_Store
 
