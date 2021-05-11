@@ -81,6 +81,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		domain, backend string
 		backendPort     uint
 		invalidService  bool
+		invalidType     invalidResource
 		version         *fastly.Version
 	)
 
@@ -89,6 +90,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
 		text.Break(out)
 		text.Output(out, "Press ^C at any time to quit.")
+		text.Break(out)
 
 		domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
 		if err != nil {
@@ -99,26 +101,29 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
+
+		text.Break(out)
 	} else {
+		// We define the `ok` variable so that the following call to
+		// `validateservice` will be able to shadow multiple variables.
+		var ok bool
+
 		// Because a service_id exists in the fastly.toml doesn't mean it's valid
 		// e.g. it could be missing either a domain or backend resource. So we
 		// check and allow the user to configure these settings before continuing.
-		v, ok, invalidType, err := validateService(serviceID, c.Globals.Client, c.Version)
+		//
+		// The returned version will only be nil if the initial service version
+		// request failed.
+		version, ok, invalidType, err = validateService(serviceID, c.Globals.Client, c.Version)
 		if err != nil {
 			return err
 		}
-
-		// v will only be nil if the initial service version request failed, but if
-		// that happens the above error check will catch the error and return it
-		// before we reach here. We don't assign directly to `version` as I don't
-		// like variable shadowing and prefer to be explicit as it avoids having to
-		// declare related variables separately.
-		version = v
 
 		if !ok {
 			invalidService = true
 
 			text.Output(out, "Service '%s' is missing required domain or backend. These must be added before the Compute@Edge service can be deployed.", serviceID)
+			text.Break(out)
 
 			switch invalidType {
 			case resourceBoth:
@@ -141,6 +146,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					return err
 				}
 			}
+
+			text.Break(out)
 		}
 	}
 
@@ -187,22 +194,46 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				ID: serviceID,
 			})
 		})
-	}
 
-	// We can't create the domain/backend earlier in the logic flow as it
-	// requires the use of a text.Progress which overwrites the current line
-	// (i.e. it would cause any text prompts to be hidden) and so we prompt for
-	// as much information as possible at the top of the Exec function and after
-	// we have all the information do we proceed with the creation of resources.
-	if sidSrc == manifest.SourceUndefined || invalidService {
+		// We can't create the domain/backend earlier in the logic flow as it
+		// requires the use of a text.Progress which overwrites the current line
+		// (i.e. it would cause any text prompts to be hidden) and so we prompt for
+		// as much information as possible at the top of the Exec function. After
+		// we have all the information, then we proceed with the creation of resources.
 		err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
 		if err != nil {
 			return err
 		}
-
 		err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
 		if err != nil {
 			return err
+		}
+	}
+
+	// If the user has specified a Service ID, then we validate it has the
+	// required resources, and if it's invalid we'll drop into the following code
+	// block to ensure we only create the resources that are missing.
+	if invalidService {
+		switch invalidType {
+		case resourceBoth:
+			err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
+			if err != nil {
+				return err
+			}
+			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
+			if err != nil {
+				return err
+			}
+		case resourceDomain:
+			err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
+			if err != nil {
+				return err
+			}
+		case resourceBackend:
+			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -471,9 +502,6 @@ func cfgDomain(domain string, def string, out io.Writer, in io.Reader, f validat
 	rand.Seed(time.Now().UnixNano())
 
 	defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), def)
-
-	text.Break(out)
-
 	domain, err := text.Input(out, fmt.Sprintf("Domain: [%s] ", defaultDomain), in, f)
 	if err != nil {
 		return "", fmt.Errorf("error reading input %w", err)
@@ -516,8 +544,6 @@ func cfgBackend(backend string, backendPort uint, out io.Writer, in io.Reader, f
 
 		backendPort = uint(portnumber)
 	}
-
-	text.Break(out)
 
 	return backend, backendPort, nil
 }
