@@ -1,0 +1,6 @@
+manifest_version = 1
+name = "Default Rust template"
+description = "Default package template for Rust based edge compute projects."
+authors = ["phamann <patrick@fastly.com>"]
+language = "rust"
+service_id = "123"

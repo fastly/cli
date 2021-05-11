@@ -66,6 +66,16 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
+	if err := c.manifest.File.Read(manifest.Filename); err != nil {
+		return fmt.Errorf("error reading package manifest: %w", err)
+	}
+
+	c.manifest.File.ServiceID = ""
+
+	if err := c.manifest.File.Write(manifest.Filename); err != nil {
+		return fmt.Errorf("error updating package manifest: %w", err)
+	}
+
 	text.Success(out, "Deleted service ID %s", c.Input.ID)
 	return nil
 }
