@@ -5,10 +5,14 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -310,34 +314,69 @@ func TestServiceUpdate(t *testing.T) {
 }
 
 func TestServiceDelete(t *testing.T) {
+	nonEmptyServiceID := regexp.MustCompile(`service_id = "[^"]+"`)
+
 	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
+		args                 []string
+		api                  mock.API
+		manifest             string
+		wantError            string
+		wantOutput           string
+		expectEmptyServiceID bool
 	}{
 		{
 			args:      []string{"service", "delete"},
 			api:       mock.API{DeleteServiceFn: deleteServiceOK},
+			manifest:  "fastly-no-serviceid.toml",
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args:       []string{"service", "delete", "--service-id=X"},
-			api:        mock.API{DeleteServiceFn: deleteServiceOK},
-			wantOutput: "Deleted service ID X",
+			args:                 []string{"service", "delete"},
+			api:                  mock.API{DeleteServiceFn: deleteServiceOK},
+			manifest:             "fastly-valid.toml",
+			wantOutput:           "Deleted service ID 123",
+			expectEmptyServiceID: true,
 		},
 		{
-			args:       []string{"service", "delete", "--service-id", "zzz"},
+			args:       []string{"service", "delete", "--service-id", "001"},
 			api:        mock.API{DeleteServiceFn: deleteServiceOK},
-			wantOutput: "Deleted service ID zzz",
+			wantOutput: "Deleted service ID 001",
 		},
 		{
-			args:      []string{"service", "delete", "--service-id", "bonk"},
+			args:                 []string{"service", "delete", "--service-id", "001"},
+			api:                  mock.API{DeleteServiceFn: deleteServiceOK},
+			manifest:             "fastly-valid.toml",
+			wantOutput:           "Deleted service ID 001",
+			expectEmptyServiceID: false,
+		},
+		{
+			args:      []string{"service", "delete", "--service-id", "001"},
 			api:       mock.API{DeleteServiceFn: deleteServiceError},
+			manifest:  "fastly-valid.toml",
 			wantError: errTest.Error(),
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			// We're going to chdir to an temp environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Create our init environment in a temp dir.
+			// Defer a call to clean it up.
+			rootdir := makeTempEnvironment(t, testcase.manifest)
+			defer os.RemoveAll(rootdir)
+
+			// Before running the test, chdir into the temp environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably assert file structure.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(pwd)
+
 			var (
 				args                            = testcase.args
 				env                             = config.Environment{}
@@ -349,11 +388,64 @@ func TestServiceDelete(t *testing.T) {
 				in             io.Reader        = nil
 				out            bytes.Buffer
 			)
-			err := app.Run(args, env, file, configFileName, clientFactory, httpClient, cliVersioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
+			runErr := app.Run(args, env, file, configFileName, clientFactory, httpClient, cliVersioner, in, &out)
+			testutil.AssertErrorContains(t, runErr, testcase.wantError)
 			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+
+			if testcase.manifest != "" {
+				m := filepath.Join(rootdir, manifest.Filename)
+				b, err := os.ReadFile(m)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				if testcase.expectEmptyServiceID {
+					testutil.AssertStringContains(t, string(b), `service_id = ""`)
+				} else if !nonEmptyServiceID.Match(b) && runErr == nil {
+					// The runErr check is to prevent the first test case from causing an
+					// accidental failure. As the fastly.toml doesn't have a service_id
+					// set, while marshalling back and forth it'll get converted to an
+					// empty string in the manifest file which will accidentally trigger
+					// the following test error otherwise if we don't check for the nil
+					// error value. Because that first test case expects an error to be
+					// raised we know that we can safely check for `runErr == nil` here.
+					t.Fatal("expected service_id to contain a value")
+				}
+			}
 		})
 	}
+}
+
+func makeTempEnvironment(t *testing.T, fixture string) (rootdir string) {
+	t.Helper()
+
+	rootdir, err := os.MkdirTemp("", "fastly-temp-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.MkdirAll(rootdir, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	if fixture != "" {
+		path, err := filepath.Abs(filepath.Join("testdata", fixture))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		b, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		filename := filepath.Join(rootdir, manifest.Filename)
+		if err := os.WriteFile(filename, b, 0777); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return rootdir
 }
 
 var errTest = errors.New("fixture error")
