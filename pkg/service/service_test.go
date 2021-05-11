@@ -337,9 +337,8 @@ func TestServiceDelete(t *testing.T) {
 		{
 			args:                 []string{"service", "delete", "--service-id", "001"},
 			api:                  mock.API{DeleteServiceFn: deleteServiceOK},
-			manifest:             "fastly-valid.toml",
 			wantOutput:           "Deleted service ID 001",
-			expectEmptyServiceID: true,
+			expectEmptyServiceID: false,
 		},
 		{
 			args:      []string{"service", "delete", "--service-id", "001"},
@@ -384,14 +383,16 @@ func TestServiceDelete(t *testing.T) {
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
 
-			m := filepath.Join(rootdir, manifest.Filename)
-			b, err := os.ReadFile(m)
-			if err != nil {
-				t.Fatal(err)
-			}
+			if testcase.manifest != "" {
+				m := filepath.Join(rootdir, manifest.Filename)
+				b, err := os.ReadFile(m)
+				if err != nil {
+					t.Fatal(err)
+				}
 
-			if testcase.expectEmptyServiceID {
-				testutil.AssertStringContains(t, string(b), `service_id = ""`)
+				if testcase.expectEmptyServiceID {
+					testutil.AssertStringContains(t, string(b), `service_id = ""`)
+				}
 			}
 		})
 	}
@@ -409,19 +410,21 @@ func makeTempEnvironment(t *testing.T, fixture string) (rootdir string) {
 		t.Fatal(err)
 	}
 
-	path, err := filepath.Abs(filepath.Join("testdata", fixture))
-	if err != nil {
-		t.Fatal(err)
-	}
+	if fixture != "" {
+		path, err := filepath.Abs(filepath.Join("testdata", fixture))
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	b, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
+		b, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	filename := filepath.Join(rootdir, manifest.Filename)
-	if err := os.WriteFile(filename, b, 0777); err != nil {
-		t.Fatal(err)
+		filename := filepath.Join(rootdir, manifest.Filename)
+		if err := os.WriteFile(filename, b, 0777); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	return rootdir
