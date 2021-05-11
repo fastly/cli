@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -313,6 +314,8 @@ func TestServiceUpdate(t *testing.T) {
 }
 
 func TestServiceDelete(t *testing.T) {
+	nonEmptyServiceID := regexp.MustCompile(`service_id = "[^"]+"`)
+
 	for _, testcase := range []struct {
 		args                 []string
 		api                  mock.API
@@ -335,10 +338,9 @@ func TestServiceDelete(t *testing.T) {
 			expectEmptyServiceID: true,
 		},
 		{
-			args:                 []string{"service", "delete", "--service-id", "001"},
-			api:                  mock.API{DeleteServiceFn: deleteServiceOK},
-			wantOutput:           "Deleted service ID 001",
-			expectEmptyServiceID: false,
+			args:       []string{"service", "delete", "--service-id", "001"},
+			api:        mock.API{DeleteServiceFn: deleteServiceOK},
+			wantOutput: "Deleted service ID 001",
 		},
 		{
 			args:                 []string{"service", "delete", "--service-id", "001"},
@@ -386,8 +388,8 @@ func TestServiceDelete(t *testing.T) {
 				in             io.Reader        = nil
 				out            bytes.Buffer
 			)
-			err = app.Run(args, env, file, configFileName, clientFactory, httpClient, cliVersioner, in, &out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
+			runErr := app.Run(args, env, file, configFileName, clientFactory, httpClient, cliVersioner, in, &out)
+			testutil.AssertErrorContains(t, runErr, testcase.wantError)
 			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
 
 			if testcase.manifest != "" {
@@ -399,6 +401,15 @@ func TestServiceDelete(t *testing.T) {
 
 				if testcase.expectEmptyServiceID {
 					testutil.AssertStringContains(t, string(b), `service_id = ""`)
+				} else if !nonEmptyServiceID.Match(b) && runErr == nil {
+					// The runErr check is to prevent the first test case from causing an
+					// accidental failure. As the fastly.toml doesn't have a service_id
+					// set, while marshalling back and forth it'll get converted to an
+					// empty string in the manifest file which will accidentally trigger
+					// the following test error otherwise if we don't check for the nil
+					// error value. Because that first test case expects an error to be
+					// raised we know that we can safely check for `runErr == nil` here.
+					t.Fatal("expected service_id to contain a value")
 				}
 			}
 		})
