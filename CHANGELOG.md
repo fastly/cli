@@ -6,13 +6,14 @@
 
 **Enhancements:**
 
-- Add isBool to command flags [\#267](https://github.com/fastly/cli/pull/267)
+- Add `isBool` to command flags [\#267](https://github.com/fastly/cli/pull/267)
 - Move service creation to `fastly compute deploy`. [\#266](https://github.com/fastly/cli/pull/266)
 
 **Bug fixes:**
 
-- Fix --force flag not being respected. [\#272](https://github.com/fastly/cli/pull/272)
-- Clean-out service\_id from manifest when deleting a service. [\#268](https://github.com/fastly/cli/pull/268)
+- Fix runtime panic when dealing with empty manifest. [\#274](https://github.com/fastly/cli/pull/274)
+- Fix `--force` flag not being respected. [\#272](https://github.com/fastly/cli/pull/272)
+- Clean-out `service_id` from manifest when deleting a service. [\#268](https://github.com/fastly/cli/pull/268)
 
 ## [v0.27.2](https://github.com/fastly/cli/releases/tag/v0.27.2) (2021-04-21)
 
