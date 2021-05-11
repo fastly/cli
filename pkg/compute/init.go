@@ -178,7 +178,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	m, err := updateManifest(progress, c.path, name, desc, authors, language)
+	m, err := updateManifest(c.manifest.File, progress, c.path, name, desc, authors, language)
 	if err != nil {
 		return err
 	}
@@ -415,12 +415,11 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 
 // updateManifest updates the manifest with data acquired from various sources.
 // e.g. prompting the user, existing manifest file.
-func updateManifest(progress text.Progress, path string, name string, desc string, authors []string, lang *Language) (manifest.File, error) {
+func updateManifest(m manifest.File, progress text.Progress, path string, name string, desc string, authors []string, lang *Language) (manifest.File, error) {
 	progress.Step("Updating package manifest...")
 
 	mp := filepath.Join(path, ManifestFilename)
 
-	var m manifest.File
 	if err := m.Read(mp); err != nil {
 		return m, fmt.Errorf("error reading package manifest: %w", err)
 	}
