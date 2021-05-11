@@ -341,6 +341,13 @@ func TestServiceDelete(t *testing.T) {
 			expectEmptyServiceID: false,
 		},
 		{
+			args:                 []string{"service", "delete", "--service-id", "001"},
+			api:                  mock.API{DeleteServiceFn: deleteServiceOK},
+			manifest:             "fastly-valid.toml",
+			wantOutput:           "Deleted service ID 001",
+			expectEmptyServiceID: false,
+		},
+		{
 			args:      []string{"service", "delete", "--service-id", "001"},
 			api:       mock.API{DeleteServiceFn: deleteServiceError},
 			manifest:  "fastly-valid.toml",
