@@ -15,6 +15,6 @@
 
 Step 4. we utilize [semantic versioning](https://semver.org/) and only include relevant/significant changes within the CHANGELOG.
 
-Step 7. causes a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_release.yml) to be triggered which produces a 'draft' release.
+Step 7. triggers a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_release.yml) that produces a 'draft' release.
 
 Step 10. `#api-clients`, `#ecp-languages`.
