@@ -889,25 +889,36 @@ func TestDeploy(t *testing.T) {
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error fetching service backends: fixture error",
 		},
+		// The following test doesn't just validate the package API error behaviour
+		// but as a side effect it validates that when deleting the created
+		// service, the Service ID is also cleared out from the manifest.
 		{
 			name: "package API error",
 			args: []string{"compute", "deploy", "--token", "123"},
+			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:    getServiceOK,
 				ListVersionsFn:  listVersionsActiveOk,
 				CloneVersionFn:  cloneVersionOk,
 				ListDomainsFn:   listDomainsOk,
 				ListBackendsFn:  listBackendsOk,
+				CreateServiceFn: createServiceOK,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendOK,
 				GetPackageFn:    getPackageOk,
 				UpdatePackageFn: updatePackageError,
+				DeleteBackendFn: deleteBackendOK,
+				DeleteDomainFn:  deleteDomainOK,
+				DeleteServiceFn: deleteServiceOK,
 			},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
+			manifest:  `name = "package"`,
 			wantError: "error uploading package: fixture error",
 			wantOutput: []string{
 				"Reading package manifest...",
 				"Validating package...",
 				"Uploading package...",
 			},
+			manifestIncludes: `service_id = ""`,
 		},
 		// The following test doesn't provide a Service ID by either a flag nor the
 		// manifest, so this will result in the deploy script attempting to create
