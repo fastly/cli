@@ -16,7 +16,7 @@ builds:
         - -X "github.com/fastly/cli/pkg/revision.GoVersion={{ .Env.GOVERSION }}"
     id: macos
     goos: [darwin]
-    goarch: [amd64]
+    goarch: [amd64, arm64]
   - <<: *build_defaults
     id: linux
     goos: [linux]
