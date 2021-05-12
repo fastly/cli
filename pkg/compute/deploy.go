@@ -190,6 +190,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		undoStack.Push(func() error {
+			clearServiceID := ""
+			return updateManifestServiceID(&c.manifest.File, ManifestFilename, nil, clearServiceID)
+		})
+
+		undoStack.Push(func() error {
 			return c.Globals.Client.DeleteService(&fastly.DeleteServiceInput{
 				ID: serviceID,
 			})
@@ -242,7 +247,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// provided by the flag and not the file, then we'll also store that ID
 	// within the manifest.
 	if sidSrc == manifest.SourceUndefined || sidSrc != manifest.SourceFile {
-		err = updateManifestServiceID(ManifestFilename, progress, serviceID)
+		err = updateManifestServiceID(&c.manifest.File, ManifestFilename, progress, serviceID)
 		if err != nil {
 			return err
 		}
@@ -434,14 +439,20 @@ func createService(progress text.Progress, client api.Interface, name string, de
 }
 
 // updateManifestServiceID updates the Service ID in the manifest.
-func updateManifestServiceID(manifestFilename string, progress text.Progress, serviceID string) error {
-	var m manifest.File
-
+//
+// There are two scenarios where this function is called. The first is when we
+// have a Service ID to insert into the manifest. The other is when there is an
+// error in the deploy flow, and for which the Service ID will be set to an
+// empty string (otherwise the service itself will be deleted while the
+// manifest will continue to hold a reference to it).
+func updateManifestServiceID(m *manifest.File, manifestFilename string, progress text.Progress, serviceID string) error {
 	if err := m.Read(manifestFilename); err != nil {
 		return fmt.Errorf("error reading package manifest: %w", err)
 	}
 
-	fmt.Fprintf(progress, "Setting service ID in manifest to %q...\n", serviceID)
+	if progress != nil {
+		fmt.Fprintf(progress, "Setting service ID in manifest to %q...\n", serviceID)
+	}
 
 	m.ServiceID = serviceID
 
