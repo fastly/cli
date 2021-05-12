@@ -77,6 +77,18 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return errors.ErrNoToken
 	}
 
+	// The first thing we want to do is validate that a package has been built.
+	// There is no point prompting a user for info if we know we're going to
+	// fail any way because the user didn't build a package first.
+	name, source := c.manifest.Name()
+	path, err := pkgPath(c.Path, name, source)
+	if err != nil {
+		return err
+	}
+	if err := validate(path); err != nil {
+		return err
+	}
+
 	var (
 		domain, backend string
 		backendPort     uint
@@ -171,12 +183,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		undoStack.RunIfError(out, err)
 	}()
 
-	name, source := c.manifest.Name()
-	path, err := pkgPath(c.Path, progress, name, source)
-	if err != nil {
-		return err
-	}
-
 	if sidSrc == manifest.SourceUndefined {
 		// There is no service and so we'll do a one time creation of the service
 		// and the associated domain/backend and store the Service ID within the
@@ -253,11 +259,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	progress.Step("Validating package...")
-	if err := validate(path); err != nil {
-		return err
-	}
-
 	cont, err := pkgCompare(c.Globals.Client, serviceID, version.Number, path, progress, out)
 	if err != nil {
 		return err
@@ -301,10 +302,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 // pkgPath generates a path that points to a package tar inside the pkg
 // directory if the `path` flag was not set by the user.
-func pkgPath(path string, progress text.Progress, name string, source manifest.Source) (string, error) {
+func pkgPath(path string, name string, source manifest.Source) (string, error) {
 	if path == "" {
-		progress.Step("Reading package manifest...")
-
 		if source == manifest.SourceUndefined {
 			return "", errors.RemediationError{
 				Inner:       fmt.Errorf("error reading package manifest"),
@@ -313,7 +312,6 @@ func pkgPath(path string, progress text.Progress, name string, source manifest.S
 		}
 
 		path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(name)))
-
 		return path, nil
 	}
 

@@ -793,9 +793,6 @@ func TestDeploy(t *testing.T) {
 			args:      []string{"compute", "deploy", "--token", "123"},
 			in:        strings.NewReader(""),
 			wantError: "error reading package manifest",
-			wantOutput: []string{
-				"Reading package manifest...",
-			},
 		},
 		{
 			// If no Service ID defined via flag or manifest, then the expectation is
@@ -914,8 +911,6 @@ func TestDeploy(t *testing.T) {
 			manifest:  `name = "package"`,
 			wantError: "error uploading package: fixture error",
 			wantOutput: []string{
-				"Reading package manifest...",
-				"Validating package...",
 				"Uploading package...",
 			},
 			manifestIncludes: `service_id = ""`,
@@ -934,7 +929,6 @@ func TestDeploy(t *testing.T) {
 			manifest:  "name = \"package\"\n",
 			wantError: "error creating service: fixture error",
 			wantOutput: []string{
-				"Reading package manifest...",
 				"Creating service...",
 			},
 		},
@@ -957,7 +951,6 @@ func TestDeploy(t *testing.T) {
 			manifest:  "name = \"package\"\n",
 			wantError: "error creating domain: fixture error",
 			wantOutput: []string{
-				"Reading package manifest...",
 				"Creating service...",
 				"Creating domain...",
 			},
@@ -987,7 +980,6 @@ func TestDeploy(t *testing.T) {
 			manifest:  "name = \"package\"\n",
 			wantError: "error creating backend: fixture error",
 			wantOutput: []string{
-				"Reading package manifest...",
 				"Creating service...",
 				"Creating domain...",
 				"Creating backend...",
@@ -1012,8 +1004,6 @@ func TestDeploy(t *testing.T) {
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error activating version: fixture error",
 			wantOutput: []string{
-				"Reading package manifest...",
-				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 			},
@@ -1031,8 +1021,6 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
-				"Reading package manifest...",
-				"Validating package...",
 				"Skipping package deployment",
 			},
 		},
@@ -1052,8 +1040,6 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
-				"Reading package manifest...",
-				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
@@ -1105,7 +1091,6 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
-				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 				"Deployed package (service 123, version 2)",
@@ -1125,7 +1110,6 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
-				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 				"Deployed package (service 123, version 2)",
@@ -1251,8 +1235,6 @@ func TestPublish(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Built rust package test",
-				"Reading package manifest...",
-				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
@@ -1313,8 +1295,6 @@ func TestPublish(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Built rust package test",
-				"Reading package manifest...",
-				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
@@ -1375,7 +1355,6 @@ func TestPublish(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Built rust package test",
-				"Validating package...",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
