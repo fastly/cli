@@ -1,5 +1,6 @@
 project_name: fastly
 release:
+  draft: true
   prerelease: auto
   extra_files:
     - glob: "dist/usage.json"
@@ -92,4 +93,4 @@ checksum:
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
-  sort: asc
+  skip: true
