@@ -190,7 +190,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		undoStack.Push(func() error {
-			return clearServiceID(&c.manifest.File, ManifestFilename)
+			clearServiceID := ""
+			return updateManifestServiceID(&c.manifest.File, ManifestFilename, nil, clearServiceID)
 		})
 
 		undoStack.Push(func() error {
@@ -295,22 +296,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, version.Number)
-	return nil
-}
-
-// clearServiceID removes the Service ID from the manifest.
-//
-// This needs to happen when there is an error in the deploy flow, otherwise
-// the service itself will be deleted while the manifest will continue to hold
-// a reference to it.
-func clearServiceID(m *manifest.File, manifestFilename string) error {
-	if err := m.Read(manifestFilename); err != nil {
-		return fmt.Errorf("error reading package manifest: %w", err)
-	}
-	m.ServiceID = ""
-	if err := m.Write(manifestFilename); err != nil {
-		return fmt.Errorf("error updating package manifest: %w", err)
-	}
 	return nil
 }
 
@@ -454,12 +439,20 @@ func createService(progress text.Progress, client api.Interface, name string, de
 }
 
 // updateManifestServiceID updates the Service ID in the manifest.
+//
+// There are two scenarios where this function is called. The first is when we
+// have a Service ID to insert into the manifest. The other is when there is an
+// error in the deploy flow, and for which the Service ID will be set to an
+// empty string (otherwise the service itself will be deleted while the
+// manifest will continue to hold a reference to it).
 func updateManifestServiceID(m *manifest.File, manifestFilename string, progress text.Progress, serviceID string) error {
 	if err := m.Read(manifestFilename); err != nil {
 		return fmt.Errorf("error reading package manifest: %w", err)
 	}
 
-	fmt.Fprintf(progress, "Setting service ID in manifest to %q...\n", serviceID)
+	if progress != nil {
+		fmt.Fprintf(progress, "Setting service ID in manifest to %q...\n", serviceID)
+	}
 
 	m.ServiceID = serviceID
 
