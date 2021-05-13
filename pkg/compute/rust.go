@@ -80,7 +80,7 @@ func (m *CargoMetadata) Read() error {
 	return nil
 }
 
-// Rust is an implements Toolchain for the Rust language.
+// Rust is implements a Toolchain for the Rust language.
 type Rust struct {
 	client api.HTTPClient
 	config *config.Data

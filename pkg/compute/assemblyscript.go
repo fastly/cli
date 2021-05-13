@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// AssemblyScript implements Toolchain for the AssemblyScript language.
+// AssemblyScript implements a Toolchain for the AssemblyScript language.
 type AssemblyScript struct{}
 
 // NewAssemblyScript constructs a new AssemblyScript.
