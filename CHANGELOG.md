@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.29.0](https://github.com/fastly/cli/releases/tag/v0.29.0) (2021-05-13)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.28.0...v0.29.0)
+
+**Enhancements:**
+
+- Add arm64 to macOS build [\#277](https://github.com/fastly/cli/pull/277)
+
+**Bug fixes:**
+
+- Validate package before prompting inside `compute deploy` flow [\#279](https://github.com/fastly/cli/pull/279)
+- Clear Service ID from manifest when service is deleted [\#278](https://github.com/fastly/cli/pull/278)
+
 ## [v0.28.0](https://github.com/fastly/cli/releases/tag/v0.28.0) (2021-05-11)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.27.2...v0.28.0)
