@@ -155,7 +155,7 @@ func (r Rust) Verify(out io.Writer) error {
 	if !rustupConstraint.Check(rustupVersion) {
 		pre := "To fix this error, run the following command"
 		cmd := text.Bold("rustup self update")
-		alt := fmt.Sprintf("%s If you installed rustup using a package manager, refer to its documentation to update it.", text.Bold("INFO:"))
+		alt := fmt.Sprintf("%s If you installed rustup using a package manager, you may need to follow your package manager's documentation to update the rustup package.", text.Bold("INFO:"))
 
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rustup constraint not met: %s", r.config.File.Language.Rust.RustupConstraint),
