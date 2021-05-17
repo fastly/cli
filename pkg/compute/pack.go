@@ -30,7 +30,7 @@ func NewPackCommand(parent common.Registerer, globals *config.Data) *PackCommand
 	c.manifest.File.Read(manifest.Filename)
 
 	c.CmdClause = parent.Command("pack", "Package a pre-compiled WASM binary for a Fastly Compute@Edge service")
-	c.CmdClause.Flag("path", "Path to a custom pre-compiled WASM binary").Short('p').StringVar(&c.path)
+	c.CmdClause.Flag("path", "Path to a custom pre-compiled WASM binary").Short('p').Required().StringVar(&c.path)
 
 	return &c
 }
@@ -56,19 +56,17 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	if c.path != "" {
-		src, err := filepath.Abs(c.path)
-		if err != nil {
-			return err
-		}
-		dst, err := filepath.Abs(pkg)
-		if err != nil {
-			return err
-		}
-		progress.Step("Copying wasm binary...")
-		if err := filesystem.CopyFile(src, dst); err != nil {
-			return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
-		}
+	src, err := filepath.Abs(c.path)
+	if err != nil {
+		return err
+	}
+	dst, err := filepath.Abs(pkg)
+	if err != nil {
+		return err
+	}
+	progress.Step("Copying wasm binary...")
+	if err := filesystem.CopyFile(src, dst); err != nil {
+		return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
 	}
 
 	if !filesystem.FileExists(pkg) {
@@ -79,8 +77,8 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	progress.Step("Copying manifest...")
-	src := manifest.Filename
-	dst := fmt.Sprintf("pkg/%s/%s", c.manifest.File.Name, manifest.Filename)
+	src = manifest.Filename
+	dst = fmt.Sprintf("pkg/%s/%s", c.manifest.File.Name, manifest.Filename)
 	if err := filesystem.CopyFile(src, dst); err != nil {
 		return fmt.Errorf("error copying manifest to '%s': %w", dst, err)
 	}
