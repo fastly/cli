@@ -328,11 +328,17 @@ func TestInit(t *testing.T) {
 					},
 				},
 			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
-			},
 			manifestIncludes: `name = "fastly-init`,
+		},
+		{
+			name:             "with pre-compiled WASM binary",
+			args:             []string{"compute", "init", "--language", "other"},
+			manifestIncludes: `language = "other"`,
+			wantOutput: []string{
+				"Initialized package",
+				"To package a pre-compiled WASM binary for deployment",
+				"SUCCESS: Initialized package",
+			},
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
