@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -18,9 +19,6 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
-
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 var (
@@ -351,22 +349,30 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 		return fmt.Errorf("cannot use both git branch and tag name")
 	}
 
-	var ref plumbing.ReferenceName
-
+	args := []string{
+		"clone",
+		"--depth",
+		"1",
+	}
+	var ref string
 	if branch != "" {
-		ref = plumbing.NewBranchReferenceName(branch)
+		ref = fmt.Sprintf("%s/%s/%s", "refs", "heads", branch)
 	}
-
 	if tag != "" {
-		ref = plumbing.NewTagReferenceName(tag)
+		ref = fmt.Sprintf("%s/%s/%s", "refs", "tags", tag)
 	}
+	if ref != "" {
+		args = append(args, "--branch", ref)
+	}
+	dir := "."
+	args = append(args, from, dir)
 
-	_, err = git.PlainClone(tempdir, false, &git.CloneOptions{
-		URL:           from,
-		ReferenceName: ref,
-		Depth:         1,
-		Progress:      progress,
-	})
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as there should be no vulnerability to cloning a remote repo.
+	/* #nosec */
+	cmd := exec.Command("git", args...)
+	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("error fetching package template: %w", err)
 	}
