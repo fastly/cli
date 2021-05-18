@@ -44,26 +44,14 @@ func TestInit(t *testing.T) {
 		manifestIncludes string
 	}{
 		{
-			name: "unknown repository",
-			args: []string{"compute", "init", "--from", "https://example.com/template"},
-			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
-			},
+			name:      "unknown repository",
+			args:      []string{"compute", "init", "--from", "https://example.com/template"},
 			wantError: "error fetching package template:",
 		},
 		{
 			name: "with name",
 			args: []string{"compute", "init", "--name", "test"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -73,10 +61,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -89,9 +73,6 @@ func TestInit(t *testing.T) {
 			name: "with description",
 			args: []string{"compute", "init", "--description", "test"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -101,10 +82,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -117,9 +94,6 @@ func TestInit(t *testing.T) {
 			name: "with author",
 			args: []string{"compute", "init", "--author", "test@example.com"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -129,10 +103,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -145,9 +115,6 @@ func TestInit(t *testing.T) {
 			name: "with multiple authors",
 			args: []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -157,10 +124,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -173,9 +136,6 @@ func TestInit(t *testing.T) {
 			name: "with from repository and branch",
 			args: []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -185,10 +145,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -200,9 +156,6 @@ func TestInit(t *testing.T) {
 			name: "with existing package manifest",
 			args: []string{"compute", "init", "--force"}, // --force will ignore that the directory isn't empty
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -231,7 +184,6 @@ func TestInit(t *testing.T) {
 			args: []string{"compute", "init"},
 			configFile: config.File{
 				User: config.User{
-					Token: "123",
 					Email: "test@example.com",
 				},
 				StarterKits: config.StarterKitLanguages{
@@ -243,10 +195,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			manifestIncludes: `authors = ["test@example.com"]`,
 			wantFiles: []string{
@@ -267,10 +215,6 @@ func TestInit(t *testing.T) {
 			name: "non empty directory",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-					Email: "test@example.com",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -280,10 +224,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantError: "project directory not empty",
 			manifest:  `name = "test"`, // causes a file to be created as part of test setup
@@ -292,9 +232,6 @@ func TestInit(t *testing.T) {
 			name: "with default name inferred from directory",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -305,19 +242,12 @@ func TestInit(t *testing.T) {
 					},
 				},
 			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
-			},
 			manifestIncludes: `name = "fastly-init`,
 		},
 		{
 			name: "with AssemblyScript language",
 			args: []string{"compute", "init", "--language", "assemblyscript"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					AssemblyScript: []config.StarterKit{
 						{
