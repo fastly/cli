@@ -169,6 +169,15 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
+	progress.Step("Checking if git is installed...")
+	_, err = exec.LookPath("git")
+	if err != nil {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("`git` not found in $PATH"),
+			Remediation: fmt.Sprintf("To fix this error, follow the installation instructions for your operating system:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
+		}
+	}
+
 	if from != "" && !manifestExist {
 		err := pkgFetch(from, branch, tag, c.path, progress)
 		if err != nil {
