@@ -383,7 +383,7 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 	cmd := exec.Command("git", args...)
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error fetching package template: %w\n\n%s\n", err, stdoutStderr)
+		return fmt.Errorf("error fetching package template: %w\n\n%s", err, stdoutStderr)
 	}
 
 	if err := os.RemoveAll(filepath.Join(tempdir, ".git")); err != nil {
