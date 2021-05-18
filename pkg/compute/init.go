@@ -365,10 +365,10 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 	}
 	var ref string
 	if branch != "" {
-		ref = fmt.Sprintf("%s/%s/%s", "refs", "heads", branch)
+		ref = branch
 	}
 	if tag != "" {
-		ref = fmt.Sprintf("%s/%s/%s", "refs", "tags", tag)
+		ref = tag
 	}
 	if ref != "" {
 		args = append(args, "--branch", ref)
