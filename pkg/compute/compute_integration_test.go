@@ -1578,10 +1578,6 @@ func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) 
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
 	if manifestContent != "" {
 		filename := filepath.Join(rootdir, compute.ManifestFilename)
 		if err := os.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
@@ -1597,10 +1593,6 @@ func makeRustBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifest
 
 	rootdir, err := os.MkdirTemp("", "fastly-build-*")
 	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1646,10 +1638,6 @@ func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent stri
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
 	for _, filename := range [][]string{
 		{"package.json"},
 		{"assembly", "index.ts"},
@@ -1683,10 +1671,6 @@ func makeDeployEnvironment(t *testing.T, manifestContent string) (rootdir string
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
 	for _, filename := range [][]string{
 		{"pkg", "package.tar.gz"},
 	} {
@@ -1713,10 +1697,6 @@ func makePackEnvironment(t *testing.T, manifestContent string) (rootdir string) 
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
 	for _, filename := range []string{"main.wasm"} {
 		fromFilename := filepath.Join("testdata", "pack", filepath.Join(filename))
 		toFilename := filepath.Join(rootdir, filepath.Join(filename))
@@ -1738,10 +1718,6 @@ func makePublishEnvironment(t *testing.T, fastlyManifestContent, cargoManifestCo
 
 	rootdir, err := os.MkdirTemp("", "fastly-publish-*")
 	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1824,12 +1800,6 @@ func copyFile(t *testing.T, fromFilename, toFilename string) {
 }
 
 var errTest = errors.New("fixture error")
-
-func tokenOK() (*fastly.Token, error) { return &fastly.Token{}, nil }
-
-func getUserOk(i *fastly.GetUserInput) (*fastly.User, error) {
-	return &fastly.User{Login: "test@example.com"}, nil
-}
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
