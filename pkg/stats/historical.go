@@ -31,7 +31,7 @@ func NewHistoricalCommand(parent common.Registerer, globals *config.Data) *Histo
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.manifest.Flag.ServiceID)
 
-	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats/#query-options-time-range-sampling-rate-and-regions").StringVar(&c.Input.From)
+	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.Input.From)
 	c.CmdClause.Flag("to", "To time").StringVar(&c.Input.To)
 	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.Input.By, "minute", "hour", "day")
 	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.Input.Region)
