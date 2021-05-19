@@ -207,7 +207,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
-	text.Description(out, fmt.Sprintf("Initialized project %s to", text.Bold(m.Name)), abspath)
+	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
 
 	if language.Name == "other" {
 		text.Description(out, "To package a pre-compiled WASM binary for deployment, run", "fastly compute pack")
@@ -217,7 +217,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	text.Description(out, "To learn about deploying Compute@Edge projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
-	text.Success(out, "Initialized project %s", text.Bold(m.Name))
+	text.Success(out, "Initialized package %s", text.Bold(m.Name))
 
 	return nil
 }

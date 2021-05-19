@@ -265,9 +265,9 @@ func TestInit(t *testing.T) {
 			args:             []string{"compute", "init", "--language", "other"},
 			manifestIncludes: `language = "other"`,
 			wantOutput: []string{
-				"Initialized project",
+				"Initialized package",
 				"To package a pre-compiled WASM binary for deployment",
-				"SUCCESS: Initialized project",
+				"SUCCESS: Initialized package",
 			},
 		},
 	} {
