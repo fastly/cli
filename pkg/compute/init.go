@@ -117,7 +117,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "other",
-			DisplayName: "Other (pre-compiled WASM binary)",
+			DisplayName: "Other ('bring your own' WASM binary)",
 		}),
 	}
 
