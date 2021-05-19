@@ -261,12 +261,12 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "fastly-init`,
 		},
 		{
-			name:             "with pre-compiled WASM binary",
+			name:             "with pre-compiled Wasm binary",
 			args:             []string{"compute", "init", "--language", "other"},
 			manifestIncludes: `language = "other"`,
 			wantOutput: []string{
 				"Initialized package",
-				"To package a pre-compiled WASM binary for deployment",
+				"To package a pre-compiled Wasm binary for deployment",
 				"SUCCESS: Initialized package",
 			},
 		},

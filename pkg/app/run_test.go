@@ -323,9 +323,9 @@ COMMANDS
                                  A port number for the package backend
 
   compute pack --path=PATH
-    Package a pre-compiled WASM binary for a Fastly Compute@Edge service
+    Package a pre-compiled Wasm binary for a Fastly Compute@Edge service
 
-    -p, --path=PATH  Path to a pre-compiled WASM binary
+    -p, --path=PATH  Path to a pre-compiled Wasm binary
 
   compute update --service-id=SERVICE-ID --version=VERSION --path=PATH
     Update a package on a Fastly Compute@Edge service version

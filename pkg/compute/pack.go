@@ -29,8 +29,8 @@ func NewPackCommand(parent common.Registerer, globals *config.Data) *PackCommand
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 
-	c.CmdClause = parent.Command("pack", "Package a pre-compiled WASM binary for a Fastly Compute@Edge service")
-	c.CmdClause.Flag("path", "Path to a pre-compiled WASM binary").Short('p').Required().StringVar(&c.path)
+	c.CmdClause = parent.Command("pack", "Package a pre-compiled Wasm binary for a Fastly Compute@Edge service")
+	c.CmdClause.Flag("path", "Path to a pre-compiled Wasm binary").Short('p').Required().StringVar(&c.path)
 
 	return &c
 }

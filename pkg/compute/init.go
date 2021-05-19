@@ -117,7 +117,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "other",
-			DisplayName: "Other ('bring your own' WASM binary)",
+			DisplayName: "Other ('bring your own' Wasm binary)",
 		}),
 	}
 
@@ -210,7 +210,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
 
 	if language.Name == "other" {
-		text.Description(out, "To package a pre-compiled WASM binary for deployment, run", "fastly compute pack")
+		text.Description(out, "To package a pre-compiled Wasm binary for deployment, run", "fastly compute pack")
 		text.Description(out, "To deploy the package, run", "fastly compute deploy")
 	} else {
 		text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
@@ -453,7 +453,7 @@ func updateManifest(m manifest.File, progress text.Progress, path string, name s
 		}
 
 		// We create a fastly.toml manifest on behalf of the user if they're
-		// bringing their own pre-compiled WASM binary to be packaged.
+		// bringing their own pre-compiled Wasm binary to be packaged.
 		m.ManifestVersion = manifest.ManifestLatestVersion
 		if err := m.Write(mp); err != nil {
 			return m, fmt.Errorf("error saving package manifest: %w", err)
