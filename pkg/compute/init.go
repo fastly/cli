@@ -173,7 +173,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`git` not found in $PATH"),
-			Remediation: fmt.Sprintf("To fix this error, follow the installation instructions for your operating system:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
+			Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
 		}
 	}
 
