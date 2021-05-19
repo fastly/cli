@@ -325,7 +325,7 @@ COMMANDS
   compute pack --path=PATH
     Package a pre-compiled WASM binary for a Fastly Compute@Edge service
 
-    -p, --path=PATH  Path to a custom pre-compiled WASM binary
+    -p, --path=PATH  Path to a pre-compiled WASM binary
 
   compute update --service-id=SERVICE-ID --version=VERSION --path=PATH
     Update a package on a Fastly Compute@Edge service version
