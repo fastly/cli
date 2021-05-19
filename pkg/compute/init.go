@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -18,9 +19,6 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
-
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 var (
@@ -169,6 +167,14 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if !c.Globals.Verbose() {
 		progress = text.NewQuietProgress(out)
+	}
+
+	_, err = exec.LookPath("git")
+	if err != nil {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("`git` not found in $PATH"),
+			Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
+		}
 	}
 
 	if from != "" && !manifestExist {
@@ -351,24 +357,31 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 		return fmt.Errorf("cannot use both git branch and tag name")
 	}
 
-	var ref plumbing.ReferenceName
-
+	args := []string{
+		"clone",
+		"--depth",
+		"1",
+	}
+	var ref string
 	if branch != "" {
-		ref = plumbing.NewBranchReferenceName(branch)
+		ref = branch
 	}
-
 	if tag != "" {
-		ref = plumbing.NewTagReferenceName(tag)
+		ref = tag
 	}
+	if ref != "" {
+		args = append(args, "--branch", ref)
+	}
+	args = append(args, from, tempdir)
 
-	_, err = git.PlainClone(tempdir, false, &git.CloneOptions{
-		URL:           from,
-		ReferenceName: ref,
-		Depth:         1,
-		Progress:      progress,
-	})
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as there should be no vulnerability to cloning a remote repo.
+	/* #nosec */
+	cmd := exec.Command("git", args...)
+	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error fetching package template: %w", err)
+		return fmt.Errorf("error fetching package template: %w\n\n%s", err, stdoutStderr)
 	}
 
 	if err := os.RemoveAll(filepath.Join(tempdir, ".git")); err != nil {
