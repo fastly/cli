@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.30.0](https://github.com/fastly/cli/releases/tag/v0.30.0) (2021-05-19)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.29.0...v0.30.0)
+
+**Enhancements:**
+
+- Update messaging for `rustup self update` [\#281](https://github.com/fastly/cli/pull/281)
+- Replace archived go-git dependency [\#283](https://github.com/fastly/cli/pull/283)
+- Implement `pack` subcommand [\#282](https://github.com/fastly/cli/pull/282)
+
 ## [v0.29.0](https://github.com/fastly/cli/releases/tag/v0.29.0) (2021-05-13)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.28.0...v0.29.0)
