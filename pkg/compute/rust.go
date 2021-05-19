@@ -80,7 +80,7 @@ func (m *CargoMetadata) Read() error {
 	return nil
 }
 
-// Rust is an implements Toolchain for the Rust language.
+// Rust implements a Toolchain for the Rust language.
 type Rust struct {
 	client api.HTTPClient
 	config *config.Data
@@ -108,7 +108,7 @@ func (r Rust) Verify(out io.Writer) error {
 	// 1) Check `rustup` is on $PATH
 	//
 	// Rustup is Rust's toolchain installer and manager, it is needed to assert
-	// that the correct WASI WASM compiler target is installed correctly. We
+	// that the correct WASI Wasm compiler target is installed correctly. We
 	// only check whether the binary exists on the users $PATH and error with
 	// installation help text.
 

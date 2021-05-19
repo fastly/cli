@@ -44,26 +44,14 @@ func TestInit(t *testing.T) {
 		manifestIncludes string
 	}{
 		{
-			name: "unknown repository",
-			args: []string{"compute", "init", "--from", "https://example.com/template"},
-			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
-			},
+			name:      "unknown repository",
+			args:      []string{"compute", "init", "--from", "https://example.com/template"},
 			wantError: "error fetching package template:",
 		},
 		{
 			name: "with name",
 			args: []string{"compute", "init", "--name", "test"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -73,10 +61,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -89,9 +73,6 @@ func TestInit(t *testing.T) {
 			name: "with description",
 			args: []string{"compute", "init", "--description", "test"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -101,10 +82,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -117,9 +94,6 @@ func TestInit(t *testing.T) {
 			name: "with author",
 			args: []string{"compute", "init", "--author", "test@example.com"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -129,10 +103,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -145,9 +115,6 @@ func TestInit(t *testing.T) {
 			name: "with multiple authors",
 			args: []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -157,10 +124,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -173,9 +136,6 @@ func TestInit(t *testing.T) {
 			name: "with from repository and branch",
 			args: []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -185,10 +145,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
@@ -200,9 +156,6 @@ func TestInit(t *testing.T) {
 			name: "with existing package manifest",
 			args: []string{"compute", "init", "--force"}, // --force will ignore that the directory isn't empty
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -231,7 +184,6 @@ func TestInit(t *testing.T) {
 			args: []string{"compute", "init"},
 			configFile: config.File{
 				User: config.User{
-					Token: "123",
 					Email: "test@example.com",
 				},
 				StarterKits: config.StarterKitLanguages{
@@ -243,10 +195,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			manifestIncludes: `authors = ["test@example.com"]`,
 			wantFiles: []string{
@@ -267,10 +215,6 @@ func TestInit(t *testing.T) {
 			name: "non empty directory",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-					Email: "test@example.com",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -280,10 +224,6 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
 			},
 			wantError: "project directory not empty",
 			manifest:  `name = "test"`, // causes a file to be created as part of test setup
@@ -292,9 +232,6 @@ func TestInit(t *testing.T) {
 			name: "with default name inferred from directory",
 			args: []string{"compute", "init"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
@@ -305,19 +242,12 @@ func TestInit(t *testing.T) {
 					},
 				},
 			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
-			},
 			manifestIncludes: `name = "fastly-init`,
 		},
 		{
 			name: "with AssemblyScript language",
 			args: []string{"compute", "init", "--language", "assemblyscript"},
 			configFile: config.File{
-				User: config.User{
-					Token: "123",
-				},
 				StarterKits: config.StarterKitLanguages{
 					AssemblyScript: []config.StarterKit{
 						{
@@ -328,11 +258,17 @@ func TestInit(t *testing.T) {
 					},
 				},
 			},
-			api: mock.API{
-				GetTokenSelfFn: tokenOK,
-				GetUserFn:      getUserOk,
-			},
 			manifestIncludes: `name = "fastly-init`,
+		},
+		{
+			name:             "with pre-compiled Wasm binary",
+			args:             []string{"compute", "init", "--language", "other"},
+			manifestIncludes: `language = "other"`,
+			wantOutput: []string{
+				"Initialized package",
+				"To package a pre-compiled Wasm binary for deployment",
+				"SUCCESS: Initialized package",
+			},
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -1489,6 +1425,97 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
+func TestPack(t *testing.T) {
+	for _, testcase := range []struct {
+		name          string
+		args          []string
+		manifest      string
+		wantError     string
+		wantOutput    []string
+		expectedFiles [][]string
+	}{
+		// The following test validates that the expected directory struture was
+		// created successfully.
+		{
+			name:     "success",
+			args:     []string{"compute", "pack", "--path", "./main.wasm"},
+			manifest: `name = "precompiled"`,
+			wantOutput: []string{
+				"Initializing...",
+				"Copying wasm binary...",
+				"Copying manifest...",
+				"Creating .tar.gz file...",
+			},
+			expectedFiles: [][]string{
+				{"pkg", "precompiled", "bin", "main.wasm"},
+				{"pkg", "precompiled", "fastly.toml"},
+				{"pkg", "precompiled.tar.gz"},
+			},
+		},
+		// The following tests validate that a valid path flag value should be
+		// provided.
+		{
+			name:      "error no path flag",
+			args:      []string{"compute", "pack"},
+			manifest:  `name = "precompiled"`,
+			wantError: "error parsing arguments: required flag --path not provided",
+		},
+		{
+			name:      "error no path flag value provided",
+			args:      []string{"compute", "pack", "--path", ""},
+			manifest:  `name = "precompiled"`,
+			wantError: "error copying wasm binary",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			// We're going to chdir to a test environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Create our test environment in a temp dir.
+			// Defer a call to clean it up.
+			rootdir := makePackEnvironment(t, testcase.manifest)
+			defer os.RemoveAll(rootdir)
+
+			// Before running the test, chdir into the build environment.
+			// When we're done, chdir back to our original location.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(pwd)
+
+			var (
+				args                           = testcase.args
+				env                            = config.Environment{}
+				file                           = config.File{}
+				appConfigFile                  = "/dev/null"
+				clientFactory                  = mock.APIClient(mock.API{})
+				httpClient                     = http.DefaultClient
+				cliVersioner  update.Versioner = nil
+				in            io.Reader        = nil
+				buf           bytes.Buffer
+				out           io.Writer = common.NewSyncWriter(&buf)
+			)
+			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			for _, s := range testcase.wantOutput {
+				testutil.AssertStringContains(t, buf.String(), s)
+			}
+
+			for _, files := range testcase.expectedFiles {
+				fpath := filepath.Join(rootdir, filepath.Join(files...))
+				_, err = os.Stat(fpath)
+				if err != nil {
+					t.Fatalf("the specified file is not in the expected location: %v", err)
+				}
+			}
+		})
+	}
+}
+
 func TestValidate(t *testing.T) {
 	for _, testcase := range []struct {
 		name       string
@@ -1551,10 +1578,6 @@ func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) 
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
 	if manifestContent != "" {
 		filename := filepath.Join(rootdir, compute.ManifestFilename)
 		if err := os.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
@@ -1570,10 +1593,6 @@ func makeRustBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifest
 
 	rootdir, err := os.MkdirTemp("", "fastly-build-*")
 	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1619,10 +1638,6 @@ func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent stri
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
 	for _, filename := range [][]string{
 		{"package.json"},
 		{"assembly", "index.ts"},
@@ -1656,10 +1671,6 @@ func makeDeployEnvironment(t *testing.T, manifestContent string) (rootdir string
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
 	for _, filename := range [][]string{
 		{"pkg", "package.tar.gz"},
 	} {
@@ -1678,15 +1689,35 @@ func makeDeployEnvironment(t *testing.T, manifestContent string) (rootdir string
 	return rootdir
 }
 
+func makePackEnvironment(t *testing.T, manifestContent string) (rootdir string) {
+	t.Helper()
+
+	rootdir, err := os.MkdirTemp("", "fastly-pack-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, filename := range []string{"main.wasm"} {
+		fromFilename := filepath.Join("testdata", "pack", filepath.Join(filename))
+		toFilename := filepath.Join(rootdir, filepath.Join(filename))
+		copyFile(t, fromFilename, toFilename)
+	}
+
+	if manifestContent != "" {
+		filename := filepath.Join(rootdir, compute.ManifestFilename)
+		if err := os.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return rootdir
+}
+
 func makePublishEnvironment(t *testing.T, fastlyManifestContent, cargoManifestContent, cargoLockContent string) (rootdir string) {
 	t.Helper()
 
 	rootdir, err := os.MkdirTemp("", "fastly-publish-*")
 	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1769,12 +1800,6 @@ func copyFile(t *testing.T, fromFilename, toFilename string) {
 }
 
 var errTest = errors.New("fixture error")
-
-func tokenOK() (*fastly.Token, error) { return &fastly.Token{}, nil }
-
-func getUserOk(i *fastly.GetUserInput) (*fastly.User, error) {
-	return &fastly.User{Login: "test@example.com"}, nil
-}
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{

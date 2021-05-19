@@ -81,7 +81,7 @@ type (
 		// Stream is the C@E stream, either stdout or stderr.
 		Stream string `json:"stream"`
 		// RequestID is a UUID representing individual requests to the
-		// particular WASM service.
+		// particular Wasm service.
 		RequestID string `json:"id"`
 		// Message is the actual message body the user wants printed.
 		Message string `json:"message"`

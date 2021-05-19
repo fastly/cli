@@ -100,7 +100,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		desc     string
 		authors  []string
 		language *Language
-		from     string
 	)
 
 	languages := []*Language{
@@ -115,6 +114,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			DisplayName: "AssemblyScript (beta)",
 			StarterKits: c.Globals.File.StarterKits.AssemblyScript,
 			Toolchain:   NewAssemblyScript(),
+		}),
+		NewLanguage(&LanguageOptions{
+			Name:        "other",
+			DisplayName: "Other ('bring your own' Wasm binary)",
 		}),
 	}
 
@@ -156,31 +159,33 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	manifestExist := c.manifest.File.Exists()
+	if language.Name != "other" {
+		manifestExist := c.manifest.File.Exists()
 
-	from, branch, tag, err := pkgFrom(c.from, c.branch, c.tag, manifestExist, language.StarterKits, in, out)
-	if err != nil {
-		return err
-	}
-
-	text.Break(out)
-
-	if !c.Globals.Verbose() {
-		progress = text.NewQuietProgress(out)
-	}
-
-	_, err = exec.LookPath("git")
-	if err != nil {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("`git` not found in $PATH"),
-			Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
-		}
-	}
-
-	if from != "" && !manifestExist {
-		err := pkgFetch(from, branch, tag, c.path, progress)
+		from, branch, tag, err := pkgFrom(c.from, c.branch, c.tag, manifestExist, language.StarterKits, in, out)
 		if err != nil {
 			return err
+		}
+
+		text.Break(out)
+
+		if !c.Globals.Verbose() {
+			progress = text.NewQuietProgress(out)
+		}
+
+		_, err = exec.LookPath("git")
+		if err != nil {
+			return errors.RemediationError{
+				Inner:       fmt.Errorf("`git` not found in $PATH"),
+				Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
+			}
+		}
+
+		if from != "" && !manifestExist {
+			err := pkgFetch(from, branch, tag, c.path, progress)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -191,9 +196,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Initializing package...")
 
-	if err := language.Initialize(progress); err != nil {
-		fmt.Println(err)
-		return fmt.Errorf("error initializing package: %w", err)
+	if language.Name != "other" {
+		if err := language.Initialize(progress); err != nil {
+			fmt.Println(err)
+			return fmt.Errorf("error initializing package: %w", err)
+		}
 	}
 
 	progress.Done()
@@ -201,7 +208,14 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 
 	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
-	text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
+
+	if language.Name == "other" {
+		text.Description(out, "To package a pre-compiled Wasm binary for deployment, run", "fastly compute pack")
+		text.Description(out, "To deploy the package, run", "fastly compute deploy")
+	} else {
+		text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
+	}
+
 	text.Description(out, "To learn about deploying Compute@Edge projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
 	text.Success(out, "Initialized package %s", text.Bold(m.Name))
 
@@ -434,7 +448,16 @@ func updateManifest(m manifest.File, progress text.Progress, path string, name s
 	mp := filepath.Join(path, ManifestFilename)
 
 	if err := m.Read(mp); err != nil {
-		return m, fmt.Errorf("error reading package manifest: %w", err)
+		if lang.Name != "other" {
+			return m, fmt.Errorf("error reading package manifest: %w", err)
+		}
+
+		// We create a fastly.toml manifest on behalf of the user if they're
+		// bringing their own pre-compiled Wasm binary to be packaged.
+		m.ManifestVersion = manifest.ManifestLatestVersion
+		if err := m.Write(mp); err != nil {
+			return m, fmt.Errorf("error saving package manifest: %w", err)
+		}
 	}
 
 	fmt.Fprintf(progress, "Setting package name in manifest to %q...\n", name)
