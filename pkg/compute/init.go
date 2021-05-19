@@ -373,8 +373,7 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 	if ref != "" {
 		args = append(args, "--branch", ref)
 	}
-	dir := "."
-	args = append(args, from, dir)
+	args = append(args, from, tempdir)
 
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
