@@ -169,7 +169,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
-	progress.Step("Checking if git is installed...")
 	_, err = exec.LookPath("git")
 	if err != nil {
 		return errors.RemediationError{
