@@ -3224,7 +3224,7 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --from=FROM              From time, accepted formats at
-                                 https://docs.fastly.com/api/stats#Range
+                                 https://fastly.dev/reference/api/metrics-stats/historical-stats
         --to=TO                  To time
         --by=BY                  Aggregation period (minute/hour/day)
         --region=REGION          Filter by region ('stats regions' to list)
