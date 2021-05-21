@@ -64,17 +64,15 @@ type CargoMetadata struct {
 // Read the contents of the Cargo.lock file from filename.
 func (m *CargoMetadata) Read() error {
 	cmd := exec.Command("cargo", "metadata", "--quiet", "--format-version", "1")
-	stdout, err := cmd.StdoutPipe()
+	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
+		if len(stdoutStderr) > 0 {
+			return fmt.Errorf("%s", strings.TrimSpace(string(stdoutStderr)))
+		}
 		return err
 	}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	if err := json.NewDecoder(stdout).Decode(&m); err != nil {
-		return err
-	}
-	if err := cmd.Wait(); err != nil {
+	r := bytes.NewReader(stdoutStderr)
+	if err := json.NewDecoder(r).Decode(&m); err != nil {
 		return err
 	}
 	return nil
