@@ -4,7 +4,7 @@ This directory contains troubleshooting pages for common issues in this project,
 
 To update or create a help page, add or edit the Markdown files in this directory. Changes will be deployed on Developer Hub within 24 hours.
 
-## Example Page
+## Example Page
 
 ```md
 ---
