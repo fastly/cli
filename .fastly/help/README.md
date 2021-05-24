@@ -13,6 +13,6 @@ title: Compute@Edge is not enabled on your account
 template: help
 ---
 
-Our edge compute platform is in limited availability and not yet available to all customers. Contact [Fastly Support](https://support.fastly.com/hc/en-us) or your account manager to have the feature enabled on your account.
+Our edge compute platform is in limited availability and not yet available to all customers. Contact [Fastly Support](https://support.fastly.com/) or your account manager to have the feature enabled on your account.
 
 ```
