@@ -424,7 +424,7 @@ func createService(progress text.Progress, client api.Interface, name string, de
 		if strings.Contains(err.Error(), "Valid values for 'type' are: 'vcl'") {
 			return nil, "", errors.RemediationError{
 				Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge feature flag enabled on your Fastly account"),
-				Remediation: "See more at https://fastly.help/cli/ecp-feature",
+				Remediation: "For more help with this error see fastly.help/cli/ecp-feature",
 			}
 		}
 		return nil, "", fmt.Errorf("error creating service: %w", err)
