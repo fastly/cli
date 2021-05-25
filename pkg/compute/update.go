@@ -15,9 +15,10 @@ import (
 // UpdateCommand calls the Fastly API to update packages.
 type UpdateCommand struct {
 	common.Base
-	serviceID string
-	version   int
-	path      string
+	serviceID      string
+	path           string
+	serviceVersion common.OptionalServiceVersion
+	autoClone      common.OptionalAutoClone
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -26,7 +27,8 @@ func NewUpdateCommand(parent common.Registerer, client api.HTTPClient, globals *
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update a package on a Fastly Compute@Edge service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.serviceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.version)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("path", "Path to package").Required().Short('p').StringVar(&c.path)
 	return &c
 }
@@ -39,6 +41,15 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return errors.ErrNoToken
 	}
 
+	v, err := c.serviceVersion.Parse(c.serviceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.serviceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+
 	progress := text.NewQuietProgress(out)
 	defer func() {
 		if err != nil {
@@ -49,7 +60,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Uploading package...")
 	_, err = c.Globals.Client.UpdatePackage(&fastly.UpdatePackageInput{
 		ServiceID:      c.serviceID,
-		ServiceVersion: c.version,
+		ServiceVersion: v.Number,
 		PackagePath:    c.path,
 	})
 	if err != nil {
@@ -57,6 +68,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	progress.Done()
 
-	text.Success(out, "Updated package (service %s, version %v)", c.serviceID, c.version)
+	text.Success(out, "Updated package (service %s, version %v)", c.serviceID, v.Number)
 	return nil
 }

@@ -24,51 +24,99 @@ func TestS3Create(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log"},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags or the --iam-role flag must be provided",
 		},
 		{
-			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo"},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "bar"},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--secret-key", "bar"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
 		{
-			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args:       []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar"},
-			api:        mock.API{CreateS3Fn: createS3OK},
-			wantOutput: "Created S3 logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateS3Fn:     createS3OK,
+			},
+			wantOutput: "Created S3 logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar"},
-			api:       mock.API{CreateS3Fn: createS3Error},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateS3Fn:     createS3Error,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
-			api:        mock.API{CreateS3Fn: createS3OK},
-			wantOutput: "Created S3 logging endpoint log2 (service 123 version 1)",
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log2", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateS3Fn:     createS3OK,
+			},
+			wantOutput: "Created S3 logging endpoint log2 (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
-			api:       mock.API{CreateS3Fn: createS3Error},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log2", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateS3Fn:     createS3Error,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:      []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access", "--compression-codec", "zstd", "--gzip-level", "9"},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access", "--compression-codec", "zstd", "--gzip-level", "9"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
 		},
 	} {
@@ -99,33 +147,57 @@ func TestS3List(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "s3", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListS3sFn: listS3sOK},
+			args: []string{"logging", "s3", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListS3sFn:      listS3sOK,
+			},
 			wantOutput: listS3sShortOutput,
 		},
 		{
-			args:       []string{"logging", "s3", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListS3sFn: listS3sOK},
+			args: []string{"logging", "s3", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListS3sFn:      listS3sOK,
+			},
 			wantOutput: listS3sVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "s3", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListS3sFn: listS3sOK},
+			args: []string{"logging", "s3", "list", "--service-id", "123", "--version", "2", "-v"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListS3sFn:      listS3sOK,
+			},
 			wantOutput: listS3sVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "s3", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListS3sFn: listS3sOK},
+			args: []string{"logging", "s3", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListS3sFn:      listS3sOK,
+			},
 			wantOutput: listS3sVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "s3", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListS3sFn: listS3sOK},
+			args: []string{"logging", "-v", "s3", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListS3sFn:      listS3sOK,
+			},
 			wantOutput: listS3sVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "s3", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListS3sFn: listS3sError},
+			args: []string{"logging", "s3", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListS3sFn:      listS3sError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -156,17 +228,25 @@ func TestS3Describe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "s3", "describe", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "s3", "describe", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "s3", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetS3Fn: getS3Error},
+			args: []string{"logging", "s3", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetS3Fn:        getS3Error,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "s3", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetS3Fn: getS3OK},
+			args: []string{"logging", "s3", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetS3Fn:        getS3OK,
+			},
 			wantOutput: describeS3Output,
 		},
 	} {
@@ -197,23 +277,38 @@ func TestS3Update(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      []string{"logging", "s3", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateS3Fn: updateS3Error},
+			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdateS3Fn:     updateS3Error,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateS3Fn: updateS3OK},
-			wantOutput: "Updated S3 logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdateS3Fn:     updateS3OK,
+			},
+			wantOutput: "Updated S3 logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:       []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--access-key", "foo", "--secret-key", "bar", "--iam-role", ""},
-			api:        mock.API{UpdateS3Fn: updateS3OK},
-			wantOutput: "Updated S3 logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--access-key", "foo", "--secret-key", "bar", "--iam-role", "", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdateS3Fn:     updateS3OK,
+			},
+			wantOutput: "Updated S3 logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -243,18 +338,28 @@ func TestS3Delete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "s3", "delete", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "s3", "delete", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "s3", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteS3Fn: deleteS3Error},
+			args: []string{"logging", "s3", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeleteS3Fn:     deleteS3Error,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "s3", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteS3Fn: deleteS3OK},
-			wantOutput: "Deleted S3 logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "s3", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeleteS3Fn:     deleteS3OK,
+			},
+			wantOutput: "Deleted S3 logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -347,18 +452,18 @@ func listS3sError(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 
 var listS3sShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listS3sVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	S3 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		Bucket: my-logs
 		Access key: 1234
@@ -379,7 +484,7 @@ Version: 1
 		Compression codec: zstd
 	S3 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		Bucket: analytics
 		Access key: 1234
@@ -431,7 +536,7 @@ func getS3Error(i *fastly.GetS3Input) (*fastly.S3, error) {
 
 var describeS3Output = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 Bucket: my-logs
 Access key: 1234
@@ -521,4 +626,35 @@ wMfrTEOvx0NxUM3rpaCgEmuWbB1G1Hu371oyr4srrr+N
 =28dr
 -----END PGP PUBLIC KEY BLOCK-----
 `)
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

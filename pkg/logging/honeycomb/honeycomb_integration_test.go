@@ -32,13 +32,23 @@ func TestHoneycombCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --dataset not provided",
 		},
 		{
-			args:       []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--dataset", "log"},
-			api:        mock.API{CreateHoneycombFn: createHoneycombOK},
-			wantOutput: "Created Honeycomb logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--dataset", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				CloneVersionFn:    cloneVersionOK,
+				CreateHoneycombFn: createHoneycombOK,
+			},
+			wantOutput: "Created Honeycomb logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--dataset", "log"},
-			api:       mock.API{CreateHoneycombFn: createHoneycombError},
+			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--dataset", "log"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				CloneVersionFn:    cloneVersionOK,
+				CreateHoneycombFn: createHoneycombError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -69,33 +79,57 @@ func TestHoneycombList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListHoneycombsFn: listHoneycombsOK},
+			args: []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListHoneycombsFn: listHoneycombsOK,
+			},
 			wantOutput: listHoneycombsShortOutput,
 		},
 		{
-			args:       []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListHoneycombsFn: listHoneycombsOK},
+			args: []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListHoneycombsFn: listHoneycombsOK,
+			},
 			wantOutput: listHoneycombsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListHoneycombsFn: listHoneycombsOK},
+			args: []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1", "-v"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListHoneycombsFn: listHoneycombsOK,
+			},
 			wantOutput: listHoneycombsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "honeycomb", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListHoneycombsFn: listHoneycombsOK},
+			args: []string{"logging", "honeycomb", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListHoneycombsFn: listHoneycombsOK,
+			},
 			wantOutput: listHoneycombsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "honeycomb", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListHoneycombsFn: listHoneycombsOK},
+			args: []string{"logging", "-v", "honeycomb", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListHoneycombsFn: listHoneycombsOK,
+			},
 			wantOutput: listHoneycombsVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListHoneycombsFn: listHoneycombsError},
+			args: []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListHoneycombsFn: listHoneycombsError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -130,13 +164,21 @@ func TestHoneycombDescribe(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "honeycomb", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetHoneycombFn: getHoneycombError},
+			args: []string{"logging", "honeycomb", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetHoneycombFn: getHoneycombError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "honeycomb", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetHoneycombFn: getHoneycombOK},
+			args: []string{"logging", "honeycomb", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetHoneycombFn: getHoneycombOK,
+			},
 			wantOutput: describeHoneycombOutput,
 		},
 	} {
@@ -171,14 +213,24 @@ func TestHoneycombUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateHoneycombFn: updateHoneycombError},
+			args: []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				CloneVersionFn:    cloneVersionOK,
+				UpdateHoneycombFn: updateHoneycombError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateHoneycombFn: updateHoneycombOK},
-			wantOutput: "Updated Honeycomb logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				CloneVersionFn:    cloneVersionOK,
+				UpdateHoneycombFn: updateHoneycombOK,
+			},
+			wantOutput: "Updated Honeycomb logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -212,14 +264,24 @@ func TestHoneycombDelete(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "honeycomb", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteHoneycombFn: deleteHoneycombError},
+			args: []string{"logging", "honeycomb", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				CloneVersionFn:    cloneVersionOK,
+				DeleteHoneycombFn: deleteHoneycombError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "honeycomb", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteHoneycombFn: deleteHoneycombOK},
-			wantOutput: "Deleted Honeycomb logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "honeycomb", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				CloneVersionFn:    cloneVersionOK,
+				DeleteHoneycombFn: deleteHoneycombOK,
+			},
+			wantOutput: "Deleted Honeycomb logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -293,18 +355,18 @@ func listHoneycombsError(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, er
 
 var listHoneycombsShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listHoneycombsVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	Honeycomb 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		Dataset: log
 		Token: tkn
@@ -314,7 +376,7 @@ Version: 1
 		Placement: none
 	Honeycomb 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		Dataset: log
 		Token: tkn
@@ -344,7 +406,7 @@ func getHoneycombError(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 
 var describeHoneycombOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 Dataset: log
 Token: tkn
@@ -378,4 +440,35 @@ func deleteHoneycombOK(i *fastly.DeleteHoneycombInput) error {
 
 func deleteHoneycombError(i *fastly.DeleteHoneycombInput) error {
 	return errTest
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

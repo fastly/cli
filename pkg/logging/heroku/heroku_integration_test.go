@@ -24,21 +24,31 @@ func TestHerokuCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "heroku", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
+			args:      []string{"logging", "heroku", "create", "--service-id", "123", "--version", "2", "--name", "log", "--url", "example.com"},
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args:      []string{"logging", "heroku", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc"},
+			args:      []string{"logging", "heroku", "create", "--service-id", "123", "--version", "2", "--name", "log", "--auth-token", "abc"},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args:       []string{"logging", "heroku", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--url", "example.com"},
-			api:        mock.API{CreateHerokuFn: createHerokuOK},
-			wantOutput: "Created Heroku logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "heroku", "create", "--service-id", "123", "--version", "2", "--name", "log", "--auth-token", "abc", "--url", "example.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateHerokuFn: createHerokuOK,
+			},
+			wantOutput: "Created Heroku logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "heroku", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--url", "example.com"},
-			api:       mock.API{CreateHerokuFn: createHerokuError},
+			args: []string{"logging", "heroku", "create", "--service-id", "123", "--version", "2", "--name", "log", "--auth-token", "abc", "--url", "example.com"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateHerokuFn: createHerokuError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -69,33 +79,57 @@ func TestHerokuList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "heroku", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListHerokusFn: listHerokusOK},
+			args: []string{"logging", "heroku", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListHerokusFn:  listHerokusOK,
+			},
 			wantOutput: listHerokusShortOutput,
 		},
 		{
-			args:       []string{"logging", "heroku", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListHerokusFn: listHerokusOK},
+			args: []string{"logging", "heroku", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListHerokusFn:  listHerokusOK,
+			},
 			wantOutput: listHerokusVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "heroku", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListHerokusFn: listHerokusOK},
+			args: []string{"logging", "heroku", "list", "--service-id", "123", "--version", "2", "-v"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListHerokusFn:  listHerokusOK,
+			},
 			wantOutput: listHerokusVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "heroku", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListHerokusFn: listHerokusOK},
+			args: []string{"logging", "heroku", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListHerokusFn:  listHerokusOK,
+			},
 			wantOutput: listHerokusVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "heroku", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListHerokusFn: listHerokusOK},
+			args: []string{"logging", "-v", "heroku", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListHerokusFn:  listHerokusOK,
+			},
 			wantOutput: listHerokusVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "heroku", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListHerokusFn: listHerokusError},
+			args: []string{"logging", "heroku", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListHerokusFn:  listHerokusError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -126,17 +160,25 @@ func TestHerokuDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "heroku", "describe", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "heroku", "describe", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "heroku", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetHerokuFn: getHerokuError},
+			args: []string{"logging", "heroku", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetHerokuFn:    getHerokuError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "heroku", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetHerokuFn: getHerokuOK},
+			args: []string{"logging", "heroku", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetHerokuFn:    getHerokuOK,
+			},
 			wantOutput: describeHerokuOutput,
 		},
 	} {
@@ -167,18 +209,28 @@ func TestHerokuUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      []string{"logging", "heroku", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateHerokuFn: updateHerokuError},
+			args: []string{"logging", "heroku", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdateHerokuFn: updateHerokuError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateHerokuFn: updateHerokuOK},
-			wantOutput: "Updated Heroku logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "heroku", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdateHerokuFn: updateHerokuOK,
+			},
+			wantOutput: "Updated Heroku logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -208,18 +260,28 @@ func TestHerokuDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "heroku", "delete", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "heroku", "delete", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "heroku", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteHerokuFn: deleteHerokuError},
+			args: []string{"logging", "heroku", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeleteHerokuFn: deleteHerokuError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "heroku", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteHerokuFn: deleteHerokuOK},
-			wantOutput: "Deleted Heroku logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "heroku", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeleteHerokuFn: deleteHerokuOK,
+			},
+			wantOutput: "Deleted Heroku logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -293,18 +355,18 @@ func listHerokusError(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 
 var listHerokusShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listHerokusVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	Heroku 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		URL: example.com
 		Token: abc
@@ -314,7 +376,7 @@ Version: 1
 		Placement: none
 	Heroku 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		URL: bar.com
 		Token: abc
@@ -344,7 +406,7 @@ func getHerokuError(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 
 var describeHerokuOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 URL: example.com
 Token: abc
@@ -378,4 +440,35 @@ func deleteHerokuOK(i *fastly.DeleteHerokuInput) error {
 
 func deleteHerokuError(i *fastly.DeleteHerokuInput) error {
 	return errTest
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

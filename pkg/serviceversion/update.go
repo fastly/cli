@@ -15,8 +15,10 @@ import (
 // UpdateCommand calls the Fastly API to update a service version.
 type UpdateCommand struct {
 	common.Base
-	manifest manifest.Data
-	input    fastly.UpdateVersionInput
+	manifest       manifest.Data
+	input          fastly.UpdateVersionInput
+	serviceVersion common.OptionalServiceVersion
+	autoClone      common.OptionalAutoClone
 
 	comment common.OptionalString
 }
@@ -29,7 +31,8 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to update").Required().IntVar(&c.input.ServiceVersion)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 
 	// TODO(integralist):
 	// Make 'comment' field mandatory once we roll out a new release of Go-Fastly
@@ -49,6 +52,16 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	c.input.ServiceID = serviceID
 
+	v, err := c.serviceVersion.Parse(c.input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.input.ServiceVersion = v.Number
+
 	if !c.comment.WasSet {
 		return fmt.Errorf("error parsing arguments: required flag --comment not provided")
 	}
@@ -57,11 +70,11 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		c.input.Comment = fastly.String(c.comment.Value)
 	}
 
-	v, err := c.Globals.Client.UpdateVersion(&c.input)
+	ver, err := c.Globals.Client.UpdateVersion(&c.input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Updated service %s version %d", v.ServiceID, c.input.ServiceVersion)
+	text.Success(out, "Updated service %s version %d", ver.ServiceID, c.input.ServiceVersion)
 	return nil
 }

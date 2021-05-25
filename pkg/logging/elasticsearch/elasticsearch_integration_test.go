@@ -24,21 +24,31 @@ func TestElasticsearchCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--index", "logs"},
+			args:      []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "2", "--name", "log", "--index", "logs"},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args:      []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
+			args:      []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "2", "--name", "log", "--url", "example.com"},
 			wantError: "error parsing arguments: required flag --index not provided",
 		},
 		{
-			args:       []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--index", "logs", "--url", "example.com"},
-			api:        mock.API{CreateElasticsearchFn: createElasticsearchOK},
-			wantOutput: "Created Elasticsearch logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "2", "--name", "log", "--index", "logs", "--url", "example.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:        listVersionsOK,
+				GetVersionFn:          getVersionOK,
+				CloneVersionFn:        cloneVersionOK,
+				CreateElasticsearchFn: createElasticsearchOK,
+			},
+			wantOutput: "Created Elasticsearch logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--index", "logs", "--url", "example.com"},
-			api:       mock.API{CreateElasticsearchFn: createElasticsearchError},
+			args: []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "2", "--name", "log", "--index", "logs", "--url", "example.com"},
+			api: mock.API{
+				ListVersionsFn:        listVersionsOK,
+				GetVersionFn:          getVersionOK,
+				CloneVersionFn:        cloneVersionOK,
+				CreateElasticsearchFn: createElasticsearchError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -69,33 +79,57 @@ func TestElasticsearchList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "elasticsearch", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListElasticsearchFn: listElasticsearchsOK},
+			args: []string{"logging", "elasticsearch", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:      listVersionsOK,
+				GetVersionFn:        getVersionOK,
+				ListElasticsearchFn: listElasticsearchsOK,
+			},
 			wantOutput: listElasticsearchsShortOutput,
 		},
 		{
-			args:       []string{"logging", "elasticsearch", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListElasticsearchFn: listElasticsearchsOK},
+			args: []string{"logging", "elasticsearch", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			api: mock.API{
+				ListVersionsFn:      listVersionsOK,
+				GetVersionFn:        getVersionOK,
+				ListElasticsearchFn: listElasticsearchsOK,
+			},
 			wantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "elasticsearch", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListElasticsearchFn: listElasticsearchsOK},
+			args: []string{"logging", "elasticsearch", "list", "--service-id", "123", "--version", "2", "-v"},
+			api: mock.API{
+				ListVersionsFn:      listVersionsOK,
+				GetVersionFn:        getVersionOK,
+				ListElasticsearchFn: listElasticsearchsOK,
+			},
 			wantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "elasticsearch", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListElasticsearchFn: listElasticsearchsOK},
+			args: []string{"logging", "elasticsearch", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:      listVersionsOK,
+				GetVersionFn:        getVersionOK,
+				ListElasticsearchFn: listElasticsearchsOK,
+			},
 			wantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "elasticsearch", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListElasticsearchFn: listElasticsearchsOK},
+			args: []string{"logging", "-v", "elasticsearch", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:      listVersionsOK,
+				GetVersionFn:        getVersionOK,
+				ListElasticsearchFn: listElasticsearchsOK,
+			},
 			wantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "elasticsearch", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListElasticsearchFn: listElasticsearchsError},
+			args: []string{"logging", "elasticsearch", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:      listVersionsOK,
+				GetVersionFn:        getVersionOK,
+				ListElasticsearchFn: listElasticsearchsError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -126,17 +160,25 @@ func TestElasticsearchDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "elasticsearch", "describe", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "elasticsearch", "describe", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "elasticsearch", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetElasticsearchFn: getElasticsearchError},
+			args: []string{"logging", "elasticsearch", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				GetElasticsearchFn: getElasticsearchError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "elasticsearch", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetElasticsearchFn: getElasticsearchOK},
+			args: []string{"logging", "elasticsearch", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				GetElasticsearchFn: getElasticsearchOK,
+			},
 			wantOutput: describeElasticsearchOutput,
 		},
 	} {
@@ -167,18 +209,28 @@ func TestElasticsearchUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateElasticsearchFn: updateElasticsearchError},
+			args: []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			api: mock.API{
+				ListVersionsFn:        listVersionsOK,
+				GetVersionFn:          getVersionOK,
+				CloneVersionFn:        cloneVersionOK,
+				UpdateElasticsearchFn: updateElasticsearchError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateElasticsearchFn: updateElasticsearchOK},
-			wantOutput: "Updated Elasticsearch logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:        listVersionsOK,
+				GetVersionFn:          getVersionOK,
+				CloneVersionFn:        cloneVersionOK,
+				UpdateElasticsearchFn: updateElasticsearchOK,
+			},
+			wantOutput: "Updated Elasticsearch logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -208,18 +260,28 @@ func TestElasticsearchDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "elasticsearch", "delete", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "elasticsearch", "delete", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "elasticsearch", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteElasticsearchFn: deleteElasticsearchError},
+			args: []string{"logging", "elasticsearch", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:        listVersionsOK,
+				GetVersionFn:          getVersionOK,
+				CloneVersionFn:        cloneVersionOK,
+				DeleteElasticsearchFn: deleteElasticsearchError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "elasticsearch", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteElasticsearchFn: deleteElasticsearchOK},
-			wantOutput: "Deleted Elasticsearch logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "elasticsearch", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:        listVersionsOK,
+				GetVersionFn:          getVersionOK,
+				CloneVersionFn:        cloneVersionOK,
+				DeleteElasticsearchFn: deleteElasticsearchOK,
+			},
+			wantOutput: "Deleted Elasticsearch logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -321,18 +383,18 @@ func listElasticsearchsError(i *fastly.ListElasticsearchInput) ([]*fastly.Elasti
 
 var listElasticsearchsShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listElasticsearchsVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	Elasticsearch 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		Index: logs
 		URL: example.com
@@ -349,7 +411,7 @@ Version: 1
 		Placement: none
 	Elasticsearch 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		Index: analytics
 		URL: example.com
@@ -395,7 +457,7 @@ func getElasticsearchError(i *fastly.GetElasticsearchInput) (*fastly.Elasticsear
 
 var describeElasticsearchOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 Index: logs
 URL: example.com
@@ -445,4 +507,35 @@ func deleteElasticsearchOK(i *fastly.DeleteElasticsearchInput) error {
 
 func deleteElasticsearchError(i *fastly.DeleteElasticsearchInput) error {
 	return errTest
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

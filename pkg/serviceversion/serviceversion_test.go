@@ -25,22 +25,28 @@ func TestVersionClone(t *testing.T) {
 	}{
 		{
 			args:      []string{"service-version", "clone", "--version", "1"},
-			api:       mock.API{CloneVersionFn: cloneVersionOK},
 			wantError: "error reading service: no service ID found",
 		},
 		{
 			args:      []string{"service-version", "clone", "--service-id", "123"},
-			api:       mock.API{CloneVersionFn: cloneVersionOK},
 			wantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args:       []string{"service-version", "clone", "--service-id", "123", "--version", "1"},
-			api:        mock.API{CloneVersionFn: cloneVersionOK},
+			args: []string{"service-version", "clone", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+			},
 			wantOutput: "Cloned service 123 version 1 to version 2",
 		},
 		{
-			args:      []string{"service-version", "clone", "--service-id", "123", "--version", "1"},
-			api:       mock.API{CloneVersionFn: cloneVersionError},
+			args: []string{"service-version", "clone", "--service-id", "456", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -128,18 +134,29 @@ func TestVersionUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
-			api:        mock.API{UpdateVersionFn: updateVersionOK},
+			args: []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
+			api: mock.API{
+				ListVersionsFn:  listVersionsOK,
+				GetVersionFn:    getVersionOK,
+				UpdateVersionFn: updateVersionOK,
+			},
 			wantOutput: "Updated service 123 version 1",
 		},
 		{
-			args:      []string{"service-version", "update", "--service-id", "123", "--version", "2"},
-			api:       mock.API{UpdateVersionFn: updateVersionOK},
+			args: []string{"service-version", "update", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --comment not provided",
 		},
 		{
-			args:      []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
-			api:       mock.API{UpdateVersionFn: updateVersionError},
+			args: []string{"service-version", "update", "--service-id", "123", "--version", "1", "--comment", "foo"},
+			api: mock.API{
+				ListVersionsFn:  listVersionsOK,
+				GetVersionFn:    getVersionOK,
+				UpdateVersionFn: updateVersionError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -171,18 +188,28 @@ func TestVersionActivate(t *testing.T) {
 	}{
 		{
 			args:      []string{"service-version", "activate", "--service-id", "123"},
-			api:       mock.API{ActivateVersionFn: activateVersionOK},
 			wantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args:       []string{"service-version", "activate", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ActivateVersionFn: activateVersionOK},
-			wantOutput: "Activated service 123 version 1",
-		},
-		{
-			args:      []string{"service-version", "activate", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ActivateVersionFn: activateVersionError},
+			args: []string{"service-version", "activate", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				ActivateVersionFn: activateVersionError,
+			},
 			wantError: errTest.Error(),
+		},
+		// The following test validates that the --autoclone flag causes the
+		// returned service version 1, which is 'activated', to be cloned.
+		{
+			args: []string{"service-version", "activate", "--service-id", "123", "--version", "1", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				CloneVersionFn:    cloneVersionOK,
+				ActivateVersionFn: activateVersionOK,
+			},
+			wantOutput: "Activated service 123 version 2",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -213,17 +240,24 @@ func TestVersionDeactivate(t *testing.T) {
 	}{
 		{
 			args:      []string{"service-version", "deactivate", "--service-id", "123"},
-			api:       mock.API{DeactivateVersionFn: deactivateVersionOK},
 			wantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args:       []string{"service-version", "deactivate", "--service-id", "123", "--version", "1"},
-			api:        mock.API{DeactivateVersionFn: deactivateVersionOK},
+			args: []string{"service-version", "deactivate", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:      listVersionsOK,
+				GetVersionFn:        getVersionOK,
+				DeactivateVersionFn: deactivateVersionOK,
+			},
 			wantOutput: "Deactivated service 123 version 1",
 		},
 		{
-			args:      []string{"service-version", "deactivate", "--service-id", "123", "--version", "1"},
-			api:       mock.API{DeactivateVersionFn: deactivateVersionError},
+			args: []string{"service-version", "deactivate", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:      listVersionsOK,
+				GetVersionFn:        getVersionOK,
+				DeactivateVersionFn: deactivateVersionError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -255,17 +289,24 @@ func TestVersionLock(t *testing.T) {
 	}{
 		{
 			args:      []string{"service-version", "lock", "--service-id", "123"},
-			api:       mock.API{LockVersionFn: lockVersionOK},
 			wantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args:       []string{"service-version", "lock", "--service-id", "123", "--version", "1"},
-			api:        mock.API{LockVersionFn: lockVersionOK},
+			args: []string{"service-version", "lock", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				LockVersionFn:  lockVersionOK,
+			},
 			wantOutput: "Locked service 123 version 1",
 		},
 		{
-			args:      []string{"service-version", "lock", "--service-id", "123", "--version", "1"},
-			api:       mock.API{LockVersionFn: lockVersionError},
+			args: []string{"service-version", "lock", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				LockVersionFn:  lockVersionError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -302,6 +343,15 @@ func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 
 func cloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return nil, errTest
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    1,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
 }
 
 func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {

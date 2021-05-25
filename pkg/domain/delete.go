@@ -14,8 +14,10 @@ import (
 // DeleteCommand calls the Fastly API to delete domains.
 type DeleteCommand struct {
 	common.Base
-	manifest manifest.Data
-	Input    fastly.DeleteDomainInput
+	manifest       manifest.Data
+	Input          fastly.DeleteDomainInput
+	serviceVersion common.OptionalServiceVersion
+	autoClone      common.OptionalAutoClone
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -27,7 +29,8 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	c.CmdClause = parent.Command("delete", "Delete a domain on a Fastly service version").Alias("remove")
 	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	return &c
 }
 
@@ -38,6 +41,16 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	if err := c.Globals.Client.DeleteDomain(&c.Input); err != nil {
 		return err

@@ -18,14 +18,15 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
-	Version      int
-	BucketName   string
-	AccessKey    string
-	User         string
-	URL          string
+	EndpointName   string // Can't shadow common.Base method Name().
+	BucketName     string
+	AccessKey      string
+	User           string
+	URL            string
+	serviceVersion common.OptionalServiceVersion
 
 	// optional
+	autoClone         common.OptionalAutoClone
 	PublicKey         common.OptionalString
 	Path              common.OptionalString
 	Period            common.OptionalUint
@@ -46,14 +47,13 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an OpenStack logging endpoint on a Fastly service version").Alias("add")
-
 	c.CmdClause.Flag("name", "The name of the OpenStack logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("bucket", "The name of your OpenStack container").Required().StringVar(&c.BucketName)
 	c.CmdClause.Flag("access-key", "Your OpenStack account access key").Required().StringVar(&c.AccessKey)
 	c.CmdClause.Flag("user", "The username for your OpenStack account").Required().StringVar(&c.User)
 	c.CmdClause.Flag("url", "Your OpenStack auth url").Required().StringVar(&c.URL)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("public-key", "A PGP public key that Fastly will use to encrypt your log files before writing them to disk").Action(c.PublicKey.Set).StringVar(&c.PublicKey.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to").Action(c.Path.Set).StringVar(&c.Path.Value)
@@ -66,7 +66,6 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 	c.CmdClause.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
-
 	return &c
 }
 
@@ -79,8 +78,17 @@ func (c *CreateCommand) createInput() (*fastly.CreateOpenstackInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+
 	input.ServiceID = serviceID
-	input.ServiceVersion = c.Version
+	input.ServiceVersion = v.Number
 	input.Name = c.EndpointName
 	input.BucketName = c.BucketName
 	input.AccessKey = c.AccessKey

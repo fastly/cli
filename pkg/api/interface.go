@@ -33,6 +33,7 @@ type Interface interface {
 
 	CloneVersion(*fastly.CloneVersionInput) (*fastly.Version, error)
 	ListVersions(*fastly.ListVersionsInput) ([]*fastly.Version, error)
+	GetVersion(*fastly.GetVersionInput) (*fastly.Version, error)
 	UpdateVersion(*fastly.UpdateVersionInput) (*fastly.Version, error)
 	ActivateVersion(*fastly.ActivateVersionInput) (*fastly.Version, error)
 	DeactivateVersion(*fastly.DeactivateVersionInput) (*fastly.Version, error)

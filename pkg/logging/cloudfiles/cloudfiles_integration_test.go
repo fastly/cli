@@ -24,29 +24,44 @@ func TestCloudfilesCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo"},
+			args:      []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo"},
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args:      []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--access-key", "foo"},
+			args:      []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "username", "--access-key", "foo"},
 			wantError: "error parsing arguments: required flag --bucket not provided",
 		},
 		{
-			args:      []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--bucket", "log"},
+			args:      []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "username", "--bucket", "log"},
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
 		{
-			args:       []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo"},
-			api:        mock.API{CreateCloudfilesFn: createCloudfilesOK},
-			wantOutput: "Created Cloudfiles logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				CreateCloudfilesFn: createCloudfilesOK,
+			},
+			wantOutput: "Created Cloudfiles logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo"},
-			api:       mock.API{CreateCloudfilesFn: createCloudfilesError},
+			args: []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				CreateCloudfilesFn: createCloudfilesError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:      []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo", "--compression-codec", "zstd", "--gzip-level", "9"},
+			args: []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
 		},
 	} {
@@ -77,33 +92,57 @@ func TestCloudfilesList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListCloudfilesFn: listCloudfilesOK},
+			args: []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListCloudfilesFn: listCloudfilesOK,
+			},
 			wantOutput: listCloudfilesShortOutput,
 		},
 		{
-			args:       []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListCloudfilesFn: listCloudfilesOK},
+			args: []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListCloudfilesFn: listCloudfilesOK,
+			},
 			wantOutput: listCloudfilesVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListCloudfilesFn: listCloudfilesOK},
+			args: []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "2", "-v"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListCloudfilesFn: listCloudfilesOK,
+			},
 			wantOutput: listCloudfilesVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "cloudfiles", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListCloudfilesFn: listCloudfilesOK},
+			args: []string{"logging", "cloudfiles", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListCloudfilesFn: listCloudfilesOK,
+			},
 			wantOutput: listCloudfilesVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "cloudfiles", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListCloudfilesFn: listCloudfilesOK},
+			args: []string{"logging", "-v", "cloudfiles", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListCloudfilesFn: listCloudfilesOK,
+			},
 			wantOutput: listCloudfilesVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListCloudfilesFn: listCloudfilesError},
+			args: []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListCloudfilesFn: listCloudfilesError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -134,17 +173,25 @@ func TestCloudfilesDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "cloudfiles", "describe", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "cloudfiles", "describe", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "cloudfiles", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetCloudfilesFn: getCloudfilesError},
+			args: []string{"logging", "cloudfiles", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:  listVersionsOK,
+				GetVersionFn:    getVersionOK,
+				GetCloudfilesFn: getCloudfilesError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "cloudfiles", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetCloudfilesFn: getCloudfilesOK},
+			args: []string{"logging", "cloudfiles", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:  listVersionsOK,
+				GetVersionFn:    getVersionOK,
+				GetCloudfilesFn: getCloudfilesOK,
+			},
 			wantOutput: describeCloudfilesOutput,
 		},
 	} {
@@ -175,18 +222,28 @@ func TestCloudfilesUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateCloudfilesFn: updateCloudfilesError},
+			args: []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				UpdateCloudfilesFn: updateCloudfilesError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateCloudfilesFn: updateCloudfilesOK},
-			wantOutput: "Updated Cloudfiles logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				UpdateCloudfilesFn: updateCloudfilesOK,
+			},
+			wantOutput: "Updated Cloudfiles logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -216,18 +273,28 @@ func TestCloudfilesDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "cloudfiles", "delete", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "cloudfiles", "delete", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "cloudfiles", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteCloudfilesFn: deleteCloudfilesError},
+			args: []string{"logging", "cloudfiles", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				DeleteCloudfilesFn: deleteCloudfilesError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "cloudfiles", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteCloudfilesFn: deleteCloudfilesOK},
-			wantOutput: "Deleted Cloudfiles logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "cloudfiles", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				DeleteCloudfilesFn: deleteCloudfilesOK,
+			},
+			wantOutput: "Deleted Cloudfiles logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -317,18 +384,18 @@ func listCloudfilesError(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, e
 
 var listCloudfilesShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listCloudfilesVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	Cloudfiles 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		User: username
 		Access key: 1234
@@ -346,7 +413,7 @@ Version: 1
 		Public key: `+pgpPublicKey()+`
 	Cloudfiles 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		User: username
 		Access key: 1234
@@ -392,7 +459,7 @@ func getCloudfilesError(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error
 
 var describeCloudfilesOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 User: username
 Access key: 1234
@@ -476,4 +543,35 @@ wMfrTEOvx0NxUM3rpaCgEmuWbB1G1Hu371oyr4srrr+N
 =28dr
 -----END PGP PUBLIC KEY BLOCK-----
 `)
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

@@ -15,8 +15,9 @@ import (
 // ListCommand calls the Fastly API to list domains.
 type ListCommand struct {
 	common.Base
-	manifest manifest.Data
-	Input    fastly.ListDomainsInput
+	manifest       manifest.Data
+	Input          fastly.ListDomainsInput
+	serviceVersion common.OptionalServiceVersion
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -27,7 +28,7 @@ func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List domains on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	return &c
 }
 
@@ -38,6 +39,12 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	domains, err := c.Globals.Client.ListDomains(&c.Input)
 	if err != nil {

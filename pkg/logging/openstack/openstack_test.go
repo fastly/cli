@@ -1,6 +1,7 @@
 package openstack
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -82,7 +83,11 @@ func TestUpdateOpenstackInput(t *testing.T) {
 		{
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
-			api:  mock.API{GetOpenstackFn: getOpenstackOK},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetOpenstackFn: getOpenstackOK,
+			},
 			want: &fastly.UpdateOpenstackInput{
 				ServiceID:         "123",
 				ServiceVersion:    2,
@@ -108,7 +113,11 @@ func TestUpdateOpenstackInput(t *testing.T) {
 		{
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
-			api:  mock.API{GetOpenstackFn: getOpenstackOK},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetOpenstackFn: getOpenstackOK,
+			},
 			want: &fastly.UpdateOpenstackInput{
 				ServiceID:      "123",
 				ServiceVersion: 2,
@@ -133,22 +142,91 @@ func TestUpdateOpenstackInput(t *testing.T) {
 }
 
 func createCommandRequired() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: listVersionsOK,
+		GetVersionFn:   getVersionOK,
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: common.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "log",
-		Version:      2,
-		BucketName:   "bucket",
-		AccessKey:    "access",
-		User:         "user",
-		URL:          "https://example.com",
+		serviceVersion: common.OptionalServiceVersion{
+			OptionalString: common.OptionalString{Value: "2"},
+		},
+		BucketName: "bucket",
+		AccessKey:  "access",
+		User:       "user",
+		URL:        "https://example.com",
 	}
 }
 
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
 func createCommandAll() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: listVersionsOK,
+		GetVersionFn:   getVersionOK,
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		Version:           2,
+		Base: common.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "log",
+		serviceVersion: common.OptionalServiceVersion{
+			OptionalString: common.OptionalString{Value: "2"},
+		},
 		BucketName:        "bucket",
 		AccessKey:         "access",
 		User:              "user",
@@ -173,20 +251,52 @@ func createCommandMissingServiceID() *CreateCommand {
 }
 
 func updateCommandNoUpdates() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: common.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "log",
-		Version:      2,
+		serviceVersion: common.OptionalServiceVersion{
+			OptionalString: common.OptionalString{Value: "2"},
+		},
 	}
 }
 
 func updateCommandAll() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		Version:           2,
+		Base: common.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "log",
+		serviceVersion: common.OptionalServiceVersion{
+			OptionalString: common.OptionalString{Value: "2"},
+		},
 		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
 		BucketName:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
 		User:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},

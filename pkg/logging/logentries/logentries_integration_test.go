@@ -24,13 +24,23 @@ func TestLogentriesCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "logentries", "create", "--service-id", "123", "--version", "1", "--name", "log", "--port", "20000"},
-			api:        mock.API{CreateLogentriesFn: createLogentriesOK},
-			wantOutput: "Created Logentries logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "logentries", "create", "--service-id", "123", "--version", "2", "--name", "log", "--port", "20000", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				CreateLogentriesFn: createLogentriesOK,
+			},
+			wantOutput: "Created Logentries logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "logentries", "create", "--service-id", "123", "--version", "1", "--name", "log", "--port", "20000"},
-			api:       mock.API{CreateLogentriesFn: createLogentriesError},
+			args: []string{"logging", "logentries", "create", "--service-id", "123", "--version", "2", "--name", "log", "--port", "20000"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				CreateLogentriesFn: createLogentriesError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -61,33 +71,57 @@ func TestLogentriesList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
+			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListLogentriesFn: listLogentriesOK,
+			},
 			wantOutput: listLogentriesShortOutput,
 		},
 		{
-			args:       []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
+			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListLogentriesFn: listLogentriesOK,
+			},
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
+			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "2", "-v"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListLogentriesFn: listLogentriesOK,
+			},
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "logentries", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
+			args: []string{"logging", "logentries", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListLogentriesFn: listLogentriesOK,
+			},
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "logentries", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListLogentriesFn: listLogentriesOK},
+			args: []string{"logging", "-v", "logentries", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListLogentriesFn: listLogentriesOK,
+			},
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListLogentriesFn: listLogentriesError},
+			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:   listVersionsOK,
+				GetVersionFn:     getVersionOK,
+				ListLogentriesFn: listLogentriesError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -118,17 +152,25 @@ func TestLogentriesDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetLogentriesFn: getLogentriesError},
+			args: []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:  listVersionsOK,
+				GetVersionFn:    getVersionOK,
+				GetLogentriesFn: getLogentriesError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetLogentriesFn: getLogentriesOK},
+			args: []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:  listVersionsOK,
+				GetVersionFn:    getVersionOK,
+				GetLogentriesFn: getLogentriesOK,
+			},
 			wantOutput: describeLogentriesOutput,
 		},
 	} {
@@ -159,18 +201,28 @@ func TestLogentriesUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      []string{"logging", "logentries", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateLogentriesFn: updateLogentriesError},
+			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				UpdateLogentriesFn: updateLogentriesError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateLogentriesFn: updateLogentriesOK},
-			wantOutput: "Updated Logentries logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				UpdateLogentriesFn: updateLogentriesOK,
+			},
+			wantOutput: "Updated Logentries logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -200,18 +252,28 @@ func TestLogentriesDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteLogentriesFn: deleteLogentriesError},
+			args: []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				DeleteLogentriesFn: deleteLogentriesError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteLogentriesFn: deleteLogentriesOK},
-			wantOutput: "Deleted Logentries logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				DeleteLogentriesFn: deleteLogentriesOK,
+			},
+			wantOutput: "Deleted Logentries logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -282,18 +344,18 @@ func listLogentriesError(i *fastly.ListLogentriesInput) ([]*fastly.Logentries, e
 
 var listLogentriesShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listLogentriesVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	Logentries 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		Port: 20000
 		Use TLS: true
@@ -304,7 +366,7 @@ Version: 1
 		Placement: none
 	Logentries 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		Port: 20001
 		Use TLS: false
@@ -336,7 +398,7 @@ func getLogentriesError(i *fastly.GetLogentriesInput) (*fastly.Logentries, error
 
 var describeLogentriesOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 Port: 20000
 Use TLS: true
@@ -372,4 +434,35 @@ func deleteLogentriesOK(i *fastly.DeleteLogentriesInput) error {
 
 func deleteLogentriesError(i *fastly.DeleteLogentriesInput) error {
 	return errTest
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

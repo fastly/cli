@@ -8,7 +8,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -42,11 +41,12 @@ type DeployCommand struct {
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
-	Path        string
-	Version     common.OptionalInt
-	Domain      string
-	Backend     string
-	BackendPort uint
+	Path           string
+	Domain         string
+	Backend        string
+	BackendPort    uint
+	ServiceVersion common.OptionalServiceVersion
+	AutoClone      common.OptionalAutoClone
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -60,12 +60,12 @@ func NewDeployCommand(parent common.Registerer, client api.HTTPClient, globals *
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version to activate").Action(c.Version.Set).IntVar(&c.Version.Value)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.ServiceVersion.Value, Optional: true, Action: c.ServiceVersion.Set}, "true")
+	c.NewAutoCloneFlag(c.AutoClone.Set, &c.AutoClone.Value)
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.Backend)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.BackendPort)
-
 	return &c
 }
 
@@ -116,17 +116,23 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		text.Break(out)
 	} else {
+		version, err = c.ServiceVersion.Parse(serviceID, c.Globals.Client)
+		if err != nil {
+			return err
+		}
+		version, err = c.AutoClone.Parse(version, serviceID, c.Globals.Client)
+		if err != nil {
+			return err
+		}
+
 		// We define the `ok` variable so that the following call to
-		// `validateservice` will be able to shadow multiple variables.
+		// `validateservice` will be able to shadow `invalidType`.
 		var ok bool
 
 		// Because a service_id exists in the fastly.toml doesn't mean it's valid
 		// e.g. it could be missing either a domain or backend resource. So we
 		// check and allow the user to configure these settings before continuing.
-		//
-		// The returned version will only be nil if the initial service version
-		// request failed.
-		version, ok, invalidType, err = validateService(serviceID, c.Globals.Client, c.Version)
+		ok, invalidType, err = validateService(serviceID, c.Globals.Client, version)
 		if err != nil {
 			return err
 		}
@@ -320,95 +326,57 @@ func pkgPath(path string, name string, source manifest.Source) (string, error) {
 
 // validateService checks if the service version has a domain and backend
 // defined.
-func validateService(serviceID string, client api.Interface, version common.OptionalInt) (*fastly.Version, bool, invalidResource, error) {
-	v, err := serviceVersion(serviceID, client, version)
+//
+// The use of `resourceNone` as a `invalidResource` enum type is to represent a
+// situation where an error occurred and so we were unable to identify whether
+// a domain or backend (or both) were missing from the given service.
+func validateService(serviceID string, client api.Interface, version *fastly.Version) (bool, invalidResource, error) {
+	err := checkServiceID(serviceID, client, version)
 	if err != nil {
-		return nil, false, resourceNone, err
+		return false, resourceNone, err
 	}
 
 	domains, err := client.ListDomains(&fastly.ListDomainsInput{
 		ServiceID:      serviceID,
-		ServiceVersion: v.Number,
+		ServiceVersion: version.Number,
 	})
 	if err != nil {
-		return v, false, resourceNone, fmt.Errorf("error fetching service domains: %w", err)
+		return false, resourceNone, fmt.Errorf("error fetching service domains: %w", err)
 	}
 
 	backends, err := client.ListBackends(&fastly.ListBackendsInput{
 		ServiceID:      serviceID,
-		ServiceVersion: v.Number,
+		ServiceVersion: version.Number,
 	})
 	if err != nil {
-		return v, false, resourceNone, fmt.Errorf("error fetching service backends: %w", err)
+		return false, resourceNone, fmt.Errorf("error fetching service backends: %w", err)
 	}
 
 	ld := len(domains)
 	lb := len(backends)
 
 	if ld == 0 && lb == 0 {
-		return v, false, resourceBoth, nil
+		return false, resourceBoth, nil
 	}
 	if ld == 0 {
-		return v, false, resourceDomain, nil
+		return false, resourceDomain, nil
 	}
 	if lb == 0 {
-		return v, false, resourceBackend, nil
+		return false, resourceBackend, nil
 	}
 
-	return v, true, resourceNone, nil
+	return true, resourceNone, nil
 }
 
-// serviceVersion returns the version for the given service.
-func serviceVersion(serviceID string, client api.Interface, versionFlag common.OptionalInt) (*fastly.Version, error) {
+// checkServiceID validates the given Service ID maps to a real service.
+func checkServiceID(serviceID string, client api.Interface, version *fastly.Version) error {
 	_, err := client.GetService(&fastly.GetServiceInput{
 		ID: serviceID,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error fetching service details: %w", err)
+		return fmt.Errorf("error fetching service details: %w", err)
 	}
-
-	var version *fastly.Version
-
-	if versionFlag.WasSet {
-		version = &fastly.Version{Number: versionFlag.Value}
-	} else {
-		var err error
-		version, err = pkgVersion(serviceID, client)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return version, nil
-}
-
-// pkgVersion acquires the ideal version to associate with a compute package.
-func pkgVersion(serviceID string, client api.Interface) (*fastly.Version, error) {
-	versions, err := client.ListVersions(&fastly.ListVersionsInput{
-		ServiceID: serviceID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error listing service versions: %w", err)
-	}
-
-	version, err := getLatestIdealVersion(versions)
-	if err != nil {
-		return nil, fmt.Errorf("error finding latest service version")
-	}
-
-	if version.Active || version.Locked {
-		version, err := client.CloneVersion(&fastly.CloneVersionInput{
-			ServiceID:      serviceID,
-			ServiceVersion: version.Number,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("error cloning latest service version: %w", err)
-		}
-
-		return version, nil
-	}
-
-	return version, nil
+	return nil
 }
 
 // createService creates a service to associate with the compute package.
@@ -610,43 +578,6 @@ func createBackend(progress text.Progress, client api.Interface, serviceID strin
 	}
 
 	return nil
-}
-
-// getLatestIdealVersion gets the most ideal service version using the following logic:
-// - Find the active version and return
-// - If no active version, find the latest locked version and return
-// - Otherwise return the latest version
-func getLatestIdealVersion(versions []*fastly.Version) (*fastly.Version, error) {
-	sort.Slice(versions, func(i, j int) bool {
-		return versions[i].UpdatedAt.Before(*versions[j].UpdatedAt)
-	})
-
-	var active, locked, latest *fastly.Version
-	for i := 0; i < len(versions); i++ {
-		v := versions[i]
-		if v.Active {
-			active = v
-		}
-		if v.Locked {
-			locked = v
-		}
-		latest = v
-	}
-
-	var version *fastly.Version
-	if active != nil {
-		version = active
-	} else if locked != nil {
-		version = locked
-	} else {
-		version = latest
-	}
-
-	if version == nil {
-		return nil, fmt.Errorf("error finding latest service version")
-	}
-
-	return version, nil
 }
 
 func getHashSum(path string) (hash string, err error) {

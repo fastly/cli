@@ -14,8 +14,10 @@ import (
 // DeleteCommand calls the Fastly API to delete a Syslog logging endpoint.
 type DeleteCommand struct {
 	common.Base
-	manifest manifest.Data
-	Input    fastly.DeleteSyslogInput
+	manifest       manifest.Data
+	Input          fastly.DeleteSyslogInput
+	serviceVersion common.OptionalServiceVersion
+	autoClone      common.OptionalAutoClone
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -25,11 +27,10 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete a Syslog logging endpoint on a Fastly service version").Alias("remove")
-
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "The name of the Syslog logging object").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-
 	return &c
 }
 
@@ -40,6 +41,16 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	if err := c.Globals.Client.DeleteSyslog(&c.Input); err != nil {
 		return err

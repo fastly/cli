@@ -24,21 +24,39 @@ func TestLogshuttleCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc"},
+			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "2", "--name", "log", "--auth-token", "abc"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args:      []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
+			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "2", "--name", "log", "--url", "example.com"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args:       []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--auth-token", "abc"},
-			api:        mock.API{CreateLogshuttleFn: createLogshuttleOK},
-			wantOutput: "Created Logshuttle logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "2", "--name", "log", "--url", "example.com", "--auth-token", "abc", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				CreateLogshuttleFn: createLogshuttleOK,
+			},
+			wantOutput: "Created Logshuttle logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--auth-token", "abc"},
-			api:       mock.API{CreateLogshuttleFn: createLogshuttleError},
+			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "2", "--name", "log", "--url", "example.com", "--auth-token", "abc"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				CreateLogshuttleFn: createLogshuttleError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -69,33 +87,57 @@ func TestLogshuttleList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListLogshuttlesFn: listLogshuttlesOK},
+			args: []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				ListLogshuttlesFn: listLogshuttlesOK,
+			},
 			wantOutput: listLogshuttlesShortOutput,
 		},
 		{
-			args:       []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListLogshuttlesFn: listLogshuttlesOK},
+			args: []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				ListLogshuttlesFn: listLogshuttlesOK,
+			},
 			wantOutput: listLogshuttlesVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListLogshuttlesFn: listLogshuttlesOK},
+			args: []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "2", "-v"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				ListLogshuttlesFn: listLogshuttlesOK,
+			},
 			wantOutput: listLogshuttlesVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "logshuttle", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListLogshuttlesFn: listLogshuttlesOK},
+			args: []string{"logging", "logshuttle", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				ListLogshuttlesFn: listLogshuttlesOK,
+			},
 			wantOutput: listLogshuttlesVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "logshuttle", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListLogshuttlesFn: listLogshuttlesOK},
+			args: []string{"logging", "-v", "logshuttle", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				ListLogshuttlesFn: listLogshuttlesOK,
+			},
 			wantOutput: listLogshuttlesVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListLogshuttlesFn: listLogshuttlesError},
+			args: []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn:    listVersionsOK,
+				GetVersionFn:      getVersionOK,
+				ListLogshuttlesFn: listLogshuttlesError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -126,17 +168,25 @@ func TestLogshuttleDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logshuttle", "describe", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "logshuttle", "describe", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "logshuttle", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetLogshuttleFn: getLogshuttleError},
+			args: []string{"logging", "logshuttle", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:  listVersionsOK,
+				GetVersionFn:    getVersionOK,
+				GetLogshuttleFn: getLogshuttleError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "logshuttle", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetLogshuttleFn: getLogshuttleOK},
+			args: []string{"logging", "logshuttle", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:  listVersionsOK,
+				GetVersionFn:    getVersionOK,
+				GetLogshuttleFn: getLogshuttleOK,
+			},
 			wantOutput: describeLogshuttleOutput,
 		},
 	} {
@@ -167,18 +217,28 @@ func TestLogshuttleUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateLogshuttleFn: updateLogshuttleError},
+			args: []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				UpdateLogshuttleFn: updateLogshuttleError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateLogshuttleFn: updateLogshuttleOK},
-			wantOutput: "Updated Logshuttle logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				UpdateLogshuttleFn: updateLogshuttleOK,
+			},
+			wantOutput: "Updated Logshuttle logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -208,18 +268,28 @@ func TestLogshuttleDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteLogshuttleFn: deleteLogshuttleError},
+			args: []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				DeleteLogshuttleFn: deleteLogshuttleError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteLogshuttleFn: deleteLogshuttleOK},
-			wantOutput: "Deleted Logshuttle logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:     listVersionsOK,
+				GetVersionFn:       getVersionOK,
+				CloneVersionFn:     cloneVersionOK,
+				DeleteLogshuttleFn: deleteLogshuttleOK,
+			},
+			wantOutput: "Deleted Logshuttle logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -293,18 +363,18 @@ func listLogshuttlesError(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle,
 
 var listLogshuttlesShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listLogshuttlesVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	Logshuttle 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		URL: example.com
 		Token: abc
@@ -314,7 +384,7 @@ Version: 1
 		Placement: none
 	Logshuttle 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		URL: example.com
 		Token: abc
@@ -344,7 +414,7 @@ func getLogshuttleError(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error
 
 var describeLogshuttleOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 URL: example.com
 Token: abc
@@ -378,4 +448,35 @@ func deleteLogshuttleOK(i *fastly.DeleteLogshuttleInput) error {
 
 func deleteLogshuttleError(i *fastly.DeleteLogshuttleInput) error {
 	return errTest
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

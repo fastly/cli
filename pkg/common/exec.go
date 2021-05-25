@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	// "sync"
 )
 
 // StreamingExec models a generic command execution that consumers can use to

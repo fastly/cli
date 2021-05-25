@@ -786,11 +786,14 @@ func TestDeploy(t *testing.T) {
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error listing service versions: fixture error",
 		},
+		// TODO: this highlights another issue with --autoclone which is related to
+		// the test suite perspective, which is we need to specify it for the clone
+		// to happen and so without it our error mocked API response doesn't get
+		// returned and so we don't fail the logic when expected.
 		{
 			name: "clone version error",
-			args: []string{"compute", "deploy", "--token", "123"},
+			args: []string{"compute", "deploy", "--token", "123", "--autoclone"},
 			api: mock.API{
-				GetServiceFn:   getServiceOK,
 				ListVersionsFn: listVersionsActiveOk,
 				CloneVersionFn: cloneVersionError,
 			},
@@ -962,7 +965,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success",
-			args: []string{"compute", "deploy", "--token", "123"},
+			args: []string{"compute", "deploy", "--token", "123", "--autoclone"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
@@ -987,7 +990,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with path",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--autoclone"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
@@ -1033,10 +1036,84 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with version",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
+			name: "success with specific version",
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2", "--autoclone"},
 			in:   strings.NewReader(""),
 			api: mock.API{
+				ListVersionsFn:    listVersionsActiveOk,
+				GetVersionFn:      getVersionOK,
+				CloneVersionFn:    cloneVersionOk,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+			},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"Deployed package (service 123, version 3)",
+			},
+		},
+		{
+			name: "success with latest version",
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "latest"},
+			in:   strings.NewReader(""),
+			api: mock.API{
+				ListVersionsFn:    listVersionsActiveOk,
+				CloneVersionFn:    cloneVersionOk,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+			},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"Deployed package (service 123, version 3)",
+			},
+		},
+		// The following test appends --autoclone because it doesn't make sense to
+		// use --version=active as that implies the latest active version should
+		// need to be cloned.
+		//
+		// TODO: remove --autoclone and move/rename the .Parse() method so it can
+		// continue to be used within each command's Exec function (we know which
+		// functions auto-cloning makes sense for, so rather than push that
+		// responsibility onto the user we need to handle that).
+		{
+			name: "success with active version",
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "active", "--autoclone"},
+			in:   strings.NewReader(""),
+			api: mock.API{
+				ListVersionsFn:    listVersionsActiveOk,
+				CloneVersionFn:    cloneVersionOk,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+			},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"Deployed package (service 123, version 2)",
+			},
+		},
+		{
+			name: "success with latest inactive version",
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "latest"},
+			in:   strings.NewReader(""),
+			api: mock.API{
+				ListVersionsFn:    listVersionsInactiveOk,
+				CloneVersionFn:    cloneVersionOk,
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
@@ -1122,7 +1199,7 @@ func TestPublish(t *testing.T) {
 	}{
 		{
 			name: "success no command flags",
-			args: []string{"compute", "publish", "-t", "123"},
+			args: []string{"compute", "publish", "-t", "123", "--autoclone"},
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -1180,9 +1257,11 @@ func TestPublish(t *testing.T) {
 				"Deployed package (service 123, version 2)",
 			},
 		},
+		// TODO: another example of issues with --autoclone which is the user
+		// shouldn't have to worry about this. It should just happen internally.
 		{
 			name: "success with build command flags",
-			args: []string{"compute", "publish", "-t", "123", "--name", "test", "--language", "rust", "--include-source", "--force"},
+			args: []string{"compute", "publish", "-t", "123", "--name", "test", "--language", "rust", "--include-source", "--force", "--autoclone"},
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -1242,7 +1321,7 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "success with deploy command flags",
-			args: []string{"compute", "publish", "-t", "123", "--version", "2", "--path", "pkg/test.tar.gz"},
+			args: []string{"compute", "publish", "-t", "123", "--version", "2", "--path", "pkg/test.tar.gz", "--autoclone"},
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -1280,6 +1359,7 @@ func TestPublish(t *testing.T) {
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    listVersionsActiveOk,
+				GetVersionFn:      getVersionOK,
 				CloneVersionFn:    cloneVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
@@ -1297,7 +1377,7 @@ func TestPublish(t *testing.T) {
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
 				"https://directly-careful-coyote.edgecompute.app",
-				"Deployed package (service 123, version 2)",
+				"Deployed package (service 123, version 3)",
 			},
 		},
 	} {
@@ -1362,6 +1442,8 @@ func TestUpdate(t *testing.T) {
 			name: "package API error",
 			args: []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123"},
 			api: mock.API{
+				ListVersionsFn:  listVersionsActiveOk,
+				GetVersionFn:    getVersionOK,
 				UpdatePackageFn: updatePackageError,
 			},
 			wantError: "error uploading package: fixture error",
@@ -1372,14 +1454,17 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			name: "success",
-			args: []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123"},
+			args: []string{"compute", "update", "-s", "123", "--version", "2", "-p", "pkg/package.tar.gz", "-t", "123", "--autoclone"},
 			api: mock.API{
+				ListVersionsFn:  listVersionsActiveOk,
+				GetVersionFn:    getVersionOK,
+				CloneVersionFn:  cloneVersionOk,
 				UpdatePackageFn: updatePackageOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
 				"Uploading package...",
-				"Updated package (service 123, version 1)",
+				"Updated package (service 123, version 3)",
 			},
 		},
 	} {
@@ -1854,6 +1939,15 @@ func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 
 func deleteBackendOK(i *fastly.DeleteBackendInput) error {
 	return nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
 }
 
 func listVersionsInactiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {

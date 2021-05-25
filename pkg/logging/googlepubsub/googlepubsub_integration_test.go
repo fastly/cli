@@ -24,29 +24,39 @@ func TestGooglePubSubCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--secret-key", "secret", "--project-id", "project", "--topic", "topic"},
+			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "2", "--name", "log", "--secret-key", "secret", "--project-id", "project", "--topic", "topic"},
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--project-id", "project", "--topic", "topic"},
+			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "user@example.com", "--project-id", "project", "--topic", "topic"},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--topic", "topic"},
+			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--topic", "topic"},
 			wantError: "error parsing arguments: required flag --project-id not provided",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project"},
+			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project"},
 			wantError: "error parsing arguments: required flag --topic not provided",
 		},
 		{
-			args:       []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project", "--topic", "topic"},
-			api:        mock.API{CreatePubsubFn: createGooglePubSubOK},
-			wantOutput: "Created Google Cloud Pub/Sub logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project", "--topic", "topic", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreatePubsubFn: createGooglePubSubOK,
+			},
+			wantOutput: "Created Google Cloud Pub/Sub logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project", "--topic", "topic"},
-			api:       mock.API{CreatePubsubFn: createGooglePubSubError},
+			args: []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project", "--topic", "topic"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreatePubsubFn: createGooglePubSubError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -77,33 +87,57 @@ func TestGooglePubSubList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "googlepubsub", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListPubsubsFn: listGooglePubSubsOK},
+			args: []string{"logging", "googlepubsub", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListPubsubsFn:  listGooglePubSubsOK,
+			},
 			wantOutput: listGooglePubSubsShortOutput,
 		},
 		{
-			args:       []string{"logging", "googlepubsub", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListPubsubsFn: listGooglePubSubsOK},
+			args: []string{"logging", "googlepubsub", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListPubsubsFn:  listGooglePubSubsOK,
+			},
 			wantOutput: listGooglePubSubsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "googlepubsub", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListPubsubsFn: listGooglePubSubsOK},
+			args: []string{"logging", "googlepubsub", "list", "--service-id", "123", "--version", "2", "-v"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListPubsubsFn:  listGooglePubSubsOK,
+			},
 			wantOutput: listGooglePubSubsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "googlepubsub", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListPubsubsFn: listGooglePubSubsOK},
+			args: []string{"logging", "googlepubsub", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListPubsubsFn:  listGooglePubSubsOK,
+			},
 			wantOutput: listGooglePubSubsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "googlepubsub", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListPubsubsFn: listGooglePubSubsOK},
+			args: []string{"logging", "-v", "googlepubsub", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListPubsubsFn:  listGooglePubSubsOK,
+			},
 			wantOutput: listGooglePubSubsVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListPubsubsFn: listGooglePubSubsError},
+			args: []string{"logging", "googlepubsub", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListPubsubsFn:  listGooglePubSubsError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -134,17 +168,25 @@ func TestGooglePubSubDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "googlepubsub", "describe", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "googlepubsub", "describe", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetPubsubFn: getGooglePubSubError},
+			args: []string{"logging", "googlepubsub", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetPubsubFn:    getGooglePubSubError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "googlepubsub", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetPubsubFn: getGooglePubSubOK},
+			args: []string{"logging", "googlepubsub", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetPubsubFn:    getGooglePubSubOK,
+			},
 			wantOutput: describeGooglePubSubOutput,
 		},
 	} {
@@ -175,18 +217,28 @@ func TestGooglePubSubUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdatePubsubFn: updateGooglePubSubError},
+			args: []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdatePubsubFn: updateGooglePubSubError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdatePubsubFn: updateGooglePubSubOK},
-			wantOutput: "Updated Google Cloud Pub/Sub logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdatePubsubFn: updateGooglePubSubOK,
+			},
+			wantOutput: "Updated Google Cloud Pub/Sub logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -216,18 +268,28 @@ func TestGooglePubSubDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "googlepubsub", "delete", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "googlepubsub", "delete", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeletePubsubFn: deleteGooglePubSubError},
+			args: []string{"logging", "googlepubsub", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeletePubsubFn: deleteGooglePubSubError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "googlepubsub", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeletePubsubFn: deleteGooglePubSubOK},
-			wantOutput: "Deleted Google Cloud Pub/Sub logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "googlepubsub", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeletePubsubFn: deleteGooglePubSubOK,
+			},
+			wantOutput: "Deleted Google Cloud Pub/Sub logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -308,18 +370,18 @@ func listGooglePubSubsError(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error
 
 var listGooglePubSubsShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listGooglePubSubsVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	Google Cloud Pub/Sub 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		User: user@example.com
 		Secret key: secret
@@ -331,7 +393,7 @@ Version: 1
 		Placement: none
 	Google Cloud Pub/Sub 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		User: user@example.com
 		Secret key: secret
@@ -365,7 +427,7 @@ func getGooglePubSubError(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 
 var describeGooglePubSubOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 User: user@example.com
 Secret key: secret
@@ -403,4 +465,35 @@ func deleteGooglePubSubOK(i *fastly.DeletePubsubInput) error {
 
 func deleteGooglePubSubError(i *fastly.DeletePubsubInput) error {
 	return errTest
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

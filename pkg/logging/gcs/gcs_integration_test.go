@@ -24,29 +24,44 @@ func TestGCSCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "foo@example.com", "--secret-key", "foo"},
+			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "foo@example.com", "--secret-key", "foo"},
 			wantError: "error parsing arguments: required flag --bucket not provided",
 		},
 		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "foo"},
+			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--secret-key", "foo"},
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com"},
+			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--user", "foo@example.com"},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args:       []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400"},
-			api:        mock.API{CreateGCSFn: createGCSOK},
-			wantOutput: "Created GCS logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateGCSFn:    createGCSOK,
+			},
+			wantOutput: "Created GCS logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400"},
-			api:       mock.API{CreateGCSFn: createGCSError},
+			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateGCSFn:    createGCSError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400", "--compression-codec", "zstd", "--gzip-level", "9"},
+			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400", "--compression-codec", "zstd", "--gzip-level", "9"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
 		},
 	} {
@@ -77,33 +92,57 @@ func TestGCSList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
+			args: []string{"logging", "gcs", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListGCSsFn:     listGCSsOK,
+			},
 			wantOutput: listGCSsShortOutput,
 		},
 		{
-			args:       []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
+			args: []string{"logging", "gcs", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListGCSsFn:     listGCSsOK,
+			},
 			wantOutput: listGCSsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
+			args: []string{"logging", "gcs", "list", "--service-id", "123", "--version", "2", "-v"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListGCSsFn:     listGCSsOK,
+			},
 			wantOutput: listGCSsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "gcs", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
+			args: []string{"logging", "gcs", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListGCSsFn:     listGCSsOK,
+			},
 			wantOutput: listGCSsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "gcs", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListGCSsFn: listGCSsOK},
+			args: []string{"logging", "-v", "gcs", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListGCSsFn:     listGCSsOK,
+			},
 			wantOutput: listGCSsVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListGCSsFn: listGCSsError},
+			args: []string{"logging", "gcs", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListGCSsFn:     listGCSsError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -134,17 +173,25 @@ func TestGCSDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetGCSFn: getGCSError},
+			args: []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetGCSFn:       getGCSError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetGCSFn: getGCSOK},
+			args: []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetGCSFn:       getGCSOK,
+			},
 			wantOutput: describeGCSOutput,
 		},
 	} {
@@ -175,18 +222,28 @@ func TestGCSUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      []string{"logging", "gcs", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateGCSFn: updateGCSError},
+			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdateGCSFn:    updateGCSError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateGCSFn: updateGCSOK},
-			wantOutput: "Updated GCS logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdateGCSFn:    updateGCSOK,
+			},
+			wantOutput: "Updated GCS logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -216,18 +273,28 @@ func TestGCSDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteGCSFn: deleteGCSError},
+			args: []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeleteGCSFn:    deleteGCSError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteGCSFn: deleteGCSOK},
-			wantOutput: "Deleted GCS logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeleteGCSFn:    deleteGCSOK,
+			},
+			wantOutput: "Deleted GCS logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -310,18 +377,18 @@ func listGCSsError(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 
 var listGCSsShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listGCSsVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	GCS 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		Bucket: my-logs
 		User: foo@example.com
@@ -338,7 +405,7 @@ Version: 1
 		Compression codec: zstd
 	GCS 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		Bucket: analytics
 		User: foo@example.com
@@ -382,7 +449,7 @@ func getGCSError(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 
 var describeGCSOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 Bucket: my-logs
 User: foo@example.com
@@ -430,4 +497,35 @@ func deleteGCSOK(i *fastly.DeleteGCSInput) error {
 
 func deleteGCSError(i *fastly.DeleteGCSInput) error {
 	return errTest
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

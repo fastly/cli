@@ -14,8 +14,10 @@ import (
 // DeleteCommand calls the Fastly API to delete a service.
 type DeleteCommand struct {
 	common.Base
-	manifest manifest.Data
-	Input    fastly.DeleteDictionaryInput
+	manifest       manifest.Data
+	Input          fastly.DeleteDictionaryInput
+	serviceVersion common.OptionalServiceVersion
+	autoClone      common.OptionalAutoClone
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -26,7 +28,8 @@ func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete a Fastly edge dictionary from a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "Name of Dictionary").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
@@ -39,7 +42,17 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
-	err := c.Globals.Client.DeleteDictionary(&c.Input)
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
+
+	err = c.Globals.Client.DeleteDictionary(&c.Input)
 	if err != nil {
 		return err
 	}

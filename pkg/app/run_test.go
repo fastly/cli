@@ -238,7 +238,7 @@ COMMANDS
     Clone a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of version you wish to clone
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   service-version list [<flags>]
     List Fastly service versions
@@ -249,26 +249,32 @@ COMMANDS
     Update a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of version you wish to update
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --comment=COMMENT        Human-readable comment
 
   service-version activate --version=VERSION [<flags>]
     Activate a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of version you wish to activate
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
 
   service-version deactivate --version=VERSION [<flags>]
     Deactivate a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of version you wish to deactivate
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   service-version lock --version=VERSION [<flags>]
     Lock a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of version you wish to lock
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
 
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
@@ -296,7 +302,9 @@ COMMANDS
     Deploy a package to a Fastly Compute@Edge service
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of version to activate
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -p, --path=PATH              Path to package
         --domain=DOMAIN          The name of the domain associated to the
                                  package
@@ -313,7 +321,9 @@ COMMANDS
         --include-source         Include source code in built package
         --force                  Skip verification steps and force build
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of version to activate
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -p, --path=PATH              Path to package
         --domain=DOMAIN          The name of the domain associated to the
                                  package
@@ -327,11 +337,13 @@ COMMANDS
 
     -p, --path=PATH  Path to a pre-compiled Wasm binary
 
-  compute update --service-id=SERVICE-ID --version=VERSION --path=PATH
+  compute update --service-id=SERVICE-ID --version=VERSION --path=PATH [<flags>]
     Update a package on a Fastly Compute@Edge service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -p, --path=PATH              Path to package
 
   compute validate --path=PATH
@@ -345,26 +357,30 @@ COMMANDS
     -n, --name=NAME              Domain name
         --comment=COMMENT        A descriptive note
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
 
   domain list --version=VERSION [<flags>]
     List domains on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   domain describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a domain on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              Name of domain
 
   domain update --version=VERSION --name=NAME [<flags>]
     Update a domain on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              Domain name
         --new-name=NEW-NAME      New domain name
         --comment=COMMENT        A descriptive note
@@ -374,13 +390,18 @@ COMMANDS
 
     -n, --name=NAME              Domain name
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
 
   backend create --service-id=SERVICE-ID --version=VERSION --name=NAME --address=ADDRESS [<flags>]
     Create a backend on a Fastly service version
 
     -s, --service-id=SERVICE-ID    Service ID
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
     -n, --name=NAME                Backend name
         --address=ADDRESS          A hostname, IPv4, or IPv6 address for the
                                    backend
@@ -440,20 +461,23 @@ COMMANDS
     List backends on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   backend describe --service-id=SERVICE-ID --version=VERSION --name=NAME
     Show detailed information about a backend on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              Name of backend
 
   backend update --service-id=SERVICE-ID --version=VERSION --name=NAME [<flags>]
     Update a backend on a Fastly service version
 
     -s, --service-id=SERVICE-ID    Service ID
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
     -n, --name=NAME                backend name
         --new-name=NEW-NAME        New backend name
         --comment=COMMENT          A descriptive note
@@ -510,18 +534,22 @@ COMMANDS
                                    https://www.openssl.org/docs/man1.0.2/man1/ciphers
                                    for details)
 
-  backend delete --service-id=SERVICE-ID --version=VERSION --name=NAME
+  backend delete --service-id=SERVICE-ID --version=VERSION --name=NAME [<flags>]
     Delete a backend on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              Backend name
 
   healthcheck create --version=VERSION --name=NAME [<flags>]
     Create a healthcheck on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              Healthcheck name
         --comment=COMMENT        A descriptive note
         --method=METHOD          Which HTTP method to use
@@ -546,20 +574,22 @@ COMMANDS
     List healthchecks on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   healthcheck describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a healthcheck on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              Name of healthcheck
 
   healthcheck update --version=VERSION --name=NAME [<flags>]
     Update a healthcheck on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              Healthcheck name
         --new-name=NEW-NAME      Healthcheck name
         --comment=COMMENT        A descriptive note
@@ -585,14 +615,18 @@ COMMANDS
     Delete a healthcheck on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              Healthcheck name
 
   dictionary create --version=VERSION --name=NAME [<flags>]
     Create a Fastly edge dictionary on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              Name of Dictionary
         --write-only=WRITE-ONLY  Whether to mark this dictionary as write-only.
                                  Can be true or false (defaults to false)
@@ -601,27 +635,31 @@ COMMANDS
     Show detailed information about a Fastly edge dictionary
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              Name of Dictionary
 
   dictionary delete --version=VERSION --name=NAME [<flags>]
     Delete a Fastly edge dictionary from a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              Name of Dictionary
 
   dictionary list --version=VERSION [<flags>]
     List all dictionaries on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   dictionary update --version=VERSION --name=NAME [<flags>]
     Update name of dictionary on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              Old name of Dictionary
         --new-name=NEW-NAME      New name of Dictionary
         --write-only=WRITE-ONLY  Whether to mark this dictionary as write-only.
@@ -681,7 +719,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the BigQuery logging object. Used
                                  as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --project-id=PROJECT-ID  Your Google Cloud Platform project ID
         --dataset=DATASET        Your BigQuery dataset
         --table=TABLE            Your BigQuery table
@@ -717,20 +757,22 @@ COMMANDS
     List BigQuery endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging bigquery describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a BigQuery logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the BigQuery logging object
 
   logging bigquery update --version=VERSION --name=NAME [<flags>]
     Update a BigQuery logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the BigQuery logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the BigQuery logging object
@@ -767,7 +809,9 @@ COMMANDS
   logging bigquery delete --version=VERSION --name=NAME [<flags>]
     Delete a BigQuery logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the BigQuery logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -776,7 +820,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the S3 logging object. Used as a
                                  primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --bucket=BUCKET          Your S3 bucket name
         --access-key=ACCESS-KEY  Your S3 account access key
         --secret-key=SECRET-KEY  Your S3 account secret key
@@ -832,20 +878,22 @@ COMMANDS
     List S3 endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging s3 describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a S3 logging endpoint on a Fastly service
     version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the S3 logging object
 
   logging s3 update --version=VERSION --name=NAME [<flags>]
     Update a S3 logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the S3 logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the S3 logging object
@@ -902,7 +950,9 @@ COMMANDS
   logging s3 delete --version=VERSION --name=NAME [<flags>]
     Delete a S3 logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the S3 logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -911,7 +961,8 @@ COMMANDS
 
     -n, --name=NAME                The name of the Kinesis logging object. Used
                                    as a primary key for API access
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
         --stream-name=STREAM-NAME  The Amazon Kinesis stream to send logs to
         --region=REGION            The AWS region where the Kinesis stream
                                    exists
@@ -920,6 +971,8 @@ COMMANDS
         --secret-key=SECRET-KEY    The secret key associated with the target
                                    Amazon Kinesis stream
         --iam-role=IAM-ROLE        The IAM role ARN for logging
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
     -s, --service-id=SERVICE-ID    Service ID
         --format=FORMAT            Apache style log formatting
         --format-version=FORMAT-VERSION
@@ -939,20 +992,23 @@ COMMANDS
     List Kinesis endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging kinesis describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Kinesis logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Kinesis logging object
 
   logging kinesis update --version=VERSION --name=NAME [<flags>]
     Update a Kinesis logging endpoint on a Fastly service version
 
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
     -n, --name=NAME                The name of the Kinesis logging object
     -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the Kinesis logging object
@@ -979,7 +1035,9 @@ COMMANDS
   logging kinesis delete --version=VERSION --name=NAME [<flags>]
     Delete a Kinesis logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Kinesis logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -988,7 +1046,10 @@ COMMANDS
 
     -n, --name=NAME                The name of the Syslog logging object. Used
                                    as a primary key for API access
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
         --address=ADDRESS          A hostname or IPv4 address
     -s, --service-id=SERVICE-ID    Service ID
         --port=PORT                The port number
@@ -1028,20 +1089,23 @@ COMMANDS
     List Syslog endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging syslog describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Syslog logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Syslog logging object
 
   logging syslog update --version=VERSION --name=NAME [<flags>]
     Update a Syslog logging endpoint on a Fastly service version
 
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
     -n, --name=NAME                The name of the Syslog logging object
     -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the Syslog logging object
@@ -1082,7 +1146,9 @@ COMMANDS
   logging syslog delete --version=VERSION --name=NAME [<flags>]
     Delete a Syslog logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Syslog logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1091,7 +1157,6 @@ COMMANDS
 
     -n, --name=NAME              The name of the Logentries logging object. Used
                                  as a primary key for API access
-        --version=VERSION        Number of service version
     -s, --service-id=SERVICE-ID  Service ID
         --port=PORT              The port number
         --use-tls                Whether to use TLS for secure logging. Can be
@@ -1115,25 +1180,30 @@ COMMANDS
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug. This field
                                  is not required and has no default value
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
 
   logging logentries list --version=VERSION [<flags>]
     List Logentries endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging logentries describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Logentries logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Logentries logging object
 
   logging logentries update --version=VERSION --name=NAME [<flags>]
     Update a Logentries logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Logentries logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Logentries logging object
@@ -1163,7 +1233,9 @@ COMMANDS
   logging logentries delete --version=VERSION --name=NAME [<flags>]
     Delete a Logentries logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Logentries logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1172,7 +1244,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Papertrail logging object. Used
                                  as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --address=ADDRESS        A hostname or IPv4 address
     -s, --service-id=SERVICE-ID  Service ID
         --port=PORT              The port number
@@ -1198,20 +1272,22 @@ COMMANDS
     List Papertrail endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging papertrail describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Papertrail logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Papertrail logging object
 
   logging papertrail update --version=VERSION --name=NAME [<flags>]
     Update a Papertrail logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Papertrail logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Papertrail logging object
@@ -1238,7 +1314,9 @@ COMMANDS
   logging papertrail delete --version=VERSION --name=NAME [<flags>]
     Delete a Papertrail logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Papertrail logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1247,7 +1325,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Sumologic logging object. Used
                                  as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --url=URL                The URL to POST to
     -s, --service-id=SERVICE-ID  Service ID
         --format=FORMAT          Apache style log formatting
@@ -1275,20 +1355,22 @@ COMMANDS
     List Sumologic endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging sumologic describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Sumologic logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Sumologic logging object
 
   logging sumologic update --version=VERSION --name=NAME [<flags>]
     Update a Sumologic logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Sumologic logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Sumologic logging object
@@ -1317,7 +1399,9 @@ COMMANDS
   logging sumologic delete --version=VERSION --name=NAME [<flags>]
     Delete a Sumologic logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Sumologic logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1326,7 +1410,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the GCS logging object. Used as a
                                  primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --user=USER              Your GCS service account email address. The
                                  client_email field in your service account
                                  authentication JSON
@@ -1377,20 +1463,22 @@ COMMANDS
     List GCS endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging gcs describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a GCS logging endpoint on a Fastly service
     version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the GCS logging object
 
   logging gcs update --version=VERSION --name=NAME [<flags>]
     Update a GCS logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the GCS logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the GCS logging object
@@ -1442,7 +1530,9 @@ COMMANDS
   logging gcs delete --version=VERSION --name=NAME [<flags>]
     Delete a GCS logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the GCS logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1451,7 +1541,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the FTP logging object. Used as a
                                  primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --address=ADDRESS        An hostname or IPv4 address
         --user=USER              The username for the server (can be anonymous)
         --password=PASSWORD      The password for the server (for anonymous use
@@ -1494,20 +1586,22 @@ COMMANDS
     List FTP endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging ftp describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an FTP logging endpoint on a Fastly service
     version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the FTP logging object
 
   logging ftp update --version=VERSION --name=NAME [<flags>]
     Update an FTP logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the FTP logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the FTP logging object
@@ -1558,7 +1652,9 @@ COMMANDS
   logging ftp delete --version=VERSION --name=NAME [<flags>]
     Delete an FTP logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the FTP logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1567,7 +1663,10 @@ COMMANDS
 
     -n, --name=NAME                The name of the Splunk logging object. Used
                                    as a primary key for API access
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
         --url=URL                  The URL to POST to
     -s, --service-id=SERVICE-ID    Service ID
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
@@ -1602,20 +1701,23 @@ COMMANDS
     List Splunk endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging splunk describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Splunk logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Splunk logging object
 
   logging splunk update --version=VERSION --name=NAME [<flags>]
     Update a Splunk logging endpoint on a Fastly service version
 
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
     -n, --name=NAME                The name of the Splunk logging object
     -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the Splunk logging object
@@ -1651,7 +1753,9 @@ COMMANDS
   logging splunk delete --version=VERSION --name=NAME [<flags>]
     Delete a Splunk logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Splunk logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1660,7 +1764,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Scalyr logging object. Used as
                                  a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://www.scalyr.com/keys)
     -s, --service-id=SERVICE-ID  Service ID
@@ -1683,20 +1789,22 @@ COMMANDS
     List Scalyr endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging scalyr describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Scalyr logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Scalyr logging object
 
   logging scalyr update --version=VERSION --name=NAME [<flags>]
     Update a Scalyr logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Scalyr logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Scalyr logging object
@@ -1720,7 +1828,9 @@ COMMANDS
   logging scalyr delete --version=VERSION --name=NAME [<flags>]
     Delete a Scalyr logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Scalyr logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1729,7 +1839,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Loggly logging object. Used as
                                  a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://www.loggly.com/docs/customer-token-authentication-token/)
     -s, --service-id=SERVICE-ID  Service ID
@@ -1750,20 +1862,22 @@ COMMANDS
     List Loggly endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging loggly describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Loggly logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Loggly logging object
 
   logging loggly update --version=VERSION --name=NAME [<flags>]
     Update a Loggly logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Loggly logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Loggly logging object
@@ -1785,7 +1899,9 @@ COMMANDS
   logging loggly delete --version=VERSION --name=NAME [<flags>]
     Delete a Loggly logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Loggly logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1794,7 +1910,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Honeycomb logging object. Used
                                  as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --dataset=DATASET        The Honeycomb Dataset you want to log to
         --auth-token=AUTH-TOKEN  The Write Key from the Account page of your
                                  Honeycomb account
@@ -1817,20 +1935,22 @@ COMMANDS
     List Honeycomb endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging honeycomb describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Honeycomb logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Honeycomb logging object
 
   logging honeycomb update --version=VERSION --name=NAME [<flags>]
     Update a Honeycomb logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Honeycomb logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Honeycomb logging object
@@ -1854,7 +1974,9 @@ COMMANDS
   logging honeycomb delete --version=VERSION --name=NAME [<flags>]
     Delete a Honeycomb logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Honeycomb logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1863,7 +1985,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Heroku logging object. Used as
                                  a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --url=URL                The url to stream logs to
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://devcenter.heroku.com/articles/add-on-partner-log-integration)
@@ -1885,20 +2009,22 @@ COMMANDS
     List Heroku endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging heroku describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Heroku logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Heroku logging object
 
   logging heroku update --version=VERSION --name=NAME [<flags>]
     Update a Heroku logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Heroku logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Heroku logging object
@@ -1921,7 +2047,9 @@ COMMANDS
   logging heroku delete --version=VERSION --name=NAME [<flags>]
     Delete a Heroku logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Heroku logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -1930,7 +2058,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the SFTP logging object. Used as a
                                  primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --address=ADDRESS        The hostname or IPv4 addres
         --user=USER              The username for the server
         --ssh-known-hosts=SSH-KNOWN-HOSTS
@@ -1987,20 +2117,22 @@ COMMANDS
     List SFTP endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging sftp describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an SFTP logging endpoint on a Fastly service
     version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the SFTP logging object
 
   logging sftp update --version=VERSION --name=NAME [<flags>]
     Update an SFTP logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the SFTP logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the SFTP logging object
@@ -2058,7 +2190,9 @@ COMMANDS
   logging sftp delete --version=VERSION --name=NAME [<flags>]
     Delete an SFTP logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the SFTP logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -2067,7 +2201,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Logshuttle logging object. Used
                                  as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --url=URL                Your Log Shuttle endpoint url
         --auth-token=AUTH-TOKEN  The data authentication token associated with
                                  this endpoint
@@ -2089,20 +2225,22 @@ COMMANDS
     List Logshuttle endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging logshuttle describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Logshuttle logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Logshuttle logging object
 
   logging logshuttle update --version=VERSION --name=NAME [<flags>]
     Update a Logshuttle logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Logshuttle logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Logshuttle logging object
@@ -2125,7 +2263,9 @@ COMMANDS
   logging logshuttle delete --version=VERSION --name=NAME [<flags>]
     Delete a Logshuttle logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Logshuttle logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -2134,7 +2274,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Cloudfiles logging object. Used
                                  as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --user=USER              The username for your Cloudfile account
         --access-key=ACCESS-KEY  Your Cloudfile account access key
         --bucket=BUCKET          The name of your Cloudfiles container
@@ -2183,20 +2325,22 @@ COMMANDS
     List Cloudfiles endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging cloudfiles describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Cloudfiles logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Cloudfiles logging object
 
   logging cloudfiles update --version=VERSION --name=NAME [<flags>]
     Update a Cloudfiles logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Cloudfiles logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Cloudfiles logging object
@@ -2246,7 +2390,9 @@ COMMANDS
   logging cloudfiles delete --version=VERSION --name=NAME [<flags>]
     Delete a Cloudfiles logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Cloudfiles logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -2255,7 +2401,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the DigitalOcean Spaces logging
                                  object. Used as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --bucket=BUCKET          The name of the DigitalOcean Space
         --access-key=ACCESS-KEY  Your DigitalOcean Spaces account access key
         --secret-key=SECRET-KEY  Your DigitalOcean Spaces account secret key
@@ -2303,21 +2451,23 @@ COMMANDS
     List DigitalOcean Spaces logging endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging digitalocean describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a DigitalOcean Spaces logging endpoint on a
     Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the DigitalOcean Spaces logging
                                  object
 
   logging digitalocean update --version=VERSION --name=NAME [<flags>]
     Update a DigitalOcean Spaces logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the DigitalOcean Spaces logging
                                  object
     -s, --service-id=SERVICE-ID  Service ID
@@ -2368,7 +2518,9 @@ COMMANDS
   logging digitalocean delete --version=VERSION --name=NAME [<flags>]
     Delete a DigitalOcean Spaces logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the DigitalOcean Spaces logging
                                  object
     -s, --service-id=SERVICE-ID  Service ID
@@ -2378,7 +2530,10 @@ COMMANDS
 
     -n, --name=NAME                The name of the Elasticsearch logging object.
                                    Used as a primary key for API access
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
         --index=INDEX              The name of the Elasticsearch index to send
                                    documents (logs) to. The index must follow
                                    the Elasticsearch index format rules
@@ -2434,20 +2589,23 @@ COMMANDS
     List Elasticsearch endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging elasticsearch describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an Elasticsearch logging endpoint on a
     Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Elasticsearch logging object
 
   logging elasticsearch update --version=VERSION --name=NAME [<flags>]
     Update an Elasticsearch logging endpoint on a Fastly service version
 
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
     -n, --name=NAME                The name of the Elasticsearch logging object
     -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the Elasticsearch logging object
@@ -2504,7 +2662,9 @@ COMMANDS
   logging elasticsearch delete --version=VERSION --name=NAME [<flags>]
     Delete an Elasticsearch logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Elasticsearch logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -2513,7 +2673,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Azure Blob Storage logging
                                  object. Used as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --container=CONTAINER    The name of the Azure Blob Storage container in
                                  which to store logs
         --account-name=ACCOUNT-NAME
@@ -2567,21 +2729,23 @@ COMMANDS
     List Azure Blob Storage logging endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging azureblob describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an Azure Blob Storage logging endpoint on a
     Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Azure Blob Storage logging
                                  object
 
   logging azureblob update --version=VERSION --name=NAME [<flags>]
     Update an Azure Blob Storage logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Azure Blob Storage logging
                                  object
     -s, --service-id=SERVICE-ID  Service ID
@@ -2638,7 +2802,9 @@ COMMANDS
   logging azureblob delete --version=VERSION --name=NAME [<flags>]
     Delete an Azure Blob Storage logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Azure Blob Storage logging
                                  object
     -s, --service-id=SERVICE-ID  Service ID
@@ -2648,7 +2814,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Datadog logging object. Used as
                                  a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --auth-token=AUTH-TOKEN  The API key from your Datadog account
     -s, --service-id=SERVICE-ID  Service ID
         --region=REGION          The region that log data will be sent to. One
@@ -2672,20 +2840,22 @@ COMMANDS
     List Datadog endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging datadog describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Datadog logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Datadog logging object
 
   logging datadog update --version=VERSION --name=NAME [<flags>]
     Update a Datadog logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Datadog logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the Datadog logging object
@@ -2710,7 +2880,9 @@ COMMANDS
   logging datadog delete --version=VERSION --name=NAME [<flags>]
     Delete a Datadog logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Datadog logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -2719,7 +2891,10 @@ COMMANDS
 
     -n, --name=NAME                The name of the HTTPS logging object. Used as
                                    a primary key for API access
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
         --url=URL                  URL that log data will be sent to. Must use
                                    the https protocol
     -s, --service-id=SERVICE-ID    Service ID
@@ -2778,20 +2953,23 @@ COMMANDS
     List HTTPS endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging https describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an HTTPS logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the HTTPS logging object
 
   logging https update --version=VERSION --name=NAME [<flags>]
     Update an HTTPS logging endpoint on a Fastly service version
 
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
     -n, --name=NAME                The name of the HTTPS logging object
     -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the HTTPS logging object
@@ -2851,7 +3029,9 @@ COMMANDS
   logging https delete --version=VERSION --name=NAME [<flags>]
     Delete an HTTPS logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the HTTPS logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -2860,7 +3040,10 @@ COMMANDS
 
     -n, --name=NAME                The name of the Kafka logging object. Used as
                                    a primary key for API access
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
         --topic=TOPIC              The Kafka topic to send logs to
         --brokers=BROKERS          A comma-separated list of IP addresses or
                                    hostnames of Kafka brokers
@@ -2920,20 +3103,23 @@ COMMANDS
     List Kafka endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging kafka describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Kafka logging endpoint on a Fastly service
     version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Kafka logging object
 
   logging kafka update --version=VERSION --name=NAME [<flags>]
     Update a Kafka logging endpoint on a Fastly service version
 
-        --version=VERSION          Number of service version
+        --version=VERSION          Number of service version, 'latest' or
+                                   'active'
+        --autoclone                Automatically clone the identified service
+                                   version if it's 'locked' or 'active'
     -n, --name=NAME                The name of the Kafka logging object
     -s, --service-id=SERVICE-ID    Service ID
         --new-name=NEW-NAME        New name of the Kafka logging object
@@ -2994,7 +3180,9 @@ COMMANDS
   logging kafka delete --version=VERSION --name=NAME [<flags>]
     Delete a Kafka logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Kafka logging object
     -s, --service-id=SERVICE-ID  Service ID
 
@@ -3003,7 +3191,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
                                  object. Used as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --user=USER              Your Google Cloud Platform service account
                                  email address. The client_email field in your
                                  service account authentication JSON
@@ -3032,21 +3222,23 @@ COMMANDS
     List Google Cloud Pub/Sub endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging googlepubsub describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Google Cloud Pub/Sub logging endpoint on a
     Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
                                  object
 
   logging googlepubsub update --version=VERSION --name=NAME [<flags>]
     Update a Google Cloud Pub/Sub logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
                                  object
     -s, --service-id=SERVICE-ID  Service ID
@@ -3078,7 +3270,9 @@ COMMANDS
   logging googlepubsub delete --version=VERSION --name=NAME [<flags>]
     Delete a Google Cloud Pub/Sub logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
                                  object
     -s, --service-id=SERVICE-ID  Service ID
@@ -3088,7 +3282,9 @@ COMMANDS
 
     -n, --name=NAME              The name of the OpenStack logging object. Used
                                  as a primary key for API access
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
         --bucket=BUCKET          The name of your OpenStack container
         --access-key=ACCESS-KEY  Your OpenStack account access key
         --user=USER              The username for your OpenStack account
@@ -3135,20 +3331,22 @@ COMMANDS
     List OpenStack logging endpoints on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
 
   logging openstack describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an OpenStack logging endpoint on a Fastly
     service version
 
     -s, --service-id=SERVICE-ID  Service ID
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
     -n, --name=NAME              The name of the OpenStack logging object
 
   logging openstack update --version=VERSION --name=NAME [<flags>]
     Update an OpenStack logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the OpenStack logging object
     -s, --service-id=SERVICE-ID  Service ID
         --new-name=NEW-NAME      New name of the OpenStack logging object
@@ -3196,7 +3394,9 @@ COMMANDS
   logging openstack delete --version=VERSION --name=NAME [<flags>]
     Delete an OpenStack logging endpoint on a Fastly service version
 
-        --version=VERSION        Number of service version
+        --version=VERSION        Number of service version, 'latest' or 'active'
+        --autoclone              Automatically clone the identified service
+                                 version if it's 'locked' or 'active'
     -n, --name=NAME              The name of the OpenStack logging object
     -s, --service-id=SERVICE-ID  Service ID
 

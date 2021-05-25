@@ -12,7 +12,9 @@ import (
 // CreateCommand calls the Fastly API to create backends.
 type CreateCommand struct {
 	common.Base
-	Input fastly.CreateBackendInput
+	Input          fastly.CreateBackendInput
+	serviceVersion common.OptionalServiceVersion
+	autoClone      common.OptionalAutoClone
 
 	// We must store all of the boolean flags separately to the input structure
 	// so they can be casted to go-fastly's custom `Compatibool` type later.
@@ -28,7 +30,8 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause = parent.Command("create", "Create a backend on a Fastly service version").Alias("add")
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "Backend name").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Required().StringVar(&c.Input.Address)
 
@@ -60,6 +63,16 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
+
 	// Sadly, go-fastly uses custom a `Compatibool` type as a boolean value that
 	// marshalls to 0/1 instead of true/false for compatability with the API.
 	// Therefore, we need to cast our real flag bool to a fastly.Compatibool.

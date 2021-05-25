@@ -18,10 +18,10 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
-	Version      int
-	StreamName   string
-	Region       string
+	EndpointName   string // Can't shadow common.Base method Name().
+	StreamName     string
+	Region         string
+	serviceVersion common.OptionalServiceVersion
 
 	// mutual exclusions
 	// AccessKey + SecretKey or IAMRole must be provided
@@ -30,6 +30,7 @@ type CreateCommand struct {
 	IAMRole   common.OptionalString
 
 	// optional
+	autoClone         common.OptionalAutoClone
 	Format            common.OptionalString
 	FormatVersion     common.OptionalUint
 	ResponseCondition common.OptionalString
@@ -46,7 +47,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 
 	// required
 	c.CmdClause.Flag("name", "The name of the Kinesis logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	c.CmdClause.Flag("stream-name", "The Amazon Kinesis stream to send logs to").Required().StringVar(&c.StreamName)
 	c.CmdClause.Flag("region", "The AWS region where the Kinesis stream exists").Required().StringVar(&c.Region)
 
@@ -56,6 +57,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
 
 	// optional
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
@@ -75,10 +77,19 @@ func (c *CreateCommand) createInput() (*fastly.CreateKinesisInput, error) {
 	}
 
 	input.ServiceID = serviceID
-	input.ServiceVersion = c.Version
 	input.Name = c.EndpointName
 	input.StreamName = c.StreamName
 	input.Region = c.Region
+
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	input.ServiceVersion = v.Number
 
 	// The following block checks for invalid permutations of the ways in
 	// which the AccessKey + SecretKey and IAMRole flags can be

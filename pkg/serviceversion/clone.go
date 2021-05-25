@@ -14,8 +14,9 @@ import (
 // CloneCommand calls the Fastly API to clone a service version.
 type CloneCommand struct {
 	common.Base
-	manifest manifest.Data
-	Input    fastly.CloneVersionInput
+	manifest       manifest.Data
+	Input          fastly.CloneVersionInput
+	serviceVersion common.OptionalServiceVersion
 }
 
 // NewCloneCommand returns a usable command registered under the parent.
@@ -26,7 +27,7 @@ func NewCloneCommand(parent common.Registerer, globals *config.Data) *CloneComma
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("clone", "Clone a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to clone").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	return &c
 }
 
@@ -38,11 +39,17 @@ func (c *CloneCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
-	v, err := c.Globals.Client.CloneVersion(&c.Input)
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
+
+	ver, err := c.Globals.Client.CloneVersion(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Cloned service %s version %d to version %d", v.ServiceID, c.Input.ServiceVersion, v.Number)
+	text.Success(out, "Cloned service %s version %d to version %d", ver.ServiceID, c.Input.ServiceVersion, ver.Number)
 	return nil
 }

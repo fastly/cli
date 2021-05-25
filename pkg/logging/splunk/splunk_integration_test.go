@@ -24,17 +24,27 @@ func TestSplunkCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log"},
+			args:      []string{"logging", "splunk", "create", "--service-id", "123", "--version", "2", "--name", "log"},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args:       []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
-			api:        mock.API{CreateSplunkFn: createSplunkOK},
-			wantOutput: "Created Splunk logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "splunk", "create", "--service-id", "123", "--version", "2", "--name", "log", "--url", "example.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateSplunkFn: createSplunkOK,
+			},
+			wantOutput: "Created Splunk logging endpoint log (service 123 version 3)",
 		},
 		{
-			args:      []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
-			api:       mock.API{CreateSplunkFn: createSplunkError},
+			args: []string{"logging", "splunk", "create", "--service-id", "123", "--version", "2", "--name", "log", "--url", "example.com"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				CreateSplunkFn: createSplunkError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -65,33 +75,57 @@ func TestSplunkList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
+			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListSplunksFn:  listSplunksOK,
+			},
 			wantOutput: listSplunksShortOutput,
 		},
 		{
-			args:       []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
+			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListSplunksFn:  listSplunksOK,
+			},
 			wantOutput: listSplunksVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
+			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "2", "-v"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListSplunksFn:  listSplunksOK,
+			},
 			wantOutput: listSplunksVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "splunk", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
+			args: []string{"logging", "splunk", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListSplunksFn:  listSplunksOK,
+			},
 			wantOutput: listSplunksVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "splunk", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSplunksFn: listSplunksOK},
+			args: []string{"logging", "-v", "splunk", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListSplunksFn:  listSplunksOK,
+			},
 			wantOutput: listSplunksVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListSplunksFn: listSplunksError},
+			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "2"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				ListSplunksFn:  listSplunksError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -122,17 +156,25 @@ func TestSplunkDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetSplunkFn: getSplunkError},
+			args: []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetSplunkFn:    getSplunkError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetSplunkFn: getSplunkOK},
+			args: []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				GetSplunkFn:    getSplunkOK,
+			},
 			wantOutput: describeSplunkOutput,
 		},
 	} {
@@ -163,18 +205,28 @@ func TestSplunkUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      []string{"logging", "splunk", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateSplunkFn: updateSplunkError},
+			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdateSplunkFn: updateSplunkError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateSplunkFn: updateSplunkOK},
-			wantOutput: "Updated Splunk logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				UpdateSplunkFn: updateSplunkOK,
+			},
+			wantOutput: "Updated Splunk logging endpoint log (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -204,18 +256,28 @@ func TestSplunkDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1"},
+			args:      []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "2"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteSplunkFn: deleteSplunkError},
+			args: []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeleteSplunkFn: deleteSplunkError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteSplunkFn: deleteSplunkOK},
-			wantOutput: "Deleted Splunk logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: listVersionsOK,
+				GetVersionFn:   getVersionOK,
+				CloneVersionFn: cloneVersionOK,
+				DeleteSplunkFn: deleteSplunkOK,
+			},
+			wantOutput: "Deleted Splunk logging endpoint logs (service 123 version 3)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -292,18 +354,18 @@ func listSplunksError(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 
 var listSplunksShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      1        logs
-123      1        analytics
+123      2        logs
+123      2        analytics
 `) + "\n"
 
 var listSplunksVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 1
+Version: 2
 	Splunk 1/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: logs
 		URL: example.com
 		Token: tkn
@@ -317,7 +379,7 @@ Version: 1
 		Placement: none
 	Splunk 2/2
 		Service ID: 123
-		Version: 1
+		Version: 2
 		Name: analytics
 		URL: 127.0.0.1
 		Token: tkn1
@@ -355,7 +417,7 @@ func getSplunkError(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 
 var describeSplunkOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 1
+Version: 2
 Name: logs
 URL: example.com
 Token: tkn
@@ -397,4 +459,35 @@ func deleteSplunkOK(i *fastly.DeleteSplunkInput) error {
 
 func deleteSplunkError(i *fastly.DeleteSplunkInput) error {
 	return errTest
+}
+
+func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return []*fastly.Version{
+		{
+			ServiceID: i.ServiceID,
+			Number:    1,
+			Active:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		},
+		{
+			ServiceID: i.ServiceID,
+			Number:    2,
+			Active:    false,
+			Locked:    true,
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+		},
+	}, nil
+}
+
+func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    2,
+		Active:    true,
+		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
+func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }

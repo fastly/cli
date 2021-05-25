@@ -14,8 +14,9 @@ import (
 // DescribeCommand calls the Fastly API to describe an SFTP logging endpoint.
 type DescribeCommand struct {
 	common.Base
-	manifest manifest.Data
-	Input    fastly.GetSFTPInput
+	manifest       manifest.Data
+	Input          fastly.GetSFTPInput
+	serviceVersion common.OptionalServiceVersion
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -26,7 +27,7 @@ func NewDescribeCommand(parent common.Registerer, globals *config.Data) *Describ
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("describe", "Show detailed information about an SFTP logging endpoint on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	c.CmdClause.Flag("name", "The name of the SFTP logging object").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
@@ -38,6 +39,12 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	sftp, err := c.Globals.Client.GetSFTP(&c.Input)
 	if err != nil {

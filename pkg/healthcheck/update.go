@@ -14,8 +14,10 @@ import (
 // UpdateCommand calls the Fastly API to update healthchecks.
 type UpdateCommand struct {
 	common.Base
-	manifest manifest.Data
-	input    fastly.UpdateHealthCheckInput
+	manifest       manifest.Data
+	input          fastly.UpdateHealthCheckInput
+	serviceVersion common.OptionalServiceVersion
+	autoClone      common.OptionalAutoClone
 
 	NewName          common.OptionalString
 	Comment          common.OptionalString
@@ -38,11 +40,10 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a healthcheck on a Fastly service version")
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.input.ServiceVersion)
+	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Required().StringVar(&c.input.Name)
-
 	c.CmdClause.Flag("new-name", "Healthcheck name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("method", "Which HTTP method to use").Action(c.Method.Set).StringVar(&c.Method.Value)
@@ -55,7 +56,6 @@ func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCom
 	c.CmdClause.Flag("window", "The number of most recent healthcheck queries to keep for this healthcheck").Action(c.Window.Set).UintVar(&c.Window.Value)
 	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").Action(c.Threshold.Set).UintVar(&c.Threshold.Value)
 	c.CmdClause.Flag("initial", "When loading a config, the initial number of probes to be seen as OK").Action(c.Initial.Set).UintVar(&c.Initial.Value)
-
 	return &c
 }
 
@@ -66,6 +66,16 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.input.ServiceVersion = v.Number
 
 	if c.NewName.WasSet {
 		c.input.NewName = fastly.String(c.NewName.Value)
