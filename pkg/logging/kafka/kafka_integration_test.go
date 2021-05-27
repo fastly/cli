@@ -24,29 +24,29 @@ func TestKafkaCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "kafka", "create", "--service-id", "123", "--version", "2", "--name", "log", "--brokers", "127.0.0.1,127.0.0.2"},
+			args:      []string{"logging", "kafka", "create", "--service-id", "123", "--version", "1", "--name", "log", "--brokers", "127.0.0.1,127.0.0.2"},
 			wantError: "error parsing arguments: required flag --topic not provided",
 		},
 		{
-			args:      []string{"logging", "kafka", "create", "--service-id", "123", "--version", "2", "--name", "log", "--topic", "logs"},
+			args:      []string{"logging", "kafka", "create", "--service-id", "123", "--version", "1", "--name", "log", "--topic", "logs"},
 			wantError: "error parsing arguments: required flag --brokers not provided",
 		},
 		{
-			args: []string{"logging", "kafka", "create", "--service-id", "123", "--version", "2", "--name", "log", "--topic", "logs", "--brokers", "127.0.0.1,127.0.0.2", "--parse-log-keyvals", "--max-batch-size", "1024", "--use-sasl", "--auth-method", "plain", "--username", "user", "--password", "password", "--autoclone"},
+			args: []string{"logging", "kafka", "create", "--service-id", "123", "--version", "1", "--name", "log", "--topic", "logs", "--brokers", "127.0.0.1,127.0.0.2", "--parse-log-keyvals", "--max-batch-size", "1024", "--use-sasl", "--auth-method", "plain", "--username", "user", "--password", "password", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				CreateKafkaFn:  createKafkaOK,
 			},
-			wantOutput: "Created Kafka logging endpoint log (service 123 version 3)",
+			wantOutput: "Created Kafka logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "kafka", "create", "--service-id", "123", "--version", "2", "--name", "log", "--topic", "logs", "--brokers", "127.0.0.1,127.0.0.2"},
+			args: []string{"logging", "kafka", "create", "--service-id", "123", "--version", "1", "--name", "log", "--topic", "logs", "--brokers", "127.0.0.1,127.0.0.2"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				CreateKafkaFn:  createKafkaError,
 			},
 			wantError: errTest.Error(),
@@ -79,55 +79,55 @@ func TestKafkaList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "kafka", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "kafka", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKafkasFn:   listKafkasOK,
 			},
 			wantOutput: listKafkasShortOutput,
 		},
 		{
-			args: []string{"logging", "kafka", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			args: []string{"logging", "kafka", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKafkasFn:   listKafkasOK,
 			},
 			wantOutput: listKafkasVerboseOutput,
 		},
 		{
-			args: []string{"logging", "kafka", "list", "--service-id", "123", "--version", "2", "-v"},
+			args: []string{"logging", "kafka", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKafkasFn:   listKafkasOK,
 			},
 			wantOutput: listKafkasVerboseOutput,
 		},
 		{
-			args: []string{"logging", "kafka", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "kafka", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKafkasFn:   listKafkasOK,
 			},
 			wantOutput: listKafkasVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "kafka", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "-v", "kafka", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKafkasFn:   listKafkasOK,
 			},
 			wantOutput: listKafkasVerboseOutput,
 		},
 		{
-			args: []string{"logging", "kafka", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "kafka", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKafkasFn:   listKafkasError,
 			},
 			wantError: errTest.Error(),
@@ -160,23 +160,23 @@ func TestKafkaDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "kafka", "describe", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "kafka", "describe", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "kafka", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "kafka", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetKafkaFn:     getKafkaError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kafka", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "kafka", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetKafkaFn:     getKafkaOK,
 			},
 			wantOutput: describeKafkaOutput,
@@ -209,38 +209,38 @@ func TestKafkaUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "kafka", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
+			args:      []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				UpdateKafkaFn:  updateKafkaError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				UpdateKafkaFn:  updateKafkaOK,
 			},
-			wantOutput: "Updated Kafka logging endpoint log (service 123 version 3)",
+			wantOutput: "Updated Kafka logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--parse-log-keyvals", "--max-batch-size", "1024", "--use-sasl", "--auth-method", "plain", "--username", "user", "--password", "password", "--autoclone"},
+			args: []string{"logging", "kafka", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--parse-log-keyvals", "--max-batch-size", "1024", "--use-sasl", "--auth-method", "plain", "--username", "user", "--password", "password", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				UpdateKafkaFn:  updateKafkaSASL,
 			},
-			wantOutput: "Updated Kafka logging endpoint log (service 123 version 3)",
+			wantOutput: "Updated Kafka logging endpoint log (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -270,28 +270,28 @@ func TestKafkaDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "kafka", "delete", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "kafka", "delete", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "kafka", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "kafka", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				DeleteKafkaFn:  deleteKafkaError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kafka", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "kafka", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				DeleteKafkaFn:  deleteKafkaOK,
 			},
-			wantOutput: "Deleted Kafka logging endpoint logs (service 123 version 3)",
+			wantOutput: "Deleted Kafka logging endpoint logs (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -402,18 +402,18 @@ func listKafkasError(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 
 var listKafkasShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      2        logs
-123      2        analytics
+123      1        logs
+123      1        analytics
 `) + "\n"
 
 var listKafkasVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 2
+Version: 1
 	Kafka 1/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: logs
 		Topic: logs
 		Brokers: 127.0.0.1,127.0.0.2
@@ -435,7 +435,7 @@ Version: 2
 		SASL authentication password: 
 	Kafka 2/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: analytics
 		Topic: analytics
 		Brokers: 127.0.0.1,127.0.0.2
@@ -484,7 +484,7 @@ func getKafkaError(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 
 var describeKafkaOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 2
+Version: 1
 Name: log
 Topic: logs
 Brokers: 127.0.0.1,127.0.0.2
@@ -563,35 +563,4 @@ func deleteKafkaOK(i *fastly.DeleteKafkaInput) error {
 
 func deleteKafkaError(i *fastly.DeleteKafkaInput) error {
 	return errTest
-}
-
-func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    2,
-		Active:    true,
-		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
-}
-
-func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }
