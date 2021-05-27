@@ -24,25 +24,25 @@ func TestDatadogCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "datadog", "create", "--service-id", "123", "--version", "2", "--name", "log"},
+			args:      []string{"logging", "datadog", "create", "--service-id", "123", "--version", "1", "--name", "log"},
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: []string{"logging", "datadog", "create", "--service-id", "123", "--version", "2", "--name", "log", "--auth-token", "abc", "--autoclone"},
+			args: []string{"logging", "datadog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				CreateDatadogFn: createDatadogOK,
 			},
-			wantOutput: "Created Datadog logging endpoint log (service 123 version 3)",
+			wantOutput: "Created Datadog logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "datadog", "create", "--service-id", "123", "--version", "2", "--name", "log", "--auth-token", "abc"},
+			args: []string{"logging", "datadog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				CreateDatadogFn: createDatadogError,
 			},
 			wantError: errTest.Error(),
@@ -75,55 +75,55 @@ func TestDatadogList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsShortOutput,
 		},
 		{
-			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "2", "-v"},
+			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "datadog", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "datadog", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "datadog", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "-v", "datadog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListDatadogFn:  listDatadogsError,
 			},
 			wantError: errTest.Error(),
@@ -156,23 +156,23 @@ func TestDatadogDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "datadog", "describe", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "datadog", "describe", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "datadog", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "datadog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetDatadogFn:   getDatadogError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "datadog", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "datadog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetDatadogFn:   getDatadogOK,
 			},
 			wantOutput: describeDatadogOutput,
@@ -205,28 +205,28 @@ func TestDatadogUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "datadog", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
+			args:      []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				UpdateDatadogFn: updateDatadogError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				UpdateDatadogFn: updateDatadogOK,
 			},
-			wantOutput: "Updated Datadog logging endpoint log (service 123 version 3)",
+			wantOutput: "Updated Datadog logging endpoint log (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -256,28 +256,28 @@ func TestDatadogDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				DeleteDatadogFn: deleteDatadogError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				DeleteDatadogFn: deleteDatadogOK,
 			},
-			wantOutput: "Deleted Datadog logging endpoint logs (service 123 version 3)",
+			wantOutput: "Deleted Datadog logging endpoint logs (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -351,18 +351,18 @@ func listDatadogsError(i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
 
 var listDatadogsShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      2        logs
-123      2        analytics
+123      1        logs
+123      1        analytics
 `) + "\n"
 
 var listDatadogsVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 2
+Version: 1
 	Datadog 1/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: logs
 		Token: abc
 		Region: US
@@ -372,7 +372,7 @@ Version: 2
 		Placement: none
 	Datadog 2/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: analytics
 		Token: abc
 		Region: US
@@ -402,7 +402,7 @@ func getDatadogError(i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 
 var describeDatadogOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 2
+Version: 1
 Name: logs
 Token: abc
 Region: US
@@ -435,35 +435,4 @@ func deleteDatadogOK(i *fastly.DeleteDatadogInput) error {
 
 func deleteDatadogError(i *fastly.DeleteDatadogInput) error {
 	return errTest
-}
-
-func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    2,
-		Active:    true,
-		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
-}
-
-func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }
