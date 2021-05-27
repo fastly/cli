@@ -24,25 +24,25 @@ func TestPapertrailCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "2", "--name", "log"},
+			args:      []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log"},
 			wantError: "error parsing arguments: required flag --address not provided",
 		},
 		{
-			args: []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "2", "--name", "log", "--address", "example.com:123", "--autoclone"},
+			args: []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com:123", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     listVersionsOK,
-				GetVersionFn:       getVersionOK,
-				CloneVersionFn:     cloneVersionOK,
+				ListVersionsFn:     testutil.ListVersionsOk,
+				GetVersionFn:       testutil.GetActiveVersionOK,
+				CloneVersionFn:     testutil.CloneVersionOK,
 				CreatePapertrailFn: createPapertrailOK,
 			},
-			wantOutput: "Created Papertrail logging endpoint log (service 123 version 3)",
+			wantOutput: "Created Papertrail logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "2", "--name", "log", "--address", "example.com:123"},
+			args: []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com:123"},
 			api: mock.API{
-				ListVersionsFn:     listVersionsOK,
-				GetVersionFn:       getVersionOK,
-				CloneVersionFn:     cloneVersionOK,
+				ListVersionsFn:     testutil.ListVersionsOk,
+				GetVersionFn:       testutil.GetActiveVersionOK,
+				CloneVersionFn:     testutil.CloneVersionOK,
 				CreatePapertrailFn: createPapertrailError,
 			},
 			wantError: errTest.Error(),
@@ -75,55 +75,55 @@ func TestPapertrailList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsShortOutput,
 		},
 		{
-			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "2", "-v"},
+			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "papertrail", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "papertrail", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "papertrail", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "-v", "papertrail", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
 				ListPapertrailsFn: listPapertrailsError,
 			},
 			wantError: errTest.Error(),
@@ -156,23 +156,23 @@ func TestPapertrailDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
 				GetPapertrailFn: getPapertrailError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
 				GetPapertrailFn: getPapertrailOK,
 			},
 			wantOutput: describePapertrailOutput,
@@ -205,28 +205,28 @@ func TestPapertrailUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
+			args:      []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
-				ListVersionsFn:     listVersionsOK,
-				GetVersionFn:       getVersionOK,
-				CloneVersionFn:     cloneVersionOK,
+				ListVersionsFn:     testutil.ListVersionsOk,
+				GetVersionFn:       testutil.GetActiveVersionOK,
+				CloneVersionFn:     testutil.CloneVersionOK,
 				UpdatePapertrailFn: updatePapertrailError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     listVersionsOK,
-				GetVersionFn:       getVersionOK,
-				CloneVersionFn:     cloneVersionOK,
+				ListVersionsFn:     testutil.ListVersionsOk,
+				GetVersionFn:       testutil.GetActiveVersionOK,
+				CloneVersionFn:     testutil.CloneVersionOK,
 				UpdatePapertrailFn: updatePapertrailOK,
 			},
-			wantOutput: "Updated Papertrail logging endpoint log (service 123 version 3)",
+			wantOutput: "Updated Papertrail logging endpoint log (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -256,28 +256,28 @@ func TestPapertrailDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn:     listVersionsOK,
-				GetVersionFn:       getVersionOK,
-				CloneVersionFn:     cloneVersionOK,
+				ListVersionsFn:     testutil.ListVersionsOk,
+				GetVersionFn:       testutil.GetActiveVersionOK,
+				CloneVersionFn:     testutil.CloneVersionOK,
 				DeletePapertrailFn: deletePapertrailError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     listVersionsOK,
-				GetVersionFn:       getVersionOK,
-				CloneVersionFn:     cloneVersionOK,
+				ListVersionsFn:     testutil.ListVersionsOk,
+				GetVersionFn:       testutil.GetActiveVersionOK,
+				CloneVersionFn:     testutil.CloneVersionOK,
 				DeletePapertrailFn: deletePapertrailOK,
 			},
-			wantOutput: "Deleted Papertrail logging endpoint logs (service 123 version 3)",
+			wantOutput: "Deleted Papertrail logging endpoint logs (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -346,18 +346,18 @@ func listPapertrailsError(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail,
 
 var listPapertrailsShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      2        logs
-123      2        analytics
+123      1        logs
+123      1        analytics
 `) + "\n"
 
 var listPapertrailsVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 2
+Version: 1
 	Papertrail 1/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: logs
 		Address: example.com:123
 		Port: 123
@@ -367,7 +367,7 @@ Version: 2
 		Placement: none
 	Papertrail 2/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: analytics
 		Address: 127.0.0.1:456
 		Port: 456
@@ -397,7 +397,7 @@ func getPapertrailError(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error
 
 var describePapertrailOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 2
+Version: 1
 Name: logs
 Address: example.com:123
 Port: 123
@@ -431,35 +431,4 @@ func deletePapertrailOK(i *fastly.DeletePapertrailInput) error {
 
 func deletePapertrailError(i *fastly.DeletePapertrailInput) error {
 	return errTest
-}
-
-func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    2,
-		Active:    true,
-		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
-}
-
-func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }
