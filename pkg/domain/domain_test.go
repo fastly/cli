@@ -28,7 +28,7 @@ func TestDomainCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"domain", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: []string{"domain", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -209,7 +209,7 @@ func TestDomainUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -219,7 +219,7 @@ func TestDomainUpdate(t *testing.T) {
 			wantError: "error parsing arguments: must provide either --new-name or --comment to update domain",
 		},
 		{
-			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -229,7 +229,7 @@ func TestDomainUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -270,7 +270,7 @@ func TestDomainDelete(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"domain", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: []string{"domain", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -280,7 +280,7 @@ func TestDomainDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"domain", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: []string{"domain", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,

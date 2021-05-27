@@ -24,15 +24,25 @@ func TestElasticsearchCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--index", "logs"},
+			args: []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--index", "logs"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args:      []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
+			args: []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --index not provided",
 		},
 		{
-			args: []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--index", "logs", "--url", "example.com", "--autoclone"},
+			args: []string{"logging", "elasticsearch", "create", "--service-id", "123", "--version", "1", "--name", "log", "--index", "logs", "--url", "example.com"},
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersionsOk,
 				GetVersionFn:          testutil.GetActiveVersionOK,
@@ -223,7 +233,7 @@ func TestElasticsearchUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "elasticsearch", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersionsOk,
 				GetVersionFn:          testutil.GetActiveVersionOK,
@@ -274,7 +284,7 @@ func TestElasticsearchDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "elasticsearch", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "elasticsearch", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersionsOk,
 				GetVersionFn:          testutil.GetActiveVersionOK,

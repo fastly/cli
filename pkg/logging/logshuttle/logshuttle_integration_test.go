@@ -28,6 +28,7 @@ func TestLogshuttleCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
@@ -36,11 +37,12 @@ func TestLogshuttleCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--auth-token", "abc", "--autoclone"},
+			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--auth-token", "abc"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -231,7 +233,7 @@ func TestLogshuttleUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -282,7 +284,7 @@ func TestLogshuttleDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,

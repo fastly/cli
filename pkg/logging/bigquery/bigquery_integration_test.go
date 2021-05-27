@@ -24,11 +24,11 @@ func TestBigQueryCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--autoclone"},
+			args:      []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com"},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`, "--autoclone"},
+			args: []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersionsOk,
 				GetVersionFn:     testutil.GetActiveVersionOK,
@@ -38,7 +38,7 @@ func TestBigQueryCreate(t *testing.T) {
 			wantOutput: "Created BigQuery logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`, "--autoclone"},
+			args: []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersionsOk,
 				GetVersionFn:     testutil.GetActiveVersionOK,
@@ -209,7 +209,7 @@ func TestBigQueryUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersionsOk,
 				GetVersionFn:     testutil.GetActiveVersionOK,
@@ -219,7 +219,7 @@ func TestBigQueryUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersionsOk,
 				GetVersionFn:     testutil.GetActiveVersionOK,
@@ -260,7 +260,7 @@ func TestBigQueryDelete(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersionsOk,
 				GetVersionFn:     testutil.GetActiveVersionOK,
@@ -270,7 +270,7 @@ func TestBigQueryDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersionsOk,
 				GetVersionFn:     testutil.GetActiveVersionOK,

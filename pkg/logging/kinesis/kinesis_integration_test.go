@@ -28,6 +28,7 @@ func TestKinesisCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
@@ -36,6 +37,7 @@ func TestKinesisCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
@@ -44,6 +46,7 @@ func TestKinesisCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
@@ -52,6 +55,7 @@ func TestKinesisCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
@@ -60,6 +64,7 @@ func TestKinesisCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
@@ -68,11 +73,12 @@ func TestKinesisCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--secret-key", "bar", "--region", "us-east-1", "--autoclone"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--secret-key", "bar", "--region", "us-east-1"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersionsOk,
 				GetVersionFn:    testutil.GetActiveVersionOK,
@@ -92,7 +98,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--stream-name", "log", "--region", "us-east-1", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess", "--autoclone"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--stream-name", "log", "--region", "us-east-1", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersionsOk,
 				GetVersionFn:    testutil.GetActiveVersionOK,
@@ -283,7 +289,7 @@ func TestKinesisUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--region", "us-west-1", "--autoclone"},
+			args: []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--region", "us-west-1"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersionsOk,
 				GetVersionFn:    testutil.GetActiveVersionOK,
@@ -334,7 +340,7 @@ func TestKinesisDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kinesis", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "kinesis", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersionsOk,
 				GetVersionFn:    testutil.GetActiveVersionOK,

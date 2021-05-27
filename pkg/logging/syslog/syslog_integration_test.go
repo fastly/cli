@@ -24,11 +24,16 @@ func TestSyslogCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log"},
+			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --address not provided",
 		},
 		{
-			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1", "--autoclone"},
+			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -42,6 +47,7 @@ func TestSyslogCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				CreateSyslogFn: createSyslogError,
 			},
 			wantError: errTest.Error(),
@@ -212,12 +218,13 @@ func TestSyslogUpdate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				UpdateSyslogFn: updateSyslogError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -262,12 +269,13 @@ func TestSyslogDelete(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				DeleteSyslogFn: deleteSyslogError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,

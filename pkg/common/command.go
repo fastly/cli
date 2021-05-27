@@ -194,7 +194,7 @@ type OptionalAutoClone struct {
 // The returned version is either the same as the input argument `v` or it's a
 // cloned version if the input argument was either active or locked.
 func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, c api.Interface) (*fastly.Version, error) {
-	if ac.Value && v.Active || v.Locked {
+	if v.Active || v.Locked {
 		version, err := c.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      sid,
 			ServiceVersion: v.Number,

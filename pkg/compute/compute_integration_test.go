@@ -786,13 +786,9 @@ func TestDeploy(t *testing.T) {
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error listing service versions: fixture error",
 		},
-		// TODO: this highlights another issue with --autoclone which is related to
-		// the test suite perspective, which is we need to specify it for the clone
-		// to happen and so without it our error mocked API response doesn't get
-		// returned and so we don't fail the logic when expected.
 		{
 			name: "clone version error",
-			args: []string{"compute", "deploy", "--token", "123", "--autoclone"},
+			args: []string{"compute", "deploy", "--token", "123"},
 			api: mock.API{
 				ListVersionsFn: listVersionsActiveOk,
 				CloneVersionFn: cloneVersionError,
@@ -965,7 +961,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success",
-			args: []string{"compute", "deploy", "--token", "123", "--autoclone"},
+			args: []string{"compute", "deploy", "--token", "123"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
@@ -990,7 +986,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with path",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--autoclone"},
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
@@ -1037,7 +1033,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with specific version",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2", "--autoclone"},
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
@@ -1078,17 +1074,12 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 3)",
 			},
 		},
-		// The following test appends --autoclone because it doesn't make sense to
-		// use --version=active as that implies the latest active version should
-		// need to be cloned.
-		//
-		// TODO: remove --autoclone and move/rename the .Parse() method so it can
-		// continue to be used within each command's Exec function (we know which
-		// functions auto-cloning makes sense for, so rather than push that
-		// responsibility onto the user we need to handle that).
+		// The following test uses --version=active which doesn't make practical
+		// sense, but internally the autoclone logic will ensure the active version
+		// is cloned.
 		{
 			name: "success with active version",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "active", "--autoclone"},
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "active"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				ListVersionsFn:    listVersionsActiveOk,
@@ -1199,7 +1190,7 @@ func TestPublish(t *testing.T) {
 	}{
 		{
 			name: "success no command flags",
-			args: []string{"compute", "publish", "-t", "123", "--autoclone"},
+			args: []string{"compute", "publish", "-t", "123"},
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -1257,11 +1248,9 @@ func TestPublish(t *testing.T) {
 				"Deployed package (service 123, version 2)",
 			},
 		},
-		// TODO: another example of issues with --autoclone which is the user
-		// shouldn't have to worry about this. It should just happen internally.
 		{
 			name: "success with build command flags",
-			args: []string{"compute", "publish", "-t", "123", "--name", "test", "--language", "rust", "--include-source", "--force", "--autoclone"},
+			args: []string{"compute", "publish", "-t", "123", "--name", "test", "--language", "rust", "--include-source", "--force"},
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -1321,7 +1310,7 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "success with deploy command flags",
-			args: []string{"compute", "publish", "-t", "123", "--version", "2", "--path", "pkg/test.tar.gz", "--autoclone"},
+			args: []string{"compute", "publish", "-t", "123", "--version", "2", "--path", "pkg/test.tar.gz"},
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -1444,6 +1433,7 @@ func TestUpdate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:  listVersionsActiveOk,
 				GetVersionFn:    getVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				UpdatePackageFn: updatePackageError,
 			},
 			wantError: "error uploading package: fixture error",
@@ -1454,7 +1444,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			name: "success",
-			args: []string{"compute", "update", "-s", "123", "--version", "2", "-p", "pkg/package.tar.gz", "-t", "123", "--autoclone"},
+			args: []string{"compute", "update", "-s", "123", "--version", "2", "-p", "pkg/package.tar.gz", "-t", "123"},
 			api: mock.API{
 				ListVersionsFn:  listVersionsActiveOk,
 				GetVersionFn:    getVersionOK,

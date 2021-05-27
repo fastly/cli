@@ -28,7 +28,7 @@ func TestDatadogCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: []string{"logging", "datadog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
+			args: []string{"logging", "datadog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersionsOk,
 				GetVersionFn:    testutil.GetActiveVersionOK,
@@ -209,7 +209,7 @@ func TestDatadogUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersionsOk,
 				GetVersionFn:    testutil.GetActiveVersionOK,
@@ -219,7 +219,7 @@ func TestDatadogUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersionsOk,
 				GetVersionFn:    testutil.GetActiveVersionOK,
@@ -270,7 +270,7 @@ func TestDatadogDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersionsOk,
 				GetVersionFn:    testutil.GetActiveVersionOK,

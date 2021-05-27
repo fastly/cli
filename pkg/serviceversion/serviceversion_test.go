@@ -138,15 +138,17 @@ func TestVersionUpdate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:  listVersionsOK,
 				GetVersionFn:    getVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				UpdateVersionFn: updateVersionOK,
 			},
-			wantOutput: "Updated service 123 version 1",
+			wantOutput: "Updated service 123 version 2",
 		},
 		{
-			args: []string{"service-version", "update", "--service-id", "123", "--version", "2"},
+			args: []string{"service-version", "update", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: listVersionsOK,
 				GetVersionFn:   getVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --comment not provided",
 		},
@@ -155,6 +157,7 @@ func TestVersionUpdate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:  listVersionsOK,
 				GetVersionFn:    getVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				UpdateVersionFn: updateVersionError,
 			},
 			wantError: errTest.Error(),
@@ -195,14 +198,15 @@ func TestVersionActivate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:    listVersionsOK,
 				GetVersionFn:      getVersionOK,
+				CloneVersionFn:    testutil.CloneVersionOK,
 				ActivateVersionFn: activateVersionError,
 			},
 			wantError: errTest.Error(),
 		},
-		// The following test validates that the --autoclone flag causes the
+		// The following test validates that the autoclone logic causes the
 		// returned service version 1, which is 'activated', to be cloned.
 		{
-			args: []string{"service-version", "activate", "--service-id", "123", "--version", "1", "--autoclone"},
+			args: []string{"service-version", "activate", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:    listVersionsOK,
 				GetVersionFn:      getVersionOK,
@@ -296,15 +300,17 @@ func TestVersionLock(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: listVersionsOK,
 				GetVersionFn:   getVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				LockVersionFn:  lockVersionOK,
 			},
-			wantOutput: "Locked service 123 version 1",
+			wantOutput: "Locked service 123 version 2",
 		},
 		{
 			args: []string{"service-version", "lock", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: listVersionsOK,
 				GetVersionFn:   getVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				LockVersionFn:  lockVersionError,
 			},
 			wantError: errTest.Error(),

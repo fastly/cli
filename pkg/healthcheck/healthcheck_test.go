@@ -32,12 +32,13 @@ func TestHealthCheckCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersionsOk,
 				GetVersionFn:        testutil.GetActiveVersionOK,
+				CloneVersionFn:      testutil.CloneVersionOK,
 				CreateHealthCheckFn: createHealthCheckError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"healthcheck", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: []string{"healthcheck", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersionsOk,
 				GetVersionFn:        testutil.GetActiveVersionOK,
@@ -212,6 +213,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersionsOk,
 				GetVersionFn:        testutil.GetActiveVersionOK,
+				CloneVersionFn:      testutil.CloneVersionOK,
 				UpdateHealthCheckFn: updateHealthCheckOK,
 			},
 		},
@@ -220,12 +222,13 @@ func TestHealthCheckUpdate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersionsOk,
 				GetVersionFn:        testutil.GetActiveVersionOK,
+				CloneVersionFn:      testutil.CloneVersionOK,
 				UpdateHealthCheckFn: updateHealthCheckError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersionsOk,
 				GetVersionFn:        testutil.GetActiveVersionOK,
@@ -270,12 +273,13 @@ func TestHealthCheckDelete(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersionsOk,
 				GetVersionFn:        testutil.GetActiveVersionOK,
+				CloneVersionFn:      testutil.CloneVersionOK,
 				DeleteHealthCheckFn: deleteHealthCheckError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"healthcheck", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: []string{"healthcheck", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersionsOk,
 				GetVersionFn:        testutil.GetActiveVersionOK,

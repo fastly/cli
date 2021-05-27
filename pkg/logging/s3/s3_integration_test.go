@@ -28,6 +28,7 @@ func TestS3Create(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags or the --iam-role flag must be provided",
 		},
@@ -36,6 +37,7 @@ func TestS3Create(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
@@ -44,6 +46,7 @@ func TestS3Create(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
@@ -52,6 +55,7 @@ func TestS3Create(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
@@ -60,6 +64,7 @@ func TestS3Create(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
@@ -68,11 +73,12 @@ func TestS3Create(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar", "--autoclone"},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "bar"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -92,7 +98,7 @@ func TestS3Create(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access", "--autoclone"},
+			args: []string{"logging", "s3", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--bucket", "log", "--iam-role", "arn:aws:iam::123456789012:role/S3Access"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -116,6 +122,7 @@ func TestS3Create(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
 		},
@@ -291,7 +298,7 @@ func TestS3Update(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -301,7 +308,7 @@ func TestS3Update(t *testing.T) {
 			wantOutput: "Updated S3 logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--access-key", "foo", "--secret-key", "bar", "--iam-role", "", "--autoclone"},
+			args: []string{"logging", "s3", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--access-key", "foo", "--secret-key", "bar", "--iam-role", ""},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -352,7 +359,7 @@ func TestS3Delete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "s3", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "s3", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,

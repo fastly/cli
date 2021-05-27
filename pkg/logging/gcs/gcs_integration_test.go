@@ -24,19 +24,34 @@ func TestGCSCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "foo@example.com", "--secret-key", "foo"},
+			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "foo@example.com", "--secret-key", "foo"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --bucket not provided",
 		},
 		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "foo"},
+			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "foo"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args:      []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com"},
+			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400", "--autoclone"},
+			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -236,7 +251,7 @@ func TestGCSUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -287,7 +302,7 @@ func TestGCSDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,

@@ -24,23 +24,43 @@ func TestGooglePubSubCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--secret-key", "secret", "--project-id", "project", "--topic", "topic"},
+			args: []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--secret-key", "secret", "--project-id", "project", "--topic", "topic"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--project-id", "project", "--topic", "topic"},
+			args: []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--project-id", "project", "--topic", "topic"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--topic", "topic"},
+			args: []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--topic", "topic"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --project-id not provided",
 		},
 		{
-			args:      []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project"},
+			args: []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --topic not provided",
 		},
 		{
-			args: []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project", "--topic", "topic", "--autoclone"},
+			args: []string{"logging", "googlepubsub", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user@example.com", "--secret-key", "secret", "--project-id", "project", "--topic", "topic"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -231,7 +251,7 @@ func TestGooglePubSubUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "googlepubsub", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -282,7 +302,7 @@ func TestGooglePubSubDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "googlepubsub", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "googlepubsub", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,

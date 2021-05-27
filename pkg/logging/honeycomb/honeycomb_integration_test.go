@@ -24,15 +24,25 @@ func TestHoneycombCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--dataset", "log"},
+			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--dataset", "log"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args:      []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc"},
+			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --dataset not provided",
 		},
 		{
-			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--dataset", "log", "--autoclone"},
+			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--dataset", "log"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersionsOk,
 				GetVersionFn:      testutil.GetActiveVersionOK,
@@ -223,7 +233,7 @@ func TestHoneycombUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersionsOk,
 				GetVersionFn:      testutil.GetActiveVersionOK,
@@ -274,7 +284,7 @@ func TestHoneycombDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "honeycomb", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "honeycomb", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersionsOk,
 				GetVersionFn:      testutil.GetActiveVersionOK,

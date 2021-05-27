@@ -88,7 +88,7 @@ func TestDictionaryCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--autoclone"},
+			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -98,7 +98,7 @@ func TestDictionaryCreate(t *testing.T) {
 			wantOutput: createDictionaryOutput,
 		},
 		{
-			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--write-only", "true", "--autoclone"},
+			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--write-only", "true"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -112,6 +112,7 @@ func TestDictionaryCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "strconv.ParseBool: parsing \"fish\": invalid syntax",
 		},
@@ -120,6 +121,7 @@ func TestDictionaryCreate(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
+				CloneVersionFn:     testutil.CloneVersionOK,
 				CreateDictionaryFn: createDictionaryDuplicate,
 			},
 			wantError: "Duplicate record",
@@ -156,7 +158,7 @@ func TestDeleteDictionary(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"dictionary", "delete", "--service-id", "123", "--version", "1", "--name", "allowlist", "--autoclone"},
+			args: []string{"dictionary", "delete", "--service-id", "123", "--version", "1", "--name", "allowlist"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -166,7 +168,7 @@ func TestDeleteDictionary(t *testing.T) {
 			wantOutput: deleteDictionaryOutput,
 		},
 		{
-			args: []string{"dictionary", "delete", "--service-id", "123", "--version", "1", "--name", "allowlist", "--autoclone"},
+			args: []string{"dictionary", "delete", "--service-id", "123", "--version", "1", "--name", "allowlist"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -264,7 +266,7 @@ func TestUpdateDictionary(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--autoclone"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersionsOk,
 				GetVersionFn:   testutil.GetActiveVersionOK,
@@ -273,7 +275,7 @@ func TestUpdateDictionary(t *testing.T) {
 			wantError: "error parsing arguments: required flag --new-name or --write-only not provided",
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--autoclone"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -283,7 +285,7 @@ func TestUpdateDictionary(t *testing.T) {
 			wantOutput: updateDictionaryNameOutput,
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--write-only", "true", "--autoclone"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--write-only", "true"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -293,7 +295,7 @@ func TestUpdateDictionary(t *testing.T) {
 			wantOutput: updateDictionaryNameOutput,
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--write-only", "true", "--autoclone"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--write-only", "true"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -303,7 +305,7 @@ func TestUpdateDictionary(t *testing.T) {
 			wantOutput: updateDictionaryOutput,
 		},
 		{
-			args: []string{"dictionary", "update", "-v", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--autoclone"},
+			args: []string{"dictionary", "update", "-v", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,
@@ -313,7 +315,7 @@ func TestUpdateDictionary(t *testing.T) {
 			wantOutput: updateDictionaryOutputVerbose,
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--autoclone"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersionsOk,
 				GetVersionFn:       testutil.GetActiveVersionOK,

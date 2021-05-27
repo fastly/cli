@@ -24,11 +24,16 @@ func TestSumologicCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log"},
+			args: []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
+			},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args: []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
+			args: []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersionsOk,
 				GetVersionFn:      testutil.GetActiveVersionOK,
@@ -219,7 +224,7 @@ func TestSumologicUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersionsOk,
 				GetVersionFn:      testutil.GetActiveVersionOK,
@@ -270,7 +275,7 @@ func TestSumologicDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sumologic", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "sumologic", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersionsOk,
 				GetVersionFn:      testutil.GetActiveVersionOK,
