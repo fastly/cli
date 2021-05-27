@@ -155,9 +155,8 @@ func (v *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Ver
 		return nil, fmt.Errorf("error listing service versions: %w", err)
 	}
 
-	// NOTE: The following sort algorithm was discussed/taken from our existing
-	// implementation of the meaning of "latest" from Tango and Northstar. Refer
-	// to the following URL for the context https://github.com/fastly/cli/pull/50
+	// NOTE: The decision to sort the versions by 'most recently updated' was
+	// originally discussed/agreed in github.com/fastly/cli/pull/50
 	sort.Slice(vs, func(i, j int) bool {
 		return vs[i].UpdatedAt.Before(*vs[j].UpdatedAt)
 	})
@@ -165,14 +164,14 @@ func (v *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Ver
 	var version *fastly.Version
 
 	switch strings.ToLower(v.Value) {
-	case "latest":
-		version, err = getLatestIdealVersion(vs)
 	case "active":
 		version, err = getLatestActiveVersion(vs)
+	case "latest":
+		version, err = getLatestVersion(vs)
 	case "":
 		version, err = getLatestActiveVersion(vs)
 		if err != nil {
-			version, err = getLatestIdealVersion(vs)
+			version, err = getLatestVersion(vs)
 		}
 	default:
 		version, err = getSpecifiedVersion(sid, v.Value, c)
@@ -210,21 +209,26 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, c api.Interfac
 	return v, nil
 }
 
-// getLatestIdealVersion gets the most ideal 'latest' service version.
+// getLatestVersion returns the latest 'locked' version (that isn't 'active'),
+// otherwise it will return the latest 'draft' version.
 //
-// It will return the latest 'locked' version, otherwise it will return
-// the latest 'draft' version (i.e. not 'active' version).
+// The reason we don't consider an 'active' version as part of this algorithm
+// is because the --version flag accepts 'active' as a distinct requirement for
+// which we have an explicit function to handle that behaviour.
 //
 // NOTE: We iterate over the slice in reverse as we would expect the latest
 // locked version to be nearer the end of the slice (i.e. nearer to a more
 // recently updated version than at the start of the slice) and so with this
 // implementation we can short-circuit the loop rather than iterating over the
 // entire collection, which worst case would be O(n).
-func getLatestIdealVersion(vs []*fastly.Version) (*fastly.Version, error) {
+func getLatestVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	var locked, latest *fastly.Version
 
 	for i := len(vs) - 1; i >= 0; i-- {
 		v := vs[i]
+
+		// NOTE: The decision to prefer 'locked' over a 'draft' (i.e. an editable
+		// service version) was discussed/agreed in github.com/fastly/cli/pull/50
 		if v.Locked && !v.Active {
 			locked = v
 			break

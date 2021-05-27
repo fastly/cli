@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
-func TestGetIdealVersion(t *testing.T) {
+func TestGetLatestVersion(t *testing.T) {
 	for _, testcase := range []struct {
 		name          string
 		inputVersions []*fastly.Version
@@ -58,7 +58,7 @@ func TestGetIdealVersion(t *testing.T) {
 		// The sorting is now handled in OptionalServiceVersion#Parse. This means
 		// we expect the input slice to be pre-sorted, and so the following example
 		// no longer returns 4 as that was the old implementation where sorting was
-		// being done inside the getLatestIdealVersion function.
+		// being done inside the getLatestVersion function.
 		{
 			name: "not sorted",
 			inputVersions: []*fastly.Version{
@@ -71,7 +71,7 @@ func TestGetIdealVersion(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			v, err := getLatestIdealVersion(testcase.inputVersions)
+			v, err := getLatestVersion(testcase.inputVersions)
 			assertNoError(t, err)
 			if v.Number != testcase.wantVersion {
 				t.Errorf("wanted version %d, got %d", testcase.wantVersion, v.Number)
