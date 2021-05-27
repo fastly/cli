@@ -24,43 +24,43 @@ func TestFTPCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "ftp", "create", "--service-id", "123", "--version", "2", "--name", "log", "--user", "anonymous", "--password", "foo@example.com"},
+			args:      []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "anonymous", "--password", "foo@example.com"},
 			wantError: "error parsing arguments: required flag --address not provided",
 		},
 		{
-			args:      []string{"logging", "ftp", "create", "--service-id", "123", "--version", "2", "--name", "log", "--address", "example.com", "--password", "foo@example.com"},
+			args:      []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--password", "foo@example.com"},
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args:      []string{"logging", "ftp", "create", "--service-id", "123", "--version", "2", "--name", "log", "--address", "example.com", "--user", "anonymous"},
+			args:      []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous"},
 			wantError: "error parsing arguments: required flag --password not provided",
 		},
 		{
-			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "2", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--compression-codec", "zstd", "--autoclone"},
+			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--compression-codec", "zstd", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				CreateFTPFn:    createFTPOK,
 			},
-			wantOutput: "Created FTP logging endpoint log (service 123 version 3)",
+			wantOutput: "Created FTP logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "2", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--autoclone"},
+			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				CreateFTPFn:    createFTPError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "2", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
+			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
 		},
@@ -92,55 +92,55 @@ func TestFTPList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsShortOutput,
 		},
 		{
-			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "2", "-v"},
+			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "ftp", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "ftp", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "ftp", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "-v", "ftp", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListFTPsFn:     listFTPsError,
 			},
 			wantError: errTest.Error(),
@@ -173,23 +173,23 @@ func TestFTPDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "ftp", "describe", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "ftp", "describe", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "ftp", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "ftp", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetFTPFn:       getFTPError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "ftp", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "ftp", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetFTPFn:       getFTPOK,
 			},
 			wantOutput: describeFTPOutput,
@@ -222,28 +222,28 @@ func TestFTPUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "ftp", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
+			args:      []string{"logging", "ftp", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "ftp", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "ftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				UpdateFTPFn:    updateFTPError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "ftp", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "ftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				UpdateFTPFn:    updateFTPOK,
 			},
-			wantOutput: "Updated FTP logging endpoint log (service 123 version 3)",
+			wantOutput: "Updated FTP logging endpoint log (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -273,28 +273,28 @@ func TestFTPDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "ftp", "delete", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "ftp", "delete", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "ftp", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "ftp", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				DeleteFTPFn:    deleteFTPError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "ftp", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "ftp", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
-				CloneVersionFn: cloneVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
+				CloneVersionFn: testutil.CloneVersionOK,
 				DeleteFTPFn:    deleteFTPOK,
 			},
-			wantOutput: "Deleted FTP logging endpoint logs (service 123 version 3)",
+			wantOutput: "Deleted FTP logging endpoint logs (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -380,18 +380,18 @@ func listFTPsError(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 
 var listFTPsShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      2        logs
-123      2        analytics
+123      1        logs
+123      1        analytics
 `) + "\n"
 
 var listFTPsVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 2
+Version: 1
 	FTP 1/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: logs
 		Address: example.com
 		Port: 123
@@ -409,7 +409,7 @@ Version: 2
 		Compression codec: zstd
 	FTP 2/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: analytics
 		Address: 127.0.0.1
 		Port: 456
@@ -455,7 +455,7 @@ func getFTPError(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 
 var describeFTPOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 2
+Version: 1
 Name: logs
 Address: example.com
 Port: 123
@@ -539,35 +539,4 @@ wMfrTEOvx0NxUM3rpaCgEmuWbB1G1Hu371oyr4srrr+N
 =28dr
 -----END PGP PUBLIC KEY BLOCK-----
 `)
-}
-
-func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    2,
-		Active:    true,
-		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
-}
-
-func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }
