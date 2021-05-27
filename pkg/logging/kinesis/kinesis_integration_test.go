@@ -24,89 +24,89 @@ func TestKinesisCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--region", "us-east-1"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--region", "us-east-1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--access-key", "foo"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--access-key", "foo"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--secret-key", "bar"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--secret-key", "bar"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--access-key", "foo", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--access-key", "foo", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--access-key", "foo", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--region", "us-east-1", "--access-key", "foo", "--secret-key", "bar", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--secret-key", "bar", "--region", "us-east-1", "--autoclone"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--secret-key", "bar", "--region", "us-east-1", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				CreateKinesisFn: createKinesisOK,
 			},
-			wantOutput: "Created Kinesis logging endpoint log (service 123 version 3)",
+			wantOutput: "Created Kinesis logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--secret-key", "bar", "--region", "us-east-1"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log", "--stream-name", "log", "--access-key", "foo", "--secret-key", "bar", "--region", "us-east-1"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				CreateKinesisFn: createKinesisError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log2", "--stream-name", "log", "--region", "us-east-1", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess", "--autoclone"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--stream-name", "log", "--region", "us-east-1", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				CreateKinesisFn: createKinesisOK,
 			},
-			wantOutput: "Created Kinesis logging endpoint log2 (service 123 version 3)",
+			wantOutput: "Created Kinesis logging endpoint log2 (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "2", "--name", "log2", "--stream-name", "log", "--region", "us-east-1", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
+			args: []string{"logging", "kinesis", "create", "--service-id", "123", "--version", "1", "--name", "log2", "--stream-name", "log", "--region", "us-east-1", "--iam-role", "arn:aws:iam::123456789012:role/KinesisAccess"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				CreateKinesisFn: createKinesisError,
 			},
 			wantError: errTest.Error(),
@@ -139,55 +139,55 @@ func TestKinesisList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKinesisFn:  listKinesesOK,
 			},
 			wantOutput: listKinesesShortOutput,
 		},
 		{
-			args: []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			args: []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKinesisFn:  listKinesesOK,
 			},
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "2", "-v"},
+			args: []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKinesisFn:  listKinesesOK,
 			},
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "kinesis", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "kinesis", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKinesisFn:  listKinesesOK,
 			},
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "kinesis", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "-v", "kinesis", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKinesisFn:  listKinesesOK,
 			},
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "kinesis", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				ListKinesisFn:  listKinesesError,
 			},
 			wantError: errTest.Error(),
@@ -220,23 +220,23 @@ func TestKinesisDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "kinesis", "describe", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "kinesis", "describe", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "kinesis", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "kinesis", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetKinesisFn:   getKinesisError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kinesis", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "kinesis", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetKinesisFn:   getKinesisOK,
 			},
 			wantOutput: describeKinesisOutput,
@@ -269,28 +269,28 @@ func TestKinesisUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
+			args:      []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				UpdateKinesisFn: updateKinesisError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--region", "us-west-1", "--autoclone"},
+			args: []string{"logging", "kinesis", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--region", "us-west-1", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				UpdateKinesisFn: updateKinesisOK,
 			},
-			wantOutput: "Updated Kinesis logging endpoint log (service 123 version 3)",
+			wantOutput: "Updated Kinesis logging endpoint log (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -320,28 +320,28 @@ func TestKinesisDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "kinesis", "delete", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "kinesis", "delete", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "kinesis", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "kinesis", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				DeleteKinesisFn: deleteKinesisError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "kinesis", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "kinesis", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
-				CloneVersionFn:  cloneVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				DeleteKinesisFn: deleteKinesisOK,
 			},
-			wantOutput: "Deleted Kinesis logging endpoint logs (service 123 version 3)",
+			wantOutput: "Deleted Kinesis logging endpoint logs (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -414,18 +414,18 @@ func listKinesesError(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 
 var listKinesesShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      2        logs
-123      2        analytics
+123      1        logs
+123      1        analytics
 `) + "\n"
 
 var listKinesesVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 2
+Version: 1
 	Kinesis 1/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: logs
 		Stream name: my-logs
 		Region: us-east-1
@@ -437,7 +437,7 @@ Version: 2
 		Placement: none
 	Kinesis 2/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: analytics
 		Stream name: analytics
 		Region: us-east-1
@@ -471,7 +471,7 @@ func getKinesisError(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 
 var describeKinesisOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 2
+Version: 1
 Name: logs
 Stream name: my-logs
 Region: us-east-1
@@ -509,35 +509,4 @@ func deleteKinesisOK(i *fastly.DeleteKinesisInput) error {
 
 func deleteKinesisError(i *fastly.DeleteKinesisInput) error {
 	return errTest
-}
-
-func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    2,
-		Active:    true,
-		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
-}
-
-func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }
