@@ -24,62 +24,62 @@ func TestOpenstackCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "2", "--name", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com"},
+			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --bucket not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--user", "user", "--url", "https://example.com"},
+			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "user", "--url", "https://example.com"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo", "--url", "https://example.com"},
+			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--url", "https://example.com"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user"},
+			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--autoclone"},
+			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
-				CloneVersionFn:    cloneVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
+				CloneVersionFn:    testutil.CloneVersionOK,
 				CreateOpenstackFn: createOpenstackOK,
 			},
-			wantOutput: "Created OpenStack logging endpoint log (service 123 version 3)",
+			wantOutput: "Created OpenStack logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com"},
+			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
-				CloneVersionFn:    cloneVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
+				CloneVersionFn:    testutil.CloneVersionOK,
 				CreateOpenstackFn: createOpenstackError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "2", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--compression-codec", "zstd", "--gzip-level", "9"},
+			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--compression-codec", "zstd", "--gzip-level", "9"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
 		},
@@ -111,55 +111,55 @@ func TestOpenstackList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksShortOutput,
 		},
 		{
-			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "2", "-v"},
+			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "openstack", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "openstack", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "openstack", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "-v", "openstack", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListOpenstacksFn: listOpenstacksError,
 			},
 			wantError: errTest.Error(),
@@ -192,23 +192,23 @@ func TestOpenstackDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetOpenstackFn: getOpenstackError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetOpenstackFn: getOpenstackOK,
 			},
 			wantOutput: describeOpenstackOutput,
@@ -241,28 +241,28 @@ func TestOpenstackUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "openstack", "update", "--service-id", "123", "--version", "2", "--new-name", "log"},
+			args:      []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
-				CloneVersionFn:    cloneVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
+				CloneVersionFn:    testutil.CloneVersionOK,
 				UpdateOpenstackFn: updateOpenstackError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
-				CloneVersionFn:    cloneVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
+				CloneVersionFn:    testutil.CloneVersionOK,
 				UpdateOpenstackFn: updateOpenstackOK,
 			},
-			wantOutput: "Updated OpenStack logging endpoint log (service 123 version 3)",
+			wantOutput: "Updated OpenStack logging endpoint log (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -292,28 +292,28 @@ func TestOpenstackDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
-				CloneVersionFn:    cloneVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
+				CloneVersionFn:    testutil.CloneVersionOK,
 				DeleteOpenstackFn: deleteOpenstackError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:    listVersionsOK,
-				GetVersionFn:      getVersionOK,
-				CloneVersionFn:    cloneVersionOK,
+				ListVersionsFn:    testutil.ListVersionsOk,
+				GetVersionFn:      testutil.GetActiveVersionOK,
+				CloneVersionFn:    testutil.CloneVersionOK,
 				DeleteOpenstackFn: deleteOpenstackOK,
 			},
-			wantOutput: "Deleted OpenStack logging endpoint logs (service 123 version 3)",
+			wantOutput: "Deleted OpenStack logging endpoint logs (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -405,18 +405,18 @@ func listOpenstacksError(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, err
 
 var listOpenstacksShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      2        logs
-123      2        analytics
+123      1        logs
+123      1        analytics
 `) + "\n"
 
 var listOpenstacksVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 2
+Version: 1
 	Openstack 1/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: logs
 		Bucket: my-logs
 		Access key: 1234
@@ -435,7 +435,7 @@ Version: 2
 		Compression codec: zstd
 	Openstack 2/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: analytics
 		Bucket: analytics
 		Access key: 1234
@@ -483,7 +483,7 @@ func getOpenstackError(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 
 var describeOpenstackOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 2
+Version: 1
 Name: logs
 Bucket: my-logs
 Access key: 1234
@@ -568,35 +568,4 @@ wMfrTEOvx0NxUM3rpaCgEmuWbB1G1Hu371oyr4srrr+N
 =28dr
 -----END PGP PUBLIC KEY BLOCK-----
 `)
-}
-
-func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    2,
-		Active:    true,
-		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
-}
-
-func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }
