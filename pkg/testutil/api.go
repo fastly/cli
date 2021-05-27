@@ -41,6 +41,16 @@ func GetActiveVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
 	}, nil
 }
 
+// GetInactiveVersionOK returns an inactive service version (Number: 1).
+func GetInactiveVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		ServiceID: i.ServiceID,
+		Number:    1,
+		Active:    false,
+		UpdatedAt: MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+	}, nil
+}
+
 // CloneVersionOK returns an incremented service version.
 func CloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
