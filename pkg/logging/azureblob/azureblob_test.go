@@ -83,8 +83,9 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
+				CloneVersionFn:   testutil.CloneVersionOK,
 				GetBlobStorageFn: getBlobStorageOK,
 			},
 			want: &fastly.UpdateBlobStorageInput{
@@ -112,8 +113,9 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
+				CloneVersionFn:   testutil.CloneVersionOK,
 				GetBlobStorageFn: getBlobStorageOK,
 			},
 			want: &fastly.UpdateBlobStorageInput{
@@ -150,8 +152,9 @@ func createCommandRequired() *CreateCommand {
 	// TODO: make consistent (in all other logging files) with syslog_test which
 	// uses a testcase.api field to assign the mock API to the global client.
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: listVersionsOK,
-		GetVersionFn:   getVersionOK,
+		ListVersionsFn: testutil.ListVersionsOk,
+		GetVersionFn:   testutil.GetActiveVersionOK,
+		CloneVersionFn: testutil.CloneVersionOK,
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -165,39 +168,15 @@ func createCommandRequired() *CreateCommand {
 		},
 		EndpointName: "logs",
 		serviceVersion: common.OptionalServiceVersion{
-			OptionalString: common.OptionalString{Value: "2"},
+			OptionalString: common.OptionalString{Value: "1"},
+		},
+		autoClone: common.OptionalAutoClone{
+			OptionalBool: common.OptionalBool{Value: true},
 		},
 		Container:   "container",
 		AccountName: "account",
 		SASToken:    "token",
 	}
-}
-
-func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    2,
-		Active:    true,
-		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
 }
 
 func createCommandAll() *CreateCommand {
@@ -209,8 +188,9 @@ func createCommandAll() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: listVersionsOK,
-		GetVersionFn:   getVersionOK,
+		ListVersionsFn: testutil.ListVersionsOk,
+		GetVersionFn:   testutil.GetActiveVersionOK,
+		CloneVersionFn: testutil.CloneVersionOK,
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -224,7 +204,10 @@ func createCommandAll() *CreateCommand {
 		},
 		EndpointName: "logs",
 		serviceVersion: common.OptionalServiceVersion{
-			OptionalString: common.OptionalString{Value: "2"},
+			OptionalString: common.OptionalString{Value: "1"},
+		},
+		autoClone: common.OptionalAutoClone{
+			OptionalBool: common.OptionalBool{Value: true},
 		},
 		Container:         "container",
 		AccountName:       "account",
@@ -254,7 +237,10 @@ func updateCommandNoUpdates() *UpdateCommand {
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName: "logs",
 		serviceVersion: common.OptionalServiceVersion{
-			OptionalString: common.OptionalString{Value: "2"},
+			OptionalString: common.OptionalString{Value: "1"},
+		},
+		autoClone: common.OptionalAutoClone{
+			OptionalBool: common.OptionalBool{Value: true},
 		},
 	}
 }
@@ -279,7 +265,10 @@ func updateCommandAll() *UpdateCommand {
 		},
 		EndpointName: "logs",
 		serviceVersion: common.OptionalServiceVersion{
-			OptionalString: common.OptionalString{Value: "2"},
+			OptionalString: common.OptionalString{Value: "1"},
+		},
+		autoClone: common.OptionalAutoClone{
+			OptionalBool: common.OptionalBool{Value: true},
 		},
 		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
 		Container:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},

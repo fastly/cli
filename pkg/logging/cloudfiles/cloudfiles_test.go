@@ -84,8 +84,9 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			name: "no update",
 			cmd:  updateCommandNoUpdate(),
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				GetCloudfilesFn: getCloudfilesOK,
 			},
 			want: &fastly.UpdateCloudfilesInput{
@@ -98,8 +99,9 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn:  listVersionsOK,
-				GetVersionFn:    getVersionOK,
+				ListVersionsFn:  testutil.ListVersionsOk,
+				GetVersionFn:    testutil.GetActiveVersionOK,
+				CloneVersionFn:  testutil.CloneVersionOK,
 				GetCloudfilesFn: getCloudfilesOK,
 			},
 			want: &fastly.UpdateCloudfilesInput{
@@ -150,8 +152,9 @@ func createCommandRequired() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: listVersionsOK,
-		GetVersionFn:   getVersionOK,
+		ListVersionsFn: testutil.ListVersionsOk,
+		GetVersionFn:   testutil.GetActiveVersionOK,
+		CloneVersionFn: testutil.CloneVersionOK,
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -165,39 +168,15 @@ func createCommandRequired() *CreateCommand {
 		},
 		EndpointName: "log",
 		serviceVersion: common.OptionalServiceVersion{
-			OptionalString: common.OptionalString{Value: "2"},
+			OptionalString: common.OptionalString{Value: "1"},
+		},
+		autoClone: common.OptionalAutoClone{
+			OptionalBool: common.OptionalBool{Value: true},
 		},
 		User:       "user",
 		AccessKey:  "key",
 		BucketName: "bucket",
 	}
-}
-
-func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    2,
-		Active:    true,
-		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
 }
 
 func createCommandAll() *CreateCommand {
@@ -209,8 +188,9 @@ func createCommandAll() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: listVersionsOK,
-		GetVersionFn:   getVersionOK,
+		ListVersionsFn: testutil.ListVersionsOk,
+		GetVersionFn:   testutil.GetActiveVersionOK,
+		CloneVersionFn: testutil.CloneVersionOK,
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -224,7 +204,10 @@ func createCommandAll() *CreateCommand {
 		},
 		EndpointName: "log",
 		serviceVersion: common.OptionalServiceVersion{
-			OptionalString: common.OptionalString{Value: "2"},
+			OptionalString: common.OptionalString{Value: "1"},
+		},
+		autoClone: common.OptionalAutoClone{
+			OptionalBool: common.OptionalBool{Value: true},
 		},
 		User:              "user",
 		AccessKey:         "key",
@@ -268,7 +251,10 @@ func updateCommandNoUpdate() *UpdateCommand {
 			},
 		},
 		serviceVersion: common.OptionalServiceVersion{
-			OptionalString: common.OptionalString{Value: "2"},
+			OptionalString: common.OptionalString{Value: "1"},
+		},
+		autoClone: common.OptionalAutoClone{
+			OptionalBool: common.OptionalBool{Value: true},
 		},
 		EndpointName: "log",
 	}
@@ -293,7 +279,10 @@ func updateCommandAll() *UpdateCommand {
 			},
 		},
 		serviceVersion: common.OptionalServiceVersion{
-			OptionalString: common.OptionalString{Value: "2"},
+			OptionalString: common.OptionalString{Value: "1"},
+		},
+		autoClone: common.OptionalAutoClone{
+			OptionalBool: common.OptionalBool{Value: true},
 		},
 		EndpointName:      "log",
 		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
