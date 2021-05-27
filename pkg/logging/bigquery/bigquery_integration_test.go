@@ -24,25 +24,25 @@ func TestBigQueryCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "2", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--autoclone"},
+			args:      []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--autoclone"},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "2", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`, "--autoclone"},
+			args: []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`, "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
-				CloneVersionFn:   cloneVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
+				CloneVersionFn:   testutil.CloneVersionOK,
 				CreateBigQueryFn: createBigQueryOK,
 			},
-			wantOutput: "Created BigQuery logging endpoint log (service 123 version 3)",
+			wantOutput: "Created BigQuery logging endpoint log (service 123 version 2)",
 		},
 		{
-			args: []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "2", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`, "--autoclone"},
+			args: []string{"logging", "bigquery", "create", "--service-id", "123", "--version", "1", "--name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`, "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
-				CloneVersionFn:   cloneVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
+				CloneVersionFn:   testutil.CloneVersionOK,
 				CreateBigQueryFn: createBigQueryError,
 			},
 			wantError: errTest.Error(),
@@ -75,55 +75,55 @@ func TestBigQueryList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListBigQueriesFn: listBigQueriesOK,
 			},
 			wantOutput: listBigQueriesShortOutput,
 		},
 		{
-			args: []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "2", "--verbose"},
+			args: []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListBigQueriesFn: listBigQueriesOK,
 			},
 			wantOutput: listBigQueriesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "2", "-v"},
+			args: []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListBigQueriesFn: listBigQueriesOK,
 			},
 			wantOutput: listBigQueriesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "bigquery", "--verbose", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "bigquery", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListBigQueriesFn: listBigQueriesOK,
 			},
 			wantOutput: listBigQueriesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "bigquery", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "-v", "bigquery", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListBigQueriesFn: listBigQueriesOK,
 			},
 			wantOutput: listBigQueriesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "2"},
+			args: []string{"logging", "bigquery", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
 				ListBigQueriesFn: listBigQueriesError,
 			},
 			wantError: errTest.Error(),
@@ -156,23 +156,23 @@ func TestBigQueryDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "bigquery", "describe", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "bigquery", "describe", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "bigquery", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "bigquery", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetBigQueryFn:  getBigQueryError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "bigquery", "describe", "--service-id", "123", "--version", "2", "--name", "logs"},
+			args: []string{"logging", "bigquery", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: listVersionsOK,
-				GetVersionFn:   getVersionOK,
+				ListVersionsFn: testutil.ListVersionsOk,
+				GetVersionFn:   testutil.GetActiveVersionOK,
 				GetBigQueryFn:  getBigQueryOK,
 			},
 			wantOutput: describeBigQueryOutput,
@@ -205,28 +205,28 @@ func TestBigQueryUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "2", "--new-name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`},
+			args:      []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--new-name", "log", "--project-id", "project123", "--dataset", "logs", "--table", "logs", "--user", "user@domain.com", "--secret-key", `"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"`},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
-				CloneVersionFn:   cloneVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
+				CloneVersionFn:   testutil.CloneVersionOK,
 				UpdateBigQueryFn: updateBigQueryError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "2", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: []string{"logging", "bigquery", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
-				CloneVersionFn:   cloneVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
+				CloneVersionFn:   testutil.CloneVersionOK,
 				UpdateBigQueryFn: updateBigQueryOK,
 			},
-			wantOutput: "Updated BigQuery logging endpoint log (service 123 version 3)",
+			wantOutput: "Updated BigQuery logging endpoint log (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -256,28 +256,28 @@ func TestBigQueryDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "2"},
+			args:      []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1"},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
-				CloneVersionFn:   cloneVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
+				CloneVersionFn:   testutil.CloneVersionOK,
 				DeleteBigQueryFn: deleteBigQueryError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "2", "--name", "logs", "--autoclone"},
+			args: []string{"logging", "bigquery", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:   listVersionsOK,
-				GetVersionFn:     getVersionOK,
-				CloneVersionFn:   cloneVersionOK,
+				ListVersionsFn:   testutil.ListVersionsOk,
+				GetVersionFn:     testutil.GetActiveVersionOK,
+				CloneVersionFn:   testutil.CloneVersionOK,
 				DeleteBigQueryFn: deleteBigQueryOK,
 			},
-			wantOutput: "Deleted BigQuery logging endpoint logs (service 123 version 3)",
+			wantOutput: "Deleted BigQuery logging endpoint logs (service 123 version 2)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -352,18 +352,18 @@ func listBigQueriesError(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, err
 
 var listBigQueriesShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
-123      2        logs
-123      2        analytics
+123      1        logs
+123      1        analytics
 `) + "\n"
 
 var listBigQueriesVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
 Service ID: 123
-Version: 2
+Version: 1
 	BigQuery 1/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: logs
 		Format: %h %l %u %t "%r" %>s %b
 		User: service-account@domain.com
@@ -377,7 +377,7 @@ Version: 2
 		Format version: 0
 	BigQuery 2/2
 		Service ID: 123
-		Version: 2
+		Version: 1
 		Name: analytics
 		Format: %h %l %u %t "%r" %>s %b
 		User: service-account@domain.com
@@ -414,7 +414,7 @@ func getBigQueryError(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 
 var describeBigQueryOutput = strings.TrimSpace(`
 Service ID: 123
-Version: 2
+Version: 1
 Name: logs
 Format: %h %l %u %t "%r" %>s %b
 User: service-account@domain.com
@@ -455,35 +455,4 @@ func deleteBigQueryOK(i *fastly.DeleteBigQueryInput) error {
 
 func deleteBigQueryError(i *fastly.DeleteBigQueryInput) error {
 	return errTest
-}
-
-func listVersionsOK(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func getVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    2,
-		Active:    true,
-		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
-}
-
-func cloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
 }
