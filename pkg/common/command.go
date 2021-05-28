@@ -174,7 +174,7 @@ func (v *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Ver
 	case "":
 		version, err = getLatestEditable(vs)
 	default:
-		version, err = getSpecifiedVersion(v.Value, sid, c)
+		version, err = getSpecifiedVersion(vs, v.Value)
 	}
 	if err != nil {
 		return nil, err
@@ -273,18 +273,17 @@ func getLatestEditable(vs []*fastly.Version) (*fastly.Version, error) {
 }
 
 // getSpecifiedVersion returns the specified service version.
-func getSpecifiedVersion(version string, sid string, c api.Interface) (*fastly.Version, error) {
+func getSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version, error) {
 	i, err := strconv.Atoi(version)
 	if err != nil {
 		return nil, err
 	}
 
-	vs, err := c.GetVersion(&fastly.GetVersionInput{
-		ServiceID:      sid,
-		ServiceVersion: i,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error getting specified service version: %w", err)
+	for _, v := range vs {
+		if v.Number == i {
+			return v, nil
+		}
 	}
-	return vs, nil
+
+	return nil, fmt.Errorf("error getting specified service version %d: %w", i, err)
 }
