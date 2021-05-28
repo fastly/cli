@@ -78,7 +78,7 @@ type ServiceVersionFlagOpts struct {
 // such as 'latest', 'active' and numerical values which are then converted
 // into the appropriate service version.
 func (b Base) NewServiceVersionFlag(opts ServiceVersionFlagOpts, args ...string) {
-	clause := b.CmdClause.Flag("version", "Number of service version, 'latest' or 'active'")
+	clause := b.CmdClause.Flag("version", "Number of service version, 'latest', 'active' or 'editable'")
 	if !opts.Optional {
 		clause = clause.Required()
 	} else {
@@ -148,7 +148,7 @@ type OptionalServiceVersion struct {
 }
 
 // Parse returns a service version based on the given user input.
-func (v *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Version, error) {
+func (sv *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Version, error) {
 	vs, err := c.ListVersions(&fastly.ListVersionsInput{
 		ServiceID: sid,
 	})
@@ -162,25 +162,25 @@ func (v *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Ver
 		return vs[i].UpdatedAt.Before(*vs[j].UpdatedAt)
 	})
 
-	var version *fastly.Version
+	var v *fastly.Version
 
-	switch strings.ToLower(v.Value) {
+	switch strings.ToLower(sv.Value) {
 	case "active":
-		version, err = getLatestActiveVersion(vs)
+		v, err = getLatestActiveVersion(vs)
 	case "latest":
-		version, err = getLatestNonActiveVersion(vs)
-	// case "editable":
-	// 	version, err = getLatestEditable(vs)
+		v, err = getLatestNonActiveVersion(vs)
+	case "editable":
+		v, err = getLatestEditable(vs)
 	case "":
-		version, err = getLatestEditable(vs)
+		v, err = getLatestEditable(vs)
 	default:
-		version, err = getSpecifiedVersion(vs, v.Value)
+		v, err = getSpecifiedVersion(vs, sv.Value)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return version, nil
+	return v, nil
 }
 
 // OptionalAutoClone defines a method set for abstracting the logic required to
