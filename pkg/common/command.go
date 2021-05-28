@@ -168,7 +168,9 @@ func (v *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Ver
 	case "active":
 		version, err = getLatestActiveVersion(vs)
 	case "latest":
-		version, err = getLatestVersion(vs)
+		version, err = getLatestNonActiveVersion(vs)
+	// case "editable":
+	// 	version, err = getLatestEditable(vs)
 	case "":
 		version, err = getLatestEditable(vs)
 	default:
@@ -225,8 +227,7 @@ func getLatestActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	return nil, fmt.Errorf("error locating latest active service version")
 }
 
-// getLatestVersion returns the latest 'locked' version (that isn't 'active'),
-// otherwise it will return the latest 'draft' version.
+// getLatestNonActiveVersion returns the latest version (that isn't 'active').
 //
 // The reason we don't consider an 'active' version as part of this algorithm
 // is because the --version flag accepts 'active' as a distinct requirement for
@@ -237,32 +238,13 @@ func getLatestActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 // recently updated version than at the start of the slice) and so with this
 // implementation we can short-circuit the loop rather than iterating over the
 // entire collection, which worst case would be O(n).
-func getLatestVersion(vs []*fastly.Version) (*fastly.Version, error) {
-	var locked, latest *fastly.Version
-
+func getLatestNonActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	for i := len(vs) - 1; i >= 0; i-- {
-		v := vs[i]
-
-		// NOTE: The decision to prefer 'locked' over a 'draft' (i.e. an editable
-		// service version) was discussed/agreed in github.com/fastly/cli/pull/50
-		if v.Locked && !v.Active {
-			locked = v
-			break
-		}
-		if !v.Active && latest == nil {
-			latest = v
+		if !vs[i].Active {
+			return vs[i], nil
 		}
 	}
-
-	v := latest
-	if locked != nil {
-		v = locked
-	}
-
-	if v == nil {
-		return nil, fmt.Errorf("error finding latest service version")
-	}
-	return v, nil
+	return nil, fmt.Errorf("error finding a non-active service version")
 }
 
 // getLatestEditable returns the latest editable service version.

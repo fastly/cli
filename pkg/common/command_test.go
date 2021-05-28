@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
-func TestGetLatestVersion(t *testing.T) {
+func TestGetLatestNonActiveVersion(t *testing.T) {
 	for _, testcase := range []struct {
 		name          string
 		inputVersions []*fastly.Version
@@ -38,10 +38,10 @@ func TestGetLatestVersion(t *testing.T) {
 			wantVersion: 2,
 		},
 		{
-			name: "locked not latest",
+			name: "locked not favoured",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: mustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, Locked: true, UpdatedAt: mustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: 1, Active: false, Locked: true, UpdatedAt: mustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: 2, Active: false, UpdatedAt: mustParseTimeRFC3339("2000-01-02T01:00:00Z")},
 				{Number: 3, Active: true, UpdatedAt: mustParseTimeRFC3339("2000-01-03T01:00:00Z")},
 			},
 			wantVersion: 2,
@@ -55,10 +55,6 @@ func TestGetLatestVersion(t *testing.T) {
 			},
 			wantVersion: 3,
 		},
-		// The sorting is now handled in OptionalServiceVersion#Parse. This means
-		// we expect the input slice to be pre-sorted, and so the following example
-		// no longer returns 4 as that was the old implementation where sorting was
-		// being done inside the getLatestVersion function.
 		{
 			name: "not sorted",
 			inputVersions: []*fastly.Version{
@@ -71,7 +67,7 @@ func TestGetLatestVersion(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			v, err := getLatestVersion(testcase.inputVersions)
+			v, err := getLatestNonActiveVersion(testcase.inputVersions)
 			assertNoError(t, err)
 			if v.Number != testcase.wantVersion {
 				t.Errorf("wanted version %d, got %d", testcase.wantVersion, v.Number)

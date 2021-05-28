@@ -987,17 +987,13 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 3)",
 			},
 		},
-		// The following test specifies --version=latest, which will cause version 2
-		// to be returned, and as that version is 'locked' it requires us to
-		// specify --autoclone.
 		{
 			name: "success with path",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "latest", "--autoclone"},
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "latest"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
-				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -1012,7 +1008,7 @@ func TestDeploy(t *testing.T) {
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
 				"https://directly-careful-coyote.edgecompute.app",
-				"Deployed package (service 123, version 4)",
+				"Deployed package (service 123, version 3)",
 			},
 		},
 		{
@@ -1057,27 +1053,6 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 4)",
 			},
 		},
-		{
-			name: "success with latest version",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "latest", "--autoclone"},
-			in:   strings.NewReader(""),
-			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
-				CloneVersionFn:    testutil.CloneVersionResult(4),
-				GetServiceFn:      getServiceOK,
-				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
-			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
-			wantOutput: []string{
-				"Uploading package...",
-				"Activating version...",
-				"Deployed package (service 123, version 4)",
-			},
-		},
 		// The following test uses --version=active which doesn't make practical
 		// sense because it suggests the given version will be active/locked and
 		// subsequently not editable. Thus the use of --autoclone is appended.
@@ -1089,27 +1064,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "success with active version",
 			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "active", "--autoclone"},
-			in:   strings.NewReader(""),
-			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
-				CloneVersionFn:    testutil.CloneVersionResult(4),
-				GetServiceFn:      getServiceOK,
-				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
-			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
-			wantOutput: []string{
-				"Uploading package...",
-				"Activating version...",
-				"Deployed package (service 123, version 4)",
-			},
-		},
-		{
-			name: "success with latest inactive version",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "latest", "--autoclone"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
