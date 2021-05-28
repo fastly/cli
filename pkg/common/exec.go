@@ -52,7 +52,7 @@ func (s StreamingExec) Exec() error {
 	cmd.Stderr = io.MultiWriter(s.output, &stderrBuf)
 
 	if err := cmd.Run(); err != nil {
-		if !s.verbose && stderrBuf.Len() > 0 {
+		if s.verbose && stderrBuf.Len() > 0 {
 			return fmt.Errorf("error during execution process:\n%s", strings.TrimSpace(stderrBuf.String()))
 		}
 		return fmt.Errorf("error during execution process")
