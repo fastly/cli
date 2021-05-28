@@ -26,7 +26,7 @@ func TestCreateS3Input(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateS3Input{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 				BucketName:     "bucket",
 				AccessKey:      "access",
@@ -38,7 +38,7 @@ func TestCreateS3Input(t *testing.T) {
 			cmd:  createCommandRequiredIAMRole(),
 			want: &fastly.CreateS3Input{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 				BucketName:     "bucket",
 				IAMRole:        "arn:aws:iam::123456789012:role/S3Access",
@@ -49,7 +49,7 @@ func TestCreateS3Input(t *testing.T) {
 			cmd:  createCommandAll(),
 			want: &fastly.CreateS3Input{
 				ServiceID:                    "123",
-				ServiceVersion:               2,
+				ServiceVersion:               4,
 				Name:                         "logs",
 				BucketName:                   "bucket",
 				Domain:                       "domain",
@@ -97,14 +97,14 @@ func TestUpdateS3Input(t *testing.T) {
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetS3Fn:        getS3OK,
 			},
 			want: &fastly.UpdateS3Input{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 			},
 		},
@@ -112,14 +112,14 @@ func TestUpdateS3Input(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetS3Fn:        getS3OK,
 			},
 			want: &fastly.UpdateS3Input{
 				ServiceID:                    "123",
-				ServiceVersion:               2,
+				ServiceVersion:               4,
 				Name:                         "log",
 				NewName:                      fastly.String("new1"),
 				BucketName:                   fastly.String("new2"),
@@ -169,9 +169,9 @@ func createCommandRequired() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -205,9 +205,9 @@ func createCommandRequiredIAMRole() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -240,9 +240,9 @@ func createCommandAll() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{

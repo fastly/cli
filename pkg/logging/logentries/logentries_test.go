@@ -25,7 +25,7 @@ func TestCreateLogentriesInput(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateLogentriesInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 			},
 		},
@@ -34,7 +34,7 @@ func TestCreateLogentriesInput(t *testing.T) {
 			cmd:  createCommandOK(),
 			want: &fastly.CreateLogentriesInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				Port:              22,
 				UseTLS:            fastly.Compatibool(true),
@@ -72,14 +72,14 @@ func TestUpdateLogentriesInput(t *testing.T) {
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
-				ListVersionsFn:  testutil.ListVersionsOk,
-				GetVersionFn:    testutil.GetActiveVersionOK,
-				CloneVersionFn:  testutil.CloneVersionOK,
+				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetActiveVersion(1),
+				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetLogentriesFn: getLogentriesOK,
 			},
 			want: &fastly.UpdateLogentriesInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 			},
 		},
@@ -87,14 +87,14 @@ func TestUpdateLogentriesInput(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn:  testutil.ListVersionsOk,
-				GetVersionFn:    testutil.GetActiveVersionOK,
-				CloneVersionFn:  testutil.CloneVersionOK,
+				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetActiveVersion(1),
+				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetLogentriesFn: getLogentriesOK,
 			},
 			want: &fastly.UpdateLogentriesInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Port:              fastly.Uint(23),
@@ -132,9 +132,9 @@ func createCommandOK() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -172,9 +172,9 @@ func createCommandRequired() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{

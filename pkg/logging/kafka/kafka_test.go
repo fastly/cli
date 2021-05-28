@@ -25,7 +25,7 @@ func TestCreateKafkaInput(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateKafkaInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 				Topic:          "logs",
 				Brokers:        "127.0.0.1,127.0.0.2",
@@ -36,7 +36,7 @@ func TestCreateKafkaInput(t *testing.T) {
 			cmd:  createCommandAll(),
 			want: &fastly.CreateKafkaInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "logs",
 				Brokers:           "127.0.0.1,127.0.0.2",
 				Topic:             "logs",
@@ -64,7 +64,7 @@ func TestCreateKafkaInput(t *testing.T) {
 			cmd:  createCommandSASL("scram-sha-512", "user1", "12345"),
 			want: &fastly.CreateKafkaInput{
 				ServiceID:       "123",
-				ServiceVersion:  2,
+				ServiceVersion:  4,
 				Name:            "log",
 				Topic:           "logs",
 				Brokers:         "127.0.0.1,127.0.0.2",
@@ -139,14 +139,14 @@ func TestUpdateKafkaInput(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
 			want: &fastly.UpdateKafkaInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Topic:             fastly.String("new2"),
@@ -173,14 +173,14 @@ func TestUpdateKafkaInput(t *testing.T) {
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
 			want: &fastly.UpdateKafkaInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 			},
 		},
@@ -193,15 +193,15 @@ func TestUpdateKafkaInput(t *testing.T) {
 		{
 			name: "verify SASL fields",
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
 			cmd: updateCommandSASL("scram-sha-512", "user1", "12345"),
 			want: &fastly.UpdateKafkaInput{
 				ServiceID:       "123",
-				ServiceVersion:  2,
+				ServiceVersion:  4,
 				Name:            "log",
 				Topic:           fastly.String("logs"),
 				Brokers:         fastly.String("127.0.0.1,127.0.0.2"),
@@ -215,15 +215,15 @@ func TestUpdateKafkaInput(t *testing.T) {
 		{
 			name: "verify disabling SASL",
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaSASL,
 			},
 			cmd: updateCommandNoSASL(),
 			want: &fastly.UpdateKafkaInput{
 				ServiceID:       "123",
-				ServiceVersion:  2,
+				ServiceVersion:  4,
 				Name:            "log",
 				Topic:           fastly.String("logs"),
 				Brokers:         fastly.String("127.0.0.1,127.0.0.2"),
@@ -237,9 +237,9 @@ func TestUpdateKafkaInput(t *testing.T) {
 		{
 			name: "verify SASL validation: missing username",
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
 			cmd:       updateCommandSASL("scram-sha-256", "", "password"),
@@ -249,9 +249,9 @@ func TestUpdateKafkaInput(t *testing.T) {
 		{
 			name: "verify SASL validation: missing password",
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
 			cmd:       updateCommandSASL("plain", "user", ""),
@@ -261,9 +261,9 @@ func TestUpdateKafkaInput(t *testing.T) {
 		{
 			name: "verify SASL validation: username with no auth method",
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
 			cmd:       updateCommandSASL("", "user1", ""),
@@ -273,9 +273,9 @@ func TestUpdateKafkaInput(t *testing.T) {
 		{
 			name: "verify SASL validation: password with no auth method",
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
 			cmd:       updateCommandSASL("", "", "password"),
@@ -302,9 +302,9 @@ func createCommandRequired() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -337,9 +337,9 @@ func createCommandAll() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -383,9 +383,9 @@ func createCommandSASL(authMethod, user, password string) *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -424,9 +424,9 @@ func createCommandNoSASL(authMethod, user, password string) *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{

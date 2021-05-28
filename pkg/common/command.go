@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -169,12 +170,9 @@ func (v *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Ver
 	case "latest":
 		version, err = getLatestVersion(vs)
 	case "":
-		version, err = getLatestActiveVersion(vs)
-		if err != nil {
-			version, err = getLatestVersion(vs)
-		}
+		version, err = getLatestEditable(vs)
 	default:
-		version, err = getSpecifiedVersion(sid, v.Value, c)
+		version, err = getSpecifiedVersion(v.Value, sid, c)
 	}
 	if err != nil {
 		return nil, err
@@ -194,19 +192,37 @@ type OptionalAutoClone struct {
 // The returned version is either the same as the input argument `v` or it's a
 // cloned version if the input argument was either active or locked.
 func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, c api.Interface) (*fastly.Version, error) {
-	if v.Active || v.Locked {
+	// if user didn't provide --autoclone flag
+	if !ac.Value && (v.Active || v.Locked) {
+		return nil, fmt.Errorf("service version %d is not editable", v.Number)
+	}
+	if ac.Value && (v.Active || v.Locked) {
 		version, err := c.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      sid,
 			ServiceVersion: v.Number,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("error cloning latest service version: %w", err)
+			return nil, fmt.Errorf("error cloning service version: %w", err)
 		}
 		return version, nil
 	}
 
 	// Treat the function as a no-op if the version is editable.
 	return v, nil
+}
+
+// getLatestActiveVersion returns the latest active service version.
+//
+// NOTE: We iterate over the slice in reverse as we would expect the latest
+// active version to be nearer the end of the slice (i.e. nearer to a more
+// recently updated version than at the start of the slice).
+func getLatestActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
+	for i := len(vs) - 1; i >= 0; i-- {
+		if vs[i].Active {
+			return vs[i], nil
+		}
+	}
+	return nil, fmt.Errorf("error locating latest active service version")
 }
 
 // getLatestVersion returns the latest 'locked' version (that isn't 'active'),
@@ -249,22 +265,33 @@ func getLatestVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	return v, nil
 }
 
-// getLatestActiveVersion returns the latest active service version.
+// getLatestEditable returns the latest editable service version.
+//
+// When no --version flag is provided, this algorithm helps handle cases where
+// a command (such as `backend create`) is executable multiple times, as the
+// latest editable version will be reused and subsequently will contain each
+// new backend created from the prior executions.
+//
+// There could be a scenario where a customer has a single service version
+// which is activated and so there would be no match for an editable version
+// without us first cloning it. The act of cloning should be a decision made by
+// the user (i.e. --autoclone) and so this function will return an error if no
+// editable version available.
 //
 // NOTE: We iterate over the slice in reverse as we would expect the latest
-// active version to be nearer the end of the slice (i.e. nearer to a more
-// recently updated version than at the start of the slice).
-func getLatestActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
+// editable version to be nearer the end of the slice.
+func getLatestEditable(vs []*fastly.Version) (*fastly.Version, error) {
 	for i := len(vs) - 1; i >= 0; i-- {
-		if vs[i].Active {
+		if !vs[i].Active && !vs[i].Locked {
 			return vs[i], nil
 		}
 	}
-	return nil, fmt.Errorf("error locating latest active service version")
+	// TODO: return a remediation error
+	return nil, errors.New("error retrieving an editable service version")
 }
 
 // getSpecifiedVersion returns the specified service version.
-func getSpecifiedVersion(sid string, version string, c api.Interface) (*fastly.Version, error) {
+func getSpecifiedVersion(version string, sid string, c api.Interface) (*fastly.Version, error) {
 	i, err := strconv.Atoi(version)
 	if err != nil {
 		return nil, err

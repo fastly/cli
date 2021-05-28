@@ -1,13 +1,19 @@
 package testutil
 
 import (
+	"errors"
+
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
-// ListVersionsOk returns a list of service versions in different states.
+// ListVersions returns a list of service versions in different states.
 //
 // The first element is active, the second is locked, the third is editable.
-func ListVersionsOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+//
+// NOTE: consult the entire test suite before adding any new entries to the
+// returned type as the tests currently use testutil.CloneVersionResult() as a
+// way of making the test output and expectations as accurate as possible.
+func ListVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
 			ServiceID: i.ServiceID,
@@ -26,32 +32,53 @@ func ListVersionsOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 			ServiceID: i.ServiceID,
 			Number:    3,
 			Active:    false,
-			UpdatedAt: MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
+			UpdatedAt: MustParseTimeRFC3339("2000-01-03T01:00:00Z"),
 		},
 	}, nil
 }
 
-// GetActiveVersionOK returns an active service version (Number: 1).
-func GetActiveVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    1,
-		Active:    true,
-		UpdatedAt: MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
+// ListVersionsError returns a generic error message when attempting to list
+// service versions.
+func ListVersionsError(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+	return nil, errors.New("fixture error")
 }
 
-// GetInactiveVersionOK returns an inactive service version (Number: 1).
-func GetInactiveVersionOK(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{
-		ServiceID: i.ServiceID,
-		Number:    1,
-		Active:    false,
-		UpdatedAt: MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-	}, nil
+// GetActiveVersion returns a function which returns an active service version.
+func GetActiveVersion(version int) func(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return func(i *fastly.GetVersionInput) (*fastly.Version, error) {
+		return &fastly.Version{
+			ServiceID: i.ServiceID,
+			Number:    version,
+			Active:    true,
+			UpdatedAt: MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		}, nil
+	}
 }
 
-// CloneVersionOK returns an incremented service version.
-func CloneVersionOK(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
+// GetInactiveVersion returns a function which returns an inactive service version.
+func GetInactiveVersion(version int) func(i *fastly.GetVersionInput) (*fastly.Version, error) {
+	return func(i *fastly.GetVersionInput) (*fastly.Version, error) {
+		return &fastly.Version{
+			ServiceID: i.ServiceID,
+			Number:    version,
+			Active:    false,
+			UpdatedAt: MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+		}, nil
+	}
+}
+
+// CloneVersionResult returns a function which returns a specific cloned version.
+func CloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+		return &fastly.Version{
+			ServiceID: i.ServiceID,
+			Number:    version,
+		}, nil
+	}
+}
+
+// CloneVersionError returns a generic error message when attempting to clone a
+// service version.
+func CloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return nil, errors.New("fixture error")
 }

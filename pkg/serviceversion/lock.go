@@ -17,7 +17,6 @@ type LockCommand struct {
 	manifest       manifest.Data
 	Input          fastly.LockVersionInput
 	serviceVersion common.OptionalServiceVersion
-	autoClone      common.OptionalAutoClone
 }
 
 // NewLockCommand returns a usable command registered under the parent.
@@ -29,7 +28,6 @@ func NewLockCommand(parent common.Registerer, globals *config.Data) *LockCommand
 	c.CmdClause = parent.Command("lock", "Lock a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.NewServiceVersionFlag(common.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
-	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	return &c
 }
 
@@ -42,10 +40,6 @@ func (c *LockCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 
 	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
-	if err != nil {
-		return err
-	}
-	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
 	if err != nil {
 		return err
 	}

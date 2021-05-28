@@ -24,30 +24,30 @@ func TestHTTPSCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "https", "create", "--service-id", "123", "--version", "1", "--name", "log"},
+			args: []string{"logging", "https", "create", "--service-id", "123", "--version", "1", "--name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args: []string{"logging", "https", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
+			args: []string{"logging", "https", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHTTPSFn:  createHTTPSOK,
 			},
-			wantOutput: "Created HTTPS logging endpoint log (service 123 version 2)",
+			wantOutput: "Created HTTPS logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "https", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
+			args: []string{"logging", "https", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHTTPSFn:  createHTTPSError,
 			},
 			wantError: errTest.Error(),
@@ -82,8 +82,8 @@ func TestHTTPSList(t *testing.T) {
 		{
 			args: []string{"logging", "https", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsShortOutput,
@@ -91,8 +91,8 @@ func TestHTTPSList(t *testing.T) {
 		{
 			args: []string{"logging", "https", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsVerboseOutput,
@@ -100,8 +100,8 @@ func TestHTTPSList(t *testing.T) {
 		{
 			args: []string{"logging", "https", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsVerboseOutput,
@@ -109,8 +109,8 @@ func TestHTTPSList(t *testing.T) {
 		{
 			args: []string{"logging", "https", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsVerboseOutput,
@@ -118,8 +118,8 @@ func TestHTTPSList(t *testing.T) {
 		{
 			args: []string{"logging", "-v", "https", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsVerboseOutput,
@@ -127,8 +127,8 @@ func TestHTTPSList(t *testing.T) {
 		{
 			args: []string{"logging", "https", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsError,
 			},
 			wantError: errTest.Error(),
@@ -167,8 +167,8 @@ func TestHTTPSDescribe(t *testing.T) {
 		{
 			args: []string{"logging", "https", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetHTTPSFn:     getHTTPSError,
 			},
 			wantError: errTest.Error(),
@@ -176,8 +176,8 @@ func TestHTTPSDescribe(t *testing.T) {
 		{
 			args: []string{"logging", "https", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetHTTPSFn:     getHTTPSOK,
 			},
 			wantOutput: describeHTTPSOutput,
@@ -214,24 +214,24 @@ func TestHTTPSUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHTTPSFn:  updateHTTPSError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHTTPSFn:  updateHTTPSOK,
 			},
-			wantOutput: "Updated HTTPS logging endpoint log (service 123 version 2)",
+			wantOutput: "Updated HTTPS logging endpoint log (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -265,24 +265,24 @@ func TestHTTPSDelete(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "https", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: []string{"logging", "https", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHTTPSFn:  deleteHTTPSError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "https", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: []string{"logging", "https", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHTTPSFn:  deleteHTTPSOK,
 			},
-			wantOutput: "Deleted HTTPS logging endpoint logs (service 123 version 2)",
+			wantOutput: "Deleted HTTPS logging endpoint logs (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {

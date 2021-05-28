@@ -24,30 +24,30 @@ func TestSyslogCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log"},
+			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --address not provided",
 		},
 		{
-			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1"},
+			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogOK,
 			},
-			wantOutput: "Created Syslog logging endpoint log (service 123 version 2)",
+			wantOutput: "Created Syslog logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1"},
+			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogError,
 			},
 			wantError: errTest.Error(),
@@ -82,8 +82,8 @@ func TestSyslogList(t *testing.T) {
 		{
 			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsShortOutput,
@@ -91,8 +91,8 @@ func TestSyslogList(t *testing.T) {
 		{
 			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsVerboseOutput,
@@ -100,8 +100,8 @@ func TestSyslogList(t *testing.T) {
 		{
 			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsVerboseOutput,
@@ -109,8 +109,8 @@ func TestSyslogList(t *testing.T) {
 		{
 			args: []string{"logging", "syslog", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsVerboseOutput,
@@ -118,8 +118,8 @@ func TestSyslogList(t *testing.T) {
 		{
 			args: []string{"logging", "-v", "syslog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsVerboseOutput,
@@ -127,8 +127,8 @@ func TestSyslogList(t *testing.T) {
 		{
 			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsError,
 			},
 			wantError: errTest.Error(),
@@ -167,8 +167,8 @@ func TestSyslogDescribe(t *testing.T) {
 		{
 			args: []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetSyslogFn:    getSyslogError,
 			},
 			wantError: errTest.Error(),
@@ -176,8 +176,8 @@ func TestSyslogDescribe(t *testing.T) {
 		{
 			args: []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetSyslogFn:    getSyslogOK,
 			},
 			wantOutput: describeSyslogOutput,
@@ -214,24 +214,24 @@ func TestSyslogUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogOK,
 			},
-			wantOutput: "Updated Syslog logging endpoint log (service 123 version 2)",
+			wantOutput: "Updated Syslog logging endpoint log (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -265,24 +265,24 @@ func TestSyslogDelete(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogOK,
 			},
-			wantOutput: "Deleted Syslog logging endpoint logs (service 123 version 2)",
+			wantOutput: "Deleted Syslog logging endpoint logs (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {

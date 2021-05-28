@@ -25,48 +25,48 @@ func TestScalyrCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "scalyr", "create", "--service-id", "123", "--version", "1", "--auth-token", "abc"},
+			args: []string{"logging", "scalyr", "create", "--service-id", "123", "--version", "1", "--auth-token", "abc", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "scalyr", "create", "--service-id", "123", "--version", "1", "--name", "log"},
+			args: []string{"logging", "scalyr", "create", "--service-id", "123", "--version", "1", "--name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: []string{"logging", "scalyr", "create", "--name", "log", "--service-id", "", "--version", "1", "--auth-token", "abc"},
+			args: []string{"logging", "scalyr", "create", "--name", "log", "--service-id", "", "--version", "1", "--auth-token", "abc", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: fsterrs.ErrNoServiceID.Error(),
 		},
 		{
-			args: []string{"logging", "scalyr", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc"},
+			args: []string{"logging", "scalyr", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateScalyrFn: createScalyrOK,
 			},
-			wantOutput: "Created Scalyr logging endpoint log (service 123 version 2)",
+			wantOutput: "Created Scalyr logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "scalyr", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc"},
+			args: []string{"logging", "scalyr", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateScalyrFn: createScalyrError,
 			},
 			wantError: errTest.Error(),
@@ -101,8 +101,8 @@ func TestScalyrList(t *testing.T) {
 		{
 			args: []string{"logging", "scalyr", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListScalyrsFn:  listScalyrsOK,
 			},
 			wantOutput: listScalyrsShortOutput,
@@ -110,8 +110,8 @@ func TestScalyrList(t *testing.T) {
 		{
 			args: []string{"logging", "scalyr", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListScalyrsFn:  listScalyrsOK,
 			},
 			wantOutput: listScalyrsVerboseOutput,
@@ -119,8 +119,8 @@ func TestScalyrList(t *testing.T) {
 		{
 			args: []string{"logging", "scalyr", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListScalyrsFn:  listScalyrsOK,
 			},
 			wantOutput: listScalyrsVerboseOutput,
@@ -128,8 +128,8 @@ func TestScalyrList(t *testing.T) {
 		{
 			args: []string{"logging", "scalyr", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListScalyrsFn:  listScalyrsOK,
 			},
 			wantOutput: listScalyrsVerboseOutput,
@@ -137,8 +137,8 @@ func TestScalyrList(t *testing.T) {
 		{
 			args: []string{"logging", "-v", "scalyr", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListScalyrsFn:  listScalyrsOK,
 			},
 			wantOutput: listScalyrsVerboseOutput,
@@ -146,8 +146,8 @@ func TestScalyrList(t *testing.T) {
 		{
 			args: []string{"logging", "scalyr", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListScalyrsFn:  listScalyrsError,
 			},
 			wantError: errTest.Error(),
@@ -186,8 +186,8 @@ func TestScalyrDescribe(t *testing.T) {
 		{
 			args: []string{"logging", "scalyr", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetScalyrFn:    getScalyrError,
 			},
 			wantError: errTest.Error(),
@@ -195,8 +195,8 @@ func TestScalyrDescribe(t *testing.T) {
 		{
 			args: []string{"logging", "scalyr", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetScalyrFn:    getScalyrOK,
 			},
 			wantOutput: describeScalyrOutput,
@@ -233,24 +233,24 @@ func TestScalyrUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "scalyr", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "scalyr", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateScalyrFn: updateScalyrError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "scalyr", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
+			args: []string{"logging", "scalyr", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateScalyrFn: updateScalyrOK,
 			},
-			wantOutput: "Updated Scalyr logging endpoint log (service 123 version 2)",
+			wantOutput: "Updated Scalyr logging endpoint log (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -284,24 +284,24 @@ func TestScalyrDelete(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "scalyr", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: []string{"logging", "scalyr", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteScalyrFn: deleteScalyrError,
 			},
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "scalyr", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: []string{"logging", "scalyr", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteScalyrFn: deleteScalyrOK,
 			},
-			wantOutput: "Deleted Scalyr logging endpoint logs (service 123 version 2)",
+			wantOutput: "Deleted Scalyr logging endpoint logs (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {

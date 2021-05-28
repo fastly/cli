@@ -26,7 +26,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateCloudfilesInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 				User:           "user",
 				AccessKey:      "key",
@@ -38,7 +38,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			cmd:  createCommandAll(),
 			want: &fastly.CreateCloudfilesInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				User:              "user",
 				AccessKey:         "key",
@@ -84,14 +84,14 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			name: "no update",
 			cmd:  updateCommandNoUpdate(),
 			api: mock.API{
-				ListVersionsFn:  testutil.ListVersionsOk,
-				GetVersionFn:    testutil.GetActiveVersionOK,
-				CloneVersionFn:  testutil.CloneVersionOK,
+				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetActiveVersion(1),
+				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetCloudfilesFn: getCloudfilesOK,
 			},
 			want: &fastly.UpdateCloudfilesInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 			},
 		},
@@ -99,14 +99,14 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn:  testutil.ListVersionsOk,
-				GetVersionFn:    testutil.GetActiveVersionOK,
-				CloneVersionFn:  testutil.CloneVersionOK,
+				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetActiveVersion(1),
+				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetCloudfilesFn: getCloudfilesOK,
 			},
 			want: &fastly.UpdateCloudfilesInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				AccessKey:         fastly.String("new2"),
@@ -152,9 +152,9 @@ func createCommandRequired() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -188,9 +188,9 @@ func createCommandAll() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{

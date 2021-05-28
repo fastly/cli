@@ -26,7 +26,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateBlobStorageInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "logs",
 				AccountName:    "account",
 				Container:      "container",
@@ -38,7 +38,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			cmd:  createCommandAll(),
 			want: &fastly.CreateBlobStorageInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "logs",
 				Container:         "container",
 				AccountName:       "account",
@@ -83,14 +83,14 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn:   testutil.ListVersionsOk,
-				GetVersionFn:     testutil.GetActiveVersionOK,
-				CloneVersionFn:   testutil.CloneVersionOK,
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				CloneVersionFn:   testutil.CloneVersionResult(4),
 				GetBlobStorageFn: getBlobStorageOK,
 			},
 			want: &fastly.UpdateBlobStorageInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				Container:         fastly.String("new2"),
@@ -113,14 +113,14 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
-				ListVersionsFn:   testutil.ListVersionsOk,
-				GetVersionFn:     testutil.GetActiveVersionOK,
-				CloneVersionFn:   testutil.CloneVersionOK,
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				CloneVersionFn:   testutil.CloneVersionResult(4),
 				GetBlobStorageFn: getBlobStorageOK,
 			},
 			want: &fastly.UpdateBlobStorageInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "logs",
 			},
 		},
@@ -152,9 +152,9 @@ func createCommandRequired() *CreateCommand {
 	// TODO: make consistent (in all other logging files) with syslog_test which
 	// uses a testcase.api field to assign the mock API to the global client.
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{
@@ -188,9 +188,9 @@ func createCommandAll() *CreateCommand {
 		Output: &b,
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersionsOk,
-		GetVersionFn:   testutil.GetActiveVersionOK,
-		CloneVersionFn: testutil.CloneVersionOK,
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &CreateCommand{

@@ -30,8 +30,8 @@ func TestDictionaryDescribe(t *testing.T) {
 		{
 			args: []string{"dictionary", "describe", "--version", "1", "--service-id", "123", "--name", "dict-1"},
 			api: mock.API{
-				ListVersionsFn:  testutil.ListVersionsOk,
-				GetVersionFn:    testutil.GetActiveVersionOK,
+				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetActiveVersion(1),
 				GetDictionaryFn: describeDictionaryOK,
 			},
 			wantOutput: describeDictionaryOutput,
@@ -39,8 +39,8 @@ func TestDictionaryDescribe(t *testing.T) {
 		{
 			args: []string{"dictionary", "describe", "--version", "1", "--service-id", "123", "--name", "dict-1"},
 			api: mock.API{
-				ListVersionsFn:  testutil.ListVersionsOk,
-				GetVersionFn:    testutil.GetActiveVersionOK,
+				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetActiveVersion(1),
 				GetDictionaryFn: describeDictionaryOKDeleted,
 			},
 			wantOutput: describeDictionaryOutputDeleted,
@@ -48,8 +48,8 @@ func TestDictionaryDescribe(t *testing.T) {
 		{
 			args: []string{"dictionary", "describe", "--version", "1", "--service-id", "123", "--name", "dict-1", "--verbose"},
 			api: mock.API{
-				ListVersionsFn:        testutil.ListVersionsOk,
-				GetVersionFn:          testutil.GetActiveVersionOK,
+				ListVersionsFn:        testutil.ListVersions,
+				GetVersionFn:          testutil.GetActiveVersion(1),
 				GetDictionaryFn:       describeDictionaryOK,
 				GetDictionaryInfoFn:   getDictionaryInfoOK,
 				ListDictionaryItemsFn: listDictionaryItemsOK,
@@ -88,40 +88,40 @@ func TestDictionaryCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist"},
+			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateDictionaryFn: createDictionaryOK,
 			},
 			wantOutput: createDictionaryOutput,
 		},
 		{
-			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--write-only", "true"},
+			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--write-only", "true", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateDictionaryFn: createDictionaryOK,
 			},
 			wantOutput: createDictionaryOutputWriteOnly,
 		},
 		{
-			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--write-only", "fish"},
+			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--write-only", "fish", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "strconv.ParseBool: parsing \"fish\": invalid syntax",
 		},
 		{
-			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist"},
+			args: []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateDictionaryFn: createDictionaryDuplicate,
 			},
 			wantError: "Duplicate record",
@@ -158,21 +158,21 @@ func TestDeleteDictionary(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"dictionary", "delete", "--service-id", "123", "--version", "1", "--name", "allowlist"},
+			args: []string{"dictionary", "delete", "--service-id", "123", "--version", "1", "--name", "allowlist", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteDictionaryFn: deleteDictionaryOK,
 			},
 			wantOutput: deleteDictionaryOutput,
 		},
 		{
-			args: []string{"dictionary", "delete", "--service-id", "123", "--version", "1", "--name", "allowlist"},
+			args: []string{"dictionary", "delete", "--service-id", "123", "--version", "1", "--name", "allowlist", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteDictionaryFn: deleteDictionaryError,
 			},
 			wantError: errTest.Error(),
@@ -207,8 +207,8 @@ func TestListDictionary(t *testing.T) {
 		{
 			args: []string{"dictionary", "list", "--version", "1"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
 				ListDictionariesFn: listDictionariesOk,
 			},
 			wantError: "error reading service: no service ID found",
@@ -220,8 +220,8 @@ func TestListDictionary(t *testing.T) {
 		{
 			args: []string{"dictionary", "list", "--version", "1", "--service-id", "123"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
 				ListDictionariesFn: listDictionariesOk,
 			},
 			wantOutput: listDictionariesOutput,
@@ -266,60 +266,60 @@ func TestUpdateDictionary(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersionsOk,
-				GetVersionFn:   testutil.GetActiveVersionOK,
-				CloneVersionFn: testutil.CloneVersionOK,
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --new-name or --write-only not provided",
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryNameOK,
 			},
 			wantOutput: updateDictionaryNameOutput,
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--write-only", "true"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--write-only", "true", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryNameOK,
 			},
 			wantOutput: updateDictionaryNameOutput,
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--write-only", "true"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--write-only", "true", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryWriteOnlyOK,
 			},
 			wantOutput: updateDictionaryOutput,
 		},
 		{
-			args: []string{"dictionary", "update", "-v", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
+			args: []string{"dictionary", "update", "-v", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryNameOK,
 			},
 			wantOutput: updateDictionaryOutputVerbose,
 		},
 		{
-			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1"},
+			args: []string{"dictionary", "update", "--service-id", "123", "--version", "1", "--name", "oldname", "--new-name", "dict-1", "--autoclone"},
 			api: mock.API{
-				ListVersionsFn:     testutil.ListVersionsOk,
-				GetVersionFn:       testutil.GetActiveVersionOK,
-				CloneVersionFn:     testutil.CloneVersionOK,
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryError,
 			},
 			wantError: errTest.Error(),
@@ -494,11 +494,11 @@ func updateDictionaryError(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary,
 var errTest = errors.New("an expected error ocurred")
 var errFail = errors.New("this error should not be returned and indicates a failure in the code")
 
-var createDictionaryOutput = "\nSUCCESS: Created dictionary denylist (service 123 version 2)\n"
-var createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (service 123 version 2)\n"
-var deleteDictionaryOutput = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 2)\n"
-var updateDictionaryOutput = "\nSUCCESS: Updated dictionary oldname (service 123 version 2)\n"
-var updateDictionaryNameOutput = "\nSUCCESS: Updated dictionary dict-1 (service 123 version 2)\n"
+var createDictionaryOutput = "\nSUCCESS: Created dictionary denylist (service 123 version 4)\n"
+var createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (service 123 version 4)\n"
+var deleteDictionaryOutput = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 4)\n"
+var updateDictionaryOutput = "\nSUCCESS: Updated dictionary oldname (service 123 version 4)\n"
+var updateDictionaryNameOutput = "\nSUCCESS: Updated dictionary dict-1 (service 123 version 4)\n"
 
 var updateDictionaryOutputVerbose = strings.Join(
 	[]string{
@@ -512,7 +512,7 @@ var updateDictionaryOutputVerbose = strings.Join(
 
 var updateDictionaryOutputVersionCloned = strings.TrimSpace(`
 Service ID: 123
-Version: 2
+Version: 4
 ID: 456
 Name: dict-1
 Write Only: false

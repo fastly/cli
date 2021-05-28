@@ -273,8 +273,6 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        Number of service version, 'latest' or 'active'
-        --autoclone              Automatically clone the identified service
-                                 version if it's 'locked' or 'active'
 
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
