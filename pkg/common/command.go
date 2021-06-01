@@ -156,23 +156,22 @@ func (sv *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Ve
 		return nil, fmt.Errorf("error listing service versions: %w", err)
 	}
 
-	// NOTE: The decision to sort the versions by 'most recently updated' was
-	// originally discussed/agreed in github.com/fastly/cli/pull/50
+	// Sort versions into descending order.
 	sort.Slice(vs, func(i, j int) bool {
-		return vs[i].UpdatedAt.Before(*vs[j].UpdatedAt)
+		return vs[i].Number > vs[j].Number
 	})
 
 	var v *fastly.Version
 
 	switch strings.ToLower(sv.Value) {
+	case "latest":
+		return vs[0], nil
 	case "active":
 		v, err = getLatestActiveVersion(vs)
-	case "latest":
-		v, err = getLatestNonActiveVersion(vs)
 	case "editable":
-		v, err = getLatestEditable(vs)
+		v, err = getLatestEditableVersion(vs)
 	case "":
-		v, err = getLatestEditable(vs)
+		v, err = getLatestEditableVersion(vs)
 	default:
 		v, err = getSpecifiedVersion(vs, sv.Value)
 	}
@@ -214,40 +213,19 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, c api.Interfac
 }
 
 // getLatestActiveVersion returns the latest active service version.
-//
-// NOTE: We iterate over the slice in reverse as we would expect the latest
-// active version to be nearer the end of the slice (i.e. nearer to a more
-// recently updated version than at the start of the slice).
 func getLatestActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
-	for i := len(vs) - 1; i >= 0; i-- {
-		if vs[i].Active {
-			return vs[i], nil
+	for _, v := range vs {
+		if v.Active {
+			return v, nil
 		}
 	}
 	return nil, fmt.Errorf("error locating latest active service version")
 }
 
-// getLatestNonActiveVersion returns the latest version (that isn't 'active').
+// getLatestEditableVersion returns the latest editable service version.
 //
-// The reason we don't consider an 'active' version as part of this algorithm
-// is because the --version flag accepts 'active' as a distinct requirement for
-// which we have an explicit function to handle that behaviour.
-//
-// NOTE: We iterate over the slice in reverse as we would expect the latest
-// locked version to be nearer the end of the slice (i.e. nearer to a more
-// recently updated version than at the start of the slice) and so with this
-// implementation we can short-circuit the loop rather than iterating over the
-// entire collection, which worst case would be O(n).
-func getLatestNonActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
-	for i := len(vs) - 1; i >= 0; i-- {
-		if !vs[i].Active {
-			return vs[i], nil
-		}
-	}
-	return nil, fmt.Errorf("error finding a non-active service version")
-}
-
-// getLatestEditable returns the latest editable service version.
+// The returned version will be ahead of the latest active version. If there is
+// no editable version above the latest active, an error will be returned.
 //
 // When no --version flag is provided, this algorithm helps handle cases where
 // a command (such as `backend create`) is executable multiple times, as the
@@ -259,19 +237,19 @@ func getLatestNonActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 // without us first cloning it. The act of cloning should be a decision made by
 // the user (i.e. --autoclone) and so this function will return an error if no
 // editable version available.
-//
-// NOTE: We iterate over the slice in reverse as we would expect the latest
-// editable version to be nearer the end of the slice.
-func getLatestEditable(vs []*fastly.Version) (*fastly.Version, error) {
-	for i := len(vs) - 1; i >= 0; i-- {
-		if !vs[i].Active && !vs[i].Locked {
-			return vs[i], nil
+func getLatestEditableVersion(vs []*fastly.Version) (*fastly.Version, error) {
+	for _, v := range vs {
+		if v.Active {
+			break
+		}
+		if !v.Active && !v.Locked {
+			return v, nil
 		}
 	}
 	// NOTE: We can't return a remediation error because the `errors` package
-	// already imports the `common` package, and so by trying to use the CLI
-	// errors package would cause a 'import cycle' compilation error.
-	return nil, errors.New("error retrieving an editable service version")
+	// already imports the `common` package, and so trying to use the CLI errors
+	// package would cause an 'import cycle' compilation error.
+	return nil, errors.New("error retrieving an editable service version: no editable version found")
 }
 
 // getSpecifiedVersion returns the specified service version.
@@ -287,5 +265,5 @@ func getSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version,
 		}
 	}
 
-	return nil, fmt.Errorf("error getting specified service version %d: %w", i, err)
+	return nil, fmt.Errorf("error getting specified service version: %s", version)
 }
