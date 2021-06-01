@@ -268,7 +268,9 @@ func getLatestEditable(vs []*fastly.Version) (*fastly.Version, error) {
 			return vs[i], nil
 		}
 	}
-	// TODO: return a remediation error
+	// NOTE: We can't return a remediation error because the `errors` package
+	// already imports the `common` package, and so by trying to use the CLI
+	// errors package would cause a 'import cycle' compilation error.
 	return nil, errors.New("error retrieving an editable service version")
 }
 
