@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/errors"
+	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -139,7 +139,7 @@ func (a AssemblyScript) Initialize(out io.Writer) error {
 	fmt.Fprintf(out, "Installing package dependencies...\n")
 
 	// Call npm install.
-	cmd := common.NewStreamingExec("npm", []string{"install"}, []string{}, false, out)
+	cmd := fstexec.NewStreaming("npm", []string{"install"}, []string{}, false, out)
 	return cmd.Exec()
 }
 
@@ -173,7 +173,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	// Call asc with the build arguments.
-	cmd := common.NewStreamingExec(filepath.Join(npmdir, "asc"), args, []string{}, verbose, out)
+	cmd := fstexec.NewStreaming(filepath.Join(npmdir, "asc"), args, []string{}, verbose, out)
 	if err := cmd.Exec(); err != nil {
 		return err
 	}
