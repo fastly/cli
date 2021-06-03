@@ -3,7 +3,7 @@ package openstack
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,7 +13,7 @@ import (
 
 // UpdateCommand calls the Fastly API to update an OpenStack logging endpoint.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	//required
@@ -21,26 +21,26 @@ type UpdateCommand struct {
 	Version      int
 
 	// optional
-	NewName           common.OptionalString
-	BucketName        common.OptionalString
-	AccessKey         common.OptionalString
-	User              common.OptionalString
-	URL               common.OptionalString
-	Path              common.OptionalString
-	Period            common.OptionalUint
-	GzipLevel         common.OptionalUint
-	Format            common.OptionalString
-	FormatVersion     common.OptionalUint
-	ResponseCondition common.OptionalString
-	MessageType       common.OptionalString
-	TimestampFormat   common.OptionalString
-	Placement         common.OptionalString
-	PublicKey         common.OptionalString
-	CompressionCodec  common.OptionalString
+	NewName           cmd.OptionalString
+	BucketName        cmd.OptionalString
+	AccessKey         cmd.OptionalString
+	User              cmd.OptionalString
+	URL               cmd.OptionalString
+	Path              cmd.OptionalString
+	Period            cmd.OptionalUint
+	GzipLevel         cmd.OptionalUint
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalUint
+	ResponseCondition cmd.OptionalString
+	MessageType       cmd.OptionalString
+	TimestampFormat   cmd.OptionalString
+	Placement         cmd.OptionalString
+	PublicKey         cmd.OptionalString
+	CompressionCodec  cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

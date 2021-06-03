@@ -3,7 +3,7 @@ package syslog
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,7 +13,7 @@ import (
 
 // UpdateCommand calls the Fastly API to update a Syslog logging endpoint.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	// required
@@ -21,24 +21,24 @@ type UpdateCommand struct {
 	Version      int
 
 	// optional
-	NewName           common.OptionalString
-	Address           common.OptionalString
-	Port              common.OptionalUint
-	UseTLS            common.OptionalBool
-	TLSCACert         common.OptionalString
-	TLSHostname       common.OptionalString
-	TLSClientCert     common.OptionalString
-	TLSClientKey      common.OptionalString
-	Token             common.OptionalString
-	Format            common.OptionalString
-	FormatVersion     common.OptionalUint
-	MessageType       common.OptionalString
-	ResponseCondition common.OptionalString
-	Placement         common.OptionalString
+	NewName           cmd.OptionalString
+	Address           cmd.OptionalString
+	Port              cmd.OptionalUint
+	UseTLS            cmd.OptionalBool
+	TLSCACert         cmd.OptionalString
+	TLSHostname       cmd.OptionalString
+	TLSClientCert     cmd.OptionalString
+	TLSClientKey      cmd.OptionalString
+	Token             cmd.OptionalString
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalUint
+	MessageType       cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	Placement         cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

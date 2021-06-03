@@ -15,7 +15,7 @@ import (
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -38,20 +38,20 @@ const (
 
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
-	common.Base
+	cmd.Base
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
 	Manifest    manifest.Data
 	Path        string
-	Version     common.OptionalInt
+	Version     cmd.OptionalInt
 	Domain      string
 	Backend     string
 	BackendPort uint
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
-func NewDeployCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *DeployCommand {
+func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *DeployCommand {
 	var c DeployCommand
 	c.Globals = globals
 	c.Manifest.File.SetOutput(c.Globals.Output)
@@ -321,7 +321,7 @@ func pkgPath(path string, name string, source manifest.Source) (string, error) {
 
 // validateService checks if the service version has a domain and backend
 // defined.
-func validateService(serviceID string, client api.Interface, version common.OptionalInt) (*fastly.Version, bool, invalidResource, error) {
+func validateService(serviceID string, client api.Interface, version cmd.OptionalInt) (*fastly.Version, bool, invalidResource, error) {
 	v, err := serviceVersion(serviceID, client, version)
 	if err != nil {
 		return nil, false, resourceNone, err
@@ -360,7 +360,7 @@ func validateService(serviceID string, client api.Interface, version common.Opti
 }
 
 // serviceVersion returns the version for the given service.
-func serviceVersion(serviceID string, client api.Interface, versionFlag common.OptionalInt) (*fastly.Version, error) {
+func serviceVersion(serviceID string, client api.Interface, versionFlag cmd.OptionalInt) (*fastly.Version, error) {
 	_, err := client.GetService(&fastly.GetServiceInput{
 		ID: serviceID,
 	})

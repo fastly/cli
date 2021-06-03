@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
@@ -14,14 +14,14 @@ import (
 
 // UpdateCommand calls the Fastly API to update packages.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	serviceID string
 	version   int
 	path      string
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update a package on a Fastly Compute@Edge service version")

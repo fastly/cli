@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/useragent"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -22,11 +22,11 @@ func init() {
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	common.Base
+	cmd.Base
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent common.Registerer) *RootCommand {
+func NewRootCommand(parent cmd.Registerer) *RootCommand {
 	var c RootCommand
 	c.CmdClause = parent.Command("version", "Display version information for the Fastly CLI")
 	return &c

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -154,19 +154,19 @@ func createCommandAll() *CreateCommand {
 		Address:           "127.0.0.1",
 		User:              "user",
 		SSHKnownHosts:     knownHosts(),
-		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 80},
-		Password:          common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "password"},
-		PublicKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: pgpPublicKey()},
-		SecretKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: sshPrivateKey()},
-		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "/log"},
-		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
-		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
-		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zstd"},
+		Port:              cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 80},
+		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "password"},
+		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: pgpPublicKey()},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: sshPrivateKey()},
+		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/log"},
+		Period:            cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3600},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
+		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -178,7 +178,7 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName: "log",
 		Version:      2,
@@ -187,28 +187,28 @@ func updateCommandNoUpdates() *UpdateCommand {
 
 func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
-		Address:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
-		User:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
-		SSHKnownHosts:     common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
-		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 81},
-		Password:          common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
-		PublicKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
-		SecretKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
-		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
-		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 0},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
-		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new12"},
-		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new13"},
-		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new14"},
+		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
+		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
+		SSHKnownHosts:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
+		Port:              cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 81},
+		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
+		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
+		Period:            cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3601},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		GzipLevel:         cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 0},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
+		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
+		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
+		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new14"},
 	}
 }
 

@@ -3,7 +3,7 @@ package edgedictionaryitem
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,17 +13,17 @@ import (
 
 // UpdateCommand calls the Fastly API to update a dictionary item.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	Input    fastly.UpdateDictionaryItemInput
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
 //
-// TODO(integralist) update to not use common.OptionalString once we have a
+// TODO(integralist) update to not use cmd.OptionalString once we have a
 // new Go-Fastly release that modifies UpdateDictionaryItemInput so that the
 // ItemValue is no longer optional.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

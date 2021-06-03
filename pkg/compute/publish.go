@@ -3,7 +3,7 @@ package compute
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
@@ -11,27 +11,27 @@ import (
 
 // PublishCommand produces and deploys an artifact from files on the local disk.
 type PublishCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	build    *BuildCommand
 	deploy   *DeployCommand
 
 	// Deploy fields
-	path        common.OptionalString
-	version     common.OptionalInt
-	domain      common.OptionalString
-	backend     common.OptionalString
-	backendPort common.OptionalUint
+	path        cmd.OptionalString
+	version     cmd.OptionalInt
+	domain      cmd.OptionalString
+	backend     cmd.OptionalString
+	backendPort cmd.OptionalUint
 
 	// Build fields
-	name       common.OptionalString
-	lang       common.OptionalString
-	includeSrc common.OptionalBool
-	force      common.OptionalBool
+	name       cmd.OptionalString
+	lang       cmd.OptionalString
+	includeSrc cmd.OptionalBool
+	force      cmd.OptionalBool
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
-func NewPublishCommand(parent common.Registerer, globals *config.Data, build *BuildCommand, deploy *DeployCommand) *PublishCommand {
+func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, deploy *DeployCommand) *PublishCommand {
 	var c PublishCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
@@ -91,7 +91,7 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.deploy.Path = c.path.Value
 	}
 	if c.version.WasSet {
-		c.deploy.Version = c.version // deploy's field is a common.OptionalInt
+		c.deploy.Version = c.version // deploy's field is a cmd.OptionalInt
 	}
 	if c.domain.WasSet {
 		c.deploy.Domain = c.domain.Value

@@ -3,7 +3,7 @@ package backend
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -11,12 +11,12 @@ import (
 
 // DeleteCommand calls the Fastly API to delete backends.
 type DeleteCommand struct {
-	common.Base
+	cmd.Base
 	Input fastly.DeleteBackendInput
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("delete", "Delete a backend on a Fastly service version").Alias("remove")

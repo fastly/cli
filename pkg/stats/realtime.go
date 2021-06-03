@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -15,14 +15,14 @@ import (
 
 // RealtimeCommand exposes the Realtime Metrics API.
 type RealtimeCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	formatFlag string
 }
 
 // NewRealtimeCommand is the "stats realtime" subcommand.
-func NewRealtimeCommand(parent common.Registerer, globals *config.Data) *RealtimeCommand {
+func NewRealtimeCommand(parent cmd.Registerer, globals *config.Data) *RealtimeCommand {
 	var c RealtimeCommand
 	c.Globals = globals
 

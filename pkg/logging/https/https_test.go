@@ -3,7 +3,7 @@ package https
 import (
 	"testing"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -148,22 +148,22 @@ func createCommandAll() *CreateCommand {
 		EndpointName:      "logs",
 		Version:           2,
 		URL:               "example.com",
-		ContentType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "application/json"},
-		HeaderName:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "name"},
-		HeaderValue:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "value"},
-		Method:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "GET"},
-		JSONFormat:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "1"},
-		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
-		RequestMaxEntries: common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		RequestMaxBytes:   common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
-		TLSCACert:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
-		TLSHostname:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "example.com"},
-		TLSClientCert:     common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
-		TLSClientKey:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		ContentType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "application/json"},
+		HeaderName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "name"},
+		HeaderValue:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "value"},
+		Method:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "GET"},
+		JSONFormat:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "1"},
+		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
+		RequestMaxEntries: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		RequestMaxBytes:   cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
+		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
+		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
+		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
 	}
 }
 
@@ -175,7 +175,7 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName: "log",
 		Version:      2,
@@ -184,28 +184,28 @@ func updateCommandNoUpdates() *UpdateCommand {
 
 func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
-		URL:               common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
-		ContentType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
-		HeaderName:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
-		HeaderValue:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
-		Method:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
-		JSONFormat:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
-		RequestMaxEntries: common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		RequestMaxBytes:   common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		TLSCACert:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
-		TLSClientCert:     common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new12"},
-		TLSClientKey:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new13"},
-		TLSHostname:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new14"},
-		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new15"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
+		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
+		ContentType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		HeaderName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
+		HeaderValue:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
+		Method:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
+		JSONFormat:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
+		RequestMaxEntries: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		RequestMaxBytes:   cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
+		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
+		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
+		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new14"},
+		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new15"},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
 	}
 }
 

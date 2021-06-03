@@ -3,7 +3,7 @@ package kinesis
 import (
 	"testing"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -135,8 +135,8 @@ func createCommandRequired() *CreateCommand {
 		EndpointName: "log",
 		Version:      2,
 		StreamName:   "stream",
-		AccessKey:    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "access"},
-		SecretKey:    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "secret"},
+		AccessKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
+		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
 	}
 }
 
@@ -146,7 +146,7 @@ func createCommandRequiredIAMRole() *CreateCommand {
 		EndpointName: "log",
 		Version:      2,
 		StreamName:   "stream",
-		IAMRole:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/KinesisAccess"},
+		IAMRole:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/KinesisAccess"},
 	}
 }
 
@@ -156,13 +156,13 @@ func createCommandAll() *CreateCommand {
 		EndpointName:      "logs",
 		Version:           2,
 		StreamName:        "stream",
-		AccessKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "access"},
-		SecretKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "secret"},
+		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
 		Region:            "us-east-1",
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -174,7 +174,7 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName: "log",
 		Version:      2,
@@ -183,20 +183,20 @@ func updateCommandNoUpdates() *UpdateCommand {
 
 func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
-		StreamName:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
-		AccessKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
-		SecretKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
-		IAMRole:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: ""},
-		Region:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
+		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
+		StreamName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
+		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
+		IAMRole:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: ""},
+		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
 	}
 }
 

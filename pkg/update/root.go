@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/revision"
@@ -18,14 +18,14 @@ import (
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	common.Base
+	cmd.Base
 	cliVersioner   Versioner
 	client         api.HTTPClient
 	configFilePath string
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent common.Registerer, configFilePath string, cliVersioner Versioner, client api.HTTPClient, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner Versioner, client api.HTTPClient, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")

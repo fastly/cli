@@ -3,7 +3,7 @@ package s3
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,39 +13,39 @@ import (
 
 // UpdateCommand calls the Fastly API to update an Amazon S3 logging endpoint.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
+	EndpointName string // Can't shadow cmd.Base method Name().
 	Version      int
 
 	// optional
-	NewName                      common.OptionalString
-	Address                      common.OptionalString
-	BucketName                   common.OptionalString
-	AccessKey                    common.OptionalString
-	SecretKey                    common.OptionalString
-	IAMRole                      common.OptionalString
-	Domain                       common.OptionalString
-	Path                         common.OptionalString
-	Period                       common.OptionalUint
-	GzipLevel                    common.OptionalUint
-	Format                       common.OptionalString
-	FormatVersion                common.OptionalUint
-	MessageType                  common.OptionalString
-	ResponseCondition            common.OptionalString
-	TimestampFormat              common.OptionalString
-	Placement                    common.OptionalString
-	PublicKey                    common.OptionalString
-	Redundancy                   common.OptionalString
-	ServerSideEncryption         common.OptionalString
-	ServerSideEncryptionKMSKeyID common.OptionalString
-	CompressionCodec             common.OptionalString
+	NewName                      cmd.OptionalString
+	Address                      cmd.OptionalString
+	BucketName                   cmd.OptionalString
+	AccessKey                    cmd.OptionalString
+	SecretKey                    cmd.OptionalString
+	IAMRole                      cmd.OptionalString
+	Domain                       cmd.OptionalString
+	Path                         cmd.OptionalString
+	Period                       cmd.OptionalUint
+	GzipLevel                    cmd.OptionalUint
+	Format                       cmd.OptionalString
+	FormatVersion                cmd.OptionalUint
+	MessageType                  cmd.OptionalString
+	ResponseCondition            cmd.OptionalString
+	TimestampFormat              cmd.OptionalString
+	Placement                    cmd.OptionalString
+	PublicKey                    cmd.OptionalString
+	Redundancy                   cmd.OptionalString
+	ServerSideEncryption         cmd.OptionalString
+	ServerSideEncryptionKMSKeyID cmd.OptionalString
+	CompressionCodec             cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

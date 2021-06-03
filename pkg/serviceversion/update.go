@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -14,15 +14,15 @@ import (
 
 // UpdateCommand calls the Fastly API to update a service version.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	input    fastly.UpdateVersionInput
 
-	comment common.OptionalString
+	comment cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

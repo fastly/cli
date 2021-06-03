@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -14,40 +14,40 @@ import (
 
 // CreateCommand calls the Fastly API to create an Amazon S3 logging endpoint.
 type CreateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
+	EndpointName string // Can't shadow cmd.Base method Name().
 	Version      int
 	BucketName   string
 
 	// mutual exclusions
 	// AccessKey + SecretKey or IAMRole must be provided
-	AccessKey common.OptionalString
-	SecretKey common.OptionalString
-	IAMRole   common.OptionalString
+	AccessKey cmd.OptionalString
+	SecretKey cmd.OptionalString
+	IAMRole   cmd.OptionalString
 
 	// optional
-	Domain                       common.OptionalString
-	Path                         common.OptionalString
-	Period                       common.OptionalUint
-	GzipLevel                    common.OptionalUint
-	Format                       common.OptionalString
-	FormatVersion                common.OptionalUint
-	MessageType                  common.OptionalString
-	ResponseCondition            common.OptionalString
-	TimestampFormat              common.OptionalString
-	Placement                    common.OptionalString
-	Redundancy                   common.OptionalString
-	PublicKey                    common.OptionalString
-	ServerSideEncryption         common.OptionalString
-	ServerSideEncryptionKMSKeyID common.OptionalString
-	CompressionCodec             common.OptionalString
+	Domain                       cmd.OptionalString
+	Path                         cmd.OptionalString
+	Period                       cmd.OptionalUint
+	GzipLevel                    cmd.OptionalUint
+	Format                       cmd.OptionalString
+	FormatVersion                cmd.OptionalUint
+	MessageType                  cmd.OptionalString
+	ResponseCondition            cmd.OptionalString
+	TimestampFormat              cmd.OptionalString
+	Placement                    cmd.OptionalString
+	Redundancy                   cmd.OptionalString
+	PublicKey                    cmd.OptionalString
+	ServerSideEncryption         cmd.OptionalString
+	ServerSideEncryptionKMSKeyID cmd.OptionalString
+	CompressionCodec             cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

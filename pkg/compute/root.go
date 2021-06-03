@@ -3,7 +3,7 @@ package compute
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 )
 
@@ -13,12 +13,12 @@ const ManifestFilename = "fastly.toml"
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	common.Base
+	cmd.Base
 	// no flags
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent common.Registerer, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("compute", "Manage Compute@Edge packages")

@@ -3,7 +3,7 @@ package loggly
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,23 +13,23 @@ import (
 
 // CreateCommand calls the Fastly API to create a Loggly logging endpoint.
 type CreateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
+	EndpointName string // Can't shadow cmd.Base method Name().
 	Token        string
 	Version      int
 
 	// optional
-	Format            common.OptionalString
-	FormatVersion     common.OptionalUint
-	ResponseCondition common.OptionalString
-	Placement         common.OptionalString
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalUint
+	ResponseCondition cmd.OptionalString
+	Placement         cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 
 	c.Globals = globals

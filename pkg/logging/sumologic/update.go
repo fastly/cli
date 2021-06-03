@@ -3,7 +3,7 @@ package sumologic
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,25 +13,25 @@ import (
 
 // UpdateCommand calls the Fastly API to update a Sumologic logging endpoint.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
+	EndpointName string // Can't shadow cmd.Base method Name().
 	Version      int
 
 	// optional
-	NewName           common.OptionalString
-	URL               common.OptionalString
-	Format            common.OptionalString
-	ResponseCondition common.OptionalString
-	MessageType       common.OptionalString
-	FormatVersion     common.OptionalInt // Inconsistent with other logging endpoints, but remaining as int to avoid breaking changes in fastly/go-fastly.
-	Placement         common.OptionalString
+	NewName           cmd.OptionalString
+	URL               cmd.OptionalString
+	Format            cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	MessageType       cmd.OptionalString
+	FormatVersion     cmd.OptionalInt // Inconsistent with other logging endpoints, but remaining as int to avoid breaking changes in fastly/go-fastly.
+	Placement         cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

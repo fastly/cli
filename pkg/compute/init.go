@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -30,7 +30,7 @@ var (
 
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
-	common.Base
+	cmd.Base
 	client        api.HTTPClient
 	manifest      manifest.Data
 	language      string
@@ -42,7 +42,7 @@ type InitCommand struct {
 }
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *InitCommand {
+func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *InitCommand {
 	var c InitCommand
 	c.Globals = globals
 	c.client = client

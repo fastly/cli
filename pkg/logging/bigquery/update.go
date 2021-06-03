@@ -3,7 +3,7 @@ package bigquery
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,29 +13,29 @@ import (
 
 // UpdateCommand calls the Fastly API to update a BigQuery logging endpoint.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
+	EndpointName string // Can't shadow cmd.Base method Name().
 	Version      int
 
 	// optional
-	NewName           common.OptionalString
-	ProjectID         common.OptionalString
-	Dataset           common.OptionalString
-	Table             common.OptionalString
-	User              common.OptionalString
-	SecretKey         common.OptionalString
-	Template          common.OptionalString
-	Placement         common.OptionalString
-	ResponseCondition common.OptionalString
-	Format            common.OptionalString
-	FormatVersion     common.OptionalUint
+	NewName           cmd.OptionalString
+	ProjectID         cmd.OptionalString
+	Dataset           cmd.OptionalString
+	Table             cmd.OptionalString
+	User              cmd.OptionalString
+	SecretKey         cmd.OptionalString
+	Template          cmd.OptionalString
+	Placement         cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalUint
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

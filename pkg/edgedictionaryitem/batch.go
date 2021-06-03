@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -16,15 +16,15 @@ import (
 
 // BatchCommand calls the Fastly API to batch update a dictionary.
 type BatchCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	Input    fastly.BatchModifyDictionaryItemsInput
 
-	file common.OptionalString
+	file cmd.OptionalString
 }
 
 // NewBatchCommand returns a usable command registered under the parent.
-func NewBatchCommand(parent common.Registerer, globals *config.Data) *BatchCommand {
+func NewBatchCommand(parent cmd.Registerer, globals *config.Data) *BatchCommand {
 	var c BatchCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

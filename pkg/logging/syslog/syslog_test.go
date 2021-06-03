@@ -3,7 +3,7 @@ package syslog
 import (
 	"testing"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -140,18 +140,18 @@ func createCommandAll() *CreateCommand {
 		EndpointName:      "log",
 		Version:           2,
 		Address:           "example.com",
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
-		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 22},
-		UseTLS:            common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
-		TLSCACert:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
-		TLSHostname:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "example.com"},
-		TLSClientCert:     common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
-		TLSClientKey:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
-		Token:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "tkn"},
-		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		Port:              cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 22},
+		UseTLS:            cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
+		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
+		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
+		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
+		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
+		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
 	}
 }
 
@@ -163,7 +163,7 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName: "log",
 		Version:      2,
@@ -172,24 +172,24 @@ func updateCommandNoUpdates() *UpdateCommand {
 
 func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
-		Address:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
-		Port:              common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 23},
-		UseTLS:            common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: false},
-		TLSCACert:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
-		TLSHostname:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
-		TLSClientCert:     common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
-		TLSClientKey:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
-		Token:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
+		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
+		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
+		Port:              cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 23},
+		UseTLS:            cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
+		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
+		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
+		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
+		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
 	}
 }
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -12,12 +12,12 @@ import (
 
 // ListCommand calls the Fastly API to list backends.
 type ListCommand struct {
-	common.Base
+	cmd.Base
 	Input fastly.ListBackendsInput
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("list", "List backends on a Fastly service version")

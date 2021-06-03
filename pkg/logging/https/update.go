@@ -3,7 +3,7 @@ package https
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,36 +13,36 @@ import (
 
 // UpdateCommand calls the Fastly API to update an HTTPS logging endpoint.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
+	EndpointName string // Can't shadow cmd.Base method Name().
 	Version      int
 
 	// optional
-	NewName           common.OptionalString
-	URL               common.OptionalString
-	RequestMaxEntries common.OptionalUint
-	RequestMaxBytes   common.OptionalUint
-	TLSCACert         common.OptionalString
-	TLSClientCert     common.OptionalString
-	TLSClientKey      common.OptionalString
-	TLSHostname       common.OptionalString
-	MessageType       common.OptionalString
-	ContentType       common.OptionalString
-	HeaderName        common.OptionalString
-	HeaderValue       common.OptionalString
-	Method            common.OptionalString
-	JSONFormat        common.OptionalString
-	Format            common.OptionalString
-	FormatVersion     common.OptionalUint
-	Placement         common.OptionalString
-	ResponseCondition common.OptionalString
+	NewName           cmd.OptionalString
+	URL               cmd.OptionalString
+	RequestMaxEntries cmd.OptionalUint
+	RequestMaxBytes   cmd.OptionalUint
+	TLSCACert         cmd.OptionalString
+	TLSClientCert     cmd.OptionalString
+	TLSClientKey      cmd.OptionalString
+	TLSHostname       cmd.OptionalString
+	MessageType       cmd.OptionalString
+	ContentType       cmd.OptionalString
+	HeaderName        cmd.OptionalString
+	HeaderValue       cmd.OptionalString
+	Method            cmd.OptionalString
+	JSONFormat        cmd.OptionalString
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalUint
+	Placement         cmd.OptionalString
+	ResponseCondition cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

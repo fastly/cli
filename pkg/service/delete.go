@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -14,14 +14,14 @@ import (
 
 // DeleteCommand calls the Fastly API to delete services.
 type DeleteCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	Input    fastly.DeleteServiceInput
 	force    bool
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent common.Registerer, globals *config.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

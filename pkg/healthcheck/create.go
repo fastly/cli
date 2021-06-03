@@ -3,7 +3,7 @@ package healthcheck
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,13 +13,13 @@ import (
 
 // CreateCommand calls the Fastly API to create healthchecks.
 type CreateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	Input    fastly.CreateHealthCheckInput
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("create", "Create a healthcheck on a Fastly service version").Alias("add")

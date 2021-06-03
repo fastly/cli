@@ -3,7 +3,7 @@ package serviceversion
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,13 +13,13 @@ import (
 
 // LockCommand calls the Fastly API to lock a service version.
 type LockCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	Input    fastly.LockVersionInput
 }
 
 // NewLockCommand returns a usable command registered under the parent.
-func NewLockCommand(parent common.Registerer, globals *config.Data) *LockCommand {
+func NewLockCommand(parent cmd.Registerer, globals *config.Data) *LockCommand {
 	var c LockCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

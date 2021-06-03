@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // RegionsCommand exposes the Stats Regions API.
 type RegionsCommand struct {
-	common.Base
+	cmd.Base
 }
 
 // NewRegionsCommand returns a new command registered under parent.
-func NewRegionsCommand(parent common.Registerer, globals *config.Data) *RegionsCommand {
+func NewRegionsCommand(parent cmd.Registerer, globals *config.Data) *RegionsCommand {
 	var c RegionsCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("regions", "List stats regions")

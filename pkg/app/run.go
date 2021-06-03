@@ -11,7 +11,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/backend"
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/configure"
@@ -363,7 +363,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
 	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
 
-	commands := []common.Command{
+	commands := []cmd.Command{
 		configureRoot,
 		whoamiRoot,
 		versionRoot,
@@ -723,7 +723,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
 	}
 
-	command, found := common.SelectCommand(name, commands)
+	command, found := cmd.Select(name, commands)
 	if !found {
 		usage := Usage(args, app, out, io.Discard)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}

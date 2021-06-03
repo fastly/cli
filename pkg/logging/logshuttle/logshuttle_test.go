@@ -3,7 +3,7 @@ package logshuttle
 import (
 	"testing"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -129,10 +129,10 @@ func createCommandAll() *CreateCommand {
 		Token:             "tkn",
 		URL:               "example.com",
 		Version:           2,
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -144,7 +144,7 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdate() *UpdateCommand {
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName: "log",
 		Version:      2,
@@ -153,17 +153,17 @@ func updateCommandNoUpdate() *UpdateCommand {
 
 func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		Token:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
-		URL:               common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
+		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
+		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
 	}
 }
 

@@ -3,7 +3,7 @@ package kafka
 import (
 	"testing"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -269,17 +269,17 @@ func createCommandAll() *CreateCommand {
 		Version:           2,
 		Topic:             "logs",
 		Brokers:           "127.0.0.1,127.0.0.2",
-		UseTLS:            common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
-		RequiredACKs:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-1"},
-		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zippy"},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
-		TLSCACert:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
-		TLSHostname:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "example.com"},
-		TLSClientCert:     common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
-		TLSClientKey:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		UseTLS:            cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
+		RequiredACKs:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-1"},
+		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zippy"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
+		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
+		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
+		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
 	}
 }
 
@@ -290,12 +290,12 @@ func createCommandSASL(authMethod, user, password string) *CreateCommand {
 		Version:         2,
 		Topic:           "logs",
 		Brokers:         "127.0.0.1,127.0.0.2",
-		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
-		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 11111},
-		UseSASL:         common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
-		AuthMethod:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: authMethod},
-		User:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: user},
-		Password:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: password},
+		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
+		RequestMaxBytes: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 11111},
+		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
+		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: authMethod},
+		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: user},
+		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: password},
 	}
 }
 
@@ -306,12 +306,12 @@ func createCommandNoSASL(authMethod, user, password string) *CreateCommand {
 		Version:         2,
 		Topic:           "logs",
 		Brokers:         "127.0.0.1,127.0.0.2",
-		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
-		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 11111},
-		UseSASL:         common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: false},
-		AuthMethod:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: authMethod},
-		User:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: user},
-		Password:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: password},
+		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
+		RequestMaxBytes: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 11111},
+		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
+		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: authMethod},
+		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: user},
+		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: password},
 	}
 }
 
@@ -323,7 +323,7 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName: "log",
 		Version:      2,
@@ -332,64 +332,64 @@ func updateCommandNoUpdates() *UpdateCommand {
 
 func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
-		Topic:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
-		Brokers:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
-		UseTLS:            common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: false},
-		RequiredACKs:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
-		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
-		TLSCACert:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
-		TLSClientCert:     common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
-		TLSClientKey:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
-		TLSHostname:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new12"},
-		ParseLogKeyvals:   common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: false},
-		RequestMaxBytes:   common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 22222},
-		UseSASL:           common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
-		AuthMethod:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "plain"},
-		User:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new13"},
-		Password:          common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new14"},
+		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
+		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
+		Brokers:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
+		UseTLS:            cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
+		RequiredACKs:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
+		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
+		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
+		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
+		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
+		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
+		ParseLogKeyvals:   cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
+		RequestMaxBytes:   cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 22222},
+		UseSASL:           cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
+		AuthMethod:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "plain"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
+		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new14"},
 	}
 }
 
 func updateCommandSASL(authMethod, user, password string) *UpdateCommand {
 	return &UpdateCommand{
-		Base:            common.Base{Globals: &config.Data{Client: nil}},
+		Base:            cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:        manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:    "log",
 		Version:         2,
-		Topic:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "logs"},
-		Brokers:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
-		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
-		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 11111},
-		UseSASL:         common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
-		AuthMethod:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: authMethod},
-		User:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: user},
-		Password:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: password},
+		Topic:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		Brokers:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
+		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
+		RequestMaxBytes: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 11111},
+		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
+		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: authMethod},
+		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: user},
+		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: password},
 	}
 }
 
 func updateCommandNoSASL() *UpdateCommand {
 	return &UpdateCommand{
-		Base:            common.Base{Globals: &config.Data{Client: nil}},
+		Base:            cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:        manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:    "log",
 		Version:         2,
-		Topic:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "logs"},
-		Brokers:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
-		ParseLogKeyvals: common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: true},
-		RequestMaxBytes: common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 11111},
-		UseSASL:         common.OptionalBool{Optional: common.Optional{WasSet: true}, Value: false},
-		AuthMethod:      common.OptionalString{Optional: common.Optional{WasSet: false}, Value: ""},
-		User:            common.OptionalString{Optional: common.Optional{WasSet: false}, Value: ""},
-		Password:        common.OptionalString{Optional: common.Optional{WasSet: false}, Value: ""},
+		Topic:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		Brokers:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
+		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
+		RequestMaxBytes: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 11111},
+		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
+		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: false}, Value: ""},
+		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: false}, Value: ""},
+		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: false}, Value: ""},
 	}
 }
 

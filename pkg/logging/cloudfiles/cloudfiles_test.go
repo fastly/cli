@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -151,17 +151,17 @@ func createCommandAll() *CreateCommand {
 		User:              "user",
 		AccessKey:         "key",
 		BucketName:        "bucket",
-		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "/logs"},
-		Region:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "abc"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
-		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
-		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
-		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		PublicKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: pgpPublicKey()},
-		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zstd"},
+		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/logs"},
+		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "abc"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		Period:            cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3600},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
+		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
+		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: pgpPublicKey()},
+		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -173,7 +173,7 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdate() *UpdateCommand {
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		Version:      2,
 		EndpointName: "log",
@@ -182,26 +182,26 @@ func updateCommandNoUpdate() *UpdateCommand {
 
 func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		Version:           2,
 		EndpointName:      "log",
-		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
-		AccessKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
-		BucketName:        common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
-		Path:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
-		Region:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
-		Period:            common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:         common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 0},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
-		MessageType:       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
-		TimestampFormat:   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
-		PublicKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
-		User:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new12"},
-		CompressionCodec:  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new13"},
+		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
+		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
+		BucketName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
+		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
+		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
+		Period:            cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3601},
+		GzipLevel:         cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 0},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
+		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
+		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
+		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
+		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
 	}
 }
 

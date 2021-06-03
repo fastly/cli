@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,13 +13,13 @@ import (
 
 // DescribeCommand calls the Fastly API to describe a GCS logging endpoint.
 type DescribeCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	Input    fastly.GetGCSInput
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent common.Registerer, globals *config.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
