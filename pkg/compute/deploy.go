@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/pkg/undo"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/kennygrant/sanitize"
 )
@@ -174,7 +175,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
-	undoStack := common.NewUndoStack()
+	undoStack := undo.NewStack()
 
 	defer func() {
 		if err != nil {
@@ -562,7 +563,7 @@ func cfgBackend(backend string, backendPort uint, out io.Writer, in io.Reader, f
 
 // createDomain creates the given domain and handle unrolling the stack in case
 // of an error (i.e. will ensure the domain is deleted if there is an error).
-func createDomain(progress text.Progress, client api.Interface, serviceID string, version int, domain string, undoStack common.Undoer) error {
+func createDomain(progress text.Progress, client api.Interface, serviceID string, version int, domain string, undoStack undo.Stacker) error {
 	progress.Step("Creating domain...")
 
 	undoStack.Push(func() error {
@@ -587,7 +588,7 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 
 // createBackend creates the given domain and handle unrolling the stack in case
 // of an error (i.e. will ensure the backend is deleted if there is an error).
-func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend string, backendPort uint, undoStack common.Undoer) error {
+func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend string, backendPort uint, undoStack undo.Stacker) error {
 	progress.Step("Creating backend...")
 
 	undoStack.Push(func() error {
