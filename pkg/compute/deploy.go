@@ -545,10 +545,13 @@ func cfgBackend(backend string, backendPort uint, out io.Writer, in io.Reader, f
 			return "", 0, fmt.Errorf("error reading input %w", err)
 		}
 
-		portnumber, err := strconv.Atoi(input)
-		if err != nil {
-			text.Warning(out, "error converting input: %v. We'll use the default port number: [80].", err)
-			portnumber = 80
+		portnumber := 80
+		if input != "" {
+			portnumber, err = strconv.Atoi(input)
+			if err != nil {
+				text.Warning(out, "error converting input. We'll use the default port number: [80].")
+				portnumber = 80
+			}
 		}
 
 		backendPort = uint(portnumber)
