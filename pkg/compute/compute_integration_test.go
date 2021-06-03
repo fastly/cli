@@ -15,10 +15,10 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
+	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -302,7 +302,7 @@ func TestInit(t *testing.T) {
 				cliVersioner  update.Versioner = nil
 				in            io.Reader        = bytes.NewBufferString(testcase.stdin)
 				buf           bytes.Buffer
-				out           io.Writer = common.NewSyncWriter(&buf)
+				out           io.Writer = sync.NewWriter(&buf)
 			)
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
@@ -599,7 +599,7 @@ func TestBuildRust(t *testing.T) {
 				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
-				out           io.Writer = common.NewSyncWriter(&buf)
+				out           io.Writer = sync.NewWriter(&buf)
 			)
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
@@ -696,7 +696,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
-				out           io.Writer = common.NewSyncWriter(&buf)
+				out           io.Writer = sync.NewWriter(&buf)
 			)
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
@@ -1083,7 +1083,7 @@ func TestDeploy(t *testing.T) {
 				cliVersioner  update.Versioner = nil
 				in            io.Reader        = testcase.in
 				buf           bytes.Buffer
-				out           io.Writer = common.NewSyncWriter(&buf)
+				out           io.Writer = sync.NewWriter(&buf)
 			)
 
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
@@ -1332,7 +1332,7 @@ func TestPublish(t *testing.T) {
 				cliVersioner  update.Versioner = nil
 				in            io.Reader        = testcase.in
 				buf           bytes.Buffer
-				out           io.Writer = common.NewSyncWriter(&buf)
+				out           io.Writer = sync.NewWriter(&buf)
 			)
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
@@ -1414,7 +1414,7 @@ func TestUpdate(t *testing.T) {
 				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
-				out           io.Writer = common.NewSyncWriter(&buf)
+				out           io.Writer = sync.NewWriter(&buf)
 			)
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
@@ -1497,7 +1497,7 @@ func TestPack(t *testing.T) {
 				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
-				out           io.Writer = common.NewSyncWriter(&buf)
+				out           io.Writer = sync.NewWriter(&buf)
 			)
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
@@ -1561,7 +1561,7 @@ func TestValidate(t *testing.T) {
 				cliVersioner  update.Versioner = nil
 				in            io.Reader        = nil
 				buf           bytes.Buffer
-				out           io.Writer = common.NewSyncWriter(&buf)
+				out           io.Writer = sync.NewWriter(&buf)
 			)
 			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
