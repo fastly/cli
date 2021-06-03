@@ -38,10 +38,10 @@ const (
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
 	common.Base
-	manifest manifest.Data
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
+	Manifest    manifest.Data
 	Path        string
 	Version     common.OptionalInt
 	Domain      string
@@ -53,13 +53,13 @@ type DeployCommand struct {
 func NewDeployCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *DeployCommand {
 	var c DeployCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.Manifest.File.SetOutput(c.Globals.Output)
+	c.Manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
 
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.Manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of version to activate").Action(c.Version.Set).IntVar(&c.Version.Value)
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
@@ -80,7 +80,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// The first thing we want to do is validate that a package has been built.
 	// There is no point prompting a user for info if we know we're going to
 	// fail any way because the user didn't build a package first.
-	name, source := c.manifest.Name()
+	name, source := c.Manifest.Name()
 	path, err := pkgPath(c.Path, name, source)
 	if err != nil {
 		return err
@@ -97,7 +97,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		version         *fastly.Version
 	)
 
-	serviceID, sidSrc := c.manifest.ServiceID()
+	serviceID, sidSrc := c.Manifest.ServiceID()
 	if sidSrc == manifest.SourceUndefined {
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
 		text.Break(out)
@@ -197,7 +197,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		undoStack.Push(func() error {
 			clearServiceID := ""
-			return updateManifestServiceID(&c.manifest.File, ManifestFilename, nil, clearServiceID)
+			return updateManifestServiceID(&c.Manifest.File, ManifestFilename, nil, clearServiceID)
 		})
 
 		undoStack.Push(func() error {
@@ -253,7 +253,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// provided by the flag and not the file, then we'll also store that ID
 	// within the manifest.
 	if sidSrc == manifest.SourceUndefined || sidSrc != manifest.SourceFile {
-		err = updateManifestServiceID(&c.manifest.File, ManifestFilename, progress, serviceID)
+		err = updateManifestServiceID(&c.Manifest.File, ManifestFilename, progress, serviceID)
 		if err != nil {
 			return err
 		}
