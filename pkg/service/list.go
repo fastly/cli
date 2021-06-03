@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
@@ -38,7 +39,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		for _, service := range services {
 			updatedAt := "n/a"
 			if service.UpdatedAt != nil {
-				updatedAt = service.UpdatedAt.UTC().Format(common.TimeFormat)
+				updatedAt = service.UpdatedAt.UTC().Format(time.Format)
 			}
 
 			activeVersion := fmt.Sprint(service.ActiveVersion)

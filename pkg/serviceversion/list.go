@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
@@ -47,7 +48,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("NUMBER", "ACTIVE", "LAST EDITED (UTC)")
 		for _, version := range versions {
-			tw.AddLine(version.Number, version.Active, version.UpdatedAt.UTC().Format(common.TimeFormat))
+			tw.AddLine(version.Number, version.Active, version.UpdatedAt.UTC().Format(time.Format))
 		}
 		tw.Print()
 		return nil

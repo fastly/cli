@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/segmentio/textio"
 )
@@ -18,9 +18,9 @@ func PrintDictionary(out io.Writer, prefix string, d *fastly.Dictionary) {
 	fmt.Fprintf(out, "ID: %s\n", d.ID)
 	fmt.Fprintf(out, "Name: %s\n", d.Name)
 	fmt.Fprintf(out, "Write Only: %t\n", d.WriteOnly)
-	fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(common.TimeFormat))
-	fmt.Fprintf(out, "Last edited (UTC): %s\n", d.UpdatedAt.UTC().Format(common.TimeFormat))
+	fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(time.Format))
+	fmt.Fprintf(out, "Last edited (UTC): %s\n", d.UpdatedAt.UTC().Format(time.Format))
 	if d.DeletedAt != nil {
-		fmt.Fprintf(out, "Deleted (UTC): %s\n", d.DeletedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Deleted (UTC): %s\n", d.DeletedAt.UTC().Format(time.Format))
 	}
 }

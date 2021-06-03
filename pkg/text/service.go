@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/segmentio/textio"
 )
@@ -35,13 +35,13 @@ func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 	}
 	fmt.Fprintf(out, "Customer ID: %s\n", s.CustomerID)
 	if s.CreatedAt != nil {
-		fmt.Fprintf(out, "Created (UTC): %s\n", s.CreatedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Created (UTC): %s\n", s.CreatedAt.UTC().Format(time.Format))
 	}
 	if s.UpdatedAt != nil {
-		fmt.Fprintf(out, "Last edited (UTC): %s\n", s.UpdatedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Last edited (UTC): %s\n", s.UpdatedAt.UTC().Format(time.Format))
 	}
 	if s.DeletedAt != nil {
-		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
 	}
 	fmt.Fprintf(out, "Active version: %d\n", s.ActiveVersion)
 	fmt.Fprintf(out, "Versions: %d\n", len(s.Versions))
@@ -73,13 +73,13 @@ func PrintServiceDetail(out io.Writer, indent string, s *fastly.ServiceDetail) {
 	}
 	fmt.Fprintf(out, "Customer ID: %s\n", s.CustomerID)
 	if s.CreatedAt != nil {
-		fmt.Fprintf(out, "Created (UTC): %s\n", s.CreatedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Created (UTC): %s\n", s.CreatedAt.UTC().Format(time.Format))
 	}
 	if s.UpdatedAt != nil {
-		fmt.Fprintf(out, "Last edited (UTC): %s\n", s.UpdatedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Last edited (UTC): %s\n", s.UpdatedAt.UTC().Format(time.Format))
 	}
 	if s.DeletedAt != nil {
-		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
 	}
 	if s.ActiveVersion.Active {
 		fmt.Fprintf(out, "Active version:\n")
@@ -111,12 +111,12 @@ func PrintVersion(out io.Writer, indent string, v *fastly.Version) {
 	fmt.Fprintf(out, "Staging: %v\n", v.Staging)
 	fmt.Fprintf(out, "Testing: %v\n", v.Testing)
 	if v.CreatedAt != nil {
-		fmt.Fprintf(out, "Created (UTC): %s\n", v.CreatedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Created (UTC): %s\n", v.CreatedAt.UTC().Format(time.Format))
 	}
 	if v.UpdatedAt != nil {
-		fmt.Fprintf(out, "Last edited (UTC): %s\n", v.UpdatedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Last edited (UTC): %s\n", v.UpdatedAt.UTC().Format(time.Format))
 	}
 	if v.DeletedAt != nil {
-		fmt.Fprintf(out, "Deleted (UTC): %s\n", v.DeletedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Deleted (UTC): %s\n", v.DeletedAt.UTC().Format(time.Format))
 	}
 }
