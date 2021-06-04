@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -25,7 +26,7 @@ func TestCreateDigitalOceanInput(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateDigitalOceanInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 				BucketName:     "bucket",
 				AccessKey:      "access",
@@ -37,7 +38,7 @@ func TestCreateDigitalOceanInput(t *testing.T) {
 			cmd:  createCommandAll(),
 			want: &fastly.CreateDigitalOceanInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				BucketName:        "bucket",
 				Domain:            "nyc3.digitaloceanspaces.com",
@@ -82,10 +83,15 @@ func TestUpdateDigitalOceanInput(t *testing.T) {
 		{
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
-			api:  mock.API{GetDigitalOceanFn: getDigitalOceanOK},
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetActiveVersion(1),
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				GetDigitalOceanFn: getDigitalOceanOK,
+			},
 			want: &fastly.UpdateDigitalOceanInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				BucketName:        fastly.String("new2"),
@@ -108,10 +114,15 @@ func TestUpdateDigitalOceanInput(t *testing.T) {
 		{
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
-			api:  mock.API{GetDigitalOceanFn: getDigitalOceanOK},
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetActiveVersion(1),
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				GetDigitalOceanFn: getDigitalOceanOK,
+			},
 			want: &fastly.UpdateDigitalOceanInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 			},
 		},
@@ -133,21 +144,71 @@ func TestUpdateDigitalOceanInput(t *testing.T) {
 }
 
 func createCommandRequired() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "log",
-		Version:      2,
-		BucketName:   "bucket",
-		AccessKey:    "access",
-		SecretKey:    "secret",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
+		BucketName: "bucket",
+		AccessKey:  "access",
+		SecretKey:  "secret",
 	}
 }
 
 func createCommandAll() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "log",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 		BucketName:        "bucket",
 		AccessKey:         "access",
 		SecretKey:         "secret",
@@ -172,20 +233,58 @@ func createCommandMissingServiceID() *CreateCommand {
 }
 
 func updateCommandNoUpdates() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "log",
-		Version:      2,
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 	}
 }
 
 func updateCommandAll() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "log",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		BucketName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
 		Domain:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
