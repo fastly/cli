@@ -10,7 +10,7 @@ import (
 )
 
 // ServiceType is a utility function which returns the given type string if
-// non-empty otherwise returns the default `vcl`. This should be used unitl the
+// non-empty otherwise returns the default `vcl`. This should be used until the
 // API properly returns Service.Type for non-wasm services.
 // TODO(phamann): remove once API returns correct type.
 func ServiceType(t string) string {
