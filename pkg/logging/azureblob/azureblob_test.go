@@ -1,6 +1,7 @@
 package azureblob
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -25,7 +26,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateBlobStorageInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "logs",
 				AccountName:    "account",
 				Container:      "container",
@@ -37,7 +38,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			cmd:  createCommandAll(),
 			want: &fastly.CreateBlobStorageInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "logs",
 				Container:         "container",
 				AccountName:       "account",
@@ -81,10 +82,15 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 		{
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
-			api:  mock.API{GetBlobStorageFn: getBlobStorageOK},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				CloneVersionFn:   testutil.CloneVersionResult(4),
+				GetBlobStorageFn: getBlobStorageOK,
+			},
 			want: &fastly.UpdateBlobStorageInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "logs",
 				NewName:           fastly.String("new1"),
 				Container:         fastly.String("new2"),
@@ -106,10 +112,15 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 		{
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
-			api:  mock.API{GetBlobStorageFn: getBlobStorageOK},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				CloneVersionFn:   testutil.CloneVersionResult(4),
+				GetBlobStorageFn: getBlobStorageOK,
+			},
 			want: &fastly.UpdateBlobStorageInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "logs",
 			},
 		},
@@ -131,21 +142,73 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 }
 
 func createCommandRequired() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	// TODO: make consistent (in all other logging files) with syslog_test which
+	// uses a testcase.api field to assign the mock API to the global client.
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "logs",
-		Version:      2,
-		Container:    "container",
-		AccountName:  "account",
-		SASToken:     "token",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
+		Container:   "container",
+		AccountName: "account",
+		SASToken:    "token",
 	}
 }
 
 func createCommandAll() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "logs",
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "logs",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 		Container:         "container",
 		AccountName:       "account",
 		SASToken:          "token",
@@ -169,20 +232,58 @@ func createCommandMissingServiceID() *CreateCommand {
 }
 
 func updateCommandNoUpdates() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "logs",
-		Version:      2,
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 	}
 }
 
 func updateCommandAll() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "logs",
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "logs",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		Container:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
 		AccountName:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
