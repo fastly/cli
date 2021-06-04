@@ -227,8 +227,8 @@ type StarterKit struct {
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
-func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
-	ctx, cancel := context.WithTimeout(context.Background(), ConfigRequestTimeout)
+func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), d)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, configEndpoint, nil)
@@ -237,7 +237,7 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	}
 
 	req.Header.Set("User-Agent", useragent.Name)
-	resp, err := httpClient.Do(req)
+	resp, err := c.Do(req)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return fsterr.RemediationError{
