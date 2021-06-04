@@ -47,12 +47,12 @@ func TestGetLatestActiveVersion(t *testing.T) {
 				{Number: 2, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
 				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
 			},
-			wantError: "error locating latest active service version",
+			wantError: "no active service version found",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// NOTE: this is a duplicate of the sorting algorithm in
-			// common/command.go to make the test as realistic as possible
+			// cmd/command.go to make the test as realistic as possible
 			sort.Slice(testcase.inputVersions, func(i, j int) bool {
 				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
 			})
@@ -106,7 +106,7 @@ func TestGetLatestEditableVersion(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// NOTE: this is a duplicate of the sorting algorithm in
-			// common/command.go to make the test as realistic as possible
+			// cmd/command.go to make the test as realistic as possible
 			sort.Slice(testcase.inputVersions, func(i, j int) bool {
 				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
 			})
@@ -148,12 +148,12 @@ func TestGetSpecifiedVersion(t *testing.T) {
 				{Number: 3, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-03-03T01:00:00Z")},
 			},
 			wantVersion: 4,
-			wantError:   "error getting specified service version: 4",
+			wantError:   "specified service version not found: 4",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// NOTE: this is a duplicate of the sorting algorithm in
-			// common/command.go to make the test as realistic as possible
+			// cmd/command.go to make the test as realistic as possible
 			sort.Slice(testcase.inputVersions, func(i, j int) bool {
 				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
 			})
