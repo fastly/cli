@@ -25,18 +25,27 @@ func TestHealthCheckCreate(t *testing.T) {
 	}{
 		{
 			args:      []string{"healthcheck", "create", "--version", "1", "--service-id", "123"},
-			api:       mock.API{CreateHealthCheckFn: createHealthCheckOK},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"healthcheck", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
-			api:       mock.API{CreateHealthCheckFn: createHealthCheckError},
+			args: []string{"healthcheck", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetActiveVersion(1),
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				CreateHealthCheckFn: createHealthCheckError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"healthcheck", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
-			api:        mock.API{CreateHealthCheckFn: createHealthCheckOK},
-			wantOutput: "Created healthcheck www.test.com (service 123 version 1)",
+			args: []string{"healthcheck", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetActiveVersion(1),
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				CreateHealthCheckFn: createHealthCheckOK,
+			},
+			wantOutput: "Created healthcheck www.test.com (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -66,33 +75,57 @@ func TestHealthCheckList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"healthcheck", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListHealthChecksFn: listHealthChecksOK},
+			args: []string{"healthcheck", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				ListHealthChecksFn: listHealthChecksOK,
+			},
 			wantOutput: listHealthChecksShortOutput,
 		},
 		{
-			args:       []string{"healthcheck", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListHealthChecksFn: listHealthChecksOK},
+			args: []string{"healthcheck", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			api: mock.API{
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				ListHealthChecksFn: listHealthChecksOK,
+			},
 			wantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args:       []string{"healthcheck", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListHealthChecksFn: listHealthChecksOK},
+			args: []string{"healthcheck", "list", "--service-id", "123", "--version", "1", "-v"},
+			api: mock.API{
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				ListHealthChecksFn: listHealthChecksOK,
+			},
 			wantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args:       []string{"healthcheck", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListHealthChecksFn: listHealthChecksOK},
+			args: []string{"healthcheck", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				ListHealthChecksFn: listHealthChecksOK,
+			},
 			wantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args:       []string{"-v", "healthcheck", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListHealthChecksFn: listHealthChecksOK},
+			args: []string{"-v", "healthcheck", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				ListHealthChecksFn: listHealthChecksOK,
+			},
 			wantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args:      []string{"healthcheck", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListHealthChecksFn: listHealthChecksError},
+			args: []string{"healthcheck", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetActiveVersion(1),
+				ListHealthChecksFn: listHealthChecksError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -124,17 +157,24 @@ func TestHealthCheckDescribe(t *testing.T) {
 	}{
 		{
 			args:      []string{"healthcheck", "describe", "--service-id", "123", "--version", "1"},
-			api:       mock.API{GetHealthCheckFn: getHealthCheckOK},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"healthcheck", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
-			api:       mock.API{GetHealthCheckFn: getHealthCheckError},
+			args: []string{"healthcheck", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				GetHealthCheckFn: getHealthCheckError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"healthcheck", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
-			api:        mock.API{GetHealthCheckFn: getHealthCheckOK},
+			args: []string{"healthcheck", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				GetHealthCheckFn: getHealthCheckOK,
+			},
 			wantOutput: describeHealthCheckOutput,
 		},
 	} {
@@ -165,23 +205,37 @@ func TestHealthCheckUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"healthcheck", "update", "--service-id", "123", "--version", "2", "--new-name", "www.test.com", "--comment", ""},
-			api:       mock.API{UpdateHealthCheckFn: updateHealthCheckOK},
+			args:      []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--new-name", "www.test.com", "--comment", ""},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "2", "--name", "www.test.com", "--new-name", "www.example.com"},
-			api:  mock.API{UpdateHealthCheckFn: updateHealthCheckOK},
+			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetActiveVersion(1),
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				UpdateHealthCheckFn: updateHealthCheckOK,
+			},
 		},
 		{
-			args:      []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
-			api:       mock.API{UpdateHealthCheckFn: updateHealthCheckError},
+			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetActiveVersion(1),
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				UpdateHealthCheckFn: updateHealthCheckError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com"},
-			api:        mock.API{UpdateHealthCheckFn: updateHealthCheckOK},
-			wantOutput: "Updated healthcheck www.example.com (service 123 version 1)",
+			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetActiveVersion(1),
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				UpdateHealthCheckFn: updateHealthCheckOK,
+			},
+			wantOutput: "Updated healthcheck www.example.com (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -212,18 +266,27 @@ func TestHealthCheckDelete(t *testing.T) {
 	}{
 		{
 			args:      []string{"healthcheck", "delete", "--service-id", "123", "--version", "1"},
-			api:       mock.API{DeleteHealthCheckFn: deleteHealthCheckOK},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"healthcheck", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
-			api:       mock.API{DeleteHealthCheckFn: deleteHealthCheckError},
+			args: []string{"healthcheck", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetActiveVersion(1),
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				DeleteHealthCheckFn: deleteHealthCheckError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"healthcheck", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
-			api:        mock.API{DeleteHealthCheckFn: deleteHealthCheckOK},
-			wantOutput: "Deleted healthcheck www.test.com (service 123 version 1)",
+			args: []string{"healthcheck", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetActiveVersion(1),
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				DeleteHealthCheckFn: deleteHealthCheckOK,
+			},
+			wantOutput: "Deleted healthcheck www.test.com (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
