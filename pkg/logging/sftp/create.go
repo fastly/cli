@@ -18,13 +18,14 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName  string // Can't shadow cmd.Base method Name().
-	Version       int
-	Address       string
-	User          string
-	SSHKnownHosts string
+	EndpointName   string // Can't shadow cmd.Base method Name().
+	Address        string
+	User           string
+	SSHKnownHosts  string
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	Port              cmd.OptionalUint
 	Password          cmd.OptionalString
 	PublicKey         cmd.OptionalString
@@ -44,19 +45,16 @@ type CreateCommand struct {
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
-
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an SFTP logging endpoint on a Fastly service version").Alias("add")
-
 	c.CmdClause.Flag("name", "The name of the SFTP logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("address", "The hostname or IPv4 addres").Required().StringVar(&c.Address)
 	c.CmdClause.Flag("user", "The username for the server").Required().StringVar(&c.User)
 	c.CmdClause.Flag("ssh-known-hosts", "A list of host keys for all hosts we can connect to over SFTP").Required().StringVar(&c.SSHKnownHosts)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
 	c.CmdClause.Flag("password", "The password for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.Password.Set).StringVar(&c.Password.Value)
@@ -72,7 +70,6 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 	c.CmdClause.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
-
 	return &c
 }
 
@@ -85,8 +82,17 @@ func (c *CreateCommand) createInput() (*fastly.CreateSFTPInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+
 	input.ServiceID = serviceID
-	input.ServiceVersion = c.Version
+	input.ServiceVersion = v.Number
 	input.Name = c.EndpointName
 	input.Address = c.Address
 	input.User = c.User

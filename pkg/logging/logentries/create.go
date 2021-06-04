@@ -17,10 +17,11 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow cmd.Base method Name().
-	Version      int
+	EndpointName   string // Can't shadow cmd.Base method Name().
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	Port              cmd.OptionalUint
 	UseTLS            cmd.OptionalBool
 	Token             cmd.OptionalString
@@ -37,10 +38,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a Logentries logging endpoint on a Fastly service version").Alias("add")
-
 	c.CmdClause.Flag("name", "The name of the Logentries logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
@@ -49,7 +47,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
-
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	return &c
 }
 
@@ -62,8 +61,17 @@ func (c *CreateCommand) createInput() (*fastly.CreateLogentriesInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+
 	input.ServiceID = serviceID
-	input.ServiceVersion = c.Version
+	input.ServiceVersion = v.Number
 	input.Name = c.EndpointName
 
 	if c.Port.WasSet {

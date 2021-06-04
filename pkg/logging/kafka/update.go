@@ -18,10 +18,11 @@ type UpdateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow cmd.Base method Name().
-	Version      int
+	EndpointName   string // Can't shadow cmd.Base method Name().
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	NewName           cmd.OptionalString
 	Index             cmd.OptionalString
 	Topic             cmd.OptionalString
@@ -51,12 +52,10 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
-
 	c.CmdClause = parent.Command("update", "Update a Kafka logging endpoint on a Fastly service version")
-
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "The name of the Kafka logging object").Short('n').Required().StringVar(&c.EndpointName)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Kafka logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("topic", "The Kafka topic to send logs to").Action(c.Topic.Set).StringVar(&c.Topic.Value)
@@ -78,7 +77,6 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.CmdClause.Flag("auth-method", "SASL authentication method. Valid values are: plain, scram-sha-256, scram-sha-512").Action(c.AuthMethod.Set).HintOptions("plain", "scram-sha-256", "scram-sha-512").EnumVar(&c.AuthMethod.Value, "plain", "scram-sha-256", "scram-sha-512")
 	c.CmdClause.Flag("username", "SASL authentication username. Required if --auth-method is specified").Action(c.User.Set).StringVar(&c.User.Value)
 	c.CmdClause.Flag("password", "SASL authentication password. Required if --auth-method is specified").Action(c.Password.Set).StringVar(&c.Password.Value)
-
 	return &c
 }
 
@@ -87,6 +85,15 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		return nil, errors.ErrNoServiceID
+	}
+
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
 	}
 
 	if c.UseSASL.WasSet && c.UseSASL.Value && (c.AuthMethod.Value == "" || c.User.Value == "" || c.Password.Value == "") {
@@ -99,7 +106,7 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateKafkaInput, error) {
 
 	input := fastly.UpdateKafkaInput{
 		ServiceID:      serviceID,
-		ServiceVersion: c.Version,
+		ServiceVersion: v.Number,
 		Name:           c.EndpointName,
 	}
 

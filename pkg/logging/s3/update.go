@@ -17,10 +17,11 @@ type UpdateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow cmd.Base method Name().
-	Version      int
+	EndpointName   string // Can't shadow cmd.Base method Name().
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone                    cmd.OptionalAutoClone
 	NewName                      cmd.OptionalString
 	Address                      cmd.OptionalString
 	BucketName                   cmd.OptionalString
@@ -50,12 +51,10 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
-
 	c.CmdClause = parent.Command("update", "Update a S3 logging endpoint on a Fastly service version")
-
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "The name of the S3 logging object").Short('n').Required().StringVar(&c.EndpointName)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the S3 logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("bucket", "Your S3 bucket name").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
@@ -77,7 +76,6 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.CmdClause.Flag("server-side-encryption", "Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms").Action(c.ServerSideEncryption.Set).EnumVar(&c.ServerSideEncryption.Value, string(fastly.S3ServerSideEncryptionAES), string(fastly.S3ServerSideEncryptionKMS))
 	c.CmdClause.Flag("server-side-encryption-kms-key-id", "Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms").Action(c.ServerSideEncryptionKMSKeyID.Set).StringVar(&c.ServerSideEncryptionKMSKeyID.Value)
 	c.CmdClause.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
-
 	return &c
 }
 
@@ -88,9 +86,18 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateS3Input, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+
 	input := fastly.UpdateS3Input{
 		ServiceID:      serviceID,
-		ServiceVersion: c.Version,
+		ServiceVersion: v.Number,
 		Name:           c.EndpointName,
 	}
 

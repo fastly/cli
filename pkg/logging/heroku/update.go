@@ -17,10 +17,11 @@ type UpdateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow cmd.Base method Name().
-	Version      int
+	EndpointName   string // Can't shadow cmd.Base method Name().
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	NewName           cmd.OptionalString
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalUint
@@ -36,12 +37,10 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
-
 	c.CmdClause = parent.Command("update", "Update a Heroku logging endpoint on a Fastly service version")
-
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "The name of the Heroku logging object").Short('n').Required().StringVar(&c.EndpointName)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Heroku logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
@@ -50,7 +49,6 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://devcenter.heroku.com/articles/add-on-partner-log-integration)").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
-
 	return &c
 }
 
@@ -61,9 +59,18 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateHerokuInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+
 	input := fastly.UpdateHerokuInput{
 		ServiceID:      serviceID,
-		ServiceVersion: c.Version,
+		ServiceVersion: v.Number,
 		Name:           c.EndpointName,
 	}
 

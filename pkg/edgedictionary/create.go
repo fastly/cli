@@ -15,8 +15,10 @@ import (
 // CreateCommand calls the Fastly API to create a service.
 type CreateCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.CreateDictionaryInput
+	manifest       manifest.Data
+	Input          fastly.CreateDictionaryInput
+	serviceVersion cmd.OptionalServiceVersion
+	autoClone      cmd.OptionalAutoClone
 
 	writeOnly cmd.OptionalString
 }
@@ -29,7 +31,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a Fastly edge dictionary on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "Name of Dictionary").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("write-only", "Whether to mark this dictionary as write-only. Can be true or false (defaults to false)").Action(c.writeOnly.Set).StringVar(&c.writeOnly.Value)
 	return &c
@@ -42,6 +45,16 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	if c.writeOnly.WasSet {
 		writeOnly, err := strconv.ParseBool(c.writeOnly.Value)

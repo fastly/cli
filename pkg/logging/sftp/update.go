@@ -17,10 +17,11 @@ type UpdateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string
-	Version      int
+	EndpointName   string
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	NewName           cmd.OptionalString
 	Address           cmd.OptionalString
 	Port              cmd.OptionalUint
@@ -47,12 +48,10 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
-
 	c.CmdClause = parent.Command("update", "Update an SFTP logging endpoint on a Fastly service version")
-
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "The name of the SFTP logging object").Short('n').Required().StringVar(&c.EndpointName)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the SFTP logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("address", "The hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
@@ -72,7 +71,6 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 	c.CmdClause.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
-
 	return &c
 }
 
@@ -83,9 +81,18 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateSFTPInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+
 	input := fastly.UpdateSFTPInput{
 		ServiceID:      serviceID,
-		ServiceVersion: c.Version,
+		ServiceVersion: v.Number,
 		Name:           c.EndpointName,
 	}
 

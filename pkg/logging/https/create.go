@@ -17,11 +17,12 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow cmd.Base method Name().
-	Version      int
-	URL          string
+	EndpointName   string // Can't shadow cmd.Base method Name().
+	URL            string
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	RequestMaxEntries cmd.OptionalUint
 	RequestMaxBytes   cmd.OptionalUint
 	TLSCACert         cmd.OptionalString
@@ -47,11 +48,10 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an HTTPS logging endpoint on a Fastly service version").Alias("add")
-
 	c.CmdClause.Flag("name", "The name of the HTTPS logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("url", "URL that log data will be sent to. Must use the https protocol").Required().StringVar(&c.URL)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("content-type", "Content type of the header sent with the request").Action(c.ContentType.Set).StringVar(&c.ContentType.Value)
 	c.CmdClause.Flag("header-name", "Name of the custom header sent with the request").Action(c.HeaderName.Set).StringVar(&c.HeaderName.Value)
@@ -69,7 +69,6 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
 	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 0 for unbounded").Action(c.RequestMaxEntries.Set).UintVar(&c.RequestMaxEntries.Value)
 	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 0 for unbounded").Action(c.RequestMaxBytes.Set).UintVar(&c.RequestMaxBytes.Value)
-
 	return &c
 }
 
@@ -83,9 +82,18 @@ func (c *CreateCommand) createInput() (*fastly.CreateHTTPSInput, error) {
 	}
 
 	input.ServiceID = serviceID
-	input.ServiceVersion = c.Version
 	input.Name = c.EndpointName
 	input.URL = c.URL
+
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	input.ServiceVersion = v.Number
 
 	if c.ContentType.WasSet {
 		input.ContentType = c.ContentType.Value

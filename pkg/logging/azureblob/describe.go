@@ -14,8 +14,9 @@ import (
 // DescribeCommand calls the Fastly API to describe an Azure Blob Storage logging endpoint.
 type DescribeCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.GetBlobStorageInput
+	manifest       manifest.Data
+	Input          fastly.GetBlobStorageInput
+	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -26,7 +27,7 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCo
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("describe", "Show detailed information about an Azure Blob Storage logging endpoint on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	c.CmdClause.Flag("name", "The name of the Azure Blob Storage logging object").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
@@ -38,6 +39,12 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	azureblob, err := c.Globals.Client.GetBlobStorage(&c.Input)
 	if err != nil {

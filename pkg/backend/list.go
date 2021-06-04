@@ -13,7 +13,8 @@ import (
 // ListCommand calls the Fastly API to list backends.
 type ListCommand struct {
 	cmd.Base
-	Input fastly.ListBackendsInput
+	Input          fastly.ListBackendsInput
+	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -22,12 +23,18 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	c.Globals = globals
 	c.CmdClause = parent.Command("list", "List backends on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
+
 	backends, err := c.Globals.Client.ListBackends(&c.Input)
 	if err != nil {
 		return err

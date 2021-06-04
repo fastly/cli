@@ -15,8 +15,9 @@ import (
 // DescribeCommand calls the Fastly API to describe a healthcheck.
 type DescribeCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.GetHealthCheckInput
+	manifest       manifest.Data
+	Input          fastly.GetHealthCheckInput
+	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -27,7 +28,7 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCo
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("describe", "Show detailed information about a healthcheck on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	c.CmdClause.Flag("name", "Name of healthcheck").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
@@ -39,6 +40,12 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	healthCheck, err := c.Globals.Client.GetHealthCheck(&c.Input)
 	if err != nil {

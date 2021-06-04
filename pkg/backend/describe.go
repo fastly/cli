@@ -13,7 +13,8 @@ import (
 // DescribeCommand calls the Fastly API to describe a backend.
 type DescribeCommand struct {
 	cmd.Base
-	Input fastly.GetBackendInput
+	Input          fastly.GetBackendInput
+	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -22,13 +23,19 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCo
 	c.Globals = globals
 	c.CmdClause = parent.Command("describe", "Show detailed information about a backend on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	c.CmdClause.Flag("name", "Name of backend").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
+
 	backend, err := c.Globals.Client.GetBackend(&c.Input)
 	if err != nil {
 		return err

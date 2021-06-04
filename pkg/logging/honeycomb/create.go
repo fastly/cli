@@ -17,12 +17,13 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow cmd.Base method Name().
-	Version      int
-	Token        string
-	Dataset      string
+	EndpointName   string // Can't shadow cmd.Base method Name().
+	Token          string
+	Dataset        string
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalUint
 	ResponseCondition cmd.OptionalString
@@ -32,23 +33,20 @@ type CreateCommand struct {
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
-
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a Honeycomb logging endpoint on a Fastly service version").Alias("add")
-
 	c.CmdClause.Flag("name", "The name of the Honeycomb logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("dataset", "The Honeycomb Dataset you want to log to").Required().StringVar(&c.Dataset)
 	c.CmdClause.Flag("auth-token", "The Write Key from the Account page of your Honeycomb account").Required().StringVar(&c.Token)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("format", "Apache style log formatting. Your log must produce valid JSON that Honeycomb can ingest").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
-
 	return &c
 }
 
@@ -61,8 +59,17 @@ func (c *CreateCommand) createInput() (*fastly.CreateHoneycombInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+
 	input.ServiceID = serviceID
-	input.ServiceVersion = c.Version
+	input.ServiceVersion = v.Number
 	input.Name = c.EndpointName
 	input.Token = c.Token
 	input.Dataset = c.Dataset

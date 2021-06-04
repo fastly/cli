@@ -15,8 +15,10 @@ import (
 // UpdateCommand calls the Fastly API to update domains.
 type UpdateCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	input    fastly.UpdateDomainInput
+	manifest       manifest.Data
+	input          fastly.UpdateDomainInput
+	serviceVersion cmd.OptionalServiceVersion
+	autoClone      cmd.OptionalAutoClone
 
 	NewName cmd.OptionalString
 	Comment cmd.OptionalString
@@ -28,7 +30,8 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update a domain on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.input.Name)
 	c.CmdClause.Flag("new-name", "New domain name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
@@ -42,6 +45,16 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.input.ServiceVersion = v.Number
 
 	// If neither arguments are provided, error with useful message.
 	if !c.NewName.WasSet && !c.Comment.WasSet {

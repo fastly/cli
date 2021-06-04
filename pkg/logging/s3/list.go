@@ -15,8 +15,9 @@ import (
 // ListCommand calls the Fastly API to list Amazon S3 logging endpoints.
 type ListCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.ListS3sInput
+	manifest       manifest.Data
+	Input          fastly.ListS3sInput
+	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -27,7 +28,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List S3 endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	return &c
 }
 
@@ -38,6 +39,12 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	s3s, err := c.Globals.Client.ListS3s(&c.Input)
 	if err != nil {

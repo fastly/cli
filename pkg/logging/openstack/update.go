@@ -17,10 +17,11 @@ type UpdateCommand struct {
 	manifest manifest.Data
 
 	//required
-	EndpointName string
-	Version      int
+	EndpointName   string
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	NewName           cmd.OptionalString
 	BucketName        cmd.OptionalString
 	AccessKey         cmd.OptionalString
@@ -48,7 +49,8 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 
 	c.CmdClause = parent.Command("update", "Update an OpenStack logging endpoint on a Fastly service version")
 
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "The name of the OpenStack logging object").Short('n').Required().StringVar(&c.EndpointName)
 
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
@@ -79,9 +81,18 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateOpenstackInput, error) {
 		return nil, errors.ErrNoServiceID
 	}
 
+	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
+	if err != nil {
+		return nil, err
+	}
+
 	input := fastly.UpdateOpenstackInput{
 		ServiceID:      serviceID,
-		ServiceVersion: c.Version,
+		ServiceVersion: v.Number,
 		Name:           c.EndpointName,
 	}
 

@@ -14,8 +14,10 @@ import (
 // DeleteCommand calls the Fastly API to delete an OpenStack logging endpoint.
 type DeleteCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.DeleteOpenstackInput
+	manifest       manifest.Data
+	Input          fastly.DeleteOpenstackInput
+	serviceVersion cmd.OptionalServiceVersion
+	autoClone      cmd.OptionalAutoClone
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -25,12 +27,10 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete an OpenStack logging endpoint on a Fastly service version").Alias("remove")
-
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "The name of the OpenStack logging object").Short('n').Required().StringVar(&c.Input.Name)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-
 	return &c
 }
 
@@ -41,6 +41,16 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	if err := c.Globals.Client.DeleteOpenstack(&c.Input); err != nil {
 		return err

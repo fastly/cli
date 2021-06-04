@@ -14,8 +14,9 @@ import (
 // LockCommand calls the Fastly API to lock a service version.
 type LockCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.LockVersionInput
+	manifest       manifest.Data
+	Input          fastly.LockVersionInput
+	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewLockCommand returns a usable command registered under the parent.
@@ -26,7 +27,7 @@ func NewLockCommand(parent cmd.Registerer, globals *config.Data) *LockCommand {
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("lock", "Lock a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to lock").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
 	return &c
 }
 
@@ -38,11 +39,17 @@ func (c *LockCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
-	v, err := c.Globals.Client.LockVersion(&c.Input)
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
+
+	ver, err := c.Globals.Client.LockVersion(&c.Input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Locked service %s version %d", v.ServiceID, c.Input.ServiceVersion)
+	text.Success(out, "Locked service %s version %d", ver.ServiceID, c.Input.ServiceVersion)
 	return nil
 }

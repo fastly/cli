@@ -12,7 +12,9 @@ import (
 // UpdateCommand calls the Fastly API to update backends.
 type UpdateCommand struct {
 	cmd.Base
-	Input fastly.GetBackendInput
+	Input          fastly.GetBackendInput
+	serviceVersion cmd.OptionalServiceVersion
+	autoClone      cmd.OptionalAutoClone
 
 	NewName             cmd.OptionalString
 	Comment             cmd.OptionalString
@@ -46,11 +48,10 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	var c UpdateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update a backend on a Fastly service version")
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "backend name").Short('n').Required().StringVar(&c.Input.Name)
-
 	c.CmdClause.Flag("new-name", "New backend name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.Address.Set).StringVar(&c.Address.Value)
@@ -75,12 +76,21 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").Action(c.MinTLSVersion.Set).StringVar(&c.MinTLSVersion.Value)
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.MaxTLSVersion.Set).StringVar(&c.MaxTLSVersion.Value)
 	c.CmdClause.Flag("ssl-ciphers", "List of OpenSSL ciphers (see https://www.openssl.org/docs/man1.0.2/man1/ciphers for details)").Action(c.SSLCiphers.Set).StringsVar(&c.SSLCiphers.Value)
-
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
+
 	b, err := c.Globals.Client.GetBackend(&c.Input)
 	if err != nil {
 		return err

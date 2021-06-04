@@ -14,8 +14,10 @@ import (
 // CreateCommand calls the Fastly API to create healthchecks.
 type CreateCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.CreateHealthCheckInput
+	manifest       manifest.Data
+	Input          fastly.CreateHealthCheckInput
+	serviceVersion cmd.OptionalServiceVersion
+	autoClone      cmd.OptionalAutoClone
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -23,10 +25,9 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	var c CreateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("create", "Create a healthcheck on a Fastly service version").Alias("add")
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
-
+	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
 	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("comment", "A descriptive note").StringVar(&c.Input.Comment)
 	c.CmdClause.Flag("method", "Which HTTP method to use").StringVar(&c.Input.Method)
@@ -39,7 +40,6 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("window", "The number of most recent healthcheck queries to keep for this healthcheck").UintVar(&c.Input.Window)
 	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").UintVar(&c.Input.Threshold)
 	c.CmdClause.Flag("initial", "When loading a config, the initial number of probes to be seen as OK").UintVar(&c.Input.Initial)
-
 	return &c
 }
 
@@ -50,6 +50,16 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoServiceID
 	}
 	c.Input.ServiceID = serviceID
+
+	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+	c.Input.ServiceVersion = v.Number
 
 	h, err := c.Globals.Client.CreateHealthCheck(&c.Input)
 	if err != nil {
