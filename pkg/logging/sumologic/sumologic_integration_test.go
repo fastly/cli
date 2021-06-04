@@ -24,17 +24,32 @@ func TestSumologicCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log"},
+			args: []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				CloneVersionFn: testutil.CloneVersionResult(4),
+			},
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args:       []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
-			api:        mock.API{CreateSumologicFn: createSumologicOK},
-			wantOutput: "Created Sumologic logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetActiveVersion(1),
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				CreateSumologicFn: createSumologicOK,
+			},
+			wantOutput: "Created Sumologic logging endpoint log (service 123 version 4)",
 		},
 		{
-			args:      []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com"},
-			api:       mock.API{CreateSumologicFn: createSumologicError},
+			args: []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetInactiveVersion(1),
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				CreateSumologicFn: createSumologicError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -65,33 +80,57 @@ func TestSumologicList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
+			args: []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				ListSumologicsFn: listSumologicsOK,
+			},
 			wantOutput: listSumologicsShortOutput,
 		},
 		{
-			args:       []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1", "--verbose"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
+			args: []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				ListSumologicsFn: listSumologicsOK,
+			},
 			wantOutput: listSumologicsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1", "-v"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
+			args: []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1", "-v"},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				ListSumologicsFn: listSumologicsOK,
+			},
 			wantOutput: listSumologicsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "sumologic", "--verbose", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
+			args: []string{"logging", "sumologic", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				ListSumologicsFn: listSumologicsOK,
+			},
 			wantOutput: listSumologicsVerboseOutput,
 		},
 		{
-			args:       []string{"logging", "-v", "sumologic", "list", "--service-id", "123", "--version", "1"},
-			api:        mock.API{ListSumologicsFn: listSumologicsOK},
+			args: []string{"logging", "-v", "sumologic", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				ListSumologicsFn: listSumologicsOK,
+			},
 			wantOutput: listSumologicsVerboseOutput,
 		},
 		{
-			args:      []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1"},
-			api:       mock.API{ListSumologicsFn: listSumologicsError},
+			args: []string{"logging", "sumologic", "list", "--service-id", "123", "--version", "1"},
+			api: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetActiveVersion(1),
+				ListSumologicsFn: listSumologicsError,
+			},
 			wantError: errTest.Error(),
 		},
 	} {
@@ -126,13 +165,21 @@ func TestSumologicDescribe(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "sumologic", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{GetSumologicFn: getSumologicError},
+			args: []string{"logging", "sumologic", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				GetSumologicFn: getSumologicError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "sumologic", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{GetSumologicFn: getSumologicOK},
+			args: []string{"logging", "sumologic", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetActiveVersion(1),
+				GetSumologicFn: getSumologicOK,
+			},
 			wantOutput: describeSumologicOutput,
 		},
 	} {
@@ -167,14 +214,24 @@ func TestSumologicUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:       mock.API{UpdateSumologicFn: updateSumologicError},
+			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetActiveVersion(1),
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				UpdateSumologicFn: updateSumologicError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log"},
-			api:        mock.API{UpdateSumologicFn: updateSumologicOK},
-			wantOutput: "Updated Sumologic logging endpoint log (service 123 version 1)",
+			args: []string{"logging", "sumologic", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetActiveVersion(1),
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				UpdateSumologicFn: updateSumologicOK,
+			},
+			wantOutput: "Updated Sumologic logging endpoint log (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -208,14 +265,24 @@ func TestSumologicDelete(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:      []string{"logging", "sumologic", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:       mock.API{DeleteSumologicFn: deleteSumologicError},
+			args: []string{"logging", "sumologic", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetActiveVersion(1),
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				DeleteSumologicFn: deleteSumologicError,
+			},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"logging", "sumologic", "delete", "--service-id", "123", "--version", "1", "--name", "logs"},
-			api:        mock.API{DeleteSumologicFn: deleteSumologicOK},
-			wantOutput: "Deleted Sumologic logging endpoint logs (service 123 version 1)",
+			args: []string{"logging", "sumologic", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetActiveVersion(1),
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				DeleteSumologicFn: deleteSumologicOK,
+			},
+			wantOutput: "Deleted Sumologic logging endpoint logs (service 123 version 4)",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
