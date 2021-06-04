@@ -18,6 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/domain"
 	"github.com/fastly/cli/pkg/edgedictionary"
 	"github.com/fastly/cli/pkg/edgedictionaryitem"
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/healthcheck"
 	"github.com/fastly/cli/pkg/logging"
@@ -73,12 +74,12 @@ var (
 // The Run helper should NOT output any error-related information to the out
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
-func Run(args []string, env config.Environment, file config.File, configFilePath string, cf APIClientFactory, httpClient api.HTTPClient, cliVersioner update.Versioner, in io.Reader, out io.Writer) error {
+func Run(args []string, environ config.Environment, file config.File, configFilePath string, cf APIClientFactory, httpClient api.HTTPClient, cliVersioner update.Versioner, in io.Reader, out io.Writer) error {
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	globals := config.Data{
 		File:   file,
-		Env:    env,
+		Env:    environ,
 		Output: out,
 	}
 
@@ -107,7 +108,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	// WARNING: kingping has no way of decorating flags as being "global"
 	// therefore if you add/remove a global flag you will also need to update
 	// the globalFlag map in pkg/app/usage.go which is used for usage rendering.
-	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", config.EnvVarToken)
+	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
 	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
@@ -679,7 +680,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 		case config.SourceFlag:
 			fmt.Fprintf(out, "Fastly API token provided via --token\n")
 		case config.SourceEnvironment:
-			fmt.Fprintf(out, "Fastly API token provided via %s\n", config.EnvVarToken)
+			fmt.Fprintf(out, "Fastly API token provided via %s\n", env.Token)
 		case config.SourceFile:
 			fmt.Fprintf(out, "Fastly API token provided via config file\n")
 		default:
@@ -705,7 +706,7 @@ func Run(args []string, env config.Environment, file config.File, configFilePath
 	if globals.Verbose() {
 		switch source {
 		case config.SourceEnvironment:
-			fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n", config.EnvVarEndpoint, endpoint)
+			fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n", env.Endpoint, endpoint)
 		case config.SourceFile:
 			fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n", endpoint)
 		default:

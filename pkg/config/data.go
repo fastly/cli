@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/env"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/useragent"
@@ -237,7 +239,12 @@ func (f *File) Load(configEndpoint string, httpClient api.HTTPClient) error {
 	req.Header.Set("User-Agent", useragent.Name)
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return err
+		if errors.Is(err, context.DeadlineExceeded) {
+			return fsterr.RemediationError{
+				Inner:       err,
+				Remediation: fsterr.NetworkRemediation,
+			}
+		}
 	}
 	defer resp.Body.Close()
 
@@ -343,22 +350,10 @@ type Environment struct {
 	Endpoint string
 }
 
-const (
-	// EnvVarToken is the env var we look in for the Fastly API token.
-	// gosec flagged this:
-	// G101 (CWE-798): Potential hardcoded credentials
-	// Disabling as we use the value in the command help output.
-	/* #nosec */
-	EnvVarToken = "FASTLY_API_TOKEN"
-
-	// EnvVarEndpoint is the env var we look in for the API endpoint.
-	EnvVarEndpoint = "FASTLY_API_ENDPOINT"
-)
-
 // Read populates the fields from the provided environment.
-func (e *Environment) Read(env map[string]string) {
-	e.Token = env[EnvVarToken]
-	e.Endpoint = env[EnvVarEndpoint]
+func (e *Environment) Read(state map[string]string) {
+	e.Token = state[env.Token]
+	e.Endpoint = state[env.Endpoint]
 }
 
 // Flag represents all of the configuration parameters that can be set with

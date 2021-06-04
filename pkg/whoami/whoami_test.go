@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/update"
@@ -76,7 +77,7 @@ func TestWhoami(t *testing.T) {
 			client: verifyClient(basicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,
 				"Fastly API endpoint: https://api.fastly.com",
-				fmt.Sprintf("Fastly API endpoint (via %s): https://alternative.example.com", config.EnvVarEndpoint),
+				fmt.Sprintf("Fastly API endpoint (via %s): https://alternative.example.com", env.Endpoint),
 			),
 		},
 	} {

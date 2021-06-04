@@ -11,6 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -47,7 +48,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	case config.SourceFlag:
 		text.Output(out, "Fastly API endpoint (via --endpoint): %s", endpoint)
 	case config.SourceEnvironment:
-		text.Output(out, "Fastly API endpoint (via %s): %s", config.EnvVarEndpoint, endpoint)
+		text.Output(out, "Fastly API endpoint (via %s): %s", env.Endpoint, endpoint)
 	}
 
 	// Get the token provided by the user, if it was explicitly provided. If it
@@ -58,7 +59,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	case config.SourceFlag:
 		text.Output(out, "Fastly API token provided via --token")
 	case config.SourceEnvironment:
-		text.Output(out, "Fastly API token provided via %s", config.EnvVarToken)
+		text.Output(out, "Fastly API token provided via %s", env.Token)
 	default:
 		text.Output(out, `
 			An API token is used to authenticate requests to the Fastly API.
