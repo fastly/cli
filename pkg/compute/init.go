@@ -498,7 +498,7 @@ func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
 			return false, err
 		}
 
-		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/n] ", dir)
+		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
 		cont, err := text.Input(out, label, in)
 		if err != nil {
 			return false, fmt.Errorf("error reading input %w", err)
