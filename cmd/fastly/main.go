@@ -10,10 +10,10 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/check"
-	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/revision"
+	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
 )
@@ -36,7 +36,7 @@ func main() {
 		httpClient               = http.DefaultClient
 		cliVersioner             = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
 		in             io.Reader = os.Stdin
-		out            io.Writer = common.NewSyncWriter(os.Stdout)
+		out            io.Writer = sync.NewWriter(os.Stdout)
 	)
 
 	// We have to manually handle the inclusion of the verbose flag here because
