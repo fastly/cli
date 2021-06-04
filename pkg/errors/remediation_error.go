@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -54,12 +54,12 @@ var AuthRemediation = fmt.Sprintf(strings.Join([]string{
 	"Check that you're supplying a valid token, either via --token,",
 	"through the environment variable %s, or through the config file via `fastly configure`.",
 	"Verify that the token is still valid via `fastly whoami`.",
-}, " "), config.EnvVarToken)
+}, " "), env.Token)
 
 // NetworkRemediation suggests, somewhat unhelpfully, to try again later.
 var NetworkRemediation = strings.Join([]string{
 	"This error may be caused by transient network issues.",
-	"Please verify your network connection and try again.",
+	"Please verify your network connection and DNS configuration, and try again.",
 }, " ")
 
 // HostRemediation suggests there might be an issue with the local host.

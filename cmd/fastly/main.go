@@ -72,7 +72,7 @@ func main() {
 	}
 
 	if err != nil || file.CLI.Version != revision.SemVer(revision.AppVersion) {
-		err := file.Load(config.RemoteEndpoint, httpClient)
+		err := file.Load(config.RemoteEndpoint, httpClient, config.ConfigRequestTimeout)
 		if err != nil {
 			errors.RemediationError{
 				Inner:       err,
@@ -102,7 +102,7 @@ func main() {
 			text.Break(out)
 		}
 
-		err := file.Load(config.RemoteEndpoint, httpClient)
+		err := file.Load(config.RemoteEndpoint, httpClient, config.ConfigRequestTimeout)
 		if err != nil {
 			errors.RemediationError{
 				Inner:       err,
@@ -133,7 +133,7 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 			// NOTE: we no longer use the hardcoded config.RemoteEndpoint constant.
 			// Instead we rely on the values inside of the application
 			// configuration file to determine where to load the config from.
-			err := file.Load(file.CLI.RemoteConfig, httpClient)
+			err := file.Load(file.CLI.RemoteConfig, httpClient, config.ConfigRequestTimeout)
 			if err != nil {
 				errLoadConfig = errors.RemediationError{
 					Inner:       fmt.Errorf("there was a problem updating the versioning information for the Fastly CLI:\n\n%w", err),
