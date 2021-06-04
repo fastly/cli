@@ -1,4 +1,4 @@
-package common
+package exec
 
 import (
 	"bytes"
@@ -7,14 +7,13 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	// "sync"
 )
 
-// StreamingExec models a generic command execution that consumers can use to
+// Streaming models a generic command execution that consumers can use to
 // execute commands and stream their output to an io.Writer. For example
 // compute commands can use this to standardize the flow control for each
 // compiler toolchain.
-type StreamingExec struct {
+type Streaming struct {
 	command string
 	args    []string
 	env     []string
@@ -22,9 +21,9 @@ type StreamingExec struct {
 	output  io.Writer
 }
 
-// NewStreamingExec constructs a new StreamingExec instance.
-func NewStreamingExec(cmd string, args, env []string, verbose bool, out io.Writer) *StreamingExec {
-	return &StreamingExec{
+// NewStreaming constructs a new Streaming instance.
+func NewStreaming(cmd string, args, env []string, verbose bool, out io.Writer) *Streaming {
+	return &Streaming{
 		cmd,
 		args,
 		env,
@@ -36,7 +35,7 @@ func NewStreamingExec(cmd string, args, env []string, verbose bool, out io.Write
 // Exec executes the compiler command and pipes the child process stdout and
 // stderr output to the supplied io.Writer, it waits for the command to exit
 // cleanly or returns an error.
-func (s StreamingExec) Exec() error {
+func (s Streaming) Exec() error {
 	// Construct the command with given arguments and environment.
 	//
 	// gosec flagged this:

@@ -15,9 +15,9 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
@@ -352,7 +352,7 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
-	cmd := common.NewStreamingExec("cargo", args, os.Environ(), verbose, out)
+	cmd := fstexec.NewStreaming("cargo", args, os.Environ(), verbose, out)
 	if err := cmd.Exec(); err != nil {
 		return err
 	}
