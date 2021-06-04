@@ -1,6 +1,7 @@
 package papertrail
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -24,7 +25,7 @@ func TestCreatePapertrailInput(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreatePapertrailInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 				Address:        "example.com",
 			},
@@ -34,7 +35,7 @@ func TestCreatePapertrailInput(t *testing.T) {
 			cmd:  createCommandAll(),
 			want: &fastly.CreatePapertrailInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				Address:           "example.com",
 				Port:              22,
@@ -70,20 +71,30 @@ func TestUpdatePapertrailInput(t *testing.T) {
 		{
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
-			api:  mock.API{GetPapertrailFn: getPapertrailOK},
+			api: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetActiveVersion(1),
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetPapertrailFn: getPapertrailOK,
+			},
 			want: &fastly.UpdatePapertrailInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
-			api:  mock.API{GetPapertrailFn: getPapertrailOK},
+			api: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetActiveVersion(1),
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetPapertrailFn: getPapertrailOK,
+			},
 			want: &fastly.UpdatePapertrailInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Address:           fastly.String("new2"),
@@ -112,19 +123,69 @@ func TestUpdatePapertrailInput(t *testing.T) {
 }
 
 func createCommandRequired() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "log",
 		Address:      "example.com",
-		Version:      2,
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 	}
 }
 
 func createCommandAll() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetActiveVersion(1),
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "log",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 		Address:           "example.com",
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
@@ -141,20 +202,58 @@ func createCommandMissingServiceID() *CreateCommand {
 }
 
 func updateCommandNoUpdates() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "log",
-		Version:      2,
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 	}
 }
 
 func updateCommandAll() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "log",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{Value: true},
+		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
 		Port:              cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 23},
