@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -155,8 +155,8 @@ func createCommandRequired() *CreateCommand {
 		EndpointName: "log",
 		Version:      2,
 		BucketName:   "bucket",
-		AccessKey:    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "access"},
-		SecretKey:    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "secret"},
+		AccessKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
+		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
 	}
 }
 
@@ -166,7 +166,7 @@ func createCommandRequiredIAMRole() *CreateCommand {
 		EndpointName: "log",
 		Version:      2,
 		BucketName:   "bucket",
-		IAMRole:      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/S3Access"},
+		IAMRole:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/S3Access"},
 	}
 }
 
@@ -176,22 +176,22 @@ func createCommandAll() *CreateCommand {
 		EndpointName:                 "logs",
 		Version:                      2,
 		BucketName:                   "bucket",
-		AccessKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "access"},
-		SecretKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "secret"},
-		Domain:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "domain"},
-		Path:                         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "path"},
-		Period:                       common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3600},
-		Format:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:                common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
-		MessageType:                  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "classic"},
-		ResponseCondition:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
-		TimestampFormat:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		Placement:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
-		PublicKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: pgpPublicKey()},
-		Redundancy:                   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: string(fastly.S3RedundancyStandard)},
-		ServerSideEncryption:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionAES)},
-		ServerSideEncryptionKMSKeyID: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "kmskey"},
-		CompressionCodec:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "zstd"},
+		AccessKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
+		SecretKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
+		Domain:                       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "domain"},
+		Path:                         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "path"},
+		Period:                       cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3600},
+		Format:                       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:                cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		MessageType:                  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
+		ResponseCondition:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
+		TimestampFormat:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		Placement:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		PublicKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: pgpPublicKey()},
+		Redundancy:                   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: string(fastly.S3RedundancyStandard)},
+		ServerSideEncryption:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionAES)},
+		ServerSideEncryptionKMSKeyID: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "kmskey"},
+		CompressionCodec:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -203,7 +203,7 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName: "log",
 		Version:      2,
@@ -212,30 +212,30 @@ func updateCommandNoUpdates() *UpdateCommand {
 
 func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
-		Base:                         common.Base{Globals: &config.Data{Client: nil}},
+		Base:                         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:                     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:                 "log",
 		Version:                      2,
-		NewName:                      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
-		BucketName:                   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
-		AccessKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
-		SecretKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
-		IAMRole:                      common.OptionalString{Optional: common.Optional{WasSet: true}, Value: ""},
-		Domain:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
-		Path:                         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
-		Period:                       common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:                    common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 0},
-		Format:                       common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:                common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
-		MessageType:                  common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
-		ResponseCondition:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
-		TimestampFormat:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
-		Placement:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new11"},
-		Redundancy:                   common.OptionalString{Optional: common.Optional{WasSet: true}, Value: string(fastly.S3RedundancyReduced)},
-		ServerSideEncryption:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionKMS)},
-		ServerSideEncryptionKMSKeyID: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new12"},
-		PublicKey:                    common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new13"},
-		CompressionCodec:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new14"},
+		NewName:                      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
+		BucketName:                   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
+		AccessKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
+		SecretKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
+		IAMRole:                      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: ""},
+		Domain:                       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		Path:                         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
+		Period:                       cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3601},
+		GzipLevel:                    cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 0},
+		Format:                       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:                cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		MessageType:                  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
+		ResponseCondition:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
+		TimestampFormat:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
+		Placement:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
+		Redundancy:                   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: string(fastly.S3RedundancyReduced)},
+		ServerSideEncryption:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionKMS)},
+		ServerSideEncryptionKMSKeyID: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
+		PublicKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
+		CompressionCodec:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new14"},
 	}
 }
 

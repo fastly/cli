@@ -3,7 +3,7 @@ package splunk
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,29 +13,29 @@ import (
 
 // CreateCommand calls the Fastly API to create a Splunk logging endpoint.
 type CreateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
+	EndpointName string // Can't shadow cmd.Base method Name().
 	Version      int
 	URL          string
 
 	// optional
-	TLSHostname       common.OptionalString
-	TLSCACert         common.OptionalString
-	TLSClientCert     common.OptionalString
-	TLSClientKey      common.OptionalString
-	Format            common.OptionalString
-	FormatVersion     common.OptionalUint
-	ResponseCondition common.OptionalString
-	Token             common.OptionalString
-	TimestampFormat   common.OptionalString
-	Placement         common.OptionalString
+	TLSHostname       cmd.OptionalString
+	TLSCACert         cmd.OptionalString
+	TLSClientCert     cmd.OptionalString
+	TLSClientKey      cmd.OptionalString
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalUint
+	ResponseCondition cmd.OptionalString
+	Token             cmd.OptionalString
+	TimestampFormat   cmd.OptionalString
+	Placement         cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

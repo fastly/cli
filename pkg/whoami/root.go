@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/useragent"
@@ -18,12 +18,12 @@ import (
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	common.Base
+	cmd.Base
 	client api.HTTPClient
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.client = client

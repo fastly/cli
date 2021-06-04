@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/filesystem"
@@ -64,7 +64,7 @@ func NewLanguage(options *LanguageOptions) *Language {
 
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
-	common.Base
+	cmd.Base
 	client api.HTTPClient
 
 	// NOTE: these are public so that the "publish" composite command can set the
@@ -76,7 +76,7 @@ type BuildCommand struct {
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent common.Registerer, client api.HTTPClient, globals *config.Data) *BuildCommand {
+func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *BuildCommand {
 	var c BuildCommand
 	c.Globals = globals
 	c.client = client

@@ -1,4 +1,4 @@
-package common
+package cmd
 
 import (
 	"io"
@@ -16,8 +16,8 @@ type Command interface {
 	Exec(in io.Reader, out io.Writer) error
 }
 
-// SelectCommand chooses the command matching name, if it exists.
-func SelectCommand(name string, commands []Command) (Command, bool) {
+// Select chooses the command matching name, if it exists.
+func Select(name string, commands []Command) (Command, bool) {
 	for _, command := range commands {
 		if command.Name() == name {
 			return command, true

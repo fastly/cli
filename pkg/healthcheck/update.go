@@ -3,7 +3,7 @@ package healthcheck
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,26 +13,26 @@ import (
 
 // UpdateCommand calls the Fastly API to update healthchecks.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	input    fastly.UpdateHealthCheckInput
 
-	NewName          common.OptionalString
-	Comment          common.OptionalString
-	Method           common.OptionalString
-	Host             common.OptionalString
-	Path             common.OptionalString
-	HTTPVersion      common.OptionalString
-	Timeout          common.OptionalUint
-	CheckInterval    common.OptionalUint
-	ExpectedResponse common.OptionalUint
-	Window           common.OptionalUint
-	Threshold        common.OptionalUint
-	Initial          common.OptionalUint
+	NewName          cmd.OptionalString
+	Comment          cmd.OptionalString
+	Method           cmd.OptionalString
+	Host             cmd.OptionalString
+	Path             cmd.OptionalString
+	HTTPVersion      cmd.OptionalString
+	Timeout          cmd.OptionalUint
+	CheckInterval    cmd.OptionalUint
+	ExpectedResponse cmd.OptionalUint
+	Window           cmd.OptionalUint
+	Threshold        cmd.OptionalUint
+	Initial          cmd.OptionalUint
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

@@ -3,7 +3,7 @@ package azureblob
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,7 +13,7 @@ import (
 
 // UpdateCommand calls the Fastly API to update an Azure Blob Storage logging endpoint.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	//required
@@ -21,26 +21,26 @@ type UpdateCommand struct {
 	Version      int
 
 	// optional
-	NewName           common.OptionalString
-	AccountName       common.OptionalString
-	Container         common.OptionalString
-	SASToken          common.OptionalString
-	Path              common.OptionalString
-	Period            common.OptionalUint
-	GzipLevel         common.OptionalUint
-	MessageType       common.OptionalString
-	Format            common.OptionalString
-	FormatVersion     common.OptionalUint
-	ResponseCondition common.OptionalString
-	TimestampFormat   common.OptionalString
-	Placement         common.OptionalString
-	PublicKey         common.OptionalString
-	FileMaxBytes      common.OptionalUint
-	CompressionCodec  common.OptionalString
+	NewName           cmd.OptionalString
+	AccountName       cmd.OptionalString
+	Container         cmd.OptionalString
+	SASToken          cmd.OptionalString
+	Path              cmd.OptionalString
+	Period            cmd.OptionalUint
+	GzipLevel         cmd.OptionalUint
+	MessageType       cmd.OptionalString
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalUint
+	ResponseCondition cmd.OptionalString
+	TimestampFormat   cmd.OptionalString
+	Placement         cmd.OptionalString
+	PublicKey         cmd.OptionalString
+	FileMaxBytes      cmd.OptionalUint
+	CompressionCodec  cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

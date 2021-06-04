@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -16,7 +16,7 @@ const statusSuccess = "success"
 
 // HistoricalCommand exposes the Historical Stats API.
 type HistoricalCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	Input      fastly.GetStatsInput
@@ -24,7 +24,7 @@ type HistoricalCommand struct {
 }
 
 // NewHistoricalCommand is the "stats historical" subcommand.
-func NewHistoricalCommand(parent common.Registerer, globals *config.Data) *HistoricalCommand {
+func NewHistoricalCommand(parent cmd.Registerer, globals *config.Data) *HistoricalCommand {
 	var c HistoricalCommand
 	c.Globals = globals
 

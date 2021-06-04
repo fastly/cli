@@ -3,7 +3,7 @@ package backend
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -11,38 +11,38 @@ import (
 
 // UpdateCommand calls the Fastly API to update backends.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	Input fastly.GetBackendInput
 
-	NewName             common.OptionalString
-	Comment             common.OptionalString
-	Address             common.OptionalString
-	Port                common.OptionalUint
-	OverrideHost        common.OptionalString
-	ConnectTimeout      common.OptionalUint
-	MaxConn             common.OptionalUint
-	FirstByteTimeout    common.OptionalUint
-	BetweenBytesTimeout common.OptionalUint
-	AutoLoadbalance     common.OptionalBool
-	Weight              common.OptionalUint
-	RequestCondition    common.OptionalString
-	HealthCheck         common.OptionalString
-	Hostname            common.OptionalString
-	Shield              common.OptionalString
-	UseSSL              common.OptionalBool
-	SSLCheckCert        common.OptionalBool
-	SSLCACert           common.OptionalString
-	SSLClientCert       common.OptionalString
-	SSLClientKey        common.OptionalString
-	SSLCertHostname     common.OptionalString
-	SSLSNIHostname      common.OptionalString
-	MinTLSVersion       common.OptionalString
-	MaxTLSVersion       common.OptionalString
-	SSLCiphers          common.OptionalStringSlice
+	NewName             cmd.OptionalString
+	Comment             cmd.OptionalString
+	Address             cmd.OptionalString
+	Port                cmd.OptionalUint
+	OverrideHost        cmd.OptionalString
+	ConnectTimeout      cmd.OptionalUint
+	MaxConn             cmd.OptionalUint
+	FirstByteTimeout    cmd.OptionalUint
+	BetweenBytesTimeout cmd.OptionalUint
+	AutoLoadbalance     cmd.OptionalBool
+	Weight              cmd.OptionalUint
+	RequestCondition    cmd.OptionalString
+	HealthCheck         cmd.OptionalString
+	Hostname            cmd.OptionalString
+	Shield              cmd.OptionalString
+	UseSSL              cmd.OptionalBool
+	SSLCheckCert        cmd.OptionalBool
+	SSLCACert           cmd.OptionalString
+	SSLClientCert       cmd.OptionalString
+	SSLClientKey        cmd.OptionalString
+	SSLCertHostname     cmd.OptionalString
+	SSLSNIHostname      cmd.OptionalString
+	MinTLSVersion       cmd.OptionalString
+	MaxTLSVersion       cmd.OptionalString
+	SSLCiphers          cmd.OptionalStringSlice
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update a backend on a Fastly service version")

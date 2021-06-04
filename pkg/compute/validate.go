@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/mholt/archiver/v3"
@@ -68,12 +68,12 @@ func validate(path string) error {
 
 // ValidateCommand validates a package archive.
 type ValidateCommand struct {
-	common.Base
+	cmd.Base
 	path string
 }
 
 // NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent common.Registerer, globals *config.Data) *ValidateCommand {
+func NewValidateCommand(parent cmd.Registerer, globals *config.Data) *ValidateCommand {
 	var c ValidateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("validate", "Validate a Compute@Edge package")

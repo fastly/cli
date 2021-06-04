@@ -5,7 +5,7 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -16,13 +16,13 @@ import (
 
 // PackCommand takes a .wasm and builds the required tar/gzip package ready to be uploaded.
 type PackCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	path     string
 }
 
 // NewPackCommand returns a usable command registered under the parent.
-func NewPackCommand(parent common.Registerer, globals *config.Data) *PackCommand {
+func NewPackCommand(parent cmd.Registerer, globals *config.Data) *PackCommand {
 	var c PackCommand
 	c.Globals = globals
 

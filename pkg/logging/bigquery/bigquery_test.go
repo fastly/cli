@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -147,11 +147,11 @@ func createCommandAll() *CreateCommand {
 		Table:             "table",
 		User:              "user",
 		SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
-		Template:          common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "template"},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "none"},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 2},
+		Template:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "template"},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
 	}
 }
 
@@ -163,7 +163,7 @@ func createCommandMissingServiceID() *CreateCommand {
 
 func updateCommandNoUpdates() *UpdateCommand {
 	return &UpdateCommand{
-		Base:         common.Base{Globals: &config.Data{Client: nil}},
+		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName: "log",
 		Version:      2,
@@ -172,21 +172,21 @@ func updateCommandNoUpdates() *UpdateCommand {
 
 func updateCommandAll() *UpdateCommand {
 	return &UpdateCommand{
-		Base:              common.Base{Globals: &config.Data{Client: nil}},
+		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
 		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
 		EndpointName:      "log",
 		Version:           2,
-		NewName:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new1"},
-		ProjectID:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new2"},
-		Dataset:           common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new3"},
-		Table:             common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new4"},
-		User:              common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new5"},
-		SecretKey:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new6"},
-		Template:          common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new7"},
-		ResponseCondition: common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new8"},
-		Placement:         common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new9"},
-		Format:            common.OptionalString{Optional: common.Optional{WasSet: true}, Value: "new10"},
-		FormatVersion:     common.OptionalUint{Optional: common.Optional{WasSet: true}, Value: 3},
+		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
+		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
+		Dataset:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
+		Table:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
+		Template:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
+		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
+		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
+		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
+		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
 	}
 }
 

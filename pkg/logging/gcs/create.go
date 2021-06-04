@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -14,31 +14,31 @@ import (
 
 // CreateCommand calls the Fastly API to create a GCS logging endpoint.
 type CreateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow common.Base method Name().
+	EndpointName string // Can't shadow cmd.Base method Name().
 	Version      int
 	Bucket       string
 	User         string
 	SecretKey    string
 
 	// optional
-	Path              common.OptionalString
-	Period            common.OptionalUint
-	GzipLevel         common.OptionalUint8
-	Format            common.OptionalString
-	FormatVersion     common.OptionalUint
-	MessageType       common.OptionalString
-	ResponseCondition common.OptionalString
-	TimestampFormat   common.OptionalString
-	Placement         common.OptionalString
-	CompressionCodec  common.OptionalString
+	Path              cmd.OptionalString
+	Period            cmd.OptionalUint
+	GzipLevel         cmd.OptionalUint8
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalUint
+	MessageType       cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	TimestampFormat   cmd.OptionalString
+	Placement         cmd.OptionalString
+	CompressionCodec  cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

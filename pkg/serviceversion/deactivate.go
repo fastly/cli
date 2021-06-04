@@ -3,7 +3,7 @@ package serviceversion
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,13 +13,13 @@ import (
 
 // DeactivateCommand calls the Fastly API to deactivate a service version.
 type DeactivateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	Input    fastly.DeactivateVersionInput
 }
 
 // NewDeactivateCommand returns a usable command registered under the parent.
-func NewDeactivateCommand(parent common.Registerer, globals *config.Data) *DeactivateCommand {
+func NewDeactivateCommand(parent cmd.Registerer, globals *config.Data) *DeactivateCommand {
 	var c DeactivateCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)

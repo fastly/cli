@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -14,16 +14,16 @@ import (
 
 // UpdateCommand calls the Fastly API to update domains.
 type UpdateCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	input    fastly.UpdateDomainInput
 
-	NewName common.OptionalString
-	Comment common.OptionalString
+	NewName cmd.OptionalString
+	Comment cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent common.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update a domain on a Fastly service version")

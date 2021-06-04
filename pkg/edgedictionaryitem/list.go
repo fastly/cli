@@ -3,7 +3,7 @@ package edgedictionaryitem
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -13,13 +13,13 @@ import (
 
 // ListCommand calls the Fastly API to list dictionary items.
 type ListCommand struct {
-	common.Base
+	cmd.Base
 	manifest manifest.Data
 	Input    fastly.ListDictionaryItemsInput
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent common.Registerer, globals *config.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
