@@ -122,7 +122,7 @@ func getLatestActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 			return v, nil
 		}
 	}
-	return nil, fmt.Errorf("error locating latest active service version")
+	return nil, fmt.Errorf("no active service version found")
 }
 
 // getLatestEditableVersion returns the latest editable service version.
@@ -145,7 +145,7 @@ func getLatestEditableVersion(vs []*fastly.Version) (*fastly.Version, error) {
 		if v.Active {
 			break
 		}
-		if !v.Active && !v.Locked {
+		if !v.Locked {
 			return v, nil
 		}
 	}
@@ -168,5 +168,5 @@ func getSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version,
 		}
 	}
 
-	return nil, fmt.Errorf("error getting specified service version: %s", version)
+	return nil, fmt.Errorf("specified service version not found: %s", version)
 }
