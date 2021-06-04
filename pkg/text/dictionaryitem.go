@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/common"
+	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/segmentio/textio"
 )
@@ -19,13 +19,13 @@ func PrintDictionaryItem(out io.Writer, prefix string, d *fastly.DictionaryItem)
 	fmt.Fprintf(out, "Item Key: %s\n", d.ItemKey)
 	fmt.Fprintf(out, "Item Value: %s\n", d.ItemValue)
 	if d.CreatedAt != nil {
-		fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(time.Format))
 	}
 	if d.UpdatedAt != nil {
-		fmt.Fprintf(out, "Last edited (UTC): %s\n", d.UpdatedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Last edited (UTC): %s\n", d.UpdatedAt.UTC().Format(time.Format))
 	}
 	if d.DeletedAt != nil {
-		fmt.Fprintf(out, "Deleted (UTC): %s\n", d.DeletedAt.UTC().Format(common.TimeFormat))
+		fmt.Fprintf(out, "Deleted (UTC): %s\n", d.DeletedAt.UTC().Format(time.Format))
 	}
 }
 
