@@ -111,7 +111,7 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, c api.Interfac
 	return v, nil
 }
 
-// getLatestActiveVersion returns the latest active service version.
+// getLatestActiveVersion returns the active service version.
 func getLatestActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	for _, v := range vs {
 		if v.Active {
