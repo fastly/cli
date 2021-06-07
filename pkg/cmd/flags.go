@@ -96,7 +96,7 @@ type OptionalAutoClone struct {
 //
 // The returned version is either the same as the input argument `v` or it's a
 // cloned version if the input argument was either active or locked.
-func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string) (*fastly.Version, error) {
+func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool) (*fastly.Version, error) {
 	// if user didn't provide --autoclone flag
 	if !ac.Value && (v.Active || v.Locked) {
 		return nil, fmt.Errorf("service version %d is not editable", v.Number)
@@ -109,9 +109,11 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string) (*fastly.Versi
 		if err != nil {
 			return nil, fmt.Errorf("error cloning service version: %w", err)
 		}
-		msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.", v.Number, version.Number)
-		text.Output(ac.Out, msg)
-		text.Break(ac.Out)
+		if verbose {
+			msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.", v.Number, version.Number)
+			text.Output(ac.Out, msg)
+			text.Break(ac.Out)
+		}
 		return version, nil
 	}
 

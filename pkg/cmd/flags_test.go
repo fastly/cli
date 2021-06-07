@@ -287,7 +287,8 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 				}
 			}
 
-			v, err := acv.Parse(c.version, "123")
+			verboseMode := true
+			v, err := acv.Parse(c.version, "123", verboseMode)
 			if err != nil {
 				if c.errExpected && errMatches(c.version.Number, err) {
 					return
@@ -309,7 +310,7 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 			if !c.expectEditable {
 				want := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.", c.version.Number, v.Number)
 				have := strings.Trim(strings.ReplaceAll(buf.String(), "\n", " "), " ")
-				if !strings.Contains(want, have) {
+				if !strings.Contains(have, want) {
 					t.Errorf("wanted %s, have %s", want, have)
 				}
 			}
