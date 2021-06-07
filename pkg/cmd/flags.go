@@ -24,10 +24,10 @@ type ServiceVersionFlagOpts struct {
 	Action   kingpin.Action
 }
 
-// NewServiceVersionFlag defines a --version flag that accepts multiple values
+// SetServiceVersionFlag defines a --version flag that accepts multiple values
 // such as 'latest', 'active' and numerical values which are then converted
 // into the appropriate service version.
-func (b Base) NewServiceVersionFlag(opts ServiceVersionFlagOpts, args ...string) {
+func (b Base) SetServiceVersionFlag(opts ServiceVersionFlagOpts, args ...string) {
 	clause := b.CmdClause.Flag("version", "'latest', 'active', or the number of a specific version")
 	if !opts.Optional {
 		clause = clause.Required()
@@ -37,9 +37,9 @@ func (b Base) NewServiceVersionFlag(opts ServiceVersionFlagOpts, args ...string)
 	clause.StringVar(opts.Dst)
 }
 
-// NewAutoCloneFlag defines a --autoclone flag that will cause a clone of the
+// SetAutoCloneFlag defines a --autoclone flag that will cause a clone of the
 // identified service version if its found to be active or locked.
-func (b Base) NewAutoCloneFlag(action kingpin.Action, dst *bool) {
+func (b Base) SetAutoCloneFlag(action kingpin.Action, dst *bool) {
 	b.CmdClause.Flag("autoclone", "If the selected service version is not editable, clone it and use the clone.").Action(action).BoolVar(dst)
 }
 
