@@ -5,7 +5,9 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -13,6 +15,7 @@ import (
 // ListCommand calls the Fastly API to list backends.
 type ListCommand struct {
 	cmd.Base
+	manifest       manifest.Data
 	Input          fastly.ListBackendsInput
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -21,14 +24,26 @@ type ListCommand struct {
 func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
+	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List backends on a Fastly service version")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.ServiceID)
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+	serviceID, source := c.manifest.ServiceID()
+	if source == manifest.SourceUndefined {
+		return errors.ErrNoServiceID
+	}
+	c.Input.ServiceID = serviceID
+
+	// TODO(integralist): replace this surrounding code with cmd.ServiceDetails
+	// once we have conditional boolean for the autoclone logic
 	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
 	if err != nil {
 		return err

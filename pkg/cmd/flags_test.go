@@ -48,11 +48,7 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			sv := &OptionalServiceVersion{
-				Client: mock.API{
-					ListVersionsFn: listVersions,
-				},
-			}
+			sv := &OptionalServiceVersion{}
 
 			if !c.flagOmitted {
 				sv.OptionalString = OptionalString{
@@ -60,7 +56,9 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 				}
 			}
 
-			v, err := sv.Parse("123")
+			v, err := sv.Parse("123", mock.API{
+				ListVersionsFn: listVersions,
+			})
 			if err != nil {
 				if c.errExpected {
 					return
@@ -277,10 +275,6 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 				acv = &OptionalAutoClone{}
 			} else {
 				acv = &OptionalAutoClone{
-					Client: mock.API{
-						CloneVersionFn: cloneVersionResult(c.version.Number + 1),
-					},
-					Out: buf,
 					OptionalBool: OptionalBool{
 						Value: true,
 					},
@@ -288,7 +282,9 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 			}
 
 			verboseMode := true
-			v, err := acv.Parse(c.version, "123", verboseMode)
+			v, err := acv.Parse(c.version, "123", verboseMode, buf, mock.API{
+				CloneVersionFn: cloneVersionResult(c.version.Number + 1),
+			})
 			if err != nil {
 				if c.errExpected && errMatches(c.version.Number, err) {
 					return

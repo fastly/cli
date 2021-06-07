@@ -6,7 +6,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -37,8 +36,13 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Loggly logging endpoint on a Fastly service version")
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
-	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.CmdClause.Flag("name", "The name of the Loggly logging object").Short('n').Required().StringVar(&c.EndpointName)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Loggly logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
@@ -51,24 +55,10 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 }
 
 // createInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *UpdateCommand) createInput() (*fastly.UpdateLogglyInput, error) {
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return nil, errors.ErrNoServiceID
-	}
-
-	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
-	if err != nil {
-		return nil, err
-	}
-	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *UpdateCommand) createInput(serviceID string, serviceVersion int) (*fastly.UpdateLogglyInput, error) {
 	input := fastly.UpdateLogglyInput{
 		ServiceID:      serviceID,
-		ServiceVersion: v.Number,
+		ServiceVersion: serviceVersion,
 		Name:           c.EndpointName,
 	}
 
@@ -101,7 +91,12 @@ func (c *UpdateCommand) createInput() (*fastly.UpdateLogglyInput, error) {
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	input, err := c.createInput()
+	serviceID, serviceVersion, err := cmd.ServiceDetails(c.manifest, c.serviceVersion, c.autoClone, c.Globals.Flag.Verbose, out, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+
+	input, err := c.createInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}

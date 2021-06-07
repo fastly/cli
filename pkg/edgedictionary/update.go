@@ -34,8 +34,13 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update name of dictionary on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
-	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.CmdClause.Flag("name", "Old name of Dictionary").Short('n').Required().StringVar(&c.input.Name)
 	c.CmdClause.Flag("new-name", "New name of Dictionary").Action(c.newname.Set).StringVar(&c.newname.Value)
 	c.CmdClause.Flag("write-only", "Whether to mark this dictionary as write-only. Can be true or false (defaults to false)").Action(c.writeOnly.Set).StringVar(&c.writeOnly.Value)
@@ -44,21 +49,13 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+	serviceID, serviceVersion, err := cmd.ServiceDetails(c.manifest, c.serviceVersion, c.autoClone, c.Globals.Flag.Verbose, out, c.Globals.Client)
+	if err != nil {
+		return err
 	}
-	c.input.ServiceID = serviceID
 
-	v, err := c.serviceVersion.Parse(c.input.ServiceID, c.Globals.Client)
-	if err != nil {
-		return err
-	}
-	v, err = c.autoClone.Parse(v, c.input.ServiceID, c.Globals.Client)
-	if err != nil {
-		return err
-	}
-	c.input.ServiceVersion = v.Number
+	c.input.ServiceID = serviceID
+	c.input.ServiceVersion = serviceVersion.Number
 
 	if !c.newname.WasSet && !c.writeOnly.WasSet {
 		return errors.RemediationError{Inner: fmt.Errorf("error parsing arguments: required flag --new-name or --write-only not provided"), Remediation: "To fix this error, provide at least one of the aforementioned flags"}

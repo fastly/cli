@@ -27,7 +27,9 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCo
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("describe", "Show detailed information about an OpenStack logging endpoint on a Fastly service version").Alias("get")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
 	c.CmdClause.Flag("name", "The name of the OpenStack logging object").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
@@ -40,6 +42,8 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
+	// TODO(integralist): replace this surrounding code with cmd.ServiceDetails
+	// once we have conditional boolean for the autoclone logic
 	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
 	if err != nil {
 		return err

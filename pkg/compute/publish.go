@@ -49,8 +49,15 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 
 	// Deploy flags
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value, Optional: true, Action: c.serviceVersion.Set})
-	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst:      &c.serviceVersion.Value,
+		Optional: true,
+		Action:   c.serviceVersion.Set,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").Action(c.backend.Set).StringVar(&c.backend.Value)

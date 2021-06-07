@@ -15,10 +15,11 @@ import (
 
 func TestCreateKafkaInput(t *testing.T) {
 	for _, testcase := range []struct {
-		name      string
-		cmd       *CreateCommand
-		want      *fastly.CreateKafkaInput
-		wantError string
+		name          string
+		cmd           *CreateCommand
+		want          *fastly.CreateKafkaInput
+		wantError     string
+		wantSASLError string
 	}{
 		{
 			name: "required values set flag serviceID",
@@ -76,52 +77,70 @@ func TestCreateKafkaInput(t *testing.T) {
 			},
 		},
 		{
-			name:      "verify SASL validation: missing username",
-			cmd:       createCommandSASL("scram-sha-256", "", "password"),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
+			name:          "verify SASL validation: missing username",
+			cmd:           createCommandSASL("scram-sha-256", "", "password"),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
-			name:      "verify SASL validation: missing password",
-			cmd:       createCommandSASL("plain", "user", ""),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
+			name:          "verify SASL validation: missing password",
+			cmd:           createCommandSASL("plain", "user", ""),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
-			name:      "verify SASL validation: username with no auth method or password",
-			cmd:       createCommandSASL("", "user1", ""),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
+			name:          "verify SASL validation: username with no auth method or password",
+			cmd:           createCommandSASL("", "user1", ""),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
-			name:      "verify SASL validation: password with no auth method",
-			cmd:       createCommandSASL("", "", "password"),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
+			name:          "verify SASL validation: password with no auth method",
+			cmd:           createCommandSASL("", "", "password"),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 
 		{
-			name:      "verify SASL validation: no SASL, but auth-method given",
-			cmd:       createCommandNoSASL("scram-sha-256", "", ""),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified",
+			name:          "verify SASL validation: no SASL, but auth-method given",
+			cmd:           createCommandNoSASL("scram-sha-256", "", ""),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified",
 		},
 		{
-			name:      "verify SASL validation: no SASL, but username with given",
-			cmd:       createCommandNoSASL("", "user1", ""),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified",
+			name:          "verify SASL validation: no SASL, but username with given",
+			cmd:           createCommandNoSASL("", "user1", ""),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified",
 		},
 		{
-			name:      "verify SASL validation: no SASL, but password given",
-			cmd:       createCommandNoSASL("", "", "password"),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified",
+			name:          "verify SASL validation: no SASL, but password given",
+			cmd:           createCommandNoSASL("", "", "password"),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			have, err := testcase.cmd.createInput()
-			testutil.AssertErrorContains(t, err, testcase.wantError)
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
+
+			serviceID, serviceVersion, err := cmd.ServiceDetails(testcase.cmd.manifest, testcase.cmd.serviceVersion, testcase.cmd.autoClone, verboseMode, out, testcase.cmd.Base.Globals.Client)
+			if err != nil {
+				if testcase.wantError == "" {
+					t.Fatalf("unexpected error getting service details: %v", err)
+				}
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				return
+			}
+			if err == nil {
+				if testcase.wantError != "" {
+					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+				}
+			}
+
+			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
+			testutil.AssertErrorContains(t, err, testcase.wantSASLError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
@@ -129,11 +148,12 @@ func TestCreateKafkaInput(t *testing.T) {
 
 func TestUpdateKafkaInput(t *testing.T) {
 	for _, testcase := range []struct {
-		name      string
-		cmd       *UpdateCommand
-		api       mock.API
-		want      *fastly.UpdateKafkaInput
-		wantError string
+		name          string
+		cmd           *UpdateCommand
+		api           mock.API
+		want          *fastly.UpdateKafkaInput
+		wantError     string
+		wantSASLError string
 	}{
 		{
 			name: "all values set flag serviceID",
@@ -242,9 +262,9 @@ func TestUpdateKafkaInput(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
-			cmd:       updateCommandSASL("scram-sha-256", "", "password"),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
+			cmd:           updateCommandSASL("scram-sha-256", "", "password"),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
 			name: "verify SASL validation: missing password",
@@ -254,9 +274,9 @@ func TestUpdateKafkaInput(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
-			cmd:       updateCommandSASL("plain", "user", ""),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
+			cmd:           updateCommandSASL("plain", "user", ""),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
 			name: "verify SASL validation: username with no auth method",
@@ -266,9 +286,9 @@ func TestUpdateKafkaInput(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
-			cmd:       updateCommandSASL("", "user1", ""),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
+			cmd:           updateCommandSASL("", "user1", ""),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 		{
 			name: "verify SASL validation: password with no auth method",
@@ -278,16 +298,34 @@ func TestUpdateKafkaInput(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetKafkaFn:     getKafkaOK,
 			},
-			cmd:       updateCommandSASL("", "", "password"),
-			want:      nil,
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
+			cmd:           updateCommandSASL("", "", "password"),
+			want:          nil,
+			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Base.Globals.Client = testcase.api
 
-			have, err := testcase.cmd.createInput()
-			testutil.AssertErrorContains(t, err, testcase.wantError)
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
+
+			serviceID, serviceVersion, err := cmd.ServiceDetails(testcase.cmd.manifest, testcase.cmd.serviceVersion, testcase.cmd.autoClone, verboseMode, out, testcase.api)
+			if err != nil {
+				if testcase.wantError == "" {
+					t.Fatalf("unexpected error getting service details: %v", err)
+				}
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				return
+			}
+			if err == nil {
+				if testcase.wantError != "" {
+					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+				}
+			}
+
+			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
+			testutil.AssertErrorContains(t, err, testcase.wantSASLError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}

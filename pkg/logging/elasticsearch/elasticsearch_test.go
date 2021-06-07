@@ -63,7 +63,25 @@ func TestCreateElasticsearchInput(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			have, err := testcase.cmd.createInput()
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
+
+			serviceID, serviceVersion, err := cmd.ServiceDetails(testcase.cmd.manifest, testcase.cmd.serviceVersion, testcase.cmd.autoClone, verboseMode, out, testcase.cmd.Base.Globals.Client)
+			if err != nil {
+				if testcase.wantError == "" {
+					t.Fatalf("unexpected error getting service details: %v", err)
+				}
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				return
+			}
+			if err == nil {
+				if testcase.wantError != "" {
+					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+				}
+			}
+
+			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -134,7 +152,25 @@ func TestUpdateElasticsearchInput(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Base.Globals.Client = testcase.api
 
-			have, err := testcase.cmd.createInput()
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
+
+			serviceID, serviceVersion, err := cmd.ServiceDetails(testcase.cmd.manifest, testcase.cmd.serviceVersion, testcase.cmd.autoClone, verboseMode, out, testcase.api)
+			if err != nil {
+				if testcase.wantError == "" {
+					t.Fatalf("unexpected error getting service details: %v", err)
+				}
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				return
+			}
+			if err == nil {
+				if testcase.wantError != "" {
+					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+				}
+			}
+
+			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})

@@ -61,8 +61,15 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.ServiceVersion.Value, Optional: true, Action: c.ServiceVersion.Set}, "true")
-	c.NewAutoCloneFlag(c.AutoClone.Set, &c.AutoClone.Value)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst:      &c.ServiceVersion.Value,
+		Optional: true,
+		Action:   c.ServiceVersion.Set,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.AutoClone.Set,
+		Dst:    &c.AutoClone.Value,
+	})
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.Backend)
@@ -121,7 +128,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
-		version, err = c.AutoClone.Parse(version, serviceID, c.Globals.Client)
+		version, err = c.AutoClone.Parse(version, serviceID, c.Globals.Flag.Verbose, out, c.Globals.Client)
 		if err != nil {
 			return err
 		}

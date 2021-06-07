@@ -27,7 +27,9 @@ func NewCloneCommand(parent cmd.Registerer, globals *config.Data) *CloneCommand 
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("clone", "Clone a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
 	return &c
 }
 
@@ -39,6 +41,8 @@ func (c *CloneCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
+	// TODO(integralist): replace this surrounding code with cmd.ServiceDetails
+	// once we have conditional boolean for the autoclone logic
 	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
 	if err != nil {
 		return err

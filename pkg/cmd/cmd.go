@@ -4,7 +4,10 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/fastly/kingpin"
 )
 
@@ -102,4 +105,26 @@ type OptionalUint8 struct {
 type OptionalInt struct {
 	Optional
 	Value int
+}
+
+// ServiceDetails returns the Service ID and Service Version
+// TODO(integralist): replace with options struct
+func ServiceDetails(m manifest.Data, sv OptionalServiceVersion, ac OptionalAutoClone, verboseMode bool, out io.Writer, client api.Interface) (serviceID string, serviceVersion *fastly.Version, err error) {
+	serviceID, source := m.ServiceID()
+	if source == manifest.SourceUndefined {
+		return serviceID, serviceVersion, errors.ErrNoServiceID
+	}
+
+	v, err := sv.Parse(serviceID, client)
+	if err != nil {
+		return serviceID, serviceVersion, err
+	}
+
+	// TODO(integralist): pass boolean to allow conditional calling
+	v, err = ac.Parse(v, serviceID, verboseMode, out, client)
+	if err != nil {
+		return serviceID, serviceVersion, err
+	}
+
+	return serviceID, v, nil
 }

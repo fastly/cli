@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -12,6 +13,7 @@ import (
 // UpdateCommand calls the Fastly API to update backends.
 type UpdateCommand struct {
 	cmd.Base
+	manifest       manifest.Data
 	Input          fastly.GetBackendInput
 	serviceVersion cmd.OptionalServiceVersion
 	autoClone      cmd.OptionalAutoClone
@@ -47,10 +49,17 @@ type UpdateCommand struct {
 func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
+	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a backend on a Fastly service version")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.Input.ServiceID)
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
-	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.CmdClause.Flag("name", "backend name").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("new-name", "New backend name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
@@ -81,15 +90,13 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	serviceID, serviceVersion, err := cmd.ServiceDetails(c.manifest, c.serviceVersion, c.autoClone, c.Globals.Flag.Verbose, out, c.Globals.Client)
 	if err != nil {
 		return err
 	}
-	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
-	if err != nil {
-		return err
-	}
-	c.Input.ServiceVersion = v.Number
+
+	c.Input.ServiceID = serviceID
+	c.Input.ServiceVersion = serviceVersion.Number
 
 	b, err := c.Globals.Client.GetBackend(&c.Input)
 	if err != nil {

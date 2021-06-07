@@ -39,21 +39,14 @@ func (b Base) SetServiceVersionFlag(opts ServiceVersionFlagOpts) {
 	clause.StringVar(opts.Dst)
 }
 
-// SetAutoCloneFlag defines a --autoclone flag that will cause a clone of the
-// identified service version if it's found to be active or locked.
-func (b Base) SetAutoCloneFlag(action kingpin.Action, dst *bool) {
-	b.CmdClause.Flag("autoclone", "If the selected service version is not editable, clone it and use the clone.").Action(action).BoolVar(dst)
-}
-
 // OptionalServiceVersion represents a Fastly service version.
 type OptionalServiceVersion struct {
 	OptionalString
-	Client api.Interface
 }
 
 // Parse returns a service version based on the given user input.
-func (sv *OptionalServiceVersion) Parse(sid string) (*fastly.Version, error) {
-	vs, err := sv.Client.ListVersions(&fastly.ListVersionsInput{
+func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fastly.Version, error) {
+	vs, err := client.ListVersions(&fastly.ListVersionsInput{
 		ServiceID: sid,
 	})
 	if err != nil || len(vs) == 0 {
@@ -84,25 +77,41 @@ func (sv *OptionalServiceVersion) Parse(sid string) (*fastly.Version, error) {
 	return v, nil
 }
 
+// ServiceVersioner represents the behaviours associated with the --version flag.
+type ServiceVersioner interface {
+	Parse(sid string) (*fastly.Version, error)
+}
+
+// AutoCloneFlagOpts enables easy configuration of the --autoclone flag defined
+// via the SetAutoCloneFlag constructor.
+type AutoCloneFlagOpts struct {
+	Action kingpin.Action
+	Dst    *bool
+}
+
+// SetAutoCloneFlag defines a --autoclone flag that will cause a clone of the
+// identified service version if it's found to be active or locked.
+func (b Base) SetAutoCloneFlag(opts AutoCloneFlagOpts) {
+	b.CmdClause.Flag("autoclone", "If the selected service version is not editable, clone it and use the clone.").Action(opts.Action).BoolVar(opts.Dst)
+}
+
 // OptionalAutoClone defines a method set for abstracting the logic required to
 // identify if a given service version needs to be cloned.
 type OptionalAutoClone struct {
 	OptionalBool
-	Out    io.Writer
-	Client api.Interface
 }
 
 // Parse returns a service version.
 //
 // The returned version is either the same as the input argument `v` or it's a
 // cloned version if the input argument was either active or locked.
-func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool) (*fastly.Version, error) {
+func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, out io.Writer, client api.Interface) (*fastly.Version, error) {
 	// if user didn't provide --autoclone flag
 	if !ac.Value && (v.Active || v.Locked) {
 		return nil, fmt.Errorf("service version %d is not editable", v.Number)
 	}
 	if ac.Value && (v.Active || v.Locked) {
-		version, err := ac.Client.CloneVersion(&fastly.CloneVersionInput{
+		version, err := client.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      sid,
 			ServiceVersion: v.Number,
 		})
@@ -111,14 +120,20 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool) 
 		}
 		if verbose {
 			msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.", v.Number, version.Number)
-			text.Output(ac.Out, msg)
-			text.Break(ac.Out)
+			text.Break(out)
+			text.Output(out, msg)
+			text.Break(out)
 		}
 		return version, nil
 	}
 
 	// Treat the function as a no-op if the version is editable.
 	return v, nil
+}
+
+// AutoCloner represents the behaviours associated with the --autoclone flag.
+type AutoCloner interface {
+	Parse(v *fastly.Version, sid string, verbose bool) (*fastly.Version, error)
 }
 
 // getActiveVersion returns the active service version.

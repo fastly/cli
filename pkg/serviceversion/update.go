@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -31,8 +30,13 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
-	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 
 	// TODO(integralist):
 	// Make 'comment' field mandatory once we roll out a new release of Go-Fastly
@@ -45,22 +49,13 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+	serviceID, serviceVersion, err := cmd.ServiceDetails(c.manifest, c.serviceVersion, c.autoClone, c.Globals.Flag.Verbose, out, c.Globals.Client)
+	if err != nil {
+		return err
 	}
 
 	c.input.ServiceID = serviceID
-
-	v, err := c.serviceVersion.Parse(c.input.ServiceID, c.Globals.Client)
-	if err != nil {
-		return err
-	}
-	v, err = c.autoClone.Parse(v, c.input.ServiceID, c.Globals.Client)
-	if err != nil {
-		return err
-	}
-	c.input.ServiceVersion = v.Number
+	c.input.ServiceVersion = serviceVersion.Number
 
 	if !c.comment.WasSet {
 		return fmt.Errorf("error parsing arguments: required flag --comment not provided")

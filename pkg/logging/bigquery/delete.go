@@ -6,7 +6,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -27,8 +26,13 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete a BigQuery logging endpoint on a Fastly service version").Alias("remove")
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
-	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.CmdClause.Flag("name", "The name of the BigQuery logging object").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	return &c
@@ -36,21 +40,13 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+	serviceID, serviceVersion, err := cmd.ServiceDetails(c.manifest, c.serviceVersion, c.autoClone, c.Globals.Flag.Verbose, out, c.Globals.Client)
+	if err != nil {
+		return err
 	}
-	c.Input.ServiceID = serviceID
 
-	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
-	if err != nil {
-		return err
-	}
-	v, err = c.autoClone.Parse(v, c.Input.ServiceID, c.Globals.Client)
-	if err != nil {
-		return err
-	}
-	c.Input.ServiceVersion = v.Number
+	c.Input.ServiceID = serviceID
+	c.Input.ServiceVersion = serviceVersion.Number
 
 	if err := c.Globals.Client.DeleteBigQuery(&c.Input); err != nil {
 		return err

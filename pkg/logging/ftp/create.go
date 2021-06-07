@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -46,8 +45,13 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an FTP logging endpoint on a Fastly service version").Alias("add")
 	c.CmdClause.Flag("name", "The name of the FTP logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.NewServiceVersionFlag(cmd.ServiceVersionFlagOpts{Dst: &c.serviceVersion.Value})
-	c.NewAutoCloneFlag(c.autoClone.Set, &c.autoClone.Value)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.CmdClause.Flag("address", "An hostname or IPv4 address").Required().StringVar(&c.Address)
 	c.CmdClause.Flag("user", "The username for the server (can be anonymous)").Required().StringVar(&c.Username)
 	c.CmdClause.Flag("password", "The password for the server (for anonymous use an email address)").Required().StringVar(&c.Password)
@@ -66,25 +70,11 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 }
 
 // createInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) createInput() (*fastly.CreateFTPInput, error) {
+func (c *CreateCommand) createInput(serviceID string, serviceVersion int) (*fastly.CreateFTPInput, error) {
 	var input fastly.CreateFTPInput
 
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return nil, errors.ErrNoServiceID
-	}
-
-	v, err := c.serviceVersion.Parse(serviceID, c.Globals.Client)
-	if err != nil {
-		return nil, err
-	}
-	v, err = c.autoClone.Parse(v, serviceID, c.Globals.Client)
-	if err != nil {
-		return nil, err
-	}
-
 	input.ServiceID = serviceID
-	input.ServiceVersion = v.Number
+	input.ServiceVersion = serviceVersion
 	input.Name = c.EndpointName
 	input.Address = c.Address
 	input.Username = c.Username
@@ -141,7 +131,12 @@ func (c *CreateCommand) createInput() (*fastly.CreateFTPInput, error) {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	input, err := c.createInput()
+	serviceID, serviceVersion, err := cmd.ServiceDetails(c.manifest, c.serviceVersion, c.autoClone, c.Globals.Flag.Verbose, out, c.Globals.Client)
+	if err != nil {
+		return err
+	}
+
+	input, err := c.createInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}
