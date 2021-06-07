@@ -28,7 +28,7 @@ type ServiceVersionFlagOpts struct {
 // such as 'latest', 'active' and numerical values which are then converted
 // into the appropriate service version.
 func (b Base) NewServiceVersionFlag(opts ServiceVersionFlagOpts, args ...string) {
-	clause := b.CmdClause.Flag("version", "Number of service version, 'latest', 'active' or 'editable'")
+	clause := b.CmdClause.Flag("version", "'latest', 'active', or the number of a specific version")
 	if !opts.Optional {
 		clause = clause.Required()
 	} else {
@@ -40,7 +40,7 @@ func (b Base) NewServiceVersionFlag(opts ServiceVersionFlagOpts, args ...string)
 // NewAutoCloneFlag defines a --autoclone flag that will cause a clone of the
 // identified service version if its found to be active or locked.
 func (b Base) NewAutoCloneFlag(action kingpin.Action, dst *bool) {
-	b.CmdClause.Flag("autoclone", "Automatically clone the identified service version if it's 'locked' or 'active'").Action(action).BoolVar(dst)
+	b.CmdClause.Flag("autoclone", "If the selected service version is not editable, clone it and use the clone.").Action(action).BoolVar(dst)
 }
 
 // OptionalServiceVersion represents a Fastly service version.
