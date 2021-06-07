@@ -14,7 +14,7 @@ import (
 )
 
 // ServiceVersionFlagOpts enables easy configuration of the --version flag
-// defined via the NewServiceVersionFlag constructor.
+// defined via the SetServiceVersionFlag constructor.
 //
 // NOTE: The reason we define an 'optional' field rather than a 'required'
 // field is because 99% of the use cases where --version is defined the flag
@@ -29,7 +29,7 @@ type ServiceVersionFlagOpts struct {
 // SetServiceVersionFlag defines a --version flag that accepts multiple values
 // such as 'latest', 'active' and numerical values which are then converted
 // into the appropriate service version.
-func (b Base) SetServiceVersionFlag(opts ServiceVersionFlagOpts, args ...string) {
+func (b Base) SetServiceVersionFlag(opts ServiceVersionFlagOpts) {
 	clause := b.CmdClause.Flag("version", "'latest', 'active', or the number of a specific version")
 	if !opts.Optional {
 		clause = clause.Required()
