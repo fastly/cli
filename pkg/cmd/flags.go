@@ -40,7 +40,7 @@ func (b Base) SetServiceVersionFlag(opts ServiceVersionFlagOpts, args ...string)
 }
 
 // SetAutoCloneFlag defines a --autoclone flag that will cause a clone of the
-// identified service version if its found to be active or locked.
+// identified service version if it's found to be active or locked.
 func (b Base) SetAutoCloneFlag(action kingpin.Action, dst *bool) {
 	b.CmdClause.Flag("autoclone", "If the selected service version is not editable, clone it and use the clone.").Action(action).BoolVar(dst)
 }
