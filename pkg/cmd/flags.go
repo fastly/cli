@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
-	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/fastly/kingpin"
 )
@@ -71,10 +69,8 @@ func (sv *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Ve
 		return vs[0], nil
 	case "active":
 		v, err = getLatestActiveVersion(vs)
-	case "editable":
-		v, err = getLatestEditableVersion(vs)
 	case "":
-		v, err = getLatestEditableVersion(vs)
+		return vs[0], nil
 	default:
 		v, err = getSpecifiedVersion(vs, sv.Value)
 	}
@@ -123,36 +119,6 @@ func getLatestActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 		}
 	}
 	return nil, fmt.Errorf("no active service version found")
-}
-
-// getLatestEditableVersion returns the latest editable service version.
-//
-// The returned version will be ahead of the latest active version. If there is
-// no editable version above the latest active, an error will be returned.
-//
-// When no --version flag is provided, this algorithm helps handle cases where
-// a command (such as `backend create`) is executable multiple times, as the
-// latest editable version will be reused and subsequently will contain each
-// new backend created from the prior executions.
-//
-// There could be a scenario where a customer has a single service version
-// which is activated and so there would be no match for an editable version
-// without us first cloning it. The act of cloning should be a decision made by
-// the user (i.e. --autoclone) and so this function will return an error if no
-// editable version available.
-func getLatestEditableVersion(vs []*fastly.Version) (*fastly.Version, error) {
-	for _, v := range vs {
-		if v.Active {
-			break
-		}
-		if !v.Locked {
-			return v, nil
-		}
-	}
-	return nil, fsterr.RemediationError{
-		Inner:       errors.New("error retrieving an editable service version: no editable version found"),
-		Remediation: "Please retry with --version=[latest|active] and --autoclone",
-	}
 }
 
 // getSpecifiedVersion returns the specified service version.
