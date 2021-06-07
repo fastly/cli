@@ -162,7 +162,7 @@ func TestGetLatestActiveVersion(t *testing.T) {
 				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
 			})
 
-			v, err := getLatestActiveVersion(testcase.inputVersions)
+			v, err := getActiveVersion(testcase.inputVersions)
 			if err != nil {
 				if testcase.wantError != "" {
 					testutil.AssertString(t, testcase.wantError, err.Error())

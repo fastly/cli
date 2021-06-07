@@ -71,7 +71,7 @@ func (sv *OptionalServiceVersion) Parse(sid string) (*fastly.Version, error) {
 	case "latest":
 		return vs[0], nil
 	case "active":
-		v, err = getLatestActiveVersion(vs)
+		v, err = getActiveVersion(vs)
 	case "":
 		return vs[0], nil
 	default:
@@ -119,8 +119,8 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string) (*fastly.Versi
 	return v, nil
 }
 
-// getLatestActiveVersion returns the active service version.
-func getLatestActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
+// getActiveVersion returns the active service version.
+func getActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	for _, v := range vs {
 		if v.Active {
 			return v, nil
