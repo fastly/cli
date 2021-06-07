@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/fastly/kingpin"
 )
@@ -46,11 +48,12 @@ func (b Base) SetAutoCloneFlag(action kingpin.Action, dst *bool) {
 // OptionalServiceVersion represents a Fastly service version.
 type OptionalServiceVersion struct {
 	OptionalString
+	Client api.Interface
 }
 
 // Parse returns a service version based on the given user input.
-func (sv *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Version, error) {
-	vs, err := c.ListVersions(&fastly.ListVersionsInput{
+func (sv *OptionalServiceVersion) Parse(sid string) (*fastly.Version, error) {
+	vs, err := sv.Client.ListVersions(&fastly.ListVersionsInput{
 		ServiceID: sid,
 	})
 	if err != nil || len(vs) == 0 {
@@ -85,25 +88,30 @@ func (sv *OptionalServiceVersion) Parse(sid string, c api.Interface) (*fastly.Ve
 // identify if a given service version needs to be cloned.
 type OptionalAutoClone struct {
 	OptionalBool
+	Out    io.Writer
+	Client api.Interface
 }
 
 // Parse returns a service version.
 //
 // The returned version is either the same as the input argument `v` or it's a
 // cloned version if the input argument was either active or locked.
-func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, c api.Interface) (*fastly.Version, error) {
+func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string) (*fastly.Version, error) {
 	// if user didn't provide --autoclone flag
 	if !ac.Value && (v.Active || v.Locked) {
 		return nil, fmt.Errorf("service version %d is not editable", v.Number)
 	}
 	if ac.Value && (v.Active || v.Locked) {
-		version, err := c.CloneVersion(&fastly.CloneVersionInput{
+		version, err := ac.Client.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      sid,
 			ServiceVersion: v.Number,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("error cloning service version: %w", err)
 		}
+		msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.", v.Number, version.Number)
+		text.Output(ac.Out, msg)
+		text.Break(ac.Out)
 		return version, nil
 	}
 

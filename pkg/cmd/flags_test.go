@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/mock"
@@ -48,21 +50,22 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var sv *OptionalServiceVersion
 
+			api := mock.API{
+				ListVersionsFn: listVersions,
+			}
+
 			if c.flagOmitted {
 				sv = &OptionalServiceVersion{}
 			} else {
 				sv = &OptionalServiceVersion{
+					Client: api,
 					OptionalString: OptionalString{
 						Value: c.flagValue,
 					},
 				}
 			}
 
-			api := mock.API{
-				ListVersionsFn: listVersions,
-			}
-
-			v, err := sv.Parse("123", api)
+			v, err := sv.Parse("123")
 			if err != nil {
 				if c.errExpected {
 					return
@@ -222,16 +225,18 @@ func TestGetSpecifiedVersion(t *testing.T) {
 
 func TestOptionalAutoCloneParse(t *testing.T) {
 	cases := map[string]struct {
-		version     *fastly.Version
-		flagOmitted bool
-		wantVersion int
-		errExpected bool
+		version        *fastly.Version
+		flagOmitted    bool
+		wantVersion    int
+		errExpected    bool
+		expectEditable bool
 	}{
 		"version is editable": {
 			version: &fastly.Version{
 				Number: 1,
 			},
-			wantVersion: 1,
+			wantVersion:    1,
+			expectEditable: true,
 		},
 		"version is locked": {
 			version: &fastly.Version{
@@ -267,23 +272,29 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			var acv *OptionalAutoClone
+			var (
+				acv *OptionalAutoClone
+				bs  []byte
+			)
+
+			api := mock.API{
+				CloneVersionFn: cloneVersionResult(c.version.Number + 1),
+			}
+			buf := bytes.NewBuffer(bs)
 
 			if c.flagOmitted {
 				acv = &OptionalAutoClone{}
 			} else {
 				acv = &OptionalAutoClone{
+					Client: api,
+					Out:    buf,
 					OptionalBool: OptionalBool{
 						Value: true,
 					},
 				}
 			}
 
-			api := mock.API{
-				CloneVersionFn: cloneVersionResult(c.version.Number + 1),
-			}
-
-			v, err := acv.Parse(c.version, "123", api)
+			v, err := acv.Parse(c.version, "123")
 			if err != nil {
 				if c.errExpected && errMatches(c.version.Number, err) {
 					return
@@ -300,6 +311,14 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 			have := v.Number
 			if have != want {
 				t.Errorf("wanted %d, have %d", want, have)
+			}
+
+			if !c.expectEditable {
+				want := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.", c.version.Number, v.Number)
+				have := strings.Trim(strings.ReplaceAll(buf.String(), "\n", " "), " ")
+				if !strings.Contains(want, have) {
+					t.Errorf("wanted %s, have %s", want, have)
+				}
 			}
 		})
 	}
