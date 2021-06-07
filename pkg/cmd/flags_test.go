@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"testing"
@@ -10,40 +11,36 @@ import (
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
-func TestParse(t *testing.T) {
+func TestOptionalServiceVersionParse(t *testing.T) {
 	cases := map[string]struct {
-		value       string
-		omitted     bool // represents flag not provided
-		want        int  // represent the service version number
+		flagValue   string
+		flagOmitted bool
+		wantVersion int
 		errExpected bool
 	}{
 		"latest": {
-			value: "latest",
-			want:  3,
+			flagValue:   "latest",
+			wantVersion: 3,
 		},
 		"active": {
-			value: "active",
-			want:  1,
-		},
-		"editable": {
-			value: "editable",
-			want:  3,
+			flagValue:   "active",
+			wantVersion: 1,
 		},
 		"empty": {
-			value: "",
-			want:  3,
+			flagValue:   "",
+			wantVersion: 3,
 		},
 		"omitted": {
-			omitted: true,
-			want:    3,
+			flagOmitted: true,
+			wantVersion: 3,
 		},
 		"specific version OK": {
-			value: "3",
-			want:  3,
+			flagValue:   "2",
+			wantVersion: 2,
 		},
 		"specific version ERR": {
-			value:       "4",
-			errExpected: true,
+			flagValue:   "4",
+			errExpected: true, // there is no version 4
 		},
 	}
 
@@ -51,12 +48,12 @@ func TestParse(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var sv *OptionalServiceVersion
 
-			if c.omitted {
+			if c.flagOmitted {
 				sv = &OptionalServiceVersion{}
 			} else {
 				sv = &OptionalServiceVersion{
 					OptionalString: OptionalString{
-						Value: c.value,
+						Value: c.flagValue,
 					},
 				}
 			}
@@ -69,9 +66,8 @@ func TestParse(t *testing.T) {
 			if err != nil {
 				if c.errExpected {
 					return
-				} else {
-					t.Fatalf("unexpected error: %v", err)
 				}
+				t.Fatalf("unexpected error: %v", err)
 			}
 			if err == nil {
 				if c.errExpected {
@@ -79,7 +75,7 @@ func TestParse(t *testing.T) {
 				}
 			}
 
-			want := c.want
+			want := c.wantVersion
 			have := v.Number
 			if have != want {
 				t.Errorf("wanted %d, have %d", want, have)
@@ -177,60 +173,6 @@ func TestGetLatestActiveVersion(t *testing.T) {
 	}
 }
 
-func TestGetLatestEditableVersion(t *testing.T) {
-	for _, testcase := range []struct {
-		name          string
-		inputVersions []*fastly.Version
-		wantVersion   int
-		wantError     string
-	}{
-		{
-			name: "success",
-			inputVersions: []*fastly.Version{
-				{Number: 1, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-			},
-			wantVersion: 2,
-		},
-		{
-			name: "no editable",
-			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-02-02T01:00:00Z")},
-				{Number: 3, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-03-03T01:00:00Z")},
-			},
-			wantError: "error retrieving an editable service version: no editable version found",
-		},
-		{
-			name: "editable should be ahead of last active",
-			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-			},
-			wantError: "error retrieving an editable service version: no editable version found",
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
-			// NOTE: this is a duplicate of the sorting algorithm in
-			// cmd/command.go to make the test as realistic as possible
-			sort.Slice(testcase.inputVersions, func(i, j int) bool {
-				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
-			})
-
-			v, err := getLatestEditableVersion(testcase.inputVersions)
-			if err != nil {
-				if testcase.wantError != "" {
-					testutil.AssertString(t, testcase.wantError, err.Error())
-				} else {
-					t.Errorf("unexpected error returned: %v", err)
-				}
-			} else if v.Number != testcase.wantVersion {
-				t.Errorf("wanted version %d, got %d", testcase.wantVersion, v.Number)
-			}
-		})
-	}
-}
-
 func TestGetSpecifiedVersion(t *testing.T) {
 	for _, testcase := range []struct {
 		name          string
@@ -276,4 +218,109 @@ func TestGetSpecifiedVersion(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestOptionalAutoCloneParse(t *testing.T) {
+	cases := map[string]struct {
+		version     *fastly.Version
+		flagOmitted bool
+		wantVersion int
+		errExpected bool
+	}{
+		"version is editable": {
+			version: &fastly.Version{
+				Number: 1,
+			},
+			wantVersion: 1,
+		},
+		"version is locked": {
+			version: &fastly.Version{
+				Number: 1,
+				Locked: true,
+			},
+			wantVersion: 2,
+		},
+		"version is active": {
+			version: &fastly.Version{
+				Number: 1,
+				Active: true,
+			},
+			wantVersion: 2,
+		},
+		"version is locked but flag omitted": {
+			version: &fastly.Version{
+				Number: 1,
+				Locked: true,
+			},
+			flagOmitted: true,
+			errExpected: true,
+		},
+		"version is active but flag omitted": {
+			version: &fastly.Version{
+				Number: 1,
+				Active: true,
+			},
+			flagOmitted: true,
+			errExpected: true,
+		},
+	}
+
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			var acv *OptionalAutoClone
+
+			if c.flagOmitted {
+				acv = &OptionalAutoClone{}
+			} else {
+				acv = &OptionalAutoClone{
+					OptionalBool: OptionalBool{
+						Value: true,
+					},
+				}
+			}
+
+			api := mock.API{
+				CloneVersionFn: cloneVersionResult(c.version.Number + 1),
+			}
+
+			v, err := acv.Parse(c.version, "123", api)
+			if err != nil {
+				if c.errExpected && errMatches(c.version.Number, err) {
+					return
+				}
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if err == nil {
+				if c.errExpected {
+					t.Fatalf("expected error, have %v", v)
+				}
+			}
+
+			want := c.wantVersion
+			have := v.Number
+			if have != want {
+				t.Errorf("wanted %d, have %d", want, have)
+			}
+		})
+	}
+}
+
+// cloneVersionResult returns a function which returns a specific cloned version.
+func cloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+		return &fastly.Version{
+			ServiceID: i.ServiceID,
+			Number:    version,
+		}, nil
+	}
+}
+
+// errMatches validates that the error message is what we expect when given a
+// service version that is either locked or active, while also not providing
+// the --autoclone flag.
+func errMatches(version int, err error) bool {
+	if err.Error() == fmt.Sprintf("service version %d is not editable", version) {
+		return true
+	}
+	return false
 }
