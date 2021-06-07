@@ -319,8 +319,5 @@ func cloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.
 // service version that is either locked or active, while also not providing
 // the --autoclone flag.
 func errMatches(version int, err error) bool {
-	if err.Error() == fmt.Sprintf("service version %d is not editable", version) {
-		return true
-	}
-	return false
+	return err.Error() == fmt.Sprintf("service version %d is not editable", version)
 }
