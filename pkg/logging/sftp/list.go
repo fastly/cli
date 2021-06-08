@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -36,19 +35,19 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
-	}
-	c.Input.ServiceID = serviceID
-
-	// TODO(integralist): replace this surrounding code with cmd.ServiceDetails
-	// once we have conditional boolean for the autoclone logic
-	v, err := c.serviceVersion.Parse(c.Input.ServiceID, c.Globals.Client)
+	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+		Manifest:           c.manifest,
+		ServiceVersionFlag: c.serviceVersion,
+		VerboseMode:        c.Globals.Flag.Verbose,
+		Out:                out,
+		Client:             c.Globals.Client,
+	})
 	if err != nil {
 		return err
 	}
-	c.Input.ServiceVersion = v.Number
+
+	c.Input.ServiceID = serviceID
+	c.Input.ServiceVersion = serviceVersion.Number
 
 	sftps, err := c.Globals.Client.ListSFTPs(&c.Input)
 	if err != nil {

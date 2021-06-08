@@ -130,9 +130,11 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 		return serviceID, serviceVersion, err
 	}
 
-	v, err = opts.AutoCloneFlag.Parse(v, serviceID, opts.VerboseMode, opts.Out, opts.Client)
-	if err != nil {
-		return serviceID, serviceVersion, err
+	if opts.AutoCloneFlag.WasSet {
+		v, err = opts.AutoCloneFlag.Parse(v, serviceID, opts.VerboseMode, opts.Out, opts.Client)
+		if err != nil {
+			return serviceID, serviceVersion, err
+		}
 	}
 
 	return serviceID, v, nil
