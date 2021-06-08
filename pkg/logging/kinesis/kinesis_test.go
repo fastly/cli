@@ -72,7 +72,14 @@ func TestCreateKinesisInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(testcase.cmd.manifest, testcase.cmd.serviceVersion, testcase.cmd.autoClone, verboseMode, out, testcase.cmd.Base.Globals.Client)
+			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+				Manifest:           testcase.cmd.manifest,
+				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				AutoCloneFlag:      testcase.cmd.autoClone,
+				VerboseMode:        verboseMode,
+				Out:                out,
+				Client:             testcase.cmd.Base.Globals.Client,
+			})
 			if err != nil {
 				if testcase.wantError == "" {
 					t.Fatalf("unexpected error getting service details: %v", err)
@@ -155,7 +162,14 @@ func TestUpdateKinesisInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(testcase.cmd.manifest, testcase.cmd.serviceVersion, testcase.cmd.autoClone, verboseMode, out, testcase.api)
+			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+				Manifest:           testcase.cmd.manifest,
+				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				AutoCloneFlag:      testcase.cmd.autoClone,
+				VerboseMode:        verboseMode,
+				Out:                out,
+				Client:             testcase.api,
+			})
 			if err != nil {
 				if testcase.wantError == "" {
 					t.Fatalf("unexpected error getting service details: %v", err)

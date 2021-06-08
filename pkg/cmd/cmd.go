@@ -107,21 +107,30 @@ type OptionalInt struct {
 	Value int
 }
 
-// ServiceDetails returns the Service ID and Service Version
-// TODO(integralist): replace with options struct
-func ServiceDetails(m manifest.Data, sv OptionalServiceVersion, ac OptionalAutoClone, verboseMode bool, out io.Writer, client api.Interface) (serviceID string, serviceVersion *fastly.Version, err error) {
-	serviceID, source := m.ServiceID()
+// ServiceDetailsOpts provides data and behaviours required by the
+// ServiceDetails function.
+type ServiceDetailsOpts struct {
+	Manifest           manifest.Data
+	ServiceVersionFlag OptionalServiceVersion
+	AutoCloneFlag      OptionalAutoClone
+	Out                io.Writer
+	VerboseMode        bool
+	Client             api.Interface
+}
+
+// ServiceDetails returns the Service ID and Service Version.
+func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *fastly.Version, err error) {
+	serviceID, source := opts.Manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		return serviceID, serviceVersion, errors.ErrNoServiceID
 	}
 
-	v, err := sv.Parse(serviceID, client)
+	v, err := opts.ServiceVersionFlag.Parse(serviceID, opts.Client)
 	if err != nil {
 		return serviceID, serviceVersion, err
 	}
 
-	// TODO(integralist): pass boolean to allow conditional calling
-	v, err = ac.Parse(v, serviceID, verboseMode, out, client)
+	v, err = opts.AutoCloneFlag.Parse(v, serviceID, opts.VerboseMode, opts.Out, opts.Client)
 	if err != nil {
 		return serviceID, serviceVersion, err
 	}
