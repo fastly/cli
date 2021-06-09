@@ -31,7 +31,6 @@ func TestDatadogCreate(t *testing.T) {
 			args: []string{"logging", "datadog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateDatadogFn: createDatadogOK,
 			},
@@ -41,7 +40,6 @@ func TestDatadogCreate(t *testing.T) {
 			args: []string{"logging", "datadog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateDatadogFn: createDatadogError,
 			},
@@ -78,7 +76,6 @@ func TestDatadogList(t *testing.T) {
 			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsShortOutput,
@@ -87,7 +84,6 @@ func TestDatadogList(t *testing.T) {
 			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsVerboseOutput,
@@ -96,7 +92,6 @@ func TestDatadogList(t *testing.T) {
 			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsVerboseOutput,
@@ -105,7 +100,6 @@ func TestDatadogList(t *testing.T) {
 			args: []string{"logging", "datadog", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsVerboseOutput,
@@ -114,7 +108,6 @@ func TestDatadogList(t *testing.T) {
 			args: []string{"logging", "-v", "datadog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDatadogFn:  listDatadogsOK,
 			},
 			wantOutput: listDatadogsVerboseOutput,
@@ -123,7 +116,6 @@ func TestDatadogList(t *testing.T) {
 			args: []string{"logging", "datadog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDatadogFn:  listDatadogsError,
 			},
 			wantError: errTest.Error(),
@@ -163,7 +155,6 @@ func TestDatadogDescribe(t *testing.T) {
 			args: []string{"logging", "datadog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetDatadogFn:   getDatadogError,
 			},
 			wantError: errTest.Error(),
@@ -172,7 +163,6 @@ func TestDatadogDescribe(t *testing.T) {
 			args: []string{"logging", "datadog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetDatadogFn:   getDatadogOK,
 			},
 			wantOutput: describeDatadogOutput,
@@ -212,7 +202,6 @@ func TestDatadogUpdate(t *testing.T) {
 			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateDatadogFn: updateDatadogError,
 			},
@@ -222,7 +211,6 @@ func TestDatadogUpdate(t *testing.T) {
 			args: []string{"logging", "datadog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateDatadogFn: updateDatadogOK,
 			},
@@ -263,7 +251,6 @@ func TestDatadogDelete(t *testing.T) {
 			args: []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteDatadogFn: deleteDatadogError,
 			},
@@ -273,7 +260,6 @@ func TestDatadogDelete(t *testing.T) {
 			args: []string{"logging", "datadog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteDatadogFn: deleteDatadogOK,
 			},

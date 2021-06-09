@@ -27,7 +27,6 @@ func TestFTPCreate(t *testing.T) {
 			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "anonymous", "--password", "foo@example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --address not provided",
@@ -36,7 +35,6 @@ func TestFTPCreate(t *testing.T) {
 			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--password", "foo@example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --user not provided",
@@ -45,7 +43,6 @@ func TestFTPCreate(t *testing.T) {
 			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --password not provided",
@@ -54,7 +51,6 @@ func TestFTPCreate(t *testing.T) {
 			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--compression-codec", "zstd", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateFTPFn:    createFTPOK,
 			},
@@ -64,7 +60,6 @@ func TestFTPCreate(t *testing.T) {
 			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateFTPFn:    createFTPError,
 			},
@@ -74,7 +69,6 @@ func TestFTPCreate(t *testing.T) {
 			args: []string{"logging", "ftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--password", "foo@example.com", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -110,7 +104,6 @@ func TestFTPList(t *testing.T) {
 			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsShortOutput,
@@ -119,7 +112,6 @@ func TestFTPList(t *testing.T) {
 			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsVerboseOutput,
@@ -128,7 +120,6 @@ func TestFTPList(t *testing.T) {
 			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsVerboseOutput,
@@ -137,7 +128,6 @@ func TestFTPList(t *testing.T) {
 			args: []string{"logging", "ftp", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsVerboseOutput,
@@ -146,7 +136,6 @@ func TestFTPList(t *testing.T) {
 			args: []string{"logging", "-v", "ftp", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListFTPsFn:     listFTPsOK,
 			},
 			wantOutput: listFTPsVerboseOutput,
@@ -155,7 +144,6 @@ func TestFTPList(t *testing.T) {
 			args: []string{"logging", "ftp", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListFTPsFn:     listFTPsError,
 			},
 			wantError: errTest.Error(),
@@ -195,7 +183,6 @@ func TestFTPDescribe(t *testing.T) {
 			args: []string{"logging", "ftp", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetFTPFn:       getFTPError,
 			},
 			wantError: errTest.Error(),
@@ -204,7 +191,6 @@ func TestFTPDescribe(t *testing.T) {
 			args: []string{"logging", "ftp", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetFTPFn:       getFTPOK,
 			},
 			wantOutput: describeFTPOutput,
@@ -244,7 +230,6 @@ func TestFTPUpdate(t *testing.T) {
 			args: []string{"logging", "ftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateFTPFn:    updateFTPError,
 			},
@@ -254,7 +239,6 @@ func TestFTPUpdate(t *testing.T) {
 			args: []string{"logging", "ftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateFTPFn:    updateFTPOK,
 			},
@@ -295,7 +279,6 @@ func TestFTPDelete(t *testing.T) {
 			args: []string{"logging", "ftp", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteFTPFn:    deleteFTPError,
 			},
@@ -305,7 +288,6 @@ func TestFTPDelete(t *testing.T) {
 			args: []string{"logging", "ftp", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteFTPFn:    deleteFTPOK,
 			},

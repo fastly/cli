@@ -27,7 +27,6 @@ func TestSFTPCreate(t *testing.T) {
 			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user", "--ssh-known-hosts", knownHosts(), "--port", "80", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --address not provided",
@@ -36,7 +35,6 @@ func TestSFTPCreate(t *testing.T) {
 			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--ssh-known-hosts", knownHosts(), "--port", "80", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --user not provided",
@@ -45,7 +43,6 @@ func TestSFTPCreate(t *testing.T) {
 			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "user", "--port", "80", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --ssh-known-hosts not provided",
@@ -54,7 +51,6 @@ func TestSFTPCreate(t *testing.T) {
 			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "user", "--ssh-known-hosts", knownHosts(), "--port", "80", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSFTPFn:   createSFTPOK,
 			},
@@ -64,7 +60,6 @@ func TestSFTPCreate(t *testing.T) {
 			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "user", "--ssh-known-hosts", knownHosts(), "--port", "80", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSFTPFn:   createSFTPError,
 			},
@@ -74,7 +69,6 @@ func TestSFTPCreate(t *testing.T) {
 			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--ssh-known-hosts", knownHosts(), "--port", "80", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -110,7 +104,6 @@ func TestSFTPList(t *testing.T) {
 			args: []string{"logging", "sftp", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSFTPsFn:    listSFTPsOK,
 			},
 			wantOutput: listSFTPsShortOutput,
@@ -119,7 +112,6 @@ func TestSFTPList(t *testing.T) {
 			args: []string{"logging", "sftp", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSFTPsFn:    listSFTPsOK,
 			},
 			wantOutput: listSFTPsVerboseOutput,
@@ -128,7 +120,6 @@ func TestSFTPList(t *testing.T) {
 			args: []string{"logging", "sftp", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSFTPsFn:    listSFTPsOK,
 			},
 			wantOutput: listSFTPsVerboseOutput,
@@ -137,7 +128,6 @@ func TestSFTPList(t *testing.T) {
 			args: []string{"logging", "sftp", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSFTPsFn:    listSFTPsOK,
 			},
 			wantOutput: listSFTPsVerboseOutput,
@@ -146,7 +136,6 @@ func TestSFTPList(t *testing.T) {
 			args: []string{"logging", "-v", "sftp", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSFTPsFn:    listSFTPsOK,
 			},
 			wantOutput: listSFTPsVerboseOutput,
@@ -155,7 +144,6 @@ func TestSFTPList(t *testing.T) {
 			args: []string{"logging", "sftp", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSFTPsFn:    listSFTPsError,
 			},
 			wantError: errTest.Error(),
@@ -195,7 +183,6 @@ func TestSFTPDescribe(t *testing.T) {
 			args: []string{"logging", "sftp", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetSFTPFn:      getSFTPError,
 			},
 			wantError: errTest.Error(),
@@ -204,7 +191,6 @@ func TestSFTPDescribe(t *testing.T) {
 			args: []string{"logging", "sftp", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetSFTPFn:      getSFTPOK,
 			},
 			wantOutput: describeSFTPOutput,
@@ -244,7 +230,6 @@ func TestSFTPUpdate(t *testing.T) {
 			args: []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSFTPFn:   updateSFTPError,
 			},
@@ -254,7 +239,6 @@ func TestSFTPUpdate(t *testing.T) {
 			args: []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSFTPFn:   updateSFTPOK,
 			},
@@ -295,7 +279,6 @@ func TestSFTPDelete(t *testing.T) {
 			args: []string{"logging", "sftp", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSFTPFn:   deleteSFTPError,
 			},
@@ -305,7 +288,6 @@ func TestSFTPDelete(t *testing.T) {
 			args: []string{"logging", "sftp", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSFTPFn:   deleteSFTPOK,
 			},

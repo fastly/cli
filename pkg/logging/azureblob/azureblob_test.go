@@ -109,7 +109,6 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				CloneVersionFn:   testutil.CloneVersionResult(4),
 				GetBlobStorageFn: getBlobStorageOK,
 			},
@@ -139,7 +138,6 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				CloneVersionFn:   testutil.CloneVersionResult(4),
 				GetBlobStorageFn: getBlobStorageOK,
 			},
@@ -203,7 +201,6 @@ func createCommandRequired() *CreateCommand {
 	// uses a testcase.api field to assign the mock API to the global client.
 	globals.Client, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
-		GetVersionFn:   testutil.GetActiveVersion(1),
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
@@ -239,7 +236,6 @@ func createCommandAll() *CreateCommand {
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
-		GetVersionFn:   testutil.GetActiveVersion(1),
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 

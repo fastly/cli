@@ -110,7 +110,6 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			cmd:  updateCommandNoUpdate(),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetCloudfilesFn: getCloudfilesOK,
 			},
@@ -125,7 +124,6 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetCloudfilesFn: getCloudfilesOK,
 			},
@@ -203,7 +201,6 @@ func createCommandRequired() *CreateCommand {
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
-		GetVersionFn:   testutil.GetActiveVersion(1),
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
@@ -239,7 +236,6 @@ func createCommandAll() *CreateCommand {
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
-		GetVersionFn:   testutil.GetActiveVersion(1),
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 

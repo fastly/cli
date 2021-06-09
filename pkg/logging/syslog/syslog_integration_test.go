@@ -36,7 +36,6 @@ func TestSyslogCreate(t *testing.T) {
 			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogOK,
 			},
@@ -46,7 +45,6 @@ func TestSyslogCreate(t *testing.T) {
 			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogError,
 			},
@@ -83,7 +81,6 @@ func TestSyslogList(t *testing.T) {
 			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsShortOutput,
@@ -92,7 +89,6 @@ func TestSyslogList(t *testing.T) {
 			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsVerboseOutput,
@@ -101,7 +97,6 @@ func TestSyslogList(t *testing.T) {
 			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsVerboseOutput,
@@ -110,7 +105,6 @@ func TestSyslogList(t *testing.T) {
 			args: []string{"logging", "syslog", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsVerboseOutput,
@@ -119,7 +113,6 @@ func TestSyslogList(t *testing.T) {
 			args: []string{"logging", "-v", "syslog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsOK,
 			},
 			wantOutput: listSyslogsVerboseOutput,
@@ -128,7 +121,6 @@ func TestSyslogList(t *testing.T) {
 			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSyslogsFn:  listSyslogsError,
 			},
 			wantError: errTest.Error(),
@@ -168,7 +160,6 @@ func TestSyslogDescribe(t *testing.T) {
 			args: []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetSyslogFn:    getSyslogError,
 			},
 			wantError: errTest.Error(),
@@ -177,7 +168,6 @@ func TestSyslogDescribe(t *testing.T) {
 			args: []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetSyslogFn:    getSyslogOK,
 			},
 			wantOutput: describeSyslogOutput,
@@ -217,7 +207,6 @@ func TestSyslogUpdate(t *testing.T) {
 			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogError,
 			},
@@ -227,7 +216,6 @@ func TestSyslogUpdate(t *testing.T) {
 			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogOK,
 			},
@@ -268,7 +256,6 @@ func TestSyslogDelete(t *testing.T) {
 			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogError,
 			},
@@ -278,7 +265,6 @@ func TestSyslogDelete(t *testing.T) {
 			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogOK,
 			},

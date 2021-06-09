@@ -39,7 +39,6 @@ func TestCloudfilesCreate(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateCloudfilesFn: createCloudfilesOK,
 			},
@@ -49,7 +48,6 @@ func TestCloudfilesCreate(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateCloudfilesFn: createCloudfilesError,
 			},
@@ -59,7 +57,6 @@ func TestCloudfilesCreate(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "username", "--bucket", "log", "--access-key", "foo", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -95,7 +92,6 @@ func TestCloudfilesList(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListCloudfilesFn: listCloudfilesOK,
 			},
 			wantOutput: listCloudfilesShortOutput,
@@ -104,7 +100,6 @@ func TestCloudfilesList(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListCloudfilesFn: listCloudfilesOK,
 			},
 			wantOutput: listCloudfilesVerboseOutput,
@@ -113,7 +108,6 @@ func TestCloudfilesList(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListCloudfilesFn: listCloudfilesOK,
 			},
 			wantOutput: listCloudfilesVerboseOutput,
@@ -122,7 +116,6 @@ func TestCloudfilesList(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListCloudfilesFn: listCloudfilesOK,
 			},
 			wantOutput: listCloudfilesVerboseOutput,
@@ -131,7 +124,6 @@ func TestCloudfilesList(t *testing.T) {
 			args: []string{"logging", "-v", "cloudfiles", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListCloudfilesFn: listCloudfilesOK,
 			},
 			wantOutput: listCloudfilesVerboseOutput,
@@ -140,7 +132,6 @@ func TestCloudfilesList(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListCloudfilesFn: listCloudfilesError,
 			},
 			wantError: errTest.Error(),
@@ -180,7 +171,6 @@ func TestCloudfilesDescribe(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				GetCloudfilesFn: getCloudfilesError,
 			},
 			wantError: errTest.Error(),
@@ -189,7 +179,6 @@ func TestCloudfilesDescribe(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				GetCloudfilesFn: getCloudfilesOK,
 			},
 			wantOutput: describeCloudfilesOutput,
@@ -229,7 +218,6 @@ func TestCloudfilesUpdate(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateCloudfilesFn: updateCloudfilesError,
 			},
@@ -239,7 +227,6 @@ func TestCloudfilesUpdate(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateCloudfilesFn: updateCloudfilesOK,
 			},
@@ -280,7 +267,6 @@ func TestCloudfilesDelete(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteCloudfilesFn: deleteCloudfilesError,
 			},
@@ -290,7 +276,6 @@ func TestCloudfilesDelete(t *testing.T) {
 			args: []string{"logging", "cloudfiles", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteCloudfilesFn: deleteCloudfilesOK,
 			},

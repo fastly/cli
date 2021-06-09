@@ -36,7 +36,6 @@ func TestPapertrailCreate(t *testing.T) {
 			args: []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com:123", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreatePapertrailFn: createPapertrailOK,
 			},
@@ -46,7 +45,6 @@ func TestPapertrailCreate(t *testing.T) {
 			args: []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com:123", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreatePapertrailFn: createPapertrailError,
 			},
@@ -83,7 +81,6 @@ func TestPapertrailList(t *testing.T) {
 			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsShortOutput,
@@ -92,7 +89,6 @@ func TestPapertrailList(t *testing.T) {
 			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsVerboseOutput,
@@ -101,7 +97,6 @@ func TestPapertrailList(t *testing.T) {
 			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsVerboseOutput,
@@ -110,7 +105,6 @@ func TestPapertrailList(t *testing.T) {
 			args: []string{"logging", "papertrail", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsVerboseOutput,
@@ -119,7 +113,6 @@ func TestPapertrailList(t *testing.T) {
 			args: []string{"logging", "-v", "papertrail", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			wantOutput: listPapertrailsVerboseOutput,
@@ -128,7 +121,6 @@ func TestPapertrailList(t *testing.T) {
 			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				ListPapertrailsFn: listPapertrailsError,
 			},
 			wantError: errTest.Error(),
@@ -168,7 +160,6 @@ func TestPapertrailDescribe(t *testing.T) {
 			args: []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				GetPapertrailFn: getPapertrailError,
 			},
 			wantError: errTest.Error(),
@@ -177,7 +168,6 @@ func TestPapertrailDescribe(t *testing.T) {
 			args: []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				GetPapertrailFn: getPapertrailOK,
 			},
 			wantOutput: describePapertrailOutput,
@@ -217,7 +207,6 @@ func TestPapertrailUpdate(t *testing.T) {
 			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdatePapertrailFn: updatePapertrailError,
 			},
@@ -227,7 +216,6 @@ func TestPapertrailUpdate(t *testing.T) {
 			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdatePapertrailFn: updatePapertrailOK,
 			},
@@ -268,7 +256,6 @@ func TestPapertrailDelete(t *testing.T) {
 			args: []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeletePapertrailFn: deletePapertrailError,
 			},
@@ -278,7 +265,6 @@ func TestPapertrailDelete(t *testing.T) {
 			args: []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeletePapertrailFn: deletePapertrailOK,
 			},

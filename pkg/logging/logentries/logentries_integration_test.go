@@ -27,7 +27,6 @@ func TestLogentriesCreate(t *testing.T) {
 			args: []string{"logging", "logentries", "create", "--service-id", "123", "--version", "1", "--name", "log", "--port", "20000", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateLogentriesFn: createLogentriesOK,
 			},
@@ -37,7 +36,6 @@ func TestLogentriesCreate(t *testing.T) {
 			args: []string{"logging", "logentries", "create", "--service-id", "123", "--version", "1", "--name", "log", "--port", "20000", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateLogentriesFn: createLogentriesError,
 			},
@@ -74,7 +72,6 @@ func TestLogentriesList(t *testing.T) {
 			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListLogentriesFn: listLogentriesOK,
 			},
 			wantOutput: listLogentriesShortOutput,
@@ -83,7 +80,6 @@ func TestLogentriesList(t *testing.T) {
 			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListLogentriesFn: listLogentriesOK,
 			},
 			wantOutput: listLogentriesVerboseOutput,
@@ -92,7 +88,6 @@ func TestLogentriesList(t *testing.T) {
 			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListLogentriesFn: listLogentriesOK,
 			},
 			wantOutput: listLogentriesVerboseOutput,
@@ -101,7 +96,6 @@ func TestLogentriesList(t *testing.T) {
 			args: []string{"logging", "logentries", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListLogentriesFn: listLogentriesOK,
 			},
 			wantOutput: listLogentriesVerboseOutput,
@@ -110,7 +104,6 @@ func TestLogentriesList(t *testing.T) {
 			args: []string{"logging", "-v", "logentries", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListLogentriesFn: listLogentriesOK,
 			},
 			wantOutput: listLogentriesVerboseOutput,
@@ -119,7 +112,6 @@ func TestLogentriesList(t *testing.T) {
 			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListLogentriesFn: listLogentriesError,
 			},
 			wantError: errTest.Error(),
@@ -159,7 +151,6 @@ func TestLogentriesDescribe(t *testing.T) {
 			args: []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				GetLogentriesFn: getLogentriesError,
 			},
 			wantError: errTest.Error(),
@@ -168,7 +159,6 @@ func TestLogentriesDescribe(t *testing.T) {
 			args: []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				GetLogentriesFn: getLogentriesOK,
 			},
 			wantOutput: describeLogentriesOutput,
@@ -208,7 +198,6 @@ func TestLogentriesUpdate(t *testing.T) {
 			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateLogentriesFn: updateLogentriesError,
 			},
@@ -218,7 +207,6 @@ func TestLogentriesUpdate(t *testing.T) {
 			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateLogentriesFn: updateLogentriesOK,
 			},
@@ -259,7 +247,6 @@ func TestLogentriesDelete(t *testing.T) {
 			args: []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteLogentriesFn: deleteLogentriesError,
 			},
@@ -269,7 +256,6 @@ func TestLogentriesDelete(t *testing.T) {
 			args: []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
-				GetVersionFn:       testutil.GetActiveVersion(1),
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteLogentriesFn: deleteLogentriesOK,
 			},

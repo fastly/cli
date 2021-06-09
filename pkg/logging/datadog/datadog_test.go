@@ -98,7 +98,6 @@ func TestUpdateDatadogInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetDatadogFn:   getDatadogOK,
 			},
@@ -113,7 +112,6 @@ func TestUpdateDatadogInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetDatadogFn:   getDatadogOK,
 			},
@@ -182,7 +180,6 @@ func createCommandOK() *CreateCommand {
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
-		GetVersionFn:   testutil.GetActiveVersion(1),
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
@@ -221,7 +218,6 @@ func createCommandRequired() *CreateCommand {
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
-		GetVersionFn:   testutil.GetActiveVersion(1),
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 

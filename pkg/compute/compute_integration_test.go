@@ -790,7 +790,6 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "--token", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "service version 1 is not editable",
@@ -800,7 +799,6 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "--token", "123", "--version", "1", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
@@ -1037,7 +1035,6 @@ func TestDeploy(t *testing.T) {
 			in:   strings.NewReader(""),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(2),
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
@@ -1309,7 +1306,6 @@ func TestPublish(t *testing.T) {
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(2),
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
@@ -1393,7 +1389,6 @@ func TestUpdate(t *testing.T) {
 			args: []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageError,
 			},
@@ -1408,7 +1403,6 @@ func TestUpdate(t *testing.T) {
 			args: []string{"compute", "update", "-s", "123", "--version", "2", "-p", "pkg/package.tar.gz", "-t", "123", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(2),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageOk,
 			},

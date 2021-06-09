@@ -27,7 +27,6 @@ func TestHTTPSCreate(t *testing.T) {
 			args: []string{"logging", "https", "create", "--service-id", "123", "--version", "1", "--name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --url not provided",
@@ -36,7 +35,6 @@ func TestHTTPSCreate(t *testing.T) {
 			args: []string{"logging", "https", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHTTPSFn:  createHTTPSOK,
 			},
@@ -46,7 +44,6 @@ func TestHTTPSCreate(t *testing.T) {
 			args: []string{"logging", "https", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHTTPSFn:  createHTTPSError,
 			},
@@ -83,7 +80,6 @@ func TestHTTPSList(t *testing.T) {
 			args: []string{"logging", "https", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsShortOutput,
@@ -92,7 +88,6 @@ func TestHTTPSList(t *testing.T) {
 			args: []string{"logging", "https", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsVerboseOutput,
@@ -101,7 +96,6 @@ func TestHTTPSList(t *testing.T) {
 			args: []string{"logging", "https", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsVerboseOutput,
@@ -110,7 +104,6 @@ func TestHTTPSList(t *testing.T) {
 			args: []string{"logging", "https", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsVerboseOutput,
@@ -119,7 +112,6 @@ func TestHTTPSList(t *testing.T) {
 			args: []string{"logging", "-v", "https", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsOK,
 			},
 			wantOutput: listHTTPSsVerboseOutput,
@@ -128,7 +120,6 @@ func TestHTTPSList(t *testing.T) {
 			args: []string{"logging", "https", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListHTTPSFn:    listHTTPSsError,
 			},
 			wantError: errTest.Error(),
@@ -168,7 +159,6 @@ func TestHTTPSDescribe(t *testing.T) {
 			args: []string{"logging", "https", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetHTTPSFn:     getHTTPSError,
 			},
 			wantError: errTest.Error(),
@@ -177,7 +167,6 @@ func TestHTTPSDescribe(t *testing.T) {
 			args: []string{"logging", "https", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetHTTPSFn:     getHTTPSOK,
 			},
 			wantOutput: describeHTTPSOutput,
@@ -217,7 +206,6 @@ func TestHTTPSUpdate(t *testing.T) {
 			args: []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHTTPSFn:  updateHTTPSError,
 			},
@@ -227,7 +215,6 @@ func TestHTTPSUpdate(t *testing.T) {
 			args: []string{"logging", "https", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHTTPSFn:  updateHTTPSOK,
 			},
@@ -268,7 +255,6 @@ func TestHTTPSDelete(t *testing.T) {
 			args: []string{"logging", "https", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHTTPSFn:  deleteHTTPSError,
 			},
@@ -278,7 +264,6 @@ func TestHTTPSDelete(t *testing.T) {
 			args: []string{"logging", "https", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHTTPSFn:  deleteHTTPSOK,
 			},

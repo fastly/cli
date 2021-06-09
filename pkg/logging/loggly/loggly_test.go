@@ -97,7 +97,6 @@ func TestUpdateLogglyInput(t *testing.T) {
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetLogglyFn:    getLogglyOK,
 			},
@@ -112,7 +111,6 @@ func TestUpdateLogglyInput(t *testing.T) {
 			cmd:  updateCommandAll(),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetLogglyFn:    getLogglyOK,
 			},
@@ -180,7 +178,6 @@ func createCommandOK() *CreateCommand {
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
-		GetVersionFn:   testutil.GetActiveVersion(1),
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
@@ -218,7 +215,6 @@ func createCommandRequired() *CreateCommand {
 	}
 	globals.Client, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
-		GetVersionFn:   testutil.GetActiveVersion(1),
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 

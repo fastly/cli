@@ -27,7 +27,6 @@ func TestOpenstackCreate(t *testing.T) {
 			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --bucket not provided",
@@ -36,7 +35,6 @@ func TestOpenstackCreate(t *testing.T) {
 			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "user", "--url", "https://example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --access-key not provided",
@@ -45,7 +43,6 @@ func TestOpenstackCreate(t *testing.T) {
 			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--url", "https://example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --user not provided",
@@ -54,7 +51,6 @@ func TestOpenstackCreate(t *testing.T) {
 			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --url not provided",
@@ -63,7 +59,6 @@ func TestOpenstackCreate(t *testing.T) {
 			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateOpenstackFn: createOpenstackOK,
 			},
@@ -73,7 +68,6 @@ func TestOpenstackCreate(t *testing.T) {
 			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateOpenstackFn: createOpenstackError,
 			},
@@ -83,7 +77,6 @@ func TestOpenstackCreate(t *testing.T) {
 			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -119,7 +112,6 @@ func TestOpenstackList(t *testing.T) {
 			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksShortOutput,
@@ -128,7 +120,6 @@ func TestOpenstackList(t *testing.T) {
 			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksVerboseOutput,
@@ -137,7 +128,6 @@ func TestOpenstackList(t *testing.T) {
 			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksVerboseOutput,
@@ -146,7 +136,6 @@ func TestOpenstackList(t *testing.T) {
 			args: []string{"logging", "openstack", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksVerboseOutput,
@@ -155,7 +144,6 @@ func TestOpenstackList(t *testing.T) {
 			args: []string{"logging", "-v", "openstack", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			wantOutput: listOpenstacksVerboseOutput,
@@ -164,7 +152,6 @@ func TestOpenstackList(t *testing.T) {
 			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
-				GetVersionFn:     testutil.GetActiveVersion(1),
 				ListOpenstacksFn: listOpenstacksError,
 			},
 			wantError: errTest.Error(),
@@ -204,7 +191,6 @@ func TestOpenstackDescribe(t *testing.T) {
 			args: []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetOpenstackFn: getOpenstackError,
 			},
 			wantError: errTest.Error(),
@@ -213,7 +199,6 @@ func TestOpenstackDescribe(t *testing.T) {
 			args: []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetOpenstackFn: getOpenstackOK,
 			},
 			wantOutput: describeOpenstackOutput,
@@ -253,7 +238,6 @@ func TestOpenstackUpdate(t *testing.T) {
 			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateOpenstackFn: updateOpenstackError,
 			},
@@ -263,7 +247,6 @@ func TestOpenstackUpdate(t *testing.T) {
 			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateOpenstackFn: updateOpenstackOK,
 			},
@@ -304,7 +287,6 @@ func TestOpenstackDelete(t *testing.T) {
 			args: []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteOpenstackFn: deleteOpenstackError,
 			},
@@ -314,7 +296,6 @@ func TestOpenstackDelete(t *testing.T) {
 			args: []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteOpenstackFn: deleteOpenstackOK,
 			},

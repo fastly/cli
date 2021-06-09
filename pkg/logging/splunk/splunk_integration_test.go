@@ -36,7 +36,6 @@ func TestSplunkCreate(t *testing.T) {
 			args: []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSplunkFn: createSplunkOK,
 			},
@@ -46,7 +45,6 @@ func TestSplunkCreate(t *testing.T) {
 			args: []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSplunkFn: createSplunkError,
 			},
@@ -83,7 +81,6 @@ func TestSplunkList(t *testing.T) {
 			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSplunksFn:  listSplunksOK,
 			},
 			wantOutput: listSplunksShortOutput,
@@ -92,7 +89,6 @@ func TestSplunkList(t *testing.T) {
 			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSplunksFn:  listSplunksOK,
 			},
 			wantOutput: listSplunksVerboseOutput,
@@ -101,7 +97,6 @@ func TestSplunkList(t *testing.T) {
 			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSplunksFn:  listSplunksOK,
 			},
 			wantOutput: listSplunksVerboseOutput,
@@ -110,7 +105,6 @@ func TestSplunkList(t *testing.T) {
 			args: []string{"logging", "splunk", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSplunksFn:  listSplunksOK,
 			},
 			wantOutput: listSplunksVerboseOutput,
@@ -119,7 +113,6 @@ func TestSplunkList(t *testing.T) {
 			args: []string{"logging", "-v", "splunk", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSplunksFn:  listSplunksOK,
 			},
 			wantOutput: listSplunksVerboseOutput,
@@ -128,7 +121,6 @@ func TestSplunkList(t *testing.T) {
 			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListSplunksFn:  listSplunksError,
 			},
 			wantError: errTest.Error(),
@@ -168,7 +160,6 @@ func TestSplunkDescribe(t *testing.T) {
 			args: []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetSplunkFn:    getSplunkError,
 			},
 			wantError: errTest.Error(),
@@ -177,7 +168,6 @@ func TestSplunkDescribe(t *testing.T) {
 			args: []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetSplunkFn:    getSplunkOK,
 			},
 			wantOutput: describeSplunkOutput,
@@ -217,7 +207,6 @@ func TestSplunkUpdate(t *testing.T) {
 			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSplunkFn: updateSplunkError,
 			},
@@ -227,7 +216,6 @@ func TestSplunkUpdate(t *testing.T) {
 			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSplunkFn: updateSplunkOK,
 			},
@@ -268,7 +256,6 @@ func TestSplunkDelete(t *testing.T) {
 			args: []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSplunkFn: deleteSplunkError,
 			},
@@ -278,7 +265,6 @@ func TestSplunkDelete(t *testing.T) {
 			args: []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSplunkFn: deleteSplunkOK,
 			},

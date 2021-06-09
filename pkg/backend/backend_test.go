@@ -35,7 +35,6 @@ func TestBackendCreate(t *testing.T) {
 			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "example.com", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CreateBackendFn: createBackendError,
 			},
 			wantError: "service version 1 is not editable",
@@ -46,7 +45,6 @@ func TestBackendCreate(t *testing.T) {
 			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "example.com", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendError,
 			},
@@ -58,7 +56,6 @@ func TestBackendCreate(t *testing.T) {
 			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "127.0.0.1", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendError,
 			},
@@ -70,7 +67,6 @@ func TestBackendCreate(t *testing.T) {
 			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "127.0.0.1", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendOK,
 			},
@@ -83,7 +79,6 @@ func TestBackendCreate(t *testing.T) {
 			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "127.0.0.1", "--name", "www.test.com", "--autoclone", "--use-ssl", "--verbose"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendOK,
 			},
@@ -95,7 +90,6 @@ func TestBackendCreate(t *testing.T) {
 			args: []string{"backend", "create", "--service-id", "123", "--version", "3", "--address", "127.0.0.1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetInactiveVersion(3),
 				CreateBackendFn: createBackendOK,
 			},
 			wantOutput: "Created backend www.test.com (service 123 version 3)",
@@ -131,7 +125,6 @@ func TestBackendList(t *testing.T) {
 			args: []string{"backend", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListBackendsFn: listBackendsOK,
 			},
 			wantOutput: listBackendsShortOutput,
@@ -140,7 +133,6 @@ func TestBackendList(t *testing.T) {
 			args: []string{"backend", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListBackendsFn: listBackendsOK,
 			},
 			wantOutput: listBackendsVerboseOutput,
@@ -149,7 +141,6 @@ func TestBackendList(t *testing.T) {
 			args: []string{"backend", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListBackendsFn: listBackendsOK,
 			},
 			wantOutput: listBackendsVerboseOutput,
@@ -158,7 +149,6 @@ func TestBackendList(t *testing.T) {
 			args: []string{"backend", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListBackendsFn: listBackendsOK,
 			},
 			wantOutput: listBackendsVerboseOutput,
@@ -167,7 +157,6 @@ func TestBackendList(t *testing.T) {
 			args: []string{"-v", "backend", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListBackendsFn: listBackendsOK,
 			},
 			wantOutput: listBackendsVerboseOutput,
@@ -176,7 +165,6 @@ func TestBackendList(t *testing.T) {
 			args: []string{"backend", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListBackendsFn: listBackendsError,
 			},
 			wantError: errTest.Error(),
@@ -216,7 +204,6 @@ func TestBackendDescribe(t *testing.T) {
 			args: []string{"backend", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetBackendFn:   getBackendError,
 			},
 			wantError: errTest.Error(),
@@ -225,7 +212,6 @@ func TestBackendDescribe(t *testing.T) {
 			args: []string{"backend", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetBackendFn:   getBackendOK,
 			},
 			wantOutput: describeBackendOutput,
@@ -265,7 +251,6 @@ func TestBackendUpdate(t *testing.T) {
 			args: []string{"backend", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetBackendFn:   getBackendError,
 			},
@@ -275,7 +260,6 @@ func TestBackendUpdate(t *testing.T) {
 			args: []string{"backend", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
 				UpdateBackendFn: updateBackendError,
@@ -286,7 +270,6 @@ func TestBackendUpdate(t *testing.T) {
 			args: []string{"backend", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--comment", "", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
 				UpdateBackendFn: updateBackendOK,
@@ -328,7 +311,6 @@ func TestBackendDelete(t *testing.T) {
 			args: []string{"backend", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteBackendFn: deleteBackendError,
 			},
@@ -338,7 +320,6 @@ func TestBackendDelete(t *testing.T) {
 			args: []string{"backend", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
-				GetVersionFn:    testutil.GetActiveVersion(1),
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteBackendFn: deleteBackendOK,
 			},

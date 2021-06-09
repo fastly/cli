@@ -31,7 +31,6 @@ func TestDomainCreate(t *testing.T) {
 			args: []string{"domain", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateDomainFn: createDomainOK,
 			},
@@ -41,7 +40,6 @@ func TestDomainCreate(t *testing.T) {
 			args: []string{"domain", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateDomainFn: createDomainError,
 			},
@@ -78,7 +76,6 @@ func TestDomainList(t *testing.T) {
 			args: []string{"domain", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDomainsFn:  listDomainsOK,
 			},
 			wantOutput: listDomainsShortOutput,
@@ -87,7 +84,6 @@ func TestDomainList(t *testing.T) {
 			args: []string{"domain", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDomainsFn:  listDomainsOK,
 			},
 			wantOutput: listDomainsVerboseOutput,
@@ -96,7 +92,6 @@ func TestDomainList(t *testing.T) {
 			args: []string{"domain", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDomainsFn:  listDomainsOK,
 			},
 			wantOutput: listDomainsVerboseOutput,
@@ -105,7 +100,6 @@ func TestDomainList(t *testing.T) {
 			args: []string{"domain", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDomainsFn:  listDomainsOK,
 			},
 			wantOutput: listDomainsVerboseOutput,
@@ -114,7 +108,6 @@ func TestDomainList(t *testing.T) {
 			args: []string{"-v", "domain", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDomainsFn:  listDomainsOK,
 			},
 			wantOutput: listDomainsVerboseOutput,
@@ -123,7 +116,6 @@ func TestDomainList(t *testing.T) {
 			args: []string{"domain", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListDomainsFn:  listDomainsError,
 			},
 			wantError: errTest.Error(),
@@ -163,7 +155,6 @@ func TestDomainDescribe(t *testing.T) {
 			args: []string{"domain", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetDomainFn:    getDomainError,
 			},
 			wantError: errTest.Error(),
@@ -172,7 +163,6 @@ func TestDomainDescribe(t *testing.T) {
 			args: []string{"domain", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetDomainFn:    getDomainOK,
 			},
 			wantOutput: describeDomainOutput,
@@ -212,7 +202,6 @@ func TestDomainUpdate(t *testing.T) {
 			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainOK,
 			},
@@ -222,7 +211,6 @@ func TestDomainUpdate(t *testing.T) {
 			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainError,
 			},
@@ -232,7 +220,6 @@ func TestDomainUpdate(t *testing.T) {
 			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainOK,
 			},
@@ -273,7 +260,6 @@ func TestDomainDelete(t *testing.T) {
 			args: []string{"domain", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteDomainFn: deleteDomainError,
 			},
@@ -283,7 +269,6 @@ func TestDomainDelete(t *testing.T) {
 			args: []string{"domain", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteDomainFn: deleteDomainOK,
 			},

@@ -27,7 +27,6 @@ func TestDigitalOceanCreate(t *testing.T) {
 			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--access-key", "foo", "--secret-key", "abc", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --bucket not provided",
@@ -36,7 +35,6 @@ func TestDigitalOceanCreate(t *testing.T) {
 			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "abc", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --access-key not provided",
@@ -45,7 +43,6 @@ func TestDigitalOceanCreate(t *testing.T) {
 			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
@@ -54,7 +51,6 @@ func TestDigitalOceanCreate(t *testing.T) {
 			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "abc", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
-				GetVersionFn:         testutil.GetActiveVersion(1),
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				CreateDigitalOceanFn: createDigitalOceanOK,
 			},
@@ -64,7 +60,6 @@ func TestDigitalOceanCreate(t *testing.T) {
 			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "abc", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
-				GetVersionFn:         testutil.GetActiveVersion(1),
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				CreateDigitalOceanFn: createDigitalOceanError,
 			},
@@ -74,7 +69,6 @@ func TestDigitalOceanCreate(t *testing.T) {
 			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "abc", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -110,7 +104,6 @@ func TestDigitalOceanList(t *testing.T) {
 			args: []string{"logging", "digitalocean", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
-				GetVersionFn:        testutil.GetActiveVersion(1),
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
 			wantOutput: listDigitalOceansShortOutput,
@@ -119,7 +112,6 @@ func TestDigitalOceanList(t *testing.T) {
 			args: []string{"logging", "digitalocean", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
-				GetVersionFn:        testutil.GetActiveVersion(1),
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
 			wantOutput: listDigitalOceansVerboseOutput,
@@ -128,7 +120,6 @@ func TestDigitalOceanList(t *testing.T) {
 			args: []string{"logging", "digitalocean", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
-				GetVersionFn:        testutil.GetActiveVersion(1),
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
 			wantOutput: listDigitalOceansVerboseOutput,
@@ -137,7 +128,6 @@ func TestDigitalOceanList(t *testing.T) {
 			args: []string{"logging", "digitalocean", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
-				GetVersionFn:        testutil.GetActiveVersion(1),
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
 			wantOutput: listDigitalOceansVerboseOutput,
@@ -146,7 +136,6 @@ func TestDigitalOceanList(t *testing.T) {
 			args: []string{"logging", "-v", "digitalocean", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
-				GetVersionFn:        testutil.GetActiveVersion(1),
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
 			wantOutput: listDigitalOceansVerboseOutput,
@@ -155,7 +144,6 @@ func TestDigitalOceanList(t *testing.T) {
 			args: []string{"logging", "digitalocean", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
-				GetVersionFn:        testutil.GetActiveVersion(1),
 				ListDigitalOceansFn: listDigitalOceansError,
 			},
 			wantError: errTest.Error(),
@@ -195,7 +183,6 @@ func TestDigitalOceanDescribe(t *testing.T) {
 			args: []string{"logging", "digitalocean", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				GetDigitalOceanFn: getDigitalOceanError,
 			},
 			wantError: errTest.Error(),
@@ -204,7 +191,6 @@ func TestDigitalOceanDescribe(t *testing.T) {
 			args: []string{"logging", "digitalocean", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetActiveVersion(1),
 				GetDigitalOceanFn: getDigitalOceanOK,
 			},
 			wantOutput: describeDigitalOceanOutput,
@@ -244,7 +230,6 @@ func TestDigitalOceanUpdate(t *testing.T) {
 			args: []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
-				GetVersionFn:         testutil.GetActiveVersion(1),
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				UpdateDigitalOceanFn: updateDigitalOceanError,
 			},
@@ -254,7 +239,6 @@ func TestDigitalOceanUpdate(t *testing.T) {
 			args: []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
-				GetVersionFn:         testutil.GetActiveVersion(1),
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				UpdateDigitalOceanFn: updateDigitalOceanOK,
 			},
@@ -295,7 +279,6 @@ func TestDigitalOceanDelete(t *testing.T) {
 			args: []string{"logging", "digitalocean", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
-				GetVersionFn:         testutil.GetActiveVersion(1),
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				DeleteDigitalOceanFn: deleteDigitalOceanError,
 			},
@@ -305,7 +288,6 @@ func TestDigitalOceanDelete(t *testing.T) {
 			args: []string{"logging", "digitalocean", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
-				GetVersionFn:         testutil.GetActiveVersion(1),
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				DeleteDigitalOceanFn: deleteDigitalOceanOK,
 			},

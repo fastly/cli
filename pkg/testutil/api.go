@@ -43,18 +43,6 @@ func ListVersionsError(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return nil, errors.New("fixture error")
 }
 
-// GetActiveVersion returns a function which returns an active service version.
-func GetActiveVersion(version int) func(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return func(i *fastly.GetVersionInput) (*fastly.Version, error) {
-		return &fastly.Version{
-			ServiceID: i.ServiceID,
-			Number:    version,
-			Active:    true,
-			UpdatedAt: MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		}, nil
-	}
-}
-
 // GetInactiveVersion returns a function which returns an inactive service version.
 func GetInactiveVersion(version int) func(i *fastly.GetVersionInput) (*fastly.Version, error) {
 	return func(i *fastly.GetVersionInput) (*fastly.Version, error) {

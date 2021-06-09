@@ -27,7 +27,6 @@ func TestGCSCreate(t *testing.T) {
 			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "foo@example.com", "--secret-key", "foo", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --bucket not provided",
@@ -36,7 +35,6 @@ func TestGCSCreate(t *testing.T) {
 			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "foo", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --user not provided",
@@ -45,7 +43,6 @@ func TestGCSCreate(t *testing.T) {
 			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: required flag --secret-key not provided",
@@ -54,7 +51,6 @@ func TestGCSCreate(t *testing.T) {
 			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateGCSFn:    createGCSOK,
 			},
@@ -64,7 +60,6 @@ func TestGCSCreate(t *testing.T) {
 			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateGCSFn:    createGCSError,
 			},
@@ -74,7 +69,6 @@ func TestGCSCreate(t *testing.T) {
 			args: []string{"logging", "gcs", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "foo@example.com", "--secret-key", "foo", "--period", "86400", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -110,7 +104,6 @@ func TestGCSList(t *testing.T) {
 			args: []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListGCSsFn:     listGCSsOK,
 			},
 			wantOutput: listGCSsShortOutput,
@@ -119,7 +112,6 @@ func TestGCSList(t *testing.T) {
 			args: []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1", "--verbose"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListGCSsFn:     listGCSsOK,
 			},
 			wantOutput: listGCSsVerboseOutput,
@@ -128,7 +120,6 @@ func TestGCSList(t *testing.T) {
 			args: []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1", "-v"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListGCSsFn:     listGCSsOK,
 			},
 			wantOutput: listGCSsVerboseOutput,
@@ -137,7 +128,6 @@ func TestGCSList(t *testing.T) {
 			args: []string{"logging", "gcs", "--verbose", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListGCSsFn:     listGCSsOK,
 			},
 			wantOutput: listGCSsVerboseOutput,
@@ -146,7 +136,6 @@ func TestGCSList(t *testing.T) {
 			args: []string{"logging", "-v", "gcs", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListGCSsFn:     listGCSsOK,
 			},
 			wantOutput: listGCSsVerboseOutput,
@@ -155,7 +144,6 @@ func TestGCSList(t *testing.T) {
 			args: []string{"logging", "gcs", "list", "--service-id", "123", "--version", "1"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				ListGCSsFn:     listGCSsError,
 			},
 			wantError: errTest.Error(),
@@ -195,7 +183,6 @@ func TestGCSDescribe(t *testing.T) {
 			args: []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetGCSFn:       getGCSError,
 			},
 			wantError: errTest.Error(),
@@ -204,7 +191,6 @@ func TestGCSDescribe(t *testing.T) {
 			args: []string{"logging", "gcs", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				GetGCSFn:       getGCSOK,
 			},
 			wantOutput: describeGCSOutput,
@@ -244,7 +230,6 @@ func TestGCSUpdate(t *testing.T) {
 			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateGCSFn:    updateGCSError,
 			},
@@ -254,7 +239,6 @@ func TestGCSUpdate(t *testing.T) {
 			args: []string{"logging", "gcs", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateGCSFn:    updateGCSOK,
 			},
@@ -295,7 +279,6 @@ func TestGCSDelete(t *testing.T) {
 			args: []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteGCSFn:    deleteGCSError,
 			},
@@ -305,7 +288,6 @@ func TestGCSDelete(t *testing.T) {
 			args: []string{"logging", "gcs", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVersionFn:   testutil.GetActiveVersion(1),
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteGCSFn:    deleteGCSOK,
 			},
