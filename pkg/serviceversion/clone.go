@@ -36,11 +36,11 @@ func NewCloneCommand(parent cmd.Registerer, globals *config.Data) *CloneCommand 
 func (c *CloneCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
+		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
+		Out:                out,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
-		Out:                out,
-		Client:             c.Globals.Client,
 	})
 	if err != nil {
 		return err

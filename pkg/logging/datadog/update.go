@@ -98,12 +98,12 @@ func (c *UpdateCommand) createInput(serviceID string, serviceVersion int) (*fast
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		Manifest:           c.manifest,
-		ServiceVersionFlag: c.serviceVersion,
 		AutoCloneFlag:      c.autoClone,
-		VerboseMode:        c.Globals.Flag.Verbose,
-		Out:                out,
 		Client:             c.Globals.Client,
+		Manifest:           c.manifest,
+		Out:                out,
+		ServiceVersionFlag: c.serviceVersion,
+		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
 		return err

@@ -63,12 +63,12 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				Manifest:           testcase.cmd.manifest,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
 				AutoCloneFlag:      testcase.cmd.autoClone,
-				VerboseMode:        verboseMode,
-				Out:                out,
 				Client:             testcase.cmd.Base.Globals.Client,
+				Manifest:           testcase.cmd.manifest,
+				Out:                out,
+				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				VerboseMode:        verboseMode,
 			})
 			if err != nil {
 				if testcase.wantError == "" {
@@ -150,12 +150,12 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				Manifest:           testcase.cmd.manifest,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
 				AutoCloneFlag:      testcase.cmd.autoClone,
-				VerboseMode:        verboseMode,
-				Out:                out,
 				Client:             testcase.api,
+				Manifest:           testcase.cmd.manifest,
+				Out:                out,
+				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				VerboseMode:        verboseMode,
 			})
 			if err != nil {
 				if testcase.wantError == "" {
