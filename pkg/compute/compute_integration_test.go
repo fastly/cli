@@ -786,17 +786,8 @@ func TestDeploy(t *testing.T) {
 			wantError: "error listing service versions: fixture error",
 		},
 		{
-			name: "service version is active but autoclone not provided",
+			name: "service version is active, clone version error",
 			args: []string{"compute", "deploy", "--token", "123", "--version", "1"},
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "service version 1 is not editable",
-		},
-		{
-			name: "clone version error",
-			args: []string{"compute", "deploy", "--token", "123", "--version", "1", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionError,
@@ -1030,8 +1021,8 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with specific version",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2", "--autoclone"},
+			name: "success with specific locked version",
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
@@ -1052,7 +1043,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with active version",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "active", "--autoclone"},
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "active"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,

@@ -22,7 +22,6 @@ type PublishCommand struct {
 	backend        cmd.OptionalString
 	backendPort    cmd.OptionalUint
 	serviceVersion cmd.OptionalServiceVersion
-	autoClone      cmd.OptionalAutoClone
 
 	// Build fields
 	name       cmd.OptionalString
@@ -53,10 +52,6 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 		Dst:      &c.serviceVersion.Value,
 		Optional: true,
 		Action:   c.serviceVersion.Set,
-	})
-	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
@@ -101,9 +96,6 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.serviceVersion.WasSet {
 		c.deploy.ServiceVersion = c.serviceVersion // deploy's field is a cmd.OptionalServiceVersion
-	}
-	if c.autoClone.WasSet {
-		c.deploy.AutoClone = c.autoClone // deploy's field is a cmd.OptionalAutoClone
 	}
 	if c.domain.WasSet {
 		c.deploy.Domain = c.domain.Value

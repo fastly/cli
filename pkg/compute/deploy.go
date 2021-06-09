@@ -47,7 +47,6 @@ type DeployCommand struct {
 	Backend        string
 	BackendPort    uint
 	ServiceVersion cmd.OptionalServiceVersion
-	AutoClone      cmd.OptionalAutoClone
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -65,10 +64,6 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 		Dst:      &c.ServiceVersion.Value,
 		Optional: true,
 		Action:   c.ServiceVersion.Set,
-	})
-	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.AutoClone.Set,
-		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
@@ -128,9 +123,26 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
-		version, err = c.AutoClone.Parse(version, serviceID, c.Globals.Flag.Verbose, out, c.Globals.Client)
-		if err != nil {
-			return err
+
+		// Unlike other CLI commands that are a direct mapping to an API endpoint,
+		// the compute deploy command is a composite of behaviours, and so as we
+		// already automatically activate a version we should autoclone without
+		// requiring the user to explicitly provide an --autoclone flag.
+		if version.Active || version.Locked {
+			v, err := c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
+				ServiceID:      serviceID,
+				ServiceVersion: version.Number,
+			})
+			if err != nil {
+				return fmt.Errorf("error cloning service version: %w", err)
+			}
+			if c.Globals.Flag.Verbose {
+				msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned. Now operating on version %d.", version.Number, v.Number)
+				text.Break(out)
+				text.Output(out, msg)
+				text.Break(out)
+			}
+			version = v
 		}
 
 		// We define the `ok` variable so that the following call to
