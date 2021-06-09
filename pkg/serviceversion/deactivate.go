@@ -35,6 +35,7 @@ func NewDeactivateCommand(parent cmd.Registerer, globals *config.Data) *Deactiva
 // Exec invokes the application logic for the command.
 func (c *DeactivateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+		AllowActiveLocked:  true,
 		Manifest:           c.manifest,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,

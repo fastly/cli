@@ -111,12 +111,13 @@ type OptionalInt struct {
 // ServiceDetailsOpts provides data and behaviours required by the
 // ServiceDetails function.
 type ServiceDetailsOpts struct {
-	Manifest           manifest.Data
-	ServiceVersionFlag OptionalServiceVersion
+	AllowActiveLocked  bool
 	AutoCloneFlag      OptionalAutoClone
-	Out                io.Writer
-	VerboseMode        bool
 	Client             api.Interface
+	Manifest           manifest.Data
+	Out                io.Writer
+	ServiceVersionFlag OptionalServiceVersion
+	VerboseMode        bool
 }
 
 // ServiceDetails returns the Service ID and Service Version.

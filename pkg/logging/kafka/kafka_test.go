@@ -364,7 +364,12 @@ func createCommandRequired() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		Topic:   "logs",
 		Brokers: "127.0.0.1,127.0.0.2",
@@ -398,7 +403,12 @@ func createCommandAll() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		Topic:             "logs",
 		Brokers:           "127.0.0.1,127.0.0.2",
@@ -443,7 +453,12 @@ func createCommandSASL(authMethod, user, password string) *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		Topic:           "logs",
 		Brokers:         "127.0.0.1,127.0.0.2",
@@ -483,7 +498,12 @@ func createCommandNoSASL(authMethod, user, password string) *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		Topic:           "logs",
 		Brokers:         "127.0.0.1,127.0.0.2",
@@ -525,7 +545,12 @@ func updateCommandNoUpdates() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 	}
 }
@@ -553,7 +578,12 @@ func updateCommandAll() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
@@ -601,7 +631,12 @@ func updateCommandSASL(authMethod, user, password string) *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		Topic:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
 		Brokers:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
@@ -637,7 +672,12 @@ func updateCommandNoSASL() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		Topic:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
 		Brokers:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},

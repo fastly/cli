@@ -204,7 +204,12 @@ func createCommandRequired() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		User:      "user@example.com",
 		SecretKey: "secret",
@@ -240,7 +245,12 @@ func createCommandAll() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		User:              "user@example.com",
 		ProjectID:         "project",
@@ -282,7 +292,12 @@ func updateCommandNoUpdates() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 	}
 }
@@ -310,7 +325,12 @@ func updateCommandAll() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},

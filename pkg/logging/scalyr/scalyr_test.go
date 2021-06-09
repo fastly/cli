@@ -197,7 +197,12 @@ func createCommandRequired() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		Token: "tkn",
 	}
@@ -230,7 +235,12 @@ func createCommandAll() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		Token:             "tkn",
 		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "US"},
@@ -270,7 +280,12 @@ func updateCommandNoUpdates() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 	}
 }
@@ -298,7 +313,12 @@ func updateCommandAll() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},

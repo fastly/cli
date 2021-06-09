@@ -215,7 +215,12 @@ func createCommandRequired() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		StreamName: "stream",
 		AccessKey:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
@@ -250,7 +255,12 @@ func createCommandRequiredIAMRole() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		StreamName: "stream",
 		IAMRole:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/KinesisAccess"},
@@ -284,7 +294,12 @@ func createCommandAll() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		StreamName:        "stream",
 		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
@@ -326,7 +341,12 @@ func updateCommandNoUpdates() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 	}
 }
@@ -354,7 +374,12 @@ func updateCommandAll() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		StreamName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},

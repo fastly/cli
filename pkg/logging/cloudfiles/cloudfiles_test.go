@@ -218,7 +218,12 @@ func createCommandRequired() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		User:       "user",
 		AccessKey:  "key",
@@ -253,7 +258,12 @@ func createCommandAll() *CreateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		User:              "user",
 		AccessKey:         "key",
@@ -300,7 +310,12 @@ func updateCommandNoUpdate() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		EndpointName: "log",
 	}
@@ -328,7 +343,12 @@ func updateCommandAll() *UpdateCommand {
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
 		autoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{Value: true},
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
 		},
 		EndpointName:      "log",
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
