@@ -13,6 +13,9 @@ import (
 // CreateCommand calls the Fastly API to create backends.
 type CreateCommand struct {
 	cmd.Base
+	// TODO(integralist): either consider a rename of manifest to account for
+	// this command being called in a VCL/non-C@E project or in the near future
+	// create a new VCL focused lookup flow (more likely the latter).
 	manifest       manifest.Data
 	Input          fastly.CreateBackendInput
 	serviceVersion cmd.OptionalServiceVersion
