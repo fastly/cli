@@ -77,11 +77,6 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 	return v, nil
 }
 
-// ServiceVersioner represents the behaviours associated with the --version flag.
-type ServiceVersioner interface {
-	Parse(sid string) (*fastly.Version, error)
-}
-
 // AutoCloneFlagOpts enables easy configuration of the --autoclone flag defined
 // via the SetAutoCloneFlag constructor.
 type AutoCloneFlagOpts struct {
@@ -129,11 +124,6 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 
 	// Treat the function as a no-op if the version is editable.
 	return v, nil
-}
-
-// AutoCloner represents the behaviours associated with the --autoclone flag.
-type AutoCloner interface {
-	Parse(v *fastly.Version, sid string, verbose bool) (*fastly.Version, error)
 }
 
 // getActiveVersion returns the active service version.
