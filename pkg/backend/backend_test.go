@@ -34,8 +34,7 @@ func TestBackendCreate(t *testing.T) {
 		{
 			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "example.com", "--name", "www.test.com"},
 			api: mock.API{
-				ListVersionsFn:  testutil.ListVersions,
-				CreateBackendFn: createBackendError,
+				ListVersionsFn: testutil.ListVersions,
 			},
 			wantError: "service version 1 is not editable",
 		},
