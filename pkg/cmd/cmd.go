@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
@@ -135,6 +136,8 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 		if err != nil {
 			return serviceID, serviceVersion, err
 		}
+	} else if !opts.AllowActiveLocked && (v.Active || v.Locked) {
+		return serviceID, serviceVersion, fmt.Errorf("service version %d is not editable", v.Number)
 	}
 
 	return serviceID, v, nil
