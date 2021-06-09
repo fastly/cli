@@ -44,7 +44,6 @@ func TestSumologicCreate(t *testing.T) {
 			args: []string{"logging", "sumologic", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetInactiveVersion(1),
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateSumologicFn: createSumologicError,
 			},

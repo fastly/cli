@@ -210,7 +210,6 @@ func TestVersionActivate(t *testing.T) {
 			args: []string{"service-version", "activate", "--service-id", "123", "--version", "3", "--autoclone"},
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
-				GetVersionFn:      testutil.GetInactiveVersion(3),
 				ActivateVersionFn: activateVersionOK,
 			},
 			wantOutput: "Activated service 123 version 3",
@@ -258,7 +257,6 @@ func TestVersionDeactivate(t *testing.T) {
 			args: []string{"service-version", "deactivate", "--service-id", "123", "--version", "3"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
-				GetVersionFn:        testutil.GetInactiveVersion(3),
 				DeactivateVersionFn: deactivateVersionOK,
 			},
 			wantOutput: "Deactivated service 123 version 3",
@@ -267,7 +265,6 @@ func TestVersionDeactivate(t *testing.T) {
 			args: []string{"service-version", "deactivate", "--service-id", "123", "--version", "3"},
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
-				GetVersionFn:        testutil.GetInactiveVersion(3),
 				DeactivateVersionFn: deactivateVersionError,
 			},
 			wantError: errTest.Error(),

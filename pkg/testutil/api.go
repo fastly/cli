@@ -43,18 +43,6 @@ func ListVersionsError(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return nil, errors.New("fixture error")
 }
 
-// GetInactiveVersion returns a function which returns an inactive service version.
-func GetInactiveVersion(version int) func(i *fastly.GetVersionInput) (*fastly.Version, error) {
-	return func(i *fastly.GetVersionInput) (*fastly.Version, error) {
-		return &fastly.Version{
-			ServiceID: i.ServiceID,
-			Number:    version,
-			Active:    false,
-			UpdatedAt: MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		}, nil
-	}
-}
-
 // CloneVersionResult returns a function which returns a specific cloned version.
 func CloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
