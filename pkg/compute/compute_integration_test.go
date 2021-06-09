@@ -1050,14 +1050,6 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 4)",
 			},
 		},
-		// The following test uses --version=active which doesn't make practical
-		// sense because it suggests the given version will be active/locked and
-		// subsequently not editable. Thus the use of --autoclone is appended.
-		//
-		// Additionally, we explicitly state we want the clone of the active
-		// version 1 to result in a new editable service version 4, as there are
-		// already three versions returned by testutil.ListVersions this helps to
-		// make the test logic as correct/accurate as possible.
 		{
 			name: "success with active version",
 			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "active", "--autoclone"},
