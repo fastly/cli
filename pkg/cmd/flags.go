@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/fastly/kingpin"
@@ -103,7 +104,10 @@ type OptionalAutoClone struct {
 func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, out io.Writer, client api.Interface) (*fastly.Version, error) {
 	// if user didn't provide --autoclone flag
 	if !ac.Value && (v.Active || v.Locked) {
-		return nil, fmt.Errorf("service version %d is not editable", v.Number)
+		return nil, errors.RemediationError{
+			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
+			Remediation: errors.AutoCloneRemediation,
+		}
 	}
 	if ac.Value && (v.Active || v.Locked) {
 		version, err := client.CloneVersion(&fastly.CloneVersionInput{

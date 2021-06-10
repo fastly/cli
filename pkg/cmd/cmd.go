@@ -138,7 +138,11 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 			return serviceID, serviceVersion, err
 		}
 	} else if !opts.AllowActiveLocked && (v.Active || v.Locked) {
-		return serviceID, serviceVersion, fmt.Errorf("service version %d is not editable", v.Number)
+		err = errors.RemediationError{
+			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
+			Remediation: errors.AutoCloneRemediation,
+		}
+		return serviceID, serviceVersion, err
 	}
 
 	return serviceID, v, nil
