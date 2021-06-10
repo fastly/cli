@@ -307,8 +307,6 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
-        --autoclone              If the selected service version is not
-                                 editable, clone it and use the clone.
     -p, --path=PATH              Path to package
         --domain=DOMAIN          The name of the domain associated to the
                                  package
@@ -327,8 +325,6 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
-        --autoclone              If the selected service version is not
-                                 editable, clone it and use the clone.
     -p, --path=PATH              Path to package
         --domain=DOMAIN          The name of the domain associated to the
                                  package
