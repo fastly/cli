@@ -1251,7 +1251,7 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "success with deploy command flags",
-			args: []string{"compute", "publish", "-t", "123", "--version", "2", "--path", "pkg/test.tar.gz", "--autoclone"},
+			args: []string{"compute", "publish", "-t", "123", "--version", "2", "--path", "pkg/test.tar.gz"},
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
