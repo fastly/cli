@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -25,7 +26,7 @@ func NewUpdateCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	var c UpdateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update a package on a Fastly Compute@Edge service version")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.serviceID)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').Envar(env.ServiceID).Required().StringVar(&c.serviceID)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.version)
 	c.CmdClause.Flag("path", "Path to package").Required().Short('p').StringVar(&c.path)
 	return &c

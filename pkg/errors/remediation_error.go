@@ -75,10 +75,11 @@ var BugRemediation = strings.Join([]string{
 	"https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md",
 }, " ")
 
-// ServiceIDRemediation suggests provide a service ID via --service-id flag or
-// package manifest.
+// ServiceIDRemediation lists the myriad ways to provide a service ID.
 var ServiceIDRemediation = strings.Join([]string{
-	"Please provide one via the --service-id flag or within your package manifest",
+	"You can provide a service ID via --service-id,",
+	fmt.Sprintf("the %s environment variable,", env.ServiceID),
+	"or a 'service_id = \"ID\"' line in a package manifest.",
 }, " ")
 
 // ExistingDirRemediation suggests moving to another directory and retrying.

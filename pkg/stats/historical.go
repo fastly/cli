@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -29,7 +30,7 @@ func NewHistoricalCommand(parent cmd.Registerer, globals *config.Data) *Historic
 	c.Globals = globals
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.manifest.Flag.ServiceID)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').Envar(env.ServiceID).Required().StringVar(&c.manifest.Flag.ServiceID)
 
 	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.Input.From)
 	c.CmdClause.Flag("to", "To time").StringVar(&c.Input.To)

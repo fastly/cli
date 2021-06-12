@@ -18,6 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/undo"
@@ -60,7 +61,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.Manifest.Flag.ServiceID)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').Envar(env.ServiceID).StringVar(&c.Manifest.Flag.ServiceID)
 	c.CmdClause.Flag("version", "Number of version to activate").Action(c.Version.Set).IntVar(&c.Version.Value)
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)

@@ -10,4 +10,8 @@ const (
 
 	// Endpoint is the env var we look in for the API endpoint.
 	Endpoint = "FASTLY_API_ENDPOINT"
+
+	// ServiceID is a relatively ubiquitous parameter which can be tedious to
+	// specify, so we also look in this env var for a value.
+	ServiceID = "FASTLY_SERVICE_ID"
 )
