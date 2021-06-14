@@ -230,6 +230,12 @@ type Interface interface {
 	GetStatsJSON(*fastly.GetStatsInput, interface{}) error
 
 	CreateManagedLogging(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+
+	CreateVCL(*fastly.CreateVCLInput) (*fastly.VCL, error)
+	ListVCLs(*fastly.ListVCLsInput) ([]*fastly.VCL, error)
+	GetVCL(*fastly.GetVCLInput) (*fastly.VCL, error)
+	UpdateVCL(*fastly.UpdateVCLInput) (*fastly.VCL, error)
+	DeleteVCL(*fastly.DeleteVCLInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

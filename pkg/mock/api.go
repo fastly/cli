@@ -221,6 +221,12 @@ type API struct {
 	GetStatsJSONFn func(i *fastly.GetStatsInput, dst interface{}) error
 
 	CreateManagedLoggingFn func(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+
+	CreateVCLFn func(*fastly.CreateVCLInput) (*fastly.VCL, error)
+	ListVCLsFn  func(*fastly.ListVCLsInput) ([]*fastly.VCL, error)
+	GetVCLFn    func(*fastly.GetVCLInput) (*fastly.VCL, error)
+	UpdateVCLFn func(*fastly.UpdateVCLInput) (*fastly.VCL, error)
+	DeleteVCLFn func(*fastly.DeleteVCLInput) error
 }
 
 // AllDatacenters implements Interface.
