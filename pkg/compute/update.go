@@ -6,6 +6,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
@@ -15,18 +16,27 @@ import (
 // UpdateCommand calls the Fastly API to update packages.
 type UpdateCommand struct {
 	cmd.Base
-	serviceID string
-	version   int
-	path      string
+	manifest       manifest.Data
+	path           string
+	serviceVersion cmd.OptionalServiceVersion
+	autoClone      cmd.OptionalAutoClone
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
 func NewUpdateCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
+	c.manifest.File.SetOutput(c.Globals.Output)
+	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a package on a Fastly Compute@Edge service version")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.serviceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.version)
+	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.CmdClause.Flag("path", "Path to package").Required().Short('p').StringVar(&c.path)
 	return &c
 }
@@ -39,6 +49,18 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return errors.ErrNoToken
 	}
 
+	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+		AutoCloneFlag:      c.autoClone,
+		Client:             c.Globals.Client,
+		Manifest:           c.manifest,
+		Out:                out,
+		ServiceVersionFlag: c.serviceVersion,
+		VerboseMode:        c.Globals.Flag.Verbose,
+	})
+	if err != nil {
+		return err
+	}
+
 	progress := text.NewQuietProgress(out)
 	defer func() {
 		if err != nil {
@@ -48,8 +70,8 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Uploading package...")
 	_, err = c.Globals.Client.UpdatePackage(&fastly.UpdatePackageInput{
-		ServiceID:      c.serviceID,
-		ServiceVersion: c.version,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion.Number,
 		PackagePath:    c.path,
 	})
 	if err != nil {
@@ -57,6 +79,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	progress.Done()
 
-	text.Success(out, "Updated package (service %s, version %v)", c.serviceID, c.version)
+	text.Success(out, "Updated package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
 }

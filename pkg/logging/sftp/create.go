@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -18,13 +17,14 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName  string // Can't shadow cmd.Base method Name().
-	Version       int
-	Address       string
-	User          string
-	SSHKnownHosts string
+	EndpointName   string // Can't shadow cmd.Base method Name().
+	Address        string
+	User           string
+	SSHKnownHosts  string
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	Port              cmd.OptionalUint
 	Password          cmd.OptionalString
 	PublicKey         cmd.OptionalString
@@ -44,19 +44,21 @@ type CreateCommand struct {
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
-
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an SFTP logging endpoint on a Fastly service version").Alias("add")
-
 	c.CmdClause.Flag("name", "The name of the SFTP logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.CmdClause.Flag("address", "The hostname or IPv4 addres").Required().StringVar(&c.Address)
 	c.CmdClause.Flag("user", "The username for the server").Required().StringVar(&c.User)
 	c.CmdClause.Flag("ssh-known-hosts", "A list of host keys for all hosts we can connect to over SFTP").Required().StringVar(&c.SSHKnownHosts)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
 	c.CmdClause.Flag("password", "The password for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.Password.Set).StringVar(&c.Password.Value)
@@ -72,21 +74,15 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 	c.CmdClause.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
-
 	return &c
 }
 
 // createInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) createInput() (*fastly.CreateSFTPInput, error) {
+func (c *CreateCommand) createInput(serviceID string, serviceVersion int) (*fastly.CreateSFTPInput, error) {
 	var input fastly.CreateSFTPInput
 
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return nil, errors.ErrNoServiceID
-	}
-
 	input.ServiceID = serviceID
-	input.ServiceVersion = c.Version
+	input.ServiceVersion = serviceVersion
 	input.Name = c.EndpointName
 	input.Address = c.Address
 	input.User = c.User
@@ -159,7 +155,19 @@ func (c *CreateCommand) createInput() (*fastly.CreateSFTPInput, error) {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	input, err := c.createInput()
+	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+		AutoCloneFlag:      c.autoClone,
+		Client:             c.Globals.Client,
+		Manifest:           c.manifest,
+		Out:                out,
+		ServiceVersionFlag: c.serviceVersion,
+		VerboseMode:        c.Globals.Flag.Verbose,
+	})
+	if err != nil {
+		return err
+	}
+
+	input, err := c.createInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}

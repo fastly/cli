@@ -6,7 +6,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -17,15 +16,16 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	EndpointName string // Can't shadow cmd.Base method Name().
-	Version      int
-	ProjectID    string
-	Dataset      string
-	Table        string
-	User         string
-	SecretKey    string
+	EndpointName   string // Can't shadow cmd.Base method Name().
+	ProjectID      string
+	Dataset        string
+	Table          string
+	User           string
+	SecretKey      string
+	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	autoClone         cmd.OptionalAutoClone
 	Template          cmd.OptionalString
 	Placement         cmd.OptionalString
 	ResponseCondition cmd.OptionalString
@@ -40,36 +40,34 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a BigQuery logging endpoint on a Fastly service version").Alias("add")
-
 	c.CmdClause.Flag("name", "The name of the BigQuery logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Version)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.CmdClause.Flag("project-id", "Your Google Cloud Platform project ID").Required().StringVar(&c.ProjectID)
 	c.CmdClause.Flag("dataset", "Your BigQuery dataset").Required().StringVar(&c.Dataset)
 	c.CmdClause.Flag("table", "Your BigQuery table").Required().StringVar(&c.Table)
 	c.CmdClause.Flag("user", "Your Google Cloud Platform service account email address. The client_email field in your service account authentication JSON.").Required().StringVar(&c.User)
 	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON.").Required().StringVar(&c.SecretKey)
-
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("template-suffix", "BigQuery table name suffix template").Action(c.Template.Set).StringVar(&c.Template.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting. Must produce JSON that matches the schema of your BigQuery table").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
-
 	return &c
 }
 
 // createInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) createInput() (*fastly.CreateBigQueryInput, error) {
+func (c *CreateCommand) createInput(serviceID string, serviceVersion int) (*fastly.CreateBigQueryInput, error) {
 	var input fastly.CreateBigQueryInput
 
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return nil, errors.ErrNoServiceID
-	}
-
 	input.ServiceID = serviceID
-	input.ServiceVersion = c.Version
+	input.ServiceVersion = serviceVersion
 	input.Name = c.EndpointName
 	input.ProjectID = c.ProjectID
 	input.Dataset = c.Dataset
@@ -102,7 +100,19 @@ func (c *CreateCommand) createInput() (*fastly.CreateBigQueryInput, error) {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	input, err := c.createInput()
+	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+		AutoCloneFlag:      c.autoClone,
+		Client:             c.Globals.Client,
+		Manifest:           c.manifest,
+		Out:                out,
+		ServiceVersionFlag: c.serviceVersion,
+		VerboseMode:        c.Globals.Flag.Verbose,
+	})
+	if err != nil {
+		return err
+	}
+
+	input, err := c.createInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}

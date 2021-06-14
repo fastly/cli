@@ -6,7 +6,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -14,8 +13,9 @@ import (
 // DeactivateCommand calls the Fastly API to deactivate a service version.
 type DeactivateCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.DeactivateVersionInput
+	manifest       manifest.Data
+	Input          fastly.DeactivateVersionInput
+	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewDeactivateCommand returns a usable command registered under the parent.
@@ -26,23 +26,34 @@ func NewDeactivateCommand(parent cmd.Registerer, globals *config.Data) *Deactiva
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("deactivate", "Deactivate a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to deactivate").Required().IntVar(&c.Input.ServiceVersion)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeactivateCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
-	}
-	c.Input.ServiceID = serviceID
-
-	v, err := c.Globals.Client.DeactivateVersion(&c.Input)
+	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+		AllowActiveLocked:  true,
+		Client:             c.Globals.Client,
+		Manifest:           c.manifest,
+		Out:                out,
+		ServiceVersionFlag: c.serviceVersion,
+		VerboseMode:        c.Globals.Flag.Verbose,
+	})
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Deactivated service %s version %d", v.ServiceID, c.Input.ServiceVersion)
+	c.Input.ServiceID = serviceID
+	c.Input.ServiceVersion = serviceVersion.Number
+
+	ver, err := c.Globals.Client.DeactivateVersion(&c.Input)
+	if err != nil {
+		return err
+	}
+
+	text.Success(out, "Deactivated service %s version %d", ver.ServiceID, c.Input.ServiceVersion)
 	return nil
 }

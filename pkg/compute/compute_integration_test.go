@@ -34,7 +34,6 @@ func TestInit(t *testing.T) {
 		name             string
 		args             []string
 		configFile       config.File
-		api              mock.API
 		manifest         string
 		wantFiles        []string
 		unwantedFiles    []string
@@ -297,7 +296,7 @@ func TestInit(t *testing.T) {
 				env                            = config.Environment{}
 				file                           = testcase.configFile
 				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
+				clientFactory                  = mock.APIClient(mock.API{})
 				httpClient                     = http.DefaultClient
 				cliVersioner  update.Versioner = nil
 				in            io.Reader        = bytes.NewBufferString(testcase.stdin)
@@ -781,29 +780,27 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "--token", "123"},
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
-				ListVersionsFn: listVersionsError,
+				ListVersionsFn: testutil.ListVersionsError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: "error listing service versions: fixture error",
 		},
 		{
-			name: "clone version error",
-			args: []string{"compute", "deploy", "--token", "123"},
+			name: "service version is active, clone version error",
+			args: []string{"compute", "deploy", "--token", "123", "--version", "1"},
 			api: mock.API{
-				GetServiceFn:   getServiceOK,
-				ListVersionsFn: listVersionsActiveOk,
-				CloneVersionFn: cloneVersionError,
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error cloning latest service version: fixture error",
+			wantError: "error cloning service version: fixture error",
 		},
 		{
 			name: "list domains error",
 			args: []string{"compute", "deploy", "--token", "123"},
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
-				ListVersionsFn: listVersionsActiveOk,
-				CloneVersionFn: cloneVersionOk,
+				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
@@ -814,8 +811,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "--token", "123"},
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
-				ListVersionsFn: listVersionsActiveOk,
-				CloneVersionFn: cloneVersionOk,
+				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOk,
 				ListBackendsFn: listBackendsError,
 			},
@@ -831,8 +827,7 @@ func TestDeploy(t *testing.T) {
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:    getServiceOK,
-				ListVersionsFn:  listVersionsActiveOk,
-				CloneVersionFn:  cloneVersionOk,
+				ListVersionsFn:  testutil.ListVersions,
 				ListDomainsFn:   listDomainsOk,
 				ListBackendsFn:  listBackendsOk,
 				CreateServiceFn: createServiceOK,
@@ -893,7 +888,7 @@ func TestDeploy(t *testing.T) {
 		},
 		// The following test mocks the backend API call to fail, and we expect to
 		// see a relevant error message related to that error.
-
+		//
 		// The following test doesn't provide a Service ID by either a flag nor the
 		// manifest, so this will result in the deploy script attempting to create
 		// a new service. We mock the service creation to be successful while we
@@ -906,7 +901,6 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				GetServiceFn:    getServiceOK,
 				CreateServiceFn: createServiceOK,
-				CloneVersionFn:  cloneVersionOk,
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendError,
 				DeleteBackendFn: deleteBackendOK,
@@ -929,8 +923,7 @@ func TestDeploy(t *testing.T) {
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
-				ListVersionsFn:    listVersionsActiveOk,
-				CloneVersionFn:    cloneVersionOk,
+				ListVersionsFn:    testutil.ListVersions,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -949,8 +942,7 @@ func TestDeploy(t *testing.T) {
 			args: []string{"compute", "deploy", "--token", "123"},
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
-				ListVersionsFn: listVersionsActiveOk,
-				CloneVersionFn: cloneVersionOk,
+				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOk,
 				ListBackendsFn: listBackendsOk,
 				GetPackageFn:   getPackageIdentical,
@@ -966,8 +958,7 @@ func TestDeploy(t *testing.T) {
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
-				ListVersionsFn:    listVersionsActiveOk,
-				CloneVersionFn:    cloneVersionOk,
+				ListVersionsFn:    testutil.ListVersions,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -982,17 +973,16 @@ func TestDeploy(t *testing.T) {
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
 				"https://directly-careful-coyote.edgecompute.app",
-				"Deployed package (service 123, version 2)",
+				"Deployed package (service 123, version 3)",
 			},
 		},
 		{
 			name: "success with path",
-			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "latest"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
-				ListVersionsFn:    listVersionsActiveOk,
-				CloneVersionFn:    cloneVersionOk,
+				ListVersionsFn:    testutil.ListVersions,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -1007,18 +997,16 @@ func TestDeploy(t *testing.T) {
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
 				"https://directly-careful-coyote.edgecompute.app",
-				"Deployed package (service 123, version 2)",
+				"Deployed package (service 123, version 3)",
 			},
 		},
-		// The following test validates when the ideal latest version is 'inactive',
-		// then we don't clone the version as we can just go ahead and activate it.
 		{
 			name: "success with inactive version",
 			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
 			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
-				ListVersionsFn:    listVersionsInactiveOk,
+				ListVersionsFn:    testutil.ListVersions,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -1029,14 +1017,16 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
-				"Deployed package (service 123, version 2)",
+				"Deployed package (service 123, version 3)",
 			},
 		},
 		{
-			name: "success with version",
+			name: "success with specific locked version",
 			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
 			in:   strings.NewReader(""),
 			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				CloneVersionFn:    testutil.CloneVersionResult(4),
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
@@ -1048,7 +1038,28 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
-				"Deployed package (service 123, version 2)",
+				"Deployed package (service 123, version 4)",
+			},
+		},
+		{
+			name: "success with active version",
+			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "active"},
+			in:   strings.NewReader(""),
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+			},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"Deployed package (service 123, version 4)",
 			},
 		},
 	} {
@@ -1159,8 +1170,7 @@ func TestPublish(t *testing.T) {
 			in: strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
-				ListVersionsFn:    listVersionsActiveOk,
-				CloneVersionFn:    cloneVersionOk,
+				ListVersionsFn:    testutil.ListVersions,
 				ListBackendsFn:    listBackendsOk,
 				ListDomainsFn:     listDomainsOk,
 				GetPackageFn:      getPackageOk,
@@ -1177,7 +1187,7 @@ func TestPublish(t *testing.T) {
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
 				"https://directly-careful-coyote.edgecompute.app",
-				"Deployed package (service 123, version 2)",
+				"Deployed package (service 123, version 3)",
 			},
 		},
 		{
@@ -1219,8 +1229,7 @@ func TestPublish(t *testing.T) {
 			in: strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
-				ListVersionsFn:    listVersionsActiveOk,
-				CloneVersionFn:    cloneVersionOk,
+				ListVersionsFn:    testutil.ListVersions,
 				ListBackendsFn:    listBackendsOk,
 				ListDomainsFn:     listDomainsOk,
 				GetPackageFn:      getPackageOk,
@@ -1237,7 +1246,7 @@ func TestPublish(t *testing.T) {
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
 				"https://directly-careful-coyote.edgecompute.app",
-				"Deployed package (service 123, version 2)",
+				"Deployed package (service 123, version 3)",
 			},
 		},
 		{
@@ -1279,8 +1288,8 @@ func TestPublish(t *testing.T) {
 			in: strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
-				ListVersionsFn:    listVersionsActiveOk,
-				CloneVersionFn:    cloneVersionOk,
+				ListVersionsFn:    testutil.ListVersions,
+				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -1297,7 +1306,7 @@ func TestPublish(t *testing.T) {
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
 				"https://directly-careful-coyote.edgecompute.app",
-				"Deployed package (service 123, version 2)",
+				"Deployed package (service 123, version 4)",
 			},
 		},
 	} {
@@ -1360,8 +1369,10 @@ func TestUpdate(t *testing.T) {
 	}{
 		{
 			name: "package API error",
-			args: []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123"},
+			args: []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123", "--autoclone"},
 			api: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageError,
 			},
 			wantError: "error uploading package: fixture error",
@@ -1372,14 +1383,16 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			name: "success",
-			args: []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123"},
+			args: []string{"compute", "update", "-s", "123", "--version", "2", "-p", "pkg/package.tar.gz", "-t", "123", "--autoclone"},
 			api: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageOk,
 			},
 			wantOutput: []string{
 				"Initializing...",
 				"Uploading package...",
-				"Updated package (service 123, version 1)",
+				"Updated package (service 123, version 4)",
 			},
 		},
 	} {
@@ -1856,45 +1869,6 @@ func deleteBackendOK(i *fastly.DeleteBackendInput) error {
 	return nil
 }
 
-func listVersionsInactiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    false,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func listVersionsActiveOk(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return []*fastly.Version{
-		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
-		},
-		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
-			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
-		},
-	}, nil
-}
-
-func listVersionsError(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return nil, errTest
-}
-
 func getPackageOk(i *fastly.GetPackageInput) (*fastly.Package, error) {
 	return &fastly.Package{ServiceID: i.ServiceID, ServiceVersion: i.ServiceVersion}, nil
 }
@@ -1907,14 +1881,6 @@ func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 			HashSum: "2b742f99854df7e024c287e36fb0fdfc5414942e012be717e52148ea0d6800d66fc659563f6f11105815051e82b14b61edc84b33b49789b790db1ed3446fb483",
 		},
 	}, nil
-}
-
-func cloneVersionOk(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion + 1}, nil
-}
-
-func cloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return nil, errTest
 }
 
 func updatePackageOk(i *fastly.UpdatePackageInput) (*fastly.Package, error) {

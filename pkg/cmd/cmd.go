@@ -1,10 +1,14 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/fastly/kingpin"
 )
 
@@ -102,4 +106,44 @@ type OptionalUint8 struct {
 type OptionalInt struct {
 	Optional
 	Value int
+}
+
+// ServiceDetailsOpts provides data and behaviours required by the
+// ServiceDetails function.
+type ServiceDetailsOpts struct {
+	AllowActiveLocked  bool
+	AutoCloneFlag      OptionalAutoClone
+	Client             api.Interface
+	Manifest           manifest.Data
+	Out                io.Writer
+	ServiceVersionFlag OptionalServiceVersion
+	VerboseMode        bool
+}
+
+// ServiceDetails returns the Service ID and Service Version.
+func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *fastly.Version, err error) {
+	serviceID, source := opts.Manifest.ServiceID()
+	if source == manifest.SourceUndefined {
+		return serviceID, serviceVersion, errors.ErrNoServiceID
+	}
+
+	v, err := opts.ServiceVersionFlag.Parse(serviceID, opts.Client)
+	if err != nil {
+		return serviceID, serviceVersion, err
+	}
+
+	if opts.AutoCloneFlag.WasSet {
+		v, err = opts.AutoCloneFlag.Parse(v, serviceID, opts.VerboseMode, opts.Out, opts.Client)
+		if err != nil {
+			return serviceID, serviceVersion, err
+		}
+	} else if !opts.AllowActiveLocked && (v.Active || v.Locked) {
+		err = errors.RemediationError{
+			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
+			Remediation: errors.AutoCloneRemediation,
+		}
+		return serviceID, serviceVersion, err
+	}
+
+	return serviceID, v, nil
 }

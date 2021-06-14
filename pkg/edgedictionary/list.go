@@ -6,7 +6,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -14,8 +13,9 @@ import (
 // ListCommand calls the Fastly API to list dictionaries
 type ListCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.ListDictionariesInput
+	manifest       manifest.Data
+	Input          fastly.ListDictionariesInput
+	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewListCommand returns a usable command registered under the parent
@@ -26,17 +26,28 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List all dictionaries on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.ServiceVersion)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+		AllowActiveLocked:  true,
+		Client:             c.Globals.Client,
+		Manifest:           c.manifest,
+		Out:                out,
+		ServiceVersionFlag: c.serviceVersion,
+		VerboseMode:        c.Globals.Flag.Verbose,
+	})
+	if err != nil {
+		return err
 	}
+
 	c.Input.ServiceID = serviceID
+	c.Input.ServiceVersion = serviceVersion.Number
 
 	dictionaries, err := c.Globals.Client.ListDictionaries(&c.Input)
 	if err != nil {

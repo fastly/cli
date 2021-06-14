@@ -1,6 +1,7 @@
 package sumologic
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -24,7 +25,7 @@ func TestCreateSumologicInput(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateSumologicInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 				URL:            "example.com",
 			},
@@ -34,7 +35,7 @@ func TestCreateSumologicInput(t *testing.T) {
 			cmd:  createCommandOK(),
 			want: &fastly.CreateSumologicInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				URL:               "example.com",
 				Format:            `%h %l %u %t "%r" %>s %b`,
@@ -52,7 +53,32 @@ func TestCreateSumologicInput(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			have, err := testcase.cmd.createInput()
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
+
+			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+				AutoCloneFlag:      testcase.cmd.autoClone,
+				Client:             testcase.cmd.Base.Globals.Client,
+				Manifest:           testcase.cmd.manifest,
+				Out:                out,
+				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				VerboseMode:        verboseMode,
+			})
+			if err != nil {
+				if testcase.wantError == "" {
+					t.Fatalf("unexpected error getting service details: %v", err)
+				}
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				return
+			}
+			if err == nil {
+				if testcase.wantError != "" {
+					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+				}
+			}
+
+			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -70,20 +96,28 @@ func TestUpdateSumologicInput(t *testing.T) {
 		{
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
-			api:  mock.API{GetSumologicFn: getSumologicOK},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetSumologicFn: getSumologicOK,
+			},
 			want: &fastly.UpdateSumologicInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
-			api:  mock.API{GetSumologicFn: getSumologicOK},
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetSumologicFn: getSumologicOK,
+			},
 			want: &fastly.UpdateSumologicInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				URL:               fastly.String("new2"),
@@ -104,7 +138,32 @@ func TestUpdateSumologicInput(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Base.Globals.Client = testcase.api
 
-			have, err := testcase.cmd.createInput()
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
+
+			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+				AutoCloneFlag:      testcase.cmd.autoClone,
+				Client:             testcase.api,
+				Manifest:           testcase.cmd.manifest,
+				Out:                out,
+				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				VerboseMode:        verboseMode,
+			})
+			if err != nil {
+				if testcase.wantError == "" {
+					t.Fatalf("unexpected error getting service details: %v", err)
+				}
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				return
+			}
+			if err == nil {
+				if testcase.wantError != "" {
+					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+				}
+			}
+
+			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -112,11 +171,40 @@ func TestUpdateSumologicInput(t *testing.T) {
 }
 
 func createCommandOK() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		URL:               "example.com",
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "log",
+		URL:          "example.com",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
+		},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
@@ -126,11 +214,40 @@ func createCommandOK() *CreateCommand {
 }
 
 func createCommandRequired() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "log",
 		URL:          "example.com",
-		Version:      2,
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
+		},
 	}
 }
 
@@ -141,20 +258,68 @@ func createCommandMissingServiceID() *CreateCommand {
 }
 
 func updateCommandNoUpdates() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "log",
-		Version:      2,
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
+		},
 	}
 }
 
 func updateCommandAll() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "log",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
+		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},

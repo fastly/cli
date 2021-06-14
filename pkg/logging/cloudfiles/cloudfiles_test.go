@@ -1,6 +1,7 @@
 package cloudfiles
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -25,7 +26,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			cmd:  createCommandRequired(),
 			want: &fastly.CreateCloudfilesInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 				User:           "user",
 				AccessKey:      "key",
@@ -37,7 +38,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			cmd:  createCommandAll(),
 			want: &fastly.CreateCloudfilesInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				User:              "user",
 				AccessKey:         "key",
@@ -64,7 +65,32 @@ func TestCreateCloudfilesInput(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			have, err := testcase.cmd.createInput()
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
+
+			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+				AutoCloneFlag:      testcase.cmd.autoClone,
+				Client:             testcase.cmd.Base.Globals.Client,
+				Manifest:           testcase.cmd.manifest,
+				Out:                out,
+				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				VerboseMode:        verboseMode,
+			})
+			if err != nil {
+				if testcase.wantError == "" {
+					t.Fatalf("unexpected error getting service details: %v", err)
+				}
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				return
+			}
+			if err == nil {
+				if testcase.wantError != "" {
+					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+				}
+			}
+
+			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -82,20 +108,28 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 		{
 			name: "no update",
 			cmd:  updateCommandNoUpdate(),
-			api:  mock.API{GetCloudfilesFn: getCloudfilesOK},
+			api: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetCloudfilesFn: getCloudfilesOK,
+			},
 			want: &fastly.UpdateCloudfilesInput{
 				ServiceID:      "123",
-				ServiceVersion: 2,
+				ServiceVersion: 4,
 				Name:           "log",
 			},
 		},
 		{
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
-			api:  mock.API{GetCloudfilesFn: getCloudfilesOK},
+			api: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetCloudfilesFn: getCloudfilesOK,
+			},
 			want: &fastly.UpdateCloudfilesInput{
 				ServiceID:         "123",
-				ServiceVersion:    2,
+				ServiceVersion:    4,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				AccessKey:         fastly.String("new2"),
@@ -125,7 +159,32 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Base.Globals.Client = testcase.api
 
-			have, err := testcase.cmd.createInput()
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
+
+			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+				AutoCloneFlag:      testcase.cmd.autoClone,
+				Client:             testcase.api,
+				Manifest:           testcase.cmd.manifest,
+				Out:                out,
+				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				VerboseMode:        verboseMode,
+			})
+			if err != nil {
+				if testcase.wantError == "" {
+					t.Fatalf("unexpected error getting service details: %v", err)
+				}
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				return
+			}
+			if err == nil {
+				if testcase.wantError != "" {
+					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+				}
+			}
+
+			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -133,21 +192,79 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 }
 
 func createCommandRequired() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
 		EndpointName: "log",
-		Version:      2,
-		User:         "user",
-		AccessKey:    "key",
-		BucketName:   "bucket",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
+		},
+		User:       "user",
+		AccessKey:  "key",
+		BucketName: "bucket",
 	}
 }
 
 func createCommandAll() *CreateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+	globals.Client, _ = mock.APIClient(mock.API{
+		ListVersionsFn: testutil.ListVersions,
+		CloneVersionFn: testutil.CloneVersionResult(4),
+	})("token", "endpoint")
+
 	return &CreateCommand{
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		EndpointName:      "log",
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		EndpointName: "log",
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
+		},
 		User:              "user",
 		AccessKey:         "key",
 		BucketName:        "bucket",
@@ -172,19 +289,67 @@ func createCommandMissingServiceID() *CreateCommand {
 }
 
 func updateCommandNoUpdate() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:         cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:     manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		Version:      2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
+		},
 		EndpointName: "log",
 	}
 }
 
 func updateCommandAll() *UpdateCommand {
+	var b bytes.Buffer
+
+	globals := config.Data{
+		File:   config.File{},
+		Env:    config.Environment{},
+		Output: &b,
+	}
+
 	return &UpdateCommand{
-		Base:              cmd.Base{Globals: &config.Data{Client: nil}},
-		manifest:          manifest.Data{Flag: manifest.Flag{ServiceID: "123"}},
-		Version:           2,
+		Base: cmd.Base{
+			Globals: &globals,
+		},
+		manifest: manifest.Data{
+			Flag: manifest.Flag{
+				ServiceID: "123",
+			},
+		},
+		serviceVersion: cmd.OptionalServiceVersion{
+			OptionalString: cmd.OptionalString{Value: "1"},
+		},
+		autoClone: cmd.OptionalAutoClone{
+			OptionalBool: cmd.OptionalBool{
+				Optional: cmd.Optional{
+					WasSet: true,
+				},
+				Value: true,
+			},
+		},
 		EndpointName:      "log",
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},

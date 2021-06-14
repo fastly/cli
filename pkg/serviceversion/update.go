@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -15,8 +14,10 @@ import (
 // UpdateCommand calls the Fastly API to update a service version.
 type UpdateCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	input    fastly.UpdateVersionInput
+	manifest       manifest.Data
+	input          fastly.UpdateVersionInput
+	serviceVersion cmd.OptionalServiceVersion
+	autoClone      cmd.OptionalAutoClone
 
 	comment cmd.OptionalString
 }
@@ -29,7 +30,13 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version you wish to update").Required().IntVar(&c.input.ServiceVersion)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst: &c.serviceVersion.Value,
+	})
+	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 
 	// TODO(integralist):
 	// Make 'comment' field mandatory once we roll out a new release of Go-Fastly
@@ -42,12 +49,20 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+		AutoCloneFlag:      c.autoClone,
+		Client:             c.Globals.Client,
+		Manifest:           c.manifest,
+		Out:                out,
+		ServiceVersionFlag: c.serviceVersion,
+		VerboseMode:        c.Globals.Flag.Verbose,
+	})
+	if err != nil {
+		return err
 	}
 
 	c.input.ServiceID = serviceID
+	c.input.ServiceVersion = serviceVersion.Number
 
 	if !c.comment.WasSet {
 		return fmt.Errorf("error parsing arguments: required flag --comment not provided")
@@ -57,11 +72,11 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		c.input.Comment = fastly.String(c.comment.Value)
 	}
 
-	v, err := c.Globals.Client.UpdateVersion(&c.input)
+	ver, err := c.Globals.Client.UpdateVersion(&c.input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Updated service %s version %d", v.ServiceID, c.input.ServiceVersion)
+	text.Success(out, "Updated service %s version %d", ver.ServiceID, c.input.ServiceVersion)
 	return nil
 }

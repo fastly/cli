@@ -86,3 +86,8 @@ var ExistingDirRemediation = strings.Join([]string{
 	"Please create a new directory and initialize a new project using:",
 	"`fastly compute init`.",
 }, " ")
+
+// AutoCloneRemediation suggests provide an --autoclone flag.
+var AutoCloneRemediation = strings.Join([]string{
+	"Repeat the command with the --autoclone flag to allow the version to be cloned",
+}, " ")

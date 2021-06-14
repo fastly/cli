@@ -17,11 +17,11 @@ type PublishCommand struct {
 	deploy   *DeployCommand
 
 	// Deploy fields
-	path        cmd.OptionalString
-	version     cmd.OptionalInt
-	domain      cmd.OptionalString
-	backend     cmd.OptionalString
-	backendPort cmd.OptionalUint
+	path           cmd.OptionalString
+	domain         cmd.OptionalString
+	backend        cmd.OptionalString
+	backendPort    cmd.OptionalUint
+	serviceVersion cmd.OptionalServiceVersion
 
 	// Build fields
 	name       cmd.OptionalString
@@ -48,7 +48,11 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 
 	// Deploy flags
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("version", "Number of version to activate").Action(c.version.Set).IntVar(&c.version.Value)
+	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Dst:      &c.serviceVersion.Value,
+		Optional: true,
+		Action:   c.serviceVersion.Set,
+	})
 	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").Action(c.backend.Set).StringVar(&c.backend.Value)
@@ -90,8 +94,8 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.path.WasSet {
 		c.deploy.Path = c.path.Value
 	}
-	if c.version.WasSet {
-		c.deploy.Version = c.version // deploy's field is a cmd.OptionalInt
+	if c.serviceVersion.WasSet {
+		c.deploy.ServiceVersion = c.serviceVersion // deploy's field is a cmd.OptionalServiceVersion
 	}
 	if c.domain.WasSet {
 		c.deploy.Domain = c.domain.Value
@@ -102,7 +106,6 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.backendPort.WasSet {
 		c.deploy.BackendPort = c.backendPort.Value
 	}
-	c.deploy.Manifest = c.manifest
 
 	err = c.deploy.Exec(in, out)
 	if err != nil {
