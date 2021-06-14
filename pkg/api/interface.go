@@ -18,6 +18,7 @@ type HTTPClient interface {
 // It exists to allow for easier testing, in combination with Mock.
 type Interface interface {
 	AllIPs() (v4, v6 fastly.IPAddrs, err error)
+	AllDatacenters() (datacenters []fastly.Datacenter, err error)
 	GetTokenSelf() (*fastly.Token, error)
 
 	CreateService(*fastly.CreateServiceInput) (*fastly.Service, error)

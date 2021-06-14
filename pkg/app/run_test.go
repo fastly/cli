@@ -106,6 +106,7 @@ COMMANDS
   version          Display version information for the Fastly CLI
   update           Update the CLI to the latest version
   ip-list          List Fastly's public IPs
+  pops             List Fastly datacenters
   service          Manipulate Fastly services
   service-version  Manipulate Fastly service versions
   compute          Manage Compute@Edge packages
@@ -202,6 +203,10 @@ COMMANDS
 
   ip-list
     List Fastly's public IPs
+
+
+  pops
+    List Fastly datacenters
 
 
   service create --name=NAME [<flags>]

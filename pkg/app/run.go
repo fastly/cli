@@ -49,6 +49,7 @@ import (
 	"github.com/fastly/cli/pkg/logging/sumologic"
 	"github.com/fastly/cli/pkg/logging/syslog"
 	"github.com/fastly/cli/pkg/logs"
+	"github.com/fastly/cli/pkg/pop"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/service"
 	"github.com/fastly/cli/pkg/serviceversion"
@@ -119,6 +120,7 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	versionRoot := version.NewRootCommand(app)
 	updateRoot := update.NewRootCommand(app, configFilePath, cliVersioner, httpClient, &globals)
 	ipRoot := ip.NewRootCommand(app, &globals)
+	popRoot := pop.NewRootCommand(app, &globals)
 
 	serviceRoot := service.NewRootCommand(app, &globals)
 	serviceCreate := service.NewCreateCommand(serviceRoot.CmdClause, &globals)
@@ -372,6 +374,7 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 		versionRoot,
 		updateRoot,
 		ipRoot,
+		popRoot,
 
 		serviceRoot,
 		serviceCreate,
