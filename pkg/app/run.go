@@ -56,6 +56,8 @@ import (
 	"github.com/fastly/cli/pkg/stats"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
+	"github.com/fastly/cli/pkg/vcl"
+	"github.com/fastly/cli/pkg/vcl/custom"
 	"github.com/fastly/cli/pkg/version"
 	"github.com/fastly/cli/pkg/whoami"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -368,6 +370,10 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
 	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
 
+	vclRoot := vcl.NewRootCommand(app, &globals)
+	vclCustomRoot := custom.NewRootCommand(vclRoot.CmdClause, &globals)
+	vclCustomCreate := custom.NewCreateCommand(vclCustomRoot.CmdClause, &globals)
+
 	commands := []cmd.Command{
 		configureRoot,
 		whoamiRoot,
@@ -621,6 +627,10 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 		statsRegions,
 		statsHistorical,
 		statsRealtime,
+
+		vclRoot,
+		vclCustomRoot,
+		vclCustomCreate,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs
