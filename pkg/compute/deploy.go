@@ -245,6 +245,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
+		err = updateManifestServiceID(&c.manifest.File, ManifestFilename, progress, serviceID)
+		if err != nil {
+			return err
+		}
 	}
 
 	// If the user has specified a Service ID, then we validate it has the
@@ -271,17 +275,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			if err != nil {
 				return err
 			}
-		}
-	}
-
-	// We only want to update the manifest if it's the first time deploying and
-	// so we will have only just created a new service. If the Service ID is
-	// provided by the flag and not the file, then we'll also store that ID
-	// within the manifest.
-	if sidSrc == manifest.SourceUndefined || sidSrc != manifest.SourceFile {
-		err = updateManifestServiceID(&c.manifest.File, ManifestFilename, progress, serviceID)
-		if err != nil {
-			return err
 		}
 	}
 
