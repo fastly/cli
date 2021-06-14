@@ -8,8 +8,9 @@ import (
 // The zero value is useful, but will panic on all methods. Provide function
 // implementations for the method(s) your test will call.
 type API struct {
-	AllIPsFn       func() (v4, v6 fastly.IPAddrs, err error)
-	GetTokenSelfFn func() (*fastly.Token, error)
+	AllDatacentersFn func() (datacenters []fastly.Datacenter, err error)
+	AllIPsFn         func() (v4, v6 fastly.IPAddrs, err error)
+	GetTokenSelfFn   func() (*fastly.Token, error)
 
 	CreateServiceFn     func(*fastly.CreateServiceInput) (*fastly.Service, error)
 	ListServicesFn      func(*fastly.ListServicesInput) ([]*fastly.Service, error)
@@ -220,6 +221,11 @@ type API struct {
 	GetStatsJSONFn func(i *fastly.GetStatsInput, dst interface{}) error
 
 	CreateManagedLoggingFn func(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+}
+
+// AllDatacenters implements Interface.
+func (m API) AllDatacenters() ([]fastly.Datacenter, error) {
+	return m.AllDatacentersFn()
 }
 
 // AllIPs implements Interface.
