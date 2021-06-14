@@ -21,6 +21,7 @@ import (
 	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/healthcheck"
+	"github.com/fastly/cli/pkg/ip"
 	"github.com/fastly/cli/pkg/logging"
 	"github.com/fastly/cli/pkg/logging/azureblob"
 	"github.com/fastly/cli/pkg/logging/bigquery"
@@ -117,6 +118,7 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	whoamiRoot := whoami.NewRootCommand(app, httpClient, &globals)
 	versionRoot := version.NewRootCommand(app)
 	updateRoot := update.NewRootCommand(app, configFilePath, cliVersioner, httpClient, &globals)
+	ipRoot := ip.NewRootCommand(app, &globals)
 
 	serviceRoot := service.NewRootCommand(app, &globals)
 	serviceCreate := service.NewCreateCommand(serviceRoot.CmdClause, &globals)
@@ -369,6 +371,7 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 		whoamiRoot,
 		versionRoot,
 		updateRoot,
+		ipRoot,
 
 		serviceRoot,
 		serviceCreate,
