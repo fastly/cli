@@ -17,6 +17,7 @@ type HTTPClient interface {
 // Interface models the methods of the Fastly API client that we use.
 // It exists to allow for easier testing, in combination with Mock.
 type Interface interface {
+	AllIPs() (v4, v6 fastly.IPAddrs, err error)
 	GetTokenSelf() (*fastly.Token, error)
 
 	CreateService(*fastly.CreateServiceInput) (*fastly.Service, error)
