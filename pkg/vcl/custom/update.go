@@ -73,7 +73,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated custom VCL %s (service %s version %d)", v.Name, v.ServiceID, v.ServiceVersion)
+	text.Success(out, "Updated custom VCL '%s' (service: %s, version: %d)", v.Name, v.ServiceID, v.ServiceVersion)
 	return nil
 }
 

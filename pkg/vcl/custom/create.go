@@ -71,7 +71,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created custom VCL %s (service %s version %d main %t)", v.Name, v.ServiceID, v.ServiceVersion, v.Main)
+	text.Success(out, "Created custom VCL '%s' (service: %s, version: %d, main: %t)", v.Name, v.ServiceID, v.ServiceVersion, v.Main)
 	return nil
 }
 
