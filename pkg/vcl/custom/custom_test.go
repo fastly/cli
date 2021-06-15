@@ -112,7 +112,64 @@ func TestVCLCustomCreate(t *testing.T) {
 }
 
 func TestVCLCustomDelete(t *testing.T) {
-	//
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing --name flag",
+			Args:      args("vcl custom delete --version 3"),
+			WantError: "error parsing arguments: required flag --name not provided",
+		},
+		{
+			Name:      "validate missing --version flag",
+			Args:      args("vcl custom delete --name foobar"),
+			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Name:      "validate missing --service-id flag",
+			Args:      args("vcl custom delete --name foobar --version 3"),
+			WantError: "error reading service: no service ID found",
+		},
+		{
+			Name: "validate missing --autoclone flag",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl custom delete --service-id 123 --version 1 --name foobar"),
+			WantError: "service version 1 is not editable",
+		},
+		{
+			Name: "validate DeleteVCL API error",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				DeleteVCLFn: func(i *fastly.DeleteVCLInput) error {
+					return testutil.ErrAPI
+				},
+			},
+			Args:      args("vcl custom delete --service-id 123 --version 3 --name foobar"),
+			WantError: testutil.ErrAPI.Error(),
+		},
+		{
+			Name: "validate DeleteVCL API success",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				DeleteVCLFn: func(i *fastly.DeleteVCLInput) error {
+					return nil
+				},
+			},
+			Args:       args("vcl custom delete --service-id 123 --version 3 --name foobar"),
+			WantOutput: "Deleted custom VCL 'foobar' (service: 123, version: 3)",
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			var buf bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+		})
+	}
 }
 
 func TestVCLCustomDescribe(t *testing.T) {
