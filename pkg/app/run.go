@@ -376,6 +376,7 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	vclCustomDelete := custom.NewDeleteCommand(vclCustomRoot.CmdClause, &globals)
 	vclCustomDescribe := custom.NewDescribeCommand(vclCustomRoot.CmdClause, &globals)
 	vclCustomList := custom.NewListCommand(vclCustomRoot.CmdClause, &globals)
+	vclCustomUpdate := custom.NewUpdateCommand(vclCustomRoot.CmdClause, &globals)
 
 	commands := []cmd.Command{
 		configureRoot,
@@ -637,6 +638,7 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 		vclCustomDelete,
 		vclCustomDescribe,
 		vclCustomList,
+		vclCustomUpdate,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs
