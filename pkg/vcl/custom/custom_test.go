@@ -3,6 +3,7 @@ package custom_test
 import (
 	"bytes"
 	"testing"
+	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
@@ -173,7 +174,64 @@ func TestVCLCustomDelete(t *testing.T) {
 }
 
 func TestVCLCustomDescribe(t *testing.T) {
-	//
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing --name flag",
+			Args:      args("vcl custom describe --version 3"),
+			WantError: "error parsing arguments: required flag --name not provided",
+		},
+		{
+			Name:      "validate missing --version flag",
+			Args:      args("vcl custom describe --name foobar"),
+			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Name:      "validate missing --service-id flag",
+			Args:      args("vcl custom describe --name foobar --version 3"),
+			WantError: "error reading service: no service ID found",
+		},
+		{
+			Name: "validate GetVCL API error",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				GetVCLFn: func(i *fastly.GetVCLInput) (*fastly.VCL, error) {
+					return nil, testutil.ErrAPI
+				},
+			},
+			Args:      args("vcl custom describe --service-id 123 --version 3 --name foobar"),
+			WantError: testutil.ErrAPI.Error(),
+		},
+		{
+			Name: "validate GetVCL API success",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				GetVCLFn:       getVCL,
+			},
+			Args:       args("vcl custom describe --service-id 123 --version 3 --name foobar"),
+			WantOutput: "Service ID: 123\nService Version: 3\nName: foobar\nMain: true\nContent: # some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+		},
+		{
+			Name: "validate missing --autoclone flag is OK",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				GetVCLFn:       getVCL,
+			},
+			Args:       args("vcl custom describe --service-id 123 --version 1 --name foobar"),
+			WantOutput: "Service ID: 123\nService Version: 1\nName: foobar\nMain: true\nContent: # some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			var buf bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+		})
+	}
+
 }
 
 func TestVCLCustomList(t *testing.T) {
@@ -182,4 +240,19 @@ func TestVCLCustomList(t *testing.T) {
 
 func TestVCLCustomUpdate(t *testing.T) {
 	//
+}
+
+func getVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
+	t := time.Date(2021, time.June, 15, 23, 0, 0, 0, time.UTC)
+
+	return &fastly.VCL{
+		Content:        "# some vcl content",
+		Main:           true,
+		Name:           i.Name,
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		CreatedAt:      &t,
+		UpdatedAt:      &t,
+		DeletedAt:      &t,
+	}, nil
 }
