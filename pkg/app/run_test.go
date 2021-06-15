@@ -119,6 +119,7 @@ COMMANDS
   logs             Compute@Edge Log Tailing
   stats            View statistics (historical and realtime) for a Fastly
                    service
+  vcl              Manipulate Fastly service version VCL
 `) + "\n\n"
 
 var helpService = strings.TrimSpace(`
@@ -3578,6 +3579,56 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID
         --format=FORMAT          Output format (json)
+
+  vcl custom create --file=FILE --version=VERSION [<flags>]
+    Upload a VCL for a particular service and version
+
+        --file=FILE              The path to the VCL
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+        --autoclone              If the selected service version is not
+                                 editable, clone it and use the clone.
+        --main                   Whether the VCL is the 'main' entrypoint
+        --name=NAME              The name of the VCL (defaults to --file
+                                 filename without extension)
+    -s, --service-id=SERVICE-ID  Service ID
+
+  vcl custom delete --name=NAME --version=VERSION [<flags>]
+    Delete the uploaded VCL for a particular service and version
+
+        --name=NAME              The name of the VCL to delete
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+        --autoclone              If the selected service version is not
+                                 editable, clone it and use the clone.
+    -s, --service-id=SERVICE-ID  Service ID
+
+  vcl custom describe --name=NAME --version=VERSION [<flags>]
+    Get the uploaded VCL for a particular service and version
+
+        --name=NAME              The name of the VCL
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+    -s, --service-id=SERVICE-ID  Service ID
+
+  vcl custom list --version=VERSION [<flags>]
+    List the uploaded VCLs for a particular service and version
+
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+    -s, --service-id=SERVICE-ID  Service ID
+
+  vcl custom update --name=NAME --version=VERSION [<flags>]
+    Update the uploaded VCL for a particular service and version
+
+        --name=NAME              The name of the VCL to update
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+        --autoclone              If the selected service version is not
+                                 editable, clone it and use the clone.
+        --new-name=NEW-NAME      New name for the VCL
+        --content=CONTENT        New VCL content
+    -s, --service-id=SERVICE-ID  Service ID
 
 For help on a specific command, try e.g.
 
