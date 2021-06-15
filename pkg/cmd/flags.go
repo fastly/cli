@@ -65,11 +65,11 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 	case "latest":
 		return vs[0], nil
 	case "active":
-		v, err = getActiveVersion(vs)
+		v, err = GetActiveVersion(vs)
 	case "":
 		return vs[0], nil
 	default:
-		v, err = getSpecifiedVersion(vs, sv.Value)
+		v, err = GetSpecifiedVersion(vs, sv.Value)
 	}
 	if err != nil {
 		return nil, err
@@ -130,8 +130,8 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 	return v, nil
 }
 
-// getActiveVersion returns the active service version.
-func getActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
+// GetActiveVersion returns the active service version.
+func GetActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	for _, v := range vs {
 		if v.Active {
 			return v, nil
@@ -140,8 +140,8 @@ func getActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	return nil, fmt.Errorf("no active service version found")
 }
 
-// getSpecifiedVersion returns the specified service version.
-func getSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version, error) {
+// GetSpecifiedVersion returns the specified service version.
+func GetSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version, error) {
 	i, err := strconv.Atoi(version)
 	if err != nil {
 		return nil, err

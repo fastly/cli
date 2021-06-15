@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/update"
@@ -27,7 +27,7 @@ type AppRunArgs struct {
 	AppConfigFile string
 	Args          []string
 	CLIVersioner  update.Versioner
-	ClientFactory app.APIClientFactory
+	ClientFactory func(token, endpoint string) (api.Interface, error)
 	Env           config.Environment
 	File          config.File
 	HTTPClient    *http.Client

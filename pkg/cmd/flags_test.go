@@ -1,4 +1,4 @@
-package cmd
+package cmd_test
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -48,10 +49,10 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			sv := &OptionalServiceVersion{}
+			sv := &cmd.OptionalServiceVersion{}
 
 			if !c.flagOmitted {
-				sv.OptionalString = OptionalString{
+				sv.OptionalString = cmd.OptionalString{
 					Value: c.flagValue,
 				}
 			}
@@ -155,7 +156,7 @@ func TestGetLatestActiveVersion(t *testing.T) {
 				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
 			})
 
-			v, err := getActiveVersion(testcase.inputVersions)
+			v, err := cmd.GetActiveVersion(testcase.inputVersions)
 			if err != nil {
 				if testcase.wantError != "" {
 					testutil.AssertString(t, testcase.wantError, err.Error())
@@ -202,7 +203,7 @@ func TestGetSpecifiedVersion(t *testing.T) {
 				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
 			})
 
-			v, err := getSpecifiedVersion(testcase.inputVersions, strconv.Itoa(testcase.wantVersion))
+			v, err := cmd.GetSpecifiedVersion(testcase.inputVersions, strconv.Itoa(testcase.wantVersion))
 			if err != nil {
 				if testcase.wantError != "" {
 					testutil.AssertString(t, testcase.wantError, err.Error())
@@ -266,16 +267,16 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			var (
-				acv *OptionalAutoClone
+				acv *cmd.OptionalAutoClone
 				bs  []byte
 			)
 			buf := bytes.NewBuffer(bs)
 
 			if c.flagOmitted {
-				acv = &OptionalAutoClone{}
+				acv = &cmd.OptionalAutoClone{}
 			} else {
-				acv = &OptionalAutoClone{
-					OptionalBool: OptionalBool{
+				acv = &cmd.OptionalAutoClone{
+					OptionalBool: cmd.OptionalBool{
 						Value: true,
 					},
 				}
