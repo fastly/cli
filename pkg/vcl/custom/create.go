@@ -2,8 +2,6 @@ package custom
 
 import (
 	"io"
-	"path/filepath"
-	"strings"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
@@ -21,7 +19,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.Read(manifest.Filename)
 
 	// Required flags
-	c.CmdClause.Flag("file", "The path to the VCL").Required().StringVar(&c.file)
+	c.CmdClause.Flag("content", "VCL passed as file path or content, e.g. $(cat main.vcl)").Required().StringVar(&c.content)
+	c.CmdClause.Flag("name", "The name of the VCL").Required().StringVar(&c.name)
 	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
@@ -32,7 +31,6 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("main", "Whether the VCL is the 'main' entrypoint").Action(c.main.Set).BoolVar(&c.main.Value)
-	c.CmdClause.Flag("name", "The name of the VCL (defaults to --file filename without extension)").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 
 	return &c
@@ -43,10 +41,10 @@ type CreateCommand struct {
 	cmd.Base
 
 	autoClone      cmd.OptionalAutoClone
-	file           string
+	content        string
 	main           cmd.OptionalBool
 	manifest       manifest.Data
-	name           cmd.OptionalString
+	name           string
 	serviceVersion cmd.OptionalServiceVersion
 }
 
@@ -79,18 +77,13 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *CreateCommand) createInput(serviceID string, serviceVersion int) *fastly.CreateVCLInput {
 	var input fastly.CreateVCLInput
 
+	input.Content = Content(c.content) // Content() defined in update.go
+	input.Name = c.name
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Content = c.file
 
 	if c.main.WasSet {
 		input.Main = c.main.Value
-	}
-	if c.name.WasSet {
-		input.Name = c.name.Value
-	} else {
-		basename := filepath.Base(c.file)
-		input.Name = strings.TrimSuffix(basename, filepath.Ext(basename))
 	}
 
 	return &input

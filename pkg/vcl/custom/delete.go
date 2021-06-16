@@ -73,9 +73,9 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *DeleteCommand) createInput(serviceID string, serviceVersion int) *fastly.DeleteVCLInput {
 	var input fastly.DeleteVCLInput
 
+	input.Name = c.name
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.name
 
 	return &input
 }

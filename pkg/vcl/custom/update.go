@@ -3,6 +3,8 @@ package custom
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
@@ -31,7 +33,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("new-name", "New name for the VCL").Action(c.newName.Set).StringVar(&c.newName.Value)
-	c.CmdClause.Flag("content", "New VCL content").Action(c.content.Set).StringVar(&c.content.Value)
+	c.CmdClause.Flag("content", "VCL passed as file path or content, e.g. $(cat main.vcl)").Action(c.content.Set).StringVar(&c.content.Value)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 
 	return &c
@@ -85,9 +87,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *UpdateCommand) createInput(serviceID string, serviceVersion int) (*fastly.UpdateVCLInput, error) {
 	var input fastly.UpdateVCLInput
 
+	input.Name = c.name
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.name
 
 	if !c.newName.WasSet && !c.content.WasSet {
 		return nil, fmt.Errorf("error parsing arguments: must provide either --new-name or --content to update the VCL")
@@ -96,8 +98,23 @@ func (c *UpdateCommand) createInput(serviceID string, serviceVersion int) (*fast
 		input.NewName = fastly.String(c.newName.Value)
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(c.content.Value)
+		input.Content = fastly.String(Content(c.content.Value))
 	}
 
 	return &input, nil
+}
+
+// Content determines if the given flag value for --content is a file path,
+// and if so read the contents from disk, otherwise presume the given value is
+// the content.
+func Content(flagval string) string {
+	content := flagval
+	if path, err := filepath.Abs(flagval); err == nil {
+		if _, err := os.Stat(path); err == nil {
+			if data, err := os.ReadFile(path); err == nil {
+				content = string(data)
+			}
+		}
+	}
+	return content
 }

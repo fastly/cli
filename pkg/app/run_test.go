@@ -3580,17 +3580,17 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
         --format=FORMAT          Output format (json)
 
-  vcl custom create --file=FILE --version=VERSION [<flags>]
+  vcl custom create --content=CONTENT --name=NAME --version=VERSION [<flags>]
     Upload a VCL for a particular service and version
 
-        --file=FILE              The path to the VCL
+        --content=CONTENT        VCL passed as file path or content, e.g. $(cat
+                                 main.vcl)
+        --name=NAME              The name of the VCL
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
         --main                   Whether the VCL is the 'main' entrypoint
-        --name=NAME              The name of the VCL (defaults to --file
-                                 filename without extension)
     -s, --service-id=SERVICE-ID  Service ID
 
   vcl custom delete --name=NAME --version=VERSION [<flags>]
@@ -3627,7 +3627,8 @@ COMMANDS
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
         --new-name=NEW-NAME      New name for the VCL
-        --content=CONTENT        New VCL content
+        --content=CONTENT        VCL passed as file path or content, e.g. $(cat
+                                 main.vcl)
     -s, --service-id=SERVICE-ID  Service ID
 
 For help on a specific command, try e.g.

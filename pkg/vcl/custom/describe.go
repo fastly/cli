@@ -68,9 +68,9 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *DescribeCommand) createInput(serviceID string, serviceVersion int) *fastly.GetVCLInput {
 	var input fastly.GetVCLInput
 
+	input.Name = c.name
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.name
 
 	return &input
 }
