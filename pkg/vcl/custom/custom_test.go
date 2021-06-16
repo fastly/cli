@@ -145,23 +145,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
-
-			// When dealing with successful test scenarios: validate the --content
-			// value was parsed as expected.
-			if testcase.WantError == "" {
-				for i, a := range testcase.Args {
-					if a == "--content" {
-						want := testcase.Args[i+1]
-						if want == "./testdata/example.vcl" {
-							want = custom.Content(want)
-						}
-						if content != want {
-							t.Errorf("wanted %s, have %s", want, content)
-						}
-						break
-					}
-				}
-			}
+			validateContent(testcase.WantError, testcase.Args, content, t)
 		})
 	}
 }
@@ -189,7 +173,7 @@ func TestVCLCustomDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl custom delete --service-id 123 --version 1 --name foobar"),
+			Args:      args("vcl custom delete --name foobar --service-id 123 --version 1"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -200,7 +184,7 @@ func TestVCLCustomDelete(t *testing.T) {
 					return testutil.ErrAPI
 				},
 			},
-			Args:      args("vcl custom delete --service-id 123 --version 3 --name foobar"),
+			Args:      args("vcl custom delete --name foobar --service-id 123 --version 3"),
 			WantError: testutil.ErrAPI.Error(),
 		},
 		{
@@ -211,8 +195,20 @@ func TestVCLCustomDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("vcl custom delete --service-id 123 --version 3 --name foobar"),
+			Args:       args("vcl custom delete --name foobar --service-id 123 --version 3"),
 			WantOutput: "Deleted custom VCL 'foobar' (service: 123, version: 3)",
+		},
+		{
+			Name: "validate --autoclone results in cloned service version",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				DeleteVCLFn: func(i *fastly.DeleteVCLInput) error {
+					return nil
+				},
+			},
+			Args:       args("vcl custom delete --autoclone --name foo --service-id 123 --version 1"),
+			WantOutput: "Deleted custom VCL 'foo' (service: 123, version: 4)",
 		},
 	}
 
@@ -253,7 +249,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 					return nil, testutil.ErrAPI
 				},
 			},
-			Args:      args("vcl custom describe --service-id 123 --version 3 --name foobar"),
+			Args:      args("vcl custom describe --name foobar --service-id 123 --version 3"),
 			WantError: testutil.ErrAPI.Error(),
 		},
 		{
@@ -262,7 +258,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetVCLFn:       getVCL,
 			},
-			Args:       args("vcl custom describe --service-id 123 --version 3 --name foobar"),
+			Args:       args("vcl custom describe --name foobar --service-id 123 --version 3"),
 			WantOutput: "Service ID: 123\nService Version: 3\nName: foobar\nMain: true\nContent: # some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -271,7 +267,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetVCLFn:       getVCL,
 			},
-			Args:       args("vcl custom describe --service-id 123 --version 1 --name foobar"),
+			Args:       args("vcl custom describe --name foobar --service-id 123 --version 1"),
 			WantOutput: "Service ID: 123\nService Version: 1\nName: foobar\nMain: true\nContent: # some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
@@ -335,7 +331,7 @@ func TestVCLCustomList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListVCLsFn:     listVCLs,
 			},
-			Args:       args("vcl custom list --service-id 123 --version 1 --verbose"),
+			Args:       args("vcl custom list --service-id 123 --verbose --version 1"),
 			WantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\nService ID: 123\nService Version: 1\nName: foo\nMain: true\nContent: # some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nName: bar\nMain: false\nContent: # some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
@@ -352,6 +348,7 @@ func TestVCLCustomList(t *testing.T) {
 }
 
 func TestVCLCustomUpdate(t *testing.T) {
+	var content string
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -374,7 +371,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl custom update --service-id 123 --version 1 --name foobar"),
+			Args:      args("vcl custom update --name foobar --service-id 123 --version 1"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -385,7 +382,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 					return nil, testutil.ErrAPI
 				},
 			},
-			Args:      args("vcl custom update --service-id 123 --version 3 --name foobar --new-name beepboop"),
+			Args:      args("vcl custom update --name foobar --new-name beepboop --service-id 123 --version 3"),
 			WantError: testutil.ErrAPI.Error(),
 		},
 		{
@@ -394,7 +391,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					return &fastly.VCL{
-						Content:        "# some vcl content",
+						Content:        "# untouched",
 						Main:           true,
 						Name:           *i.NewName,
 						ServiceID:      i.ServiceID,
@@ -402,7 +399,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom update --service-id 123 --version 3 --name foobar --new-name beepboop"),
+			Args:       args("vcl custom update --name foobar --new-name beepboop --service-id 123 --version 3"),
 			WantOutput: "Updated custom VCL 'beepboop' (previously: 'foobar', service: 123, version: 3)",
 		},
 		{
@@ -410,6 +407,9 @@ func TestVCLCustomUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+					// Track the contents parsed
+					content = *i.Content
+
 					return &fastly.VCL{
 						Content:        *i.Content,
 						Main:           true,
@@ -419,8 +419,29 @@ func TestVCLCustomUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom update --service-id 123 --version 3 --name foobar --content updated"),
+			Args:       args("vcl custom update --content updated --name foobar --service-id 123 --version 3"),
 			WantOutput: "Updated custom VCL 'foobar' (service: 123, version: 3)",
+		},
+		{
+			Name: "validate --autoclone results in cloned service version",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+					// Track the contents parsed
+					content = *i.Content
+
+					return &fastly.VCL{
+						Content:        *i.Content,
+						Main:           true,
+						Name:           i.Name,
+						ServiceID:      i.ServiceID,
+						ServiceVersion: i.ServiceVersion,
+					}, nil
+				},
+			},
+			Args:       args("vcl custom update --autoclone --content ./testdata/example.vcl --name foo --service-id 123 --version 1"),
+			WantOutput: "Updated custom VCL 'foo' (service: 123, version: 4)",
 		},
 	}
 
@@ -431,6 +452,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			validateContent(testcase.WantError, testcase.Args, content, t)
 		})
 	}
 }
@@ -475,4 +497,27 @@ func listVCLs(i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
 		},
 	}
 	return vs, nil
+}
+
+// When dealing with successful test scenarios: validate the --content value was
+// parsed as expected.
+//
+// Example: if --content is passed a file path, then we expect the
+// testdata/example.vcl to have been read, otherwise we expect the given flag
+// value to have been used as is.
+func validateContent(wantError string, args []string, content string, t *testing.T) {
+	if wantError == "" {
+		for i, a := range args {
+			if a == "--content" {
+				want := args[i+1]
+				if want == "./testdata/example.vcl" {
+					want = custom.Content(want)
+				}
+				if content != want {
+					t.Errorf("wanted %s, have %s", want, content)
+				}
+				break
+			}
+		}
+	}
 }
