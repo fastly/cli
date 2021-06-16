@@ -30,7 +30,7 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCo
 	return &c
 }
 
-// DescribeCommand calls the Fastly API to create an appropriate resource.
+// DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	cmd.Base
 

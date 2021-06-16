@@ -30,7 +30,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	return &c
 }
 
-// ListCommand calls the Fastly API to create an appropriate resource.
+// ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	cmd.Base
 

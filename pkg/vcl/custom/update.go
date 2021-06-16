@@ -37,7 +37,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	return &c
 }
 
-// UpdateCommand calls the Fastly API to delete an appropriate resource.
+// UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	cmd.Base
 
@@ -73,7 +73,11 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated custom VCL '%s' (service: %s, version: %d)", v.Name, v.ServiceID, v.ServiceVersion)
+	if input.NewName != nil && *input.NewName != "" {
+		text.Success(out, "Updated custom VCL '%s' (previously: '%s', service: %s, version: %d)", v.Name, input.Name, v.ServiceID, v.ServiceVersion)
+	} else {
+		text.Success(out, "Updated custom VCL '%s' (service: %s, version: %d)", v.Name, v.ServiceID, v.ServiceVersion)
+	}
 	return nil
 }
 

@@ -298,7 +298,87 @@ func TestVCLCustomList(t *testing.T) {
 }
 
 func TestVCLCustomUpdate(t *testing.T) {
-	//
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing --name flag",
+			Args:      args("vcl custom update --version 3"),
+			WantError: "error parsing arguments: required flag --name not provided",
+		},
+		{
+			Name:      "validate missing --version flag",
+			Args:      args("vcl custom update --name foobar"),
+			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Name:      "validate missing --service-id flag",
+			Args:      args("vcl custom update --name foobar --version 3"),
+			WantError: "error reading service: no service ID found",
+		},
+		{
+			Name: "validate missing --autoclone flag",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl custom update --service-id 123 --version 1 --name foobar"),
+			WantError: "service version 1 is not editable",
+		},
+		{
+			Name: "validate UpdateVCL API error",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+					return nil, testutil.ErrAPI
+				},
+			},
+			Args:      args("vcl custom update --service-id 123 --version 3 --name foobar --new-name beepboop"),
+			WantError: testutil.ErrAPI.Error(),
+		},
+		{
+			Name: "validate UpdateVCL API success with --new-name",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+					return &fastly.VCL{
+						Content:        "# some vcl content",
+						Main:           true,
+						Name:           *i.NewName,
+						ServiceID:      i.ServiceID,
+						ServiceVersion: i.ServiceVersion,
+					}, nil
+				},
+			},
+			Args:       args("vcl custom update --service-id 123 --version 3 --name foobar --new-name beepboop"),
+			WantOutput: "Updated custom VCL 'beepboop' (previously: 'foobar', service: 123, version: 3)",
+		},
+		{
+			Name: "validate UpdateVCL API success with --content",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+					return &fastly.VCL{
+						Content:        *i.Content,
+						Main:           true,
+						Name:           i.Name,
+						ServiceID:      i.ServiceID,
+						ServiceVersion: i.ServiceVersion,
+					}, nil
+				},
+			},
+			Args:       args("vcl custom update --service-id 123 --version 3 --name foobar --content updated"),
+			WantOutput: "Updated custom VCL 'foobar' (service: 123, version: 3)",
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			var buf bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+		})
+	}
 }
 
 func getVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
