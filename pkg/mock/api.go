@@ -221,6 +221,12 @@ type API struct {
 	GetStatsJSONFn func(i *fastly.GetStatsInput, dst interface{}) error
 
 	CreateManagedLoggingFn func(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+
+	CreateVCLFn func(*fastly.CreateVCLInput) (*fastly.VCL, error)
+	ListVCLsFn  func(*fastly.ListVCLsInput) ([]*fastly.VCL, error)
+	GetVCLFn    func(*fastly.GetVCLInput) (*fastly.VCL, error)
+	UpdateVCLFn func(*fastly.UpdateVCLInput) (*fastly.VCL, error)
+	DeleteVCLFn func(*fastly.DeleteVCLInput) error
 }
 
 // AllDatacenters implements Interface.
@@ -1101,4 +1107,29 @@ func (m API) GetStatsJSON(i *fastly.GetStatsInput, dst interface{}) error {
 // CreateManagedLogging implements Interface.
 func (m API) CreateManagedLogging(i *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error) {
 	return m.CreateManagedLoggingFn(i)
+}
+
+// CreateVCL implements Interface.
+func (m API) CreateVCL(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
+	return m.CreateVCLFn(i)
+}
+
+// ListVCLs implements Interface.
+func (m API) ListVCLs(i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
+	return m.ListVCLsFn(i)
+}
+
+// GetVCL implements Interface.
+func (m API) GetVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
+	return m.GetVCLFn(i)
+}
+
+// UpdateVCL implements Interface.
+func (m API) UpdateVCL(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+	return m.UpdateVCLFn(i)
+}
+
+// DeleteVCL implements Interface.
+func (m API) DeleteVCL(i *fastly.DeleteVCLInput) error {
+	return m.DeleteVCLFn(i)
 }
