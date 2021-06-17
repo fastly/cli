@@ -1,5 +1,35 @@
 # Changelog
 
+## [v0.31.0](https://github.com/fastly/cli/releases/tag/v0.31.0) (2021-06-17)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.30.0...v0.31.0)
+
+**Enhancements:**
+
+- Add new `pops` command [\#309](https://github.com/fastly/cli/pull/309)
+- Add new `ip-list` command [\#308](https://github.com/fastly/cli/pull/308)
+- Implement new `--version` and `--autoclone` flags [\#302](https://github.com/fastly/cli/pull/302)
+- Reword `backend create --use-ssl` warning output [\#303](https://github.com/fastly/cli/pull/303)
+- Define new `--version` and `--autoclone` flags [\#300](https://github.com/fastly/cli/pull/300)
+- Implement remediation for dynamic config context deadline error [\#298](https://github.com/fastly/cli/pull/298)
+- Capitalise 'n' for `[y/N]` prompt [\#299](https://github.com/fastly/cli/pull/299)
+- Move exec behaviour from `common` package to its own package [\#297](https://github.com/fastly/cli/pull/297)
+- Move command behaviour from `common` package to its own package [\#296](https://github.com/fastly/cli/pull/296)
+- Move time behaviour from `common` package to its own package [\#295](https://github.com/fastly/cli/pull/295)
+- Move sync behaviour from `common` package to its own package [\#294](https://github.com/fastly/cli/pull/294)
+- Move undo behaviour from `common` package to its own package [\#293](https://github.com/fastly/cli/pull/293)
+- Surface any cargo metadata errors [\#286](https://github.com/fastly/cli/pull/286)
+
+**Bug fixes:**
+
+- Don't persist `--service-id` flag value to manifest [\#307](https://github.com/fastly/cli/pull/307)
+- Fix broken `--service-id` flag in `compute publish` [\#292](https://github.com/fastly/cli/pull/292)
+- Fix parsing backend port number [\#291](https://github.com/fastly/cli/pull/291)
+
+**Documentation:**
+
+- Update broken link in `stats historical` [\#285](https://github.com/fastly/cli/pull/285)
+
 ## [v0.30.0](https://github.com/fastly/cli/releases/tag/v0.30.0) (2021-05-19)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.29.0...v0.30.0)
