@@ -79,13 +79,6 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	c.Globals.File.CLI.Version = latest.String()
-
-	// Write the file data to disk.
-	if err := c.Globals.File.Write(c.configFilePath); err != nil {
-		return fmt.Errorf("error saving config file: %w", err)
-	}
-
 	progress.Done()
 
 	text.Success(out, "Updated %s to %s.", currentPath, latest)

@@ -59,7 +59,7 @@ test:
 	go test -race $(TESTARGS)
 
 .PHONY: build
-build:
+build: config
 	go build ./cmd/fastly
 
 .PHONY: install
@@ -73,3 +73,7 @@ changelog:
 .PHONY: release-changelog
 release-changelog:
 	@$(shell pwd)/scripts/release-changelog.sh
+
+.PHONY: config
+config:
+	@curl -so cmd/fastly/static/config.toml https://developer.fastly.com/api/internal/cli-config

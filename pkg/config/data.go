@@ -65,6 +65,10 @@ const (
 // legacy format.
 var ErrLegacyConfig = errors.New("the configuration file is in the legacy format")
 
+// ErrInvalidConfig indicates that the configuration file used was the static
+// one backed into the compiled CLI binary and that failed to be unmarshalled.
+var ErrInvalidConfig = errors.New("the configuration file is invalid")
+
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
 // the components that need it, including the place the parameter came from,
@@ -167,6 +171,10 @@ type File struct {
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.
 	Legacy LegacyFile `toml:"legacy"`
+
+	// Store off copy of the static application configuration that has been baked
+	// into the compiled CLI binary.
+	Static []byte `toml:",omitempty"`
 }
 
 // Fastly represents fastly specific configuration.
@@ -280,20 +288,44 @@ func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration) er
 }
 
 // Read decodes a toml file from the local disk into config.File.
+//
+// If reading from disk fails, then we'll use the static config baked into the
+// CLI binary (which we expect to be valid). If an attempt to unmarshal the
+// static config fails then we have to consider something fundamental has gone
+// wrong and subsequently expect the caller to exit the program.
 func (f *File) Read(fpath string) error {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
 	// Disabling as we need to load the config.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
-	bs, err := os.ReadFile(fpath)
-	if err != nil {
-		return err
+	bs, readErr := os.ReadFile(fpath)
+	if readErr != nil {
+		bs = f.Static
 	}
-	err = toml.Unmarshal(bs, f)
+
+	err := toml.Unmarshal(bs, f)
 	if err != nil {
-		return err
+		// Static baked in config is unexpectedly invalid?
+		if readErr != nil {
+			return invalidConfigErr(readErr)
+		}
+
+		// Otherwise if the local disk config failed to be unmarshalled, then
+		// fallback to using the static one baked into the CLI binary.
+		bs = f.Static
+		err = toml.Unmarshal(bs, f)
+		if err != nil {
+			return invalidConfigErr(err)
+		}
 	}
+
+	// We expect LastChecked to not be set if coming from the static config.
+	if f.CLI.LastChecked == "" {
+		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+	}
+	f.CLI.Version = revision.SemVer(revision.AppVersion)
+	f.Write(FilePath)
 
 	// The top-level 'endpoint' key is what we're using to identify whether the
 	// local config.toml file is using the legacy format. If we find that key,
@@ -301,19 +333,16 @@ func (f *File) Read(fpath string) error {
 	// can take the appropriate action of creating the file anew.
 	tree, err := toml.LoadBytes(bs)
 	if err != nil {
-		return err
+		return invalidConfigErr(err)
 	}
 
 	if endpoint := tree.Get("endpoint"); endpoint != nil {
 		var lf LegacyFile
-
 		err := toml.Unmarshal(bs, &lf)
 		if err != nil {
 			return err
 		}
-
 		f.Legacy = lf
-
 		return ErrLegacyConfig
 	}
 
@@ -330,6 +359,16 @@ func (f *File) Read(fpath string) error {
 // file.CLI.LastChecked = time.Now().Format(time.RFC3339)
 // file.Write(configFilePath)
 func (f *File) Write(filename string) error {
+	// We use the File struct to store off a copy of the static baked in
+	// configuration, but we don't want to then write that field out to the toml
+	// file on disk, so we reset the value (causing it to be omitted when
+	// written) and then defer the reassigning of the field value.
+	static := f.Static
+	f.Static = []byte{}
+	defer func(static []byte) {
+		f.Static = static
+	}(static)
+
 	fp, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
 	if err != nil {
 		return fmt.Errorf("error creating config file: %w", err)
@@ -340,6 +379,7 @@ func (f *File) Write(filename string) error {
 	if err := fp.Close(); err != nil {
 		return fmt.Errorf("error saving config file: %w", err)
 	}
+
 	return nil
 }
 
@@ -363,4 +403,13 @@ type Flag struct {
 	Token    string
 	Verbose  bool
 	Endpoint string
+}
+
+// This suggests our baked in config is somehow faulty and so we should
+// completely fail with a bug remediation.
+func invalidConfigErr(err error) error {
+	return fsterr.RemediationError{
+		Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, err),
+		Remediation: fsterr.BugRemediation,
+	}
 }
