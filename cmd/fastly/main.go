@@ -81,7 +81,7 @@ func main() {
 	// 1. The config is using a legacy format.
 	// 2. The config is from an older CLI version.
 	//
-	// To prevent issues we'll replace the config with what's baked into the CLI,
+	// To prevent issues we'll replace the config with what's embedded into the CLI,
 	// as we know that is compatible with the code currently being executed.
 	if err == config.ErrLegacyConfig || file.CLI.Version != revision.SemVer(revision.AppVersion) {
 		err := file.UseStatic(cfg)

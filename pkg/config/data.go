@@ -66,7 +66,7 @@ const (
 var ErrLegacyConfig = errors.New("the configuration file is in the legacy format")
 
 // ErrInvalidConfig indicates that the configuration file used was the static
-// one backed into the compiled CLI binary and that failed to be unmarshalled.
+// one embedded into the compiled CLI binary and that failed to be unmarshalled.
 var ErrInvalidConfig = errors.New("the configuration file is invalid")
 
 // Data holds global-ish configuration data from all sources: environment
@@ -172,8 +172,8 @@ type File struct {
 	// the relevant email and token values that may pre-exist.
 	Legacy LegacyFile `toml:"legacy"`
 
-	// Store off copy of the static application configuration that has been baked
-	// into the compiled CLI binary.
+	// Store off copy of the static application configuration that has been
+	// embedded into the compiled CLI binary.
 	Static []byte `toml:",omitempty"`
 }
 
@@ -301,10 +301,10 @@ func createConfigDir() error {
 
 // Read decodes a toml file from the local disk into config.File.
 //
-// If reading from disk fails, then we'll use the static config baked into the
-// CLI binary (which we expect to be valid). If an attempt to unmarshal the
-// static config fails then we have to consider something fundamental has gone
-// wrong and subsequently expect the caller to exit the program.
+// If reading from disk fails, then we'll use the static config embedded into
+// the CLI binary (which we expect to be valid). If an attempt to unmarshal
+// the static config fails then we have to consider something fundamental has
+// gone wrong and subsequently expect the caller to exit the program.
 func (f *File) Read(fpath string) error {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
@@ -318,13 +318,13 @@ func (f *File) Read(fpath string) error {
 
 	err := toml.Unmarshal(bs, f)
 	if err != nil {
-		// Static baked in config is unexpectedly invalid?
+		// The embedded config is unexpectedly invalid.
 		if readErr != nil {
 			return invalidConfigErr(readErr)
 		}
 
 		// Otherwise if the local disk config failed to be unmarshalled, then
-		// fallback to using the static one baked into the CLI binary.
+		// fallback to using the static one embedded into the CLI binary.
 		bs = f.Static
 		err = toml.Unmarshal(bs, f)
 		if err != nil {
@@ -373,7 +373,7 @@ func (f *File) Read(fpath string) error {
 }
 
 // UseStatic allow us to switch the in-memory configuration with the static
-// version baked into the CLI binary and writes it back to disk.
+// version embedded into the CLI binary and writes it back to disk.
 func (f *File) UseStatic(cfg []byte) error {
 	err := toml.Unmarshal(cfg, f)
 	if err != nil {
@@ -397,10 +397,10 @@ func (f *File) UseStatic(cfg []byte) error {
 
 // Write the instance of File to a local application config file.
 func (f *File) Write(filename string) error {
-	// We use the File struct to store off a copy of the static baked in
-	// configuration, but we don't want to then write that field out to the toml
-	// file on disk, so we reset the value (causing it to be omitted when
-	// written) and then defer the reassigning of the field value.
+	// We use the File struct to store off a copy of the embedded configuration,
+	// but we don't want to then write that field out to the toml file on disk,
+	// so we reset the value (causing it to be omitted when written) and then
+	// defer the reassigning of the field value.
 	static := f.Static
 	f.Static = []byte{}
 	defer func(static []byte) {
@@ -443,8 +443,8 @@ type Flag struct {
 	Endpoint string
 }
 
-// This suggests our baked in config is somehow faulty and so we should
-// completely fail with a bug remediation.
+// This suggests our embedded config is unexpectedly faulty and so we should
+// fail with a bug remediation.
 func invalidConfigErr(err error) error {
 	return fsterr.RemediationError{
 		Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, err),
