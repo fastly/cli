@@ -84,7 +84,7 @@ func main() {
 	// To prevent issues we'll replace the config with what's embedded into the CLI,
 	// as we know that is compatible with the code currently being executed.
 	if err == config.ErrLegacyConfig || file.CLI.Version != revision.SemVer(revision.AppVersion) {
-		err := file.UseStatic(cfg)
+		err := file.UseStatic(cfg, config.FilePath)
 		if err != nil {
 			fsterrors.Deduce(err).Print(os.Stderr)
 			os.Exit(1)
@@ -112,7 +112,7 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 			// NOTE: we no longer use the hardcoded config.RemoteEndpoint constant.
 			// Instead we rely on the values inside of the application
 			// configuration file to determine where to load the config from.
-			err := file.Load(file.CLI.RemoteConfig, httpClient, config.ConfigRequestTimeout)
+			err := file.Load(file.CLI.RemoteConfig, httpClient, config.ConfigRequestTimeout, config.FilePath)
 			if err != nil {
 				errLoadConfig = fsterrors.RemediationError{
 					Inner:       fmt.Errorf("there was a problem updating the versioning information for the Fastly CLI:\n\n%w", err),

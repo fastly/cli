@@ -1,0 +1,2 @@
+[fastly]
+api_endpoint = "https://api.fastly.com # missing end quote

@@ -71,6 +71,11 @@ var ErrLegacyConfig = errors.New("the configuration file is in the legacy format
 // one embedded into the compiled CLI binary and that failed to be unmarshalled.
 var ErrInvalidConfig = errors.New("the configuration file is invalid")
 
+// RemediationManualFix indicates that the configuration file used was invalid
+// and that the user rejected the use of the static config embedded into the
+// compiled CLI binary and so the user must resolve their invalid config.
+var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
+
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
 // the components that need it, including the place the parameter came from,
@@ -237,7 +242,7 @@ type StarterKit struct {
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
-func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration) error {
+func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, fpath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), d)
 	defer cancel()
 
@@ -272,12 +277,12 @@ func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration) er
 
 	migrateLegacyData(f)
 
-	err = createConfigDir()
+	err = createConfigDir(fpath)
 	if err != nil {
 		return err
 	}
 
-	return f.Write(FilePath)
+	return f.Write(fpath)
 }
 
 // migrateLegacyData ensures legacy data is transitioned to config new format.
@@ -292,8 +297,8 @@ func migrateLegacyData(f *File) {
 
 // createConfigDir creates the application configuration directory if it
 // doesn't already exist.
-func createConfigDir() error {
-	basePath := filepath.Dir(FilePath)
+func createConfigDir(fpath string) error {
+	basePath := filepath.Dir(fpath)
 	err := filesystem.MakeDirectoryIfNotExists(basePath)
 	if err != nil {
 		return err
@@ -318,18 +323,18 @@ func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 		bs = f.Static
 	}
 
-	err := toml.Unmarshal(bs, f)
-	if err != nil {
+	unmarshalErr := toml.Unmarshal(bs, f)
+	if unmarshalErr != nil {
 		// The embedded config is unexpectedly invalid.
 		if readErr != nil {
-			return invalidConfigErr(readErr)
+			return invalidConfigErr(unmarshalErr)
 		}
 
 		// Otherwise if the local disk config failed to be unmarshalled, then
 		// ask the user if they would like us to replace their config with the
 		// version embedded into the CLI binary.
 
-		label := fmt.Sprintf("Your configuration file (%s) is invalid. Replace it with a valid version? (any existing email/token data will be lost) [y/N] ", FilePath)
+		label := fmt.Sprintf("Your configuration file (%s) is invalid. Replace it with a valid version? (any existing email/token data will be lost) [y/N] ", fpath)
 		cont, err := text.Input(out, label, in)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
@@ -343,8 +348,8 @@ func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 			}
 		} else {
 			return fsterr.RemediationError{
-				Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, err),
-				Remediation: "You'll need to manually fix any invalid configuration syntax.",
+				Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, unmarshalErr),
+				Remediation: RemediationManualFix,
 			}
 		}
 	}
@@ -357,11 +362,11 @@ func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 		f.CLI.Version = revision.SemVer(revision.AppVersion)
 	}
 
-	err = createConfigDir()
+	err := createConfigDir(fpath)
 	if err != nil {
 		return err
 	}
-	f.Write(FilePath)
+	f.Write(fpath)
 
 	// The top-level 'endpoint' key is what we're using to identify whether the
 	// local config.toml file is using the legacy format. If we find that key,
@@ -390,7 +395,7 @@ func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 
 // UseStatic allow us to switch the in-memory configuration with the static
 // version embedded into the CLI binary and writes it back to disk.
-func (f *File) UseStatic(cfg []byte) error {
+func (f *File) UseStatic(cfg []byte, fpath string) error {
 	err := toml.Unmarshal(cfg, f)
 	if err != nil {
 		return invalidConfigErr(err)
@@ -401,18 +406,18 @@ func (f *File) UseStatic(cfg []byte) error {
 
 	migrateLegacyData(f)
 
-	err = createConfigDir()
+	err = createConfigDir(fpath)
 	if err != nil {
 		return err
 	}
 
-	f.Write(FilePath)
+	f.Write(fpath)
 
 	return nil
 }
 
 // Write the instance of File to a local application config file.
-func (f *File) Write(filename string) error {
+func (f *File) Write(fpath string) error {
 	// We use the File struct to store off a copy of the embedded configuration,
 	// but we don't want to then write that field out to the toml file on disk,
 	// so we reset the value (causing it to be omitted when written) and then
@@ -423,7 +428,7 @@ func (f *File) Write(filename string) error {
 		f.Static = static
 	}(static)
 
-	fp, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
+	fp, err := os.OpenFile(fpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
 	if err != nil {
 		return fmt.Errorf("error creating config file: %w", err)
 	}

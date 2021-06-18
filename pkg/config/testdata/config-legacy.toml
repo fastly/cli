@@ -1,0 +1,3 @@
+token = "foobar"
+email = "testing@fastly.com"
+endpoint = "https://api.fastly.com"
