@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
@@ -15,6 +16,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/revision"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/useragent"
 	toml "github.com/pelletier/go-toml"
 )
@@ -305,7 +307,7 @@ func createConfigDir() error {
 // the CLI binary (which we expect to be valid). If an attempt to unmarshal
 // the static config fails then we have to consider something fundamental has
 // gone wrong and subsequently expect the caller to exit the program.
-func (f *File) Read(fpath string) error {
+func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
 	// Disabling as we need to load the config.toml from the user's file system.
@@ -324,11 +326,26 @@ func (f *File) Read(fpath string) error {
 		}
 
 		// Otherwise if the local disk config failed to be unmarshalled, then
-		// fallback to using the static one embedded into the CLI binary.
-		bs = f.Static
-		err = toml.Unmarshal(bs, f)
+		// ask the user if they would like us to replace their config with the
+		// version embedded into the CLI binary.
+
+		label := fmt.Sprintf("Your configuration file (%s) is invalid. Replace it with a valid version? (any existing email/token data will be lost) [y/N] ", FilePath)
+		cont, err := text.Input(out, label, in)
 		if err != nil {
-			return invalidConfigErr(err)
+			return fmt.Errorf("error reading input %w", err)
+		}
+		contl := strings.ToLower(cont)
+		if contl == "y" || contl == "yes" {
+			bs = f.Static
+			err = toml.Unmarshal(bs, f)
+			if err != nil {
+				return invalidConfigErr(err)
+			}
+		} else {
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, err),
+				Remediation: "You'll need to manually fix any invalid configuration syntax.",
+			}
 		}
 	}
 
@@ -344,7 +361,6 @@ func (f *File) Read(fpath string) error {
 	if err != nil {
 		return err
 	}
-
 	f.Write(FilePath)
 
 	// The top-level 'endpoint' key is what we're using to identify whether the

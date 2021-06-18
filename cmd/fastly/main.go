@@ -57,14 +57,14 @@ func main() {
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
 	file.Static = cfg
-	err := file.Read(config.FilePath)
+	err := file.Read(config.FilePath, in, out)
 
 	if err != nil {
 		if err == config.ErrLegacyConfig {
 			if verboseOutput {
 				text.Output(out, `
 					Found your local configuration file (required to use the CLI) was using a legacy format.
-					File will be upgraded in the background.
+					File will be updated to the latest format.
 				`)
 				text.Break(out)
 			}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -130,8 +131,12 @@ func TestCheckAsync(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 
-			f := update.CheckAsync(ctx, testcase.file, configFilePath, testcase.currentVersion, testcase.cliVersioner)
-			var buf bytes.Buffer
+			in := strings.NewReader("user input")
+			var (
+				out bytes.Buffer
+				buf bytes.Buffer
+			)
+			f := update.CheckAsync(ctx, testcase.file, configFilePath, testcase.currentVersion, testcase.cliVersioner, in, &out)
 			f(&buf)
 
 			if want, have := testcase.wantOutput, buf.String(); want != have {
