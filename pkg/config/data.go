@@ -268,23 +268,35 @@ func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration) er
 	f.CLI.Version = revision.SemVer(revision.AppVersion)
 	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 
-	if f.Legacy.Token != "" && f.User.Token == "" {
-		f.User.Token = f.Legacy.Token
-	}
+	migrateLegacyData(f)
 
-	if f.Legacy.Email != "" && f.User.Email == "" {
-		f.User.Email = f.Legacy.Email
-	}
-
-	// Create the destination directory for the config file
-	basePath := filepath.Dir(FilePath)
-	err = filesystem.MakeDirectoryIfNotExists(basePath)
+	err = createConfigDir()
 	if err != nil {
 		return err
 	}
 
-	// Write the new configuration back to disk.
 	return f.Write(FilePath)
+}
+
+// migrateLegacyData ensures legacy data is transitioned to config new format.
+func migrateLegacyData(f *File) {
+	if f.Legacy.Token != "" && f.User.Token == "" {
+		f.User.Token = f.Legacy.Token
+	}
+	if f.Legacy.Email != "" && f.User.Email == "" {
+		f.User.Email = f.Legacy.Email
+	}
+}
+
+// createConfigDir creates the application configuration directory if it
+// doesn't already exist.
+func createConfigDir() error {
+	basePath := filepath.Dir(FilePath)
+	err := filesystem.MakeDirectoryIfNotExists(basePath)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Read decodes a toml file from the local disk into config.File.
@@ -320,11 +332,19 @@ func (f *File) Read(fpath string) error {
 		}
 	}
 
-	// We expect LastChecked to not be set if coming from the static config.
+	// We expect LastChecked/Version to not be set if coming from the static config.
 	if f.CLI.LastChecked == "" {
 		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 	}
-	f.CLI.Version = revision.SemVer(revision.AppVersion)
+	if f.CLI.Version == "" {
+		f.CLI.Version = revision.SemVer(revision.AppVersion)
+	}
+
+	err = createConfigDir()
+	if err != nil {
+		return err
+	}
+
 	f.Write(FilePath)
 
 	// The top-level 'endpoint' key is what we're using to identify whether the
@@ -333,6 +353,9 @@ func (f *File) Read(fpath string) error {
 	// can take the appropriate action of creating the file anew.
 	tree, err := toml.LoadBytes(bs)
 	if err != nil {
+		// NOTE: We do not expect this error block to ever be hit because if we've
+		// already successfully called toml.Unmarshal, then calling toml.LoadBytes
+		// should equally be successful, but we'll code defensively nonetheless.
 		return invalidConfigErr(err)
 	}
 
@@ -349,15 +372,30 @@ func (f *File) Read(fpath string) error {
 	return nil
 }
 
+// UseStatic allow us to switch the in-memory configuration with the static
+// version baked into the CLI binary and writes it back to disk.
+func (f *File) UseStatic(cfg []byte) error {
+	err := toml.Unmarshal(cfg, f)
+	if err != nil {
+		return invalidConfigErr(err)
+	}
+
+	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+	f.CLI.Version = revision.SemVer(revision.AppVersion)
+
+	migrateLegacyData(f)
+
+	err = createConfigDir()
+	if err != nil {
+		return err
+	}
+
+	f.Write(FilePath)
+
+	return nil
+}
+
 // Write the instance of File to a local application config file.
-//
-// NOTE: the expected workflow for this method is for the caller to have
-// modified the public field(s) first so that we can write new content to the
-// config file from the receiver object itself.
-//
-// EXAMPLE:
-// file.CLI.LastChecked = time.Now().Format(time.RFC3339)
-// file.Write(configFilePath)
 func (f *File) Write(filename string) error {
 	// We use the File struct to store off a copy of the static baked in
 	// configuration, but we don't want to then write that field out to the toml

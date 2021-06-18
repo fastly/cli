@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/config"
 	fsterrors "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
@@ -70,6 +71,21 @@ func main() {
 		} else {
 			// We've hit a scenario where our fallback static config is invalid, and
 			// that is very much an unexpected situation.
+			fsterrors.Deduce(err).Print(os.Stderr)
+			os.Exit(1)
+		}
+	}
+
+	// There are two scenarios we now want to look out for...
+	//
+	// 1. The config is using a legacy format.
+	// 2. The config is from an older CLI version.
+	//
+	// To prevent issues we'll replace the config with what's baked into the CLI,
+	// as we know that is compatible with the code currently being executed.
+	if err == config.ErrLegacyConfig || file.CLI.Version != revision.SemVer(revision.AppVersion) {
+		err := file.UseStatic(cfg)
+		if err != nil {
 			fsterrors.Deduce(err).Print(os.Stderr)
 			os.Exit(1)
 		}
