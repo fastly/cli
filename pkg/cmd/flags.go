@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -154,4 +156,19 @@ func GetSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version,
 	}
 
 	return nil, fmt.Errorf("specified service version not found: %s", version)
+}
+
+// Content determines if the given flag value for --content is a file path,
+// and if so read the contents from disk, otherwise presume the given value is
+// the content.
+func Content(flagval string) string {
+	content := flagval
+	if path, err := filepath.Abs(flagval); err == nil {
+		if _, err := os.Stat(path); err == nil {
+			if data, err := os.ReadFile(path); err == nil {
+				content = string(data)
+			}
+		}
+	}
+	return content
 }

@@ -3,8 +3,6 @@ package custom
 import (
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
@@ -98,23 +96,8 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		input.NewName = fastly.String(c.newName.Value)
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(Content(c.content.Value))
+		input.Content = fastly.String(cmd.Content(c.content.Value))
 	}
 
 	return &input, nil
-}
-
-// Content determines if the given flag value for --content is a file path,
-// and if so read the contents from disk, otherwise presume the given value is
-// the content.
-func Content(flagval string) string {
-	content := flagval
-	if path, err := filepath.Abs(flagval); err == nil {
-		if _, err := os.Stat(path); err == nil {
-			if data, err := os.ReadFile(path); err == nil {
-				content = string(data)
-			}
-		}
-	}
-	return content
 }
