@@ -55,7 +55,7 @@ lint:
 	golint ./{cmd,pkg}/...
 
 .PHONY: test
-test:
+test: config
 	go test -race $(TESTARGS)
 
 .PHONY: build

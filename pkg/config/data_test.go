@@ -176,51 +176,77 @@ func TestConfigRead(t *testing.T) {
 	}
 }
 
+type testUseStaticScenario struct {
+	name               string
+	userConfigFilename string
+}
+
 // TestUseStatic validates all of the logic flow within config.File.UseStatic()
 func TestUseStatic(t *testing.T) {
-	// We're going to chdir to an temp environment,
-	// so save the PWD to return to, afterwards.
-	pwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
+	scenarios := []testUseStaticScenario{
+		{
+			name:               "legacy config should be safe to migrate to static",
+			userConfigFilename: "config-legacy.toml",
+		},
+		// The following scenario is specifically validating that if a recent
+		// config (which still had a 'Legacy' section) was identified as needing to
+		// be migrated to the static config embedded in the CLI (because the
+		// user config's CLI.Version field didn't align with the currently running
+		// CLI binary version), then it should still be transitioned safely without
+		// losing the user's token/email within the 'User' section.
+		{
+			name:               "config with 'legacy' section should be safe to migrate to static",
+			userConfigFilename: "config-with-old-legacy-section.toml",
+		},
 	}
 
-	// Create our environment in a temp dir.
-	// Defer a call to clean it up.
-	rootdir, fpath := makeTempEnvironment(t, "config-legacy.toml")
-	defer os.RemoveAll(rootdir)
+	for _, testcase := range scenarios {
+		t.Run(testcase.name, func(t *testing.T) {
+			// We're going to chdir to an temp environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	// Before running the test, chdir into the temp environment.
-	// When we're done, chdir back to our original location.
-	// This is so we can reliably assert file structure.
-	if err := os.Chdir(rootdir); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chdir(pwd)
+			// Create our environment in a temp dir.
+			// Defer a call to clean it up.
+			rootdir, fpath := makeTempEnvironment(t, testcase.userConfigFilename)
+			defer os.RemoveAll(rootdir)
 
-	// Validate that invalid static configuration returns a specific error.
-	f := config.File{}
-	err = f.UseStatic(staticConfigInvalid, fpath)
-	if err == nil {
-		t.Fatal("expected an error, but got nil")
-	} else {
-		testutil.AssertErrorContains(t, err, config.ErrInvalidConfig.Error())
-	}
+			// Before running the test, chdir into the temp environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably assert file structure.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(pwd)
 
-	// Validate that legacy configuration can be migrated to the static one
-	// embedded in the CLI binary.
-	f = config.File{}
-	var out bytes.Buffer
-	f.Read(fpath, strings.NewReader(""), &out)
-	f.UseStatic(staticConfig, fpath)
-	if f.CLI.LastChecked == "" || f.CLI.Version == "" {
-		t.Fatalf("expected LastChecked/Version to be set: %+v", f)
-	}
-	if f.User.Token != "foobar" {
-		t.Fatalf("wanted token: %s, got: %s", "foobar", f.User.Token)
-	}
-	if f.User.Email != "testing@fastly.com" {
-		t.Fatalf("wanted email: %s, got: %s", "testing@fastly.com", f.User.Email)
+			// Validate that invalid static configuration returns a specific error.
+			f := config.File{}
+			err = f.UseStatic(staticConfigInvalid, fpath)
+			if err == nil {
+				t.Fatal("expected an error, but got nil")
+			} else {
+				testutil.AssertErrorContains(t, err, config.ErrInvalidConfig.Error())
+			}
+
+			// Validate that legacy configuration can be migrated to the static one
+			// embedded in the CLI binary.
+			f = config.File{}
+			var out bytes.Buffer
+			f.Read(fpath, strings.NewReader(""), &out)
+			f.UseStatic(staticConfig, fpath)
+			if f.CLI.LastChecked == "" || f.CLI.Version == "" {
+				t.Fatalf("expected LastChecked/Version to be set: %+v", f)
+			}
+			if f.User.Token != "foobar" {
+				t.Fatalf("wanted token: %s, got: %s", "foobar", f.User.Token)
+			}
+			if f.User.Email != "testing@fastly.com" {
+				t.Fatalf("wanted email: %s, got: %s", "testing@fastly.com", f.User.Email)
+			}
+		})
 	}
 }
 
