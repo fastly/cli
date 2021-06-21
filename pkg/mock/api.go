@@ -227,6 +227,14 @@ type API struct {
 	GetVCLFn    func(*fastly.GetVCLInput) (*fastly.VCL, error)
 	UpdateVCLFn func(*fastly.UpdateVCLInput) (*fastly.VCL, error)
 	DeleteVCLFn func(*fastly.DeleteVCLInput) error
+
+	CreateSnippetFn        func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error)
+	ListSnippetsFn         func(i *fastly.ListSnippetsInput) ([]*fastly.Snippet, error)
+	GetSnippetFn           func(i *fastly.GetSnippetInput) (*fastly.Snippet, error)
+	GetDynamicSnippetFn    func(i *fastly.GetDynamicSnippetInput) (*fastly.DynamicSnippet, error)
+	UpdateSnippetFn        func(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error)
+	UpdateDynamicSnippetFn func(i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error)
+	DeleteSnippetFn        func(i *fastly.DeleteSnippetInput) error
 }
 
 // AllDatacenters implements Interface.
