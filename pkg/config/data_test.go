@@ -198,9 +198,8 @@ func TestUseStatic(t *testing.T) {
 	}
 	defer os.Chdir(pwd)
 
-	f := config.File{}
-
 	// Validate that invalid static configuration returns a specific error.
+	f := config.File{}
 	err = f.UseStatic(staticConfigInvalid, fpath)
 	if err == nil {
 		t.Fatal("expected an error, but got nil")
@@ -210,6 +209,7 @@ func TestUseStatic(t *testing.T) {
 
 	// Validate that legacy configuration can be migrated to the static one
 	// embedded in the CLI binary.
+	f = config.File{}
 	var out bytes.Buffer
 	f.Read(fpath, strings.NewReader(""), &out)
 	f.UseStatic(staticConfig, fpath)
