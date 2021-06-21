@@ -77,7 +77,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateVCLInput {
 	var input fastly.CreateVCLInput
 
-	input.Content = cmd.Content(c.content) // Content() defined in update.go
+	input.Content = cmd.Content(c.content)
 	input.Name = c.name
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion

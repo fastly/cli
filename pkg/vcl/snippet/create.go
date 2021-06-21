@@ -21,13 +21,13 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	// Required flags
 	c.CmdClause.Flag("content", "VCL snippet passed as file path or content, e.g. $(cat snippet.vcl)").Required().StringVar(&c.content)
 	c.CmdClause.Flag("name", "The name of the VCL snippet").Required().StringVar(&c.name)
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
 	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed (e.g. recv, miss, fetch etc)").Required().StringVar(&c.location)
 
 	// Optional flags
-	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
