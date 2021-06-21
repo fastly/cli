@@ -82,18 +82,3 @@ jobs:
       env:
         TEST_COMPUTE_INIT: true
         TEST_COMPUTE_BUILD: true
-  config:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.16.x
-    - name: Pull config
-      run: |
-        make config
-    - name: Check diff
-      run: |
-        git diff --exit-code --ignore-all-space ./cmd/fastly/static/
