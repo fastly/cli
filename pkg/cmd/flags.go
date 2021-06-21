@@ -172,3 +172,11 @@ func Content(flagval string) string {
 	}
 	return content
 }
+
+// IntToBool converts a binary 0|1 to a boolean.
+func IntToBool(i int) bool {
+	if i <= 0 {
+		return false
+	}
+	return true
+}
