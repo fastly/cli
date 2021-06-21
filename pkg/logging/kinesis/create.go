@@ -46,7 +46,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 
 	// required
 	c.CmdClause.Flag("name", "The name of the Kinesis logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
 	c.CmdClause.Flag("stream-name", "The Amazon Kinesis stream to send logs to").Required().StringVar(&c.StreamName)
@@ -58,7 +58,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
 
 	// optional
-	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})

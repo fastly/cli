@@ -60,7 +60,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst:      &c.ServiceVersion.Value,
 		Optional: true,
 		Action:   c.ServiceVersion.Set,

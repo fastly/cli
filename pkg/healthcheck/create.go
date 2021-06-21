@@ -25,10 +25,10 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.Globals = globals
 	c.CmdClause = parent.Command("create", "Create a healthcheck on a Fastly service version").Alias("add")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
-	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})

@@ -48,7 +48,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 
 	// Deploy flags
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst:      &c.serviceVersion.Value,
 		Optional: true,
 		Action:   c.serviceVersion.Set,

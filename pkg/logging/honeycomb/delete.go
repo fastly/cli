@@ -26,10 +26,10 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("delete", "Delete a Honeycomb logging endpoint on a Fastly service version").Alias("remove")
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
-	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})

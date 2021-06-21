@@ -45,10 +45,10 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an FTP logging endpoint on a Fastly service version").Alias("add")
 	c.CmdClause.Flag("name", "The name of the FTP logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
-	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})

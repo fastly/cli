@@ -30,10 +30,10 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a Fastly edge dictionary on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
-	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
