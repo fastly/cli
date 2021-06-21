@@ -58,7 +58,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.createInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, serviceVersion.Number)
 
 	err = c.Globals.Client.DeleteVCL(input)
 	if err != nil {
@@ -69,8 +69,8 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *DeleteCommand) createInput(serviceID string, serviceVersion int) *fastly.DeleteVCLInput {
+// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *DeleteCommand) constructInput(serviceID string, serviceVersion int) *fastly.DeleteVCLInput {
 	var input fastly.DeleteVCLInput
 
 	input.Name = c.name

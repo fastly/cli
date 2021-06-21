@@ -90,7 +90,7 @@ func TestCreateDigitalOceanInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -184,7 +184,7 @@ func TestUpdateDigitalOceanInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
