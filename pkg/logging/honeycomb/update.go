@@ -56,8 +56,8 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	return &c
 }
 
-// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *UpdateCommand) createInput(serviceID string, serviceVersion int) (*fastly.UpdateHoneycombInput, error) {
+// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.UpdateHoneycombInput, error) {
 	input := fastly.UpdateHoneycombInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
@@ -109,7 +109,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.createInput(serviceID, serviceVersion.Number)
+	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}

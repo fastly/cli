@@ -146,7 +146,7 @@ func TestCreateKafkaInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantSASLError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -330,7 +330,7 @@ func TestUpdateKafkaInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.createInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantSASLError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})

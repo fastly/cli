@@ -74,8 +74,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	return &c
 }
 
-// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) createInput(serviceID string, serviceVersion int) (*fastly.CreateCloudfilesInput, error) {
+// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.CreateCloudfilesInput, error) {
 	var input fastly.CreateCloudfilesInput
 
 	input.ServiceID = serviceID
@@ -156,7 +156,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.createInput(serviceID, serviceVersion.Number)
+	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}

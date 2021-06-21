@@ -53,7 +53,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.createInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, serviceVersion.Number)
 
 	v, err := c.Globals.Client.GetVCL(input)
 	if err != nil {
@@ -64,8 +64,8 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-// createInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *DescribeCommand) createInput(serviceID string, serviceVersion int) *fastly.GetVCLInput {
+// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) *fastly.GetVCLInput {
 	var input fastly.GetVCLInput
 
 	input.Name = c.name
