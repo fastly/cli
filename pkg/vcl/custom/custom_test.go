@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/vcl/custom"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
@@ -511,7 +511,7 @@ func validateContent(wantError string, args []string, content string, t *testing
 			if a == "--content" {
 				want := args[i+1]
 				if want == "./testdata/example.vcl" {
-					want = custom.Content(want)
+					want = cmd.Content(want)
 				}
 				if content != want {
 					t.Errorf("wanted %s, have %s", want, content)

@@ -1141,3 +1141,38 @@ func (m API) UpdateVCL(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 func (m API) DeleteVCL(i *fastly.DeleteVCLInput) error {
 	return m.DeleteVCLFn(i)
 }
+
+// CreateSnippet implements Interface.
+func (m API) CreateSnippet(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
+	return m.CreateSnippetFn(i)
+}
+
+// ListSnippets implements Interface.
+func (m API) ListSnippets(i *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
+	return m.ListSnippetsFn(i)
+}
+
+// GetSnippet implements Interface.
+func (m API) GetSnippet(i *fastly.GetSnippetInput) (*fastly.Snippet, error) {
+	return m.GetSnippetFn(i)
+}
+
+// GetDynamicSnippet implements Interface.
+func (m API) GetDynamicSnippet(i *fastly.GetDynamicSnippetInput) (*fastly.DynamicSnippet, error) {
+	return m.GetDynamicSnippetFn(i)
+}
+
+// UpdateSnippet implements Interface.
+func (m API) UpdateSnippet(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
+	return m.UpdateSnippetFn(i)
+}
+
+// UpdateDynamicSnippet implements Interface.
+func (m API) UpdateDynamicSnippet(i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error) {
+	return m.UpdateDynamicSnippetFn(i)
+}
+
+// DeleteSnippet implements Interface.
+func (m API) DeleteSnippet(i *fastly.DeleteSnippetInput) error {
+	return m.DeleteSnippetFn(i)
+}
