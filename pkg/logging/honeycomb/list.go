@@ -27,7 +27,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List Honeycomb endpoints on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
 	return &c

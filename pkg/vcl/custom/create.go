@@ -21,12 +21,12 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	// Required flags
 	c.CmdClause.Flag("content", "VCL passed as file path or content, e.g. $(cat main.vcl)").Required().StringVar(&c.content)
 	c.CmdClause.Flag("name", "The name of the VCL").Required().StringVar(&c.name)
-	c.SetServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
 
 	// Optional flags
-	c.SetAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})

@@ -15,7 +15,7 @@ import (
 )
 
 // ServiceVersionFlagOpts enables easy configuration of the --version flag
-// defined via the SetServiceVersionFlag constructor.
+// defined via the RegisterServiceVersionFlag constructor.
 //
 // NOTE: The reason we define an 'optional' field rather than a 'required'
 // field is because 99% of the use cases where --version is defined the flag
@@ -27,10 +27,10 @@ type ServiceVersionFlagOpts struct {
 	Action   kingpin.Action
 }
 
-// SetServiceVersionFlag defines a --version flag that accepts multiple values
+// RegisterServiceVersionFlag defines a --version flag that accepts multiple values
 // such as 'latest', 'active' and numerical values which are then converted
 // into the appropriate service version.
-func (b Base) SetServiceVersionFlag(opts ServiceVersionFlagOpts) {
+func (b Base) RegisterServiceVersionFlag(opts ServiceVersionFlagOpts) {
 	clause := b.CmdClause.Flag("version", "'latest', 'active', or the number of a specific version")
 	if !opts.Optional {
 		clause = clause.Required()
@@ -79,15 +79,15 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 }
 
 // AutoCloneFlagOpts enables easy configuration of the --autoclone flag defined
-// via the SetAutoCloneFlag constructor.
+// via the RegisterAutoCloneFlag constructor.
 type AutoCloneFlagOpts struct {
 	Action kingpin.Action
 	Dst    *bool
 }
 
-// SetAutoCloneFlag defines a --autoclone flag that will cause a clone of the
+// RegisterAutoCloneFlag defines a --autoclone flag that will cause a clone of the
 // identified service version if it's found to be active or locked.
-func (b Base) SetAutoCloneFlag(opts AutoCloneFlagOpts) {
+func (b Base) RegisterAutoCloneFlag(opts AutoCloneFlagOpts) {
 	b.CmdClause.Flag("autoclone", "If the selected service version is not editable, clone it and use the clone.").Action(opts.Action).BoolVar(opts.Dst)
 }
 
