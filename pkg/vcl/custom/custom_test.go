@@ -257,7 +257,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 				GetVCLFn:       getVCL,
 			},
 			Args:       args("vcl custom describe --name foobar --service-id 123 --version 3"),
-			WantOutput: "Service ID: 123\nService Version: 3\nName: foobar\nMain: true\nContent: # some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
@@ -266,7 +266,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 				GetVCLFn:       getVCL,
 			},
 			Args:       args("vcl custom describe --name foobar --service-id 123 --version 1"),
-			WantOutput: "Service ID: 123\nService Version: 1\nName: foobar\nMain: true\nContent: # some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
