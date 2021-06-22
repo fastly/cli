@@ -3,7 +3,6 @@ package custom_test
 import (
 	"bytes"
 	"testing"
-	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/cmd"
@@ -458,7 +457,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 }
 
 func getVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
-	t := time.Date(2021, time.June, 15, 23, 0, 0, 0, time.UTC)
+	t := testutil.Date
 
 	return &fastly.VCL{
 		Content:        "# some vcl content",
@@ -466,34 +465,37 @@ func getVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
 		Name:           i.Name,
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		CreatedAt:      &t,
-		UpdatedAt:      &t,
-		DeletedAt:      &t,
+
+		CreatedAt: &t,
+		DeletedAt: &t,
+		UpdatedAt: &t,
 	}, nil
 }
 
 func listVCLs(i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
-	t := time.Date(2021, time.June, 15, 23, 0, 0, 0, time.UTC)
+	t := testutil.Date
 	vs := []*fastly.VCL{
 		{
+			Content:        "# some vcl content",
+			Main:           true,
+			Name:           "foo",
 			ServiceID:      i.ServiceID,
 			ServiceVersion: i.ServiceVersion,
-			Name:           "foo",
-			Main:           true,
-			Content:        "# some vcl content",
-			CreatedAt:      &t,
-			UpdatedAt:      &t,
-			DeletedAt:      &t,
+
+			CreatedAt: &t,
+			DeletedAt: &t,
+			UpdatedAt: &t,
 		},
 		{
+			Content:        "# some vcl content",
+			Main:           false,
+			Name:           "bar",
 			ServiceID:      i.ServiceID,
 			ServiceVersion: i.ServiceVersion,
-			Name:           "bar",
-			Main:           false,
-			Content:        "# some vcl content",
-			CreatedAt:      &t,
-			UpdatedAt:      &t,
-			DeletedAt:      &t,
+
+			CreatedAt: &t,
+			DeletedAt: &t,
+			UpdatedAt: &t,
 		},
 	}
 	return vs, nil
