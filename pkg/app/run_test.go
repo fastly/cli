@@ -3676,8 +3676,7 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
 
   vcl snippet update --name=NAME --version=VERSION [<flags>]
-    Update a VCL snippet for a particular service (and version, if not a dynamic
-    snippet)
+    Update a VCL snippet for a particular service and version
 
         --name=NAME              The name of the VCL snippet to update
         --version=VERSION        'latest', 'active', or the number of a specific
