@@ -80,7 +80,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		text.Success(out, "Updated VCL snippet '%s' (service: %s)", v.ID, v.ServiceID)
+		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", v.ID, v.ServiceID)
 		return nil
 	}
 
@@ -106,6 +106,10 @@ func (c *UpdateCommand) constructDynamicInput(serviceID string, serviceVersion i
 
 	input.ServiceID = serviceID
 	input.ID = c.snippetID
+
+	if c.snippetID == "" {
+		return nil, fmt.Errorf("error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet")
+	}
 
 	if c.content.WasSet {
 		input.Content = cmd.Content(c.content.Value)

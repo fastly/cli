@@ -260,6 +260,7 @@ func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, fp
 				Remediation: fsterr.NetworkRemediation,
 			}
 		}
+		return err
 	}
 	defer resp.Body.Close()
 

@@ -76,6 +76,16 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
+// constructDynamicInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *DescribeCommand) constructDynamicInput(serviceID string, serviceVersion int) *fastly.GetDynamicSnippetInput {
+	var input fastly.GetDynamicSnippetInput
+
+	input.ID = c.snippetID
+	input.ServiceID = serviceID
+
+	return &input
+}
+
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) *fastly.GetSnippetInput {
 	var input fastly.GetSnippetInput
@@ -87,14 +97,17 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) *
 	return &input
 }
 
-// constructDynamicInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *DescribeCommand) constructDynamicInput(serviceID string, serviceVersion int) *fastly.GetDynamicSnippetInput {
-	var input fastly.GetDynamicSnippetInput
-
-	input.ID = c.snippetID
-	input.ServiceID = serviceID
-
-	return &input
+// print displays the 'dynamic' information returned from the API.
+func (c *DescribeCommand) printDynamic(out io.Writer, v *fastly.DynamicSnippet) {
+	fmt.Fprintf(out, "Service ID: %s\n", v.ServiceID)
+	fmt.Fprintf(out, "ID: %s\n", v.ID)
+	fmt.Fprintf(out, "Content: %s\n", v.Content)
+	if v.CreatedAt != nil {
+		fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
+	}
+	if v.UpdatedAt != nil {
+		fmt.Fprintf(out, "Updated at: %s\n", v.UpdatedAt)
+	}
 }
 
 // print displays the information returned from the API.
@@ -115,18 +128,5 @@ func (c *DescribeCommand) print(out io.Writer, v *fastly.Snippet) {
 	}
 	if v.DeletedAt != nil {
 		fmt.Fprintf(out, "Deleted at: %s\n", v.DeletedAt)
-	}
-}
-
-// print displays the 'dynamic' information returned from the API.
-func (c *DescribeCommand) printDynamic(out io.Writer, v *fastly.DynamicSnippet) {
-	fmt.Fprintf(out, "Service ID: %s\n", v.ServiceID)
-	fmt.Fprintf(out, "ID: %s\n", v.ID)
-	fmt.Fprintf(out, "Content: %s\n", v.Content)
-	if v.CreatedAt != nil {
-		fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
-	}
-	if v.UpdatedAt != nil {
-		fmt.Fprintf(out, "Updated at: %s\n", v.UpdatedAt)
 	}
 }

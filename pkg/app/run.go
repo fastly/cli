@@ -58,6 +58,7 @@ import (
 	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/cli/pkg/vcl"
 	"github.com/fastly/cli/pkg/vcl/custom"
+	"github.com/fastly/cli/pkg/vcl/snippet"
 	"github.com/fastly/cli/pkg/version"
 	"github.com/fastly/cli/pkg/whoami"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -371,12 +372,20 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
 
 	vclRoot := vcl.NewRootCommand(app, &globals)
+
 	vclCustomRoot := custom.NewRootCommand(vclRoot.CmdClause, &globals)
 	vclCustomCreate := custom.NewCreateCommand(vclCustomRoot.CmdClause, &globals)
 	vclCustomDelete := custom.NewDeleteCommand(vclCustomRoot.CmdClause, &globals)
 	vclCustomDescribe := custom.NewDescribeCommand(vclCustomRoot.CmdClause, &globals)
 	vclCustomList := custom.NewListCommand(vclCustomRoot.CmdClause, &globals)
 	vclCustomUpdate := custom.NewUpdateCommand(vclCustomRoot.CmdClause, &globals)
+
+	vclSnippetRoot := snippet.NewRootCommand(vclRoot.CmdClause, &globals)
+	vclSnippetCreate := snippet.NewCreateCommand(vclSnippetRoot.CmdClause, &globals)
+	vclSnippetDelete := snippet.NewDeleteCommand(vclSnippetRoot.CmdClause, &globals)
+	vclSnippetDescribe := snippet.NewDescribeCommand(vclSnippetRoot.CmdClause, &globals)
+	vclSnippetList := snippet.NewListCommand(vclSnippetRoot.CmdClause, &globals)
+	vclSnippetUpdate := snippet.NewUpdateCommand(vclSnippetRoot.CmdClause, &globals)
 
 	commands := []cmd.Command{
 		configureRoot,
@@ -633,12 +642,20 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 		statsRealtime,
 
 		vclRoot,
+
 		vclCustomRoot,
 		vclCustomCreate,
 		vclCustomDelete,
 		vclCustomDescribe,
 		vclCustomList,
 		vclCustomUpdate,
+
+		vclSnippetRoot,
+		vclSnippetCreate,
+		vclSnippetDelete,
+		vclSnippetDescribe,
+		vclSnippetList,
+		vclSnippetUpdate,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs

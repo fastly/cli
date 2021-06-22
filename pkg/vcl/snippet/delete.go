@@ -65,7 +65,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted custom VCL '%s' (service: %s, version: %d)", c.name, serviceID, serviceVersion.Number)
+	text.Success(out, "Deleted VCL snippet '%s' (service: %s, version: %d)", c.name, serviceID, serviceVersion.Number)
 	return nil
 }
 

@@ -71,7 +71,7 @@ func TestVCLCustomCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom create --service-id 123 --version 3 --name foo --content ./testdata/example.vcl"),
+			Args:       args("vcl custom create --content ./testdata/example.vcl --name foo --service-id 123 --version 3"),
 			WantOutput: "Created custom VCL 'foo' (service: 123, version: 3, main: false)",
 		},
 		{
