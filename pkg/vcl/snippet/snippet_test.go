@@ -77,7 +77,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, type: recv, priority: 0)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, type: recv, priority: 100)",
 		},
 		{
 			Name: "validate CreateSnippet API success for dynamic Snippet",
@@ -98,7 +98,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --dynamic --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, type: recv, priority: 0)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, type: recv, priority: 100)",
 		},
 		{
 			Name: "validate Priority set",
@@ -141,7 +141,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --autoclone --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 1"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, type: recv, priority: 0)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, type: recv, priority: 100)",
 		},
 		{
 			Name: "validate CreateSnippet API success with inline Snippet content",
@@ -162,7 +162,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content inline_vcl --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, type: recv, priority: 0)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, type: recv, priority: 100)",
 		},
 	}
 
@@ -400,18 +400,13 @@ func TestVCLSnippetUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --name flag",
-			Args:      args("vcl snippet update --version 3"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl snippet update --name foobar"),
+			Args:      args("vcl snippet update"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl snippet update --name foobar --version 3"),
+			Args:      args("vcl snippet update --version 3"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -419,24 +414,56 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet update --name foobar --service-id 123 --version 1"),
+			Args:      args("vcl snippet update --service-id 123 --version 1"),
 			WantError: "service version 1 is not editable",
 		},
 		{
-			Name: "validate missing either --new-name or --content",
+			Name: "validate versioned snippet missing --content",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet update --name foobar --service-id 123 --version 3"),
-			WantError: "error parsing arguments: must provide either --new-name or --content to update the VCL snippet",
+			Args:      args("vcl snippet update --name foo --new-name bar --service-id 123 --type recv --version 3"),
+			WantError: "error parsing arguments: must provide --content, --name, --new-name and --type to update a versioned VCL snippet",
 		},
 		{
-			Name: "validate missing --snippet-id when updating dynamic snippet",
+			Name: "validate versioned snippet missing --name",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet update --dynamic --name foobar --service-id 123 --version 3"),
-			WantError: "error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet",
+			Args:      args("vcl snippet update --content inline_vcl --new-name bar --service-id 123 --type recv --version 3"),
+			WantError: "error parsing arguments: must provide --content, --name, --new-name and --type to update a versioned VCL snippet",
+		},
+		{
+			Name: "validate versioned snippet missing --new-name",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl snippet update --content inline_vcl --name foo --service-id 123 --type recv --version 3"),
+			WantError: "error parsing arguments: must provide --content, --name, --new-name and --type to update a versioned VCL snippet",
+		},
+		{
+			Name: "validate versioned snippet missing --type",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl snippet update --content inline_vcl --name foo --new-name bar --service-id 123 --version 3"),
+			WantError: "error parsing arguments: must provide --content, --name, --new-name and --type to update a versioned VCL snippet",
+		},
+		{
+			Name: "validate dynamic snippet missing --content",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl snippet update --dynamic --service-id 123 --snippet-id 456 --version 3"),
+			WantError: "error parsing arguments: must provide both --content and --snippet-id to update a dynamic VCL snippet",
+		},
+		{
+			Name: "validate dynamic snippet missing --snippet-id",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl snippet update --content inline_vcl --dynamic --service-id 123 --version 3"),
+			WantError: "error parsing arguments: must provide both --content and --snippet-id to update a dynamic VCL snippet",
 		},
 		{
 			Name: "validate UpdateSnippet API error",
@@ -446,28 +473,11 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					return nil, testutil.ErrAPI
 				},
 			},
-			Args:      args("vcl snippet update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Args:      args("vcl snippet update --content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3"),
 			WantError: testutil.ErrAPI.Error(),
 		},
 		{
-			Name: "validate UpdateSnippet API success with --new-name",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				UpdateSnippetFn: func(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
-					return &fastly.Snippet{
-						Content:        "# untouched",
-						Dynamic:        i.Dynamic,
-						Name:           i.NewName,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
-					}, nil
-				},
-			},
-			Args:       args("vcl snippet update --name foobar --new-name beepboop --service-id 123 --version 3"),
-			WantOutput: "Updated VCL snippet 'beepboop' (previously: 'foobar', service: 123, version: 3)",
-		},
-		{
-			Name: "validate UpdateSnippet API success with --content",
+			Name: "validate UpdateSnippet API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateSnippetFn: func(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
@@ -477,17 +487,19 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Name:           i.NewName,
+						Priority:       i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
+						Type:           i.Type,
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet update --content updated --name foobar --service-id 123 --version 3"),
-			WantOutput: "Updated VCL snippet 'foobar' (service: 123, version: 3)",
+			Args:       args("vcl snippet update --content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3"),
+			WantOutput: "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 3, type: recv, priority: 100)",
 		},
 		{
-			Name: "validate UpdateDynamicSnippet API success with --content",
+			Name: "validate UpdateDynamicSnippet API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateDynamicSnippetFn: func(i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error) {
@@ -501,8 +513,8 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet update --content updated --dynamic --name foobar --service-id 123 --snippet-id foobar --version 3"),
-			WantOutput: "Updated dynamic VCL snippet 'foobar' (service: 123)",
+			Args:       args("vcl snippet update --content inline_vcl --dynamic --service-id 123 --snippet-id 456 --version 3"),
+			WantOutput: "Updated dynamic VCL snippet '456' (service: 123)",
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
@@ -516,14 +528,16 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Name:           i.NewName,
+						Priority:       i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
+						Type:           i.Type,
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet update --autoclone --content ./testdata/snippet.vcl --name foo --service-id 123 --version 1"),
-			WantOutput: "Updated VCL snippet 'foo' (service: 123, version: 4)",
+			Args:       args("vcl snippet update --autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 1"),
+			WantOutput: "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
 		},
 	}
 
