@@ -13,13 +13,13 @@ import (
 // NewDescribeCommand returns a usable command registered under the parent.
 func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCommand {
 	var c DescribeCommand
-	c.CmdClause = parent.Command("describe", "Get the uploaded VCL for a particular service and version").Alias("get")
+	c.CmdClause = parent.Command("describe", "Get the uploaded VCL snippet for a particular service and version").Alias("get")
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 
 	// Required flags
-	c.CmdClause.Flag("name", "The name of the VCL").Required().StringVar(&c.name)
+	c.CmdClause.Flag("name", "The name of the VCL snippet").Required().StringVar(&c.name)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})

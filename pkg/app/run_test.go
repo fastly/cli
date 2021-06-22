@@ -3659,9 +3659,9 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
 
   vcl snippet describe --name=NAME --version=VERSION --snippet-id=SNIPPET-ID [<flags>]
-    Get the uploaded VCL for a particular service and version
+    Get the uploaded VCL snippet for a particular service and version
 
-        --name=NAME              The name of the VCL
+        --name=NAME              The name of the VCL snippet
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
@@ -3669,7 +3669,7 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID
 
   vcl snippet list --version=VERSION [<flags>]
-    List the uploaded VCLs for a particular service and version
+    List the uploaded VCL snippets for a particular service and version
 
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
