@@ -77,11 +77,11 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) *
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, v *fastly.VCL) {
-	fmt.Fprintf(out, "Service ID: %s\n", v.ServiceID)
-	fmt.Fprintf(out, "Service Version: %d\n", v.ServiceVersion)
+	fmt.Fprintf(out, "\nService ID: %s\n", v.ServiceID)
+	fmt.Fprintf(out, "Service Version: %d\n\n", v.ServiceVersion)
 	fmt.Fprintf(out, "Name: %s\n", v.Name)
 	fmt.Fprintf(out, "Main: %t\n", v.Main)
-	fmt.Fprintf(out, "Content: %s\n", v.Content)
+	fmt.Fprintf(out, "Content: \n%s\n\n", v.Content)
 	if v.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
 	}
