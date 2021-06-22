@@ -21,7 +21,7 @@ debug:
 	@go build -gcflags="all=-N -l" -o "fastly" ./cmd/fastly
 
 .PHONY: all
-all: tidy fmt vet staticcheck lint gosec test build install
+all: config tidy fmt vet staticcheck lint gosec test build install
 
 .PHONY: dependencies
 dependencies:
