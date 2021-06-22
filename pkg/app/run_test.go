@@ -3631,6 +3631,69 @@ COMMANDS
                                  main.vcl)
     -s, --service-id=SERVICE-ID  Service ID
 
+  vcl snippet create --content=CONTENT --name=NAME --version=VERSION --type=TYPE [<flags>]
+    Create a snippet for a particular service and version
+
+        --content=CONTENT        VCL snippet passed as file path or content,
+                                 e.g. $(cat snippet.vcl)
+        --name=NAME              The name of the VCL snippet
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+        --type=TYPE              The location in generated VCL where the snippet
+                                 should be placed (e.g. recv, miss, fetch etc)
+        --autoclone              If the selected service version is not
+                                 editable, clone it and use the clone.
+        --dynamic                Whether the VCL snippet is dynamic or versioned
+    -p, --priority=PRIORITY      Priority determines execution order. Lower
+                                 numbers execute first
+    -s, --service-id=SERVICE-ID  Service ID
+
+  vcl snippet delete --name=NAME --version=VERSION [<flags>]
+    Delete a specific snippet for a particular service and version
+
+        --name=NAME              The name of the VCL snippet to delete
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+        --autoclone              If the selected service version is not
+                                 editable, clone it and use the clone.
+    -s, --service-id=SERVICE-ID  Service ID
+
+  vcl snippet describe --name=NAME --version=VERSION --snippet-id=SNIPPET-ID [<flags>]
+    Get the uploaded VCL snippet for a particular service and version
+
+        --name=NAME              The name of the VCL snippet
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+    -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
+        --dynamic                Whether the VCL snippet is dynamic or versioned
+    -s, --service-id=SERVICE-ID  Service ID
+
+  vcl snippet list --version=VERSION [<flags>]
+    List the uploaded VCL snippets for a particular service and version
+
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+    -s, --service-id=SERVICE-ID  Service ID
+
+  vcl snippet update --name=NAME --version=VERSION [<flags>]
+    Update a VCL snippet for a particular service and version
+
+        --name=NAME              The name of the VCL snippet to update
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+        --autoclone              If the selected service version is not
+                                 editable, clone it and use the clone.
+        --content=CONTENT        VCL snippet passed as file path or content,
+                                 e.g. $(cat snippet.vcl)
+        --dynamic                Whether the VCL snippet is dynamic or versioned
+        --new-name=NEW-NAME      New name for the VCL snippet
+    -p, --priority=PRIORITY      Priority determines execution order. Lower
+                                 numbers execute first
+    -s, --service-id=SERVICE-ID  Service ID
+    -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
+        --type=TYPE              The location in generated VCL where the snippet
+                                 should be placed (e.g. recv, miss, fetch etc)
+
 For help on a specific command, try e.g.
 
 	fastly help configure

@@ -61,9 +61,9 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	// `compute publish`.
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Action:   c.ServiceVersion.Set,
 		Dst:      &c.ServiceVersion.Value,
 		Optional: true,
-		Action:   c.ServiceVersion.Set,
 	})
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)

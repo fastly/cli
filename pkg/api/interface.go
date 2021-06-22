@@ -236,6 +236,14 @@ type Interface interface {
 	GetVCL(*fastly.GetVCLInput) (*fastly.VCL, error)
 	UpdateVCL(*fastly.UpdateVCLInput) (*fastly.VCL, error)
 	DeleteVCL(*fastly.DeleteVCLInput) error
+
+	CreateSnippet(i *fastly.CreateSnippetInput) (*fastly.Snippet, error)
+	ListSnippets(i *fastly.ListSnippetsInput) ([]*fastly.Snippet, error)
+	GetSnippet(i *fastly.GetSnippetInput) (*fastly.Snippet, error)
+	GetDynamicSnippet(i *fastly.GetDynamicSnippetInput) (*fastly.DynamicSnippet, error)
+	UpdateSnippet(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error)
+	UpdateDynamicSnippet(i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error)
+	DeleteSnippet(i *fastly.DeleteSnippetInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

@@ -1,4 +1,4 @@
-package custom
+package snippet
 
 import (
 	"io"
@@ -10,17 +10,16 @@ import (
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
-	var c CreateCommand
-	c.CmdClause = parent.Command("create", "Upload a VCL for a particular service and version").Alias("add")
+// NewDeleteCommand returns a usable command registered under the parent.
+func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteCommand {
+	var c DeleteCommand
+	c.CmdClause = parent.Command("delete", "Delete a specific snippet for a particular service and version").Alias("remove")
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 
 	// Required flags
-	c.CmdClause.Flag("content", "VCL passed as file path or content, e.g. $(cat main.vcl)").Required().StringVar(&c.content)
-	c.CmdClause.Flag("name", "The name of the VCL").Required().StringVar(&c.name)
+	c.CmdClause.Flag("name", "The name of the VCL snippet to delete").Required().StringVar(&c.name)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
@@ -30,26 +29,23 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("main", "Whether the VCL is the 'main' entrypoint").Action(c.main.Set).BoolVar(&c.main.Value)
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 
 	return &c
 }
 
-// CreateCommand calls the Fastly API to create an appropriate resource.
-type CreateCommand struct {
+// DeleteCommand calls the Fastly API to delete an appropriate resource.
+type DeleteCommand struct {
 	cmd.Base
 
 	autoClone      cmd.OptionalAutoClone
-	content        string
-	main           cmd.OptionalBool
 	manifest       manifest.Data
 	name           string
 	serviceVersion cmd.OptionalServiceVersion
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		Client:             c.Globals.Client,
@@ -64,27 +60,22 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID, serviceVersion.Number)
 
-	v, err := c.Globals.Client.CreateVCL(input)
+	err = c.Globals.Client.DeleteSnippet(input)
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Created custom VCL '%s' (service: %s, version: %d, main: %t)", v.Name, v.ServiceID, v.ServiceVersion, v.Main)
+	text.Success(out, "Deleted VCL snippet '%s' (service: %s, version: %d)", c.name, serviceID, serviceVersion.Number)
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateVCLInput {
-	var input fastly.CreateVCLInput
+func (c *DeleteCommand) constructInput(serviceID string, serviceVersion int) *fastly.DeleteSnippetInput {
+	var input fastly.DeleteSnippetInput
 
-	input.Content = cmd.Content(c.content)
 	input.Name = c.name
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-
-	if c.main.WasSet {
-		input.Main = c.main.Value
-	}
 
 	return &input
 }

@@ -49,9 +49,9 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	// Deploy flags
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
+		Action:   c.serviceVersion.Set,
 		Dst:      &c.serviceVersion.Value,
 		Optional: true,
-		Action:   c.serviceVersion.Set,
 	})
 	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)

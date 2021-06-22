@@ -3,12 +3,10 @@ package custom_test
 import (
 	"bytes"
 	"testing"
-	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/vcl/custom"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
@@ -72,7 +70,7 @@ func TestVCLCustomCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom create --service-id 123 --version 3 --name foo --content ./testdata/example.vcl"),
+			Args:       args("vcl custom create --content ./testdata/example.vcl --name foo --service-id 123 --version 3"),
 			WantOutput: "Created custom VCL 'foo' (service: 123, version: 3, main: false)",
 		},
 		{
@@ -145,7 +143,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
-			validateContent(testcase.WantError, testcase.Args, content, t)
+			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "example.vcl", content, t)
 		})
 	}
 }
@@ -452,13 +450,13 @@ func TestVCLCustomUpdate(t *testing.T) {
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
-			validateContent(testcase.WantError, testcase.Args, content, t)
+			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "example.vcl", content, t)
 		})
 	}
 }
 
 func getVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
-	t := time.Date(2021, time.June, 15, 23, 0, 0, 0, time.UTC)
+	t := testutil.Date
 
 	return &fastly.VCL{
 		Content:        "# some vcl content",
@@ -466,58 +464,38 @@ func getVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
 		Name:           i.Name,
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		CreatedAt:      &t,
-		UpdatedAt:      &t,
-		DeletedAt:      &t,
+
+		CreatedAt: &t,
+		DeletedAt: &t,
+		UpdatedAt: &t,
 	}, nil
 }
 
 func listVCLs(i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
-	t := time.Date(2021, time.June, 15, 23, 0, 0, 0, time.UTC)
+	t := testutil.Date
 	vs := []*fastly.VCL{
 		{
+			Content:        "# some vcl content",
+			Main:           true,
+			Name:           "foo",
 			ServiceID:      i.ServiceID,
 			ServiceVersion: i.ServiceVersion,
-			Name:           "foo",
-			Main:           true,
-			Content:        "# some vcl content",
-			CreatedAt:      &t,
-			UpdatedAt:      &t,
-			DeletedAt:      &t,
+
+			CreatedAt: &t,
+			DeletedAt: &t,
+			UpdatedAt: &t,
 		},
 		{
+			Content:        "# some vcl content",
+			Main:           false,
+			Name:           "bar",
 			ServiceID:      i.ServiceID,
 			ServiceVersion: i.ServiceVersion,
-			Name:           "bar",
-			Main:           false,
-			Content:        "# some vcl content",
-			CreatedAt:      &t,
-			UpdatedAt:      &t,
-			DeletedAt:      &t,
+
+			CreatedAt: &t,
+			DeletedAt: &t,
+			UpdatedAt: &t,
 		},
 	}
 	return vs, nil
-}
-
-// When dealing with successful test scenarios: validate the --content value was
-// parsed as expected.
-//
-// Example: if --content is passed a file path, then we expect the
-// testdata/example.vcl to have been read, otherwise we expect the given flag
-// value to have been used as is.
-func validateContent(wantError string, args []string, content string, t *testing.T) {
-	if wantError == "" {
-		for i, a := range args {
-			if a == "--content" {
-				want := args[i+1]
-				if want == "./testdata/example.vcl" {
-					want = custom.Content(want)
-				}
-				if content != want {
-					t.Errorf("wanted %s, have %s", want, content)
-				}
-				break
-			}
-		}
-	}
 }
