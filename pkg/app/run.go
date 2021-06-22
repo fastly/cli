@@ -757,7 +757,7 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	if cliVersioner != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel() // push cancel on the defer stack first...
-		f := update.CheckAsync(ctx, file, configFilePath, revision.AppVersion, cliVersioner)
+		f := update.CheckAsync(ctx, file, configFilePath, revision.AppVersion, cliVersioner, in, out)
 		defer f(out) // ...and the printing function second, so we hit the timeout
 	}
 

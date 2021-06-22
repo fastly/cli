@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "embed"
+
 	"context"
 	"fmt"
 	"io"
@@ -11,12 +13,15 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterrors "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
 )
+
+//go:embed static/config.toml
+var cfg []byte
 
 func main() {
 	// Some configuration options can come from env vars.
@@ -30,13 +35,12 @@ func main() {
 	// the "real" versions that pull e.g. actual commandline arguments, the
 	// user's real environment, etc.
 	var (
-		args                     = os.Args[1:]
-		configFilePath           = config.FilePath // write-only for `fastly configure`
-		clientFactory            = app.FastlyAPIClient
-		httpClient               = http.DefaultClient
-		cliVersioner             = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
-		in             io.Reader = os.Stdin
-		out            io.Writer = sync.NewWriter(os.Stdout)
+		args                    = os.Args[1:]
+		clientFactory           = app.FastlyAPIClient
+		httpClient              = http.DefaultClient
+		cliVersioner            = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
+		in            io.Reader = os.Stdin
+		out           io.Writer = sync.NewWriter(os.Stdout)
 	)
 
 	// We have to manually handle the inclusion of the verbose flag here because
@@ -52,62 +56,37 @@ func main() {
 
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
-	err := file.Read(configFilePath)
+	file.Static = cfg
+	err := file.Read(config.FilePath, in, out)
 
 	if err != nil {
-		if verboseOutput {
-			if err == config.ErrLegacyConfig {
+		if err == config.ErrLegacyConfig {
+			if verboseOutput {
 				text.Output(out, `
 					Found your local configuration file (required to use the CLI) was using a legacy format.
-					File is being upgraded now.
+					File will be updated to the latest format.
 				`)
-			} else {
-				text.Output(out, `
-					Unable to locate a local configuration file (required to use the CLI).
-					File is being created now.
-				`)
+				text.Break(out)
 			}
-			text.Break(out)
-		}
-	}
-
-	if err != nil || file.CLI.Version != revision.SemVer(revision.AppVersion) {
-		err := file.Load(config.RemoteEndpoint, httpClient, config.ConfigRequestTimeout)
-		if err != nil {
-			errors.RemediationError{
-				Inner:       err,
-				Remediation: errors.NetworkRemediation,
-			}.Print(os.Stderr)
+		} else {
+			// We've hit a scenario where our fallback static config is invalid, and
+			// that is very much an unexpected situation.
+			fsterrors.Deduce(err).Print(os.Stderr)
 			os.Exit(1)
 		}
 	}
 
-	// We have seen a situation where loading data from the remote
-	// config endpoint has caused a user to end up with a config in the
-	// non-legacy format but with empty values.
+	// There are two scenarios we now want to look out for...
 	//
-	// It's unclear how this happens and so as a temporary measure we'll check if
-	// the in-memory data structure is missing a specific value that's set by the
-	// CLI, and if so we'll know something bad has happened because at this point
-	// we expect the data structure to have a non-empty string value.
+	// 1. The config is using a legacy format.
+	// 2. The config is from an older CLI version.
 	//
-	// If we discover we're in that scenario we'll attempt to re-load the
-	// configuration from the remote endpoint.
-	if file.CLI.LastChecked == "" {
-		if verboseOutput {
-			text.Warning(out, `
-				There was a problem loading the compatibility and versioning information for the Fastly CLI.
-				The operation will be retried as this configuration is required.
-			`)
-			text.Break(out)
-		}
-
-		err := file.Load(config.RemoteEndpoint, httpClient, config.ConfigRequestTimeout)
+	// To prevent issues we'll replace the config with what's embedded into the CLI,
+	// as we know that is compatible with the code currently being executed.
+	if err == config.ErrLegacyConfig || file.CLI.Version != revision.SemVer(revision.AppVersion) {
+		err := file.UseStatic(cfg, config.FilePath)
 		if err != nil {
-			errors.RemediationError{
-				Inner:       err,
-				Remediation: errors.NetworkRemediation,
-			}.Print(os.Stderr)
+			fsterrors.Deduce(err).Print(os.Stderr)
 			os.Exit(1)
 		}
 	}
@@ -133,11 +112,11 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 			// NOTE: we no longer use the hardcoded config.RemoteEndpoint constant.
 			// Instead we rely on the values inside of the application
 			// configuration file to determine where to load the config from.
-			err := file.Load(file.CLI.RemoteConfig, httpClient, config.ConfigRequestTimeout)
+			err := file.Load(file.CLI.RemoteConfig, httpClient, config.ConfigRequestTimeout, config.FilePath)
 			if err != nil {
-				errLoadConfig = errors.RemediationError{
+				errLoadConfig = fsterrors.RemediationError{
 					Inner:       fmt.Errorf("there was a problem updating the versioning information for the Fastly CLI:\n\n%w", err),
-					Remediation: errors.BugRemediation,
+					Remediation: fsterrors.BugRemediation,
 				}
 			}
 
@@ -146,8 +125,8 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 	}
 
 	// Main is basically just a shim to call Run, so we do that here.
-	if err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, cliVersioner, in, out); err != nil {
-		errors.Deduce(err).Print(os.Stderr)
+	if err := app.Run(args, env, file, config.FilePath, clientFactory, httpClient, cliVersioner, in, out); err != nil {
+		fsterrors.Deduce(err).Print(os.Stderr)
 
 		// NOTE: if we have an error processing the command, then we should be sure
 		// to wait for the async file write to complete (otherwise we'll end up in
@@ -206,7 +185,7 @@ func afterWrite(verboseOutput bool, errLoadConfig error, out io.Writer) {
 		text.Info(out, config.UpdateSuccessful)
 	}
 	if errLoadConfig != nil {
-		errLoadConfig.(errors.RemediationError).Print(os.Stderr)
+		errLoadConfig.(fsterrors.RemediationError).Print(os.Stderr)
 	}
 }
 

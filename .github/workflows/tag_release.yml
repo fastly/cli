@@ -18,10 +18,13 @@ jobs:
     - name: Set GOVERSION
       id: set_goversion
       run: echo "GOVERSION=$(go version)" >> $GITHUB_ENV
+    - name: Pull config
+      run: |
+        make config
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v2
       with:
-        version: v0.164.0 # goreleaser version (NOT goreleaser-action version)
+        version: v0.171.0 # goreleaser version (NOT goreleaser-action version)
         args: release --rm-dist
       env:
         GOVERSION: ${{ env.GOVERSION }}

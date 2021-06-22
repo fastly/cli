@@ -1,0 +1,45 @@
+[cli]
+  last_checked = "2021-06-20T16:09:35+01:00"
+  remote_config = "https://developer.fastly.com/api/internal/cli-config"
+  ttl = "5m"
+  version = "0.31.0"
+
+[fastly]
+  api_endpoint = "https://api.fastly.com"
+
+[language]
+  [language.rust]
+    fastly_sys_constraint = ">= 0.3.3 < 0.5.0"
+    rustup_constraint = ">= 1.23.0"
+    toolchain_version = "1.49.0"
+    wasm_wasi_target = "wasm32-wasi"
+
+[legacy]
+  email = ""
+  token = ""
+
+[starter-kits]
+  [[starter-kits.assemblyscript]]
+    branch = ""
+    name = "Default"
+    path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
+    tag = "v0.2.1"
+  [[starter-kits.rust]]
+    branch = "0.7"
+    name = "Default"
+    path = "https://github.com/fastly/compute-starter-kit-rust-default.git"
+    tag = ""
+  [[starter-kits.rust]]
+    branch = ""
+    name = "Beacon"
+    path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination.git"
+    tag = ""
+  [[starter-kits.rust]]
+    branch = ""
+    name = "Static"
+    path = "https://github.com/fastly/compute-starter-kit-rust-static-content.git"
+    tag = ""
+
+[user]
+  email = "testing@fastly.com"
+  token = "foobar"

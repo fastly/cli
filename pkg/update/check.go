@@ -44,7 +44,7 @@ type checkResult struct {
 //     f := CheckAsync(...)
 //     defer f()
 //
-func CheckAsync(ctx context.Context, file config.File, configFilePath string, currentVersion string, cliVersioner Versioner) (printResults func(io.Writer)) {
+func CheckAsync(ctx context.Context, file config.File, configFilePath string, currentVersion string, cliVersioner Versioner, in io.Reader, out io.Writer) (printResults func(io.Writer)) {
 	if !check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
 		return func(io.Writer) {} // no-op
 	}
@@ -58,8 +58,10 @@ func CheckAsync(ctx context.Context, file config.File, configFilePath string, cu
 	return func(w io.Writer) {
 		result := <-results
 		if result.err == nil {
-			// `fastly configure` may have changed the file contents.
-			if err := file.Read(configFilePath); err == nil {
+			// If the user ran `fastly configure`, then the expectation is for the
+			// application configuration to have been updated. In that case we want
+			// to reread the config so we can update the LastChecked field.
+			if err := file.Read(configFilePath, in, out); err == nil {
 				file.CLI.LastChecked = time.Now().Format(time.RFC3339)
 				file.Write(configFilePath)
 			}

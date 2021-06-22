@@ -51,3 +51,6 @@ rust-toolchain
 dist/
 build/
 !pkg/compute/testdata/build/
+
+# Ignore application configuration
+cmd/fastly/static/config.toml
