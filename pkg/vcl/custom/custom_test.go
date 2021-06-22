@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -144,7 +143,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
-			validateContent(testcase.WantError, testcase.Args, content, t)
+			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "example.vcl", content, t)
 		})
 	}
 }
@@ -451,7 +450,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
-			validateContent(testcase.WantError, testcase.Args, content, t)
+			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "example.vcl", content, t)
 		})
 	}
 }
@@ -499,27 +498,4 @@ func listVCLs(i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
 		},
 	}
 	return vs, nil
-}
-
-// When dealing with successful test scenarios: validate the --content value was
-// parsed as expected.
-//
-// Example: if --content is passed a file path, then we expect the
-// testdata/example.vcl to have been read, otherwise we expect the given flag
-// value to have been used as is.
-func validateContent(wantError string, args []string, content string, t *testing.T) {
-	if wantError == "" {
-		for i, a := range args {
-			if a == "--content" {
-				want := args[i+1]
-				if want == "./testdata/example.vcl" {
-					want = cmd.Content(want)
-				}
-				if content != want {
-					t.Errorf("wanted %s, have %s", want, content)
-				}
-				break
-			}
-		}
-	}
 }
