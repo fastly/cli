@@ -261,8 +261,24 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl snippet describe --name foobar --snippet-id 123 --version 3"),
+			Args:      args("vcl snippet describe --version 3"),
 			WantError: "error reading service: no service ID found",
+		},
+		{
+			Name: "validate missing --name flag with versioned snippet",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl snippet describe --service-id 123 --version 3"),
+			WantError: "error parsing arguments: must provide --name with a versioned VCL snippet",
+		},
+		{
+			Name: "validate missing --snippet-id flag with dynamic snippet",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl snippet describe --dynamic --service-id 123 --version 3"),
+			WantError: "error parsing arguments: must provide --snippet-id with a dynamic VCL snippet",
 		},
 		{
 			Name: "validate GetSnippet API error",
