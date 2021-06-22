@@ -81,7 +81,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateSnippetInput {
 	var input fastly.CreateSnippetInput
 
-	input.Content = cmd.Content(c.content) // Content() defined in update.go
+	input.Content = cmd.Content(c.content)
 	input.Name = c.name
 	input.Priority = c.priority
 	input.ServiceID = serviceID
