@@ -54,3 +54,4 @@ build/
 
 # Ignore application configuration
 cmd/fastly/static/config.toml
+vendor/
