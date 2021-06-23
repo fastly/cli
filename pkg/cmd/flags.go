@@ -16,6 +16,14 @@ import (
 	"github.com/fastly/kingpin"
 )
 
+// RegisterServiceIDFlag defines a --service-id flag that will attempt to
+// acquire the Service ID from multiple sources.
+//
+// See: manifest.Data.ServiceID() for the sources.
+func (b Base) RegisterServiceIDFlag(dst *string) {
+	b.CmdClause.Flag("service-id", "Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)").Short('s').StringVar(dst)
+}
+
 // ServiceVersionFlagOpts enables easy configuration of the --version flag
 // defined via the RegisterServiceVersionFlag constructor.
 //

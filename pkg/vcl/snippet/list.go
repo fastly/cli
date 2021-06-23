@@ -25,7 +25,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	})
 
 	// Optional Flags
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 
 	return &c
 }

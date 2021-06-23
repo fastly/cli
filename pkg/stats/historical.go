@@ -29,7 +29,7 @@ func NewHistoricalCommand(parent cmd.Registerer, globals *config.Data) *Historic
 	c.Globals = globals
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 
 	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.Input.From)
 	c.CmdClause.Flag("to", "To time").StringVar(&c.Input.To)

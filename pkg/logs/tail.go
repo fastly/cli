@@ -101,7 +101,7 @@ func NewTailCommand(parent cmd.Registerer, globals *config.Data) *TailCommand {
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("tail", "Tail Compute@Edge logs")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("from", "From time, in unix seconds").Int64Var(&c.cfg.from)
 	c.CmdClause.Flag("to", "To time, in unix seconds").Int64Var(&c.cfg.to)
 	c.CmdClause.Flag("sort-buffer",
