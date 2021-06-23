@@ -106,6 +106,7 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.backendPort.WasSet {
 		c.deploy.BackendPort = c.backendPort.Value
 	}
+	c.deploy.Manifest = c.manifest
 
 	err = c.deploy.Exec(in, out)
 	if err != nil {
