@@ -83,16 +83,15 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 
 	input.Content = cmd.Content(c.content)
 	input.Name = c.name
-	input.Priority = c.priority.Value
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 	input.Type = fastly.SnippetType(c.location)
 
-	if !c.priority.WasSet {
-		input.Priority = 100 // the API defaults to 100
-	}
 	if c.dynamic.WasSet {
 		input.Dynamic = 1
+	}
+	if c.priority.WasSet {
+		input.Priority = c.priority.Value
 	}
 
 	return &input

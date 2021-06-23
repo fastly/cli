@@ -29,14 +29,14 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("content", "VCL snippet passed as file path or content, e.g. $(cat snippet.vcl)").StringVar(&c.content)
+	c.CmdClause.Flag("content", "VCL snippet passed as file path or content, e.g. $(cat snippet.vcl)").Action(c.content.Set).StringVar(&c.content.Value)
 	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
 	c.CmdClause.Flag("name", "The name of the VCL snippet to update").StringVar(&c.name)
-	c.CmdClause.Flag("new-name", "New name for the VCL snippet").StringVar(&c.newName)
+	c.CmdClause.Flag("new-name", "New name for the VCL snippet").Action(c.newName.Set).StringVar(&c.newName.Value)
 	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).IntVar(&c.priority.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("snippet-id", "Alphanumeric string identifying a VCL Snippet").Short('i').StringVar(&c.snippetID)
-	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed (e.g. recv, miss, fetch etc)").StringVar(&c.location)
+	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed (e.g. recv, miss, fetch etc)").Action(c.location.Set).StringVar(&c.location.Value)
 
 	return &c
 }
@@ -46,12 +46,12 @@ type UpdateCommand struct {
 	cmd.Base
 
 	autoClone      cmd.OptionalAutoClone
-	content        string
+	content        cmd.OptionalString
 	dynamic        cmd.OptionalBool
-	location       string
+	location       cmd.OptionalString
 	manifest       manifest.Data
 	name           string
-	newName        string
+	newName        cmd.OptionalString
 	priority       cmd.OptionalInt
 	serviceVersion cmd.OptionalServiceVersion
 	snippetID      string
@@ -100,12 +100,14 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructDynamicInput(serviceID string, serviceVersion int) (*fastly.UpdateDynamicSnippetInput, error) {
 	var input fastly.UpdateDynamicSnippetInput
 
-	input.Content = cmd.Content(c.content)
 	input.ID = c.snippetID
 	input.ServiceID = serviceID
 
-	if c.content == "" || c.snippetID == "" {
-		return nil, fmt.Errorf("error parsing arguments: must provide both --content and --snippet-id to update a dynamic VCL snippet")
+	if c.snippetID == "" {
+		return nil, fmt.Errorf("error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet")
+	}
+	if c.content.WasSet {
+		input.Content = fastly.String(cmd.Content(c.content.Value))
 	}
 
 	return &input, nil
@@ -115,19 +117,25 @@ func (c *UpdateCommand) constructDynamicInput(serviceID string, serviceVersion i
 func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.UpdateSnippetInput, error) {
 	var input fastly.UpdateSnippetInput
 
-	input.Content = cmd.Content(c.content)
 	input.Name = c.name
-	input.NewName = c.newName
-	input.Priority = c.priority.Value
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Type = fastly.SnippetType(c.location)
 
-	if c.content == "" || c.location == "" || c.name == "" || c.newName == "" {
-		return nil, fmt.Errorf("error parsing arguments: must provide --content, --name, --new-name and --type to update a versioned VCL snippet")
+	if c.name == "" {
+		return nil, fmt.Errorf("error parsing arguments: must provide --name to update a versioned VCL snippet")
 	}
-	if !c.priority.WasSet {
-		input.Priority = 100 // the API defaults to 100
+	if c.content.WasSet {
+		input.Content = fastly.String(cmd.Content(c.content.Value))
+	}
+	if c.priority.WasSet {
+		input.Priority = fastly.Int(c.priority.Value)
+	}
+	if c.location.WasSet {
+		location := fastly.SnippetType(c.location.Value)
+		input.Type = &location
+	}
+	if c.newName.WasSet {
+		input.NewName = fastly.String(c.newName.Value)
 	}
 
 	return &input, nil

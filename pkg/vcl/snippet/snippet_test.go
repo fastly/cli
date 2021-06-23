@@ -77,7 +77,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, type: recv, priority: 100)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, type: recv, priority: 0)",
 		},
 		{
 			Name: "validate CreateSnippet API success for dynamic Snippet",
@@ -98,7 +98,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --dynamic --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, type: recv, priority: 100)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, type: recv, priority: 0)",
 		},
 		{
 			Name: "validate Priority set",
@@ -141,7 +141,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --autoclone --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 1"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, type: recv, priority: 100)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, type: recv, priority: 0)",
 		},
 		{
 			Name: "validate CreateSnippet API success with inline Snippet content",
@@ -162,7 +162,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content inline_vcl --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, type: recv, priority: 100)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, type: recv, priority: 0)",
 		},
 	}
 
@@ -418,44 +418,12 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			WantError: "service version 1 is not editable",
 		},
 		{
-			Name: "validate versioned snippet missing --content",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      args("vcl snippet update --name foo --new-name bar --service-id 123 --type recv --version 3"),
-			WantError: "error parsing arguments: must provide --content, --name, --new-name and --type to update a versioned VCL snippet",
-		},
-		{
 			Name: "validate versioned snippet missing --name",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      args("vcl snippet update --content inline_vcl --new-name bar --service-id 123 --type recv --version 3"),
-			WantError: "error parsing arguments: must provide --content, --name, --new-name and --type to update a versioned VCL snippet",
-		},
-		{
-			Name: "validate versioned snippet missing --new-name",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      args("vcl snippet update --content inline_vcl --name foo --service-id 123 --type recv --version 3"),
-			WantError: "error parsing arguments: must provide --content, --name, --new-name and --type to update a versioned VCL snippet",
-		},
-		{
-			Name: "validate versioned snippet missing --type",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      args("vcl snippet update --content inline_vcl --name foo --new-name bar --service-id 123 --version 3"),
-			WantError: "error parsing arguments: must provide --content, --name, --new-name and --type to update a versioned VCL snippet",
-		},
-		{
-			Name: "validate dynamic snippet missing --content",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      args("vcl snippet update --dynamic --service-id 123 --snippet-id 456 --version 3"),
-			WantError: "error parsing arguments: must provide both --content and --snippet-id to update a dynamic VCL snippet",
+			WantError: "error parsing arguments: must provide --name to update a versioned VCL snippet",
 		},
 		{
 			Name: "validate dynamic snippet missing --snippet-id",
@@ -463,7 +431,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      args("vcl snippet update --content inline_vcl --dynamic --service-id 123 --version 3"),
-			WantError: "error parsing arguments: must provide both --content and --snippet-id to update a dynamic VCL snippet",
+			WantError: "error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet",
 		},
 		{
 			Name: "validate UpdateSnippet API error",
