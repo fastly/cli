@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/cli/pkg/env"
 	errs "github.com/fastly/cli/pkg/errors"
 )
 
@@ -157,5 +158,44 @@ func TestManifestPrepend(t *testing.T) {
 
 	if err = f.Close(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestDataServiceID(t *testing.T) {
+	sid := os.Getenv(env.ServiceID)
+	defer func(sid string) {
+		os.Setenv(env.ServiceID, sid)
+	}(sid)
+
+	err := os.Setenv(env.ServiceID, "001")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// SourceFlag
+	d := Data{
+		Flag: Flag{ServiceID: "123"},
+		File: File{ServiceID: "456"},
+	}
+	_, src := d.ServiceID()
+	if src != SourceFlag {
+		t.Fatal("expected SourceFlag")
+	}
+
+	// SourceEnv
+	d.Flag = Flag{}
+	_, src = d.ServiceID()
+	if src != SourceEnv {
+		t.Fatal("expected SourceEnv")
+	}
+
+	// SourceFile
+	err = os.Setenv(env.ServiceID, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, src = d.ServiceID()
+	if src != SourceFile {
+		t.Fatal("expected SourceFile")
 	}
 }

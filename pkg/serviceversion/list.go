@@ -27,7 +27,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("list", "List Fastly service versions")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	return &c
 }
 

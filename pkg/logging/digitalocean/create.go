@@ -57,7 +57,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("bucket", "The name of the DigitalOcean Space").Required().StringVar(&c.BucketName)
 	c.CmdClause.Flag("access-key", "Your DigitalOcean Spaces account access key").Required().StringVar(&c.AccessKey)
 	c.CmdClause.Flag("secret-key", "Your DigitalOcean Spaces account secret key").Required().StringVar(&c.SecretKey)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("domain", "The domain of the DigitalOcean Spaces endpoint (default 'nyc3.digitaloceanspaces.com')").Action(c.Domain.Set).StringVar(&c.Domain.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to").Action(c.Path.Set).StringVar(&c.Path.Value)
 	c.CmdClause.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Period.Set).UintVar(&c.Period.Value)

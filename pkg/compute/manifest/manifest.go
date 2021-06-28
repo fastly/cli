@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
@@ -36,6 +37,9 @@ const (
 
 	// SourceFile indicates the parameter came from a manifest file.
 	SourceFile
+
+	// SourceEnv indicates the parameter came from the user's shell environment.
+	SourceEnv
 
 	// SourceFlag indicates the parameter came from an explicit flag.
 	SourceFlag
@@ -78,6 +82,10 @@ func (d *Data) Name() (string, Source) {
 func (d *Data) ServiceID() (string, Source) {
 	if d.Flag.ServiceID != "" {
 		return d.Flag.ServiceID, SourceFlag
+	}
+
+	if sid := os.Getenv(env.ServiceID); sid != "" {
+		return sid, SourceEnv
 	}
 
 	if d.File.ServiceID != "" {
