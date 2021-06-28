@@ -450,16 +450,15 @@ func TestVCLSnippetUpdate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				UpdateSnippetFn: func(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
+					content = *i.Content
 
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.NewName,
-						Priority:       i.Priority,
+						Content:        *i.Content,
+						Name:           *i.NewName,
+						Priority:       100,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
-						Type:           i.Type,
+						Type:           *i.Type,
 					}, nil
 				},
 			},
@@ -472,10 +471,10 @@ func TestVCLSnippetUpdate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				UpdateDynamicSnippetFn: func(i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error) {
 					// Track the contents parsed
-					content = i.Content
+					content = *i.Content
 
 					return &fastly.DynamicSnippet{
-						Content:   i.Content,
+						Content:   *i.Content,
 						ID:        i.ID,
 						ServiceID: i.ServiceID,
 					}, nil
@@ -491,16 +490,15 @@ func TestVCLSnippetUpdate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSnippetFn: func(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
+					content = *i.Content
 
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.NewName,
-						Priority:       i.Priority,
+						Content:        *i.Content,
+						Name:           *i.NewName,
+						Priority:       *i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
-						Type:           i.Type,
+						Type:           *i.Type,
 					}, nil
 				},
 			},

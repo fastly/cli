@@ -166,18 +166,18 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 	if c.Redundancy.WasSet {
 		switch c.Redundancy.Value {
 		case string(fastly.S3RedundancyStandard):
-			input.Redundancy = fastly.S3RedundancyStandard
+			input.Redundancy = fastly.S3RedundancyPtr(fastly.S3RedundancyStandard)
 		case string(fastly.S3RedundancyReduced):
-			input.Redundancy = fastly.S3RedundancyReduced
+			input.Redundancy = fastly.S3RedundancyPtr(fastly.S3RedundancyReduced)
 		}
 	}
 
 	if c.ServerSideEncryption.WasSet {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionAES
+			input.ServerSideEncryption = fastly.S3ServerSideEncryptionPtr(fastly.S3ServerSideEncryptionAES)
 		case string(fastly.S3ServerSideEncryptionKMS):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionKMS
+			input.ServerSideEncryption = fastly.S3ServerSideEncryptionPtr(fastly.S3ServerSideEncryptionKMS)
 		}
 	}
 

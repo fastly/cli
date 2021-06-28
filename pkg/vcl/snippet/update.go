@@ -124,18 +124,18 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 	if c.name == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --name to update a versioned VCL snippet")
 	}
-	if c.content.WasSet {
-		input.Content = fastly.String(cmd.Content(c.content.Value))
+	if c.newName.WasSet {
+		input.NewName = fastly.String(c.newName.Value)
 	}
 	if c.priority.WasSet {
 		input.Priority = fastly.Int(c.priority.Value)
 	}
+	if c.content.WasSet {
+		input.Content = fastly.String(cmd.Content(c.content.Value))
+	}
 	if c.location.WasSet {
 		location := fastly.SnippetType(c.location.Value)
 		input.Type = &location
-	}
-	if c.newName.WasSet {
-		input.NewName = fastly.String(c.newName.Value)
 	}
 
 	return &input, nil
