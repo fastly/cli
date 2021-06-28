@@ -48,7 +48,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the Kinesis logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Kinesis logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("stream-name", "Your Kinesis stream name").Action(c.StreamName.Set).StringVar(&c.StreamName.Value)
 	c.CmdClause.Flag("access-key", "Your Kinesis account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)

@@ -45,7 +45,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the Datadog logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Datadog logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("auth-token", "The API key from your Datadog account").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)

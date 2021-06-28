@@ -54,7 +54,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the Cloudfiles logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Cloudfiles logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("user", "The username for your Cloudfile account").Action(c.User.Set).StringVar(&c.User.Value)
 	c.CmdClause.Flag("access-key", "Your Cloudfile account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)

@@ -50,7 +50,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON").Required().StringVar(&c.SecretKey)
 	c.CmdClause.Flag("topic", "The Google Cloud Pub/Sub topic to which logs will be published").Required().StringVar(&c.Topic)
 	c.CmdClause.Flag("project-id", "The ID of your Google Cloud Platform project").Required().StringVar(&c.ProjectID)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)

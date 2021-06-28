@@ -29,7 +29,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 
 	return &c
 }

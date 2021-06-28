@@ -33,7 +33,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	})
 	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
 	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').IntVar(&c.priority)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 
 	return &c
 }

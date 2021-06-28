@@ -27,7 +27,7 @@ func NewRealtimeCommand(parent cmd.Registerer, globals *config.Data) *RealtimeCo
 	c.Globals = globals
 
 	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').Required().StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 
 	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
 

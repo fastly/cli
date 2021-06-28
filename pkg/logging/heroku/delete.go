@@ -34,7 +34,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the Heroku logging object").Short('n').Required().StringVar(&c.Input.Name)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	return &c
 }
 

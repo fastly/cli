@@ -34,7 +34,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
 	c.CmdClause.Flag("new-name", "New name for the VCL snippet").Action(c.newName.Set).StringVar(&c.newName.Value)
 	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').IntVar(&c.priority)
-	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("snippet-id", "Alphanumeric string identifying a VCL Snippet").Short('i').StringVar(&c.snippetID)
 	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed (e.g. recv, miss, fetch etc)").StringVar(&c.location)
 
