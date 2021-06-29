@@ -236,9 +236,10 @@ type API struct {
 	UpdateDynamicSnippetFn func(i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error)
 	DeleteSnippetFn        func(i *fastly.DeleteSnippetInput) error
 
-	PurgeFn    func(i *fastly.PurgeInput) (*fastly.Purge, error)
-	PurgeKeyFn func(i *fastly.PurgeKeyInput) (*fastly.Purge, error)
-	PurgeAllFn func(i *fastly.PurgeAllInput) (*fastly.Purge, error)
+	PurgeFn     func(i *fastly.PurgeInput) (*fastly.Purge, error)
+	PurgeKeyFn  func(i *fastly.PurgeKeyInput) (*fastly.Purge, error)
+	PurgeKeysFn func(i *fastly.PurgeKeysInput) (map[string]string, error)
+	PurgeAllFn  func(i *fastly.PurgeAllInput) (*fastly.Purge, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1189,6 +1190,11 @@ func (m API) Purge(i *fastly.PurgeInput) (*fastly.Purge, error) {
 // PurgeKey implements Interface.
 func (m API) PurgeKey(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
 	return m.PurgeKeyFn(i)
+}
+
+// PurgeKeys implements Interface.
+func (m API) PurgeKeys(i *fastly.PurgeKeysInput) (map[string]string, error) {
+	return m.PurgeKeysFn(i)
 }
 
 // PurgeAll implements Interface.

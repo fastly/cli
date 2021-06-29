@@ -247,6 +247,7 @@ type Interface interface {
 
 	Purge(i *fastly.PurgeInput) (*fastly.Purge, error)
 	PurgeKey(i *fastly.PurgeKeyInput) (*fastly.Purge, error)
+	PurgeKeys(i *fastly.PurgeKeysInput) (map[string]string, error)
 	PurgeAll(i *fastly.PurgeAllInput) (*fastly.Purge, error)
 }
 

@@ -107,6 +107,7 @@ COMMANDS
   update           Update the CLI to the latest version
   ip-list          List Fastly's public IPs
   pops             List Fastly datacenters
+  purge            Remove an object from the Fastly cache
   service          Manipulate Fastly services
   service-version  Manipulate Fastly service versions
   compute          Manage Compute@Edge packages
@@ -212,6 +213,20 @@ COMMANDS
   pops
     List Fastly datacenters
 
+
+  purge [<flags>]
+    Remove an object from the Fastly cache
+
+        --all                    Purge everything from a service
+        --file=FILE              Purge a service with a line separated list of
+                                 Surrogate Keys
+        --key=KEY                Purge a service of items tagged with a
+                                 Surrogate Key
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+        --soft                   A 'soft' purge marks the affected object as
+                                 stale rather than making it inaccessible
+        --url=URL                Purge an individual URL
 
   service create --name=NAME [<flags>]
     Create a Fastly service
