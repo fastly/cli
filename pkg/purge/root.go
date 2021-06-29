@@ -89,7 +89,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.url != "" {
-		err := c.purgeURL(serviceID, out)
+		err := c.purgeURL(out)
 		if err != nil {
 			return err
 		}
@@ -148,7 +148,7 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 	return nil
 }
 
-func (c *RootCommand) purgeURL(serviceID string, out io.Writer) error {
+func (c *RootCommand) purgeURL(out io.Writer) error {
 	p, err := c.Globals.Client.Purge(&fastly.PurgeInput{
 		URL:  c.url,
 		Soft: c.soft,
