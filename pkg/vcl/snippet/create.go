@@ -32,7 +32,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
-	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').IntVar(&c.priority)
+	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).IntVar(&c.priority.Value)
+
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 
 	return &c
@@ -48,7 +49,7 @@ type CreateCommand struct {
 	location       string
 	manifest       manifest.Data
 	name           string
-	priority       int
+	priority       cmd.OptionalInt
 	serviceVersion cmd.OptionalServiceVersion
 }
 
@@ -83,13 +84,15 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 
 	input.Content = cmd.Content(c.content)
 	input.Name = c.name
-	input.Priority = c.priority
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 	input.Type = fastly.SnippetType(c.location)
 
 	if c.dynamic.WasSet {
 		input.Dynamic = 1
+	}
+	if c.priority.WasSet {
+		input.Priority = c.priority.Value
 	}
 
 	return &input

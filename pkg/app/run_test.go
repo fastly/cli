@@ -3834,16 +3834,16 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
 
-  vcl snippet describe --name=NAME --version=VERSION --snippet-id=SNIPPET-ID [<flags>]
+  vcl snippet describe --version=VERSION [<flags>]
     Get the uploaded VCL snippet for a particular service and version
 
-        --name=NAME              The name of the VCL snippet
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
-    -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
         --dynamic                Whether the VCL snippet is dynamic or versioned
+        --name=NAME              The name of the VCL snippet
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+    -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
 
   vcl snippet list --version=VERSION [<flags>]
     List the uploaded VCL snippets for a particular service and version
@@ -3853,10 +3853,9 @@ COMMANDS
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
 
-  vcl snippet update --name=NAME --version=VERSION [<flags>]
+  vcl snippet update --version=VERSION [<flags>]
     Update a VCL snippet for a particular service and version
 
-        --name=NAME              The name of the VCL snippet to update
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -3864,6 +3863,7 @@ COMMANDS
         --content=CONTENT        VCL snippet passed as file path or content,
                                  e.g. $(cat snippet.vcl)
         --dynamic                Whether the VCL snippet is dynamic or versioned
+        --name=NAME              The name of the VCL snippet to update
         --new-name=NEW-NAME      New name for the VCL snippet
     -p, --priority=PRIORITY      Priority determines execution order. Lower
                                  numbers execute first
