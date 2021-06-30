@@ -3,16 +3,12 @@ package azureblob_test
 import (
 	"bytes"
 	"errors"
-	"io"
-	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
@@ -69,20 +65,11 @@ func TestBlobStorageCreate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
@@ -144,20 +131,11 @@ func TestBlobStorageList(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
@@ -191,20 +169,11 @@ func TestBlobStorageDescribe(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
@@ -240,20 +209,11 @@ func TestBlobStorageUpdate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
@@ -289,20 +249,11 @@ func TestBlobStorageDelete(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
