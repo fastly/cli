@@ -6,8 +6,8 @@ import (
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
-// ErrAPI represents a generic API error.
-var ErrAPI = errors.New("test api error")
+// Err represents a generic error.
+var Err = errors.New("test error")
 
 // ListVersions returns a list of service versions in different states.
 //

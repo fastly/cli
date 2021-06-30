@@ -33,11 +33,11 @@ func TestPurgeAll(t *testing.T) {
 			Name: "validate PurgeAll API error",
 			API: mock.API{
 				PurgeAllFn: func(i *fastly.PurgeAllInput) (*fastly.Purge, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("purge --all --service-id 123 --token 456"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate PurgeAll API success",
@@ -82,11 +82,11 @@ func TestPurgeKeys(t *testing.T) {
 			Name: "validate PurgeKeys API error",
 			API: mock.API{
 				PurgeKeysFn: func(i *fastly.PurgeKeysInput) (map[string]string, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("purge --file ./testdata/keys --service-id 123 --token 456"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate PurgeKeys API success",
@@ -153,11 +153,11 @@ func TestPurgeKey(t *testing.T) {
 			Name: "validate PurgeKey API error",
 			API: mock.API{
 				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("purge --key foobar --service-id 123 --token 456"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate PurgeKey API success",
@@ -210,11 +210,11 @@ func TestPurgeURL(t *testing.T) {
 			Name: "validate Purge API error",
 			API: mock.API{
 				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("purge --service-id 123 --token 456 --url https://example.com"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate Purge API success",
