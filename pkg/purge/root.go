@@ -30,7 +30,7 @@ type RootCommand struct {
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
-	c.CmdClause = parent.Command("purge", "Remove an object from the Fastly cache")
+	c.CmdClause = parent.Command("purge", "Remove object(s) from the Fastly cache")
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)

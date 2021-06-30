@@ -107,7 +107,7 @@ COMMANDS
   update           Update the CLI to the latest version
   ip-list          List Fastly's public IPs
   pops             List Fastly datacenters
-  purge            Remove an object from the Fastly cache
+  purge            Remove object(s) from the Fastly cache
   service          Manipulate Fastly services
   service-version  Manipulate Fastly service versions
   compute          Manage Compute@Edge packages
@@ -215,7 +215,7 @@ COMMANDS
 
 
   purge [<flags>]
-    Remove an object from the Fastly cache
+    Remove object(s) from the Fastly cache
 
         --all                    Purge everything from a service
         --file=FILE              Purge a service with a line separated list of
