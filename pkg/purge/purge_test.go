@@ -2,6 +2,7 @@ package purge_test
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
@@ -44,6 +45,197 @@ func TestPurgeAll(t *testing.T) {
 			},
 			Args:       args("purge --all --service-id 123 --token 456"),
 			WantOutput: "Purge all status: ok",
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			var buf bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+		})
+	}
+}
+
+func TestPurgeKeys(t *testing.T) {
+	var keys []string
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing token",
+			Args:      args("purge --file ./testdata/keys"),
+			WantError: "no token provided",
+		},
+		{
+			Name:      "validate missing --service-id flag",
+			Args:      args("purge --file ./testdata/keys --token 123"),
+			WantError: "error reading service: no service ID found",
+		},
+		{
+			Name: "validate PurgeKeys API error",
+			API: mock.API{
+				PurgeKeysFn: func(i *fastly.PurgeKeysInput) (map[string]string, error) {
+					return nil, testutil.ErrAPI
+				},
+			},
+			Args:      args("purge --file ./testdata/keys --service-id 123 --token 456"),
+			WantError: testutil.ErrAPI.Error(),
+		},
+		{
+			Name: "validate PurgeKeys API success",
+			API: mock.API{
+				PurgeKeysFn: func(i *fastly.PurgeKeysInput) (map[string]string, error) {
+					// Track the keys parsed
+					keys = i.Keys
+
+					return map[string]string{
+						"foo": "123",
+						"bar": "456",
+						"baz": "789",
+					}, nil
+				},
+			},
+			Args:       args("purge --file ./testdata/keys --service-id 123 --token 456"),
+			WantOutput: "KEY  ID\nfoo  123\nbar  456\nbaz  789\n",
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			var buf bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			assertKeys(testcase.WantError, testcase.Args, keys, t)
+		})
+	}
+}
+
+// assertKeys validates that the --file flag is parsed correctly. It does this
+// by ensuring the internal logic has parsed the given file and generated the
+// correct []string type.
+func assertKeys(wantError string, args []string, keys []string, t *testing.T) {
+	if wantError == "" {
+		for _, a := range args {
+			if a == "--file" {
+				want := []string{"foo", "bar", "baz"}
+				if !reflect.DeepEqual(keys, want) {
+					t.Errorf("wanted %s, have %s", want, keys)
+				}
+				break
+			}
+		}
+	}
+}
+
+func TestPurgeKey(t *testing.T) {
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing token",
+			Args:      args("purge --key foobar"),
+			WantError: "no token provided",
+		},
+		{
+			Name:      "validate missing --service-id flag",
+			Args:      args("purge --key foobar --token 123"),
+			WantError: "error reading service: no service ID found",
+		},
+		{
+			Name: "validate PurgeKey API error",
+			API: mock.API{
+				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
+					return nil, testutil.ErrAPI
+				},
+			},
+			Args:      args("purge --key foobar --service-id 123 --token 456"),
+			WantError: testutil.ErrAPI.Error(),
+		},
+		{
+			Name: "validate PurgeKey API success",
+			API: mock.API{
+				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
+					return &fastly.Purge{
+						Status: "ok",
+						ID:     "123",
+					}, nil
+				},
+			},
+			Args:       args("purge --key foobar --service-id 123 --token 456"),
+			WantOutput: "Purged key: foobar (soft: false). Status: ok, ID: 123",
+		},
+		{
+			Name: "validate PurgeKey API success with soft purge",
+			API: mock.API{
+				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
+					return &fastly.Purge{
+						Status: "ok",
+						ID:     "123",
+					}, nil
+				},
+			},
+			Args:       args("purge --key foobar --service-id 123 --soft --token 456"),
+			WantOutput: "Purged key: foobar (soft: true). Status: ok, ID: 123",
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			var buf bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+		})
+	}
+}
+
+func TestPurgeURL(t *testing.T) {
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing token",
+			Args:      args("purge --url https://example.com"),
+			WantError: "no token provided",
+		},
+		{
+			Name: "validate Purge API error",
+			API: mock.API{
+				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
+					return nil, testutil.ErrAPI
+				},
+			},
+			Args:      args("purge --service-id 123 --token 456 --url https://example.com"),
+			WantError: testutil.ErrAPI.Error(),
+		},
+		{
+			Name: "validate Purge API success",
+			API: mock.API{
+				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
+					return &fastly.Purge{
+						Status: "ok",
+						ID:     "123",
+					}, nil
+				},
+			},
+			Args:       args("purge --service-id 123 --token 456 --url https://example.com"),
+			WantOutput: "Purged URL: https://example.com (soft: false). Status: ok, ID: 123",
+		},
+		{
+			Name: "validate Purge API success with soft purge",
+			API: mock.API{
+				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
+					return &fastly.Purge{
+						Status: "ok",
+						ID:     "123",
+					}, nil
+				},
+			},
+			Args:       args("purge --service-id 123 --soft --token 456 --url https://example.com"),
+			WantOutput: "Purged URL: https://example.com (soft: true). Status: ok, ID: 123",
 		},
 	}
 

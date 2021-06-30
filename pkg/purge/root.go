@@ -156,7 +156,7 @@ func (c *RootCommand) purgeURL(out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	text.Success(out, "Purged url: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, p.Status, p.ID)
+	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, p.Status, p.ID)
 	return nil
 }
 
