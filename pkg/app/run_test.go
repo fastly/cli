@@ -3,17 +3,13 @@ package app_test
 import (
 	"bufio"
 	"bytes"
-	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 )
 
 func TestApplication(t *testing.T) {
@@ -50,18 +46,11 @@ func TestApplication(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var (
-				args                            = testcase.args
-				env                             = config.Environment{}
-				file                            = config.File{}
-				configFilePath                  = "/dev/null"
-				clientFactory                   = mock.APIClient(mock.API{})
-				httpClient     api.HTTPClient   = nil
-				cliVersioner   update.Versioner = nil
-				stdin          io.Reader        = nil
-				stdout         bytes.Buffer
-				stderr         bytes.Buffer
+				stdout bytes.Buffer
+				stderr bytes.Buffer
 			)
-			err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, cliVersioner, stdin, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}
