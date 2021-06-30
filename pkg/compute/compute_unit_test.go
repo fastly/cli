@@ -2,7 +2,6 @@ package compute
 
 import (
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -315,7 +314,7 @@ func TestGetLatestCrateVersion(t *testing.T) {
 	}{
 		{
 			name:        "http error",
-			inputClient: &errorClient{errTest},
+			inputClient: &errorClient{testutil.Err},
 			wantError:   "fixture error",
 		},
 		{
@@ -474,8 +473,6 @@ func makeBuildEnvironment(t *testing.T, fastlyIgnoreContent string) (rootdir str
 
 	return rootdir
 }
-
-var errTest = errors.New("fixture error")
 
 type errorClient struct {
 	err error

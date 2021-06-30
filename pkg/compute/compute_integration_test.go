@@ -1,16 +1,14 @@
 package compute_test
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 
+	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
-
-var errTest = errors.New("fixture error")
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
@@ -28,7 +26,7 @@ func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
 }
 
 func createServiceError(*fastly.CreateServiceInput) (*fastly.Service, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 func deleteServiceOK(i *fastly.DeleteServiceInput) error {
@@ -44,7 +42,7 @@ func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 }
 
 func createDomainError(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 func deleteDomainOK(i *fastly.DeleteDomainInput) error {
@@ -60,7 +58,7 @@ func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 }
 
 func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 func deleteBackendOK(i *fastly.DeleteBackendInput) error {
@@ -86,7 +84,7 @@ func updatePackageOk(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
 }
 
 func updatePackageError(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 func activateVersionOk(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
@@ -94,7 +92,7 @@ func activateVersionOk(i *fastly.ActivateVersionInput) (*fastly.Version, error) 
 }
 
 func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
@@ -104,7 +102,7 @@ func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 }
 
 func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 func listBackendsOk(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
@@ -114,7 +112,7 @@ func listBackendsOk(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 }
 
 func listBackendsError(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 type versionClient struct {
