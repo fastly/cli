@@ -362,7 +362,7 @@ func TestVCLSnippetList(t *testing.T) {
 				ListSnippetsFn: listSnippets,
 			},
 			Args:       args("vcl snippet list --service-id 123 --version 3"),
-			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC\n123         3        foo   true\n123         3        bar   false\n",
+			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC  SNIPPET ID\n123         3        foo   true     abc\n123         3        bar   false    abc\n",
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
@@ -371,7 +371,7 @@ func TestVCLSnippetList(t *testing.T) {
 				ListSnippetsFn: listSnippets,
 			},
 			Args:       args("vcl snippet list --service-id 123 --version 1"),
-			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC\n123         1        foo   true\n123         1        bar   false\n",
+			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC  SNIPPET ID\n123         1        foo   true     abc\n123         1        bar   false    abc\n",
 		},
 		{
 			Name: "validate missing --verbose flag",
@@ -432,6 +432,22 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			},
 			Args:      args("vcl snippet update --content inline_vcl --dynamic --service-id 123 --version 3"),
 			WantError: "error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet",
+		},
+		{
+			Name: "validate versioned snippet with --snippet-id is not allowed",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl snippet update --content inline_vcl --new-name foobar --service-id 123 --snippet-id 456 --version 3"),
+			WantError: "error parsing arguments: --snippet-id is not supported when updating a versioned VCL snippet",
+		},
+		{
+			Name: "validate dynamic snippet with --new-name is not allowed",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl snippet update --content inline_vcl --dynamic --new-name foobar --service-id 123 --snippet-id 456 --version 3"),
+			WantError: "error parsing arguments: --new-name is not supported when updating a dynamic VCL snippet",
 		},
 		{
 			Name: "validate UpdateSnippet API error",
