@@ -244,6 +244,11 @@ type Interface interface {
 	UpdateSnippet(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error)
 	UpdateDynamicSnippet(i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error)
 	DeleteSnippet(i *fastly.DeleteSnippetInput) error
+
+	Purge(i *fastly.PurgeInput) (*fastly.Purge, error)
+	PurgeKey(i *fastly.PurgeKeyInput) (*fastly.Purge, error)
+	PurgeKeys(i *fastly.PurgeKeysInput) (map[string]string, error)
+	PurgeAll(i *fastly.PurgeAllInput) (*fastly.Purge, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

@@ -6,7 +6,7 @@
 4. Open a new PR to update CHANGELOG ([example](https://github.com/fastly/cli/pull/273))<sup>[1](#note1)</sup>.
 5. Merge CHANGELOG.
 6. Rebase latest remote main branch locally (`git pull --rebase origin main`).
-7. Tag a new release (`git tag -s vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`)<sup>[2](#note2)</sup>.
+7. Tag a new release (`tag=vX.Y.Z && git tag -s $tag -m "$tag" && git push origin $tag`)<sup>[2](#note2)</sup>.
 8. Copy/paste CHANGELOG into the [draft release](https://github.com/fastly/cli/releases).
 9. Publish draft release.
 10. Communicate the release in the relevant Slack channels<sup>[3](#note3)</sup>.
