@@ -125,6 +125,9 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 
+	if c.snippetID != "" {
+		return nil, fmt.Errorf("error parsing arguments: --snippet-id is not supported when updating a versioned VCL snippet")
+	}
 	if c.name == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --name to update a versioned VCL snippet")
 	}
