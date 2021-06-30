@@ -1,5 +1,22 @@
 # Changelog
 
+## [v0.32.0](https://github.com/fastly/cli/releases/tag/v0.32.0) (2021-06-30)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.31.0...v0.32.0)
+
+**Enhancements:**
+
+- Embed app config into compiled CLI binary [\#312](https://github.com/fastly/cli/pull/312)
+- Service ID lookup includes `$FASTLY_SERVICE_ID` environment variable [\#320](https://github.com/fastly/cli/pull/320)
+- Implement `vcl custom` commands [\#310](https://github.com/fastly/cli/pull/310)
+- Implement `vcl snippet` commands [\#316](https://github.com/fastly/cli/pull/316)
+- Implement `purge` command [\#323](https://github.com/fastly/cli/pull/323)
+
+**Bug fixes:**
+
+- Correctly set the port if `--use-ssl` is used [\#317](https://github.com/fastly/cli/pull/317)
+- Fixed a regression in `compute publish` [\#321](https://github.com/fastly/cli/pull/321)
+
 ## [v0.31.0](https://github.com/fastly/cli/releases/tag/v0.31.0) (2021-06-17)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.30.0...v0.31.0)
