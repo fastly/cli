@@ -2,7 +2,6 @@ package serviceversion_test
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -45,7 +44,7 @@ func TestVersionClone(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionError,
 			},
-			wantError: errTest.Error(),
+			wantError: testutil.Err.Error(),
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -102,7 +101,7 @@ func TestVersionList(t *testing.T) {
 		{
 			args:      []string{"service-version", "list", "--service-id", "123"},
 			api:       mock.API{ListVersionsFn: testutil.ListVersionsError},
-			wantError: errTest.Error(),
+			wantError: testutil.Err.Error(),
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -155,7 +154,7 @@ func TestVersionUpdate(t *testing.T) {
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateVersionFn: updateVersionError,
 			},
-			wantError: errTest.Error(),
+			wantError: testutil.Err.Error(),
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -195,7 +194,7 @@ func TestVersionActivate(t *testing.T) {
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ActivateVersionFn: activateVersionError,
 			},
-			wantError: errTest.Error(),
+			wantError: testutil.Err.Error(),
 		},
 		{
 			args: []string{"service-version", "activate", "--service-id", "123", "--version", "1", "--autoclone"},
@@ -267,7 +266,7 @@ func TestVersionDeactivate(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionError,
 			},
-			wantError: errTest.Error(),
+			wantError: testutil.Err.Error(),
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -314,7 +313,7 @@ func TestVersionLock(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				LockVersionFn:  lockVersionError,
 			},
-			wantError: errTest.Error(),
+			wantError: testutil.Err.Error(),
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -335,8 +334,6 @@ func TestVersionLock(t *testing.T) {
 		})
 	}
 }
-
-var errTest = errors.New("fixture error")
 
 var listVersionsShortOutput = strings.TrimSpace(`
 NUMBER  ACTIVE  LAST EDITED (UTC)
@@ -390,7 +387,7 @@ func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 }
 
 func updateVersionError(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 func activateVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
@@ -405,7 +402,7 @@ func activateVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) 
 }
 
 func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 func deactivateVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
@@ -420,7 +417,7 @@ func deactivateVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, err
 }
 
 func deactivateVersionError(i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }
 
 func lockVersionOK(i *fastly.LockVersionInput) (*fastly.Version, error) {
@@ -436,5 +433,5 @@ func lockVersionOK(i *fastly.LockVersionInput) (*fastly.Version, error) {
 }
 
 func lockVersionError(i *fastly.LockVersionInput) (*fastly.Version, error) {
-	return nil, errTest
+	return nil, testutil.Err
 }

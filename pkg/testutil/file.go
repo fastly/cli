@@ -25,14 +25,22 @@ func MakeTempFile(t *testing.T, contents string) string {
 func CopyFile(t *testing.T, fromFilename, toFilename string) {
 	t.Helper()
 
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	// Disabling as we trust the source of the variable.
+	/* #nosec */
 	src, err := os.Open(fromFilename)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer src.Close()
+	defer func() {
+		if err := src.Close(); err != nil {
+			t.Errorf("Failed to close fromFilename: %v", err)
+		}
+	}()
 
 	toDir := filepath.Dir(toFilename)
-	if err := os.MkdirAll(toDir, 0777); err != nil {
+	if err := os.MkdirAll(toDir, 0750); err != nil {
 		t.Fatal(err)
 	}
 

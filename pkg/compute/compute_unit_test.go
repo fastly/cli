@@ -315,7 +315,7 @@ func TestGetLatestCrateVersion(t *testing.T) {
 		{
 			name:        "http error",
 			inputClient: &errorClient{testutil.Err},
-			wantError:   "fixture error",
+			wantError:   testutil.Err.Error(),
 		},
 		{
 			name:        "no valid versions",

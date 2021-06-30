@@ -29,7 +29,7 @@ func CopyFile(src, dst string) (err error) {
 	if !ss.Mode().IsRegular() {
 		// Cannot copy non-regular files (e.g., directories,
 		// symlinks, devices, etc.)
-		return fmt.Errorf("non-regular source file: %s", src)
+		return fmt.Errorf("non-regular source file: %s", src) // #nosec G307
 	}
 
 	// Get destination file stats.

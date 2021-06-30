@@ -2,6 +2,7 @@ package compute_test
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -31,7 +32,7 @@ func TestUpdate(t *testing.T) {
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageError,
 			},
-			wantError: "error uploading package: fixture error",
+			wantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Initializing...",
 				"Uploading package...",

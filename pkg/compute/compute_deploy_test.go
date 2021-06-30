@@ -2,6 +2,7 @@ package compute_test
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -94,7 +95,7 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn: testutil.ListVersionsError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error listing service versions: fixture error",
+			wantError: fmt.Sprintf("error listing service versions: %s", testutil.Err.Error()),
 		},
 		{
 			name: "service version is active, clone version error",
@@ -104,7 +105,7 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error cloning service version: fixture error",
+			wantError: fmt.Sprintf("error cloning service version: %s", testutil.Err.Error()),
 		},
 		{
 			name: "list domains error",
@@ -115,7 +116,7 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:  listDomainsError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error fetching service domains: fixture error",
+			wantError: fmt.Sprintf("error fetching service domains: %s", testutil.Err.Error()),
 		},
 		{
 			name: "list backends error",
@@ -127,7 +128,7 @@ func TestDeploy(t *testing.T) {
 				ListBackendsFn: listBackendsError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error fetching service backends: fixture error",
+			wantError: fmt.Sprintf("error fetching service backends: %s", testutil.Err.Error()),
 		},
 		// The following test doesn't just validate the package API error behaviour
 		// but as a side effect it validates that when deleting the created
@@ -151,7 +152,7 @@ func TestDeploy(t *testing.T) {
 				DeleteServiceFn: deleteServiceOK,
 			},
 			manifest:  `name = "package"`,
-			wantError: "error uploading package: fixture error",
+			wantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Uploading package...",
 			},
@@ -169,7 +170,7 @@ func TestDeploy(t *testing.T) {
 				CreateServiceFn: createServiceError,
 			},
 			manifest:  "name = \"package\"\n",
-			wantError: "error creating service: fixture error",
+			wantError: fmt.Sprintf("error creating service: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
 			},
@@ -191,7 +192,7 @@ func TestDeploy(t *testing.T) {
 				DeleteServiceFn: deleteServiceOK,
 			},
 			manifest:  "name = \"package\"\n",
-			wantError: "error creating domain: fixture error",
+			wantError: fmt.Sprintf("error creating domain: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
 				"Creating domain...",
@@ -219,7 +220,7 @@ func TestDeploy(t *testing.T) {
 				DeleteServiceFn: deleteServiceOK,
 			},
 			manifest:  "name = \"package\"\n",
-			wantError: "error creating backend: fixture error",
+			wantError: fmt.Sprintf("error creating backend: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
 				"Creating domain...",
@@ -242,7 +243,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionError,
 			},
 			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
-			wantError: "error activating version: fixture error",
+			wantError: fmt.Sprintf("error activating version: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
