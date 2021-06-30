@@ -103,6 +103,10 @@ func (c *UpdateCommand) constructDynamicInput(serviceID string, serviceVersion i
 	input.ID = c.snippetID
 	input.ServiceID = serviceID
 
+	if c.newName.WasSet {
+		return nil, fmt.Errorf("error parsing arguments: --new-name is not supported when updating a dynamic VCL snippet")
+	}
+
 	if c.snippetID == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet")
 	}

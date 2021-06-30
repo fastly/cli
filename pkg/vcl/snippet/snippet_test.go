@@ -434,6 +434,14 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			WantError: "error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet",
 		},
 		{
+			Name: "validate dynamic snippet with --new-name is not allowed",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("vcl snippet update --content inline_vcl --dynamic --new-name foobar --service-id 123 --snippet-id 456 --version 3"),
+			WantError: "error parsing arguments: --new-name is not supported when updating a dynamic VCL snippet",
+		},
+		{
 			Name: "validate UpdateSnippet API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
