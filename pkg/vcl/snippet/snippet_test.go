@@ -362,7 +362,7 @@ func TestVCLSnippetList(t *testing.T) {
 				ListSnippetsFn: listSnippets,
 			},
 			Args:       args("vcl snippet list --service-id 123 --version 3"),
-			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC\n123         3        foo   true\n123         3        bar   false\n",
+			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC  SNIPPET ID\n123         3        foo   true     abc\n123         3        bar   false    abc\n",
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
@@ -371,7 +371,7 @@ func TestVCLSnippetList(t *testing.T) {
 				ListSnippetsFn: listSnippets,
 			},
 			Args:       args("vcl snippet list --service-id 123 --version 1"),
-			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC\n123         1        foo   true\n123         1        bar   false\n",
+			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC  SNIPPET ID\n123         1        foo   true     abc\n123         1        bar   false    abc\n",
 		},
 		{
 			Name: "validate missing --verbose flag",

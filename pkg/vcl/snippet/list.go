@@ -107,9 +107,9 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceID string, serviceVersi
 // format.
 func (c *ListCommand) printSummary(out io.Writer, vs []*fastly.Snippet) {
 	t := text.NewTable(out)
-	t.AddHeader("SERVICE ID", "VERSION", "NAME", "DYNAMIC")
+	t.AddHeader("SERVICE ID", "VERSION", "NAME", "DYNAMIC", "SNIPPET ID")
 	for _, v := range vs {
-		t.AddLine(v.ServiceID, v.ServiceVersion, v.Name, cmd.IntToBool(v.Dynamic))
+		t.AddLine(v.ServiceID, v.ServiceVersion, v.Name, cmd.IntToBool(v.Dynamic), v.ID)
 	}
 	t.Print()
 }
