@@ -103,7 +103,7 @@ func TestPurgeKeys(t *testing.T) {
 				},
 			},
 			Args:       args("purge --file ./testdata/keys --service-id 123 --token 456"),
-			WantOutput: "KEY  ID\nfoo  123\nbar  456\nbaz  789\n",
+			WantOutput: "KEY  ID\nbar  456\nbaz  789\nfoo  123\n",
 		},
 	}
 

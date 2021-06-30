@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
@@ -132,10 +133,16 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 		return err
 	}
 
+	sortedKeys := make([]string, 0, len(m))
+	for k := range m {
+		sortedKeys = append(sortedKeys, k)
+	}
+	sort.Strings(sortedKeys)
+
 	t := text.NewTable(out)
 	t.AddHeader("KEY", "ID")
-	for k, v := range m {
-		t.AddLine(k, v)
+	for _, k := range sortedKeys {
+		t.AddLine(k, m[k])
 	}
 	t.Print()
 
