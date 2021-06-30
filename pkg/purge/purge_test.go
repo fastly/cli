@@ -25,6 +25,11 @@ func TestPurgeAll(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
+			Name:      "validate --soft flag isn't usable",
+			Args:      args("purge --all --service-id 123 --soft --token 456"),
+			WantError: "purge-all requests cannot be done in soft mode (--soft) and will always immediately invalidate all cached content associated with the service",
+		},
+		{
 			Name: "validate PurgeAll API error",
 			API: mock.API{
 				PurgeAllFn: func(i *fastly.PurgeAllInput) (*fastly.Purge, error) {
