@@ -38,7 +38,7 @@ type AppRunArgs struct {
 // NewAppRunArgs returns a struct that can be used to populate a call to
 // app.Run() while the majority of fields will be pre-populated and only those
 // fields commonly changed for testing purposes will need to be provided.
-func NewAppRunArgs(args []string, api mock.API, buf *bytes.Buffer) *AppRunArgs {
+func NewAppRunArgs(args []string, api mock.API, stdout *bytes.Buffer) *AppRunArgs {
 	return &AppRunArgs{
 		AppConfigFile: "/dev/null",
 		Args:          args,
@@ -46,6 +46,6 @@ func NewAppRunArgs(args []string, api mock.API, buf *bytes.Buffer) *AppRunArgs {
 		Env:           config.Environment{},
 		File:          config.File{},
 		HTTPClient:    http.DefaultClient,
-		Out:           buf,
+		Out:           stdout,
 	}
 }
