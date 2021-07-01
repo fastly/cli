@@ -2,8 +2,6 @@ package compute_test
 
 import (
 	"bytes"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,9 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 )
 
 // TestBuildRust validates that the rust ecosystem is in place and accurate.
@@ -278,23 +274,15 @@ func TestBuildRust(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = testcase.applicationConfig
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(mock.API{})
-				httpClient                     = testcase.client
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				buf           bytes.Buffer
-				out           io.Writer = sync.NewWriter(&buf)
-			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			ara.SetFile(testcase.applicationConfig)
+			ara.SetClient(testcase.client)
+			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
-				testutil.AssertStringContains(t, buf.String(), testcase.wantOutputContains)
+				testutil.AssertStringContains(t, stdout.String(), testcase.wantOutputContains)
 			}
 		})
 	}
@@ -417,23 +405,13 @@ func TestBuildAssemblyScript(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(mock.API{})
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				buf           bytes.Buffer
-				out           io.Writer = sync.NewWriter(&buf)
-			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
-				testutil.AssertStringContains(t, buf.String(), testcase.wantOutputContains)
+				testutil.AssertStringContains(t, stdout.String(), testcase.wantOutputContains)
 			}
 		})
 	}
