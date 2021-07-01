@@ -3,6 +3,7 @@ package compute_test
 import (
 	"bytes"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
@@ -32,10 +33,16 @@ func TestValidate(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Create our deploy environment in a temp dir.
-			// Defer a call to clean it up.
-			// TODO: abstraction needed for creating environments.
-			rootdir := makeDeployEnvironment(t, "")
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{
+						Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),
+						Dst: filepath.Join("pkg", "package.tar.gz"),
+					},
+				},
+			})
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the build environment.
