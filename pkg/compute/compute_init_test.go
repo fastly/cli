@@ -288,7 +288,7 @@ func TestInit(t *testing.T) {
 			// we need to define stdin as the init process prompts the user multiple
 			// times, but we don't need to provide any values as all our prompts will
 			// fallback to default values if the input is unrecognised.
-			ara.SetStdin(bytes.NewBufferString(""))
+			ara.SetStdin(strings.NewReader(""))
 
 			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 

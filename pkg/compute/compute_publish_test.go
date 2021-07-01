@@ -2,10 +2,8 @@ package compute_test
 
 import (
 	"bytes"
-	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/api"
@@ -13,9 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 )
 
 func TestPublish(t *testing.T) {
@@ -27,7 +23,6 @@ func TestPublish(t *testing.T) {
 		cargoManifest     string
 		cargoLock         string
 		client            api.HTTPClient
-		in                io.Reader
 		api               mock.API
 		wantError         string
 		wantOutput        []string
@@ -69,7 +64,6 @@ func TestPublish(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
-			in: strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -128,7 +122,6 @@ func TestPublish(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
-			in: strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -187,7 +180,6 @@ func TestPublish(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
-			in: strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -233,22 +225,14 @@ func TestPublish(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = testcase.applicationConfig
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = testcase.client
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = testcase.in
-				buf           bytes.Buffer
-				out           io.Writer = sync.NewWriter(&buf)
-			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara.SetFile(testcase.applicationConfig)
+			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {
-				testutil.AssertStringContains(t, buf.String(), s)
+				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 			if testcase.manifestIncludes != "" {
 				content, err := os.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
