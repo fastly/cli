@@ -23,7 +23,6 @@ func TestDeploy(t *testing.T) {
 		wantError        string
 		wantOutput       []string
 		manifestIncludes string
-		in               *strings.Reader // to handle text.Input prompts
 	}{
 		{
 			name:      "no token",
@@ -33,7 +32,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name:      "no fastly.toml manifest",
 			args:      []string{"compute", "deploy", "--token", "123"},
-			in:        strings.NewReader(""),
 			wantError: "error reading package manifest",
 		},
 		{
@@ -45,7 +43,6 @@ func TestDeploy(t *testing.T) {
 			// the test suite `makeDeployEnvironment` function) cause no issues.
 			name: "path with no service ID",
 			args: []string{"compute", "deploy", "--token", "123", "-v", "-p", "pkg/package.tar.gz"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				GetPackageFn:      getPackageOk,
@@ -67,7 +64,6 @@ func TestDeploy(t *testing.T) {
 			name:     "empty service ID",
 			args:     []string{"compute", "deploy", "--token", "123", "-v"},
 			manifest: "name = \"package\"\n",
-			in:       strings.NewReader(""),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				GetPackageFn:      getPackageOk,
@@ -131,7 +127,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "package API error",
 			args: []string{"compute", "deploy", "--token", "123"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:    getServiceOK,
 				ListVersionsFn:  testutil.ListVersions,
@@ -160,7 +155,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "service create error",
 			args: []string{"compute", "deploy", "--token", "123"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				CreateServiceFn: createServiceError,
 			},
@@ -178,7 +172,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "service domain error",
 			args: []string{"compute", "deploy", "--token", "123"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:    getServiceOK,
 				CreateServiceFn: createServiceOK,
@@ -204,7 +197,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "service backend error",
 			args: []string{"compute", "deploy", "--token", "123"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:    getServiceOK,
 				CreateServiceFn: createServiceOK,
@@ -227,7 +219,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "activate error",
 			args: []string{"compute", "deploy", "--token", "123"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -262,7 +253,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "success",
 			args: []string{"compute", "deploy", "--token", "123"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -286,7 +276,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "success with path",
 			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "latest"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -310,7 +299,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "success with inactive version",
 			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -330,7 +318,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "success with specific locked version",
 			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "2"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -351,7 +338,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "success with active version",
 			args: []string{"compute", "deploy", "--token", "123", "-p", "pkg/package.tar.gz", "-s", "123", "--version", "active"},
-			in:   strings.NewReader(""),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -393,7 +379,12 @@ func TestDeploy(t *testing.T) {
 
 			var stdout bytes.Buffer
 			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
-			ara.SetStdin(testcase.in)
+
+			// we need to define stdin as the deploy process prompts the user multiple
+			// times, but we don't need to provide any values as all our prompts will
+			// fallback to default values if the input is unrecognised.
+			ara.SetStdin(strings.NewReader(""))
+
 			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)

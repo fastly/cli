@@ -67,3 +67,13 @@ func (ara *AppRunArgs) SetClient(client api.HTTPClient) {
 func (ara *AppRunArgs) SetStdin(stdin io.Reader) {
 	ara.In = stdin
 }
+
+// SetEnv allows setting the environment.
+func (ara *AppRunArgs) SetEnv(env config.Environment) {
+	ara.Env = env
+}
+
+// SetAppConfigFile allows setting the path to the app config file.
+func (ara *AppRunArgs) SetAppConfigFile(fpath string) {
+	ara.AppConfigFile = fpath
+}

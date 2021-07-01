@@ -3,8 +3,6 @@ package configure_test
 import (
 	"bytes"
 	"errors"
-	"io"
-	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -13,7 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
@@ -43,7 +40,7 @@ func TestConfigure(t *testing.T) {
 	}{
 		{
 			name: "endpoint from flag",
-			args: []string{"configure", "--endpoint=http://local.dev", "--token=abcdef"},
+			args: []string{"configure", "--endpoint", "http://local.dev", "--token", "abcdef"},
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
@@ -329,20 +326,17 @@ func TestConfigure(t *testing.T) {
 			configFilePath := testutil.MakeTempFile(t, testcase.configFileData)
 			defer os.RemoveAll(configFilePath)
 
-			var (
-				args                           = testcase.args
-				env                            = testcase.env
-				file                           = testcase.file
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = strings.NewReader(testcase.stdin)
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara.SetStdin(strings.NewReader(testcase.stdin))
+			ara.SetEnv(testcase.env)
+			ara.SetFile(testcase.file)
+			ara.SetAppConfigFile(configFilePath)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {
-				testutil.AssertStringContains(t, out.String(), s)
+				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 			if testcase.wantError == "" {
 				p, err := os.ReadFile(configFilePath)
