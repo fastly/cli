@@ -62,8 +62,7 @@ func TestPack(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Create our test environment in a temp dir.
-			// Defer a call to clean it up.
+			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Copy: []testutil.FileIO{

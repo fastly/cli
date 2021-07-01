@@ -269,8 +269,7 @@ func TestInit(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Create our init environment in a temp dir.
-			// Defer a call to clean it up.
+			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Write: []testutil.FileIO{
