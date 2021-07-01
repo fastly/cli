@@ -64,7 +64,15 @@ func TestPack(t *testing.T) {
 
 			// Create our test environment in a temp dir.
 			// Defer a call to clean it up.
-			rootdir := makePackEnvironment(t, testcase.manifest)
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "pack", "main.wasm"), Dst: "main.wasm"},
+				},
+				Write: []testutil.FileIO{
+					{Src: testcase.manifest, Dst: compute.ManifestFilename},
+				},
+			})
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the build environment.
@@ -91,28 +99,4 @@ func TestPack(t *testing.T) {
 			}
 		})
 	}
-}
-
-func makePackEnvironment(t *testing.T, manifestContent string) (rootdir string) {
-	t.Helper()
-
-	rootdir, err := os.MkdirTemp("", "fastly-pack-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for _, filename := range []string{"main.wasm"} {
-		fromFilename := filepath.Join("testdata", "pack", filepath.Join(filename))
-		toFilename := filepath.Join(rootdir, filepath.Join(filename))
-		testutil.CopyFile(t, fromFilename, toFilename)
-	}
-
-	if manifestContent != "" {
-		filename := filepath.Join(rootdir, compute.ManifestFilename)
-		if err := os.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	return rootdir
 }
