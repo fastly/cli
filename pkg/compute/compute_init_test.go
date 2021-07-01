@@ -3,8 +3,6 @@ package compute_test
 import (
 	"bytes"
 	"errors"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,9 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 )
 
 func TestInit(t *testing.T) {
@@ -32,7 +28,6 @@ func TestInit(t *testing.T) {
 		manifest         string
 		wantFiles        []string
 		unwantedFiles    []string
-		stdin            string
 		wantError        string
 		wantOutput       []string
 		manifestIncludes string
@@ -286,19 +281,17 @@ func TestInit(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = testcase.configFile
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(mock.API{})
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = bytes.NewBufferString(testcase.stdin)
-				buf           bytes.Buffer
-				out           io.Writer = sync.NewWriter(&buf)
-			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			ara.SetFile(testcase.configFile)
+
+			// we need to define stdin as the init process prompts the user multiple
+			// times, but we don't need to provide any values as all our prompts will
+			// fallback to default values if the input is unrecognised.
+			ara.SetStdin(bytes.NewBufferString(""))
+
+			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, file := range testcase.wantFiles {
 				if _, err := os.Stat(filepath.Join(rootdir, file)); err != nil {
@@ -311,7 +304,7 @@ func TestInit(t *testing.T) {
 				}
 			}
 			for _, s := range testcase.wantOutput {
-				testutil.AssertStringContains(t, buf.String(), s)
+				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 			if testcase.manifestIncludes != "" {
 				content, err := os.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
