@@ -11,7 +11,7 @@ import (
 )
 
 func TestAllDatacenters(t *testing.T) {
-	var buf bytes.Buffer
+	var stdout bytes.Buffer
 	args := testutil.Args("pops --token 123")
 	api := mock.API{
 		AllDatacentersFn: func() ([]fastly.Datacenter, error) {
@@ -31,8 +31,8 @@ func TestAllDatacenters(t *testing.T) {
 			}, nil
 		},
 	}
-	ara := testutil.NewAppRunArgs(args, api, &buf)
+	ara := testutil.NewAppRunArgs(args, api, &stdout)
 	err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 	testutil.AssertNoError(t, err)
-	testutil.AssertString(t, "\nNAME    CODE  GROUP  SHIELD  COORDINATES\nFoobar  FBR   Bar    Baz     {Latitude:1 Longtitude:2 X:3 Y:4}\n", buf.String())
+	testutil.AssertString(t, "\nNAME    CODE  GROUP  SHIELD  COORDINATES\nFoobar  FBR   Bar    Baz     {Latitude:1 Longtitude:2 X:3 Y:4}\n", stdout.String())
 }

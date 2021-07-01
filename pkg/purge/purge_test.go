@@ -55,11 +55,11 @@ func TestPurgeAll(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -109,11 +109,11 @@ func TestPurgeKeys(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			assertKeys(testcase.WantError, testcase.Args, keys, t)
 		})
 	}
@@ -189,11 +189,11 @@ func TestPurgeKey(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -246,11 +246,11 @@ func TestPurgeURL(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }

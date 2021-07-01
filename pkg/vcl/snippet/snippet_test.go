@@ -168,11 +168,11 @@ func TestVCLSnippetCreate(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "snippet.vcl", content, t)
 		})
 	}
@@ -242,11 +242,11 @@ func TestVCLSnippetDelete(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -322,11 +322,11 @@ func TestVCLSnippetDescribe(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -386,11 +386,11 @@ func TestVCLSnippetList(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -525,11 +525,11 @@ func TestVCLSnippetUpdate(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "snippet.vcl", content, t)
 		})
 	}

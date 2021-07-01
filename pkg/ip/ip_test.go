@@ -11,7 +11,7 @@ import (
 )
 
 func TestAllIPs(t *testing.T) {
-	var buf bytes.Buffer
+	var stdout bytes.Buffer
 	args := testutil.Args("ip-list --token 123")
 	api := mock.API{
 		AllIPsFn: func() (v4, v6 fastly.IPAddrs, err error) {
@@ -22,8 +22,8 @@ func TestAllIPs(t *testing.T) {
 				}, nil
 		},
 	}
-	ara := testutil.NewAppRunArgs(args, api, &buf)
+	ara := testutil.NewAppRunArgs(args, api, &stdout)
 	err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 	testutil.AssertNoError(t, err)
-	testutil.AssertString(t, "\nIPv4\n\t00.123.45.6/78\n\nIPv6\n\t0a12:3b45::/67\n", buf.String())
+	testutil.AssertString(t, "\nIPv4\n\t00.123.45.6/78\n\nIPv6\n\t0a12:3b45::/67\n", stdout.String())
 }

@@ -91,11 +91,11 @@ func TestBackendCreate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
@@ -157,11 +157,11 @@ func TestBackendList(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, buf.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
@@ -195,11 +195,11 @@ func TestBackendDescribe(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, buf.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
@@ -246,11 +246,11 @@ func TestBackendUpdate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
@@ -286,11 +286,11 @@ func TestBackendDelete(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }

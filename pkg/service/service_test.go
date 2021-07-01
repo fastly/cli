@@ -60,11 +60,11 @@ func TestServiceCreate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
@@ -108,11 +108,11 @@ func TestServiceList(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, buf.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
@@ -161,11 +161,11 @@ func TestServiceDescribe(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, buf.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
@@ -194,11 +194,11 @@ func TestServiceSearch(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, buf.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
@@ -255,11 +255,11 @@ func TestServiceUpdate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
@@ -328,11 +328,11 @@ func TestServiceDelete(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
 			runErr := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, runErr, testcase.wantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 
 			if testcase.manifest != "" {
 				m := filepath.Join(rootdir, manifest.Filename)
