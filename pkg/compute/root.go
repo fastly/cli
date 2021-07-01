@@ -7,9 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/config"
 )
 
-// ManifestFilename is the name of the package manifest file.
-const ManifestFilename = "fastly.toml"
-
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {

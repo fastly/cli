@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/compute"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -69,7 +69,7 @@ func TestPack(t *testing.T) {
 					{Src: filepath.Join("testdata", "pack", "main.wasm"), Dst: "main.wasm"},
 				},
 				Write: []testutil.FileIO{
-					{Src: testcase.manifest, Dst: compute.ManifestFilename},
+					{Src: testcase.manifest, Dst: manifest.Filename},
 				},
 			})
 			defer os.RemoveAll(rootdir)

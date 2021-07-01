@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/compute"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/testutil"
@@ -312,7 +311,7 @@ func TestInit(t *testing.T) {
 				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 			if testcase.manifestIncludes != "" {
-				content, err := os.ReadFile(filepath.Join(rootdir, compute.ManifestFilename))
+				content, err := os.ReadFile(filepath.Join(rootdir, manifest.Filename))
 				if err != nil {
 					t.Fatal(err)
 				}
