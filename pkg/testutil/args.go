@@ -20,6 +20,10 @@ func Args(args string) []string {
 // NewAppRunArgs returns a struct that can be used to populate a call to
 // app.Run() while the majority of fields will be pre-populated and only those
 // fields commonly changed for testing purposes will need to be provided.
+//
+// NOTE: most consumers of NewAppRunArgs() won't need to pass mocked
+// implementations, and so we provide helper functions on the receiver to update
+// the less commonly modified fields when it comes to the testing environment.
 func NewAppRunArgs(args []string, api mock.API, stdout io.Writer) *AppRunArgs {
 	return &AppRunArgs{
 		AppConfigFile: "/dev/null",
@@ -50,19 +54,16 @@ type AppRunArgs struct {
 }
 
 // SetFile allows setting the application configuration.
-//
-// NOTE: most consumers of NewAppRunArgs() won't need to pass a mocked app
-// config and so we provide helper functions on the receiver to update the less
-// commonly modified fields when it comes to the testing environment.
 func (ara *AppRunArgs) SetFile(file config.File) {
 	ara.File = file
 }
 
 // SetClient allows setting the HTTP client.
-//
-// NOTE: most consumers of NewAppRunArgs() won't need to pass a mocked HTTP
-// client and so we provide helper functions on the receiver to update the less
-// commonly modified fields when it comes to the testing environment.
 func (ara *AppRunArgs) SetClient(client api.HTTPClient) {
 	ara.HTTPClient = client
+}
+
+// SetStdin allows setting stdin.
+func (ara *AppRunArgs) SetStdin(stdin io.Reader) {
+	ara.In = stdin
 }
