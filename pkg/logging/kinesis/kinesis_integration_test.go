@@ -106,7 +106,8 @@ func TestKinesisCreate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -172,7 +173,8 @@ func TestKinesisList(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -210,7 +212,8 @@ func TestKinesisDescribe(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -250,7 +253,8 @@ func TestKinesisUpdate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -290,7 +294,8 @@ func TestKinesisDelete(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)

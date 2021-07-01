@@ -11,7 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/compute"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -275,7 +274,7 @@ func TestBuildRust(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
 			ara.SetFile(testcase.applicationConfig)
 			ara.SetClient(testcase.client)
 			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
@@ -406,7 +405,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
 			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)

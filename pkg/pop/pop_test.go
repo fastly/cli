@@ -31,7 +31,8 @@ func TestAllDatacenters(t *testing.T) {
 			}, nil
 		},
 	}
-	ara := testutil.NewAppRunArgs(args, api, &stdout)
+	ara := testutil.NewAppRunArgs(args, &stdout)
+	ara.SetClientFactory(api)
 	err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 	testutil.AssertNoError(t, err)
 	testutil.AssertString(t, "\nNAME    CODE  GROUP  SHIELD  COORDINATES\nFoobar  FBR   Bar    Baz     {Latitude:1 Longtitude:2 X:3 Y:4}\n", stdout.String())

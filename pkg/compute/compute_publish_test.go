@@ -226,7 +226,8 @@ func TestPublish(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			ara.SetFile(testcase.applicationConfig)
 			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 

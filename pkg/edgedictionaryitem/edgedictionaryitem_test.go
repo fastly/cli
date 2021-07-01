@@ -43,7 +43,8 @@ func TestDictionaryItemDescribe(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -71,7 +72,8 @@ func TestDictionaryItemsList(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -104,7 +106,8 @@ func TestDictionaryItemCreate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -137,7 +140,8 @@ func TestDictionaryItemUpdate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -170,7 +174,8 @@ func TestDictionaryItemDelete(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -236,7 +241,8 @@ func TestDictionaryItemBatchModify(t *testing.T) {
 			}
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())

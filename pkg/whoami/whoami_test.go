@@ -14,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
-	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/whoami"
 )
@@ -81,7 +80,7 @@ func TestWhoami(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
 			ara.SetEnv(testcase.env)
 			ara.SetFile(testcase.file)
 			ara.SetClient(testcase.client)

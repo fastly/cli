@@ -327,7 +327,8 @@ func TestConfigure(t *testing.T) {
 			defer os.RemoveAll(configFilePath)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 			ara.SetStdin(strings.NewReader(testcase.stdin))
 			ara.SetEnv(testcase.env)
 			ara.SetFile(testcase.file)

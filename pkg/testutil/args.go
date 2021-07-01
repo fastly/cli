@@ -24,11 +24,11 @@ func Args(args string) []string {
 // NOTE: most consumers of NewAppRunArgs() won't need to pass mocked
 // implementations, and so we provide helper functions on the receiver to update
 // the less commonly modified fields when it comes to the testing environment.
-func NewAppRunArgs(args []string, api mock.API, stdout io.Writer) *AppRunArgs {
+func NewAppRunArgs(args []string, stdout io.Writer) *AppRunArgs {
 	return &AppRunArgs{
 		AppConfigFile: "/dev/null",
 		Args:          args,
-		ClientFactory: mock.APIClient(api),
+		ClientFactory: mock.APIClient(mock.API{}),
 		Env:           config.Environment{},
 		File:          config.File{},
 		HTTPClient:    http.DefaultClient,
@@ -76,4 +76,9 @@ func (ara *AppRunArgs) SetEnv(env config.Environment) {
 // SetAppConfigFile allows setting the path to the app config file.
 func (ara *AppRunArgs) SetAppConfigFile(fpath string) {
 	ara.AppConfigFile = fpath
+}
+
+// SetClientFactory allows setting the mocked API.
+func (ara *AppRunArgs) SetClientFactory(api mock.API) {
+	ara.ClientFactory = mock.APIClient(api)
 }

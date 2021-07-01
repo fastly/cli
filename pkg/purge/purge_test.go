@@ -56,7 +56,8 @@ func TestPurgeAll(t *testing.T) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -110,7 +111,8 @@ func TestPurgeKeys(t *testing.T) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -190,7 +192,8 @@ func TestPurgeKey(t *testing.T) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -247,7 +250,8 @@ func TestPurgeURL(t *testing.T) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)

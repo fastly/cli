@@ -378,7 +378,8 @@ func TestDeploy(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
 
 			// we need to define stdin as the deploy process prompts the user multiple
 			// times, but we don't need to provide any values as all our prompts will

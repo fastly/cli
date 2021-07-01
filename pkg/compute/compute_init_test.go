@@ -11,7 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/compute"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -282,7 +281,7 @@ func TestInit(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
 			ara.SetFile(testcase.configFile)
 
 			// we need to define stdin as the init process prompts the user multiple

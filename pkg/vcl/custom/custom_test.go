@@ -139,7 +139,8 @@ func TestVCLCustomCreate(t *testing.T) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -213,7 +214,8 @@ func TestVCLCustomDelete(t *testing.T) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -273,7 +275,8 @@ func TestVCLCustomDescribe(t *testing.T) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -337,7 +340,8 @@ func TestVCLCustomList(t *testing.T) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -446,7 +450,8 @@ func TestVCLCustomUpdate(t *testing.T) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)

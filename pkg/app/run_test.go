@@ -8,7 +8,6 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -49,7 +48,7 @@ func TestApplication(t *testing.T) {
 				stdout bytes.Buffer
 				stderr bytes.Buffer
 			)
-			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
