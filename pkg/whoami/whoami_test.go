@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,7 +16,6 @@ import (
 	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/cli/pkg/whoami"
 )
 
@@ -82,20 +80,14 @@ func TestWhoami(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			var (
-				args                            = testcase.args
-				env                             = testcase.env
-				file                            = testcase.file
-				configFileName                  = "/dev/null"
-				clientFactory                   = mock.APIClient(mock.API{})
-				httpClient                      = testcase.client
-				cliVersioner   update.Versioner = nil
-				in             io.Reader        = nil
-				out            bytes.Buffer
-			)
-			err := app.Run(args, env, file, configFileName, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, mock.API{}, &stdout)
+			ara.SetEnv(testcase.env)
+			ara.SetFile(testcase.file)
+			ara.SetClient(testcase.client)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
