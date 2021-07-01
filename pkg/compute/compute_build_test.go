@@ -3,13 +3,13 @@ package compute_test
 import (
 	"bytes"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/compute"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -393,9 +393,18 @@ func TestBuildAssemblyScript(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Create our build environment in a temp dir.
-			// Defer a call to clean it up.
-			rootdir := makeAssemblyScriptBuildEnvironment(t, testcase.fastlyManifest)
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "build", "package.json"), Dst: "package.json"},
+					{Src: filepath.Join("testdata", "build", "assembly", "index.ts"), Dst: filepath.Join("assembly", "index.ts")},
+				},
+				Write: []testutil.FileIO{
+					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
+				},
+				Exec: []string{"npm", "install"},
+			})
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the build environment.
@@ -416,37 +425,4 @@ func TestBuildAssemblyScript(t *testing.T) {
 			}
 		})
 	}
-}
-
-func makeAssemblyScriptBuildEnvironment(t *testing.T, fastlyManifestContent string) (rootdir string) {
-	t.Helper()
-
-	rootdir, err := os.MkdirTemp("", "fastly-build-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for _, filename := range [][]string{
-		{"package.json"},
-		{"assembly", "index.ts"},
-	} {
-		fromFilename := filepath.Join("testdata", "build", filepath.Join(filename...))
-		toFilename := filepath.Join(rootdir, filepath.Join(filename...))
-		testutil.CopyFile(t, fromFilename, toFilename)
-	}
-
-	if fastlyManifestContent != "" {
-		filename := filepath.Join(rootdir, compute.ManifestFilename)
-		if err := os.WriteFile(filename, []byte(fastlyManifestContent), 0777); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	cmd := exec.Command("npm", "install")
-	cmd.Dir = rootdir
-	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
-	}
-
-	return rootdir
 }
