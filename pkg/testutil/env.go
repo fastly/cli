@@ -41,6 +41,9 @@ func NewEnv(opts EnvOpts) (rootdir string) {
 	}
 
 	for _, f := range opts.Write {
+		if f.Src == "" {
+			continue
+		}
 		src := f.Src
 		dst := filepath.Join(rootdir, f.Dst)
 		if err := os.WriteFile(dst, []byte(src), 0777); err != nil {
