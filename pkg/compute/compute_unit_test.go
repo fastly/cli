@@ -1,7 +1,6 @@
 package compute
 
 import (
-	"crypto/rand"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +14,6 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/kingpin"
 	"github.com/mholt/archiver/v3"
@@ -118,9 +116,15 @@ func TestCreatePackageArchive(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// create our build environment in a temp dir.
-			// defer a call to clean it up.
-			rootdir := makeBuildEnvironment(t, "")
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "build", "Cargo.lock"), Dst: "Cargo.lock"},
+					{Src: filepath.Join("testdata", "build", "Cargo.toml"), Dst: "Cargo.toml"},
+					{Src: filepath.Join("testdata", "build", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+				},
+			})
 			defer os.RemoveAll(rootdir)
 
 			// before running the test, chdir into the build environment.
@@ -217,9 +221,18 @@ func TestGetIgnoredFiles(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// create our build environment in a temp dir.
-			// defer a call to clean it up.
-			rootdir := makeBuildEnvironment(t, testcase.fastlyignore)
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "build", "Cargo.lock"), Dst: "Cargo.lock"},
+					{Src: filepath.Join("testdata", "build", "Cargo.toml"), Dst: "Cargo.toml"},
+					{Src: filepath.Join("testdata", "build", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+				},
+				Write: []testutil.FileIO{
+					{Src: testcase.fastlyignore, Dst: IgnoreFilePath},
+				},
+			})
 			defer os.RemoveAll(rootdir)
 
 			// before running the test, chdir into the build environment.
@@ -285,9 +298,15 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Create our build environment in a temp dir.
-			// Defer a call to clean it up.
-			rootdir := makeBuildEnvironment(t, "")
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "build", "Cargo.lock"), Dst: "Cargo.lock"},
+					{Src: filepath.Join("testdata", "build", "Cargo.toml"), Dst: "Cargo.toml"},
+					{Src: filepath.Join("testdata", "build", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+				},
+			})
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the build environment.
@@ -432,46 +451,6 @@ func TestGetCrateVersionFromMetadata(t *testing.T) {
 			}
 		})
 	}
-}
-
-func makeBuildEnvironment(t *testing.T, fastlyIgnoreContent string) (rootdir string) {
-	t.Helper()
-
-	p := make([]byte, 8)
-	n, err := rand.Read(p)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rootdir = filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("fastly-build-%x", p[:n]),
-	)
-
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
-	for _, filename := range [][]string{
-		{"Cargo.toml"},
-		{"Cargo.lock"},
-		{"src", "main.rs"},
-	} {
-		fromFilename := filepath.Join("testdata", "build", filepath.Join(filename...))
-		toFilename := filepath.Join(rootdir, filepath.Join(filename...))
-		if err := filesystem.CopyFile(fromFilename, toFilename); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if fastlyIgnoreContent != "" {
-		filename := filepath.Join(rootdir, IgnoreFilePath)
-		if err := os.WriteFile(filename, []byte(fastlyIgnoreContent), 0777); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	return rootdir
 }
 
 type errorClient struct {
