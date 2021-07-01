@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/compute"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -213,9 +214,21 @@ func TestPublish(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Create our publish environment in a temp dir.
-			// Defer a call to clean it up.
-			rootdir := makePublishEnvironment(t, testcase.fastlyManifest, testcase.cargoManifest, testcase.cargoLock)
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "build", "Cargo.lock"), Dst: "Cargo.lock"},
+					{Src: filepath.Join("testdata", "build", "Cargo.toml"), Dst: "Cargo.toml"},
+					{Src: filepath.Join("testdata", "build", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+					{Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"), Dst: filepath.Join("pkg", "package.tar.gz")},
+				},
+				Write: []testutil.FileIO{
+					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
+					{Src: testcase.cargoManifest, Dst: "Cargo.toml"},
+					{Src: testcase.cargoLock, Dst: "Cargo.lock"},
+				},
+			})
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the build environment.
@@ -245,58 +258,4 @@ func TestPublish(t *testing.T) {
 			}
 		})
 	}
-}
-
-func makePublishEnvironment(t *testing.T, fastlyManifestContent, cargoManifestContent, cargoLockContent string) (rootdir string) {
-	t.Helper()
-
-	rootdir, err := os.MkdirTemp("", "fastly-publish-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// BUILD REQUIREMENTS
-
-	for _, filename := range [][]string{
-		{"Cargo.toml"},
-		{"Cargo.lock"},
-		{"src", "main.rs"},
-	} {
-		fromFilename := filepath.Join("testdata", "build", filepath.Join(filename...))
-		toFilename := filepath.Join(rootdir, filepath.Join(filename...))
-		testutil.CopyFile(t, fromFilename, toFilename)
-	}
-
-	if fastlyManifestContent != "" {
-		filename := filepath.Join(rootdir, compute.ManifestFilename)
-		if err := os.WriteFile(filename, []byte(fastlyManifestContent), 0777); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if cargoManifestContent != "" {
-		filename := filepath.Join(rootdir, "Cargo.toml")
-		if err := os.WriteFile(filename, []byte(cargoManifestContent), 0777); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if cargoLockContent != "" {
-		filename := filepath.Join(rootdir, "Cargo.lock")
-		if err := os.WriteFile(filename, []byte(cargoLockContent), 0777); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// DEPLOY REQUIREMENTS
-
-	for _, filename := range [][]string{
-		{"pkg", "package.tar.gz"},
-	} {
-		fromFilename := filepath.Join("testdata", "deploy", filepath.Join(filename...))
-		toFilename := filepath.Join(rootdir, filepath.Join(filename...))
-		testutil.CopyFile(t, fromFilename, toFilename)
-	}
-
-	return rootdir
 }
