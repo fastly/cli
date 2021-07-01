@@ -10,6 +10,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/compute"
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -231,7 +232,7 @@ func TestInit(t *testing.T) {
 					},
 				},
 			},
-			manifestIncludes: `name = "fastly-init`,
+			manifestIncludes: `name = "fastly-temp`,
 		},
 		{
 			name: "with AssemblyScript language",
@@ -247,7 +248,7 @@ func TestInit(t *testing.T) {
 					},
 				},
 			},
-			manifestIncludes: `name = "fastly-init`,
+			manifestIncludes: `name = "fastly-temp`,
 		},
 		{
 			name:             "with pre-compiled Wasm binary",
@@ -270,7 +271,12 @@ func TestInit(t *testing.T) {
 
 			// Create our init environment in a temp dir.
 			// Defer a call to clean it up.
-			rootdir := makeInitEnvironment(t, testcase.manifest)
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Write: []testutil.FileIO{
+					{Src: testcase.manifest, Dst: manifest.Filename},
+				},
+			})
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the init environment.
@@ -315,22 +321,4 @@ func TestInit(t *testing.T) {
 			}
 		})
 	}
-}
-
-func makeInitEnvironment(t *testing.T, manifestContent string) (rootdir string) {
-	t.Helper()
-
-	rootdir, err := os.MkdirTemp("", "fastly-init-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if manifestContent != "" {
-		filename := filepath.Join(rootdir, compute.ManifestFilename)
-		if err := os.WriteFile(filename, []byte(manifestContent), 0777); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	return rootdir
 }
