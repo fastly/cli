@@ -14,43 +14,38 @@ import (
 
 func TestUpdate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
-		name       string
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput []string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			name: "package API error",
-			args: args("compute update -s 123 --version 1 -p pkg/package.tar.gz -t 123 --autoclone"),
-			api: mock.API{
+			Name: "package API error",
+			Args: args("compute update -s 123 --version 1 -p pkg/package.tar.gz -t 123 --autoclone"),
+			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageError,
 			},
-			wantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
-			wantOutput: []string{
+			WantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
+			WantOutputs: []string{
 				"Initializing...",
 				"Uploading package...",
 			},
 		},
 		{
-			name: "success",
-			args: args("compute update -s 123 --version 2 -p pkg/package.tar.gz -t 123 --autoclone"),
-			api: mock.API{
+			Name: "success",
+			Args: args("compute update -s 123 --version 2 -p pkg/package.tar.gz -t 123 --autoclone"),
+			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageOk,
 			},
-			wantOutput: []string{
+			WantOutputs: []string{
 				"Initializing...",
 				"Uploading package...",
 				"Updated package (service 123, version 4)",
 			},
 		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
+	}
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
 			// We're going to chdir to a deploy environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
@@ -79,11 +74,11 @@ func TestUpdate(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			for _, s := range testcase.wantOutput {
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			for _, s := range testcase.WantOutputs {
 				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 		})

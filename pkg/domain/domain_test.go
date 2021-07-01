@@ -14,243 +14,223 @@ import (
 
 func TestDomainCreate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("domain create --version 1 --service-id 123"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      args("domain create --version 1 --service-id 123"),
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
-			api: mock.API{
+			Args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateDomainFn: createDomainOK,
 			},
-			wantOutput: "Created domain www.test.com (service 123 version 4)",
+			WantOutput: "Created domain www.test.com (service 123 version 4)",
 		},
 		{
-			args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
-			api: mock.API{
+			Args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateDomainFn: createDomainError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+	}
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
 
 func TestDomainList(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args: args("domain list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: args("domain list --service-id 123 --version 1"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
-			wantOutput: listDomainsShortOutput,
+			WantOutput: listDomainsShortOutput,
 		},
 		{
-			args: args("domain list --service-id 123 --version 1 --verbose"),
-			api: mock.API{
+			Args: args("domain list --service-id 123 --version 1 --verbose"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
-			wantOutput: listDomainsVerboseOutput,
+			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			args: args("domain list --service-id 123 --version 1 -v"),
-			api: mock.API{
+			Args: args("domain list --service-id 123 --version 1 -v"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
-			wantOutput: listDomainsVerboseOutput,
+			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			args: args("domain --verbose list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: args("domain --verbose list --service-id 123 --version 1"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
-			wantOutput: listDomainsVerboseOutput,
+			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			args: args("-v domain list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: args("-v domain list --service-id 123 --version 1"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
-			wantOutput: listDomainsVerboseOutput,
+			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			args: args("domain list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: args("domain list --service-id 123 --version 1"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+	}
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
 	}
 }
 
 func TestDomainDescribe(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("domain describe --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      args("domain describe --service-id 123 --version 1"),
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
-			api: mock.API{
+			Args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
-			api: mock.API{
+			Args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainOK,
 			},
-			wantOutput: describeDomainOutput,
+			WantOutput: describeDomainOutput,
 		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+	}
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
 	}
 }
 
 func TestDomainUpdate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("domain update --service-id 123 --version 1 --new-name www.test.com --comment "),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      args("domain update --service-id 123 --version 1 --new-name www.test.com --comment "),
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("domain update --service-id 123 --version 1 --name www.test.com --autoclone"),
-			api: mock.API{
+			Args: args("domain update --service-id 123 --version 1 --name www.test.com --autoclone"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainOK,
 			},
-			wantError: "error parsing arguments: must provide either --new-name or --comment to update domain",
+			WantError: "error parsing arguments: must provide either --new-name or --comment to update domain",
 		},
 		{
-			args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
-			api: mock.API{
+			Args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
-			api: mock.API{
+			Args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainOK,
 			},
-			wantOutput: "Updated domain www.example.com (service 123 version 4)",
+			WantOutput: "Updated domain www.example.com (service 123 version 4)",
 		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+	}
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
 
 func TestDomainDelete(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("domain delete --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      args("domain delete --service-id 123 --version 1"),
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
-			api: mock.API{
+			Args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteDomainFn: deleteDomainError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
-			api: mock.API{
+			Args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteDomainFn: deleteDomainOK,
 			},
-			wantOutput: "Deleted domain www.test.com (service 123 version 4)",
+			WantOutput: "Deleted domain www.test.com (service 123 version 4)",
 		},
-	} {
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+	}
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }

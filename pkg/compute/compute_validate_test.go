@@ -12,20 +12,16 @@ import (
 
 func TestValidate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
-		name       string
-		args       []string
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			name:       "success",
-			args:       args("compute validate -p pkg/package.tar.gz"),
-			wantError:  "",
-			wantOutput: "Validated package",
+			Name:       "success",
+			Args:       args("compute validate -p pkg/package.tar.gz"),
+			WantError:  "",
+			WantOutput: "Validated package",
 		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
+	}
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
 			// We're going to chdir to a deploy environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
@@ -54,10 +50,10 @@ func TestValidate(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
 			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
