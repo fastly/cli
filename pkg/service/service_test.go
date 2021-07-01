@@ -17,6 +17,7 @@ import (
 )
 
 func TestServiceCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -24,37 +25,37 @@ func TestServiceCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"service", "create"},
+			args:      args("service create"),
 			api:       mock.API{CreateServiceFn: createServiceOK},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:       []string{"service", "create", "--name", "Foo"},
+			args:       args("service create --name Foo"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:       []string{"service", "create", "-n=Foo"},
+			args:       args("service create -n=Foo"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:       []string{"service", "create", "--name", "Foo", "--type", "wasm"},
+			args:       args("service create --name Foo --type wasm"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:       []string{"service", "create", "--name", "Foo", "--type", "wasm", "--comment", "Hello"},
+			args:       args("service create --name Foo --type wasm --comment Hello"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:       []string{"service", "create", "-n", "Foo", "--comment", "Hello"},
+			args:       args("service create -n Foo --comment Hello"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:      []string{"service", "create", "-n", "Foo"},
+			args:      args("service create -n Foo"),
 			api:       mock.API{CreateServiceFn: createServiceError},
 			wantError: errTest.Error(),
 		},
@@ -71,6 +72,7 @@ func TestServiceCreate(t *testing.T) {
 }
 
 func TestServiceList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -78,32 +80,32 @@ func TestServiceList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"service", "list"},
+			args:       args("service list"),
 			api:        mock.API{ListServicesFn: listServicesOK},
 			wantOutput: listServicesShortOutput,
 		},
 		{
-			args:       []string{"service", "list", "--verbose"},
+			args:       args("service list --verbose"),
 			api:        mock.API{ListServicesFn: listServicesOK},
 			wantOutput: listServicesVerboseOutput,
 		},
 		{
-			args:       []string{"service", "list", "-v"},
+			args:       args("service list -v"),
 			api:        mock.API{ListServicesFn: listServicesOK},
 			wantOutput: listServicesVerboseOutput,
 		},
 		{
-			args:       []string{"service", "--verbose", "list"},
+			args:       args("service --verbose list"),
 			api:        mock.API{ListServicesFn: listServicesOK},
 			wantOutput: listServicesVerboseOutput,
 		},
 		{
-			args:       []string{"-v", "service", "list"},
+			args:       args("-v service list"),
 			api:        mock.API{ListServicesFn: listServicesOK},
 			wantOutput: listServicesVerboseOutput,
 		},
 		{
-			args:      []string{"service", "list"},
+			args:      args("service list"),
 			api:       mock.API{ListServicesFn: listServicesError},
 			wantError: errTest.Error(),
 		},
@@ -120,6 +122,7 @@ func TestServiceList(t *testing.T) {
 }
 
 func TestServiceDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -127,37 +130,37 @@ func TestServiceDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"service", "describe"},
+			args:      args("service describe"),
 			api:       mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args:       []string{"service", "describe", "--service-id", "123"},
+			args:       args("service describe --service-id 123"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceShortOutput,
 		},
 		{
-			args:       []string{"service", "describe", "--service-id", "123", "--verbose"},
+			args:       args("service describe --service-id 123 --verbose"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:       []string{"service", "describe", "--service-id", "123", "-v"},
+			args:       args("service describe --service-id 123 -v"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:       []string{"service", "--verbose", "describe", "--service-id", "123"},
+			args:       args("service --verbose describe --service-id 123"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:       []string{"-v", "service", "describe", "--service-id", "123"},
+			args:       args("-v service describe --service-id 123"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:      []string{"service", "describe", "--service-id", "123"},
+			args:      args("service describe --service-id 123"),
 			api:       mock.API{GetServiceDetailsFn: describeServiceError},
 			wantError: errTest.Error(),
 		},
@@ -174,6 +177,7 @@ func TestServiceDescribe(t *testing.T) {
 }
 
 func TestServiceSearch(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -181,17 +185,17 @@ func TestServiceSearch(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"service", "search", "--name", "Foo"},
+			args:       args("service search --name Foo"),
 			api:        mock.API{SearchServiceFn: searchServiceOK},
 			wantOutput: searchServiceShortOutput,
 		},
 		{
-			args:       []string{"service", "search", "--name", "Foo", "-v"},
+			args:       args("service search --name Foo -v"),
 			api:        mock.API{SearchServiceFn: searchServiceOK},
 			wantOutput: searchServiceVerboseOutput,
 		},
 		{
-			args:      []string{"service", "search", "--name"},
+			args:      args("service search --name"),
 			api:       mock.API{SearchServiceFn: searchServiceOK},
 			wantError: "error parsing arguments: expected argument for flag '--name'",
 		},
@@ -208,6 +212,7 @@ func TestServiceSearch(t *testing.T) {
 }
 
 func TestServiceUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -215,7 +220,7 @@ func TestServiceUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"service", "update"},
+			args: args("service update"),
 			api: mock.API{
 				GetServiceFn:    getServiceOK,
 				UpdateServiceFn: updateServiceOK,
@@ -223,37 +228,37 @@ func TestServiceUpdate(t *testing.T) {
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args:      []string{"service", "update", "--service-id", "12345"},
+			args:      args("service update --service-id 12345"),
 			api:       mock.API{UpdateServiceFn: updateServiceOK},
 			wantError: "error parsing arguments: must provide either --name or --comment to update service",
 		},
 		{
-			args:       []string{"service", "update", "--service-id", "12345", "--name", "Foo"},
+			args:       args("service update --service-id 12345 --name Foo"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:       []string{"service", "update", "--service-id", "12345", "-n=Foo"},
+			args:       args("service update --service-id 12345 -n=Foo"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:       []string{"service", "update", "--service-id", "12345", "--name", "Foo"},
+			args:       args("service update --service-id 12345 --name Foo"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:       []string{"service", "update", "--service-id", "12345", "--name", "Foo", "--comment", "Hello"},
+			args:       args("service update --service-id 12345 --name Foo --comment Hello"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:       []string{"service", "update", "--service-id", "12345", "-n", "Foo", "--comment", "Hello"},
+			args:       args("service update --service-id 12345 -n Foo --comment Hello"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:      []string{"service", "update", "--service-id", "12345", "-n", "Foo"},
+			args:      args("service update --service-id 12345 -n Foo"),
 			api:       mock.API{UpdateServiceFn: updateServiceError},
 			wantError: errTest.Error(),
 		},
@@ -270,6 +275,7 @@ func TestServiceUpdate(t *testing.T) {
 }
 
 func TestServiceDelete(t *testing.T) {
+	args := testutil.Args
 	nonEmptyServiceID := regexp.MustCompile(`service_id = "[^"]+"`)
 
 	for _, testcase := range []struct {
@@ -281,32 +287,32 @@ func TestServiceDelete(t *testing.T) {
 		expectEmptyServiceID bool
 	}{
 		{
-			args:      []string{"service", "delete"},
+			args:      args("service delete"),
 			api:       mock.API{DeleteServiceFn: deleteServiceOK},
 			manifest:  "fastly-no-serviceid.toml",
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args:                 []string{"service", "delete"},
+			args:                 args("service delete"),
 			api:                  mock.API{DeleteServiceFn: deleteServiceOK},
 			manifest:             "fastly-valid.toml",
 			wantOutput:           "Deleted service ID 123",
 			expectEmptyServiceID: true,
 		},
 		{
-			args:       []string{"service", "delete", "--service-id", "001"},
+			args:       args("service delete --service-id 001"),
 			api:        mock.API{DeleteServiceFn: deleteServiceOK},
 			wantOutput: "Deleted service ID 001",
 		},
 		{
-			args:                 []string{"service", "delete", "--service-id", "001"},
+			args:                 args("service delete --service-id 001"),
 			api:                  mock.API{DeleteServiceFn: deleteServiceOK},
 			manifest:             "fastly-valid.toml",
 			wantOutput:           "Deleted service ID 001",
 			expectEmptyServiceID: false,
 		},
 		{
-			args:      []string{"service", "delete", "--service-id", "001"},
+			args:      args("service delete --service-id 001"),
 			api:       mock.API{DeleteServiceFn: deleteServiceError},
 			manifest:  "fastly-valid.toml",
 			wantError: errTest.Error(),

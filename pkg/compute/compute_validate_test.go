@@ -10,6 +10,7 @@ import (
 )
 
 func TestValidate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		name       string
 		args       []string
@@ -18,7 +19,7 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			name:       "success",
-			args:       []string{"compute", "validate", "-p", "pkg/package.tar.gz"},
+			args:       args("compute validate -p pkg/package.tar.gz"),
 			wantError:  "",
 			wantOutput: "Validated package",
 		},

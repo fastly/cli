@@ -13,6 +13,7 @@ import (
 )
 
 func TestHoneycombCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestHoneycombCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--dataset", "log", "--autoclone"},
+			args: args("logging honeycomb create --service-id 123 --version 1 --name log --dataset log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -28,7 +29,7 @@ func TestHoneycombCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
+			args: args("logging honeycomb create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -36,7 +37,7 @@ func TestHoneycombCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --dataset not provided",
 		},
 		{
-			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--dataset", "log", "--autoclone"},
+			args: args("logging honeycomb create --service-id 123 --version 1 --name log --auth-token abc --dataset log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -45,7 +46,7 @@ func TestHoneycombCreate(t *testing.T) {
 			wantOutput: "Created Honeycomb logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "honeycomb", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--dataset", "log", "--autoclone"},
+			args: args("logging honeycomb create --service-id 123 --version 1 --name log --auth-token abc --dataset log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -66,6 +67,7 @@ func TestHoneycombCreate(t *testing.T) {
 }
 
 func TestHoneycombList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -73,7 +75,7 @@ func TestHoneycombList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging honeycomb list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListHoneycombsFn: listHoneycombsOK,
@@ -81,7 +83,7 @@ func TestHoneycombList(t *testing.T) {
 			wantOutput: listHoneycombsShortOutput,
 		},
 		{
-			args: []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging honeycomb list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListHoneycombsFn: listHoneycombsOK,
@@ -89,7 +91,7 @@ func TestHoneycombList(t *testing.T) {
 			wantOutput: listHoneycombsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging honeycomb list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListHoneycombsFn: listHoneycombsOK,
@@ -97,7 +99,7 @@ func TestHoneycombList(t *testing.T) {
 			wantOutput: listHoneycombsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "honeycomb", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging honeycomb --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListHoneycombsFn: listHoneycombsOK,
@@ -105,7 +107,7 @@ func TestHoneycombList(t *testing.T) {
 			wantOutput: listHoneycombsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "honeycomb", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v honeycomb list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListHoneycombsFn: listHoneycombsOK,
@@ -113,7 +115,7 @@ func TestHoneycombList(t *testing.T) {
 			wantOutput: listHoneycombsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "honeycomb", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging honeycomb list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListHoneycombsFn: listHoneycombsError,
@@ -133,6 +135,7 @@ func TestHoneycombList(t *testing.T) {
 }
 
 func TestHoneycombDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -140,11 +143,11 @@ func TestHoneycombDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "honeycomb", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging honeycomb describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "honeycomb", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging honeycomb describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetHoneycombFn: getHoneycombError,
@@ -152,7 +155,7 @@ func TestHoneycombDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "honeycomb", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging honeycomb describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetHoneycombFn: getHoneycombOK,
@@ -172,6 +175,7 @@ func TestHoneycombDescribe(t *testing.T) {
 }
 
 func TestHoneycombUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -179,11 +183,11 @@ func TestHoneycombUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging honeycomb update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging honeycomb update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -192,7 +196,7 @@ func TestHoneycombUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "honeycomb", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging honeycomb update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -213,6 +217,7 @@ func TestHoneycombUpdate(t *testing.T) {
 }
 
 func TestHoneycombDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -220,11 +225,11 @@ func TestHoneycombDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "honeycomb", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging honeycomb delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "honeycomb", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging honeycomb delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -233,7 +238,7 @@ func TestHoneycombDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "honeycomb", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging honeycomb delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),

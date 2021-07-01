@@ -13,6 +13,7 @@ import (
 )
 
 func TestHistorical(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,17 +21,17 @@ func TestHistorical(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"stats", "historical", "--service-id=123"},
+			args:       args("stats historical --service-id=123"),
 			api:        mock.API{GetStatsJSONFn: getStatsJSONOK},
 			wantOutput: historicalOK,
 		},
 		{
-			args:      []string{"stats", "historical", "--service-id=123"},
+			args:      args("stats historical --service-id=123"),
 			api:       mock.API{GetStatsJSONFn: getStatsJSONError},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       []string{"stats", "historical", "--service-id=123", "--format=json"},
+			args:       args("stats historical --service-id=123 --format=json"),
 			api:        mock.API{GetStatsJSONFn: getStatsJSONOK},
 			wantOutput: historicalJSONOK,
 		},

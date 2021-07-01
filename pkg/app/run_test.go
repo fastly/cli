@@ -12,6 +12,7 @@ import (
 )
 
 func TestApplication(t *testing.T) {
+	args := testutil.Args
 	// These tests should only verify the app.Run helper wires things up
 	// correctly, and check behaviors that can't be associated with a specific
 	// command or subcommand. Commands should be tested in their packages,
@@ -29,17 +30,17 @@ func TestApplication(t *testing.T) {
 		},
 		{
 			name:    "help flag only",
-			args:    []string{"--help"},
+			args:    args("--help"),
 			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
 		},
 		{
 			name:    "help argument only",
-			args:    []string{"help"},
+			args:    args("help"),
 			wantErr: fullFatHelpDefault,
 		},
 		{
 			name:    "help service",
-			args:    []string{"help", "service"},
+			args:    args("help service"),
 			wantErr: helpService,
 		},
 	} {

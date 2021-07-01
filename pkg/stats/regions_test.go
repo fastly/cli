@@ -13,6 +13,7 @@ import (
 )
 
 func TestRegions(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,12 +21,12 @@ func TestRegions(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       []string{"stats", "regions"},
+			args:       args("stats regions"),
 			api:        mock.API{GetRegionsFn: getRegionsOK},
 			wantOutput: "foo\nbar\nbaz\n",
 		},
 		{
-			args:      []string{"stats", "regions"},
+			args:      args("stats regions"),
 			api:       mock.API{GetRegionsFn: getRegionsError},
 			wantError: errTest.Error(),
 		},

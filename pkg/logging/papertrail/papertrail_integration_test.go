@@ -13,6 +13,7 @@ import (
 )
 
 func TestPapertrailCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestPapertrailCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log", "--autoclone"},
+			args: args("logging papertrail create --service-id 123 --version 1 --name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -28,7 +29,7 @@ func TestPapertrailCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --address not provided",
 		},
 		{
-			args: []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com:123", "--autoclone"},
+			args: args("logging papertrail create --service-id 123 --version 1 --name log --address example.com:123 --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -37,7 +38,7 @@ func TestPapertrailCreate(t *testing.T) {
 			wantOutput: "Created Papertrail logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "papertrail", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com:123", "--autoclone"},
+			args: args("logging papertrail create --service-id 123 --version 1 --name log --address example.com:123 --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -58,6 +59,7 @@ func TestPapertrailCreate(t *testing.T) {
 }
 
 func TestPapertrailList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -65,7 +67,7 @@ func TestPapertrailList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging papertrail list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListPapertrailsFn: listPapertrailsOK,
@@ -73,7 +75,7 @@ func TestPapertrailList(t *testing.T) {
 			wantOutput: listPapertrailsShortOutput,
 		},
 		{
-			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging papertrail list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListPapertrailsFn: listPapertrailsOK,
@@ -81,7 +83,7 @@ func TestPapertrailList(t *testing.T) {
 			wantOutput: listPapertrailsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging papertrail list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListPapertrailsFn: listPapertrailsOK,
@@ -89,7 +91,7 @@ func TestPapertrailList(t *testing.T) {
 			wantOutput: listPapertrailsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "papertrail", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging papertrail --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListPapertrailsFn: listPapertrailsOK,
@@ -97,7 +99,7 @@ func TestPapertrailList(t *testing.T) {
 			wantOutput: listPapertrailsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "papertrail", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v papertrail list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListPapertrailsFn: listPapertrailsOK,
@@ -105,7 +107,7 @@ func TestPapertrailList(t *testing.T) {
 			wantOutput: listPapertrailsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "papertrail", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging papertrail list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListPapertrailsFn: listPapertrailsError,
@@ -125,6 +127,7 @@ func TestPapertrailList(t *testing.T) {
 }
 
 func TestPapertrailDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -132,11 +135,11 @@ func TestPapertrailDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging papertrail describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging papertrail describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetPapertrailFn: getPapertrailError,
@@ -144,7 +147,7 @@ func TestPapertrailDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "papertrail", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging papertrail describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetPapertrailFn: getPapertrailOK,
@@ -164,6 +167,7 @@ func TestPapertrailDescribe(t *testing.T) {
 }
 
 func TestPapertrailUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -171,11 +175,11 @@ func TestPapertrailUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging papertrail update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging papertrail update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -184,7 +188,7 @@ func TestPapertrailUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "papertrail", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging papertrail update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -205,6 +209,7 @@ func TestPapertrailUpdate(t *testing.T) {
 }
 
 func TestPapertrailDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -212,11 +217,11 @@ func TestPapertrailDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging papertrail delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging papertrail delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -225,7 +230,7 @@ func TestPapertrailDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "papertrail", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging papertrail delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),

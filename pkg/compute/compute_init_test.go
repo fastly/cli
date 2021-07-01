@@ -15,6 +15,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
+	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_INIT") == "" {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_INIT to run this test")
@@ -33,12 +34,12 @@ func TestInit(t *testing.T) {
 	}{
 		{
 			name:      "unknown repository",
-			args:      []string{"compute", "init", "--from", "https://example.com/template"},
+			args:      args("compute init --from https://example.com/template"),
 			wantError: "error fetching package template:",
 		},
 		{
 			name: "with name",
-			args: []string{"compute", "init", "--name", "test"},
+			args: args("compute init --name test"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
@@ -59,7 +60,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with description",
-			args: []string{"compute", "init", "--description", "test"},
+			args: args("compute init --description test"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
@@ -80,7 +81,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with author",
-			args: []string{"compute", "init", "--author", "test@example.com"},
+			args: args("compute init --author test@example.com"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
@@ -101,7 +102,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with multiple authors",
-			args: []string{"compute", "init", "--author", "test1@example.com", "--author", "test2@example.com"},
+			args: args("compute init --author test1@example.com --author test2@example.com"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
@@ -122,7 +123,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with from repository and branch",
-			args: []string{"compute", "init", "--from", "https://github.com/fastly/compute-starter-kit-rust-default.git", "--branch", "main"},
+			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default.git --branch main"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
@@ -142,7 +143,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with existing package manifest",
-			args: []string{"compute", "init", "--force"}, // --force will ignore that the directory isn't empty
+			args: args("compute init --force"), // --force will ignore a directory that isn't empty
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
@@ -169,7 +170,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "default",
-			args: []string{"compute", "init"},
+			args: args("compute init"),
 			configFile: config.File{
 				User: config.User{
 					Email: "test@example.com",
@@ -201,7 +202,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "non empty directory",
-			args: []string{"compute", "init"},
+			args: args("compute init"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
@@ -218,7 +219,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with default name inferred from directory",
-			args: []string{"compute", "init"},
+			args: args("compute init"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
@@ -234,7 +235,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with AssemblyScript language",
-			args: []string{"compute", "init", "--language", "assemblyscript"},
+			args: args("compute init --language assemblyscript"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					AssemblyScript: []config.StarterKit{
@@ -250,7 +251,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name:             "with pre-compiled Wasm binary",
-			args:             []string{"compute", "init", "--language", "other"},
+			args:             args("compute init --language other"),
 			manifestIncludes: `language = "other"`,
 			wantOutput: []string{
 				"Initialized package",

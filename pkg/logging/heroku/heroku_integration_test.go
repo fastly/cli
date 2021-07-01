@@ -13,6 +13,7 @@ import (
 )
 
 func TestHerokuCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestHerokuCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "heroku", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
+			args: args("logging heroku create --service-id 123 --version 1 --name log --url example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -28,7 +29,7 @@ func TestHerokuCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: []string{"logging", "heroku", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
+			args: args("logging heroku create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -36,7 +37,7 @@ func TestHerokuCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args: []string{"logging", "heroku", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--url", "example.com", "--autoclone"},
+			args: args("logging heroku create --service-id 123 --version 1 --name log --auth-token abc --url example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -45,7 +46,7 @@ func TestHerokuCreate(t *testing.T) {
 			wantOutput: "Created Heroku logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "heroku", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--url", "example.com", "--autoclone"},
+			args: args("logging heroku create --service-id 123 --version 1 --name log --auth-token abc --url example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -66,6 +67,7 @@ func TestHerokuCreate(t *testing.T) {
 }
 
 func TestHerokuList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -73,7 +75,7 @@ func TestHerokuList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "heroku", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging heroku list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHerokusFn:  listHerokusOK,
@@ -81,7 +83,7 @@ func TestHerokuList(t *testing.T) {
 			wantOutput: listHerokusShortOutput,
 		},
 		{
-			args: []string{"logging", "heroku", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging heroku list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHerokusFn:  listHerokusOK,
@@ -89,7 +91,7 @@ func TestHerokuList(t *testing.T) {
 			wantOutput: listHerokusVerboseOutput,
 		},
 		{
-			args: []string{"logging", "heroku", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging heroku list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHerokusFn:  listHerokusOK,
@@ -97,7 +99,7 @@ func TestHerokuList(t *testing.T) {
 			wantOutput: listHerokusVerboseOutput,
 		},
 		{
-			args: []string{"logging", "heroku", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging heroku --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHerokusFn:  listHerokusOK,
@@ -105,7 +107,7 @@ func TestHerokuList(t *testing.T) {
 			wantOutput: listHerokusVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "heroku", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v heroku list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHerokusFn:  listHerokusOK,
@@ -113,7 +115,7 @@ func TestHerokuList(t *testing.T) {
 			wantOutput: listHerokusVerboseOutput,
 		},
 		{
-			args: []string{"logging", "heroku", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging heroku list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHerokusFn:  listHerokusError,
@@ -133,6 +135,7 @@ func TestHerokuList(t *testing.T) {
 }
 
 func TestHerokuDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -140,11 +143,11 @@ func TestHerokuDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "heroku", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging heroku describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "heroku", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging heroku describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetHerokuFn:    getHerokuError,
@@ -152,7 +155,7 @@ func TestHerokuDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "heroku", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging heroku describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetHerokuFn:    getHerokuOK,
@@ -172,6 +175,7 @@ func TestHerokuDescribe(t *testing.T) {
 }
 
 func TestHerokuUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -179,11 +183,11 @@ func TestHerokuUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging heroku update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging heroku update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -192,7 +196,7 @@ func TestHerokuUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "heroku", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging heroku update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -213,6 +217,7 @@ func TestHerokuUpdate(t *testing.T) {
 }
 
 func TestHerokuDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -220,11 +225,11 @@ func TestHerokuDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "heroku", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging heroku delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "heroku", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging heroku delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -233,7 +238,7 @@ func TestHerokuDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "heroku", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging heroku delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),

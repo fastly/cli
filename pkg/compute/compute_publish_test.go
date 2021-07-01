@@ -15,6 +15,7 @@ import (
 )
 
 func TestPublish(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		name              string
 		args              []string
@@ -30,7 +31,7 @@ func TestPublish(t *testing.T) {
 	}{
 		{
 			name: "success no command flags",
-			args: []string{"compute", "publish", "-t", "123"},
+			args: args("compute publish -t 123"),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -88,7 +89,7 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "success with build command flags",
-			args: []string{"compute", "publish", "-t", "123", "--name", "test", "--language", "rust", "--include-source", "--force"},
+			args: args("compute publish -t 123 --name test --language rust --include-source --force"),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -146,7 +147,7 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "success with deploy command flags",
-			args: []string{"compute", "publish", "-t", "123", "--version", "2", "--path", "pkg/test.tar.gz"},
+			args: args("compute publish -t 123 --version 2 --path pkg/test.tar.gz"),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{

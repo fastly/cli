@@ -13,6 +13,7 @@ import (
 )
 
 func TestSyslogCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestSyslogCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--autoclone"},
+			args: args("logging syslog create --service-id 123 --version 1 --name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -28,7 +29,7 @@ func TestSyslogCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --address not provided",
 		},
 		{
-			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1", "--autoclone"},
+			args: args("logging syslog create --service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -37,7 +38,7 @@ func TestSyslogCreate(t *testing.T) {
 			wantOutput: "Created Syslog logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "syslog", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "127.0.0.1", "--autoclone"},
+			args: args("logging syslog create --service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -58,6 +59,7 @@ func TestSyslogCreate(t *testing.T) {
 }
 
 func TestSyslogList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -65,7 +67,7 @@ func TestSyslogList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging syslog list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
@@ -73,7 +75,7 @@ func TestSyslogList(t *testing.T) {
 			wantOutput: listSyslogsShortOutput,
 		},
 		{
-			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging syslog list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
@@ -81,7 +83,7 @@ func TestSyslogList(t *testing.T) {
 			wantOutput: listSyslogsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging syslog list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
@@ -89,7 +91,7 @@ func TestSyslogList(t *testing.T) {
 			wantOutput: listSyslogsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "syslog", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging syslog --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
@@ -97,7 +99,7 @@ func TestSyslogList(t *testing.T) {
 			wantOutput: listSyslogsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "syslog", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v syslog list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
@@ -105,7 +107,7 @@ func TestSyslogList(t *testing.T) {
 			wantOutput: listSyslogsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "syslog", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging syslog list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsError,
@@ -125,6 +127,7 @@ func TestSyslogList(t *testing.T) {
 }
 
 func TestSyslogDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -132,11 +135,11 @@ func TestSyslogDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging syslog describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging syslog describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSyslogFn:    getSyslogError,
@@ -144,7 +147,7 @@ func TestSyslogDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging syslog describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSyslogFn:    getSyslogOK,
@@ -164,6 +167,7 @@ func TestSyslogDescribe(t *testing.T) {
 }
 
 func TestSyslogUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -171,11 +175,11 @@ func TestSyslogUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging syslog update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging syslog update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -184,7 +188,7 @@ func TestSyslogUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging syslog update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -205,6 +209,7 @@ func TestSyslogUpdate(t *testing.T) {
 }
 
 func TestSyslogDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -212,11 +217,11 @@ func TestSyslogDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging syslog delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging syslog delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -225,7 +230,7 @@ func TestSyslogDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "syslog", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging syslog delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),

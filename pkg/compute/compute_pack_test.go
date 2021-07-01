@@ -12,6 +12,7 @@ import (
 )
 
 func TestPack(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		name          string
 		args          []string
@@ -24,7 +25,7 @@ func TestPack(t *testing.T) {
 		// created successfully.
 		{
 			name:     "success",
-			args:     []string{"compute", "pack", "--path", "./main.wasm"},
+			args:     args("compute pack --path ./main.wasm"),
 			manifest: `name = "precompiled"`,
 			wantOutput: []string{
 				"Initializing...",
@@ -42,13 +43,13 @@ func TestPack(t *testing.T) {
 		// provided.
 		{
 			name:      "error no path flag",
-			args:      []string{"compute", "pack"},
+			args:      args("compute pack"),
 			manifest:  `name = "precompiled"`,
 			wantError: "error parsing arguments: required flag --path not provided",
 		},
 		{
 			name:      "error no path flag value provided",
-			args:      []string{"compute", "pack", "--path", ""},
+			args:      args("compute pack --path "),
 			manifest:  `name = "precompiled"`,
 			wantError: "error copying wasm binary",
 		},

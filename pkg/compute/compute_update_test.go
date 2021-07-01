@@ -12,6 +12,7 @@ import (
 )
 
 func TestUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		name       string
 		args       []string
@@ -21,7 +22,7 @@ func TestUpdate(t *testing.T) {
 	}{
 		{
 			name: "package API error",
-			args: []string{"compute", "update", "-s", "123", "--version", "1", "-p", "pkg/package.tar.gz", "-t", "123", "--autoclone"},
+			args: args("compute update -s 123 --version 1 -p pkg/package.tar.gz -t 123 --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -35,7 +36,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			name: "success",
-			args: []string{"compute", "update", "-s", "123", "--version", "2", "-p", "pkg/package.tar.gz", "-t", "123", "--autoclone"},
+			args: args("compute update -s 123 --version 2 -p pkg/package.tar.gz -t 123 --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),

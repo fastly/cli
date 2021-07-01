@@ -13,6 +13,7 @@ import (
 )
 
 func TestDomainCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,11 +21,11 @@ func TestDomainCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"domain", "create", "--version", "1", "--service-id", "123"},
+			args:      args("domain create --version 1 --service-id 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"domain", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -33,7 +34,7 @@ func TestDomainCreate(t *testing.T) {
 			wantOutput: "Created domain www.test.com (service 123 version 4)",
 		},
 		{
-			args: []string{"domain", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -54,6 +55,7 @@ func TestDomainCreate(t *testing.T) {
 }
 
 func TestDomainList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -61,7 +63,7 @@ func TestDomainList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"domain", "list", "--service-id", "123", "--version", "1"},
+			args: args("domain list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -69,7 +71,7 @@ func TestDomainList(t *testing.T) {
 			wantOutput: listDomainsShortOutput,
 		},
 		{
-			args: []string{"domain", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("domain list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -77,7 +79,7 @@ func TestDomainList(t *testing.T) {
 			wantOutput: listDomainsVerboseOutput,
 		},
 		{
-			args: []string{"domain", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("domain list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -85,7 +87,7 @@ func TestDomainList(t *testing.T) {
 			wantOutput: listDomainsVerboseOutput,
 		},
 		{
-			args: []string{"domain", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("domain --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -93,7 +95,7 @@ func TestDomainList(t *testing.T) {
 			wantOutput: listDomainsVerboseOutput,
 		},
 		{
-			args: []string{"-v", "domain", "list", "--service-id", "123", "--version", "1"},
+			args: args("-v domain list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -101,7 +103,7 @@ func TestDomainList(t *testing.T) {
 			wantOutput: listDomainsVerboseOutput,
 		},
 		{
-			args: []string{"domain", "list", "--service-id", "123", "--version", "1"},
+			args: args("domain list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsError,
@@ -121,6 +123,7 @@ func TestDomainList(t *testing.T) {
 }
 
 func TestDomainDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -128,11 +131,11 @@ func TestDomainDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"domain", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("domain describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"domain", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
+			args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainError,
@@ -140,7 +143,7 @@ func TestDomainDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"domain", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
+			args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainOK,
@@ -160,6 +163,7 @@ func TestDomainDescribe(t *testing.T) {
 }
 
 func TestDomainUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -167,11 +171,11 @@ func TestDomainUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"domain", "update", "--service-id", "123", "--version", "1", "--new-name", "www.test.com", "--comment", ""},
+			args:      args("domain update --service-id 123 --version 1 --new-name www.test.com --comment "),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("domain update --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -180,7 +184,7 @@ func TestDomainUpdate(t *testing.T) {
 			wantError: "error parsing arguments: must provide either --new-name or --comment to update domain",
 		},
 		{
-			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -189,7 +193,7 @@ func TestDomainUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"domain", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -210,6 +214,7 @@ func TestDomainUpdate(t *testing.T) {
 }
 
 func TestDomainDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -217,11 +222,11 @@ func TestDomainDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"domain", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("domain delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"domain", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -230,7 +235,7 @@ func TestDomainDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"domain", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),

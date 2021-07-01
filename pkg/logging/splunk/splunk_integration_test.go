@@ -13,6 +13,7 @@ import (
 )
 
 func TestSplunkCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestSplunkCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log", "--autoclone"},
+			args: args("logging splunk create --service-id 123 --version 1 --name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -28,7 +29,7 @@ func TestSplunkCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args: []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
+			args: args("logging splunk create --service-id 123 --version 1 --name log --url example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -37,7 +38,7 @@ func TestSplunkCreate(t *testing.T) {
 			wantOutput: "Created Splunk logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "splunk", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
+			args: args("logging splunk create --service-id 123 --version 1 --name log --url example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -58,6 +59,7 @@ func TestSplunkCreate(t *testing.T) {
 }
 
 func TestSplunkList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -65,7 +67,7 @@ func TestSplunkList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging splunk list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSplunksFn:  listSplunksOK,
@@ -73,7 +75,7 @@ func TestSplunkList(t *testing.T) {
 			wantOutput: listSplunksShortOutput,
 		},
 		{
-			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging splunk list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSplunksFn:  listSplunksOK,
@@ -81,7 +83,7 @@ func TestSplunkList(t *testing.T) {
 			wantOutput: listSplunksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging splunk list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSplunksFn:  listSplunksOK,
@@ -89,7 +91,7 @@ func TestSplunkList(t *testing.T) {
 			wantOutput: listSplunksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "splunk", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging splunk --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSplunksFn:  listSplunksOK,
@@ -97,7 +99,7 @@ func TestSplunkList(t *testing.T) {
 			wantOutput: listSplunksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "splunk", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v splunk list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSplunksFn:  listSplunksOK,
@@ -105,7 +107,7 @@ func TestSplunkList(t *testing.T) {
 			wantOutput: listSplunksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "splunk", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging splunk list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSplunksFn:  listSplunksError,
@@ -125,6 +127,7 @@ func TestSplunkList(t *testing.T) {
 }
 
 func TestSplunkDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -132,11 +135,11 @@ func TestSplunkDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging splunk describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging splunk describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSplunkFn:    getSplunkError,
@@ -144,7 +147,7 @@ func TestSplunkDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "splunk", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging splunk describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSplunkFn:    getSplunkOK,
@@ -164,6 +167,7 @@ func TestSplunkDescribe(t *testing.T) {
 }
 
 func TestSplunkUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -171,11 +175,11 @@ func TestSplunkUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging splunk update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging splunk update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -184,7 +188,7 @@ func TestSplunkUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "splunk", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging splunk update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -205,6 +209,7 @@ func TestSplunkUpdate(t *testing.T) {
 }
 
 func TestSplunkDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -212,11 +217,11 @@ func TestSplunkDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging splunk delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging splunk delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -225,7 +230,7 @@ func TestSplunkDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "splunk", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging splunk delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),

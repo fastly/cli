@@ -13,6 +13,7 @@ import (
 )
 
 func TestSFTPCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestSFTPCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--user", "user", "--ssh-known-hosts", knownHosts(), "--port", "80", "--autoclone"},
+			args: args("logging sftp create --service-id 123 --version 1 --name log --user user --ssh-known-hosts knownHosts() --port 80 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -28,7 +29,7 @@ func TestSFTPCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --address not provided",
 		},
 		{
-			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--ssh-known-hosts", knownHosts(), "--port", "80", "--autoclone"},
+			args: args("logging sftp create --service-id 123 --version 1 --name log --address example.com --ssh-known-hosts knownHosts() --port 80 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -36,7 +37,7 @@ func TestSFTPCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "user", "--port", "80", "--autoclone"},
+			args: args("logging sftp create --service-id 123 --version 1 --name log --address example.com --user user --port 80 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -44,7 +45,7 @@ func TestSFTPCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --ssh-known-hosts not provided",
 		},
 		{
-			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "user", "--ssh-known-hosts", knownHosts(), "--port", "80", "--autoclone"},
+			args: args("logging sftp create --service-id 123 --version 1 --name log --address example.com --user user --ssh-known-hosts knownHosts() --port 80 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -53,7 +54,7 @@ func TestSFTPCreate(t *testing.T) {
 			wantOutput: "Created SFTP logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "user", "--ssh-known-hosts", knownHosts(), "--port", "80", "--autoclone"},
+			args: args("logging sftp create --service-id 123 --version 1 --name log --address example.com --user user --ssh-known-hosts knownHosts() --port 80 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -62,7 +63,7 @@ func TestSFTPCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sftp", "create", "--service-id", "123", "--version", "1", "--name", "log", "--address", "example.com", "--user", "anonymous", "--ssh-known-hosts", knownHosts(), "--port", "80", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
+			args: args("logging sftp create --service-id 123 --version 1 --name log --address example.com --user anonymous --ssh-known-hosts knownHosts() --port 80 --compression-codec zstd --gzip-level 9 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -82,6 +83,7 @@ func TestSFTPCreate(t *testing.T) {
 }
 
 func TestSFTPList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -89,7 +91,7 @@ func TestSFTPList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "sftp", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging sftp list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSFTPsFn:    listSFTPsOK,
@@ -97,7 +99,7 @@ func TestSFTPList(t *testing.T) {
 			wantOutput: listSFTPsShortOutput,
 		},
 		{
-			args: []string{"logging", "sftp", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging sftp list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSFTPsFn:    listSFTPsOK,
@@ -105,7 +107,7 @@ func TestSFTPList(t *testing.T) {
 			wantOutput: listSFTPsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "sftp", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging sftp list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSFTPsFn:    listSFTPsOK,
@@ -113,7 +115,7 @@ func TestSFTPList(t *testing.T) {
 			wantOutput: listSFTPsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "sftp", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging sftp --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSFTPsFn:    listSFTPsOK,
@@ -121,7 +123,7 @@ func TestSFTPList(t *testing.T) {
 			wantOutput: listSFTPsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "sftp", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v sftp list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSFTPsFn:    listSFTPsOK,
@@ -129,7 +131,7 @@ func TestSFTPList(t *testing.T) {
 			wantOutput: listSFTPsVerboseOutput,
 		},
 		{
-			args: []string{"logging", "sftp", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging sftp list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSFTPsFn:    listSFTPsError,
@@ -149,6 +151,7 @@ func TestSFTPList(t *testing.T) {
 }
 
 func TestSFTPDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -156,11 +159,11 @@ func TestSFTPDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "sftp", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging sftp describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "sftp", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging sftp describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSFTPFn:      getSFTPError,
@@ -168,7 +171,7 @@ func TestSFTPDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sftp", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging sftp describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSFTPFn:      getSFTPOK,
@@ -188,6 +191,7 @@ func TestSFTPDescribe(t *testing.T) {
 }
 
 func TestSFTPUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -195,11 +199,11 @@ func TestSFTPUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging sftp update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging sftp update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -208,7 +212,7 @@ func TestSFTPUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sftp", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging sftp update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -229,6 +233,7 @@ func TestSFTPUpdate(t *testing.T) {
 }
 
 func TestSFTPDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -236,11 +241,11 @@ func TestSFTPDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "sftp", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging sftp delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "sftp", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging sftp delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -249,7 +254,7 @@ func TestSFTPDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "sftp", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging sftp delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),

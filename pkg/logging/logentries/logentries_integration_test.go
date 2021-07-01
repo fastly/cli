@@ -13,6 +13,7 @@ import (
 )
 
 func TestLogentriesCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestLogentriesCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "logentries", "create", "--service-id", "123", "--version", "1", "--name", "log", "--port", "20000", "--autoclone"},
+			args: args("logging logentries create --service-id 123 --version 1 --name log --port 20000 --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -29,7 +30,7 @@ func TestLogentriesCreate(t *testing.T) {
 			wantOutput: "Created Logentries logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "logentries", "create", "--service-id", "123", "--version", "1", "--name", "log", "--port", "20000", "--autoclone"},
+			args: args("logging logentries create --service-id 123 --version 1 --name log --port 20000 --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -50,6 +51,7 @@ func TestLogentriesCreate(t *testing.T) {
 }
 
 func TestLogentriesList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -57,7 +59,7 @@ func TestLogentriesList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging logentries list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -65,7 +67,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesShortOutput,
 		},
 		{
-			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging logentries list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -73,7 +75,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging logentries list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -81,7 +83,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "logentries", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging logentries --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -89,7 +91,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "logentries", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v logentries list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -97,7 +99,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "logentries", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging logentries list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesError,
@@ -117,6 +119,7 @@ func TestLogentriesList(t *testing.T) {
 }
 
 func TestLogentriesDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -124,11 +127,11 @@ func TestLogentriesDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging logentries describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging logentries describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetLogentriesFn: getLogentriesError,
@@ -136,7 +139,7 @@ func TestLogentriesDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logentries", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging logentries describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetLogentriesFn: getLogentriesOK,
@@ -156,6 +159,7 @@ func TestLogentriesDescribe(t *testing.T) {
 }
 
 func TestLogentriesUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -163,11 +167,11 @@ func TestLogentriesUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging logentries update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging logentries update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -176,7 +180,7 @@ func TestLogentriesUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logentries", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging logentries update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -197,6 +201,7 @@ func TestLogentriesUpdate(t *testing.T) {
 }
 
 func TestLogentriesDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -204,11 +209,11 @@ func TestLogentriesDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging logentries delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging logentries delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -217,7 +222,7 @@ func TestLogentriesDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logentries", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging logentries delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),

@@ -13,6 +13,7 @@ import (
 )
 
 func TestBackendCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestBackendCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"backend", "create", "--version", "1", "--service-id", "123", "--address", "example.com"},
+			args:      args("backend create --version 1 --service-id 123 --address example.com"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		// The following test specifies a service version that's 'active', and
@@ -28,7 +29,7 @@ func TestBackendCreate(t *testing.T) {
 		// --autoclone flag and trying to add a backend to an activated service
 		// should cause an error.
 		{
-			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "example.com", "--name", "www.test.com"},
+			args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
@@ -37,7 +38,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as the above but it appends --autoclone
 		// so we can be sure the backend creation error still occurs.
 		{
-			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "example.com", "--name", "www.test.com", "--autoclone"},
+			args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -48,7 +49,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as above but with an IP address for the
 		// --address flag instead of a hostname.
 		{
-			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "127.0.0.1", "--name", "www.test.com", "--autoclone"},
+			args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -59,7 +60,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as above but mocks a successful backend
 		// creation so we can validate the correct service version was utilised.
 		{
-			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "127.0.0.1", "--name", "www.test.com", "--autoclone"},
+			args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -71,7 +72,7 @@ func TestBackendCreate(t *testing.T) {
 		// --verbose so we may validate the expected output message regarding a
 		// missing port is displayed.
 		{
-			args: []string{"backend", "create", "--service-id", "123", "--version", "1", "--address", "127.0.0.1", "--name", "www.test.com", "--autoclone", "--use-ssl", "--verbose"},
+			args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -82,7 +83,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test specifies a service version that's 'inactive', and
 		// subsequently we expect it to be the same editable version.
 		{
-			args: []string{"backend", "create", "--service-id", "123", "--version", "3", "--address", "127.0.0.1", "--name", "www.test.com"},
+			args: args("backend create --service-id 123 --version 3 --address 127.0.0.1 --name www.test.com"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
@@ -102,6 +103,7 @@ func TestBackendCreate(t *testing.T) {
 }
 
 func TestBackendList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -109,7 +111,7 @@ func TestBackendList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"backend", "list", "--service-id", "123", "--version", "1"},
+			args: args("backend list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -117,7 +119,7 @@ func TestBackendList(t *testing.T) {
 			wantOutput: listBackendsShortOutput,
 		},
 		{
-			args: []string{"backend", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("backend list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -125,7 +127,7 @@ func TestBackendList(t *testing.T) {
 			wantOutput: listBackendsVerboseOutput,
 		},
 		{
-			args: []string{"backend", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("backend list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -133,7 +135,7 @@ func TestBackendList(t *testing.T) {
 			wantOutput: listBackendsVerboseOutput,
 		},
 		{
-			args: []string{"backend", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("backend --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -141,7 +143,7 @@ func TestBackendList(t *testing.T) {
 			wantOutput: listBackendsVerboseOutput,
 		},
 		{
-			args: []string{"-v", "backend", "list", "--service-id", "123", "--version", "1"},
+			args: args("-v backend list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -149,7 +151,7 @@ func TestBackendList(t *testing.T) {
 			wantOutput: listBackendsVerboseOutput,
 		},
 		{
-			args: []string{"backend", "list", "--service-id", "123", "--version", "1"},
+			args: args("backend list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsError,
@@ -169,6 +171,7 @@ func TestBackendList(t *testing.T) {
 }
 
 func TestBackendDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -176,11 +179,11 @@ func TestBackendDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"backend", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("backend describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"backend", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
+			args: args("backend describe --service-id 123 --version 1 --name www.test.com"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendError,
@@ -188,7 +191,7 @@ func TestBackendDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"backend", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
+			args: args("backend describe --service-id 123 --version 1 --name www.test.com"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendOK,
@@ -208,6 +211,7 @@ func TestBackendDescribe(t *testing.T) {
 }
 
 func TestBackendUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -215,11 +219,11 @@ func TestBackendUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"backend", "update", "--service-id", "123", "--version", "2", "--new-name", "www.test.com", "--comment", ""},
+			args:      args("backend update --service-id 123 --version 2 --new-name www.test.com --comment "),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"backend", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -228,7 +232,7 @@ func TestBackendUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"backend", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -238,7 +242,7 @@ func TestBackendUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"backend", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--comment", "", "--autoclone"},
+			args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -260,6 +264,7 @@ func TestBackendUpdate(t *testing.T) {
 }
 
 func TestBackendDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -267,11 +272,11 @@ func TestBackendDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"backend", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("backend delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"backend", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -280,7 +285,7 @@ func TestBackendDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"backend", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),

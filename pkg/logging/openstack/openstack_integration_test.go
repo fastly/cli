@@ -13,6 +13,7 @@ import (
 )
 
 func TestOpenstackCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestOpenstackCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--autoclone"},
+			args: args("logging openstack create --service-id 123 --version 1 --name log --access-key foo --user user --url https://example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -28,7 +29,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --bucket not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--user", "user", "--url", "https://example.com", "--autoclone"},
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --user user --url https://example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -36,7 +37,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--url", "https://example.com", "--autoclone"},
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --url https://example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -44,7 +45,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--autoclone"},
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -52,7 +53,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--autoclone"},
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -61,7 +62,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantOutput: "Created OpenStack logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--autoclone"},
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -70,7 +71,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "openstack", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--user", "user", "--url", "https://example.com", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --compression-codec zstd --gzip-level 9 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -90,6 +91,7 @@ func TestOpenstackCreate(t *testing.T) {
 }
 
 func TestOpenstackList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -97,7 +99,7 @@ func TestOpenstackList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging openstack list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -105,7 +107,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksShortOutput,
 		},
 		{
-			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging openstack list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -113,7 +115,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging openstack list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -121,7 +123,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "openstack", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging openstack --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -129,7 +131,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "openstack", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v openstack list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -137,7 +139,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: []string{"logging", "openstack", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging openstack list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksError,
@@ -157,6 +159,7 @@ func TestOpenstackList(t *testing.T) {
 }
 
 func TestOpenstackDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -164,11 +167,11 @@ func TestOpenstackDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging openstack describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging openstack describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetOpenstackFn: getOpenstackError,
@@ -176,7 +179,7 @@ func TestOpenstackDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "openstack", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging openstack describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetOpenstackFn: getOpenstackOK,
@@ -196,6 +199,7 @@ func TestOpenstackDescribe(t *testing.T) {
 }
 
 func TestOpenstackUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -203,11 +207,11 @@ func TestOpenstackUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging openstack update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging openstack update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -216,7 +220,7 @@ func TestOpenstackUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "openstack", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging openstack update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -237,6 +241,7 @@ func TestOpenstackUpdate(t *testing.T) {
 }
 
 func TestOpenstackDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -244,11 +249,11 @@ func TestOpenstackDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging openstack delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging openstack delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -257,7 +262,7 @@ func TestOpenstackDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "openstack", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging openstack delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),

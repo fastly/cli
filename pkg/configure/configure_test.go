@@ -24,6 +24,7 @@ func TestConfigure(t *testing.T) {
 			}, nil
 		}
 		badUser = func(*fastly.GetUserInput) (*fastly.User, error) { return nil, errors.New("bad user") }
+		args    = testutil.Args
 	)
 
 	for _, testcase := range []struct {
@@ -40,7 +41,7 @@ func TestConfigure(t *testing.T) {
 	}{
 		{
 			name: "endpoint from flag",
-			args: []string{"configure", "--endpoint", "http://local.dev", "--token", "abcdef"},
+			args: args("configure --endpoint http://local.dev --token abcdef"),
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
@@ -84,7 +85,7 @@ func TestConfigure(t *testing.T) {
 		},
 		{
 			name:           "endpoint already in file should be replaced by flag",
-			args:           []string{"configure", "--endpoint=http://staging.dev", "--token=abcdef"},
+			args:           args("configure --endpoint=http://staging.dev --token=abcdef"),
 			configFileData: "endpoint = \"https://api.fastly.com\"",
 			stdin:          "new_token\n",
 			api: mock.API{
@@ -130,7 +131,7 @@ func TestConfigure(t *testing.T) {
 		},
 		{
 			name: "token from flag",
-			args: []string{"configure", "--token=abcdef"},
+			args: args("configure --token=abcdef"),
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
@@ -173,7 +174,7 @@ func TestConfigure(t *testing.T) {
 		},
 		{
 			name:  "token from interactive input",
-			args:  []string{"configure"},
+			args:  args("configure"),
 			stdin: "1234\n",
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
@@ -219,7 +220,7 @@ func TestConfigure(t *testing.T) {
 		},
 		{
 			name: "token from environment",
-			args: []string{"configure"},
+			args: args("configure"),
 			env:  config.Environment{Token: "hello"},
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
@@ -263,7 +264,7 @@ func TestConfigure(t *testing.T) {
 		},
 		{
 			name:           "token already in file should trigger interactive input",
-			args:           []string{"configure"},
+			args:           args("configure"),
 			configFileData: "token = \"old_token\"",
 			stdin:          "new_token\n",
 			api: mock.API{
@@ -310,7 +311,7 @@ func TestConfigure(t *testing.T) {
 		},
 		{
 			name: "invalid token",
-			args: []string{"configure", "--token=abcdef"},
+			args: args("configure --token=abcdef"),
 			api: mock.API{
 				GetTokenSelfFn: badToken,
 				GetUserFn:      badUser,

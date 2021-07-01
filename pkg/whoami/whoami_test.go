@@ -19,6 +19,7 @@ import (
 )
 
 func TestWhoami(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		name       string
 		args       []string
@@ -30,37 +31,37 @@ func TestWhoami(t *testing.T) {
 	}{
 		{
 			name:      "no token",
-			args:      []string{"whoami"},
+			args:      args("whoami"),
 			client:    verifyClient(basicResponse),
 			wantError: "no token provided",
 		},
 		{
 			name:       "basic response",
-			args:       []string{"--token=x", "whoami"},
+			args:       args("--token=x whoami"),
 			client:     verifyClient(basicResponse),
 			wantOutput: basicOutput,
 		},
 		{
 			name:       "basic response verbose",
-			args:       []string{"--token=x", "whoami", "-v"},
+			args:       args("--token=x whoami -v"),
 			client:     verifyClient(basicResponse),
 			wantOutput: basicOutputVerbose,
 		},
 		{
 			name:      "500 from API",
-			args:      []string{"--token=x", "whoami"},
+			args:      args("--token=x whoami"),
 			client:    codeClient{code: http.StatusInternalServerError},
 			wantError: "error from API: 500 Internal Server Error",
 		},
 		{
 			name:      "local error",
-			args:      []string{"--token=x", "whoami"},
+			args:      args("--token=x whoami"),
 			client:    errorClient{err: errors.New("some network failure")},
 			wantError: "error executing API request: some network failure",
 		},
 		{
 			name:   "alternative endpoint from flag",
-			args:   []string{"--token=x", "whoami", "--endpoint=https://staging.fastly.com", "-v"},
+			args:   args("--token=x whoami --endpoint=https://staging.fastly.com -v"),
 			client: verifyClient(basicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,
 				"Fastly API endpoint: https://api.fastly.com",
@@ -69,7 +70,7 @@ func TestWhoami(t *testing.T) {
 		},
 		{
 			name:   "alternative endpoint from environment",
-			args:   []string{"--token=x", "whoami", "-v"},
+			args:   args("--token=x whoami -v"),
 			env:    config.Environment{Endpoint: "https://alternative.example.com"},
 			client: verifyClient(basicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,

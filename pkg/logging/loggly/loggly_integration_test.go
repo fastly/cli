@@ -13,6 +13,7 @@ import (
 )
 
 func TestLogglyCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -20,7 +21,7 @@ func TestLogglyCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "loggly", "create", "--service-id", "123", "--version", "1", "--name", "log", "--autoclone"},
+			args: args("logging loggly create --service-id 123 --version 1 --name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -28,7 +29,7 @@ func TestLogglyCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: []string{"logging", "loggly", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
+			args: args("logging loggly create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -37,7 +38,7 @@ func TestLogglyCreate(t *testing.T) {
 			wantOutput: "Created Loggly logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "loggly", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
+			args: args("logging loggly create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -58,6 +59,7 @@ func TestLogglyCreate(t *testing.T) {
 }
 
 func TestLogglyList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -65,7 +67,7 @@ func TestLogglyList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "loggly", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging loggly list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysOK,
@@ -73,7 +75,7 @@ func TestLogglyList(t *testing.T) {
 			wantOutput: listLogglysShortOutput,
 		},
 		{
-			args: []string{"logging", "loggly", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging loggly list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysOK,
@@ -81,7 +83,7 @@ func TestLogglyList(t *testing.T) {
 			wantOutput: listLogglysVerboseOutput,
 		},
 		{
-			args: []string{"logging", "loggly", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging loggly list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysOK,
@@ -89,7 +91,7 @@ func TestLogglyList(t *testing.T) {
 			wantOutput: listLogglysVerboseOutput,
 		},
 		{
-			args: []string{"logging", "loggly", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging loggly --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysOK,
@@ -97,7 +99,7 @@ func TestLogglyList(t *testing.T) {
 			wantOutput: listLogglysVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "loggly", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v loggly list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysOK,
@@ -105,7 +107,7 @@ func TestLogglyList(t *testing.T) {
 			wantOutput: listLogglysVerboseOutput,
 		},
 		{
-			args: []string{"logging", "loggly", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging loggly list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysError,
@@ -125,6 +127,7 @@ func TestLogglyList(t *testing.T) {
 }
 
 func TestLogglyDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -132,11 +135,11 @@ func TestLogglyDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "loggly", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging loggly describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "loggly", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging loggly describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetLogglyFn:    getLogglyError,
@@ -144,7 +147,7 @@ func TestLogglyDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "loggly", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging loggly describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetLogglyFn:    getLogglyOK,
@@ -164,6 +167,7 @@ func TestLogglyDescribe(t *testing.T) {
 }
 
 func TestLogglyUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -171,11 +175,11 @@ func TestLogglyUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "loggly", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging loggly update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "loggly", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging loggly update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -184,7 +188,7 @@ func TestLogglyUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "loggly", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging loggly update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -205,6 +209,7 @@ func TestLogglyUpdate(t *testing.T) {
 }
 
 func TestLogglyDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -212,11 +217,11 @@ func TestLogglyDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "loggly", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging loggly delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "loggly", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging loggly delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -225,7 +230,7 @@ func TestLogglyDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "loggly", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging loggly delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),

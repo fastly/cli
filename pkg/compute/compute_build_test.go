@@ -29,6 +29,7 @@ import (
 // You can locate the default Cargo.toml here:
 // pkg/compute/testdata/build/Cargo.toml
 func TestBuildRust(t *testing.T) {
+	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD_RUST") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
@@ -48,13 +49,13 @@ func TestBuildRust(t *testing.T) {
 	}{
 		{
 			name:      "no fastly.toml manifest",
-			args:      []string{"compute", "build"},
+			args:      args("compute build"),
 			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
 		},
 		{
 			name: "empty language",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"`,
@@ -63,7 +64,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "empty name",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			language = "rust"`,
@@ -72,7 +73,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "unknown language",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
@@ -82,7 +83,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "error reading cargo metadata",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
@@ -107,7 +108,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "fastly-sys crate not found",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
@@ -145,7 +146,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "fastly-sys crate out-of-date",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
@@ -179,7 +180,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "fastly crate prerelease",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
@@ -216,7 +217,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "Rust success",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -330,6 +331,7 @@ func makeRustBuildEnvironment(t *testing.T, fastlyManifestContent, cargoManifest
 }
 
 func TestBuildAssemblyScript(t *testing.T) {
+	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT or TEST_COMPUTE_BUILD to run this test")
@@ -345,12 +347,12 @@ func TestBuildAssemblyScript(t *testing.T) {
 	}{
 		{
 			name:      "no fastly.toml manifest",
-			args:      []string{"compute", "build"},
+			args:      args("compute build"),
 			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
 		},
 		{
 			name: "empty language",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"`,
@@ -358,7 +360,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 		},
 		{
 			name: "empty name",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			language = "assemblyscript"`,
@@ -366,7 +368,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 		},
 		{
 			name: "unknown language",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
@@ -375,7 +377,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 		},
 		{
 			name: "AssemblyScript success",
-			args: []string{"compute", "build"},
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
