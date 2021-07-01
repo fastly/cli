@@ -326,9 +326,18 @@ func TestServiceDelete(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Create our init environment in a temp dir.
-			// Defer a call to clean it up.
-			rootdir := makeTempEnvironment(t, testcase.manifest)
+			// Create test environment
+			opts := testutil.EnvOpts{T: t}
+			if testcase.manifest != "" {
+				b, err := os.ReadFile(filepath.Join("testdata", testcase.manifest))
+				if err != nil {
+					t.Fatal(err)
+				}
+				opts.Write = []testutil.FileIO{
+					{Src: string(b), Dst: manifest.Filename},
+				}
+			}
+			rootdir := testutil.NewEnv(opts)
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the temp environment.
@@ -368,38 +377,6 @@ func TestServiceDelete(t *testing.T) {
 			}
 		})
 	}
-}
-
-func makeTempEnvironment(t *testing.T, fixture string) (rootdir string) {
-	t.Helper()
-
-	rootdir, err := os.MkdirTemp("", "fastly-temp-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
-	if fixture != "" {
-		path, err := filepath.Abs(filepath.Join("testdata", fixture))
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		b, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		filename := filepath.Join(rootdir, manifest.Filename)
-		if err := os.WriteFile(filename, b, 0777); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	return rootdir
 }
 
 var errTest = errors.New("fixture error")
