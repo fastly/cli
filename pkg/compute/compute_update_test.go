@@ -3,17 +3,12 @@ package compute_test
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 )
 
 func TestUpdate(t *testing.T) {
@@ -75,22 +70,12 @@ func TestUpdate(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				buf           bytes.Buffer
-				out           io.Writer = sync.NewWriter(&buf)
-			)
-			err = app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, testcase.api, &stdout)
+			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {
-				testutil.AssertStringContains(t, buf.String(), s)
+				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 		})
 	}
