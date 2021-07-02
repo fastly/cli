@@ -1,5 +1,9 @@
 package compute_test
 
+// NOTE: This file doesn't contain any tests. It only contains code that is
+// shared across some of the other test files (mostly mocked API responses, but
+// also a mocked HTTP client).
+
 import (
 	"fmt"
 	"net/http"
