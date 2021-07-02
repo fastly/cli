@@ -445,7 +445,7 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 func updateManifest(m manifest.File, progress text.Progress, path string, name string, desc string, authors []string, lang *Language) (manifest.File, error) {
 	progress.Step("Updating package manifest...")
 
-	mp := filepath.Join(path, ManifestFilename)
+	mp := filepath.Join(path, manifest.Filename)
 
 	if err := m.Read(mp); err != nil {
 		if lang.Name != "other" {

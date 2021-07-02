@@ -3,75 +3,55 @@ package app_test
 import (
 	"bufio"
 	"bytes"
-	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 )
 
 func TestApplication(t *testing.T) {
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "no args",
+			Args:      nil,
+			WantError: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
+		},
+		{
+			Name:      "help flag only",
+			Args:      args("--help"),
+			WantError: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
+		},
+		{
+			Name:      "help argument only",
+			Args:      args("help"),
+			WantError: fullFatHelpDefault,
+		},
+		{
+			Name:      "help service",
+			Args:      args("help service"),
+			WantError: helpService,
+		},
+	}
 	// These tests should only verify the app.Run helper wires things up
 	// correctly, and check behaviors that can't be associated with a specific
 	// command or subcommand. Commands should be tested in their packages,
 	// leveraging the app.Run helper as appropriate.
-	for _, testcase := range []struct {
-		name    string
-		args    []string
-		wantOut string
-		wantErr string
-	}{
-		{
-			name:    "no args",
-			args:    nil,
-			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
-		},
-		{
-			name:    "help flag only",
-			args:    []string{"--help"},
-			wantErr: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
-		},
-		{
-			name:    "help argument only",
-			args:    []string{"help"},
-			wantErr: fullFatHelpDefault,
-		},
-		{
-			name:    "help service",
-			args:    []string{"help", "service"},
-			wantErr: helpService,
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
 			var (
-				args                            = testcase.args
-				env                             = config.Environment{}
-				file                            = config.File{}
-				configFilePath                  = "/dev/null"
-				clientFactory                   = mock.APIClient(mock.API{})
-				httpClient     api.HTTPClient   = nil
-				cliVersioner   update.Versioner = nil
-				stdin          io.Reader        = nil
-				stdout         bytes.Buffer
-				stderr         bytes.Buffer
+				stdout bytes.Buffer
+				stderr bytes.Buffer
 			)
-			err := app.Run(args, env, file, configFilePath, clientFactory, httpClient, cliVersioner, stdin, &stdout)
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}
 
-			// Our flag package creates trailing space on
-			// some lines. Strip what we get so we don't
-			// need to maintain invisible spaces in
-			// wantOut/wantErr below.
-			testutil.AssertString(t, testcase.wantOut, stripTrailingSpace(stdout.String()))
-			testutil.AssertString(t, testcase.wantErr, stripTrailingSpace(stderr.String()))
+			testutil.AssertString(t, testcase.WantError, stripTrailingSpace(stderr.String()))
 		})
 	}
 }

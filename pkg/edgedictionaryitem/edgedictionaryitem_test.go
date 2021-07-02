@@ -3,21 +3,18 @@ package edgedictionaryitem_test
 import (
 	"bytes"
 	"errors"
-	"io"
-	"net/http"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 func TestDictionaryItemDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -25,46 +22,39 @@ func TestDictionaryItemDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"dictionaryitem", "describe", "--service-id", "123", "--key", "foo"},
+			args:      args("dictionaryitem describe --service-id 123 --key foo"),
 			api:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantError: "error parsing arguments: required flag --dictionary-id not provided",
 		},
 		{
-			args:      []string{"dictionaryitem", "describe", "--service-id", "123", "--dictionary-id", "456"},
+			args:      args("dictionaryitem describe --service-id 123 --dictionary-id 456"),
 			api:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantError: "error parsing arguments: required flag --key not provided",
 		},
 		{
-			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--dictionary-id", "456", "--key", "foo"},
+			args:       args("dictionaryitem describe --service-id 123 --dictionary-id 456 --key foo"),
 			api:        mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantOutput: describeDictionaryItemOutput,
 		},
 		{
-			args:       []string{"dictionaryitem", "describe", "--service-id", "123", "--dictionary-id", "456", "--key", "foo-deleted"},
+			args:       args("dictionaryitem describe --service-id 123 --dictionary-id 456 --key foo-deleted"),
 			api:        mock.API{GetDictionaryItemFn: describeDictionaryItemOKDeleted},
 			wantOutput: describeDictionaryItemOutputDeleted,
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestDictionaryItemsList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -72,36 +62,29 @@ func TestDictionaryItemsList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"dictionaryitem", "list", "--service-id", "123"},
+			args:      args("dictionaryitem list --service-id 123"),
 			api:       mock.API{ListDictionaryItemsFn: listDictionaryItemsOK},
 			wantError: "error parsing arguments: required flag --dictionary-id not provided",
 		},
 		{
-			args:       []string{"dictionaryitem", "list", "--service-id", "123", "--dictionary-id", "456"},
+			args:       args("dictionaryitem list --service-id 123 --dictionary-id 456"),
 			api:        mock.API{ListDictionaryItemsFn: listDictionaryItemsOK},
 			wantOutput: listDictionaryItemsOutput,
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestDictionaryItemCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -109,41 +92,34 @@ func TestDictionaryItemCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"dictionaryitem", "create", "--service-id", "123"},
+			args:      args("dictionaryitem create --service-id 123"),
 			api:       mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:      []string{"dictionaryitem", "create", "--service-id", "123", "--dictionary-id", "456"},
+			args:      args("dictionaryitem create --service-id 123 --dictionary-id 456"),
 			api:       mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:       []string{"dictionaryitem", "create", "--service-id", "123", "--dictionary-id", "456", "--key", "foo", "--value", "bar"},
+			args:       args("dictionaryitem create --service-id 123 --dictionary-id 456 --key foo --value bar"),
 			api:        mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			wantOutput: "\nSUCCESS: Created dictionary item foo (service 123, dictionary 456)\n",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestDictionaryItemUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -151,41 +127,34 @@ func TestDictionaryItemUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"dictionaryitem", "update", "--service-id", "123"},
+			args:      args("dictionaryitem update --service-id 123"),
 			api:       mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:      []string{"dictionaryitem", "update", "--service-id", "123", "--dictionary-id", "456"},
+			args:      args("dictionaryitem update --service-id 123 --dictionary-id 456"),
 			api:       mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:       []string{"dictionaryitem", "update", "--service-id", "123", "--dictionary-id", "456", "--key", "foo", "--value", "bar"},
+			args:       args("dictionaryitem update --service-id 123 --dictionary-id 456 --key foo --value bar"),
 			api:        mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			wantOutput: updateDictionaryItemOutput,
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestDictionaryItemDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -193,41 +162,34 @@ func TestDictionaryItemDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"dictionaryitem", "delete", "--service-id", "123"},
+			args:      args("dictionaryitem delete --service-id 123"),
 			api:       mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:      []string{"dictionaryitem", "delete", "--service-id", "123", "--dictionary-id", "456"},
+			args:      args("dictionaryitem delete --service-id 123 --dictionary-id 456"),
 			api:       mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:       []string{"dictionaryitem", "delete", "--service-id", "123", "--dictionary-id", "456", "--key", "foo"},
+			args:       args("dictionaryitem delete --service-id 123 --dictionary-id 456 --key foo"),
 			api:        mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			wantOutput: "\nSUCCESS: Deleted dictionary item foo (service 123, dicitonary 456)\n",
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestDictionaryItemBatchModify(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -236,36 +198,36 @@ func TestDictionaryItemBatchModify(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123"},
+			args:      args("dictionaryitem batchmodify --service-id 123"),
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456"},
+			args:      args("dictionaryitem batchmodify --service-id 123 --dictionary-id 456"),
 			wantError: "error parsing arguments: required flag --file not provided",
 		},
 		{
 			fileData:  `{invalid": "json"}`,
-			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "filePath"},
+			args:      args("dictionaryitem batchmodify --service-id 123 --dictionary-id 456 --file filePath"),
 			wantError: "invalid character 'i' looking for beginning of object key string",
 		},
 		{
 			fileData:  `{"valid": "json"}`,
-			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "filePath"},
+			args:      args("dictionaryitem batchmodify --service-id 123 --dictionary-id 456 --file filePath"),
 			wantError: "item key not found in file ",
 		},
 		{
-			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "missingFile"},
+			args:      args("dictionaryitem batchmodify --service-id 123 --dictionary-id 456 --file missingFile"),
 			wantError: "open missingFile",
 		},
 		{
 			fileData:  dictionaryItemBatchModifyInputOK,
-			args:      []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "filePath"},
+			args:      args("dictionaryitem batchmodify --service-id 123 --dictionary-id 456 --file filePath"),
 			api:       mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsError},
 			wantError: errTest.Error(),
 		},
 		{
 			fileData:   dictionaryItemBatchModifyInputOK,
-			args:       []string{"dictionaryitem", "batchmodify", "--service-id", "123", "--dictionary-id", "456", "--file", "filePath"},
+			args:       args("dictionaryitem batchmodify --service-id 123 --dictionary-id 456 --file filePath"),
 			api:        mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsOK},
 			wantOutput: "\nSUCCESS: Made 4 modifications of Dictionary 456 on service 123\n",
 		},
@@ -284,20 +246,12 @@ func TestDictionaryItemBatchModify(t *testing.T) {
 				}
 			}
 
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }

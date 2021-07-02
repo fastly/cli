@@ -47,11 +47,11 @@ func TestVCLCustomCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("vcl custom create --content ./testdata/example.vcl --name foo --service-id 123 --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate CreateVCL API success for non-main VCL",
@@ -138,11 +138,12 @@ func TestVCLCustomCreate(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "example.vcl", content, t)
 		})
 	}
@@ -179,11 +180,11 @@ func TestVCLCustomDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteVCLFn: func(i *fastly.DeleteVCLInput) error {
-					return testutil.ErrAPI
+					return testutil.Err
 				},
 			},
 			Args:      args("vcl custom delete --name foobar --service-id 123 --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate DeleteVCL API success",
@@ -212,11 +213,12 @@ func TestVCLCustomDelete(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -244,11 +246,11 @@ func TestVCLCustomDescribe(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetVCLFn: func(i *fastly.GetVCLInput) (*fastly.VCL, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("vcl custom describe --name foobar --service-id 123 --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate GetVCL API success",
@@ -272,11 +274,12 @@ func TestVCLCustomDescribe(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -299,11 +302,11 @@ func TestVCLCustomList(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListVCLsFn: func(i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("vcl custom list --service-id 123 --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate ListVCLs API success",
@@ -336,11 +339,12 @@ func TestVCLCustomList(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -377,11 +381,11 @@ func TestVCLCustomUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("vcl custom update --name foobar --new-name beepboop --service-id 123 --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate UpdateVCL API success with --new-name",
@@ -445,11 +449,12 @@ func TestVCLCustomUpdate(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "example.vcl", content, t)
 		})
 	}

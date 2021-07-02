@@ -109,9 +109,19 @@ func TestConfigRead(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Create our environment in a temp dir.
-			// Defer a call to clean it up.
-			rootdir, fpath := makeTempEnvironment(t, testcase.userConfigFilename)
+			// Create test environment
+			opts := testutil.EnvOpts{T: t}
+			if testcase.userConfigFilename != "" {
+				b, err := os.ReadFile(filepath.Join("testdata", testcase.userConfigFilename))
+				if err != nil {
+					t.Fatal(err)
+				}
+				opts.Write = []testutil.FileIO{
+					{Src: string(b), Dst: "config.toml"},
+				}
+			}
+			rootdir := testutil.NewEnv(opts)
+			configPath := filepath.Join(rootdir, "config.toml")
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the temp environment.
@@ -123,11 +133,11 @@ func TestConfigRead(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			if testcase.userConfigFilename == "" {
-				if fi, err := os.Stat(fpath); err == nil {
+				if fi, err := os.Stat(configPath); err == nil {
 					t.Fatalf("expected the user config to NOT exist at this point: %+v", fi)
 				}
 			} else {
-				if _, err := os.Stat(fpath); err != nil {
+				if _, err := os.Stat(configPath); err != nil {
 					t.Fatalf("expected the user config to exist at this point: %v", err)
 				}
 			}
@@ -138,7 +148,7 @@ func TestConfigRead(t *testing.T) {
 			var out bytes.Buffer
 			in := strings.NewReader(testcase.userResponseToPrompt)
 
-			err = f.Read(fpath, in, &out)
+			err = f.Read(configPath, in, &out)
 
 			if testcase.remediation {
 				e, ok := err.(fsterr.RemediationError)
@@ -156,8 +166,8 @@ func TestConfigRead(t *testing.T) {
 				// If we're not expecting an error, then we're expecting the user
 				// configuration file to exist...
 
-				if _, err := os.Stat(fpath); err == nil {
-					bs, err := os.ReadFile(fpath)
+				if _, err := os.Stat(configPath); err == nil {
+					bs, err := os.ReadFile(configPath)
 					if err != nil {
 						t.Fatalf("unexpected err: %v", err)
 					}
@@ -209,9 +219,18 @@ func TestUseStatic(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Create our environment in a temp dir.
-			// Defer a call to clean it up.
-			rootdir, fpath := makeTempEnvironment(t, testcase.userConfigFilename)
+			// Create test environment
+			b, err := os.ReadFile(filepath.Join("testdata", testcase.userConfigFilename))
+			if err != nil {
+				t.Fatal(err)
+			}
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Write: []testutil.FileIO{
+					{Src: string(b), Dst: "config.toml"},
+				},
+			})
+			configPath := filepath.Join(rootdir, "config.toml")
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the temp environment.
@@ -224,7 +243,7 @@ func TestUseStatic(t *testing.T) {
 
 			// Validate that invalid static configuration returns a specific error.
 			f := config.File{}
-			err = f.UseStatic(staticConfigInvalid, fpath)
+			err = f.UseStatic(staticConfigInvalid, configPath)
 			if err == nil {
 				t.Fatal("expected an error, but got nil")
 			} else {
@@ -235,8 +254,8 @@ func TestUseStatic(t *testing.T) {
 			// embedded in the CLI binary.
 			f = config.File{}
 			var out bytes.Buffer
-			f.Read(fpath, strings.NewReader(""), &out)
-			f.UseStatic(staticConfig, fpath)
+			f.Read(configPath, strings.NewReader(""), &out)
+			f.UseStatic(staticConfig, configPath)
 			if f.CLI.LastChecked == "" || f.CLI.Version == "" {
 				t.Fatalf("expected LastChecked/Version to be set: %+v", f)
 			}
@@ -262,9 +281,18 @@ func TestConfigWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Create our environment in a temp dir.
-	// Defer a call to clean it up.
-	rootdir, fpath := makeTempEnvironment(t, "config.toml")
+	// Create test environment
+	b, err := os.ReadFile(filepath.Join("testdata", "config.toml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Write: []testutil.FileIO{
+			{Src: string(b), Dst: "config.toml"},
+		},
+	})
+	configPath := filepath.Join(rootdir, "config.toml")
 	defer os.RemoveAll(rootdir)
 
 	// Before running the test, chdir into the temp environment.
@@ -278,7 +306,7 @@ func TestConfigWrite(t *testing.T) {
 	// Validate the f.Static field is reset and restored.
 	var f config.File
 	f.Static = staticConfig
-	f.Write(fpath)
+	f.Write(configPath)
 	if len(f.Static) < 1 {
 		t.Fatal("expected f.Static to be set")
 	}
@@ -296,7 +324,7 @@ func TestConfigWrite(t *testing.T) {
 	// set back into f.Static when we unmarshal the local toml file. It's that
 	// behaviour of f.Write that we want to validate doesn't happen.
 	f.Static = []byte("")
-	bs, err := os.ReadFile(fpath)
+	bs, err := os.ReadFile(configPath)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
 	}
@@ -307,40 +335,4 @@ func TestConfigWrite(t *testing.T) {
 	if len(f.Static) > 0 {
 		t.Fatalf("expected f.Static to be not set: %+v", f.Static)
 	}
-}
-
-// makeTempEnvironment creates a temporary directory, and within that directory
-// it creates a config.toml based on the src content from ./testdata/. If the
-// calling test function passes an empty string, then not local user config is
-// created (allowing for a test function to validate the static embedded one).
-func makeTempEnvironment(t *testing.T, userConfigSrcFilename string) (rootdir, userConfig string) {
-	t.Helper()
-
-	rootdir, err := os.MkdirTemp("", "fastly-temp-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := os.MkdirAll(rootdir, 0700); err != nil {
-		t.Fatal(err)
-	}
-
-	userConfig = filepath.Join(rootdir, "config.toml")
-	configSrc, err := filepath.Abs(filepath.Join("testdata", userConfigSrcFilename))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if userConfigSrcFilename != "" {
-		b, err := os.ReadFile(configSrc)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if err := os.WriteFile(userConfig, b, 0777); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	return rootdir, userConfig
 }

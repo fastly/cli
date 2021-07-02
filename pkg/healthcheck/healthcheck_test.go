@@ -3,20 +3,17 @@ package healthcheck_test
 import (
 	"bytes"
 	"errors"
-	"io"
-	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 func TestHealthCheckCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -24,11 +21,11 @@ func TestHealthCheckCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"healthcheck", "create", "--version", "1", "--service-id", "123"},
+			args:      args("healthcheck create --version 1 --service-id 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"healthcheck", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("healthcheck create --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -37,7 +34,7 @@ func TestHealthCheckCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"healthcheck", "create", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("healthcheck create --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -47,25 +44,18 @@ func TestHealthCheckCreate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
 
 func TestHealthCheckList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -73,7 +63,7 @@ func TestHealthCheckList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"healthcheck", "list", "--service-id", "123", "--version", "1"},
+			args: args("healthcheck list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
@@ -81,7 +71,7 @@ func TestHealthCheckList(t *testing.T) {
 			wantOutput: listHealthChecksShortOutput,
 		},
 		{
-			args: []string{"healthcheck", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("healthcheck list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
@@ -89,7 +79,7 @@ func TestHealthCheckList(t *testing.T) {
 			wantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args: []string{"healthcheck", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("healthcheck list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
@@ -97,7 +87,7 @@ func TestHealthCheckList(t *testing.T) {
 			wantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args: []string{"healthcheck", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("healthcheck --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
@@ -105,7 +95,7 @@ func TestHealthCheckList(t *testing.T) {
 			wantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args: []string{"-v", "healthcheck", "list", "--service-id", "123", "--version", "1"},
+			args: args("-v healthcheck list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
@@ -113,7 +103,7 @@ func TestHealthCheckList(t *testing.T) {
 			wantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args: []string{"healthcheck", "list", "--service-id", "123", "--version", "1"},
+			args: args("healthcheck list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksError,
@@ -122,25 +112,18 @@ func TestHealthCheckList(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestHealthCheckDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -148,11 +131,11 @@ func TestHealthCheckDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"healthcheck", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("healthcheck describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"healthcheck", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
+			args: args("healthcheck describe --service-id 123 --version 1 --name www.test.com"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				GetHealthCheckFn: getHealthCheckError,
@@ -160,7 +143,7 @@ func TestHealthCheckDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"healthcheck", "describe", "--service-id", "123", "--version", "1", "--name", "www.test.com"},
+			args: args("healthcheck describe --service-id 123 --version 1 --name www.test.com"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				GetHealthCheckFn: getHealthCheckOK,
@@ -169,25 +152,18 @@ func TestHealthCheckDescribe(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestHealthCheckUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -195,11 +171,11 @@ func TestHealthCheckUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--new-name", "www.test.com", "--comment", ""},
+			args:      args("healthcheck update --service-id 123 --version 1 --new-name www.test.com --comment "),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: args("healthcheck update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -207,7 +183,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 			},
 		},
 		{
-			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: args("healthcheck update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -216,7 +192,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"healthcheck", "update", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--new-name", "www.example.com", "--autoclone"},
+			args: args("healthcheck update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -226,25 +202,18 @@ func TestHealthCheckUpdate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
 
 func TestHealthCheckDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -252,11 +221,11 @@ func TestHealthCheckDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"healthcheck", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("healthcheck delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"healthcheck", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("healthcheck delete --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -265,7 +234,7 @@ func TestHealthCheckDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"healthcheck", "delete", "--service-id", "123", "--version", "1", "--name", "www.test.com", "--autoclone"},
+			args: args("healthcheck delete --service-id 123 --version 1 --name www.test.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -275,20 +244,12 @@ func TestHealthCheckDelete(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }

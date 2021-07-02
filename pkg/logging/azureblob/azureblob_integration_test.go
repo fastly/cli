@@ -3,20 +3,17 @@ package azureblob_test
 import (
 	"bytes"
 	"errors"
-	"io"
-	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 func TestBlobStorageCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -24,15 +21,15 @@ func TestBlobStorageCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "azureblob", "create", "--service-id", "123", "--version", "1", "--name", "log", "--account-name", "account", "--sas-token", "abc"},
+			args:      args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --sas-token abc"),
 			wantError: "error parsing arguments: required flag --container not provided",
 		},
 		{
-			args:      []string{"logging", "azureblob", "create", "--service-id", "123", "--version", "1", "--name", "log", "--container", "log", "--sas-token", "abc"},
+			args:      args("logging azureblob create --service-id 123 --version 1 --name log --container log --sas-token abc"),
 			wantError: "error parsing arguments: required flag --account-name not provided",
 		},
 		{
-			args: []string{"logging", "azureblob", "create", "--service-id", "123", "--version", "1", "--name", "log", "--account-name", "account", "--container", "log", "--autoclone"},
+			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -41,7 +38,7 @@ func TestBlobStorageCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --sas-token not provided",
 		},
 		{
-			args: []string{"logging", "azureblob", "create", "--service-id", "123", "--version", "1", "--name", "log", "--account-name", "account", "--container", "log", "--sas-token", "abc", "--autoclone"},
+			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -50,7 +47,7 @@ func TestBlobStorageCreate(t *testing.T) {
 			wantOutput: "Created Azure Blob Storage logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "azureblob", "create", "--service-id", "123", "--version", "1", "--name", "log", "--account-name", "account", "--container", "log", "--sas-token", "abc", "--autoclone"},
+			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -59,7 +56,7 @@ func TestBlobStorageCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "azureblob", "create", "--service-id", "123", "--version", "1", "--name", "log", "--account-name", "account", "--container", "log", "--sas-token", "abc", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
+			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --compression-codec zstd --gzip-level 9 --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -69,25 +66,18 @@ func TestBlobStorageCreate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
 
 func TestBlobStorageList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -95,7 +85,7 @@ func TestBlobStorageList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "azureblob", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging azureblob list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -103,7 +93,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesShortOutput,
 		},
 		{
-			args: []string{"logging", "azureblob", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging azureblob list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -111,7 +101,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "azureblob", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging azureblob list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -119,7 +109,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "azureblob", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging azureblob --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -127,7 +117,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "azureblob", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v azureblob list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -135,7 +125,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "azureblob", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging azureblob list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesError,
@@ -144,25 +134,18 @@ func TestBlobStorageList(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestBlobStorageDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -170,11 +153,11 @@ func TestBlobStorageDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "azureblob", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging azureblob describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "azureblob", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging azureblob describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				GetBlobStorageFn: getBlobStorageError,
@@ -182,7 +165,7 @@ func TestBlobStorageDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "azureblob", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging azureblob describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				GetBlobStorageFn: getBlobStorageOK,
@@ -191,25 +174,18 @@ func TestBlobStorageDescribe(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestBlobStorageUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -217,11 +193,11 @@ func TestBlobStorageUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "azureblob", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging azureblob update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "azureblob", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging azureblob update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -230,7 +206,7 @@ func TestBlobStorageUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "azureblob", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging azureblob update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -240,25 +216,18 @@ func TestBlobStorageUpdate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
 
 func TestBlobStorageDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -266,11 +235,11 @@ func TestBlobStorageDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "azureblob", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging azureblob delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "azureblob", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging azureblob delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -279,7 +248,7 @@ func TestBlobStorageDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "azureblob", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging azureblob delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -289,20 +258,12 @@ func TestBlobStorageDelete(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }

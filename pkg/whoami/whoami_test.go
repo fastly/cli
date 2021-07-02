@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -15,13 +14,12 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
-	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/cli/pkg/whoami"
 )
 
 func TestWhoami(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		name       string
 		args       []string
@@ -33,37 +31,37 @@ func TestWhoami(t *testing.T) {
 	}{
 		{
 			name:      "no token",
-			args:      []string{"whoami"},
+			args:      args("whoami"),
 			client:    verifyClient(basicResponse),
 			wantError: "no token provided",
 		},
 		{
 			name:       "basic response",
-			args:       []string{"--token=x", "whoami"},
+			args:       args("--token=x whoami"),
 			client:     verifyClient(basicResponse),
 			wantOutput: basicOutput,
 		},
 		{
 			name:       "basic response verbose",
-			args:       []string{"--token=x", "whoami", "-v"},
+			args:       args("--token=x whoami -v"),
 			client:     verifyClient(basicResponse),
 			wantOutput: basicOutputVerbose,
 		},
 		{
 			name:      "500 from API",
-			args:      []string{"--token=x", "whoami"},
+			args:      args("--token=x whoami"),
 			client:    codeClient{code: http.StatusInternalServerError},
 			wantError: "error from API: 500 Internal Server Error",
 		},
 		{
 			name:      "local error",
-			args:      []string{"--token=x", "whoami"},
+			args:      args("--token=x whoami"),
 			client:    errorClient{err: errors.New("some network failure")},
 			wantError: "error executing API request: some network failure",
 		},
 		{
 			name:   "alternative endpoint from flag",
-			args:   []string{"--token=x", "whoami", "--endpoint=https://staging.fastly.com", "-v"},
+			args:   args("--token=x whoami --endpoint=https://staging.fastly.com -v"),
 			client: verifyClient(basicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,
 				"Fastly API endpoint: https://api.fastly.com",
@@ -72,7 +70,7 @@ func TestWhoami(t *testing.T) {
 		},
 		{
 			name:   "alternative endpoint from environment",
-			args:   []string{"--token=x", "whoami", "-v"},
+			args:   args("--token=x whoami -v"),
 			env:    config.Environment{Endpoint: "https://alternative.example.com"},
 			client: verifyClient(basicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,
@@ -82,20 +80,14 @@ func TestWhoami(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			var (
-				args                            = testcase.args
-				env                             = testcase.env
-				file                            = testcase.file
-				configFileName                  = "/dev/null"
-				clientFactory                   = mock.APIClient(mock.API{})
-				httpClient                      = testcase.client
-				cliVersioner   update.Versioner = nil
-				in             io.Reader        = nil
-				out            bytes.Buffer
-			)
-			err := app.Run(args, env, file, configFileName, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetEnv(testcase.env)
+			ara.SetFile(testcase.file)
+			ara.SetClient(testcase.client)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }

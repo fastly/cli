@@ -3,20 +3,17 @@ package logshuttle_test
 import (
 	"bytes"
 	"errors"
-	"io"
-	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 func TestLogshuttleCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -24,7 +21,7 @@ func TestLogshuttleCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--auth-token", "abc", "--autoclone"},
+			args: args("logging logshuttle create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -32,7 +29,7 @@ func TestLogshuttleCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--autoclone"},
+			args: args("logging logshuttle create --service-id 123 --version 1 --name log --url example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -40,7 +37,7 @@ func TestLogshuttleCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--auth-token", "abc", "--autoclone"},
+			args: args("logging logshuttle create --service-id 123 --version 1 --name log --url example.com --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -49,7 +46,7 @@ func TestLogshuttleCreate(t *testing.T) {
 			wantOutput: "Created Logshuttle logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "logshuttle", "create", "--service-id", "123", "--version", "1", "--name", "log", "--url", "example.com", "--auth-token", "abc", "--autoclone"},
+			args: args("logging logshuttle create --service-id 123 --version 1 --name log --url example.com --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -59,25 +56,18 @@ func TestLogshuttleCreate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
 
 func TestLogshuttleList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -85,7 +75,7 @@ func TestLogshuttleList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging logshuttle list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListLogshuttlesFn: listLogshuttlesOK,
@@ -93,7 +83,7 @@ func TestLogshuttleList(t *testing.T) {
 			wantOutput: listLogshuttlesShortOutput,
 		},
 		{
-			args: []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging logshuttle list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListLogshuttlesFn: listLogshuttlesOK,
@@ -101,7 +91,7 @@ func TestLogshuttleList(t *testing.T) {
 			wantOutput: listLogshuttlesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging logshuttle list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListLogshuttlesFn: listLogshuttlesOK,
@@ -109,7 +99,7 @@ func TestLogshuttleList(t *testing.T) {
 			wantOutput: listLogshuttlesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "logshuttle", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging logshuttle --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListLogshuttlesFn: listLogshuttlesOK,
@@ -117,7 +107,7 @@ func TestLogshuttleList(t *testing.T) {
 			wantOutput: listLogshuttlesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "logshuttle", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v logshuttle list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListLogshuttlesFn: listLogshuttlesOK,
@@ -125,7 +115,7 @@ func TestLogshuttleList(t *testing.T) {
 			wantOutput: listLogshuttlesVerboseOutput,
 		},
 		{
-			args: []string{"logging", "logshuttle", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging logshuttle list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ListLogshuttlesFn: listLogshuttlesError,
@@ -134,25 +124,18 @@ func TestLogshuttleList(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestLogshuttleDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -160,11 +143,11 @@ func TestLogshuttleDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logshuttle", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging logshuttle describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "logshuttle", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging logshuttle describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetLogshuttleFn: getLogshuttleError,
@@ -172,7 +155,7 @@ func TestLogshuttleDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logshuttle", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging logshuttle describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetLogshuttleFn: getLogshuttleOK,
@@ -181,25 +164,18 @@ func TestLogshuttleDescribe(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestLogshuttleUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -207,11 +183,11 @@ func TestLogshuttleUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging logshuttle update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging logshuttle update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -220,7 +196,7 @@ func TestLogshuttleUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logshuttle", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging logshuttle update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -230,25 +206,18 @@ func TestLogshuttleUpdate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
 
 func TestLogshuttleDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -256,11 +225,11 @@ func TestLogshuttleDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging logshuttle delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging logshuttle delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -269,7 +238,7 @@ func TestLogshuttleDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "logshuttle", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging logshuttle delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -279,20 +248,12 @@ func TestLogshuttleDelete(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }

@@ -111,7 +111,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var m manifest.File
 	m.SetOutput(c.Globals.Output)
-	if err := m.Read(ManifestFilename); err != nil {
+	if err := m.Read(manifest.Filename); err != nil {
 		return fmt.Errorf("error reading package manifest: %w", err)
 	}
 
@@ -180,7 +180,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", name))
 
 	files := []string{
-		ManifestFilename,
+		manifest.Filename,
 	}
 	files = append(files, language.IncludeFiles...)
 

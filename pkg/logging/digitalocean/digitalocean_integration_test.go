@@ -3,20 +3,17 @@ package digitalocean_test
 import (
 	"bytes"
 	"errors"
-	"io"
-	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/update"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 func TestDigitalOceanCreate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -24,7 +21,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--access-key", "foo", "--secret-key", "abc", "--autoclone"},
+			args: args("logging digitalocean create --service-id 123 --version 1 --name log --access-key foo --secret-key abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -32,7 +29,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --bucket not provided",
 		},
 		{
-			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--secret-key", "abc", "--autoclone"},
+			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --secret-key abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -40,7 +37,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
 		{
-			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--autoclone"},
+			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --access-key foo --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -48,7 +45,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "abc", "--autoclone"},
+			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
@@ -57,7 +54,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 			wantOutput: "Created DigitalOcean Spaces logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "abc", "--autoclone"},
+			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
@@ -66,7 +63,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "digitalocean", "create", "--service-id", "123", "--version", "1", "--name", "log", "--bucket", "log", "--access-key", "foo", "--secret-key", "abc", "--compression-codec", "zstd", "--gzip-level", "9", "--autoclone"},
+			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --compression-codec zstd --gzip-level 9 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -75,25 +72,18 @@ func TestDigitalOceanCreate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
 
 func TestDigitalOceanList(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -101,7 +91,7 @@ func TestDigitalOceanList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: []string{"logging", "digitalocean", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging digitalocean list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansOK,
@@ -109,7 +99,7 @@ func TestDigitalOceanList(t *testing.T) {
 			wantOutput: listDigitalOceansShortOutput,
 		},
 		{
-			args: []string{"logging", "digitalocean", "list", "--service-id", "123", "--version", "1", "--verbose"},
+			args: args("logging digitalocean list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansOK,
@@ -117,7 +107,7 @@ func TestDigitalOceanList(t *testing.T) {
 			wantOutput: listDigitalOceansVerboseOutput,
 		},
 		{
-			args: []string{"logging", "digitalocean", "list", "--service-id", "123", "--version", "1", "-v"},
+			args: args("logging digitalocean list --service-id 123 --version 1 -v"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansOK,
@@ -125,7 +115,7 @@ func TestDigitalOceanList(t *testing.T) {
 			wantOutput: listDigitalOceansVerboseOutput,
 		},
 		{
-			args: []string{"logging", "digitalocean", "--verbose", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging digitalocean --verbose list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansOK,
@@ -133,7 +123,7 @@ func TestDigitalOceanList(t *testing.T) {
 			wantOutput: listDigitalOceansVerboseOutput,
 		},
 		{
-			args: []string{"logging", "-v", "digitalocean", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging -v digitalocean list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansOK,
@@ -141,7 +131,7 @@ func TestDigitalOceanList(t *testing.T) {
 			wantOutput: listDigitalOceansVerboseOutput,
 		},
 		{
-			args: []string{"logging", "digitalocean", "list", "--service-id", "123", "--version", "1"},
+			args: args("logging digitalocean list --service-id 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansError,
@@ -150,25 +140,18 @@ func TestDigitalOceanList(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestDigitalOceanDescribe(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -176,11 +159,11 @@ func TestDigitalOceanDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "digitalocean", "describe", "--service-id", "123", "--version", "1"},
+			args:      args("logging digitalocean describe --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "digitalocean", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging digitalocean describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetDigitalOceanFn: getDigitalOceanError,
@@ -188,7 +171,7 @@ func TestDigitalOceanDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "digitalocean", "describe", "--service-id", "123", "--version", "1", "--name", "logs"},
+			args: args("logging digitalocean describe --service-id 123 --version 1 --name logs"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetDigitalOceanFn: getDigitalOceanOK,
@@ -197,25 +180,18 @@ func TestDigitalOceanDescribe(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, out.String())
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
 	}
 }
 
 func TestDigitalOceanUpdate(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -223,11 +199,11 @@ func TestDigitalOceanUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--new-name", "log"},
+			args:      args("logging digitalocean update --service-id 123 --version 1 --new-name log"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging digitalocean update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
@@ -236,7 +212,7 @@ func TestDigitalOceanUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "digitalocean", "update", "--service-id", "123", "--version", "1", "--name", "logs", "--new-name", "log", "--autoclone"},
+			args: args("logging digitalocean update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
@@ -246,25 +222,18 @@ func TestDigitalOceanUpdate(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
 
 func TestDigitalOceanDelete(t *testing.T) {
+	args := testutil.Args
 	for _, testcase := range []struct {
 		args       []string
 		api        mock.API
@@ -272,11 +241,11 @@ func TestDigitalOceanDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      []string{"logging", "digitalocean", "delete", "--service-id", "123", "--version", "1"},
+			args:      args("logging digitalocean delete --service-id 123 --version 1"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: []string{"logging", "digitalocean", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging digitalocean delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
@@ -285,7 +254,7 @@ func TestDigitalOceanDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: []string{"logging", "digitalocean", "delete", "--service-id", "123", "--version", "1", "--name", "logs", "--autoclone"},
+			args: args("logging digitalocean delete --service-id 123 --version 1 --name logs --autoclone"),
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
@@ -295,20 +264,12 @@ func TestDigitalOceanDelete(t *testing.T) {
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var (
-				args                           = testcase.args
-				env                            = config.Environment{}
-				file                           = config.File{}
-				appConfigFile                  = "/dev/null"
-				clientFactory                  = mock.APIClient(testcase.api)
-				httpClient                     = http.DefaultClient
-				cliVersioner  update.Versioner = nil
-				in            io.Reader        = nil
-				out           bytes.Buffer
-			)
-			err := app.Run(args, env, file, appConfigFile, clientFactory, httpClient, cliVersioner, in, &out)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
+			ara.SetClientFactory(testcase.api)
+			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, out.String(), testcase.wantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }

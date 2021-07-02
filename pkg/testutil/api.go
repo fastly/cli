@@ -6,8 +6,8 @@ import (
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
-// ErrAPI represents a generic API error.
-var ErrAPI = errors.New("test api error")
+// Err represents a generic error.
+var Err = errors.New("test error")
 
 // ListVersions returns a list of service versions in different states.
 //
@@ -43,7 +43,7 @@ func ListVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 // ListVersionsError returns a generic error message when attempting to list
 // service versions.
 func ListVersionsError(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-	return nil, errors.New("fixture error")
+	return nil, Err
 }
 
 // CloneVersionResult returns a function which returns a specific cloned version.
@@ -59,5 +59,5 @@ func CloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.
 // CloneVersionError returns a generic error message when attempting to clone a
 // service version.
 func CloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return nil, errors.New("fixture error")
+	return nil, Err
 }

@@ -223,7 +223,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		undoStack.Push(func() error {
 			clearServiceID := ""
-			return updateManifestServiceID(&c.Manifest.File, ManifestFilename, nil, clearServiceID)
+			return updateManifestServiceID(&c.Manifest.File, manifest.Filename, nil, clearServiceID)
 		})
 
 		undoStack.Push(func() error {
@@ -245,7 +245,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
-		err = updateManifestServiceID(&c.Manifest.File, ManifestFilename, progress, serviceID)
+		err = updateManifestServiceID(&c.Manifest.File, manifest.Filename, progress, serviceID)
 		if err != nil {
 			return err
 		}

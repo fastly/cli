@@ -33,11 +33,11 @@ func TestPurgeAll(t *testing.T) {
 			Name: "validate PurgeAll API error",
 			API: mock.API{
 				PurgeAllFn: func(i *fastly.PurgeAllInput) (*fastly.Purge, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("purge --all --service-id 123 --token 456"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate PurgeAll API success",
@@ -55,11 +55,12 @@ func TestPurgeAll(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -82,11 +83,11 @@ func TestPurgeKeys(t *testing.T) {
 			Name: "validate PurgeKeys API error",
 			API: mock.API{
 				PurgeKeysFn: func(i *fastly.PurgeKeysInput) (map[string]string, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("purge --file ./testdata/keys --service-id 123 --token 456"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate PurgeKeys API success",
@@ -109,11 +110,12 @@ func TestPurgeKeys(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			assertKeys(testcase.WantError, testcase.Args, keys, t)
 		})
 	}
@@ -153,11 +155,11 @@ func TestPurgeKey(t *testing.T) {
 			Name: "validate PurgeKey API error",
 			API: mock.API{
 				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("purge --key foobar --service-id 123 --token 456"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate PurgeKey API success",
@@ -189,11 +191,12 @@ func TestPurgeKey(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -210,11 +213,11 @@ func TestPurgeURL(t *testing.T) {
 			Name: "validate Purge API error",
 			API: mock.API{
 				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("purge --service-id 123 --token 456 --url https://example.com"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate Purge API success",
@@ -246,11 +249,12 @@ func TestPurgeURL(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }

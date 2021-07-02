@@ -52,11 +52,11 @@ func TestVCLSnippetCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("vcl snippet create --content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate CreateSnippet API success for versioned Snippet",
@@ -168,11 +168,12 @@ func TestVCLSnippetCreate(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "snippet.vcl", content, t)
 		})
 	}
@@ -209,11 +210,11 @@ func TestVCLSnippetDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteSnippetFn: func(i *fastly.DeleteSnippetInput) error {
-					return testutil.ErrAPI
+					return testutil.Err
 				},
 			},
 			Args:      args("vcl snippet delete --name foobar --service-id 123 --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate DeleteSnippet API success",
@@ -242,11 +243,12 @@ func TestVCLSnippetDelete(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -285,11 +287,11 @@ func TestVCLSnippetDescribe(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSnippetFn: func(i *fastly.GetSnippetInput) (*fastly.Snippet, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("vcl snippet describe --name foobar --service-id 123 --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate GetSnippet API success",
@@ -322,11 +324,12 @@ func TestVCLSnippetDescribe(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -349,11 +352,11 @@ func TestVCLSnippetList(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSnippetsFn: func(i *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("vcl snippet list --service-id 123 --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate ListSnippets API success",
@@ -386,11 +389,12 @@ func TestVCLSnippetList(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -454,11 +458,11 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateSnippetFn: func(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
-					return nil, testutil.ErrAPI
+					return nil, testutil.Err
 				},
 			},
 			Args:      args("vcl snippet update --content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3"),
-			WantError: testutil.ErrAPI.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate UpdateSnippet API success",
@@ -525,11 +529,12 @@ func TestVCLSnippetUpdate(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
-			var buf bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, testcase.API, &buf)
+			var stdout bytes.Buffer
+			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
+			ara.SetClientFactory(testcase.API)
 			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, buf.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "snippet.vcl", content, t)
 		})
 	}
