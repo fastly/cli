@@ -82,8 +82,8 @@ func TestPack(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			err = app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, stdout.String(), s)

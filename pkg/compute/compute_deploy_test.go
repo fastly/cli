@@ -390,15 +390,15 @@ func TestDeploy(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
 
 			// we need to define stdin as the deploy process prompts the user multiple
 			// times, but we don't need to provide any values as all our prompts will
 			// fallback to default values if the input is unrecognised.
-			ara.SetStdin(strings.NewReader(""))
+			opts.Stdin = strings.NewReader("")
 
-			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			err = app.Run(opts)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 

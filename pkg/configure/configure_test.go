@@ -328,13 +328,13 @@ func TestConfigure(t *testing.T) {
 			defer os.RemoveAll(configFilePath)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			ara.SetStdin(strings.NewReader(testcase.stdin))
-			ara.SetEnv(testcase.env)
-			ara.SetFile(testcase.file)
-			ara.SetAppConfigFile(configFilePath)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			opts.ConfigFile = testcase.file
+			opts.ConfigPath = configFilePath
+			opts.Env = testcase.env
+			opts.Stdin = strings.NewReader(testcase.stdin)
+			err := app.Run(opts)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {

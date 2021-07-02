@@ -260,7 +260,7 @@ func (r Rust) Verify(out io.Writer) error {
 	}
 
 	// Fetch the latest crate versions from cargo.io API.
-	latestFastly, err := getLatestCrateVersion(r.client, "fastly")
+	latestFastly, err := GetLatestCrateVersion(r.client, "fastly")
 	if err != nil {
 		return fmt.Errorf("error fetching latest crate version: %w", err)
 	}
@@ -270,13 +270,13 @@ func (r Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error parsing latest crate version: %w", err)
 	}
 
-	fastlySysVersion, err := getCrateVersionFromMetadata(metadata, "fastly-sys")
+	fastlySysVersion, err := GetCrateVersionFromMetadata(metadata, "fastly-sys")
 	// If fastly-sys crate not found, error with dual remediation steps.
 	if err != nil {
 		return newCargoUpdateRemediationErr(err, latestFastly.String())
 	}
 
-	fastlyVersion, err := getCrateVersionFromMetadata(metadata, "fastly")
+	fastlyVersion, err := GetCrateVersionFromMetadata(metadata, "fastly")
 	// If fastly crate not found, error with dual remediation steps.
 	if err != nil {
 		return newCargoUpdateRemediationErr(err, latestFastly.String())
@@ -393,9 +393,9 @@ type CargoCrateVersions struct {
 	Versions []CargoCrateVersion `json:"versions"`
 }
 
-// getLatestCrateVersion fetches all versions of a given Rust crate from the
+// GetLatestCrateVersion fetches all versions of a given Rust crate from the
 // crates.io HTTP API and returns the latest valid semver version.
-func getLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version, error) {
+func GetLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version, error) {
 	url := fmt.Sprintf("https://crates.io/api/v1/crates/%s/versions", name)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -443,9 +443,9 @@ func getLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version,
 	return latest, nil
 }
 
-// getCrateVersionFromLockfile searches for a crate inside a CargoMetadata tree
+// GetCrateVersionFromMetadata searches for a crate inside a CargoMetadata tree
 // and returns the crates version as a semver.Version.
-func getCrateVersionFromMetadata(metadata CargoMetadata, crate string) (*semver.Version, error) {
+func GetCrateVersionFromMetadata(metadata CargoMetadata, crate string) (*semver.Version, error) {
 	// Search for crate in metadata tree.
 	var c CargoPackage
 	for _, p := range metadata.Package {

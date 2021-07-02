@@ -1,4 +1,4 @@
-package elasticsearch
+package elasticsearch_test
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/logging/elasticsearch"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -16,7 +17,7 @@ import (
 func TestCreateElasticsearchInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *CreateCommand
+		cmd       *elasticsearch.CreateCommand
 		want      *fastly.CreateElasticsearchInput
 		wantError string
 	}{
@@ -68,11 +69,11 @@ func TestCreateElasticsearchInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.cmd.Base.Globals.Client,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -88,7 +89,7 @@ func TestCreateElasticsearchInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -98,7 +99,7 @@ func TestCreateElasticsearchInput(t *testing.T) {
 func TestUpdateElasticsearchInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *UpdateCommand
+		cmd       *elasticsearch.UpdateCommand
 		api       mock.API
 		want      *fastly.UpdateElasticsearchInput
 		wantError string
@@ -162,11 +163,11 @@ func TestUpdateElasticsearchInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.api,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -182,14 +183,14 @@ func TestUpdateElasticsearchInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func createCommandRequired() *CreateCommand {
+func createCommandRequired() *elasticsearch.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -202,20 +203,20 @@ func createCommandRequired() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &elasticsearch.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -228,7 +229,7 @@ func createCommandRequired() *CreateCommand {
 	}
 }
 
-func createCommandAll() *CreateCommand {
+func createCommandAll() *elasticsearch.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -241,20 +242,20 @@ func createCommandAll() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &elasticsearch.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "logs",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -280,13 +281,13 @@ func createCommandAll() *CreateCommand {
 	}
 }
 
-func createCommandMissingServiceID() *CreateCommand {
+func createCommandMissingServiceID() *elasticsearch.CreateCommand {
 	res := createCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
 }
 
-func updateCommandNoUpdates() *UpdateCommand {
+func updateCommandNoUpdates() *elasticsearch.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -295,20 +296,20 @@ func updateCommandNoUpdates() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &elasticsearch.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -319,7 +320,7 @@ func updateCommandNoUpdates() *UpdateCommand {
 	}
 }
 
-func updateCommandAll() *UpdateCommand {
+func updateCommandAll() *elasticsearch.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -328,20 +329,20 @@ func updateCommandAll() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &elasticsearch.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -368,31 +369,8 @@ func updateCommandAll() *UpdateCommand {
 	}
 }
 
-func updateCommandMissingServiceID() *UpdateCommand {
+func updateCommandMissingServiceID() *elasticsearch.UpdateCommand {
 	res := updateCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
-}
-
-func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
-	return &fastly.Elasticsearch{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Index:             "logs",
-		URL:               "example.com",
-		Pipeline:          "my_pipeline_id",
-		User:              "user",
-		Password:          "password",
-		RequestMaxEntries: 2,
-		RequestMaxBytes:   2,
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		FormatVersion:     2,
-	}, nil
 }

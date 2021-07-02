@@ -49,9 +49,9 @@ func TestSyslogCreate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -117,9 +117,9 @@ func TestSyslogList(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -157,9 +157,9 @@ func TestSyslogDescribe(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -199,9 +199,9 @@ func TestSyslogUpdate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -241,9 +241,9 @@ func TestSyslogDelete(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -366,24 +366,24 @@ Version: 1
 
 func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
 		Address:           "example.com",
-		Hostname:          "example.com",
-		Port:              514,
-		UseTLS:            true,
-		IPV4:              "",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		Token:             "tkn",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
+		Hostname:          "example.com",
+		IPV4:              "",
 		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
+		Name:              "logs",
 		Placement:         "none",
+		Port:              514,
+		ResponseCondition: "Prevent default logging",
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
+		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
+		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
+		TLSHostname:       "example.com",
+		Token:             "tkn",
+		UseTLS:            true,
 	}, nil
 }
 

@@ -67,9 +67,9 @@ func TestBlobStorageCreate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -135,9 +135,9 @@ func TestBlobStorageList(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -175,9 +175,9 @@ func TestBlobStorageDescribe(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -217,9 +217,9 @@ func TestBlobStorageUpdate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -259,9 +259,9 @@ func TestBlobStorageDelete(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -395,23 +395,23 @@ Version: 1
 
 func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
 	return &fastly.BlobStorage{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Container:         "container",
 		AccountName:       "account",
-		SASToken:          "token",
-		Path:              "/logs",
-		Period:            3600,
-		GzipLevel:         0,
+		CompressionCodec:  "zstd",
+		Container:         "container",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
+		GzipLevel:         0,
 		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
+		Name:              "logs",
+		Path:              "/logs",
+		Period:            3600,
 		Placement:         "none",
 		PublicKey:         pgpPublicKey(),
-		CompressionCodec:  "zstd",
+		ResponseCondition: "Prevent default logging",
+		SASToken:          "token",
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
+		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
 	}, nil
 }
 

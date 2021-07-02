@@ -70,6 +70,19 @@ var (
 	completionRegExp = regexp.MustCompile("completion-(?:script-)?(?:bash|zsh)$")
 )
 
+// RunOpts represent arguments to Run()
+type RunOpts struct {
+	APIClient    APIClientFactory
+	Args         []string
+	ConfigFile   config.File
+	ConfigPath   string
+	Env          config.Environment
+	HTTPClient   api.HTTPClient
+	Stdin        io.Reader
+	Stdout       io.Writer
+	VersionerCLI update.Versioner
+}
+
 // Run constructs the application including all of the subcommands, parses the
 // args, invokes the client factory with the token to create a Fastly API
 // client, and executes the chosen command, using the provided io.Reader and
@@ -80,13 +93,14 @@ var (
 // The Run helper should NOT output any error-related information to the out
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
-func Run(args []string, environ config.Environment, file config.File, configFilePath string, cf APIClientFactory, httpClient api.HTTPClient, cliVersioner update.Versioner, in io.Reader, out io.Writer) error {
+// func Run(args []string, environ config.Environment, file config.File, configFilePath string, cf APIClientFactory, httpClient api.HTTPClient, cliVersioner update.Versioner, in io.Reader, out io.Writer) error {
+func Run(opts RunOpts) error {
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	globals := config.Data{
-		File:   file,
-		Env:    environ,
-		Output: out,
+		File:   opts.ConfigFile,
+		Env:    opts.Env,
+		Output: opts.Stdout,
 	}
 
 	// Set up the main application root, including global flags, and then each
@@ -95,7 +109,7 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	// bindings, because we need to do things like track where a config
 	// parameter came from.
 	app := kingpin.New("fastly", "A tool to interact with the Fastly API")
-	app.Writers(out, io.Discard) // don't let kingpin write error output
+	app.Writers(opts.Stdout, io.Discard) // don't let kingpin write error output
 	app.UsageContext(&kingpin.UsageContext{
 		Template: VerboseUsageTemplate,
 		Funcs:    UsageTemplateFuncs,
@@ -107,7 +121,7 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 
 	// As kingpin generates bash completion as a side-effect of kingpin.Parse we
 	// allow it to call os.Exit, only if a completetion flag is present.
-	if isCompletion(args) {
+	if isCompletion(opts.Args) {
 		app.Terminate(os.Exit)
 	}
 
@@ -119,10 +133,10 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 
-	configureRoot := configure.NewRootCommand(app, configFilePath, configure.APIClientFactory(cf), &globals)
-	whoamiRoot := whoami.NewRootCommand(app, httpClient, &globals)
+	configureRoot := configure.NewRootCommand(app, opts.ConfigPath, configure.APIClientFactory(opts.APIClient), &globals)
+	whoamiRoot := whoami.NewRootCommand(app, opts.HTTPClient, &globals)
 	versionRoot := version.NewRootCommand(app)
-	updateRoot := update.NewRootCommand(app, configFilePath, cliVersioner, httpClient, &globals)
+	updateRoot := update.NewRootCommand(app, opts.ConfigPath, opts.VersionerCLI, opts.HTTPClient, &globals)
 	ipRoot := ip.NewRootCommand(app, &globals)
 	popRoot := pop.NewRootCommand(app, &globals)
 	purgeRoot := purge.NewRootCommand(app, &globals)
@@ -144,12 +158,12 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	serviceVersionLock := serviceversion.NewLockCommand(serviceVersionRoot.CmdClause, &globals)
 
 	computeRoot := compute.NewRootCommand(app, &globals)
-	computeInit := compute.NewInitCommand(computeRoot.CmdClause, httpClient, &globals)
-	computeBuild := compute.NewBuildCommand(computeRoot.CmdClause, httpClient, &globals)
-	computeDeploy := compute.NewDeployCommand(computeRoot.CmdClause, httpClient, &globals)
+	computeInit := compute.NewInitCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
+	computeBuild := compute.NewBuildCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
+	computeDeploy := compute.NewDeployCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
 	computePublish := compute.NewPublishCommand(computeRoot.CmdClause, &globals, computeBuild, computeDeploy)
 	computePack := compute.NewPackCommand(computeRoot.CmdClause, &globals)
-	computeUpdate := compute.NewUpdateCommand(computeRoot.CmdClause, httpClient, &globals)
+	computeUpdate := compute.NewUpdateCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
 	computeValidate := compute.NewValidateCommand(computeRoot.CmdClause, &globals)
 
 	domainRoot := domain.NewRootCommand(app, &globals)
@@ -668,28 +682,28 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	// afterwards. This ensures usage text is only written once to the writer
 	// and gives us greater control over our error formatting.
 	app.Writers(io.Discard, io.Discard)
-	name, err := app.Parse(args)
-	if err != nil && !argsIsHelpJSON(args) { // Ignore error if `help --format json`
-		usage := Usage(args, app, out, io.Discard)
+	name, err := app.Parse(opts.Args)
+	if err != nil && !argsIsHelpJSON(opts.Args) { // Ignore error if `help --format json`
+		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("error parsing arguments: %w", err)}
 	}
-	if ctx, _ := app.ParseContext(args); contextHasHelpFlag(ctx) {
-		usage := Usage(args, app, out, io.Discard)
+	if ctx, _ := app.ParseContext(opts.Args); contextHasHelpFlag(ctx) {
+		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
 		return errors.RemediationError{Prefix: usage}
 	}
-	app.Writers(out, io.Discard)
+	app.Writers(opts.Stdout, io.Discard)
 
 	// As the `help` command model gets privately added as a side-effect of
 	// kingping.Parse, we cannot add the `--format json` flag to the model.
 	// Therefore, we have to manually parse the args slice here to check for the
 	// existence of `help --format json`, if present we print usage JSON and
 	// exit early.
-	if argsIsHelpJSON(args) {
+	if argsIsHelpJSON(opts.Args) {
 		json, err := UsageJSON(app)
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(out, "%s", json)
+		fmt.Fprintf(opts.Stdout, "%s", json)
 		return nil
 	}
 
@@ -700,14 +714,14 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	if name == "help" {
 		var buf bytes.Buffer
 		app.Writers(&buf, io.Discard)
-		app.Parse(args)
-		app.Writers(out, io.Discard)
+		app.Parse(opts.Args)
+		app.Writers(opts.Stdout, io.Discard)
 
 		// The full-fat output of `fastly help` should have a hint at the bottom
 		// for more specific help. Unfortunately I don't know of a better way to
 		// distinguish `fastly help` from e.g. `fastly help configure` than this
 		// check.
-		if len(args) > 0 && args[len(args)-1] == "help" {
+		if len(opts.Args) > 0 && opts.Args[len(opts.Args)-1] == "help" {
 			fmt.Fprintln(&buf, "For help on a specific command, try e.g.")
 			fmt.Fprintln(&buf, "")
 			fmt.Fprintln(&buf, "\tfastly help configure")
@@ -722,13 +736,13 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	if globals.Verbose() {
 		switch source {
 		case config.SourceFlag:
-			fmt.Fprintf(out, "Fastly API token provided via --token\n")
+			fmt.Fprintf(opts.Stdout, "Fastly API token provided via --token\n")
 		case config.SourceEnvironment:
-			fmt.Fprintf(out, "Fastly API token provided via %s\n", env.Token)
+			fmt.Fprintf(opts.Stdout, "Fastly API token provided via %s\n", env.Token)
 		case config.SourceFile:
-			fmt.Fprintf(out, "Fastly API token provided via config file\n")
+			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file\n")
 		default:
-			fmt.Fprintf(out, "Fastly API token not provided\n")
+			fmt.Fprintf(opts.Stdout, "Fastly API token not provided\n")
 		}
 	}
 
@@ -738,10 +752,10 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	if source == config.SourceFile && name != "configure" {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
-				text.Warning(out, "Unprotected configuration file.")
-				fmt.Fprintf(out, "Permissions %04o for '%s' are too open\n", mode, config.FilePath)
-				fmt.Fprintf(out, "It is recommended that your configuration file is NOT accessible by others.\n")
-				fmt.Fprintln(out)
+				text.Warning(opts.Stdout, "Unprotected configuration file.")
+				fmt.Fprintf(opts.Stdout, "Permissions %04o for '%s' are too open\n", mode, config.FilePath)
+				fmt.Fprintf(opts.Stdout, "It is recommended that your configuration file is NOT accessible by others.\n")
+				fmt.Fprintln(opts.Stdout)
 			}
 		}
 	}
@@ -750,15 +764,15 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 	if globals.Verbose() {
 		switch source {
 		case config.SourceEnvironment:
-			fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n", env.Endpoint, endpoint)
+			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via %s): %s\n", env.Endpoint, endpoint)
 		case config.SourceFile:
-			fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n", endpoint)
+			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via config file): %s\n", endpoint)
 		default:
-			fmt.Fprintf(out, "Fastly API endpoint: %s\n", endpoint)
+			fmt.Fprintf(opts.Stdout, "Fastly API endpoint: %s\n", endpoint)
 		}
 	}
 
-	globals.Client, err = cf(token, endpoint)
+	globals.Client, err = opts.APIClient(token, endpoint)
 	if err != nil {
 		return fmt.Errorf("error constructing Fastly API client: %w", err)
 	}
@@ -770,18 +784,18 @@ func Run(args []string, environ config.Environment, file config.File, configFile
 
 	command, found := cmd.Select(name, commands)
 	if !found {
-		usage := Usage(args, app, out, io.Discard)
+		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
 	}
 
-	if cliVersioner != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
+	if opts.VersionerCLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel() // push cancel on the defer stack first...
-		f := update.CheckAsync(ctx, file, configFilePath, revision.AppVersion, cliVersioner, in, out)
-		defer f(out) // ...and the printing function second, so we hit the timeout
+		f := update.CheckAsync(ctx, opts.ConfigFile, opts.ConfigPath, revision.AppVersion, opts.VersionerCLI, opts.Stdin, opts.Stdout)
+		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}
 
-	return command.Exec(in, out)
+	return command.Exec(opts.Stdin, opts.Stdout)
 }
 
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)

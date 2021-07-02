@@ -13,15 +13,15 @@ import (
 // CreateCommand calls the Fastly API to create a Scalyr logging endpoint.
 type CreateCommand struct {
 	cmd.Base
-	manifest manifest.Data
+	Manifest manifest.Data
 
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
 	Token          string
-	serviceVersion cmd.OptionalServiceVersion
+	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
-	autoClone         cmd.OptionalAutoClone
+	AutoClone         cmd.OptionalAutoClone
 	Region            cmd.OptionalString
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalUint
@@ -33,19 +33,19 @@ type CreateCommand struct {
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.Manifest.File.SetOutput(c.Globals.Output)
+	c.Manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a Scalyr logging endpoint on a Fastly service version").Alias("add")
 	c.CmdClause.Flag("name", "The name of the Scalyr logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+		Dst: &c.ServiceVersion.Value,
 	})
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
+		Action: c.AutoClone.Set,
+		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://www.scalyr.com/keys)").Required().StringVar(&c.Token)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
@@ -54,8 +54,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	return &c
 }
 
-// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.CreateScalyrInput, error) {
+// ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.CreateScalyrInput, error) {
 	var input fastly.CreateScalyrInput
 
 	input.ServiceID = serviceID
@@ -89,18 +89,18 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) (*f
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		Client:             c.Globals.Client,
-		Manifest:           c.manifest,
+		Manifest:           c.Manifest,
 		Out:                out,
-		ServiceVersionFlag: c.serviceVersion,
+		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
 		return err
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}

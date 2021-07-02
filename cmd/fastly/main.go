@@ -24,10 +24,6 @@ import (
 var cfg []byte
 
 func main() {
-	// Some configuration options can come from env vars.
-	var env config.Environment
-	env.Read(parseEnv(os.Environ()))
-
 	// All of the work of building the set of commands and subcommands, wiring
 	// them together, picking which one to call, and executing it, occurs in a
 	// helper function, Run. We parameterize all of the dependencies so we can
@@ -38,10 +34,14 @@ func main() {
 		args                    = os.Args[1:]
 		clientFactory           = app.FastlyAPIClient
 		httpClient              = http.DefaultClient
-		cliVersioner            = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
 		in            io.Reader = os.Stdin
 		out           io.Writer = sync.NewWriter(os.Stdout)
+		versionerCLI            = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
 	)
+
+	// Some configuration options can come from env vars.
+	var env config.Environment
+	env.Read(parseEnv(os.Environ()))
 
 	// We have to manually handle the inclusion of the verbose flag here because
 	// Kingpin doesn't evaluate the provided arguments until app.Run which
@@ -125,7 +125,18 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 	}
 
 	// Main is basically just a shim to call Run, so we do that here.
-	if err := app.Run(args, env, file, config.FilePath, clientFactory, httpClient, cliVersioner, in, out); err != nil {
+	opts := app.RunOpts{
+		APIClient:    clientFactory,
+		Args:         args,
+		ConfigFile:   file,
+		ConfigPath:   config.FilePath,
+		Env:          env,
+		HTTPClient:   httpClient,
+		Stdin:        in,
+		Stdout:       out,
+		VersionerCLI: versionerCLI,
+	}
+	if err := app.Run(opts); err != nil {
 		fsterrors.Deduce(err).Print(os.Stderr)
 
 		// NOTE: if we have an error processing the command, then we should be sure

@@ -45,8 +45,8 @@ func TestApplication(t *testing.T) {
 				stdout bytes.Buffer
 				stderr bytes.Buffer
 			)
-			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			err := app.Run(opts)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}

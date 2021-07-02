@@ -1,4 +1,4 @@
-package googlepubsub
+package googlepubsub_test
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/logging/googlepubsub"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -16,7 +17,7 @@ import (
 func TestCreateGooglePubSubInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *CreateCommand
+		cmd       *googlepubsub.CreateCommand
 		want      *fastly.CreatePubsubInput
 		wantError string
 	}{
@@ -63,11 +64,11 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.cmd.Base.Globals.Client,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -83,7 +84,7 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -93,7 +94,7 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 func TestUpdateGooglePubSubInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *UpdateCommand
+		cmd       *googlepubsub.UpdateCommand
 		api       mock.API
 		want      *fastly.UpdatePubsubInput
 		wantError string
@@ -150,11 +151,11 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.api,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -170,14 +171,14 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func createCommandRequired() *CreateCommand {
+func createCommandRequired() *googlepubsub.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -190,20 +191,20 @@ func createCommandRequired() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &googlepubsub.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -218,7 +219,7 @@ func createCommandRequired() *CreateCommand {
 	}
 }
 
-func createCommandAll() *CreateCommand {
+func createCommandAll() *googlepubsub.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -231,20 +232,20 @@ func createCommandAll() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &googlepubsub.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "logs",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -263,13 +264,13 @@ func createCommandAll() *CreateCommand {
 	}
 }
 
-func createCommandMissingServiceID() *CreateCommand {
+func createCommandMissingServiceID() *googlepubsub.CreateCommand {
 	res := createCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
 }
 
-func updateCommandNoUpdates() *UpdateCommand {
+func updateCommandNoUpdates() *googlepubsub.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -278,20 +279,20 @@ func updateCommandNoUpdates() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &googlepubsub.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -302,7 +303,7 @@ func updateCommandNoUpdates() *UpdateCommand {
 	}
 }
 
-func updateCommandAll() *UpdateCommand {
+func updateCommandAll() *googlepubsub.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -311,20 +312,20 @@ func updateCommandAll() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &googlepubsub.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -344,24 +345,8 @@ func updateCommandAll() *UpdateCommand {
 	}
 }
 
-func updateCommandMissingServiceID() *UpdateCommand {
+func updateCommandMissingServiceID() *googlepubsub.UpdateCommand {
 	res := updateCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
-}
-
-func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
-	return &fastly.Pubsub{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		User:              "user@example.com",
-		SecretKey:         "secret",
-		ProjectID:         "project",
-		Topic:             "topic",
-		Placement:         "none",
-		FormatVersion:     2,
-	}, nil
 }

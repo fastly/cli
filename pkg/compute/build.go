@@ -184,26 +184,26 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	files = append(files, language.IncludeFiles...)
 
-	ignoreFiles, err := getIgnoredFiles(IgnoreFilePath)
+	ignoreFiles, err := GetIgnoredFiles(IgnoreFilePath)
 	if err != nil {
 		return err
 	}
 
-	binFiles, err := getNonIgnoredFiles("bin", ignoreFiles)
+	binFiles, err := GetNonIgnoredFiles("bin", ignoreFiles)
 	if err != nil {
 		return err
 	}
 	files = append(files, binFiles...)
 
 	if c.IncludeSrc {
-		srcFiles, err := getNonIgnoredFiles(language.SourceDirectory, ignoreFiles)
+		srcFiles, err := GetNonIgnoredFiles(language.SourceDirectory, ignoreFiles)
 		if err != nil {
 			return err
 		}
 		files = append(files, srcFiles...)
 	}
 
-	err = createPackageArchive(files, dest)
+	err = CreatePackageArchive(files, dest)
 	if err != nil {
 		return fmt.Errorf("error creating package archive: %w", err)
 	}
@@ -214,14 +214,14 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	return nil
 }
 
-// createPackageArchive packages build artifacts as a Fastly package, which
+// CreatePackageArchive packages build artifacts as a Fastly package, which
 // must be a GZipped Tar archive such as: package-name.tar.gz.
 //
 // Due to a behavior of archiver.Archive() which recursively writes all files in
 // a provided directory to the archive we first copy our input files to a
 // temporary directory to ensure only the specified files are included and not
 // any in the directory which may be ignored.
-func createPackageArchive(files []string, destination string) error {
+func CreatePackageArchive(files []string, destination string) error {
 	// Create temporary directory to copy files into.
 	p := make([]byte, 8)
 	n, err := rand.Read(p)
@@ -242,7 +242,7 @@ func createPackageArchive(files []string, destination string) error {
 	// Create implicit top-level directory within temp which will become the
 	// root of the archive. This replaces the `tar.ImplicitTopLevelFolder`
 	// behavior.
-	dir := filepath.Join(tmpDir, fileNameWithoutExtension(destination))
+	dir := filepath.Join(tmpDir, FileNameWithoutExtension(destination))
 	if err := os.Mkdir(dir, 0700); err != nil {
 		return fmt.Errorf("error creating temporary directory: %w", err)
 	}
@@ -265,8 +265,8 @@ func createPackageArchive(files []string, destination string) error {
 	return nil
 }
 
-// fileNameWithoutExtension returns a filename with its extension stripped.
-func fileNameWithoutExtension(filename string) string {
+// FileNameWithoutExtension returns a filename with its extension stripped.
+func FileNameWithoutExtension(filename string) string {
 	base := filepath.Base(filename)
 	firstDot := strings.Index(base, ".")
 	if firstDot > -1 {
@@ -275,10 +275,10 @@ func fileNameWithoutExtension(filename string) string {
 	return base
 }
 
-// getIgnoredFiles reads the .fastlyignore file line-by-line and expands the
+// GetIgnoredFiles reads the .fastlyignore file line-by-line and expands the
 // glob pattern into a map containing all files it matches. If no ignore file
 // is present it returns an empty map.
-func getIgnoredFiles(filePath string) (files map[string]bool, err error) {
+func GetIgnoredFiles(filePath string) (files map[string]bool, err error) {
 	files = make(map[string]bool)
 
 	if !filesystem.FileExists(filePath) {
@@ -320,9 +320,9 @@ func getIgnoredFiles(filePath string) (files map[string]bool, err error) {
 	return files, nil
 }
 
-// getNonIgnoredFiles walks a filepath and returns all files don't exist in the
+// GetNonIgnoredFiles walks a filepath and returns all files don't exist in the
 // provided ignore files map.
-func getNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, error) {
+func GetNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, error) {
 	var files []string
 	err := filepath.Walk(base, func(path string, info os.FileInfo, err error) error {
 		if err != nil {

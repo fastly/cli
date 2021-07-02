@@ -1,14 +1,14 @@
-package azureblob
+package azureblob_test
 
 import (
 	"bytes"
-	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/logging/azureblob"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -17,7 +17,7 @@ import (
 func TestCreateBlobStorageInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *CreateCommand
+		cmd       *azureblob.CreateCommand
 		want      *fastly.CreateBlobStorageInput
 		wantError string
 	}{
@@ -69,11 +69,11 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.cmd.Base.Globals.Client,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -89,7 +89,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -99,7 +99,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 func TestUpdateBlobStorageInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *UpdateCommand
+		cmd       *azureblob.UpdateCommand
 		api       mock.API
 		want      *fastly.UpdateBlobStorageInput
 		wantError string
@@ -162,11 +162,11 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.api,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -182,14 +182,14 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func createCommandRequired() *CreateCommand {
+func createCommandRequired() *azureblob.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -204,20 +204,20 @@ func createCommandRequired() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &azureblob.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "logs",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -231,7 +231,7 @@ func createCommandRequired() *CreateCommand {
 	}
 }
 
-func createCommandAll() *CreateCommand {
+func createCommandAll() *azureblob.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -244,20 +244,20 @@ func createCommandAll() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &azureblob.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "logs",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -281,13 +281,13 @@ func createCommandAll() *CreateCommand {
 	}
 }
 
-func createCommandMissingServiceID() *CreateCommand {
+func createCommandMissingServiceID() *azureblob.CreateCommand {
 	res := createCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
 }
 
-func updateCommandNoUpdates() *UpdateCommand {
+func updateCommandNoUpdates() *azureblob.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -296,20 +296,20 @@ func updateCommandNoUpdates() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &azureblob.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "logs",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -320,7 +320,7 @@ func updateCommandNoUpdates() *UpdateCommand {
 	}
 }
 
-func updateCommandAll() *UpdateCommand {
+func updateCommandAll() *azureblob.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -329,20 +329,20 @@ func updateCommandAll() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &azureblob.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "logs",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -368,64 +368,8 @@ func updateCommandAll() *UpdateCommand {
 	}
 }
 
-func updateCommandMissingServiceID() *UpdateCommand {
+func updateCommandMissingServiceID() *azureblob.UpdateCommand {
 	res := updateCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
-}
-
-func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
-	return &fastly.BlobStorage{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Path:              "/log",
-		AccountName:       "account",
-		Container:         "container",
-		SASToken:          "token",
-		Period:            3600,
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		GzipLevel:         0,
-		PublicKey:         pgpPublicKey(),
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		Placement:         "none",
-		ResponseCondition: "Prevent default logging",
-		CompressionCodec:  "zstd",
-	}, nil
-}
-
-// pgpPublicKey returns a PEM encoded PGP public key suitable for testing.
-func pgpPublicKey() string {
-	return strings.TrimSpace(`-----BEGIN PGP PUBLIC KEY BLOCK-----
-mQENBFyUD8sBCACyFnB39AuuTygseek+eA4fo0cgwva6/FSjnWq7riouQee8GgQ/
-ibXTRyv4iVlwI12GswvMTIy7zNvs1R54i0qvsLr+IZ4GVGJqs6ZJnvQcqe3xPoR4
-8AnBfw90o32r/LuHf6QCJXi+AEu35koNlNAvLJ2B+KACaNB7N0EeWmqpV/1V2k9p
-lDYk+th7LcCuaFNGqKS/PrMnnMqR6VDLCjHhNx4KR79b0Twm/2qp6an3hyNRu8Gn
-dwxpf1/BUu3JWf+LqkN4Y3mbOmSUL3MaJNvyQguUzTfS0P0uGuBDHrJCVkMZCzDB
-89ag55jCPHyGeHBTd02gHMWzsg3WMBWvCsrzABEBAAG0JXRlcnJhZm9ybSAodGVz
-dCkgPHRlc3RAdGVycmFmb3JtLmNvbT6JAU4EEwEIADgWIQSHYyc6Kj9l6HzQsau6
-vFFc9jxV/wUCXJQPywIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAKCRC6vFFc
-9jxV/815CAClb32OxV7wG01yF97TzlyTl8TnvjMtoG29Mw4nSyg+mjM3b8N7iXm9
-OLX59fbDAWtBSldSZE22RXd3CvlFOG/EnKBXSjBtEqfyxYSnyOPkMPBYWGL/ApkX
-SvPYJ4LKdvipYToKFh3y9kk2gk1DcDBDyaaHvR+3rv1u3aoy7/s2EltAfDS3ZQIq
-7/cWTLJml/lleeB/Y6rPj8xqeCYhE5ahw9gsV/Mdqatl24V9Tks30iijx0Hhw+Gx
-kATUikMGr2GDVqoIRga5kXI7CzYff4rkc0Twn47fMHHHe/KY9M2yVnMHUXmAZwbG
-M1cMI/NH1DjevCKdGBLcRJlhuLPKF/anuQENBFyUD8sBCADIpd7r7GuPd6n/Ikxe
-u6h7umV6IIPoAm88xCYpTbSZiaK30Svh6Ywra9jfE2KlU9o6Y/art8ip0VJ3m07L
-4RSfSpnzqgSwdjSq5hNour2Fo/BzYhK7yaz2AzVSbe33R0+RYhb4b/6N+bKbjwGF
-ftCsqVFMH+PyvYkLbvxyQrHlA9woAZaNThI1ztO5rGSnGUR8xt84eup28WIFKg0K
-UEGUcTzz+8QGAwAra+0ewPXo/AkO+8BvZjDidP417u6gpBHOJ9qYIcO9FxHeqFyu
-YrjlrxowEgXn5wO8xuNz6Vu1vhHGDHGDsRbZF8pv1d5O+0F1G7ttZ2GRRgVBZPwi
-kiyRABEBAAGJATYEGAEIACAWIQSHYyc6Kj9l6HzQsau6vFFc9jxV/wUCXJQPywIb
-DAAKCRC6vFFc9jxV/9YOCACe8qmOSnKQpQfW+PqYOqo3dt7JyweTs3FkD6NT8Zml
-dYy/vkstbTjPpX6aTvUZjkb46BVi7AOneVHpD5GBqvRsZ9iVgDYHaehmLCdKiG5L
-3Tp90NN+QY5WDbsGmsyk6+6ZMYejb4qYfweQeduOj27aavCJdLkCYMoRKfcFYI8c
-FaNmEfKKy/r1PO20NXEG6t9t05K/frHy6ZG8bCNYdpagfFVot47r9JaQqWlTNtIR
-5+zkkSq/eG9BEtRij3a6cTdQbktdBzx2KBeI0PYc1vlZR0LpuFKZqY9vlE6vTGLR
-wMfrTEOvx0NxUM3rpaCgEmuWbB1G1Hu371oyr4srrr+N
-=28dr
------END PGP PUBLIC KEY BLOCK-----
-`)
 }

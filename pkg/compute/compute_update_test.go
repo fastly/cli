@@ -74,9 +74,9 @@ func TestUpdate(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.Args, &stdout)
-			ara.SetClientFactory(testcase.API)
-			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.API)
+			err = app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			for _, s := range testcase.WantOutputs {
 				testutil.AssertStringContains(t, stdout.String(), s)

@@ -66,9 +66,9 @@ func TestScalyrCreate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -134,9 +134,9 @@ func TestScalyrList(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -174,9 +174,9 @@ func TestScalyrDescribe(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -216,9 +216,9 @@ func TestScalyrUpdate(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -258,9 +258,9 @@ func TestScalyrDelete(t *testing.T) {
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetClientFactory(testcase.api)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -374,15 +374,15 @@ Version: 1
 
 func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Token:             "abc",
-		Region:            "US",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
+		Name:              "logs",
 		Placement:         "none",
+		Region:            "US",
+		ResponseCondition: "Prevent default logging",
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
+		Token:             "abc",
 	}, nil
 }
 

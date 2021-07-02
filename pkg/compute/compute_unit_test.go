@@ -1,4 +1,4 @@
-package compute
+package compute_test
 
 import (
 	"fmt"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/kingpin"
@@ -26,10 +27,10 @@ func TestPublishFlagDivergence(t *testing.T) {
 	var cfg config.Data
 	acmd := kingpin.New("foo", "bar")
 
-	rcmd := NewRootCommand(acmd, &cfg)
-	bcmd := NewBuildCommand(rcmd.CmdClause, client{}, &cfg)
-	dcmd := NewDeployCommand(rcmd.CmdClause, client{}, &cfg)
-	pcmd := NewPublishCommand(rcmd.CmdClause, &cfg, bcmd, dcmd)
+	rcmd := compute.NewRootCommand(acmd, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, client{}, &cfg)
+	dcmd := compute.NewDeployCommand(rcmd.CmdClause, client{}, &cfg)
+	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &cfg, bcmd, dcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)
 	deployFlags := getFlags(dcmd.CmdClause)
@@ -135,7 +136,7 @@ func TestCreatePackageArchive(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			err = createPackageArchive(testcase.inputFiles, testcase.destination)
+			err = compute.CreatePackageArchive(testcase.inputFiles, testcase.destination)
 			testutil.AssertNoError(t, err)
 
 			var files, directories []string
@@ -175,7 +176,7 @@ func TestFileNameWithoutExtension(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.input, func(t *testing.T) {
-			output := fileNameWithoutExtension(testcase.input)
+			output := compute.FileNameWithoutExtension(testcase.input)
 			testutil.AssertString(t, testcase.wantOutput, output)
 		})
 	}
@@ -230,7 +231,7 @@ func TestGetIgnoredFiles(t *testing.T) {
 					{Src: filepath.Join("testdata", "build", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
 				},
 				Write: []testutil.FileIO{
-					{Src: testcase.fastlyignore, Dst: IgnoreFilePath},
+					{Src: testcase.fastlyignore, Dst: compute.IgnoreFilePath},
 				},
 			})
 			defer os.RemoveAll(rootdir)
@@ -243,7 +244,7 @@ func TestGetIgnoredFiles(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			output, err := getIgnoredFiles(IgnoreFilePath)
+			output, err := compute.GetIgnoredFiles(compute.IgnoreFilePath)
 			testutil.AssertNoError(t, err)
 			testutil.AssertEqual(t, testcase.wantfiles, output)
 		})
@@ -317,7 +318,7 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			output, err := getNonIgnoredFiles(testcase.path, testcase.ignoredFiles)
+			output, err := compute.GetNonIgnoredFiles(testcase.path, testcase.ignoredFiles)
 			testutil.AssertNoError(t, err)
 			testutil.AssertEqual(t, testcase.wantFiles, output)
 		})
@@ -338,27 +339,27 @@ func TestGetLatestCrateVersion(t *testing.T) {
 		},
 		{
 			name:        "no valid versions",
-			inputClient: &versionClient{[]string{}},
+			inputClient: &httpClient{[]string{}},
 			wantError:   "no valid crate versions found",
 		},
 		{
 			name:        "unsorted",
-			inputClient: &versionClient{[]string{"0.5.23", "0.1.0", "1.2.3", "0.7.3"}},
+			inputClient: &httpClient{[]string{"0.5.23", "0.1.0", "1.2.3", "0.7.3"}},
 			wantVersion: semver.MustParse("1.2.3"),
 		},
 		{
 			name:        "reverse chronological",
-			inputClient: &versionClient{[]string{"1.2.3", "0.8.3", "0.3.2"}},
+			inputClient: &httpClient{[]string{"1.2.3", "0.8.3", "0.3.2"}},
 			wantVersion: semver.MustParse("1.2.3"),
 		},
 		{
 			name:        "contains pre-release",
-			inputClient: &versionClient{[]string{"0.2.3", "0.8.3", "0.3.2", "0.9.0-beta.2"}},
+			inputClient: &httpClient{[]string{"0.2.3", "0.8.3", "0.3.2", "0.9.0-beta.2"}},
 			wantVersion: semver.MustParse("0.8.3"),
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			v, err := getLatestCrateVersion(testcase.inputClient, "fastly")
+			v, err := compute.GetLatestCrateVersion(testcase.inputClient, "fastly")
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			if err == nil && !v.Equal(testcase.wantVersion) {
 				t.Errorf("wanted version %s, got %s", testcase.wantVersion, v)
@@ -370,21 +371,21 @@ func TestGetLatestCrateVersion(t *testing.T) {
 func TestGetCrateVersionFromMetadata(t *testing.T) {
 	for _, testcase := range []struct {
 		name        string
-		inputLock   CargoMetadata
+		inputLock   compute.CargoMetadata
 		inputCrate  string
 		wantVersion *semver.Version
 		wantError   string
 	}{
 		{
 			name:       "crate not found",
-			inputLock:  CargoMetadata{},
+			inputLock:  compute.CargoMetadata{},
 			inputCrate: "fastly",
 			wantError:  "fastly crate not found",
 		},
 		{
 			name: "parsing error",
-			inputLock: CargoMetadata{
-				Package: []CargoPackage{
+			inputLock: compute.CargoMetadata{
+				Package: []compute.CargoPackage{
 					{
 						Name:    "foo",
 						Version: "1.2.3",
@@ -400,8 +401,8 @@ func TestGetCrateVersionFromMetadata(t *testing.T) {
 		},
 		{
 			name: "success",
-			inputLock: CargoMetadata{
-				Package: []CargoPackage{
+			inputLock: compute.CargoMetadata{
+				Package: []compute.CargoPackage{
 					{
 						Name:    "foo",
 						Version: "1.2.3",
@@ -421,8 +422,8 @@ func TestGetCrateVersionFromMetadata(t *testing.T) {
 		},
 		{
 			name: "success nested",
-			inputLock: CargoMetadata{
-				Package: []CargoPackage{
+			inputLock: compute.CargoMetadata{
+				Package: []compute.CargoPackage{
 					{
 						Name:    "foo",
 						Version: "1.2.3",
@@ -430,7 +431,7 @@ func TestGetCrateVersionFromMetadata(t *testing.T) {
 					{
 						Name:    "fastly",
 						Version: "3.0.0",
-						Dependencies: []CargoPackage{
+						Dependencies: []compute.CargoPackage{
 							{
 								Name:    "fastly-sys",
 								Version: "0.3.0",
@@ -444,7 +445,7 @@ func TestGetCrateVersionFromMetadata(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			v, err := getCrateVersionFromMetadata(testcase.inputLock, testcase.inputCrate)
+			v, err := compute.GetCrateVersionFromMetadata(testcase.inputLock, testcase.inputCrate)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			if err == nil && !v.Equal(testcase.wantVersion) {
 				t.Errorf("wanted version %s, got %s", testcase.wantVersion, v)
@@ -461,11 +462,11 @@ func (c errorClient) Do(*http.Request) (*http.Response, error) {
 	return nil, c.err
 }
 
-type versionClient struct {
+type httpClient struct {
 	versions []string
 }
 
-func (v versionClient) Do(*http.Request) (*http.Response, error) {
+func (v httpClient) Do(*http.Request) (*http.Response, error) {
 	rec := httptest.NewRecorder()
 
 	var versions []string

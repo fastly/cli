@@ -14,17 +14,17 @@ import (
 // CreateCommand calls the Fastly API to create an FTP logging endpoint.
 type CreateCommand struct {
 	cmd.Base
-	manifest manifest.Data
+	Manifest manifest.Data
 
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
 	Address        string
 	Username       string
 	Password       string
-	serviceVersion cmd.OptionalServiceVersion
+	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
-	autoClone         cmd.OptionalAutoClone
+	AutoClone         cmd.OptionalAutoClone
 	Port              cmd.OptionalUint
 	Path              cmd.OptionalString
 	Period            cmd.OptionalUint
@@ -41,21 +41,21 @@ type CreateCommand struct {
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.Manifest.File.SetOutput(c.Globals.Output)
+	c.Manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an FTP logging endpoint on a Fastly service version").Alias("add")
 	c.CmdClause.Flag("name", "The name of the FTP logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+		Dst: &c.ServiceVersion.Value,
 	})
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
+		Action: c.AutoClone.Set,
+		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("address", "An hostname or IPv4 address").Required().StringVar(&c.Address)
 	c.CmdClause.Flag("user", "The username for the server (can be anonymous)").Required().StringVar(&c.Username)
 	c.CmdClause.Flag("password", "The password for the server (for anonymous use an email address)").Required().StringVar(&c.Password)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
 	c.CmdClause.Flag("path", "The path to upload log files to. If the path ends in / then it is treated as a directory").Action(c.Path.Set).StringVar(&c.Path.Value)
 	c.CmdClause.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Period.Set).UintVar(&c.Period.Value)
@@ -69,8 +69,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	return &c
 }
 
-// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.CreateFTPInput, error) {
+// ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.CreateFTPInput, error) {
 	var input fastly.CreateFTPInput
 
 	input.ServiceID = serviceID
@@ -132,18 +132,18 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) (*f
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		Client:             c.Globals.Client,
-		Manifest:           c.manifest,
+		Manifest:           c.Manifest,
 		Out:                out,
-		ServiceVersionFlag: c.serviceVersion,
+		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
 		return err
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}

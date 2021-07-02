@@ -14,17 +14,17 @@ import (
 // CreateCommand calls the Fastly API to create an Azure Blob Storage logging endpoint.
 type CreateCommand struct {
 	cmd.Base
-	manifest manifest.Data
+	Manifest manifest.Data
 
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
 	Container      string
 	AccountName    string
 	SASToken       string
-	serviceVersion cmd.OptionalServiceVersion
+	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
-	autoClone         cmd.OptionalAutoClone
+	AutoClone         cmd.OptionalAutoClone
 	Path              cmd.OptionalString
 	Period            cmd.OptionalUint
 	GzipLevel         cmd.OptionalUint
@@ -43,21 +43,21 @@ type CreateCommand struct {
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.Manifest.File.SetOutput(c.Globals.Output)
+	c.Manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an Azure Blob Storage logging endpoint on a Fastly service version").Alias("add")
 	c.CmdClause.Flag("name", "The name of the Azure Blob Storage logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+		Dst: &c.ServiceVersion.Value,
 	})
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
+		Action: c.AutoClone.Set,
+		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("container", "The name of the Azure Blob Storage container in which to store logs").Required().StringVar(&c.Container)
 	c.CmdClause.Flag("account-name", "The unique Azure Blob Storage namespace in which your data objects are stored").Required().StringVar(&c.AccountName)
 	c.CmdClause.Flag("sas-token", "The Azure shared access signature providing write access to the blob service objects. Be sure to update your token before it expires or the logging functionality will not work").Required().StringVar(&c.SASToken)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
 	c.CmdClause.Flag("path", "The path to upload logs to").Action(c.Path.Set).StringVar(&c.Path.Value)
 	c.CmdClause.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Period.Set).UintVar(&c.Period.Value)
 	c.CmdClause.Flag("gzip-level", "What level of GZIP encoding to have when dumping logs (default 0, no compression)").Action(c.GzipLevel.Set).UintVar(&c.GzipLevel.Value)
@@ -73,8 +73,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	return &c
 }
 
-// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.CreateBlobStorageInput, error) {
+// ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.CreateBlobStorageInput, error) {
 	var input fastly.CreateBlobStorageInput
 
 	input.ServiceID = serviceID
@@ -144,18 +144,18 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) (*f
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		Client:             c.Globals.Client,
-		Manifest:           c.manifest,
+		Manifest:           c.Manifest,
 		Out:                out,
-		ServiceVersionFlag: c.serviceVersion,
+		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
 		return err
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}
