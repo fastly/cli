@@ -24,6 +24,10 @@ import (
 var cfg []byte
 
 func main() {
+	// Some configuration options can come from env vars.
+	var env config.Environment
+	env.Read(parseEnv(os.Environ()))
+
 	// All of the work of building the set of commands and subcommands, wiring
 	// them together, picking which one to call, and executing it, occurs in a
 	// helper function, Run. We parameterize all of the dependencies so we can
@@ -38,10 +42,6 @@ func main() {
 		out           io.Writer = sync.NewWriter(os.Stdout)
 		versionerCLI            = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
 	)
-
-	// Some configuration options can come from env vars.
-	var env config.Environment
-	env.Read(parseEnv(os.Environ()))
 
 	// We have to manually handle the inclusion of the verbose flag here because
 	// Kingpin doesn't evaluate the provided arguments until app.Run which
