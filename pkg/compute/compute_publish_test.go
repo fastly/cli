@@ -35,7 +35,8 @@ func TestPublish(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    ">= 1.49.0 < 2.0.0",
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -93,7 +94,8 @@ func TestPublish(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    ">= 1.49.0 < 2.0.0",
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -151,7 +153,8 @@ func TestPublish(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    ">= 1.49.0 < 2.0.0",
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
 						RustupConstraint:    ">= 1.23.0",

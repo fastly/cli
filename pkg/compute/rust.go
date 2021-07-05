@@ -167,9 +167,9 @@ func (r *Rust) Verify(out io.Writer) error {
 	// We use rustup to assert that the toolchain is installed by streaming the output of
 	// `rustup toolchain list` and looking for a toolchain whose prefix matches our desired
 	// version.
-	fmt.Fprintf(out, "Checking if Rust %s is installed...\n", r.config.File.Language.Rust.ToolchainVersion)
+	fmt.Fprintf(out, "Checking if Rust %s is installed...\n", r.config.File.Language.Rust.ToolchainConstraint)
 
-	rustConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.ToolchainVersion)
+	rustConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.ToolchainConstraint)
 	if err != nil {
 		return fmt.Errorf("error parsing rust toolchain constraint: %w", err)
 	}
@@ -214,7 +214,7 @@ func (r *Rust) Verify(out io.Writer) error {
 	if !found {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rust target %s not found", r.config.File.Language.Rust.WasmWasiTarget),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", r.config.File.Language.Rust.WasmWasiTarget, r.config.File.Language.Rust.ToolchainVersion))),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", r.config.File.Language.Rust.WasmWasiTarget, r.toolchain.String()))),
 		}
 	}
 
@@ -314,7 +314,7 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	binName := m.Package.Name
 
 	if r.toolchain == nil {
-		rustConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.ToolchainVersion)
+		rustConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.ToolchainConstraint)
 		if err != nil {
 			return fmt.Errorf("error parsing rust toolchain constraint: %w", err)
 		}
@@ -418,8 +418,8 @@ func (r *Rust) toolchainVersion(rustConstraint *semver.Constraints) error {
 
 	if !found {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("rust toolchain %s not found", r.config.File.Language.Rust.ToolchainVersion),
-			Remediation: fmt.Sprintf("To fix this error, run the following command with a version within the given range %s:\n\n\t$ %s\n", r.config.File.Language.Rust.ToolchainVersion, text.Bold("rustup toolchain install <version>")),
+			Inner:       fmt.Errorf("rust toolchain %s not found", r.config.File.Language.Rust.ToolchainConstraint),
+			Remediation: fmt.Sprintf("To fix this error, run the following command with a version within the given range %s:\n\n\t$ %s\n", r.config.File.Language.Rust.ToolchainConstraint, text.Bold("rustup toolchain install <version>")),
 		}
 	}
 

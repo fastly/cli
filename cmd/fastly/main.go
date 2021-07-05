@@ -14,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/config"
 	fsterrors "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/update"
@@ -79,12 +78,12 @@ func main() {
 	// There are two scenarios we now want to look out for...
 	//
 	// 1. The config is using a legacy format.
-	// 2. The config is from an older CLI version.
+	// 2. The config is invalid (e.g. major version bump) for CLI version running.
 	//
 	// To prevent issues we'll replace the config with what's embedded into the CLI,
 	// as we know that is compatible with the code currently being executed.
-	if err == config.ErrLegacyConfig || file.CLI.Version != revision.SemVer(revision.AppVersion) {
-		err := file.UseStatic(cfg, config.FilePath)
+	if err == config.ErrLegacyConfig || !file.ValidConfig() {
+		err = file.UseStatic(cfg, config.FilePath)
 		if err != nil {
 			fsterrors.Deduce(err).Print(os.Stderr)
 			os.Exit(1)

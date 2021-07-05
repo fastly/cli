@@ -97,7 +97,8 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.Rust{
 						// TODO: pull actual version from .github/workflows/pr_test.yml
 						// when doing local run of integration tests.
-						ToolchainVersion:    ">= 1.49.0 < 2.0.0",
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: "0.0.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -130,7 +131,8 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    ">= 1.49.0 < 2.0.0",
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: "0.0.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -164,7 +166,8 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    ">= 1.49.0 < 2.0.0",
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.4.0 <= 0.9.0", // the fastly-sys version in 0.6.0 is actually ^0.3.6 so a minimum of 0.4.0 causes the constraint to fail
 						RustupConstraint:    ">= 1.23.0",
@@ -187,7 +190,8 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    ">= 1.49.0 < 2.0.0",
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -220,7 +224,8 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    ">= 1.49.0 < 2.0.0",
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
 						RustupConstraint:    ">= 1.23.0",

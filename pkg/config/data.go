@@ -169,11 +169,12 @@ type LegacyFile struct {
 
 // File represents our dynamic application toml configuration.
 type File struct {
-	Fastly      Fastly              `toml:"fastly"`
-	CLI         CLI                 `toml:"cli"`
-	User        User                `toml:"user"`
-	Language    Language            `toml:"language"`
-	StarterKits StarterKitLanguages `toml:"starter-kits"`
+	ConfigVersion int                 `toml:"config_version"`
+	Fastly        Fastly              `toml:"fastly"`
+	CLI           CLI                 `toml:"cli"`
+	User          User                `toml:"user"`
+	Language      Language            `toml:"language"`
+	StarterKits   StarterKitLanguages `toml:"starter-kits"`
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.
@@ -212,7 +213,13 @@ type Language struct {
 type Rust struct {
 	// ToolchainVersion is the `rustup` toolchain string for the compiler that we
 	// support
+	//
+	// DEPRECATED in favour of ToolchainConstraint
 	ToolchainVersion string `toml:"toolchain_version"`
+
+	// ToolchainConstrain is the `rustup` toolchain constraint for the compiler
+	// that we support (a range is expected, e.g. >= 1.49.0 < 2.0.0).
+	ToolchainConstraint string `toml:"toolchain_constraint"`
 
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
 	WasmWasiTarget string `toml:"wasm_wasi_target"`
@@ -305,6 +312,21 @@ func createConfigDir(fpath string) error {
 		return err
 	}
 	return nil
+}
+
+// ValidConfig checks the current config version isn't different from the
+// config statically embedded into the CLI binary. If it is then we consider
+// the config not valid and we'll fallback to the embedded config.
+func (f *File) ValidConfig() bool {
+	var cfg File
+	err := toml.Unmarshal(f.Static, cfg)
+	if err != nil {
+		return false
+	}
+	if f.ConfigVersion != cfg.ConfigVersion {
+		return false
+	}
+	return true
 }
 
 // Read decodes a toml file from the local disk into config.File.
