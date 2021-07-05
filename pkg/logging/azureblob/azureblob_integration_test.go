@@ -395,23 +395,23 @@ Version: 1
 
 func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
 	return &fastly.BlobStorage{
-		AccountName:       "account",
-		CompressionCodec:  "zstd",
-		Container:         "container",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		GzipLevel:         0,
-		MessageType:       "classic",
-		Name:              "logs",
-		Path:              "/logs",
-		Period:            3600,
-		Placement:         "none",
-		PublicKey:         pgpPublicKey(),
-		ResponseCondition: "Prevent default logging",
-		SASToken:          "token",
 		ServiceID:         i.ServiceID,
 		ServiceVersion:    i.ServiceVersion,
+		Name:              "logs",
+		Container:         "container",
+		AccountName:       "account",
+		SASToken:          "token",
+		Path:              "/logs",
+		Period:            3600,
+		GzipLevel:         0,
+		Format:            `%h %l %u %t "%r" %>s %b`,
+		FormatVersion:     2,
+		ResponseCondition: "Prevent default logging",
+		MessageType:       "classic",
 		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
+		Placement:         "none",
+		PublicKey:         pgpPublicKey(),
+		CompressionCodec:  "zstd",
 	}, nil
 }
 

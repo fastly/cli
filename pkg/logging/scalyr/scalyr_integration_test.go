@@ -374,15 +374,15 @@ Version: 1
 
 func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		Name:              "logs",
-		Placement:         "none",
-		Region:            "US",
-		ResponseCondition: "Prevent default logging",
 		ServiceID:         i.ServiceID,
 		ServiceVersion:    i.ServiceVersion,
+		Name:              "logs",
 		Token:             "abc",
+		Region:            "US",
+		Format:            `%h %l %u %t "%r" %>s %b`,
+		FormatVersion:     2,
+		ResponseCondition: "Prevent default logging",
+		Placement:         "none",
 	}, nil
 }
 

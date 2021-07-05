@@ -366,24 +366,24 @@ Version: 1
 
 func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
-		Address:           "example.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		Hostname:          "example.com",
-		IPV4:              "",
-		MessageType:       "classic",
-		Name:              "logs",
-		Placement:         "none",
-		Port:              514,
-		ResponseCondition: "Prevent default logging",
 		ServiceID:         i.ServiceID,
 		ServiceVersion:    i.ServiceVersion,
+		Name:              "logs",
+		Address:           "example.com",
+		Hostname:          "example.com",
+		Port:              514,
+		UseTLS:            true,
+		IPV4:              "",
 		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+		TLSHostname:       "example.com",
 		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
 		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		TLSHostname:       "example.com",
 		Token:             "tkn",
-		UseTLS:            true,
+		Format:            `%h %l %u %t "%r" %>s %b`,
+		FormatVersion:     2,
+		MessageType:       "classic",
+		ResponseCondition: "Prevent default logging",
+		Placement:         "none",
 	}, nil
 }
 

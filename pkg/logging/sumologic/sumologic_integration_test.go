@@ -330,15 +330,15 @@ Version: 1
 
 func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
+		ServiceID:         i.ServiceID,
+		ServiceVersion:    i.ServiceVersion,
+		Name:              "logs",
+		URL:               "example.com",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		MessageType:       "classic",
-		Name:              "logs",
-		Placement:         "none",
 		ResponseCondition: "Prevent default logging",
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		URL:               "example.com",
+		Placement:         "none",
 	}, nil
 }
 

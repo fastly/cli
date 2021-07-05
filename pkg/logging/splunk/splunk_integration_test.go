@@ -346,19 +346,19 @@ Version: 1
 
 func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		Name:              "logs",
-		Placement:         "none",
-		ResponseCondition: "Prevent default logging",
 		ServiceID:         i.ServiceID,
 		ServiceVersion:    i.ServiceVersion,
+		Name:              "logs",
+		URL:               "example.com",
+		Format:            `%h %l %u %t "%r" %>s %b`,
+		FormatVersion:     2,
 		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
+		TLSHostname:       "example.com",
 		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
 		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		TLSHostname:       "example.com",
+		ResponseCondition: "Prevent default logging",
+		Placement:         "none",
 		Token:             "tkn",
-		URL:               "example.com",
 	}, nil
 }
 

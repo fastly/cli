@@ -340,18 +340,18 @@ Version: 1
 
 func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		Dataset:           "raw-logs",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Name:              "logs",
-		Placement:         "none",
-		ProjectID:         "my-project",
-		ResponseCondition: "Prevent default logging",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
 		ServiceID:         i.ServiceID,
 		ServiceVersion:    i.ServiceVersion,
+		Name:              "logs",
+		ProjectID:         "my-project",
+		Dataset:           "raw-logs",
 		Table:             "logs",
-		Template:          "%Y%m%d",
 		User:              "service-account@domain.com",
+		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
+		Format:            `%h %l %u %t "%r" %>s %b`,
+		Template:          "%Y%m%d",
+		Placement:         "none",
+		ResponseCondition: "Prevent default logging",
 	}, nil
 }
 
