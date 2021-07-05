@@ -93,7 +93,6 @@ type RunOpts struct {
 // The Run helper should NOT output any error-related information to the out
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
-// func Run(args []string, environ config.Environment, file config.File, configFilePath string, cf APIClientFactory, httpClient api.HTTPClient, cliVersioner update.Versioner, in io.Reader, out io.Writer) error {
 func Run(opts RunOpts) error {
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
