@@ -58,7 +58,7 @@ func (s Streaming) Exec() error {
 		}
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("error during execution process"),
-			Remediation: fmt.Sprintf("Re-run the command with --verbose to see specific error output."),
+			Remediation: "Re-run the command with --verbose to see specific error output.",
 		}
 	}
 
