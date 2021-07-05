@@ -80,8 +80,9 @@ func (m *CargoMetadata) Read() error {
 
 // Rust implements a Toolchain for the Rust language.
 type Rust struct {
-	client api.HTTPClient
-	config *config.Data
+	client    api.HTTPClient
+	config    *config.Data
+	toolchain *semver.Version
 }
 
 // NewRust constructs a new Rust.
@@ -102,7 +103,7 @@ func (r Rust) IncludeFiles() []string { return []string{"Cargo.toml"} }
 
 // Verify implments the Toolchain interface and verifies whether the Rust
 // language toolchain is correctly configured on the host.
-func (r Rust) Verify(out io.Writer) error {
+func (r *Rust) Verify(out io.Writer) error {
 	// 1) Check `rustup` is on $PATH
 	//
 	// Rustup is Rust's toolchain installer and manager, it is needed to assert
@@ -168,27 +169,15 @@ func (r Rust) Verify(out io.Writer) error {
 	// version.
 	fmt.Fprintf(out, "Checking if Rust %s is installed...\n", r.config.File.Language.Rust.ToolchainVersion)
 
-	cmd = exec.Command("rustup", "toolchain", "list")
-	stdoutStderr, err = cmd.CombinedOutput()
+	rustConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.ToolchainVersion)
 	if err != nil {
-		return fmt.Errorf("error executing rustup: %w", err)
+		return fmt.Errorf("error parsing rust toolchain constraint: %w", err)
 	}
 
-	scanner := bufio.NewScanner(strings.NewReader(string(stdoutStderr)))
-	scanner.Split(bufio.ScanLines)
-	var found bool
-	for scanner.Scan() {
-		if strings.HasPrefix(scanner.Text(), r.config.File.Language.Rust.ToolchainVersion) {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("rust toolchain %s not found", r.config.File.Language.Rust.ToolchainVersion),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("rustup toolchain install "+r.config.File.Language.Rust.ToolchainVersion)),
-		}
+	// Side-effect: sets r.toolchain
+	err = r.toolchainVersion(rustConstraint)
+	if err != nil {
+		return err
 	}
 
 	// 4) Check `wasm32-wasi` target exists
@@ -206,15 +195,15 @@ func (r Rust) Verify(out io.Writer) error {
 	// user should be the person making the local configuration change.
 	//
 	/* #nosec */
-	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", r.config.File.Language.Rust.ToolchainVersion)
+	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", r.toolchain.String())
 	stdoutStderr, err = cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error executing rustup: %w", err)
 	}
 
-	scanner = bufio.NewScanner(strings.NewReader(string(stdoutStderr)))
+	scanner := bufio.NewScanner(strings.NewReader(string(stdoutStderr)))
 	scanner.Split(bufio.ScanWords)
-	found = false
+	found := false
 	for scanner.Scan() {
 		if scanner.Text() == r.config.File.Language.Rust.WasmWasiTarget {
 			found = true
@@ -316,7 +305,7 @@ func (r Rust) Initialize(out io.Writer) error { return nil }
 
 // Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
-func (r Rust) Build(out io.Writer, verbose bool) error {
+func (r *Rust) Build(out io.Writer, verbose bool) error {
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
 	if err := m.Read("Cargo.toml"); err != nil {
@@ -324,8 +313,20 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	}
 	binName := m.Package.Name
 
-	// Specify the toolchain using the `cargo +<version>` syntax.
-	toolchain := fmt.Sprintf("+%s", r.config.File.Language.Rust.ToolchainVersion)
+	if r.toolchain == nil {
+		rustConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.ToolchainVersion)
+		if err != nil {
+			return fmt.Errorf("error parsing rust toolchain constraint: %w", err)
+		}
+
+		// Side-effect: sets r.toolchain
+		err = r.toolchainVersion(rustConstraint)
+		if err != nil {
+			return err
+		}
+	}
+
+	toolchain := fmt.Sprintf("+%s", r.toolchain.String())
 
 	args := []string{
 		toolchain,
@@ -378,6 +379,48 @@ func (r Rust) Build(out io.Writer, verbose bool) error {
 	err = filesystem.CopyFile(src, dst)
 	if err != nil {
 		return fmt.Errorf("copying wasm binary: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Rust) toolchainVersion(rustConstraint *semver.Constraints) error {
+	cmd := exec.Command("rustup", "toolchain", "list")
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error executing rustup: %w", err)
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(string(stdoutStderr)))
+	scanner.Split(bufio.ScanLines)
+	var found bool
+	for scanner.Scan() {
+		// Example output for `rustup toolchain list`:
+		//
+		// stable-x86_64-apple-darwin (default)
+		// 1.46.0-x86_64-apple-darwin
+		// 1.49.0-x86_64-apple-darwin
+		v := strings.Split(scanner.Text(), "-")
+		if v[0] == "stable" {
+			continue
+		}
+
+		r.toolchain, err = semver.NewVersion(v[0])
+		if err != nil {
+			return fmt.Errorf("error parsing rust toolchain version: %w", err)
+		}
+
+		if ok := rustConstraint.Check(r.toolchain); ok {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("rust toolchain %s not found", r.config.File.Language.Rust.ToolchainVersion),
+			Remediation: fmt.Sprintf("To fix this error, run the following command with a version within the given range %s:\n\n\t$ %s\n", r.config.File.Language.Rust.ToolchainVersion, text.Bold("rustup toolchain install <version>")),
+		}
 	}
 
 	return nil

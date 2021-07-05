@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/fastly/cli/pkg/errors"
 )
 
 // Streaming models a generic command execution that consumers can use to
@@ -54,7 +56,10 @@ func (s Streaming) Exec() error {
 		if s.verbose && stderrBuf.Len() > 0 {
 			return fmt.Errorf("error during execution process:\n%s", strings.TrimSpace(stderrBuf.String()))
 		}
-		return fmt.Errorf("error during execution process")
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("error during execution process"),
+			Remediation: fmt.Sprintf("Re-run the command with --verbose to see specific error output."),
+		}
 	}
 
 	return nil
