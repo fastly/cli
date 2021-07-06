@@ -1,5 +1,16 @@
 # Changelog
 
+## [v0.33.0](https://github.com/fastly/cli/releases/tag/v0.33.0) (2021-07-06)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.32.0...v0.33.0)
+
+**Enhancements:**
+
+- Improve CI workflow [\#333](https://github.com/fastly/cli/pull/333)
+- Support multiple versions of Rust [\#330](https://github.com/fastly/cli/pull/330)
+- Replace `app.Run` positional signature with a struct [\#329](https://github.com/fastly/cli/pull/329)
+- Test suite improvements [\#327](https://github.com/fastly/cli/pull/327)
+
 ## [v0.32.0](https://github.com/fastly/cli/releases/tag/v0.32.0) (2021-06-30)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.31.0...v0.32.0)
