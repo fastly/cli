@@ -98,8 +98,7 @@ COMMANDS
   dictionaryitem   Manipulate Fastly edge dictionary items
   logging          Manipulate Fastly service version logging endpoints
   logs             Compute@Edge Log Tailing
-  stats            View statistics (historical and realtime) for a Fastly
-                   service
+  stats            View historical and realtime statistics for a Fastly service
   vcl              Manipulate Fastly service version VCL
 `) + "\n\n"
 
