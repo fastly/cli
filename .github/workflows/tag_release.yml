@@ -21,6 +21,8 @@ jobs:
     - name: Pull config
       run: |
         make config
+    - name: Check config
+      run: cat cmd/fastly/static/config.toml
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v2
       with:
