@@ -21,6 +21,10 @@ jobs:
     - name: Pull config
       run: |
         make config
+    - name: Print config
+      run: cat cmd/fastly/static/config.toml
+    - name: Validate config
+      run: cat cmd/fastly/static/config.toml | grep 'remote_config = "https://developer.fastly.com/api/internal/cli-config"'
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v2
       with:
