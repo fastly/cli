@@ -62,7 +62,7 @@ type testReadScenario struct {
 	wantError             string
 }
 
-// TestConfigRead validates all of the logic flow within config.File.Read()
+// TestConfigRead validates all logic flows within config.File.Read()
 func TestConfigRead(t *testing.T) {
 	scenarios := []testReadScenario{
 		{
@@ -191,7 +191,7 @@ type testUseStaticScenario struct {
 	userConfigFilename string
 }
 
-// TestUseStatic validates all of the logic flow within config.File.UseStatic()
+// TestUseStatic validates all logic flows within config.File.UseStatic()
 func TestUseStatic(t *testing.T) {
 	scenarios := []testUseStaticScenario{
 		{
@@ -269,7 +269,7 @@ func TestUseStatic(t *testing.T) {
 	}
 }
 
-// TestConfigWrite validates all of the logic flow within config.File.Write()
+// TestConfigWrite validates all logic flows within config.File.Write()
 //
 // Specifically we're interested in whether the f.Static field is written to
 // disk (we don't we want it to be) and whether its value is reset (we do want).
@@ -334,5 +334,77 @@ func TestConfigWrite(t *testing.T) {
 	}
 	if len(f.Static) > 0 {
 		t.Fatalf("expected f.Static to be not set: %+v", f.Static)
+	}
+}
+
+type testValidConfigScenario struct {
+	testutil.TestScenario
+
+	ok            bool
+	staticConfig  []byte
+	userConfig    string
+	verboseOutput bool
+}
+
+// TestValidConfig validates all logic flows within config.File.ValidConfig()
+func TestValidConfig(t *testing.T) {
+	s1 := testValidConfigScenario{}
+	s1.Name = "invalid config"
+	s1.staticConfig = staticConfig
+	s1.userConfig = "config-incompatible-config-version.toml"
+
+	s2 := testValidConfigScenario{}
+	s2.Name = "valid config"
+	s2.staticConfig = staticConfig
+	s2.userConfig = "config.toml"
+
+	scenarios := []testValidConfigScenario{s1, s2}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			// We're going to chdir to an temp environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{
+						Src: filepath.Join("testdata", testcase.userConfig),
+						Dst: filepath.Join("config.toml"),
+					},
+				},
+			})
+			configPath := filepath.Join(rootdir, "config.toml")
+			defer os.RemoveAll(rootdir)
+
+			// Before running the test, chdir into the temp environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably assert file structure.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(pwd)
+
+			var f config.File
+			f.Static = testcase.staticConfig
+
+			var out bytes.Buffer
+			in := strings.NewReader("") // these tests won't trigger a user prompt
+
+			err = f.Read(configPath, in, &out)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			ok := f.ValidConfig(testcase.verboseOutput, &out)
+			if ok != testcase.ok {
+				t.Fatalf("want %t, have: %t", testcase.ok, ok)
+			}
+		})
 	}
 }
