@@ -319,7 +319,7 @@ func createConfigDir(fpath string) error {
 // the config not valid and we'll fallback to the embedded config.
 func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 	var cfg File
-	err := toml.Unmarshal(f.Static, cfg)
+	err := toml.Unmarshal(f.Static, &cfg)
 	if err != nil {
 		return false
 	}
@@ -328,7 +328,7 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 		text.Output(out, `
 			Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
 			Your configuration will be migrated to a compatible configuration format.
-			Please update your CLI: %s
+			Please also update your CLI by running: %s
 		`, text.Bold("fastly update"))
 		text.Break(out)
 	}

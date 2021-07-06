@@ -354,11 +354,18 @@ func TestValidConfig(t *testing.T) {
 	s1.userConfig = "config-incompatible-config-version.toml"
 
 	s2 := testValidConfigScenario{}
-	s2.Name = "valid config"
+	s2.Name = "invalid config with verbose output"
 	s2.staticConfig = staticConfig
-	s2.userConfig = "config.toml"
+	s2.userConfig = "config-incompatible-config-version.toml"
+	s2.verboseOutput = true
 
-	scenarios := []testValidConfigScenario{s1, s2}
+	s3 := testValidConfigScenario{}
+	s3.Name = "valid config"
+	s3.ok = true
+	s3.staticConfig = staticConfig
+	s3.userConfig = "config.toml"
+
+	scenarios := []testValidConfigScenario{s1, s2, s3}
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
@@ -393,17 +400,21 @@ func TestValidConfig(t *testing.T) {
 			var f config.File
 			f.Static = testcase.staticConfig
 
-			var out bytes.Buffer
+			var stdout bytes.Buffer
 			in := strings.NewReader("") // these tests won't trigger a user prompt
 
-			err = f.Read(configPath, in, &out)
+			err = f.Read(configPath, in, &stdout)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			ok := f.ValidConfig(testcase.verboseOutput, &out)
+			ok := f.ValidConfig(testcase.verboseOutput, &stdout)
 			if ok != testcase.ok {
 				t.Fatalf("want %t, have: %t", testcase.ok, ok)
+			}
+
+			if !testcase.ok && testcase.verboseOutput {
+				testutil.AssertStringContains(t, stdout.String(), "Please also update your CLI by running")
 			}
 		})
 	}
