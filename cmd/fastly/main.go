@@ -38,9 +38,9 @@ func main() {
 		args                    = os.Args[1:]
 		clientFactory           = app.FastlyAPIClient
 		httpClient              = http.DefaultClient
-		cliVersioner            = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
 		in            io.Reader = os.Stdin
 		out           io.Writer = sync.NewWriter(os.Stdout)
+		versionerCLI            = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
 	)
 
 	// We have to manually handle the inclusion of the verbose flag here because
@@ -125,7 +125,18 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 	}
 
 	// Main is basically just a shim to call Run, so we do that here.
-	if err := app.Run(args, env, file, config.FilePath, clientFactory, httpClient, cliVersioner, in, out); err != nil {
+	opts := app.RunOpts{
+		APIClient:    clientFactory,
+		Args:         args,
+		ConfigFile:   file,
+		ConfigPath:   config.FilePath,
+		Env:          env,
+		HTTPClient:   httpClient,
+		Stdin:        in,
+		Stdout:       out,
+		VersionerCLI: versionerCLI,
+	}
+	if err := app.Run(opts); err != nil {
 		fsterrors.Deduce(err).Print(os.Stderr)
 
 		// NOTE: if we have an error processing the command, then we should be sure

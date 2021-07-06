@@ -1,4 +1,4 @@
-package heroku
+package heroku_test
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/logging/heroku"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -16,7 +17,7 @@ import (
 func TestCreateHerokuInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *CreateCommand
+		cmd       *heroku.CreateCommand
 		want      *fastly.CreateHerokuInput
 		wantError string
 	}{
@@ -59,11 +60,11 @@ func TestCreateHerokuInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.cmd.Base.Globals.Client,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -79,7 +80,7 @@ func TestCreateHerokuInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -89,7 +90,7 @@ func TestCreateHerokuInput(t *testing.T) {
 func TestUpdateHerokuInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *UpdateCommand
+		cmd       *heroku.UpdateCommand
 		api       mock.API
 		want      *fastly.UpdateHerokuInput
 		wantError string
@@ -144,11 +145,11 @@ func TestUpdateHerokuInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.api,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -164,14 +165,14 @@ func TestUpdateHerokuInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func createCommandRequired() *CreateCommand {
+func createCommandRequired() *heroku.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -184,11 +185,11 @@ func createCommandRequired() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &heroku.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
@@ -196,10 +197,10 @@ func createCommandRequired() *CreateCommand {
 		EndpointName: "log",
 		Token:        "tkn",
 		URL:          "example.com",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -210,7 +211,7 @@ func createCommandRequired() *CreateCommand {
 	}
 }
 
-func createCommandAll() *CreateCommand {
+func createCommandAll() *heroku.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -223,11 +224,11 @@ func createCommandAll() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &heroku.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
@@ -235,10 +236,10 @@ func createCommandAll() *CreateCommand {
 		EndpointName: "log",
 		Token:        "tkn",
 		URL:          "example.com",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -253,13 +254,13 @@ func createCommandAll() *CreateCommand {
 	}
 }
 
-func createCommandMissingServiceID() *CreateCommand {
+func createCommandMissingServiceID() *heroku.CreateCommand {
 	res := createCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
 }
 
-func updateCommandNoUpdates() *UpdateCommand {
+func updateCommandNoUpdates() *heroku.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -268,20 +269,20 @@ func updateCommandNoUpdates() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &heroku.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -292,7 +293,7 @@ func updateCommandNoUpdates() *UpdateCommand {
 	}
 }
 
-func updateCommandAll() *UpdateCommand {
+func updateCommandAll() *heroku.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -301,20 +302,20 @@ func updateCommandAll() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &heroku.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -332,22 +333,8 @@ func updateCommandAll() *UpdateCommand {
 	}
 }
 
-func updateCommandMissingServiceID() *UpdateCommand {
+func updateCommandMissingServiceID() *heroku.UpdateCommand {
 	res := updateCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
-}
-
-func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
-	return &fastly.Heroku{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Token:             "tkn",
-		URL:               "example.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
-	}, nil
 }

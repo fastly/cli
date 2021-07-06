@@ -13,14 +13,14 @@ import (
 // UpdateCommand calls the Fastly API to update a Google Cloud Pub/Sub logging endpoint.
 type UpdateCommand struct {
 	cmd.Base
-	manifest manifest.Data
+	Manifest manifest.Data
 
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
-	serviceVersion cmd.OptionalServiceVersion
+	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
-	autoClone         cmd.OptionalAutoClone
+	AutoClone         cmd.OptionalAutoClone
 	NewName           cmd.OptionalString
 	User              cmd.OptionalString
 	SecretKey         cmd.OptionalString
@@ -36,18 +36,18 @@ type UpdateCommand struct {
 func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.Manifest.File.SetOutput(c.Globals.Output)
+	c.Manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("update", "Update a Google Cloud Pub/Sub logging endpoint on a Fastly service version")
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+		Dst: &c.ServiceVersion.Value,
 	})
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
+		Action: c.AutoClone.Set,
+		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the Google Cloud Pub/Sub logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
 	c.CmdClause.Flag("new-name", "New name of the Google Cloud Pub/Sub logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("user", "Your Google Cloud Platform service account email address. The client_email field in your service account authentication JSON").Action(c.User.Set).StringVar(&c.User.Value)
 	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
@@ -60,8 +60,8 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	return &c
 }
 
-// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.UpdatePubsubInput, error) {
+// ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.UpdatePubsubInput, error) {
 	input := fastly.UpdatePubsubInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
@@ -110,18 +110,18 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		Client:             c.Globals.Client,
-		Manifest:           c.manifest,
+		Manifest:           c.Manifest,
 		Out:                out,
-		ServiceVersionFlag: c.serviceVersion,
+		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
 		return err
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}

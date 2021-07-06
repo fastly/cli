@@ -286,15 +286,15 @@ func TestInit(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetFile(testcase.configFile)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.ConfigFile = testcase.configFile
 
 			// we need to define stdin as the init process prompts the user multiple
 			// times, but we don't need to provide any values as all our prompts will
 			// fallback to default values if the input is unrecognised.
-			ara.SetStdin(strings.NewReader(""))
+			opts.Stdin = strings.NewReader("")
 
-			err = app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			err = app.Run(opts)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, file := range testcase.wantFiles {

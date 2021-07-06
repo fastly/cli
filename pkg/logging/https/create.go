@@ -13,15 +13,15 @@ import (
 // CreateCommand calls the Fastly API to create an HTTPS logging endpoint.
 type CreateCommand struct {
 	cmd.Base
-	manifest manifest.Data
+	Manifest manifest.Data
 
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
 	URL            string
-	serviceVersion cmd.OptionalServiceVersion
+	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
-	autoClone         cmd.OptionalAutoClone
+	AutoClone         cmd.OptionalAutoClone
 	RequestMaxEntries cmd.OptionalUint
 	RequestMaxBytes   cmd.OptionalUint
 	TLSCACert         cmd.OptionalString
@@ -44,19 +44,19 @@ type CreateCommand struct {
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.Manifest.File.SetOutput(c.Globals.Output)
+	c.Manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create an HTTPS logging endpoint on a Fastly service version").Alias("add")
 	c.CmdClause.Flag("name", "The name of the HTTPS logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+		Dst: &c.ServiceVersion.Value,
 	})
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
+		Action: c.AutoClone.Set,
+		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("url", "URL that log data will be sent to. Must use the https protocol").Required().StringVar(&c.URL)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
 	c.CmdClause.Flag("content-type", "Content type of the header sent with the request").Action(c.ContentType.Set).StringVar(&c.ContentType.Value)
 	c.CmdClause.Flag("header-name", "Name of the custom header sent with the request").Action(c.HeaderName.Set).StringVar(&c.HeaderName.Value)
 	c.CmdClause.Flag("header-value", "Value of the custom header sent with the request").Action(c.HeaderValue.Set).StringVar(&c.HeaderValue.Value)
@@ -76,8 +76,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	return &c
 }
 
-// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.CreateHTTPSInput, error) {
+// ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.CreateHTTPSInput, error) {
 	var input fastly.CreateHTTPSInput
 
 	input.ServiceID = serviceID
@@ -155,18 +155,18 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) (*f
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		Client:             c.Globals.Client,
-		Manifest:           c.manifest,
+		Manifest:           c.Manifest,
 		Out:                out,
-		ServiceVersionFlag: c.serviceVersion,
+		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
 		return err
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}

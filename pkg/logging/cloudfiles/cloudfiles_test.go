@@ -1,14 +1,14 @@
-package cloudfiles
+package cloudfiles_test
 
 import (
 	"bytes"
-	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/logging/cloudfiles"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -17,7 +17,7 @@ import (
 func TestCreateCloudfilesInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *CreateCommand
+		cmd       *cloudfiles.CreateCommand
 		want      *fastly.CreateCloudfilesInput
 		wantError string
 	}{
@@ -70,11 +70,11 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.cmd.Base.Globals.Client,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -90,7 +90,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
@@ -100,7 +100,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 func TestUpdateCloudfilesInput(t *testing.T) {
 	for _, testcase := range []struct {
 		name      string
-		cmd       *UpdateCommand
+		cmd       *cloudfiles.UpdateCommand
 		api       mock.API
 		want      *fastly.UpdateCloudfilesInput
 		wantError string
@@ -164,11 +164,11 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-				AutoCloneFlag:      testcase.cmd.autoClone,
+				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.api,
-				Manifest:           testcase.cmd.manifest,
+				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
-				ServiceVersionFlag: testcase.cmd.serviceVersion,
+				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
 			if err != nil {
@@ -184,14 +184,14 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 				}
 			}
 
-			have, err := testcase.cmd.constructInput(serviceID, serviceVersion.Number)
+			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
-func createCommandRequired() *CreateCommand {
+func createCommandRequired() *cloudfiles.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -204,20 +204,20 @@ func createCommandRequired() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &cloudfiles.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -231,7 +231,7 @@ func createCommandRequired() *CreateCommand {
 	}
 }
 
-func createCommandAll() *CreateCommand {
+func createCommandAll() *cloudfiles.CreateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -244,20 +244,20 @@ func createCommandAll() *CreateCommand {
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
-	return &CreateCommand{
+	return &cloudfiles.CreateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
 		EndpointName: "log",
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -282,13 +282,13 @@ func createCommandAll() *CreateCommand {
 	}
 }
 
-func createCommandMissingServiceID() *CreateCommand {
+func createCommandMissingServiceID() *cloudfiles.CreateCommand {
 	res := createCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
 }
 
-func updateCommandNoUpdate() *UpdateCommand {
+func updateCommandNoUpdate() *cloudfiles.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -297,19 +297,19 @@ func updateCommandNoUpdate() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &cloudfiles.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -321,7 +321,7 @@ func updateCommandNoUpdate() *UpdateCommand {
 	}
 }
 
-func updateCommandAll() *UpdateCommand {
+func updateCommandAll() *cloudfiles.UpdateCommand {
 	var b bytes.Buffer
 
 	globals := config.Data{
@@ -330,19 +330,19 @@ func updateCommandAll() *UpdateCommand {
 		Output: &b,
 	}
 
-	return &UpdateCommand{
+	return &cloudfiles.UpdateCommand{
 		Base: cmd.Base{
 			Globals: &globals,
 		},
-		manifest: manifest.Data{
+		Manifest: manifest.Data{
 			Flag: manifest.Flag{
 				ServiceID: "123",
 			},
 		},
-		serviceVersion: cmd.OptionalServiceVersion{
+		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		autoClone: cmd.OptionalAutoClone{
+		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
 					WasSet: true,
@@ -370,65 +370,8 @@ func updateCommandAll() *UpdateCommand {
 	}
 }
 
-func updateCommandMissingServiceID() *UpdateCommand {
+func updateCommandMissingServiceID() *cloudfiles.UpdateCommand {
 	res := updateCommandAll()
-	res.manifest = manifest.Data{}
+	res.Manifest = manifest.Data{}
 	return res
-}
-
-func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
-	return &fastly.Cloudfiles{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		User:              "user",
-		AccessKey:         "key",
-		BucketName:        "bucket",
-		Path:              "/logs",
-		Region:            "abc",
-		Placement:         "none",
-		Period:            3600,
-		GzipLevel:         0,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		PublicKey:         pgpPublicKey(),
-		CompressionCodec:  "zstd",
-	}, nil
-}
-
-// pgpPublicKey returns a PEM encoded PGP public key suitable for testing.
-func pgpPublicKey() string {
-	return strings.TrimSpace(`-----BEGIN PGP PUBLIC KEY BLOCK-----
-mQENBFyUD8sBCACyFnB39AuuTygseek+eA4fo0cgwva6/FSjnWq7riouQee8GgQ/
-ibXTRyv4iVlwI12GswvMTIy7zNvs1R54i0qvsLr+IZ4GVGJqs6ZJnvQcqe3xPoR4
-8AnBfw90o32r/LuHf6QCJXi+AEu35koNlNAvLJ2B+KACaNB7N0EeWmqpV/1V2k9p
-lDYk+th7LcCuaFNGqKS/PrMnnMqR6VDLCjHhNx4KR79b0Twm/2qp6an3hyNRu8Gn
-dwxpf1/BUu3JWf+LqkN4Y3mbOmSUL3MaJNvyQguUzTfS0P0uGuBDHrJCVkMZCzDB
-89ag55jCPHyGeHBTd02gHMWzsg3WMBWvCsrzABEBAAG0JXRlcnJhZm9ybSAodGVz
-dCkgPHRlc3RAdGVycmFmb3JtLmNvbT6JAU4EEwEIADgWIQSHYyc6Kj9l6HzQsau6
-vFFc9jxV/wUCXJQPywIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAKCRC6vFFc
-9jxV/815CAClb32OxV7wG01yF97TzlyTl8TnvjMtoG29Mw4nSyg+mjM3b8N7iXm9
-OLX59fbDAWtBSldSZE22RXd3CvlFOG/EnKBXSjBtEqfyxYSnyOPkMPBYWGL/ApkX
-SvPYJ4LKdvipYToKFh3y9kk2gk1DcDBDyaaHvR+3rv1u3aoy7/s2EltAfDS3ZQIq
-7/cWTLJml/lleeB/Y6rPj8xqeCYhE5ahw9gsV/Mdqatl24V9Tks30iijx0Hhw+Gx
-kATUikMGr2GDVqoIRga5kXI7CzYff4rkc0Twn47fMHHHe/KY9M2yVnMHUXmAZwbG
-M1cMI/NH1DjevCKdGBLcRJlhuLPKF/anuQENBFyUD8sBCADIpd7r7GuPd6n/Ikxe
-u6h7umV6IIPoAm88xCYpTbSZiaK30Svh6Ywra9jfE2KlU9o6Y/art8ip0VJ3m07L
-4RSfSpnzqgSwdjSq5hNour2Fo/BzYhK7yaz2AzVSbe33R0+RYhb4b/6N+bKbjwGF
-ftCsqVFMH+PyvYkLbvxyQrHlA9woAZaNThI1ztO5rGSnGUR8xt84eup28WIFKg0K
-UEGUcTzz+8QGAwAra+0ewPXo/AkO+8BvZjDidP417u6gpBHOJ9qYIcO9FxHeqFyu
-YrjlrxowEgXn5wO8xuNz6Vu1vhHGDHGDsRbZF8pv1d5O+0F1G7ttZ2GRRgVBZPwi
-kiyRABEBAAGJATYEGAEIACAWIQSHYyc6Kj9l6HzQsau6vFFc9jxV/wUCXJQPywIb
-DAAKCRC6vFFc9jxV/9YOCACe8qmOSnKQpQfW+PqYOqo3dt7JyweTs3FkD6NT8Zml
-dYy/vkstbTjPpX6aTvUZjkb46BVi7AOneVHpD5GBqvRsZ9iVgDYHaehmLCdKiG5L
-3Tp90NN+QY5WDbsGmsyk6+6ZMYejb4qYfweQeduOj27aavCJdLkCYMoRKfcFYI8c
-FaNmEfKKy/r1PO20NXEG6t9t05K/frHy6ZG8bCNYdpagfFVot47r9JaQqWlTNtIR
-5+zkkSq/eG9BEtRij3a6cTdQbktdBzx2KBeI0PYc1vlZR0LpuFKZqY9vlE6vTGLR
-wMfrTEOvx0NxUM3rpaCgEmuWbB1G1Hu371oyr4srrr+N
-=28dr
------END PGP PUBLIC KEY BLOCK-----
-`)
 }

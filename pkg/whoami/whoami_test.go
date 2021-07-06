@@ -24,7 +24,6 @@ func TestWhoami(t *testing.T) {
 		name       string
 		args       []string
 		env        config.Environment
-		file       config.File
 		client     api.HTTPClient
 		wantError  string
 		wantOutput string
@@ -81,11 +80,10 @@ func TestWhoami(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			ara := testutil.NewAppRunArgs(testcase.args, &stdout)
-			ara.SetEnv(testcase.env)
-			ara.SetFile(testcase.file)
-			ara.SetClient(testcase.client)
-			err := app.Run(ara.Args, ara.Env, ara.File, ara.AppConfigFile, ara.ClientFactory, ara.HTTPClient, ara.CLIVersioner, ara.In, ara.Out)
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.Env = testcase.env
+			opts.HTTPClient = testcase.client
+			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
