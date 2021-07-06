@@ -54,7 +54,8 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `
+			wantFile: `config_version = 0
+
 [cli]
   last_checked = ""
   remote_config = ""
@@ -69,6 +70,7 @@ func TestConfigure(t *testing.T) {
   [language.rust]
     fastly_sys_constraint = ""
     rustup_constraint = ""
+    toolchain_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
 
@@ -100,7 +102,8 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `
+			wantFile: `config_version = 0
+
 [cli]
   last_checked = ""
   remote_config = ""
@@ -115,6 +118,7 @@ func TestConfigure(t *testing.T) {
   [language.rust]
     fastly_sys_constraint = ""
     rustup_constraint = ""
+    toolchain_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
 
@@ -143,7 +147,8 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `
+			wantFile: `config_version = 0
+
 [cli]
   last_checked = ""
   remote_config = ""
@@ -158,6 +163,7 @@ func TestConfigure(t *testing.T) {
   [language.rust]
     fastly_sys_constraint = ""
     rustup_constraint = ""
+    toolchain_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
 
@@ -189,7 +195,8 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `
+			wantFile: `config_version = 0
+
 [cli]
   last_checked = ""
   remote_config = ""
@@ -204,6 +211,7 @@ func TestConfigure(t *testing.T) {
   [language.rust]
     fastly_sys_constraint = ""
     rustup_constraint = ""
+    toolchain_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
 
@@ -233,7 +241,8 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `
+			wantFile: `config_version = 0
+
 [cli]
   last_checked = ""
   remote_config = ""
@@ -248,6 +257,7 @@ func TestConfigure(t *testing.T) {
   [language.rust]
     fastly_sys_constraint = ""
     rustup_constraint = ""
+    toolchain_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
 
@@ -280,7 +290,8 @@ func TestConfigure(t *testing.T) {
 				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
-			wantFile: `
+			wantFile: `config_version = 0
+
 [cli]
   last_checked = ""
   remote_config = ""
@@ -295,6 +306,7 @@ func TestConfigure(t *testing.T) {
   [language.rust]
     fastly_sys_constraint = ""
     rustup_constraint = ""
+    toolchain_constraint = ""
     toolchain_version = ""
     wasm_wasi_target = ""
 
