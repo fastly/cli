@@ -413,8 +413,9 @@ func TestValidConfig(t *testing.T) {
 				t.Fatalf("want %t, have: %t", testcase.ok, ok)
 			}
 
+			output := strings.ReplaceAll(stdout.String(), "\n", " ")
 			if !testcase.ok && testcase.verboseOutput {
-				testutil.AssertStringContains(t, stdout.String(), "Please also update your CLI by running")
+				testutil.AssertStringContains(t, output, "incompatible with the current CLI version")
 			}
 		})
 	}
