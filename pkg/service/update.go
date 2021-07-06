@@ -15,15 +15,11 @@ import (
 // UpdateCommand calls the Fastly API to create services.
 type UpdateCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	input    fastly.UpdateServiceInput
 
-	// TODO(integralist):
-	// Ensure consistency in capitalization, should be lowercase to avoid
-	// ambiguity in cmd.Command interface.
-	//
-	name    cmd.OptionalString
-	comment cmd.OptionalString
+	comment  cmd.OptionalString
+	input    fastly.UpdateServiceInput
+	manifest manifest.Data
+	name     cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.

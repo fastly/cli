@@ -190,10 +190,6 @@ func (r *Rust) Verify(out io.Writer) error {
 
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
-	//
-	// TODO: decide if this is safe or not. It should be as the only affected
-	// user should be the person making the local configuration change.
-	//
 	/* #nosec */
 	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", r.toolchain.String())
 	stdoutStderr, err = cmd.CombinedOutput()
