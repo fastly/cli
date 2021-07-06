@@ -82,7 +82,7 @@ func main() {
 	//
 	// To prevent issues we'll replace the config with what's embedded into the CLI,
 	// as we know that is compatible with the code currently being executed.
-	if err == config.ErrLegacyConfig || !file.ValidConfig() {
+	if err == config.ErrLegacyConfig || !file.ValidConfig(verboseOutput, out) {
 		err = file.UseStatic(cfg, config.FilePath)
 		if err != nil {
 			fsterrors.Deduce(err).Print(os.Stderr)

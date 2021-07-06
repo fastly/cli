@@ -317,12 +317,22 @@ func createConfigDir(fpath string) error {
 // ValidConfig checks the current config version isn't different from the
 // config statically embedded into the CLI binary. If it is then we consider
 // the config not valid and we'll fallback to the embedded config.
-func (f *File) ValidConfig() bool {
+func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 	var cfg File
 	err := toml.Unmarshal(f.Static, cfg)
 	if err != nil {
 		return false
 	}
+
+	if verbose {
+		text.Output(out, `
+			Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
+			Your configuration will be migrated to a compatible configuration format.
+			Please update your CLI: %s
+		`, text.Bold("fastly update"))
+		text.Break(out)
+	}
+
 	if f.ConfigVersion != cfg.ConfigVersion {
 		return false
 	}
