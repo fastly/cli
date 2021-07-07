@@ -70,17 +70,23 @@ var (
 	completionRegExp = regexp.MustCompile("completion-(?:script-)?(?:bash|zsh)$")
 )
 
+// Versioners represents all supported versioner types.
+type Versioners struct {
+	CLI     update.Versioner
+	Viceroy update.Versioner
+}
+
 // RunOpts represent arguments to Run()
 type RunOpts struct {
-	APIClient    APIClientFactory
-	Args         []string
-	ConfigFile   config.File
-	ConfigPath   string
-	Env          config.Environment
-	HTTPClient   api.HTTPClient
-	Stdin        io.Reader
-	Stdout       io.Writer
-	VersionerCLI update.Versioner
+	APIClient  APIClientFactory
+	Args       []string
+	ConfigFile config.File
+	ConfigPath string
+	Env        config.Environment
+	HTTPClient api.HTTPClient
+	Stdin      io.Reader
+	Stdout     io.Writer
+	Versioners Versioners
 }
 
 // Run constructs the application including all of the subcommands, parses the
@@ -135,7 +141,7 @@ func Run(opts RunOpts) error {
 	configureRoot := configure.NewRootCommand(app, opts.ConfigPath, configure.APIClientFactory(opts.APIClient), &globals)
 	whoamiRoot := whoami.NewRootCommand(app, opts.HTTPClient, &globals)
 	versionRoot := version.NewRootCommand(app)
-	updateRoot := update.NewRootCommand(app, opts.ConfigPath, opts.VersionerCLI, opts.HTTPClient, &globals)
+	updateRoot := update.NewRootCommand(app, opts.ConfigPath, opts.Versioners.CLI, opts.HTTPClient, &globals)
 	ipRoot := ip.NewRootCommand(app, &globals)
 	popRoot := pop.NewRootCommand(app, &globals)
 	purgeRoot := purge.NewRootCommand(app, &globals)
@@ -163,6 +169,7 @@ func Run(opts RunOpts) error {
 	computePublish := compute.NewPublishCommand(computeRoot.CmdClause, &globals, computeBuild, computeDeploy)
 	computePack := compute.NewPackCommand(computeRoot.CmdClause, &globals)
 	computeUpdate := compute.NewUpdateCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
+	computeServe := compute.NewServeCommand(computeRoot.CmdClause, &globals, computeBuild, opts.Versioners.Viceroy)
 	computeValidate := compute.NewValidateCommand(computeRoot.CmdClause, &globals)
 
 	domainRoot := domain.NewRootCommand(app, &globals)
@@ -433,6 +440,7 @@ func Run(opts RunOpts) error {
 		computeDeploy,
 		computePublish,
 		computePack,
+		computeServe,
 		computeUpdate,
 		computeValidate,
 
@@ -787,10 +795,10 @@ func Run(opts RunOpts) error {
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
 	}
 
-	if opts.VersionerCLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
+	if opts.Versioners.CLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel() // push cancel on the defer stack first...
-		f := update.CheckAsync(ctx, opts.ConfigFile, opts.ConfigPath, revision.AppVersion, opts.VersionerCLI, opts.Stdin, opts.Stdout)
+		f := update.CheckAsync(ctx, opts.ConfigFile, opts.ConfigPath, revision.AppVersion, opts.Versioners.CLI, opts.Stdin, opts.Stdout)
 		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}
 

@@ -34,12 +34,13 @@ func main() {
 	// the "real" versions that pull e.g. actual commandline arguments, the
 	// user's real environment, etc.
 	var (
-		args                    = os.Args[1:]
-		clientFactory           = app.FastlyAPIClient
-		httpClient              = http.DefaultClient
-		in            io.Reader = os.Stdin
-		out           io.Writer = sync.NewWriter(os.Stdout)
-		versionerCLI            = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
+		args                       = os.Args[1:]
+		clientFactory              = app.FastlyAPIClient
+		httpClient                 = http.DefaultClient
+		in               io.Reader = os.Stdin
+		out              io.Writer = sync.NewWriter(os.Stdout)
+		versionerCLI               = update.NewGitHub(context.Background(), "fastly", "cli", "fastly")
+		versionerViceroy           = update.NewGitHub(context.Background(), "fastly", "viceroy", "viceroy")
 	)
 
 	// We have to manually handle the inclusion of the verbose flag here because
@@ -125,15 +126,18 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 
 	// Main is basically just a shim to call Run, so we do that here.
 	opts := app.RunOpts{
-		APIClient:    clientFactory,
-		Args:         args,
-		ConfigFile:   file,
-		ConfigPath:   config.FilePath,
-		Env:          env,
-		HTTPClient:   httpClient,
-		Stdin:        in,
-		Stdout:       out,
-		VersionerCLI: versionerCLI,
+		APIClient:  clientFactory,
+		Args:       args,
+		ConfigFile: file,
+		ConfigPath: config.FilePath,
+		Env:        env,
+		HTTPClient: httpClient,
+		Stdin:      in,
+		Stdout:     out,
+		Versioners: app.Versioners{
+			CLI:     versionerCLI,
+			Viceroy: versionerViceroy,
+		},
 	}
 	if err := app.Run(opts); err != nil {
 		fsterrors.Deduce(err).Print(os.Stderr)
