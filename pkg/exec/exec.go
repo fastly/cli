@@ -17,17 +17,15 @@ type Streaming struct {
 	command string
 	args    []string
 	env     []string
-	verbose bool
 	output  io.Writer
 }
 
 // NewStreaming constructs a new Streaming instance.
-func NewStreaming(cmd string, args, env []string, verbose bool, out io.Writer) *Streaming {
+func NewStreaming(cmd string, args, env []string, out io.Writer) *Streaming {
 	return &Streaming{
 		cmd,
 		args,
 		env,
-		verbose,
 		out,
 	}
 }

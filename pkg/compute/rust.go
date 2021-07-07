@@ -349,7 +349,7 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
-	cmd := fstexec.NewStreaming("cargo", args, os.Environ(), verbose, out)
+	cmd := fstexec.NewStreaming("cargo", args, os.Environ(), out)
 	if err := cmd.Exec(); err != nil {
 		return err
 	}

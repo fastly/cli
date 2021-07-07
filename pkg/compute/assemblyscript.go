@@ -139,7 +139,7 @@ func (a AssemblyScript) Initialize(out io.Writer) error {
 	fmt.Fprintf(out, "Installing package dependencies...\n")
 
 	// Call npm install.
-	cmd := fstexec.NewStreaming("npm", []string{"install"}, []string{}, false, out)
+	cmd := fstexec.NewStreaming("npm", []string{"install"}, []string{}, out)
 	return cmd.Exec()
 }
 
@@ -173,7 +173,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	// Call asc with the build arguments.
-	cmd := fstexec.NewStreaming(filepath.Join(npmdir, "asc"), args, []string{}, verbose, out)
+	cmd := fstexec.NewStreaming(filepath.Join(npmdir, "asc"), args, []string{}, out)
 	if err := cmd.Exec(); err != nil {
 		return err
 	}
