@@ -362,15 +362,6 @@ COMMANDS
 
     -p, --path=PATH  Path to a pre-compiled Wasm binary
 
-  compute serve [<flags>]
-    Build and run a Compute@Edge package locally
-
-    --name=NAME          Package name
-    --language=LANGUAGE  Language type
-    --include-source     Include source code in built package
-    --force              Skip verification steps and force build
-    --env=ENV            The environment configuration to use (e.g. stage)
-
   compute update --version=VERSION --path=PATH [<flags>]
     Update a package on a Fastly Compute@Edge service version
 
@@ -381,6 +372,15 @@ COMMANDS
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
     -p, --path=PATH              Path to package
+
+  compute serve [<flags>]
+    Build and run a Compute@Edge package locally
+
+    --name=NAME          Package name
+    --language=LANGUAGE  Language type
+    --include-source     Include source code in built package
+    --force              Skip verification steps and force build
+    --env=ENV            The environment configuration to use (e.g. stage)
 
   compute validate --path=PATH
     Validate a Compute@Edge package
