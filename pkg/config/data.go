@@ -324,15 +324,14 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 		return false
 	}
 
-	if verbose {
-		text.Output(out, `
-			Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
-			Your configuration will be migrated to a compatible configuration format.
-		`)
-		text.Break(out)
-	}
-
 	if f.ConfigVersion != cfg.ConfigVersion {
+		if verbose {
+			text.Output(out, `
+				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
+				Your configuration will be migrated to a compatible configuration format.
+			`)
+			text.Break(out)
+		}
 		return false
 	}
 	return true
