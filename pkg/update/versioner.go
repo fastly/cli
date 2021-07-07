@@ -20,6 +20,7 @@ import (
 type Versioner interface {
 	LatestVersion(context.Context) (semver.Version, error)
 	Download(context.Context, semver.Version) (filename string, err error)
+	Name() string
 }
 
 // GitHub is a versioner that uses GitHub releases.
@@ -51,6 +52,14 @@ func NewGitHub(ctx context.Context, org string, repo string, binary string) *Git
 func (g *GitHub) RenameLocalBinary(s string) error {
 	g.local = s
 	return nil
+}
+
+// Name will return the name of the binary.
+func (g GitHub) Name() string {
+	if g.local != "" {
+		return g.local
+	}
+	return g.binary
 }
 
 // LatestVersion implements the Versioner interface.
