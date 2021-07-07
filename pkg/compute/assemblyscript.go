@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
@@ -15,11 +16,13 @@ import (
 )
 
 // AssemblyScript implements a Toolchain for the AssemblyScript language.
-type AssemblyScript struct{}
+type AssemblyScript struct {
+	timeout int
+}
 
 // NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript() *AssemblyScript {
-	return &AssemblyScript{}
+func NewAssemblyScript(timeout int) *AssemblyScript {
+	return &AssemblyScript{timeout}
 }
 
 // Verify implements the Toolchain interface and verifies whether the
@@ -135,11 +138,14 @@ func (a AssemblyScript) Initialize(out io.Writer) error {
 	}
 
 	fmt.Fprintf(out, "Found package.json at %s\n", fpath)
-
 	fmt.Fprintf(out, "Installing package dependencies...\n")
 
-	// Call npm install.
-	cmd := fstexec.NewStreaming("npm", []string{"install"}, []string{}, out)
+	cmd := fstexec.Streaming{
+		Command: "npm",
+		Args:    []string{"install"},
+		Env:     []string{},
+		Output:  out,
+	}
 	return cmd.Exec()
 }
 
@@ -172,8 +178,15 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 		args = append(args, "--verbose")
 	}
 
-	// Call asc with the build arguments.
-	cmd := fstexec.NewStreaming(filepath.Join(npmdir, "asc"), args, []string{}, out)
+	cmd := fstexec.Streaming{
+		Command: filepath.Join(npmdir, "asc"),
+		Args:    args,
+		Env:     []string{},
+		Output:  out,
+	}
+	if a.timeout > 0 {
+		cmd.Timeout = time.Duration(a.timeout) * time.Minute
+	}
 	if err := cmd.Exec(); err != nil {
 		return err
 	}
