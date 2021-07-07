@@ -56,7 +56,7 @@ lint:
 
 .PHONY: test
 test: config
-	GO_TEST_TIMEOUT_SCALE=2 go test -race $(TESTARGS)
+	go test -race $(TESTARGS)
 
 .PHONY: build
 build: config
