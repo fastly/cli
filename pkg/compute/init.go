@@ -102,18 +102,27 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		language *Language
 	)
 
+	// NOTE: We have to define a Toolchain below so that the resulting Language
+	// type will get the relevant embedded methods, one of which is called later
+	// (language.Initialize) and although is a no-op for Rust, it's still used by
+	// NPM to ensure the binary is available on the user's system.
+	//
+	// The 'timeout' value zero is passed into each New<Language> call as it's
+	// only useful during the `compute build` phase and is expected to be
+	// provided by the user via a flag on the build command.
+
 	languages := []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
 			DisplayName: "Rust",
 			StarterKits: c.Globals.File.StarterKits.Rust,
-			Toolchain:   NewRust(c.client, c.Globals),
+			Toolchain:   NewRust(c.client, c.Globals, 0),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
 			DisplayName: "AssemblyScript (beta)",
 			StarterKits: c.Globals.File.StarterKits.AssemblyScript,
-			Toolchain:   NewAssemblyScript(),
+			Toolchain:   NewAssemblyScript(0),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "other",

@@ -319,6 +319,7 @@ COMMANDS
     --language=LANGUAGE  Language type
     --include-source     Include source code in built package
     --force              Skip verification steps and force build
+    --timeout=TIMEOUT    Timeout, in seconds, for the build compilation step
 
   compute deploy [<flags>]
     Deploy a package to a Fastly Compute@Edge service
@@ -342,6 +343,8 @@ COMMANDS
         --language=LANGUAGE      Language type
         --include-source         Include source code in built package
         --force                  Skip verification steps and force build
+        --timeout=TIMEOUT        Timeout, in seconds, for the build compilation
+                                 step
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --version=VERSION        'latest', 'active', or the number of a specific

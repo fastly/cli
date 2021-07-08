@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
@@ -83,13 +84,15 @@ type Rust struct {
 	client    api.HTTPClient
 	config    *config.Data
 	toolchain *semver.Version
+	timeout   int
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config *config.Data) *Rust {
+func NewRust(client api.HTTPClient, config *config.Data, timeout int) *Rust {
 	return &Rust{
-		client: client,
-		config: config,
+		client:  client,
+		config:  config,
+		timeout: timeout,
 	}
 }
 
@@ -349,7 +352,15 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
-	cmd := fstexec.NewStreaming("cargo", args, os.Environ(), verbose, out)
+	cmd := fstexec.Streaming{
+		Command: "cargo",
+		Args:    args,
+		Env:     os.Environ(),
+		Output:  out,
+	}
+	if r.timeout > 0 {
+		cmd.Timeout = time.Duration(r.timeout) * time.Minute
+	}
 	if err := cmd.Exec(); err != nil {
 		return err
 	}

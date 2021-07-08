@@ -73,6 +73,7 @@ type BuildCommand struct {
 	Lang        string
 	IncludeSrc  bool
 	Force       bool
+	Timeout     int
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
@@ -88,6 +89,7 @@ func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *conf
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.IncludeSrc)
 	c.CmdClause.Flag("force", "Skip verification steps and force build").BoolVar(&c.Force)
+	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Timeout)
 
 	return &c
 }
@@ -147,14 +149,14 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "assemblyscript",
 			SourceDirectory: "assembly",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(),
+			Toolchain:       NewAssemblyScript(c.Timeout),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client, c.Globals),
+			Toolchain:       NewRust(c.client, c.Globals, c.Timeout),
 		})
 	default:
 		return fmt.Errorf("unsupported language %s", lang)

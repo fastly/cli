@@ -2,6 +2,7 @@ package compute_test
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -242,7 +243,9 @@ func TestPublish(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			testcase.args = append(testcase.args, "--verbose") // verbose has a side effect of avoiding spinners when the test fails in CI
+			testcase.args = append(testcase.args, "--timeout", "120")
+			opts := testutil.NewRunOpts(testcase.args, io.MultiWriter(&stdout, testutil.LogWriter{T: t}))
 			opts.APIClient = mock.APIClient(testcase.api)
 			opts.ConfigFile = testcase.applicationConfig
 			err = app.Run(opts)

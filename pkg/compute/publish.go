@@ -28,6 +28,7 @@ type PublishCommand struct {
 	lang       cmd.OptionalString
 	includeSrc cmd.OptionalBool
 	force      cmd.OptionalBool
+	timeout    cmd.OptionalInt
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
@@ -45,6 +46,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("force", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
+	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 
 	// Deploy flags
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
@@ -81,6 +83,9 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.force.WasSet {
 		c.build.Force = c.force.Value
+	}
+	if c.timeout.WasSet {
+		c.build.Timeout = c.timeout.Value
 	}
 
 	err = c.build.Exec(in, out)

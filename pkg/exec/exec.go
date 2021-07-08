@@ -2,11 +2,13 @@ package exec
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 // Streaming models a generic command execution that consumers can use to
@@ -14,22 +16,11 @@ import (
 // compute commands can use this to standardize the flow control for each
 // compiler toolchain.
 type Streaming struct {
-	command string
-	args    []string
-	env     []string
-	verbose bool
-	output  io.Writer
-}
-
-// NewStreaming constructs a new Streaming instance.
-func NewStreaming(cmd string, args, env []string, verbose bool, out io.Writer) *Streaming {
-	return &Streaming{
-		cmd,
-		args,
-		env,
-		verbose,
-		out,
-	}
+	Command string
+	Args    []string
+	Env     []string
+	Output  io.Writer
+	Timeout time.Duration
 }
 
 // Exec executes the compiler command and pipes the child process stdout and
@@ -37,18 +28,28 @@ func NewStreaming(cmd string, args, env []string, verbose bool, out io.Writer) *
 // cleanly or returns an error.
 func (s Streaming) Exec() error {
 	// Construct the command with given arguments and environment.
-	//
-	// gosec flagged this:
-	// G204 (CWE-78): Subprocess launched with variable
-	// Disabling as the variables come from trusted sources.
-	/* #nosec */
-	cmd := exec.Command(s.command, s.args...)
-	cmd.Env = append(os.Environ(), s.env...)
+	var cmd *exec.Cmd
+	if s.Timeout > 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), s.Timeout)
+		defer cancel()
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with variable
+		// Disabling as the variables come from trusted sources.
+		/* #nosec */
+		cmd = exec.CommandContext(ctx, s.Command, s.Args...)
+	} else {
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with variable
+		// Disabling as the variables come from trusted sources.
+		/* #nosec */
+		cmd = exec.Command(s.Command, s.Args...)
+	}
+	cmd.Env = append(os.Environ(), s.Env...)
 
 	// Pipe the child process stdout and stderr to our own output writer.
 	var stderrBuf bytes.Buffer
-	cmd.Stdout = s.output
-	cmd.Stderr = io.MultiWriter(s.output, &stderrBuf)
+	cmd.Stdout = s.Output
+	cmd.Stderr = io.MultiWriter(s.Output, &stderrBuf)
 
 	if err := cmd.Run(); err != nil {
 		var ctx string
