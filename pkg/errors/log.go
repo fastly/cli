@@ -37,7 +37,7 @@ type LogEntries []LogEntry
 func (l *LogEntries) Add(err error) {
 	logMutex.Lock()
 	*l = append(*l, LogEntry{
-		Time: time.Now(),
+		Time: Now(),
 		Err:  err,
 	})
 	logMutex.Unlock()
@@ -57,7 +57,7 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 	/* #nosec */
 	defer f.Close()
 
-	cmd := "COMMAND: " + strings.Join(args, " ") + "\n"
+	cmd := "\nCOMMAND: " + strings.Join(args, " ") + "\n"
 	if _, err := f.Write([]byte(cmd)); err != nil {
 		return err
 	}
@@ -89,3 +89,11 @@ type LogEntry struct {
 // might result in more asynchronous operations, so we play it safe and utilise
 // a lock before updating the LogEntries.
 var logMutex sync.Mutex
+
+// Now is exposed so that we may mock it from our test file.
+//
+// NOTE: The ideal way to deal with time is to inject it as a dependency and
+// then the caller can provide a stubbed value, but in this case we don't want
+// to have the CLI's business logic littered with lots of calls to time.Now()
+// when that call can be handled internally by the .Add() method.
+var Now = time.Now
