@@ -359,7 +359,7 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 		Output:  out,
 	}
 	if r.timeout > 0 {
-		cmd.Timeout = time.Duration(r.timeout) * time.Minute
+		cmd.Timeout = time.Duration(r.timeout) * time.Second
 	}
 	if err := cmd.Exec(); err != nil {
 		return err

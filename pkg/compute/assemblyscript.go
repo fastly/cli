@@ -185,7 +185,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 		Output:  out,
 	}
 	if a.timeout > 0 {
-		cmd.Timeout = time.Duration(a.timeout) * time.Minute
+		cmd.Timeout = time.Duration(a.timeout) * time.Second
 	}
 	if err := cmd.Exec(); err != nil {
 		return err
