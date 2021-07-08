@@ -25,8 +25,11 @@ type APIClientFactory func(token, endpoint string) (api.Interface, error)
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	configFilePath string
+
 	clientFactory  APIClientFactory
+	configFilePath string
+	display        bool
+	location       bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -34,6 +37,8 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, cf APIClientFa
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("configure", "Configure the Fastly CLI")
+	c.CmdClause.Flag("location", "Print the location of the CLI configuration file").Short('l').BoolVar(&c.location)
+	c.CmdClause.Flag("display", "Print the CLI configuration file").Short('d').BoolVar(&c.display)
 	c.configFilePath = configFilePath
 	c.clientFactory = cf
 	return &c
@@ -41,6 +46,20 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, cf APIClientFa
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	if c.location || c.display {
+		if c.location {
+			fmt.Printf("\n%s\n\n%s\n", text.Bold("LOCATION"), config.FilePath)
+		}
+		if c.display {
+			data, err := os.ReadFile(config.FilePath)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("\n%s\n\n%s\n", text.Bold("CONFIG"), string(data))
+		}
+		return nil
+	}
+
 	// Get the endpoint provided by the user, if it was explicitly provided. If
 	// it wasn't provided use default.
 	endpoint, source := c.Globals.Endpoint()
