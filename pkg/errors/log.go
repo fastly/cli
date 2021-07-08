@@ -45,10 +45,16 @@ func (l *LogEntries) Add(err error) {
 
 // Persist persists recorded log entries to disk.
 func (l LogEntries) Persist(logPath string, args []string) error {
-	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("error creating config file: %w", err)
 	}
+
+	// G307 (CWE-): Deferring unsafe method "*os.File" on type "Close".
+	// gosec flagged this:
+	// Disabling because this file isn't critical to the functioning of the CLI
+	// and we only attempt to close it at the end of the user's execution flow.
+	/* #nosec */
 	defer f.Close()
 
 	cmd := "COMMAND: " + strings.Join(args, " ") + "\n"
@@ -78,4 +84,8 @@ type LogEntry struct {
 	Err  error
 }
 
+// Appending to a slice isn't threadsafe, and although we currently don't
+// expect this to be a problem we can't predict future logic requirements that
+// might result in more asynchronous operations, so we play it safe and utilise
+// a lock before updating the LogEntries.
 var logMutex sync.Mutex

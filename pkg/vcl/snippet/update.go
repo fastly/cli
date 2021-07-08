@@ -68,16 +68,19 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	if c.dynamic.WasSet {
 		input, err := c.constructDynamicInput(serviceID, serviceVersion.Number)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		v, err := c.Globals.Client.UpdateDynamicSnippet(input)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", v.ID, v.ServiceID)
@@ -86,10 +89,12 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	v, err := c.Globals.Client.UpdateSnippet(input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	text.Success(out, "Updated VCL snippet '%s' (previously: '%s', service: %s, version: %d, type: %v, priority: %d)", v.Name, input.Name, v.ServiceID, v.ServiceVersion, v.Type, v.Priority)

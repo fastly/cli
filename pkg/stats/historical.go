@@ -52,6 +52,7 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 	var envelope statsResponse
 	err := c.Globals.Client.GetStatsJSON(&c.Input, &envelope)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -61,11 +62,17 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 
 	switch c.formatFlag {
 	case "json":
-		writeBlocksJSON(out, service, envelope.Data)
+		err := writeBlocksJSON(out, service, envelope.Data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+		}
 
 	default:
 		writeHeader(out, envelope.Meta)
-		writeBlocks(out, service, envelope.Data)
+		err := writeBlocks(out, service, envelope.Data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+		}
 	}
 
 	return nil

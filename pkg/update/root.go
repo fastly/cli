@@ -41,6 +41,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	current, latest, shouldUpdate, err := Check(context.Background(), revision.AppVersion, c.cliVersioner)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error checking for latest version: %w", err)
 	}
 
@@ -54,6 +55,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	progress.Step("Fetching latest release...")
 	latestPath, err := c.cliVersioner.Download(context.Background(), latest)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		progress.Fail()
 		return fmt.Errorf("error downloading latest release: %w", err)
 	}
@@ -62,18 +64,21 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	progress.Step("Replacing binary...")
 	currentPath, err := os.Executable()
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		progress.Fail()
 		return fmt.Errorf("error determining executable path: %w", err)
 	}
 
 	currentPath, err = filepath.Abs(currentPath)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		progress.Fail()
 		return fmt.Errorf("error determining absolute target path: %w", err)
 	}
 
 	if err := os.Rename(latestPath, currentPath); err != nil {
 		if err := filesystem.CopyFile(latestPath, currentPath); err != nil {
+			c.Globals.ErrLog.Add(err)
 			progress.Fail()
 			return fmt.Errorf("error moving latest binary in place: %w", err)
 		}

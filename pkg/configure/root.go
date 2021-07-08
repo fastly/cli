@@ -53,6 +53,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if c.display {
 			data, err := os.ReadFile(config.FilePath)
 			if err != nil {
+				c.Globals.ErrLog.Add(err)
 				return err
 			}
 			fmt.Printf("\n%s\n\n%s\n", text.Bold("CONFIG"), string(data))
@@ -87,6 +88,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 		token, err = text.InputSecure(out, "Fastly API token: ", in, validateTokenNotEmpty)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		text.Break(out)
@@ -97,6 +99,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress := text.NewQuietProgress(out)
 	defer func() {
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			progress.Fail() // progress.Done is handled inline
 		}
 	}()
@@ -105,16 +108,19 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error regenerating Fastly API client: %w", err)
 	}
 	t, err := client.GetTokenSelf()
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error validating token: %w", err)
 	}
 	user, err := client.GetUser(&fastly.GetUserInput{
 		ID: t.UserID,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error fetching token user: %w", err)
 	}
 
@@ -135,11 +141,13 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("config file path %s isn't a directory", dir)
 	case err != nil && os.IsNotExist(err):
 		if err := os.MkdirAll(dir, config.DirectoryPermissions); err != nil {
+			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error creating config file directory: %w", err)
 		}
 	}
 
 	if err := c.Globals.File.Write(c.configFilePath); err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}
 
@@ -149,7 +157,6 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Done()
 	text.Break(out)
 	text.Description(out, "You can find your configuration file at", filePath)
-
 	text.Success(out, "Configured the Fastly CLI")
 
 	return nil

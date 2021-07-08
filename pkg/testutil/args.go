@@ -8,6 +8,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 )
 
@@ -58,6 +59,7 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 		Args:       args,
 		APIClient:  mock.APIClient(mock.API{}),
 		Env:        config.Environment{},
+		ErrLog:     errors.Log,
 		ConfigFile: config.File{},
 		HTTPClient: http.DefaultClient,
 		Stdout:     stdout,

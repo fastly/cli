@@ -54,16 +54,19 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	if c.dynamic.WasSet {
 		input, err := c.constructDynamicInput(serviceID, serviceVersion.Number)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		v, err := c.Globals.Client.GetDynamicSnippet(input)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		c.printDynamic(out, v)
@@ -72,10 +75,12 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	v, err := c.Globals.Client.GetSnippet(input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	c.print(out, v)

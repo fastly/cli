@@ -49,6 +49,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -57,6 +58,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 	err = c.Globals.Client.DeleteDictionary(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

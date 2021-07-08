@@ -58,6 +58,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -74,6 +75,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	ver, err := c.Globals.Client.UpdateVersion(&c.input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

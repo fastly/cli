@@ -40,6 +40,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	dictionaries, err := c.Globals.Client.ListDictionaryItems(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

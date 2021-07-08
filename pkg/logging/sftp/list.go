@@ -44,6 +44,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -52,6 +53,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	sftps, err := c.Globals.Client.ListSFTPs(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

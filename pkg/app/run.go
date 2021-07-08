@@ -693,6 +693,7 @@ func Run(opts RunOpts) error {
 	app.Writers(io.Discard, io.Discard)
 	name, err := app.Parse(opts.Args)
 	if err != nil && !argsIsHelpJSON(opts.Args) { // Ignore error if `help --format json`
+		globals.ErrLog.Add(err)
 		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("error parsing arguments: %w", err)}
 	}
@@ -710,6 +711,7 @@ func Run(opts RunOpts) error {
 	if argsIsHelpJSON(opts.Args) {
 		json, err := UsageJSON(app)
 		if err != nil {
+			globals.ErrLog.Add(err)
 			return err
 		}
 		fmt.Fprintf(opts.Stdout, "%s", json)
@@ -783,11 +785,13 @@ func Run(opts RunOpts) error {
 
 	globals.Client, err = opts.APIClient(token, endpoint)
 	if err != nil {
+		globals.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly API client: %w", err)
 	}
 
 	globals.RTSClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
 	if err != nil {
+		globals.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
 	}
 

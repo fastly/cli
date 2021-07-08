@@ -58,6 +58,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -66,6 +67,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	h, err := c.Globals.Client.CreateHealthCheck(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

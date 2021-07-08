@@ -30,6 +30,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	s, err := c.Globals.Client.CreateService(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

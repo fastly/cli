@@ -26,6 +26,7 @@ func NewRegionsCommand(parent cmd.Registerer, globals *config.Data) *RegionsComm
 func (c *RegionsCommand) Exec(in io.Reader, out io.Writer) error {
 	resp, err := c.Globals.Client.GetRegions()
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("fetching regions: %w", err)
 	}
 

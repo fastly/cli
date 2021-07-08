@@ -58,12 +58,14 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	progress := text.NewQuietProgress(out)
 	defer func() {
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			progress.Fail() // progress.Done is handled inline
 		}
 	}()
@@ -75,6 +77,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		PackagePath:    c.path,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error uploading package: %w", err)
 	}
 	progress.Done()

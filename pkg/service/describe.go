@@ -39,6 +39,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	service, err := c.Globals.Client.GetServiceDetails(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

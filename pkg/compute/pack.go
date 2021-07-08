@@ -44,28 +44,33 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
-	defer func() {
+	defer func(errLog errors.LogInterface) {
 		if err != nil {
+			errLog.Add(err)
 			progress.Fail()
 		}
-	}()
+	}(c.Globals.ErrLog)
 
 	pkg := fmt.Sprintf("pkg/%s/bin/main.wasm", c.manifest.File.Name)
 	err = filesystem.MakeDirectoryIfNotExists(filepath.Dir(pkg))
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	src, err := filepath.Abs(c.path)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	dst, err := filepath.Abs(pkg)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	progress.Step("Copying wasm binary...")
 	if err := filesystem.CopyFile(src, dst); err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
 	}
 
@@ -80,6 +85,7 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	src = manifest.Filename
 	dst = fmt.Sprintf("pkg/%s/%s", c.manifest.File.Name, manifest.Filename)
 	if err := filesystem.CopyFile(src, dst); err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error copying manifest to '%s': %w", dst, err)
 	}
 
@@ -91,6 +97,7 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		src := []string{dir}
 		dst := fmt.Sprintf("%s.tar.gz", dir)
 		if err = tar.Archive(src, dst); err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 	}
