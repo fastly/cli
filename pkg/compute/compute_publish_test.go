@@ -244,7 +244,7 @@ func TestPublish(t *testing.T) {
 
 			var stdout bytes.Buffer
 			testcase.args = append(testcase.args, "--verbose") // verbose has a side effect of avoiding spinners when the test fails in CI
-			testcase.args = append(testcase.args, "--timeout", "2")
+			testcase.args = append(testcase.args, "--timeout", "120")
 			opts := testutil.NewRunOpts(testcase.args, io.MultiWriter(&stdout, testutil.LogWriter{T: t}))
 			opts.APIClient = mock.APIClient(testcase.api)
 			opts.ConfigFile = testcase.applicationConfig

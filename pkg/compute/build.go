@@ -89,7 +89,7 @@ func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *conf
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.IncludeSrc)
 	c.CmdClause.Flag("force", "Skip verification steps and force build").BoolVar(&c.Force)
-	c.CmdClause.Flag("timeout", "Numerical timeout, in minutes, for the build compilation step").IntVar(&c.Timeout)
+	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Timeout)
 
 	return &c
 }
