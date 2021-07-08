@@ -169,9 +169,11 @@ COMMANDS
     Show help.
 
 
-  configure
+  configure [<flags>]
     Configure the Fastly CLI
 
+    -l, --location  Print the location of the CLI configuration file
+    -d, --display   Print the CLI configuration file
 
   whoami
     Get information about the currently authenticated account
