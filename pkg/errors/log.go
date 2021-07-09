@@ -27,7 +27,7 @@ type LogInterface interface {
 	Persist(logPath string, args []string) error
 }
 
-// Log is ...
+// Log is the primary interface for consumers.
 var Log = new(LogEntries)
 
 // LogEntries represents a list of recorded log entries.
