@@ -357,6 +357,27 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 4)",
 			},
 		},
+		{
+			name: "success with comment",
+			args: args("compute deploy --token 123 -s 123 -p pkg/package.tar.gz --version 2 --comment foo"),
+			api: mock.API{
+				GetServiceFn:      getServiceOK,
+				ListVersionsFn:    testutil.ListVersions,
+				CloneVersionFn:    testutil.CloneVersionResult(3),
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				UpdateVersionFn:   updateVersionOk,
+			},
+			manifest: "name = \"package\"\nservice_id = \"123\"\n",
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"Deployed package (service 123, version 3)",
+			},
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// We're going to chdir to a deploy environment,

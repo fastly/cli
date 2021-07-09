@@ -46,6 +46,7 @@ type DeployCommand struct {
 	Domain         string
 	Backend        string
 	BackendPort    uint
+	Comment        cmd.OptionalString
 	ServiceVersion cmd.OptionalServiceVersion
 }
 
@@ -69,6 +70,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.Backend)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.BackendPort)
+	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	return &c
 }
 
@@ -289,6 +291,18 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	err = pkgUpload(progress, c.Globals.Client, serviceID, version.Number, path)
 	if err != nil {
 		return err
+	}
+
+	if c.Comment.WasSet {
+		_, err = c.Globals.Client.UpdateVersion(&fastly.UpdateVersionInput{
+			ServiceID:      serviceID,
+			ServiceVersion: version.Number,
+			Comment:        &c.Comment.Value,
+		})
+
+		if err != nil {
+			text.Error(out, "failed to set comment for version %d: %e", version.Number, err)
+		}
 	}
 
 	progress.Step("Activating version...")
