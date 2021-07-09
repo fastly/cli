@@ -21,25 +21,20 @@ func TestLogAdd(t *testing.T) {
 }
 
 func TestLogPersist(t *testing.T) {
-	// The test will cause the testdata/errors.log file to be overwritten, and so
-	// we need to reset that file at the end of each test run.
 	segs := filepath.Join("testdata", "errors.log")
 	path, err := filepath.Abs(segs)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	b, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	// The test will cause the testdata/errors.log file to be overwritten, and so
+	// we need to reset that file at the end of each test run.
 	defer func(path string, b []byte) {
 		err := os.WriteFile(path, b, 0644)
 		if err != nil {
 			t.Fatal(err)
 		}
-	}(path, b)
+	}(path, []byte{})
 
 	errors.Now = func() (t time.Time) { return }
 
