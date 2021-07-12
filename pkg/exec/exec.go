@@ -88,6 +88,8 @@ func (s Streaming) Exec() error {
 		var ctx string
 		if stderrBuf.Len() > 0 {
 			ctx = fmt.Sprintf(":\n%s", strings.TrimSpace(stderrBuf.String()))
+		} else {
+			ctx = fmt.Sprintf(":\n%s", err)
 		}
 		return fmt.Errorf("error during execution process%s", ctx)
 	}
