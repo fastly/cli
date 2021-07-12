@@ -165,11 +165,11 @@ func Run(opts RunOpts) error {
 	computeRoot := compute.NewRootCommand(app, &globals)
 	computeInit := compute.NewInitCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
 	computeBuild := compute.NewBuildCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
+	computeServe := compute.NewServeCommand(computeRoot.CmdClause, &globals, computeBuild, opts.Versioners.Viceroy)
+	computePack := compute.NewPackCommand(computeRoot.CmdClause, &globals)
 	computeDeploy := compute.NewDeployCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
 	computePublish := compute.NewPublishCommand(computeRoot.CmdClause, &globals, computeBuild, computeDeploy)
-	computePack := compute.NewPackCommand(computeRoot.CmdClause, &globals)
 	computeUpdate := compute.NewUpdateCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
-	computeServe := compute.NewServeCommand(computeRoot.CmdClause, &globals, computeBuild, opts.Versioners.Viceroy)
 	computeValidate := compute.NewValidateCommand(computeRoot.CmdClause, &globals)
 
 	domainRoot := domain.NewRootCommand(app, &globals)
