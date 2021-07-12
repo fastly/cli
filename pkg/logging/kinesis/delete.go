@@ -50,6 +50,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -57,6 +58,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceVersion = serviceVersion.Number
 
 	if err := c.Globals.Client.DeleteKinesis(&c.Input); err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

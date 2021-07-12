@@ -34,6 +34,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	ipv4, ipv6, err := c.Globals.Client.AllIPs()
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

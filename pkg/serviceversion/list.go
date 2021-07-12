@@ -41,6 +41,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	versions, err := c.Globals.Client.ListVersions(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

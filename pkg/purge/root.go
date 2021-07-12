@@ -75,6 +75,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		err := c.purgeAll(serviceID, out)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		return nil
@@ -83,6 +84,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.file != "" {
 		err := c.purgeKeys(serviceID, out)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		return nil
@@ -91,6 +93,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.key != "" {
 		err := c.purgeKey(serviceID, out)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		return nil
@@ -99,6 +102,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.url != "" {
 		err := c.purgeURL(out)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		return nil
@@ -112,6 +116,7 @@ func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
 		ServiceID: serviceID,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	text.Success(out, "Purge all status: %s", p.Status)
@@ -119,8 +124,9 @@ func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
 }
 
 func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
-	keys, err := populateKeys(c.file)
+	keys, err := populateKeys(c.file, c.Globals.ErrLog)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -130,6 +136,7 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 		Soft:      c.soft,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -156,6 +163,7 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 		Soft:      c.soft,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	text.Success(out, "Purged key: %s (soft: %t). Status: %s, ID: %s", c.key, c.soft, p.Status, p.ID)
@@ -168,6 +176,7 @@ func (c *RootCommand) purgeURL(out io.Writer) error {
 		Soft: c.soft,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, p.Status, p.ID)
@@ -176,7 +185,7 @@ func (c *RootCommand) purgeURL(out io.Writer) error {
 
 // populateKeys opens the given file path, initializes a scanner, and appends
 // each line of the file (expected to be a surrogate key) to a slice.
-func populateKeys(fpath string) (keys []string, err error) {
+func populateKeys(fpath string, errLog errors.LogInterface) (keys []string, err error) {
 	var (
 		file io.Reader
 		path string
@@ -199,6 +208,7 @@ func populateKeys(fpath string) (keys []string, err error) {
 	}
 
 	if err != nil {
+		errLog.Add(err)
 		return nil, err
 	}
 	return keys, nil

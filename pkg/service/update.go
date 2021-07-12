@@ -65,6 +65,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	s, err := c.Globals.Client.UpdateService(&c.input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

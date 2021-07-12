@@ -45,6 +45,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 			ID: serviceID,
 		})
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 
@@ -54,12 +55,14 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 				ServiceVersion: s.ActiveVersion.Number,
 			})
 			if err != nil {
+				c.Globals.ErrLog.Add(err)
 				return err
 			}
 		}
 	}
 
 	if err := c.Globals.Client.DeleteService(&c.Input); err != nil {
+		c.Globals.ErrLog.Add(err)
 		return errors.RemediationError{
 			Inner:       err,
 			Remediation: fmt.Sprintf("Try %s\n", text.Bold("fastly service delete --force")),
@@ -70,10 +73,12 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	// was acquired via the fastly.toml manifest.
 	if source == manifest.SourceFile {
 		if err := c.manifest.File.Read(manifest.Filename); err != nil {
+			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error reading package manifest: %w", err)
 		}
 		c.manifest.File.ServiceID = ""
 		if err := c.manifest.File.Write(manifest.Filename); err != nil {
+			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error updating package manifest: %w", err)
 		}
 	}

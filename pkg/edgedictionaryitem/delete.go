@@ -41,6 +41,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 	err := c.Globals.Client.DeleteDictionaryItem(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

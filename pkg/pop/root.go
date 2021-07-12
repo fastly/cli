@@ -34,6 +34,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	dcs, err := c.Globals.Client.AllDatacenters()
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

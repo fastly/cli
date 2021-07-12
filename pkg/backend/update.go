@@ -99,6 +99,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -107,6 +108,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	b, err := c.Globals.Client.GetBackend(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -214,6 +216,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	b, err = c.Globals.Client.UpdateBackend(input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

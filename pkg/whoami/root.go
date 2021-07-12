@@ -37,6 +37,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	fullurl := fmt.Sprintf("%s/verify", strings.TrimSuffix(endpoint, "/"))
 	req, err := http.NewRequest("GET", fullurl, nil)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error constructing API request: %w", err)
 	}
 
@@ -50,6 +51,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	req.Header.Set("User-Agent", useragent.Name)
 	resp, err := c.client.Do(req)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error executing API request: %w", err)
 	}
 	defer resp.Body.Close()
@@ -60,6 +62,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	var response VerifyResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error decoding API response: %w", err)
 	}
 

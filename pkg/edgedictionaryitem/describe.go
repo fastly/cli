@@ -41,6 +41,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	dictionary, err := c.Globals.Client.GetDictionaryItem(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

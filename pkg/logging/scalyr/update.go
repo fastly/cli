@@ -106,16 +106,19 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	scalyr, err := c.Globals.Client.UpdateScalyr(input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

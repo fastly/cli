@@ -30,6 +30,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	services, err := c.Globals.Client.ListServices(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

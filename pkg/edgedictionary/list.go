@@ -43,6 +43,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -51,6 +52,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	dictionaries, err := c.Globals.Client.ListDictionaries(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

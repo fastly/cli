@@ -44,11 +44,13 @@ func (c *RealtimeCommand) Exec(in io.Reader, out io.Writer) error {
 	switch c.formatFlag {
 	case "json":
 		if err := loopJSON(c.Globals.RTSClient, service, out); err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 
 	default:
 		if err := loopText(c.Globals.RTSClient, service, out); err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 	}

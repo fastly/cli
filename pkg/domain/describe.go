@@ -44,6 +44,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -52,6 +53,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	domain, err := c.Globals.Client.GetDomain(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

@@ -130,12 +130,25 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 		ConfigFile:   file,
 		ConfigPath:   config.FilePath,
 		Env:          env,
+		ErrLog:       fsterrors.Log,
 		HTTPClient:   httpClient,
 		Stdin:        in,
 		Stdout:       out,
 		VersionerCLI: versionerCLI,
 	}
-	if err := app.Run(opts); err != nil {
+	err = app.Run(opts)
+
+	// NOTE: We persist any error log entries to disk before attempting to handle
+	// a possible error response from app.Run as there could be errors recorded
+	// during the execution flow but were otherwise handled without bubbling an
+	// error back the call stack, and so if the user still experiences something
+	// unexpected we will have a record of any errors that happened along the way.
+	logErr := fsterrors.Log.Persist(fsterrors.LogPath, args)
+	if logErr != nil {
+		fsterrors.Deduce(logErr).Print(os.Stderr)
+	}
+
+	if err != nil {
 		fsterrors.Deduce(err).Print(os.Stderr)
 
 		// NOTE: if we have an error processing the command, then we should be sure
