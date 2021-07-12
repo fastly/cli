@@ -53,8 +53,8 @@ func NewGitHub(opts GitHubOpts) *GitHub {
 //
 // NOTE: this exists so that we can, for example, rename a binary such as
 // 'viceroy' to something less ambiguous like 'fastly-localtesting'.
-func (g *GitHub) RenameLocalBinary(s string) error {
-	g.local = s
+func (g *GitHub) RenameLocalBinary(binName string) error {
+	g.local = binName
 	return nil
 }
 

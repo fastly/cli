@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// TestGetViceroy validates that viceroy is installed to the appropriate
+// TestGetViceroy validates that Viceroy is installed to the appropriate
 // directory.
 //
 // There isn't an executable binary that exists in the test environment, so we
@@ -21,7 +21,7 @@ import (
 // The `installViceroy()` function will then think it has downloaded the latest
 // release as we have instructed the mock to provide that behaviour.
 //
-// Subsequently the `os.Rename()` will move the downloaded viceroy binary,
+// Subsequently the `os.Rename()` will move the downloaded Viceroy binary,
 // which is just a dummy file created by `makeEnvironment()`, into the intended
 // destination directory.
 func TestGetViceroy(t *testing.T) {
@@ -47,7 +47,7 @@ func TestGetViceroy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !strings.Contains(out.String(), "✓ Fetching latest viceroy release") {
+	if !strings.Contains(out.String(), "✓ Fetching latest Viceroy release") {
 		t.Fatalf("expected file to be downloaded successfully")
 	}
 
@@ -59,7 +59,7 @@ func TestGetViceroy(t *testing.T) {
 }
 
 // makeEnvironment creates a temporary directory for the test suite to utilise
-// when validating viceroy installation behaviours.
+// when validating Viceroy installation behaviours.
 //
 // It will create a file within the temporary directory to represent the call
 // to `versioner.Download()` being successful.
