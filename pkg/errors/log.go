@@ -65,7 +65,7 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 	record := `
 {{.Time}}
 {{.Err}}
---------------------
+-----------------------------
 `
 	t := template.Must(template.New("record").Parse(record))
 	for _, entry := range l {
