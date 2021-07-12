@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/blang/semver"
@@ -123,6 +124,9 @@ func getViceroy(verbose bool, progress text.Progress, out io.Writer, versioner u
 		}
 	}
 
+	asset := fmt.Sprintf("%s_%s-%s", versioner.Binary(), runtime.GOOS, runtime.GOARCH)
+	versioner.SetAsset(asset)
+
 	bin := filepath.Join(InstallDir, versioner.Name())
 	if verbose {
 		text.Info(out, "Viceroy will be installed to: %s", bin)
@@ -205,7 +209,7 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 	var installedViceroyVersion string
 
 	viceroyError := errors.RemediationError{
-		Inner:       fmt.Errorf("Viceroy version not found"),
+		Inner:       fmt.Errorf("a Viceroy version was not found"),
 		Remediation: errors.BugRemediation,
 	}
 

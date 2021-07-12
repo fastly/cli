@@ -18,18 +18,22 @@ import (
 
 // Versioner describes a source of CLI release artifacts.
 type Versioner interface {
-	LatestVersion(context.Context) (semver.Version, error)
+	Binary() string
 	Download(context.Context, semver.Version) (filename string, err error)
+	LatestVersion(context.Context) (semver.Version, error)
 	Name() string
+	RenameLocalBinary(binName string) error
+	SetAsset(name string)
 }
 
 // GitHub is a versioner that uses GitHub releases.
 type GitHub struct {
-	client *github.Client
-	org    string
-	repo   string
-	binary string // name of compiled binary
-	local  string // name to use for binary once extracted
+	client       *github.Client
+	org          string
+	repo         string
+	binary       string // name of compiled binary
+	local        string // name to use for binary once extracted
+	releaseAsset string // name of the release asset file to download
 }
 
 // GitHubOpts represents options to be passed to NewGitHub.
@@ -49,9 +53,22 @@ func NewGitHub(opts GitHubOpts) *GitHub {
 	}
 }
 
+// Binary returns the configured binary output name.
+func (g *GitHub) Binary() string {
+	return g.binary
+}
+
+// SetAsset allows configuring the release asset format.
+//
+// NOTE: This exists because the CLI project uses a different release asset
+// name format to the Viceroy project.
+func (g *GitHub) SetAsset(name string) {
+	g.releaseAsset = name
+}
+
 // RenameLocalBinary will rename the downloaded binary.
 //
-// NOTE: this exists so that we can, for example, rename a binary such as
+// NOTE: This exists so that we can, for example, rename a binary such as
 // 'viceroy' to something less ambiguous like 'fastly-localtesting'.
 func (g *GitHub) RenameLocalBinary(binName string) error {
 	g.local = binName
@@ -87,7 +104,7 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 		return filename, fmt.Errorf("error fetching release: %w", err)
 	}
 
-	assetID, err := g.getAssetID(release.Assets, version)
+	assetID, err := g.getAssetID(release.Assets)
 	if err != nil {
 		return filename, err
 	}
@@ -172,10 +189,12 @@ func (g GitHub) getReleaseID(ctx context.Context, version semver.Version) (id in
 	return id, fmt.Errorf("no matching release found")
 }
 
-func (g GitHub) getAssetID(assets []github.ReleaseAsset, version semver.Version) (id int64, err error) {
-	target := fmt.Sprintf("%s_v%s_%s-%s.tar.gz", g.binary, version, runtime.GOOS, runtime.GOARCH)
+func (g GitHub) getAssetID(assets []github.ReleaseAsset) (id int64, err error) {
+	if g.releaseAsset == "" {
+		return id, fmt.Errorf("no release asset specified")
+	}
 	for _, asset := range assets {
-		if asset.GetName() == target {
+		if asset.GetName() == g.releaseAsset {
 			return asset.GetID(), nil
 		}
 	}

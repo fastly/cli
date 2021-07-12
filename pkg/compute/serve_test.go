@@ -41,8 +41,9 @@ func TestGetViceroy(t *testing.T) {
 		DownloadOK:     true,
 		DownloadedFile: downloadedFile,
 	}
+	verbose := false
 
-	_, err := getViceroy(progress, &out, versioner)
+	_, err := getViceroy(verbose, progress, &out, versioner)
 	if err != nil {
 		t.Fatal(err)
 	}
