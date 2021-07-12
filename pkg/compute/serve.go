@@ -98,7 +98,9 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	err = local(bin, out, c.env.Value, c.Globals.Verbose())
+	progress.Step("Running local server...")
+
+	err = local(bin, progress, out, c.env.Value, c.Globals.Verbose())
 	if err != nil {
 		return err
 	}
@@ -159,8 +161,6 @@ func getViceroy(verbose bool, progress text.Progress, out io.Writer, versioner u
 			return "", err
 		}
 	}
-
-	progress.Done()
 
 	return bin, nil
 }
@@ -266,7 +266,7 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin string, out io.Writer, env string, verbose bool) error {
+func local(bin string, progress text.Progress, out io.Writer, env string, verbose bool) error {
 	if env != "" {
 		env = "." + env
 	}
@@ -290,6 +290,9 @@ func local(bin string, out io.Writer, env string, verbose bool) error {
 		Output:  out,
 	}
 	cmd.MonitorSignals()
+
+	progress.Done()
+	text.Break(out)
 
 	if err := cmd.Exec(); err != nil {
 		return err
