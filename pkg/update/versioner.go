@@ -130,6 +130,9 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 
 	var extension string
 
+	// TODO: We might need to also account for Window users by also checking for
+	// the .zip extension that goreleaser generates:
+	// https://github.com/fastly/cli/blob/26588cfd2d00d18643bac5cc18242b2d5ee84b34/.goreleaser.yml#L51
 	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
 		extension = ".tar.gz"
 	}
@@ -167,6 +170,11 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 		assetFile = newName
 	}
 
+	// G302 (CWE-276): Expect file permissions to be 0600 or less
+	// gosec flagged this:
+	// Disabling as the file was not executable without it and we need all users
+	// to be able to execute the binary.
+	/* #nosec */
 	err = os.Chmod(assetFile, 0777)
 	if err != nil {
 		return filename, err
