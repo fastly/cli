@@ -156,7 +156,7 @@ func getViceroy(verbose bool, progress text.Progress, out io.Writer, versioner u
 		}
 	} else {
 		version := strings.TrimSpace(string(stdoutStderr))
-		err := updateViceroy(progress, version, out, versioner, latest, bin)
+		err := updateViceroy(verbose, progress, version, out, versioner, latest, bin)
 		if err != nil {
 			return "", err
 		}
@@ -203,7 +203,7 @@ func installViceroy(progress text.Progress, versioner update.Versioner, latest s
 
 // updateViceroy checks if the currently installed version is out-of-date and
 // downloads the latest release from GitHub.
-func updateViceroy(progress text.Progress, version string, out io.Writer, versioner update.Versioner, latest semver.Version, bin string) error {
+func updateViceroy(verbose bool, progress text.Progress, version string, out io.Writer, versioner update.Versioner, latest semver.Version, bin string) error {
 	progress.Step("Checking installed Viceroy version...")
 
 	var installedViceroyVersion string
@@ -237,11 +237,18 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 			Remediation: errors.BugRemediation,
 		}
 	}
-	text.Break(out)
-	text.Info(out, "Current Viceroy version: %s", current)
-	text.Break(out)
+
+	if verbose {
+		text.Info(out, "Current Viceroy version: %s", current)
+	}
 
 	if latest.GT(current) {
+		// We already show the current Viceroy version when in Verbose mode, so if
+		// in non-verbose mode when dealing with an update (where we want to show
+		// both messages) we can omit the current version output.
+		if !verbose {
+			text.Info(out, "Current Viceroy version: %s", current)
+		}
 		text.Output(out, "Latest Viceroy version: %s", latest)
 
 		tmp, err := versioner.Download(context.Background(), latest)
