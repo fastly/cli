@@ -12,7 +12,7 @@ import (
 type Versioner struct {
 	Version        string
 	Error          error
-	Binary         string // name of compiled binary
+	BinaryName     string // name of compiled binary
 	Local          string // name to use for binary once extracted
 	DownloadOK     bool
 	DownloadedFile string
@@ -39,5 +39,24 @@ func (v Versioner) Name() string {
 	if v.Local != "" {
 		return v.Local
 	}
-	return v.Binary
+	return v.BinaryName
+}
+
+// Binary will return the configured name of the binary.
+//
+// NOTE: This is different from Name() in that it takes into account the local
+// field that allows renaming of a binary.
+func (v Versioner) Binary() string {
+	return v.BinaryName
+}
+
+// RenameLocalBinary will rename the downloaded binary.
+func (v Versioner) RenameLocalBinary(binName string) error {
+	// NoOp
+	return nil
+}
+
+// SetAsset allows configuring the release asset format.
+func (v Versioner) SetAsset(name string) {
+	// NoOp
 }
