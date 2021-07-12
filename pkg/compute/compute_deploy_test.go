@@ -363,7 +363,7 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
-				CloneVersionFn:    testutil.CloneVersionResult(3),
+				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -375,7 +375,7 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
-				"Deployed package (service 123, version 3)",
+				"Deployed package (service 123, version 4)",
 			},
 		},
 	} {
