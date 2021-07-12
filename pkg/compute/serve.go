@@ -153,7 +153,7 @@ func getViceroy(verbose bool, progress text.Progress, out io.Writer, versioner u
 			return "", err
 		}
 	} else {
-		version := string(stdoutStderr)
+		version := strings.TrimSpace(string(stdoutStderr))
 		err := updateViceroy(progress, version, out, versioner, latest, bin)
 		if err != nil {
 			return "", err
@@ -237,7 +237,9 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 			Remediation: errors.BugRemediation,
 		}
 	}
-	text.Output(out, "Current Viceroy version: %s", current)
+	text.Break(out)
+	text.Info(out, "Current Viceroy version: %s", current)
+	text.Break(out)
 
 	if latest.GT(current) {
 		text.Output(out, "Latest Viceroy version: %s", latest)
@@ -268,7 +270,13 @@ func local(bin string, out io.Writer, env string, verbose bool) error {
 	if env != "" {
 		env = "." + env
 	}
-	manifest := fmt.Sprintf("fastly%s.toml", env)
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	manifest := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
 	args := []string{"bin/main.wasm", "-C", manifest}
 
 	if verbose {
