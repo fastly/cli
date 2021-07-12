@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/blang/semver"
 	"github.com/google/go-github/v28/github"
@@ -129,37 +128,51 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	}
 	defer rc.Close()
 
-	archivePath := filepath.Join(os.TempDir(), fmt.Sprintf("%s_%s.tgz", g.binary, version))
-	dst, err := os.Create(archivePath)
-	if err != nil {
-		return filename, fmt.Errorf("error creating temp file: %w", err)
+	var extension string
+
+	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
+		extension = ".tar.gz"
 	}
-	defer os.RemoveAll(archivePath)
+
+	tmp := os.TempDir()
+	assetFile := filepath.Join(tmp, fmt.Sprintf("%s_%s%s", g.binary, version, extension))
+
+	dst, err := os.Create(assetFile)
+	if err != nil {
+		return filename, fmt.Errorf("error creating temp release asset file: %w", err)
+	}
 
 	_, err = io.Copy(dst, rc)
 	if err != nil {
-		return filename, fmt.Errorf("error downloading release: %w", err)
+		return filename, fmt.Errorf("error downloading release asset: %w", err)
 	}
 
 	if err := dst.Close(); err != nil {
-		return filename, fmt.Errorf("error closing release file: %w", err)
+		return filename, fmt.Errorf("error closing release asset file: %w", err)
 	}
 
-	binaryPath := filepath.Join(os.TempDir(), fmt.Sprintf("%s_%s_%d", g.binary, version, time.Now().UnixNano()))
-	if err := archiver.NewTarGz().Extract(archivePath, g.binary, binaryPath); err != nil {
-		return filename, fmt.Errorf("error extracting binary: %w", err)
+	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
+		defer os.RemoveAll(assetFile)
+		if err := archiver.NewTarGz().Extract(assetFile, g.binary, tmp); err != nil {
+			return filename, fmt.Errorf("error extracting binary: %w", err)
+		}
+		assetFile = filepath.Join(tmp, g.binary)
 	}
-
-	latestPath := filepath.Join(binaryPath, g.binary)
 
 	if g.local != "" {
-		if err := os.Rename(latestPath, filepath.Join(binaryPath, g.local)); err != nil {
+		newName := filepath.Join(tmp, g.local)
+		if err := os.Rename(assetFile, newName); err != nil {
 			return filename, fmt.Errorf("error renaming binary: %w", err)
 		}
-		latestPath = filepath.Join(binaryPath, g.local)
+		assetFile = newName
 	}
 
-	return latestPath, nil
+	err = os.Chmod(assetFile, 0777)
+	if err != nil {
+		return filename, err
+	}
+
+	return assetFile, nil
 }
 
 func (g GitHub) getReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
