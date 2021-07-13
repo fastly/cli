@@ -41,14 +41,14 @@ func TestGetViceroy(t *testing.T) {
 		DownloadOK:     true,
 		DownloadedFile: downloadedFile,
 	}
-	verbose := false
+	verbose := true
 
 	_, err := getViceroy(verbose, progress, &out, versioner)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !strings.Contains(out.String(), "✓ Fetching latest Viceroy release") {
+	if !strings.Contains(out.String(), "Fetching latest Viceroy release") {
 		t.Fatalf("expected file to be downloaded successfully")
 	}
 
