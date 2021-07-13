@@ -126,7 +126,7 @@ func getViceroy(verbose bool, progress text.Progress, out io.Writer, versioner u
 		}
 	}
 
-	asset := fmt.Sprintf("%s_%s-%s", versioner.Binary(), runtime.GOOS, runtime.GOARCH)
+	asset := fmt.Sprintf(update.DefaultAssetFormat, versioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
 	versioner.SetAsset(asset)
 
 	bin := filepath.Join(InstallDir, versioner.Name())

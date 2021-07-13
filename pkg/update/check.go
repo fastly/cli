@@ -25,7 +25,7 @@ func Check(ctx context.Context, currentVersion string, cliVersioner Versioner) (
 		return current, latest, false, fmt.Errorf("error fetching latest version: %w", err)
 	}
 
-	asset := fmt.Sprintf("%s_v%s_%s-%s.tar.gz", cliVersioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
+	asset := fmt.Sprintf(DefaultAssetFormat, cliVersioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
 	cliVersioner.SetAsset(asset)
 
 	return current, latest, latest.GT(current), nil

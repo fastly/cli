@@ -89,3 +89,5 @@ func makeEnvironment(downloadedFilename string, t *testing.T) (string, string, s
 
 	return downloadDir, installDir, fpath
 }
+
+// TODO: Write tests for the other functions in serve.go

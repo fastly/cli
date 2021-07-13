@@ -15,6 +15,9 @@ import (
 	"github.com/mholt/archiver"
 )
 
+// DefaultAssetFormat represents the standard GitHub release asset name format.
+const DefaultAssetFormat = "%s_v%s_%s-%s.tar.gz"
+
 // Versioner describes a source of CLI release artifacts.
 type Versioner interface {
 	Binary() string
@@ -59,8 +62,11 @@ func (g *GitHub) Binary() string {
 
 // SetAsset allows configuring the release asset format.
 //
-// NOTE: This exists because the CLI project uses a different release asset
-// name format to the Viceroy project.
+// NOTE: This existed because the CLI project was originally using a different
+// release asset name format to the Viceroy project. Although the two projects
+// are now aligned we've kept this feature in case there are any changes
+// between the two projects in the future, or if we have to call out to more
+// external binaries from within the CLI.
 func (g *GitHub) SetAsset(name string) {
 	g.releaseAsset = name
 }
@@ -133,6 +139,12 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	// TODO: We might need to also account for Window users by also checking for
 	// the .zip extension that goreleaser generates:
 	// https://github.com/fastly/cli/blob/26588cfd2d00d18643bac5cc18242b2d5ee84b34/.goreleaser.yml#L51
+	//
+	// Ideally the formats would be the same, but if that's not possible then
+	// we can look to use a genericised method such as
+	// https://pkg.go.dev/github.com/mholt/archiver#Extract for handling the
+	// extraction of a binary from the asset file instead of using the current
+	// archiver.NewTarGz().Extract() method.
 	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
 		extension = ".tar.gz"
 	}
