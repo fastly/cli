@@ -51,7 +51,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.manifest.File.Read(manifest.Filename)
 
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
-	c.CmdClause.Flag("file", "The Wasm file to run").StringVar(&c.file)
+	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
 	c.CmdClause.Flag("force", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
@@ -276,15 +276,11 @@ func local(bin string, file string, progress text.Progress, out io.Writer, env s
 		return err
 	}
 
-	fpath := "bin/main.wasm"
-	if file != "" {
-		fpath = file
-	}
 	manifest := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
-	args := []string{fpath, "-C", manifest}
+	args := []string{file, "-C", manifest}
 
 	if verbose {
-		text.Output(out, "Wasm file: %s", fpath)
+		text.Output(out, "Wasm file: %s", file)
 		text.Output(out, "Manifest: %s", manifest)
 	}
 
