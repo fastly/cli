@@ -47,6 +47,14 @@ func TestGetViceroy(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// NOTE: We have to call progress.Done() here to prevent a data race because
+	// the getViceroy() function itself doesn't call it and so if we try to read
+	// from the shared bytes.Buffer (as we do below to validate its content)
+	// before calling Done(), then we'll get a race condition (this only shows up
+	// when running the complete test suite or this specific test with a -count
+	// value of 20 or above).
+	progress.Done()
+
 	if !strings.Contains(out.String(), "Fetching latest Viceroy release") {
 		t.Fatalf("expected file to be downloaded successfully")
 	}

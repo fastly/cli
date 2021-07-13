@@ -27,6 +27,7 @@ type ServeCommand struct {
 
 	build            *BuildCommand
 	env              cmd.OptionalString
+	file             string
 	force            cmd.OptionalBool
 	includeSrc       cmd.OptionalBool
 	lang             cmd.OptionalString
@@ -49,16 +50,12 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 
-	// Build flags
-	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
-	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
-	c.CmdClause.Flag("force", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
-
-	// Viceroy flags
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
-
-	// Serve flags
+	c.CmdClause.Flag("file", "The Wasm file to run").StringVar(&c.file)
+	c.CmdClause.Flag("force", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
+	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
+	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
+	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
 
 	return &c
@@ -104,7 +101,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Running local server...")
 	progress.Done()
 
-	err = local(bin, progress, out, c.env.Value, c.Globals.Verbose())
+	err = local(bin, c.file, progress, out, c.env.Value, c.Globals.Verbose())
 	if err != nil {
 		if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
 			text.Break(out)
@@ -269,7 +266,7 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin string, progress text.Progress, out io.Writer, env string, verbose bool) error {
+func local(bin string, file string, progress text.Progress, out io.Writer, env string, verbose bool) error {
 	if env != "" {
 		env = "." + env
 	}
@@ -279,10 +276,15 @@ func local(bin string, progress text.Progress, out io.Writer, env string, verbos
 		return err
 	}
 
+	fpath := "bin/main.wasm"
+	if file != "" {
+		fpath = file
+	}
 	manifest := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
-	args := []string{"bin/main.wasm", "-C", manifest}
+	args := []string{fpath, "-C", manifest}
 
 	if verbose {
+		text.Output(out, "Wasm file: %s", fpath)
 		text.Output(out, "Manifest: %s", manifest)
 	}
 
