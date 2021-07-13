@@ -324,11 +324,12 @@ COMMANDS
   compute serve [<flags>]
     Build and run a Compute@Edge package locally
 
-    --name=NAME          Package name
-    --language=LANGUAGE  Language type
-    --include-source     Include source code in built package
-    --force              Skip verification steps and force build
     --env=ENV            The environment configuration to use (e.g. stage)
+    --file=FILE          The Wasm file to run
+    --force              Skip verification steps and force build
+    --include-source     Include source code in built package
+    --language=LANGUAGE  Language type
+    --name=NAME          Package name
     --skip-build         Skip the build step
 
   compute pack --path=PATH
