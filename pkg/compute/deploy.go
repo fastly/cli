@@ -301,7 +301,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		})
 
 		if err != nil {
-			text.Error(out, "failed to set comment for version %d: %e", version.Number, err)
+			return fmt.Errorf("error setting comment for service version %d: %w", version.Number, err)
 		}
 	}
 
