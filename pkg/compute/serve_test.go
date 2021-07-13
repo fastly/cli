@@ -15,8 +15,8 @@ import (
 // directory.
 //
 // There isn't an executable binary that exists in the test environment, so we
-// expect the spawning of a subprocess to call `<binary> --version` to fail and
-// subsequently the `installViceroy()` function to be called.
+// expect the spawning of a subprocess (to call `<binary> --version`) to error
+// and subsequently the `installViceroy()` function to be called.
 //
 // The `installViceroy()` function will then think it has downloaded the latest
 // release as we have instructed the mock to provide that behaviour.
@@ -41,9 +41,8 @@ func TestGetViceroy(t *testing.T) {
 		DownloadOK:     true,
 		DownloadedFile: downloadedFile,
 	}
-	verbose := true
 
-	_, err := getViceroy(verbose, progress, &out, versioner)
+	_, err := getViceroy(progress, &out, versioner)
 	if err != nil {
 		t.Fatal(err)
 	}

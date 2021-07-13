@@ -24,18 +24,16 @@ import (
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
 	cmd.Base
-	manifest         manifest.Data
+
 	build            *BuildCommand
+	env              cmd.OptionalString
+	force            cmd.OptionalBool
+	includeSrc       cmd.OptionalBool
+	lang             cmd.OptionalString
+	manifest         manifest.Data
+	name             cmd.OptionalString
+	skipBuild        bool
 	viceroyVersioner update.Versioner
-
-	// Build fields
-	name       cmd.OptionalString
-	lang       cmd.OptionalString
-	includeSrc cmd.OptionalBool
-	force      cmd.OptionalBool
-
-	// Viceroy fields
-	env cmd.OptionalString
 }
 
 // NewServeCommand returns a usable command registered under the parent.
@@ -60,31 +58,36 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	// Viceroy flags
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
 
+	// Serve flags
+	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
+
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	// Reset the fields on the BuildCommand based on ServeCommand values.
-	if c.name.WasSet {
-		c.build.PackageName = c.name.Value
-	}
-	if c.lang.WasSet {
-		c.build.Lang = c.lang.Value
-	}
-	if c.includeSrc.WasSet {
-		c.build.IncludeSrc = c.includeSrc.Value
-	}
-	if c.force.WasSet {
-		c.build.Force = c.force.Value
-	}
+	if !c.skipBuild {
+		// Reset the fields on the BuildCommand based on ServeCommand values.
+		if c.name.WasSet {
+			c.build.PackageName = c.name.Value
+		}
+		if c.lang.WasSet {
+			c.build.Lang = c.lang.Value
+		}
+		if c.includeSrc.WasSet {
+			c.build.IncludeSrc = c.includeSrc.Value
+		}
+		if c.force.WasSet {
+			c.build.Force = c.force.Value
+		}
 
-	err = c.build.Exec(in, out)
-	if err != nil {
-		return err
-	}
+		err = c.build.Exec(in, out)
+		if err != nil {
+			return err
+		}
 
-	text.Break(out)
+		text.Break(out)
+	}
 
 	var progress text.Progress
 	if c.Globals.Verbose() {
@@ -93,15 +96,21 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
-	bin, err := getViceroy(c.Globals.Verbose(), progress, out, c.viceroyVersioner)
+	bin, err := getViceroy(progress, out, c.viceroyVersioner)
 	if err != nil {
 		return err
 	}
 
 	progress.Step("Running local server...")
+	progress.Done()
 
 	err = local(bin, progress, out, c.env.Value, c.Globals.Verbose())
 	if err != nil {
+		if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
+			text.Break(out)
+			text.Info(out, "Local server stopped")
+			return nil
+		}
 		return err
 	}
 
@@ -113,7 +122,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // NOTE: if Viceroy is installed then it is updated, otherwise download the
 // latest version and install it in the same directory as the application
 // configuration data.
-func getViceroy(verbose bool, progress text.Progress, out io.Writer, versioner update.Versioner) (string, error) {
+func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner) (string, error) {
 	progress.Step("Checking latest Viceroy release...")
 
 	latest, err := versioner.LatestVersion(context.Background())
@@ -130,10 +139,6 @@ func getViceroy(verbose bool, progress text.Progress, out io.Writer, versioner u
 	versioner.SetAsset(asset)
 
 	bin := filepath.Join(InstallDir, versioner.Name())
-	if verbose {
-		text.Info(out, "Viceroy will be installed to: %s", bin)
-		text.Break(out)
-	}
 
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
@@ -156,7 +161,7 @@ func getViceroy(verbose bool, progress text.Progress, out io.Writer, versioner u
 		}
 	} else {
 		version := strings.TrimSpace(string(stdoutStderr))
-		err := updateViceroy(verbose, progress, version, out, versioner, latest, bin)
+		err := updateViceroy(progress, version, out, versioner, latest, bin)
 		if err != nil {
 			return "", err
 		}
@@ -203,7 +208,7 @@ func installViceroy(progress text.Progress, versioner update.Versioner, latest s
 
 // updateViceroy checks if the currently installed version is out-of-date and
 // downloads the latest release from GitHub.
-func updateViceroy(verbose bool, progress text.Progress, version string, out io.Writer, versioner update.Versioner, latest semver.Version, bin string) error {
+func updateViceroy(progress text.Progress, version string, out io.Writer, versioner update.Versioner, latest semver.Version, bin string) error {
 	progress.Step("Checking installed Viceroy version...")
 
 	var installedViceroyVersion string
@@ -238,17 +243,8 @@ func updateViceroy(verbose bool, progress text.Progress, version string, out io.
 		}
 	}
 
-	if verbose {
-		text.Info(out, "Current Viceroy version: %s", current)
-	}
-
 	if latest.GT(current) {
-		// We already show the current Viceroy version when in Verbose mode, so if
-		// in non-verbose mode when dealing with an update (where we want to show
-		// both messages) we can omit the current version output.
-		if !verbose {
-			text.Info(out, "Current Viceroy version: %s", current)
-		}
+		text.Output(out, "Current Viceroy version: %s", current)
 		text.Output(out, "Latest Viceroy version: %s", latest)
 
 		tmp, err := versioner.Download(context.Background(), latest)
@@ -298,10 +294,16 @@ func local(bin string, progress text.Progress, out io.Writer, env string, verbos
 	}
 	cmd.MonitorSignals()
 
-	progress.Done()
 	text.Break(out)
 
 	if err := cmd.Exec(); err != nil {
+		e := strings.TrimSpace(err.Error())
+		if strings.Contains(e, "interrupt") {
+			return errors.ErrSignalInterrupt
+		}
+		if strings.Contains(e, "killed") {
+			return errors.ErrSignalKilled
+		}
 		return err
 	}
 

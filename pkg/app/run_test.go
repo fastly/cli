@@ -329,6 +329,7 @@ COMMANDS
     --include-source     Include source code in built package
     --force              Skip verification steps and force build
     --env=ENV            The environment configuration to use (e.g. stage)
+    --skip-build         Skip the build step
 
   compute pack --path=PATH
     Package a pre-compiled Wasm binary for a Fastly Compute@Edge service
