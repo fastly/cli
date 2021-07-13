@@ -53,6 +53,10 @@ func activateVersionOk(i *fastly.ActivateVersionInput) (*fastly.Version, error) 
 	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion}, nil
 }
 
+func updateVersionOk(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion, Comment: *i.Comment}, nil
+}
+
 func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
 		{Name: "https://directly-careful-coyote.edgecompute.app"},

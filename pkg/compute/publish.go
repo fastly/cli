@@ -22,6 +22,7 @@ type PublishCommand struct {
 	backend        cmd.OptionalString
 	backendPort    cmd.OptionalUint
 	serviceVersion cmd.OptionalServiceVersion
+	comment        cmd.OptionalString
 
 	// Build fields
 	name       cmd.OptionalString
@@ -59,6 +60,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").Action(c.backend.Set).StringVar(&c.backend.Value)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").Action(c.backendPort.Set).UintVar(&c.backendPort.Value)
+	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 
 	return &c
 }
@@ -110,6 +112,9 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.backendPort.WasSet {
 		c.deploy.BackendPort = c.backendPort.Value
+	}
+	if c.comment.WasSet {
+		c.deploy.Comment = c.comment
 	}
 	c.deploy.Manifest = c.manifest
 
