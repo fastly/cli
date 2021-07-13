@@ -191,15 +191,27 @@ func (v *Version) UnmarshalText(text []byte) error {
 // File represents all of the configuration parameters in the fastly.toml
 // manifest file schema.
 type File struct {
-	ManifestVersion Version  `toml:"manifest_version"`
-	Name            string   `toml:"name"`
-	Description     string   `toml:"description"`
-	Authors         []string `toml:"authors"`
-	Language        string   `toml:"language"`
-	ServiceID       string   `toml:"service_id"`
+	ManifestVersion Version     `toml:"manifest_version"`
+	Name            string      `toml:"name"`
+	Description     string      `toml:"description"`
+	Authors         []string    `toml:"authors"`
+	Language        string      `toml:"language"`
+	ServiceID       string      `toml:"service_id"`
+	LocalServer     LocalServer `toml:"local_server"`
 
 	exists bool
 	output io.Writer
+}
+
+// LocalServer represents a list of backends that should be mocked as per the
+// configuration values.
+type LocalServer struct {
+	Backends map[string]Backend `toml:"backends"`
+}
+
+// Backend represents a backend to be mocked by the local testing server.
+type Backend struct {
+	URL string `toml:"url"`
 }
 
 // Exists yields whether the manifest exists.

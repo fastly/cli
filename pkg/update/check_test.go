@@ -78,7 +78,7 @@ func TestCheck(t *testing.T) {
 				t.Fatalf("current version: want %s, have %s", want, have)
 			}
 			if want, have := testcase.wantLatest, latest; !want.Equals(have) {
-				t.Fatalf("latest versiopn: want %s, have %s", want, have)
+				t.Fatalf("latest version: want %s, have %s", want, have)
 			}
 			if want, have := testcase.wantUpdate, shouldUpdate; want != have {
 				t.Fatalf("should update: want %v, have %v", want, have)
