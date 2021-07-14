@@ -335,6 +335,7 @@ COMMANDS
                                  package backend
         --backend-port=BACKEND-PORT
                                  A port number for the package backend
+        --comment=COMMENT        Human-readable comment
 
   compute publish [<flags>]
     Build and deploy a Compute@Edge package to a Fastly service
@@ -356,6 +357,7 @@ COMMANDS
                                  package backend
         --backend-port=BACKEND-PORT
                                  A port number for the package backend
+        --comment=COMMENT        Human-readable comment
 
   compute pack --path=PATH
     Package a pre-compiled Wasm binary for a Fastly Compute@Edge service
