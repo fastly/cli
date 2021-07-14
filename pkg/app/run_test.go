@@ -324,13 +324,14 @@ COMMANDS
   compute serve [<flags>]
     Build and run a Compute@Edge package locally
 
-    --env=ENV               The environment configuration to use (e.g. stage)
-    --file="bin/main.wasm"  The Wasm file to run
-    --force                 Skip verification steps and force build
-    --include-source        Include source code in built package
-    --language=LANGUAGE     Language type
-    --name=NAME             Package name
-    --skip-build            Skip the build step
+    --env=ENV                The environment configuration to use (e.g. stage)
+    --file="bin/main.wasm"   The Wasm file to run
+    --addr="127.0.0.1:7676"  The IPv4 address to listen on
+    --force                  Skip verification steps and force build
+    --include-source         Include source code in built package
+    --language=LANGUAGE      Language type
+    --name=NAME              Package name
+    --skip-build             Skip the build step
 
   compute pack --path=PATH
     Package a pre-compiled Wasm binary for a Fastly Compute@Edge service

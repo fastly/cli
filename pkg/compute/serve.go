@@ -28,6 +28,7 @@ type ServeCommand struct {
 	build            *BuildCommand
 	env              cmd.OptionalString
 	file             string
+	addr             string
 	force            cmd.OptionalBool
 	includeSrc       cmd.OptionalBool
 	lang             cmd.OptionalString
@@ -52,6 +53,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
+	c.CmdClause.Flag("addr", "The IPv4 address to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
 	c.CmdClause.Flag("force", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
@@ -101,7 +103,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Running local server...")
 	progress.Done()
 
-	err = local(bin, c.file, progress, out, c.env.Value, c.Globals.Verbose())
+	err = local(bin, c.file, progress, out, c.addr, c.env.Value, c.Globals.Verbose())
 	if err != nil {
 		if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
 			text.Break(out)
@@ -266,7 +268,7 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin string, file string, progress text.Progress, out io.Writer, env string, verbose bool) error {
+func local(bin string, file string, progress text.Progress, out io.Writer, addr string, env string, verbose bool) error {
 	if env != "" {
 		env = "." + env
 	}
@@ -277,7 +279,7 @@ func local(bin string, file string, progress text.Progress, out io.Writer, env s
 	}
 
 	manifest := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
-	args := []string{file, "-C", manifest}
+	args := []string{"-C", manifest, "--addr", addr, file}
 
 	if verbose {
 		text.Output(out, "Wasm file: %s", file)
