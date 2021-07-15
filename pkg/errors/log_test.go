@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -97,7 +98,11 @@ func TestLogPersist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testutil.AssertEqual(t, want, have)
+	r := strings.NewReplacer("\n", "", "\r", "")
+	wanttrim := r.Replace(string(want))
+	havetrim := r.Replace(string(have))
+
+	testutil.AssertEqual(t, wanttrim, havetrim)
 }
 
 // TestLogPersistLogRotation validates that if an audit log file exceeds the
@@ -195,5 +200,9 @@ func TestLogPersistLogRotation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testutil.AssertEqual(t, want, have)
+	r := strings.NewReplacer("\n", "", "\r", "")
+	wanttrim := r.Replace(string(want))
+	havetrim := r.Replace(string(have))
+
+	testutil.AssertEqual(t, wanttrim, havetrim)
 }
