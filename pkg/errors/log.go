@@ -43,6 +43,17 @@ func (l *LogEntries) Add(err error) {
 	logMutex.Unlock()
 }
 
+// AddWithContext adds a new log entry with extra contextual data.
+func (l *LogEntries) AddWithContext(err error, ctx map[string]interface{}) {
+	logMutex.Lock()
+	*l = append(*l, LogEntry{
+		Time:    Now(),
+		Err:     err,
+		Context: ctx,
+	})
+	logMutex.Unlock()
+}
+
 // Persist persists recorded log entries to disk.
 func (l LogEntries) Persist(logPath string, args []string) error {
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
@@ -65,6 +76,9 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 	record := `
 {{.Time}}
 {{.Err}}
+{{ range $key, $value := .Context }}
+   {{ $key }}: {{ $value }}
+{{ end }}
 -----------------------------
 `
 	t := template.Must(template.New("record").Parse(record))
@@ -80,8 +94,9 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 
 // LogEntry represents a single error log entry.
 type LogEntry struct {
-	Time time.Time
-	Err  error
+	Time    time.Time
+	Err     error
+	Context map[string]interface{}
 }
 
 // Appending to a slice isn't threadsafe, and although we currently don't

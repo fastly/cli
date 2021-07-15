@@ -17,7 +17,13 @@ func TestLogAdd(t *testing.T) {
 	le.Add(fmt.Errorf("bar"))
 	le.Add(fmt.Errorf("baz"))
 
-	want := 3
+	m := make(map[string]interface{})
+	m["beep"] = "boop"
+	m["this"] = "that"
+	m["nums"] = 123
+	le.AddWithContext(fmt.Errorf("qux"), m)
+
+	want := 4
 	got := len(*le)
 	if got != want {
 		t.Fatalf("want length %d, got: %d", want, got)
@@ -61,6 +67,12 @@ func TestLogPersist(t *testing.T) {
 	le.Add(fmt.Errorf("foo"))
 	le.Add(fmt.Errorf("bar"))
 	le.Add(fmt.Errorf("baz"))
+
+	m := make(map[string]interface{})
+	m["beep"] = "boop"
+	m["this"] = "that"
+	m["nums"] = 123
+	le.AddWithContext(fmt.Errorf("qux"), m)
 
 	err := le.Persist(path, []string{"command", "one", "--example"})
 	if err != nil {
