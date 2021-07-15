@@ -56,9 +56,22 @@ func (l *LogEntries) AddWithContext(err error, ctx map[string]interface{}) {
 
 // Persist persists recorded log entries to disk.
 func (l LogEntries) Persist(logPath string, args []string) error {
+	errMsg := "error accessing audit log file: %w"
+
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		return fmt.Errorf("error creating config file: %w", err)
+		return fmt.Errorf(errMsg, err)
+	}
+
+	if fi, err := f.Stat(); err == nil {
+		if fi.Size() >= FileRotationSize {
+			f.Close()
+
+			f, err = os.Create(logPath)
+			if err != nil {
+				return fmt.Errorf(errMsg, err)
+			}
+		}
 	}
 
 	// G307 (CWE-): Deferring unsafe method "*os.File" on type "Close".
@@ -112,3 +125,12 @@ var logMutex sync.Mutex
 // to have the CLI's business logic littered with lots of calls to time.Now()
 // when that call can be handled internally by the .Add() method.
 var Now = time.Now
+
+// FileRotationSize represents the size the log file needs to be before we
+// truncate it.
+//
+// NOTE: To enable easier testing of the log rotation logic, we don't define
+// this as a constant but as a variable so the test file can mutate the value
+// to something much smaller, meaning we can commit a small test file as part
+// of the testing logic that will trigger a 'over the threshold' scenario.
+var FileRotationSize int64 = 5242880 // 5mb
