@@ -107,7 +107,7 @@ func TestLogPersist(t *testing.T) {
 
 		for i := range have {
 			if have[i] != want[i] {
-				fmt.Println(string(have[i]), string(want[i]))
+				fmt.Println(i, string(have[i]), string(want[i]))
 			}
 		}
 	}
@@ -216,7 +216,7 @@ func TestLogPersistLogRotation(t *testing.T) {
 
 		for i := range have {
 			if have[i] != want[i] {
-				fmt.Println(string(have[i]), string(want[i]))
+				fmt.Println(i, string(have[i]), string(want[i]))
 			}
 		}
 	}
