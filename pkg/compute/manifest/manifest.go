@@ -325,17 +325,17 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 }
 
 // Write persists the manifest content to disk.
-func (f *File) Write(filename string) error {
-	fp, err := os.Create(filename)
+func (f *File) Write(fpath string) error {
+	fp, err := os.Create(fpath)
 	if err != nil {
 		return err
 	}
 
-	if err := toml.NewEncoder(fp).Encode(f); err != nil {
+	if err := prependSpecRefToManifest(fp); err != nil {
 		return err
 	}
 
-	if err := prependSpecRefToManifest(fp); err != nil {
+	if err := toml.NewEncoder(fp).Encode(f); err != nil {
 		return err
 	}
 
@@ -352,57 +352,12 @@ func (f *File) Write(filename string) error {
 
 // prependSpecRefToManifest checks if the manifest contains a reference to the
 // manifest specification and, if not, prepends it to the top of the file.
-//
-// NOTE: We want to prepend a link to the fastly.toml reference but we also
-// don't want to break the user experience if we have a problem (as writing
-// this reference isn't critical to the operations the user is carrying out),
-// so we don't handle the returned error but instead only proceed to attempt
-// a WRITE to the file when there was no error seeking the start of the file.
-//
-// We have to seek to the start of the file so we can read back the contents,
-// then once we have the contents stored we have to seek back to the start a
-// second time so we can inject our reference link and start writing back out
-// the toml contents.
-//
-// Although we don't want to error when attempting to seek the file, we do
-// want to return an error if there was a problem writing the content to the
-// buffer or if there was a problem flushing the buffer back to the io.Writer
-// because this would indicate a problem with us getting back all of the
-// original content.
-func prependSpecRefToManifest(fp io.ReadWriteSeeker) error {
-	if _, err := fp.Seek(0, 0); err == nil {
-		content := make([]string, 0)
-		scanner := bufio.NewScanner(fp)
-
-		for scanner.Scan() {
-			content = append(content, scanner.Text())
-		}
-
-		if err := scanner.Err(); err != nil {
-			return err
-		}
-
-		if content[0] != SpecIntro || content[1] != SpecURL {
-			if _, err := fp.Seek(0, 0); err == nil {
-				writer := bufio.NewWriter(fp)
-				writer.WriteString(fmt.Sprintf("# %s\n# %s\n\n", SpecIntro, SpecURL))
-
-				for _, line := range content {
-					_, err := writer.WriteString(line + "\n")
-					if err != nil {
-						return err
-					}
-				}
-
-				if err := writer.Flush(); err != nil {
-					return err
-				}
-			}
-		}
+func prependSpecRefToManifest(w io.Writer) error {
+	s := fmt.Sprintf("# %s\n# %s\n\n", SpecIntro, SpecURL)
+	_, err := io.WriteString(w, s)
+	if err != nil {
+		return err
 	}
-
-	fp.Seek(0, 0)
-
 	return nil
 }
 
