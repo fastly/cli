@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -99,17 +98,17 @@ func TestLogPersist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	havetrim := strings.TrimSpace(string(have))
-	wanttrim := strings.TrimSpace(string(want))
+	havetrim := bytes.ReplaceAll(have, []byte("\n"), nil)
+	wanttrim := bytes.ReplaceAll(want, []byte("\n"), nil)
 
-	if len(have) != len(want) {
+	if len(havetrim) != len(wanttrim) {
 		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
 	}
 
-	if i := bytes.Compare(have, want); i != 0 {
-		for i := range have {
-			if have[i] != want[i] {
-				fmt.Println(i, string(have[i]), string(want[i]))
+	if i := bytes.Compare(havetrim, wanttrim); i != 0 {
+		for i := range havetrim {
+			if havetrim[i] != wanttrim[i] {
+				fmt.Println(i, string(havetrim[i]), string(wanttrim[i]))
 			}
 		}
 		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
@@ -211,17 +210,17 @@ func TestLogPersistLogRotation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	havetrim := strings.TrimSpace(string(have))
-	wanttrim := strings.TrimSpace(string(want))
+	havetrim := bytes.ReplaceAll(have, []byte("\n"), nil)
+	wanttrim := bytes.ReplaceAll(want, []byte("\n"), nil)
 
-	if len(have) != len(want) {
+	if len(havetrim) != len(wanttrim) {
 		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
 	}
 
-	if i := bytes.Compare(have, want); i != 0 {
-		for i := range have {
-			if have[i] != want[i] {
-				fmt.Println(i, string(have[i]), string(want[i]))
+	if i := bytes.Compare(havetrim, wanttrim); i != 0 {
+		for i := range havetrim {
+			if havetrim[i] != wanttrim[i] {
+				fmt.Println(i, string(havetrim[i]), string(wanttrim[i]))
 			}
 		}
 		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
