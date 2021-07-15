@@ -331,7 +331,7 @@ func (f *File) Write(fpath string) error {
 		return err
 	}
 
-	if err := prependSpecRefToManifest(fp); err != nil {
+	if err := appendSpecRef(fp); err != nil {
 		return err
 	}
 
@@ -350,9 +350,8 @@ func (f *File) Write(fpath string) error {
 	return nil
 }
 
-// prependSpecRefToManifest checks if the manifest contains a reference to the
-// manifest specification and, if not, prepends it to the top of the file.
-func prependSpecRefToManifest(w io.Writer) error {
+// appendSpecRef appends the fastly.toml specification URL to the manifest.
+func appendSpecRef(w io.Writer) error {
 	s := fmt.Sprintf("# %s\n# %s\n\n", SpecIntro, SpecURL)
 	_, err := io.WriteString(w, s)
 	if err != nil {
