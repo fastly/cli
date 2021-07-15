@@ -1,7 +1,6 @@
 package errors_test
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -98,21 +97,7 @@ func TestLogPersist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	havetrim := bytes.ReplaceAll(have, []byte("\n"), nil)
-	wanttrim := bytes.ReplaceAll(want, []byte("\n"), nil)
-
-	if len(havetrim) != len(wanttrim) {
-		t.Fatalf("wanted content length: %d, got: %d", len(wanttrim), len(havetrim))
-	}
-
-	if i := bytes.Compare(havetrim, wanttrim); i != 0 {
-		for i := range havetrim {
-			if havetrim[i] != wanttrim[i] {
-				fmt.Println(i, string(havetrim[i]), string(wanttrim[i]))
-			}
-		}
-		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
-	}
+	testutil.AssertEqual(t, want, have)
 }
 
 // TestLogPersistLogRotation validates that if an audit log file exceeds the
@@ -210,19 +195,5 @@ func TestLogPersistLogRotation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	havetrim := bytes.ReplaceAll(have, []byte("\n"), nil)
-	wanttrim := bytes.ReplaceAll(want, []byte("\n"), nil)
-
-	if len(havetrim) != len(wanttrim) {
-		t.Fatalf("wanted content length: %d, got: %d", len(wanttrim), len(havetrim))
-	}
-
-	if i := bytes.Compare(havetrim, wanttrim); i != 0 {
-		for i := range havetrim {
-			if havetrim[i] != wanttrim[i] {
-				fmt.Println(i, string(havetrim[i]), string(wanttrim[i]))
-			}
-		}
-		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
-	}
+	testutil.AssertEqual(t, want, have)
 }
