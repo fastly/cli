@@ -101,6 +101,6 @@ func TestLogPersist(t *testing.T) {
 	havetrim := strings.TrimSpace(string(have))
 	wanttrim := strings.TrimSpace(string(want))
 	if havetrim != wanttrim {
-		t.Fatalf("wanted content:\n%s\n, got:\n%s\n", wanttrim, havetrim)
+		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
 	}
 }
