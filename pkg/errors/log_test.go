@@ -101,8 +101,15 @@ func TestLogPersist(t *testing.T) {
 
 	havetrim := strings.TrimSpace(string(have))
 	wanttrim := strings.TrimSpace(string(want))
+
 	if i := bytes.Compare(have, want); i != 0 {
 		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
+
+		for i := range have {
+			if have[i] != want[i] {
+				fmt.Println(string(have[i]), string(want[i]))
+			}
+		}
 	}
 }
 
@@ -203,7 +210,14 @@ func TestLogPersistLogRotation(t *testing.T) {
 
 	havetrim := strings.TrimSpace(string(have))
 	wanttrim := strings.TrimSpace(string(want))
-	if havetrim != wanttrim {
+
+	if i := bytes.Compare(have, want); i != 0 {
 		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
+
+		for i := range have {
+			if have[i] != want[i] {
+				fmt.Println(string(have[i]), string(want[i]))
+			}
+		}
 	}
 }
