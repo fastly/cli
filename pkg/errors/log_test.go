@@ -8,45 +8,65 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestLogAdd(t *testing.T) {
-	errors.Log.Add(fmt.Errorf("foo"))
-	errors.Log.Add(fmt.Errorf("bar"))
-	errors.Log.Add(fmt.Errorf("baz"))
+	le := new(errors.LogEntries)
+	le.Add(fmt.Errorf("foo"))
+	le.Add(fmt.Errorf("bar"))
+	le.Add(fmt.Errorf("baz"))
 
-	if len(*errors.Log) != 3 {
-		t.Fatalf("want length %d, got: %d", 3, len(*errors.Log))
+	want := 3
+	got := len(*le)
+	if got != want {
+		t.Fatalf("want length %d, got: %d", want, got)
 	}
 }
 
 func TestLogPersist(t *testing.T) {
-	segs := filepath.Join("testdata", "errors.log")
-	path, err := filepath.Abs(segs)
-	if err != nil {
-		t.Fatal(err)
-	}
+	var path string
 
-	// The test will cause the testdata/errors.log file to be overwritten, and so
-	// we need to reset that file at the end of each test run.
-	defer func(path string, b []byte) {
-		err := os.WriteFile(path, b, 0644)
+	// Create temp environment to run test code within.
+	{
+		wd, err := os.Getwd()
 		if err != nil {
 			t.Fatal(err)
 		}
-	}(path, []byte{})
+
+		rootdir := testutil.NewEnv(testutil.EnvOpts{
+			T: t,
+			Write: []testutil.FileIO{
+				{Src: string(""), Dst: "errors.log"},
+			},
+			Copy: []testutil.FileIO{
+				{
+					Src: filepath.Join("testdata", "errors-expected.log"),
+					Dst: filepath.Join("errors-expected.log"),
+				},
+			},
+		})
+		path = filepath.Join(rootdir, "errors.log")
+		defer os.RemoveAll(rootdir)
+
+		if err := os.Chdir(rootdir); err != nil {
+			t.Fatal(err)
+		}
+		defer os.Chdir(wd)
+	}
 
 	errors.Now = func() (t time.Time) { return }
 
-	errors.Log.Add(fmt.Errorf("foo"))
-	errors.Log.Add(fmt.Errorf("bar"))
-	errors.Log.Add(fmt.Errorf("baz"))
+	le := new(errors.LogEntries)
+	le.Add(fmt.Errorf("foo"))
+	le.Add(fmt.Errorf("bar"))
+	le.Add(fmt.Errorf("baz"))
 
-	err = errors.Log.Persist(path, []string{"command", "one", "--example"})
+	err := le.Persist(path, []string{"command", "one", "--example"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	err = errors.Log.Persist(path, []string{"command", "two", "--example"})
+	err = le.Persist(path, []string{"command", "two", "--example"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -56,12 +76,11 @@ func TestLogPersist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	segs = filepath.Join("testdata", "errors-expected.log")
-	path, err = filepath.Abs(segs)
+	wantPath, err := filepath.Abs("errors-expected.log")
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, err := os.ReadFile(path)
+	want, err := os.ReadFile(wantPath)
 	if err != nil {
 		t.Fatal(err)
 	}
