@@ -255,7 +255,7 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 		t.Fatal("did not expect service_id key to exist in fastly.toml but is present")
 	}
 
-	var m File
+	var m manifest.File
 
 	err = m.Read(fpath)
 	if err != nil {
