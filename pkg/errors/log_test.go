@@ -102,7 +102,7 @@ func TestLogPersist(t *testing.T) {
 	wanttrim := bytes.ReplaceAll(want, []byte("\n"), nil)
 
 	if len(havetrim) != len(wanttrim) {
-		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
+		t.Fatalf("wanted content length: %d, got: %d", len(wanttrim), len(havetrim))
 	}
 
 	if i := bytes.Compare(havetrim, wanttrim); i != 0 {
@@ -214,7 +214,7 @@ func TestLogPersistLogRotation(t *testing.T) {
 	wanttrim := bytes.ReplaceAll(want, []byte("\n"), nil)
 
 	if len(havetrim) != len(wanttrim) {
-		t.Fatalf("wanted content:\n%s\ngot:\n%s\n", wanttrim, havetrim)
+		t.Fatalf("wanted content length: %d, got: %d", len(wanttrim), len(havetrim))
 	}
 
 	if i := bytes.Compare(havetrim, wanttrim); i != 0 {
