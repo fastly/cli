@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -97,7 +98,9 @@ func TestLogPersist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if string(have) != string(want) {
-		t.Fatalf("wanted content:\n%s\n, got:\n%s\n", string(want), string(have))
+	havetrim := strings.TrimSpace(string(have))
+	wanttrim := strings.TrimSpace(string(want))
+	if havetrim != wanttrim {
+		t.Fatalf("wanted content:\n%s\n, got:\n%s\n", wanttrim, havetrim)
 	}
 }
