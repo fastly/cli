@@ -1,15 +1,16 @@
-package manifest
+package manifest_test
 
 import (
 	"errors"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/env"
 	errs "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestManifest(t *testing.T) {
@@ -80,7 +81,7 @@ func TestManifest(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			var m File
+			var m manifest.File
 			m.SetOutput(os.Stdout)
 
 			path, err := filepath.Abs(filepath.Join(prefix, tc.manifest))
@@ -107,7 +108,10 @@ func TestManifest(t *testing.T) {
 }
 
 func TestManifestPrepend(t *testing.T) {
-	prefix := filepath.Join("../", "testdata", "init")
+	var (
+		manifestBody []byte
+		manifestPath string
+	)
 
 	// NOTE: the fixture file "fastly-missing-spec-url.toml" will be
 	// overwritten by the test as the internal logic is supposed to add into the
@@ -115,49 +119,66 @@ func TestManifestPrepend(t *testing.T) {
 	//
 	// To ensure future test runs complete successfully we do an initial read of
 	// the data and then write it back out when the tests have completed.
-
-	fpath := "fastly-missing-spec-url.toml"
-
-	path, err := filepath.Abs(filepath.Join(prefix, fpath))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	b, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	defer func(path string, b []byte) {
-		err := os.WriteFile(path, b, 0644)
+	{
+		path, err := filepath.Abs(filepath.Join("../", "testdata", "init", "fastly-missing-spec-url.toml"))
 		if err != nil {
 			t.Fatal(err)
 		}
-	}(path, b)
 
-	f, err := os.OpenFile(path, os.O_RDWR, 0644)
+		manifestBody, err = os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		defer func(path string, b []byte) {
+			err := os.WriteFile(path, b, 0644)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(path, manifestBody)
+	}
+
+	// Create temp environment to run test code within.
+	{
+		wd, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rootdir := testutil.NewEnv(testutil.EnvOpts{
+			T: t,
+			Write: []testutil.FileIO{
+				{Src: string(manifestBody), Dst: "fastly.toml"},
+			},
+		})
+		manifestPath = filepath.Join(rootdir, "fastly.toml")
+		defer os.RemoveAll(rootdir)
+
+		if err := os.Chdir(rootdir); err != nil {
+			t.Fatal(err)
+		}
+		defer os.Chdir(wd)
+	}
+
+	var f manifest.File
+	err := f.Read(manifestPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = prependSpecRefToManifest(f)
+	err = f.Write(manifestPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	bs, err := io.ReadAll(f)
+	updatedManifest, err := os.ReadFile(manifestPath)
 	if err != nil {
 		t.Fatal(err)
 	}
+	content := string(updatedManifest)
 
-	content := string(bs)
-
-	if !strings.Contains(content, SpecIntro) || !strings.Contains(content, SpecURL) {
+	if !strings.Contains(content, manifest.SpecIntro) || !strings.Contains(content, manifest.SpecURL) {
 		t.Fatal("missing fastly.toml specification reference link")
-	}
-
-	if err = f.Close(); err != nil {
-		t.Fatal(err)
 	}
 }
 
@@ -173,19 +194,19 @@ func TestDataServiceID(t *testing.T) {
 	}
 
 	// SourceFlag
-	d := Data{
-		Flag: Flag{ServiceID: "123"},
-		File: File{ServiceID: "456"},
+	d := manifest.Data{
+		Flag: manifest.Flag{ServiceID: "123"},
+		File: manifest.File{ServiceID: "456"},
 	}
 	_, src := d.ServiceID()
-	if src != SourceFlag {
+	if src != manifest.SourceFlag {
 		t.Fatal("expected SourceFlag")
 	}
 
 	// SourceEnv
-	d.Flag = Flag{}
+	d.Flag = manifest.Flag{}
 	_, src = d.ServiceID()
-	if src != SourceEnv {
+	if src != manifest.SourceEnv {
 		t.Fatal("expected SourceEnv")
 	}
 
@@ -195,7 +216,7 @@ func TestDataServiceID(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, src = d.ServiceID()
-	if src != SourceFile {
+	if src != manifest.SourceFile {
 		t.Fatal("expected SourceFile")
 	}
 }
