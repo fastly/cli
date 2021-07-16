@@ -19,3 +19,9 @@ var ErrUnrecognisedManifestVersion = RemediationError{Inner: fmt.Errorf("unrecog
 // ErrInvalidManifestVersion means the manifest_version is defined as a toml
 // section.
 var ErrInvalidManifestVersion = RemediationError{Inner: fmt.Errorf("failed to parse fastly.toml when checking if manifest_version was valid"), Remediation: "Delete `[manifest_version]` from the fastly.toml if present"}
+
+// ErrSignalInterrupt means a SIGINT was received.
+var ErrSignalInterrupt = fmt.Errorf("a SIGINT was received")
+
+// ErrSignalKilled means a SIGTERM was received.
+var ErrSignalKilled = fmt.Errorf("a SIGTERM was received")

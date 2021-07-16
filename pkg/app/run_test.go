@@ -321,6 +321,23 @@ COMMANDS
     --force              Skip verification steps and force build
     --timeout=TIMEOUT    Timeout, in seconds, for the build compilation step
 
+  compute serve [<flags>]
+    Build and run a Compute@Edge package locally
+
+    --addr="127.0.0.1:7676"  The IPv4 address to listen on
+    --env=ENV                The environment configuration to use (e.g. stage)
+    --file="bin/main.wasm"   The Wasm file to run
+    --force                  Skip verification steps and force build
+    --include-source         Include source code in built package
+    --language=LANGUAGE      Language type
+    --name=NAME              Package name
+    --skip-build             Skip the build step
+
+  compute pack --path=PATH
+    Package a pre-compiled Wasm binary for a Fastly Compute@Edge service
+
+    -p, --path=PATH  Path to a pre-compiled Wasm binary
+
   compute deploy [<flags>]
     Deploy a package to a Fastly Compute@Edge service
 
@@ -358,11 +375,6 @@ COMMANDS
         --backend-port=BACKEND-PORT
                                  A port number for the package backend
         --comment=COMMENT        Human-readable comment
-
-  compute pack --path=PATH
-    Package a pre-compiled Wasm binary for a Fastly Compute@Edge service
-
-    -p, --path=PATH  Path to a pre-compiled Wasm binary
 
   compute update --version=VERSION --path=PATH [<flags>]
     Update a package on a Fastly Compute@Edge service version

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"runtime"
 	"strings"
 	"time"
 
@@ -23,6 +24,9 @@ func Check(ctx context.Context, currentVersion string, cliVersioner Versioner) (
 	if err != nil {
 		return current, latest, false, fmt.Errorf("error fetching latest version: %w", err)
 	}
+
+	asset := fmt.Sprintf(DefaultAssetFormat, cliVersioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
+	cliVersioner.SetAsset(asset)
 
 	return current, latest, latest.GT(current), nil
 }
