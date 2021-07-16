@@ -8,6 +8,8 @@ import (
 	"sync"
 	"text/template"
 	"time"
+
+	"github.com/fastly/go-fastly/v3/fastly"
 )
 
 // LogPath is the location of the fastly CLI error log.
@@ -135,3 +137,13 @@ var Now = time.Now
 // to something much smaller, meaning we can commit a small test file as part
 // of the testing logic that will trigger a 'over the threshold' scenario.
 var FileRotationSize int64 = 5242880 // 5mb
+
+// ServiceVersion returns an integer regardless of whether the given argument
+// is a nil pointer or not. It helps to reduce the boilerplate found across the
+// codebase when tracking errors related to `cmd.ServiceDetails`.
+func ServiceVersion(v *fastly.Version) (sv int) {
+	if v != nil {
+		sv = v.Number
+	}
+	return
+}
