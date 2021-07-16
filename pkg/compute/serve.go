@@ -243,8 +243,11 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 	}
 
 	if latest.GT(current) {
+		text.Break(out)
+		text.Break(out)
 		text.Output(out, "Current Viceroy version: %s", current)
 		text.Output(out, "Latest Viceroy version: %s", latest)
+		text.Break(out)
 
 		tmp, err := versioner.Download(context.Background(), latest)
 		progress.Step("Fetching latest Viceroy release...")
