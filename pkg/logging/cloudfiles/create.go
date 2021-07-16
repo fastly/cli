@@ -162,13 +162,35 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 
 	d, err := c.Globals.Client.CreateCloudfiles(input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":        serviceID,
+			"Service Version":   serviceVersion.Number,
+			"AccessKey":         input.AccessKey,
+			"BucketName":        input.BucketName,
+			"CompressionCodec":  input.CompressionCodec,
+			"Format":            input.Format,
+			"FormatVersion":     input.FormatVersion,
+			"GzipLevel":         input.GzipLevel,
+			"MessageType":       input.MessageType,
+			"Name":              input.Name,
+			"Path":              input.Path,
+			"Period":            input.Period,
+			"Placement":         input.Placement,
+			"PublicKey":         input.PublicKey,
+			"Region":            input.Region,
+			"ResponseCondition": input.ResponseCondition,
+			"TimestampFormat":   input.TimestampFormat,
+			"User":              input.User,
+		})
 		return err
 	}
 

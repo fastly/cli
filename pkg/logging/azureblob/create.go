@@ -174,7 +174,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 
-			// Purposely omitted SASToken and PublicKey fields...
+			// Omitted SASToken
 			"AccountName":       input.AccountName,
 			"CompressionCodec":  input.CompressionCodec,
 			"Container":         input.Container,
