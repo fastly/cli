@@ -47,8 +47,12 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("error checking for latest version: %w", err)
 	}
 
+	text.Break(out)
+	text.Break(out)
 	text.Output(out, "Current version: %s", current)
 	text.Output(out, "Latest version: %s", latest)
+	text.Break(out)
+
 	if !shouldUpdate {
 		text.Output(out, "No update required.")
 		return nil
