@@ -1,5 +1,23 @@
 # Changelog
 
+## [v0.34.0](https://github.com/fastly/cli/releases/tag/v0.34.0) (2021-07-16)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.33.0...v0.34.0)
+
+**Enhancements:**
+
+- Implement `compute serve` subcommand [\#252](https://github.com/fastly/cli/pull/252)
+- Simplify logic for prefixing fastly spec to file [\#345](https://github.com/fastly/cli/pull/345)
+- `fastly compute publish` and `deploy` should accept a comment [\#328](https://github.com/fastly/cli/pull/328)
+- Improve GitHub Actions intermittent test timeouts [\#336](https://github.com/fastly/cli/pull/336)
+- New flags for displaying the CLI config, and its location [\#338](https://github.com/fastly/cli/pull/338)
+- Don't allow stats short help to wrap [\#331](https://github.com/fastly/cli/pull/331)
+
+**Bug fixes:**
+
+- Ensure incompatibility message only shown when config is invalid [\#335](https://github.com/fastly/cli/pull/335)
+- Check-in static config for traditional golang workflows [\#337](https://github.com/fastly/cli/pull/337)
+
 ## [v0.33.0](https://github.com/fastly/cli/releases/tag/v0.33.0) (2021-07-06)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.32.0...v0.33.0)
