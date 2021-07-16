@@ -118,13 +118,31 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 
 	d, err := c.Globals.Client.CreateBigQuery(input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+
+			// Omitted SecretKey
+			"Dataset":           input.Dataset,
+			"Format":            input.Format,
+			"FormatVersion":     input.FormatVersion,
+			"Name":              input.Name,
+			"Placement":         input.Placement,
+			"ProjectID":         input.ProjectID,
+			"ResponseCondition": input.ResponseCondition,
+			"Table":             input.Table,
+			"Template":          input.Template,
+			"User":              input.User,
+		})
 		return err
 	}
 

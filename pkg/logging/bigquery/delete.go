@@ -60,7 +60,10 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceVersion = serviceVersion.Number
 
 	if err := c.Globals.Client.DeleteBigQuery(&c.Input); err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 
