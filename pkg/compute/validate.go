@@ -85,12 +85,16 @@ func NewValidateCommand(parent cmd.Registerer, globals *config.Data) *ValidateCo
 func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
 	p, err := filepath.Abs(c.path)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path": c.path,
+		})
 		return fmt.Errorf("error reading file path: %w", err)
 	}
 
 	if err := validate(p); err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path": c.path,
+		})
 		return err
 	}
 

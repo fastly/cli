@@ -69,13 +69,19 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 
 	v, err := c.Globals.Client.UpdateVCL(input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 

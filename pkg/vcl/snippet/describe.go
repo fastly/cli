@@ -64,12 +64,18 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.dynamic.WasSet {
 		input, err := c.constructDynamicInput(serviceID, serviceVersion.Number)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
 			return err
 		}
 		v, err := c.Globals.Client.GetDynamicSnippet(input)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
 			return err
 		}
 		c.printDynamic(out, v)
@@ -78,12 +84,18 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 	v, err := c.Globals.Client.GetSnippet(input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 	c.print(out, v)

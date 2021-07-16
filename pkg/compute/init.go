@@ -144,7 +144,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	abspath, err := verifyDestination(c.path, progress)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path": c.path,
+		})
 		return err
 	}
 	c.path = abspath
@@ -152,27 +154,37 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	name, _ = c.manifest.Name()
 	name, err = pkgName(name, c.path, in, out)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path": c.path,
+			"Name": name,
+		})
 		return err
 	}
 
 	desc, _ = c.manifest.Description()
 	desc, err = pkgDesc(desc, in, out)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Description": desc,
+		})
 		return err
 	}
 
 	authors, _ = c.manifest.Authors()
 	authors, err = pkgAuthors(authors, c.Globals.File.User.Email, in, out)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Authors": authors,
+			"Email":   c.Globals.File.User.Email,
+		})
 		return err
 	}
 
 	language, err = pkgLang(c.language, languages, in, out)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Language": c.language,
+		})
 		return err
 	}
 
@@ -181,7 +193,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		from, branch, tag, err := pkgFrom(c.from, c.branch, c.tag, manifestExist, language.StarterKits, in, out)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"From":           c.from,
+				"Branch":         c.branch,
+				"Tag":            c.tag,
+				"Manifest Exist": manifestExist,
+			})
 			return err
 		}
 
@@ -203,7 +220,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if from != "" && !manifestExist {
 			err := pkgFetch(from, branch, tag, c.path, progress)
 			if err != nil {
-				c.Globals.ErrLog.Add(err)
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"From":   from,
+					"Branch": branch,
+					"Tag":    tag,
+					"Path":   c.path,
+				})
 				return err
 			}
 		}
@@ -211,7 +233,13 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	m, err := updateManifest(c.manifest.File, progress, c.path, name, desc, authors, language)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path":        c.path,
+			"Name":        name,
+			"Description": desc,
+			"Authors":     authors,
+			"Language":    language,
+		})
 		return err
 	}
 

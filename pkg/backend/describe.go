@@ -57,7 +57,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	backend, err := c.Globals.Client.GetBackend(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 

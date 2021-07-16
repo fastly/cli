@@ -60,7 +60,10 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	vs, err := c.Globals.Client.ListSnippets(input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 

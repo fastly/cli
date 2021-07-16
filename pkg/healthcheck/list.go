@@ -56,7 +56,10 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	healthChecks, err := c.Globals.Client.ListHealthChecks(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 

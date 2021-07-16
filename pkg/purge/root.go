@@ -75,7 +75,10 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		err := c.purgeAll(serviceID, out)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+				"All":        c.all,
+			})
 			return err
 		}
 		return nil
@@ -84,7 +87,10 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.file != "" {
 		err := c.purgeKeys(serviceID, out)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+				"File":       c.file,
+			})
 			return err
 		}
 		return nil
@@ -93,7 +99,10 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.key != "" {
 		err := c.purgeKey(serviceID, out)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+				"Key":        c.key,
+			})
 			return err
 		}
 		return nil
@@ -102,7 +111,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.url != "" {
 		err := c.purgeURL(out)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"URL": c.url,
+			})
 			return err
 		}
 		return nil
@@ -116,7 +127,9 @@ func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
 		ServiceID: serviceID,
 	})
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
 		return err
 	}
 	text.Success(out, "Purge all status: %s", p.Status)
@@ -126,7 +139,9 @@ func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
 func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 	keys, err := populateKeys(c.file, c.Globals.ErrLog)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
 		return err
 	}
 
@@ -136,7 +151,11 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 		Soft:      c.soft,
 	})
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+			"Keys":       keys,
+			"Soft":       c.soft,
+		})
 		return err
 	}
 
@@ -163,7 +182,11 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 		Soft:      c.soft,
 	})
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+			"Key":        c.key,
+			"Soft":       c.soft,
+		})
 		return err
 	}
 	text.Success(out, "Purged key: %s (soft: %t). Status: %s, ID: %s", c.key, c.soft, p.Status, p.ID)
@@ -176,7 +199,10 @@ func (c *RootCommand) purgeURL(out io.Writer) error {
 		Soft: c.soft,
 	})
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"URL":  c.url,
+			"Soft": c.soft,
+		})
 		return err
 	}
 	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, p.Status, p.ID)

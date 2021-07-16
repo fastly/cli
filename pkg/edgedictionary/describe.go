@@ -56,7 +56,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	dictionary, err := c.Globals.Client.GetDictionary(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 
@@ -72,7 +75,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		info, err := c.Globals.Client.GetDictionaryInfo(&infoInput)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
 			return err
 		}
 		text.Output(out, "Digest: %s", info.Digest)
@@ -84,7 +90,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		items, err := c.Globals.Client.ListDictionaryItems(&itemInput)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
 			return err
 		}
 		for i, item := range items {

@@ -52,25 +52,35 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}(c.Globals.ErrLog)
 
 	pkg := fmt.Sprintf("pkg/%s/bin/main.wasm", c.manifest.File.Name)
-	err = filesystem.MakeDirectoryIfNotExists(filepath.Dir(pkg))
+	dir := filepath.Dir(pkg)
+	err = filesystem.MakeDirectoryIfNotExists(dir)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Wasm directory (relative)": dir,
+		})
 		return err
 	}
 
 	src, err := filepath.Abs(c.path)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path (absolute)": src,
+		})
 		return err
 	}
 	dst, err := filepath.Abs(pkg)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Wasm destination (relative)": pkg,
+		})
 		return err
 	}
 	progress.Step("Copying wasm binary...")
 	if err := filesystem.CopyFile(src, dst); err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path (absolute)":             src,
+			"Wasm destination (absolute)": dst,
+		})
 		return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
 	}
 
@@ -85,7 +95,10 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	src = manifest.Filename
 	dst = fmt.Sprintf("pkg/%s/%s", c.manifest.File.Name, manifest.Filename)
 	if err := filesystem.CopyFile(src, dst); err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Manifest (destination)": dst,
+			"Manifest (source)":      src,
+		})
 		return fmt.Errorf("error copying manifest to '%s': %w", dst, err)
 	}
 
@@ -97,7 +110,10 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		src := []string{dir}
 		dst := fmt.Sprintf("%s.tar.gz", dir)
 		if err = tar.Archive(src, dst); err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Tar source":      dir,
+				"Tar destination": dst,
+			})
 			return err
 		}
 	}

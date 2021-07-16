@@ -186,7 +186,9 @@ func (c *TailCommand) tail(out io.Writer) {
 
 		req, err := http.NewRequest("GET", path, nil)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"GET": path,
+			})
 			text.Error(out, "unable to create new request: %v", err)
 			os.Exit(1)
 		}
@@ -287,7 +289,9 @@ func (c *TailCommand) tail(out io.Writer) {
 		_, next := getLinks(resp.Header)
 		curWindow, err = getTimeFromLink(next)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Next link": next,
+			})
 			text.Error(out, "error generating window from next link")
 		}
 

@@ -111,7 +111,10 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	b, err := c.Globals.Client.GetBackend(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 
@@ -219,7 +222,10 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	b, err = c.Globals.Client.UpdateBackend(input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 

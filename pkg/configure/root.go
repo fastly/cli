@@ -108,7 +108,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Endpoint": endpoint,
+		})
 		return fmt.Errorf("error regenerating Fastly API client: %w", err)
 	}
 	t, err := client.GetTokenSelf()
@@ -120,7 +122,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		ID: t.UserID,
 	})
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"User ID": t.UserID,
+		})
 		return fmt.Errorf("error fetching token user: %w", err)
 	}
 
@@ -141,7 +145,10 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("config file path %s isn't a directory", dir)
 	case err != nil && os.IsNotExist(err):
 		if err := os.MkdirAll(dir, config.DirectoryPermissions); err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Directory":   dir,
+				"Permissions": config.DirectoryPermissions,
+			})
 			return fmt.Errorf("error creating config file directory: %w", err)
 		}
 	}

@@ -75,7 +75,10 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	v, err := c.Globals.Client.CreateSnippet(input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 

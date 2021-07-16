@@ -42,7 +42,9 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	_, err := c.Globals.Client.CreateDictionaryItem(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
 		return err
 	}
 
