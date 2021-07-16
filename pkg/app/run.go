@@ -83,6 +83,7 @@ type RunOpts struct {
 	ConfigFile config.File
 	ConfigPath string
 	Env        config.Environment
+	ErrLog     errors.LogInterface
 	HTTPClient api.HTTPClient
 	Stdin      io.Reader
 	Stdout     io.Writer
@@ -106,6 +107,7 @@ func Run(opts RunOpts) error {
 		File:   opts.ConfigFile,
 		Env:    opts.Env,
 		Output: opts.Stdout,
+		ErrLog: opts.ErrLog,
 	}
 
 	// Set up the main application root, including global flags, and then each
