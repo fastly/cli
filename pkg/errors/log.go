@@ -24,6 +24,7 @@ var LogPath = func() string {
 // LogInterface represents the LogEntries behaviours.
 type LogInterface interface {
 	Add(err error)
+	AddWithContext(err error, ctx map[string]interface{})
 	Persist(logPath string, args []string) error
 }
 
