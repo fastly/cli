@@ -78,7 +78,11 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	ver, err := c.Globals.Client.UpdateVersion(&c.input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+			"Comment":         c.comment.Value,
+		})
 		return err
 	}
 

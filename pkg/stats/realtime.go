@@ -36,21 +36,25 @@ func NewRealtimeCommand(parent cmd.Registerer, globals *config.Data) *RealtimeCo
 
 // Exec implements the command interface.
 func (c *RealtimeCommand) Exec(in io.Reader, out io.Writer) error {
-	service, source := c.manifest.ServiceID()
+	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
 
 	switch c.formatFlag {
 	case "json":
-		if err := loopJSON(c.Globals.RTSClient, service, out); err != nil {
-			c.Globals.ErrLog.Add(err)
+		if err := loopJSON(c.Globals.RTSClient, serviceID, out); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+			})
 			return err
 		}
 
 	default:
-		if err := loopText(c.Globals.RTSClient, service, out); err != nil {
-			c.Globals.ErrLog.Add(err)
+		if err := loopText(c.Globals.RTSClient, serviceID, out); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+			})
 			return err
 		}
 	}

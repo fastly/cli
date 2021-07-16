@@ -161,13 +161,35 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 
 	d, err := c.Globals.Client.CreateBlobStorage(input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+
+			// Purposely omitted SASToken and PublicKey fields...
+			"AccountName":       input.AccountName,
+			"CompressionCodec":  input.CompressionCodec,
+			"Container":         input.Container,
+			"FileMaxBytes":      input.FileMaxBytes,
+			"Format":            input.Format,
+			"FormatVersion":     input.FormatVersion,
+			"GzipLevel":         input.GzipLevel,
+			"MessageType":       input.MessageType,
+			"Name":              input.Name,
+			"Path":              input.Path,
+			"Period":            input.Period,
+			"Placement":         input.Placement,
+			"ResponseCondition": input.ResponseCondition,
+			"TimestampFormat":   input.TimestampFormat,
+		})
 		return err
 	}
 

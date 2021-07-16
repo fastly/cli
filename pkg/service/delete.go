@@ -45,7 +45,9 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 			ID: serviceID,
 		})
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+			})
 			return err
 		}
 
@@ -55,14 +57,19 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 				ServiceVersion: s.ActiveVersion.Number,
 			})
 			if err != nil {
-				c.Globals.ErrLog.Add(err)
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"Service ID":      serviceID,
+					"Service Version": s.ActiveVersion.Number,
+				})
 				return err
 			}
 		}
 	}
 
 	if err := c.Globals.Client.DeleteService(&c.Input); err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
 		return errors.RemediationError{
 			Inner:       err,
 			Remediation: fmt.Sprintf("Try %s\n", text.Bold("fastly service delete --force")),

@@ -39,7 +39,9 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	service, err := c.Globals.Client.GetServiceDetails(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
 		return err
 	}
 

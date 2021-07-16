@@ -77,7 +77,12 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	d, err := c.Globals.Client.UpdateDomain(&c.input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+			"New Name":        c.NewName.Value,
+			"Comment":         c.Comment.Value,
+		})
 		return err
 	}
 

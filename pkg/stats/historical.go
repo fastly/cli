@@ -43,16 +43,18 @@ func NewHistoricalCommand(parent cmd.Registerer, globals *config.Data) *Historic
 
 // Exec implements the command interface.
 func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
-	service, source := c.manifest.ServiceID()
+	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}
-	c.Input.Service = service
+	c.Input.Service = serviceID
 
 	var envelope statsResponse
 	err := c.Globals.Client.GetStatsJSON(&c.Input, &envelope)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
 		return err
 	}
 
@@ -62,16 +64,20 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 
 	switch c.formatFlag {
 	case "json":
-		err := writeBlocksJSON(out, service, envelope.Data)
+		err := writeBlocksJSON(out, serviceID, envelope.Data)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+			})
 		}
 
 	default:
 		writeHeader(out, envelope.Meta)
-		err := writeBlocks(out, service, envelope.Data)
+		err := writeBlocks(out, serviceID, envelope.Data)
 		if err != nil {
-			c.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+			})
 		}
 	}
 

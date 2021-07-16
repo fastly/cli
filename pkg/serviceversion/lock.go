@@ -55,7 +55,10 @@ func (c *LockCommand) Exec(in io.Reader, out io.Writer) error {
 
 	ver, err := c.Globals.Client.LockVersion(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 
