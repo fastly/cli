@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -154,7 +155,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
@@ -173,22 +174,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
-
-			// Omitted SASToken
-			"AccountName":       input.AccountName,
-			"CompressionCodec":  input.CompressionCodec,
-			"Container":         input.Container,
-			"FileMaxBytes":      input.FileMaxBytes,
-			"Format":            input.Format,
-			"FormatVersion":     input.FormatVersion,
-			"GzipLevel":         input.GzipLevel,
-			"MessageType":       input.MessageType,
-			"Name":              input.Name,
-			"Path":              input.Path,
-			"Period":            input.Period,
-			"Placement":         input.Placement,
-			"ResponseCondition": input.ResponseCondition,
-			"TimestampFormat":   input.TimestampFormat,
 		})
 		return err
 	}

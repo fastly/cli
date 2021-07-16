@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -155,7 +156,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
@@ -172,24 +173,8 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	d, err := c.Globals.Client.CreateCloudfiles(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID":        serviceID,
-			"Service Version":   serviceVersion.Number,
-			"AccessKey":         input.AccessKey,
-			"BucketName":        input.BucketName,
-			"CompressionCodec":  input.CompressionCodec,
-			"Format":            input.Format,
-			"FormatVersion":     input.FormatVersion,
-			"GzipLevel":         input.GzipLevel,
-			"MessageType":       input.MessageType,
-			"Name":              input.Name,
-			"Path":              input.Path,
-			"Period":            input.Period,
-			"Placement":         input.Placement,
-			"PublicKey":         input.PublicKey,
-			"Region":            input.Region,
-			"ResponseCondition": input.ResponseCondition,
-			"TimestampFormat":   input.TimestampFormat,
-			"User":              input.User,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
 		})
 		return err
 	}
