@@ -30,8 +30,8 @@ func (a JavaScript) Verify(out io.Writer) error {
 	// 1) Check `npm` is on $PATH
 	//
 	// npm is Node/JavaScript's toolchain installer and manager, it is
-	// needed to assert that the correct versions of the asc compiler and
-	// @fastly/as-compute package are installed. We only check whether the
+	// needed to assert that the correct versions of the ecp-js compiler and
+	// @fastly/js-compute package are installed. We only check whether the
 	// binary exists on the users $PATH and error with installation help text.
 	fmt.Fprintf(out, "Checking if npm is installed...\n")
 
@@ -64,15 +64,16 @@ func (a JavaScript) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found package.json at %s\n", fpath)
 
-	// 3) Check if `asc` is installed.
+	// 3) Check if `ecp-js` is installed.
 	//
-	// asc is the JavaScript compiler. We first check if it exists in the
-	// package.json and then whether the binary exists in the npm bin directory.
-	fmt.Fprintf(out, "Checking if JavaScript is installed...\n")
-	if !checkPackageDependencyExists("assemblyscript") {
+	// ecp-js is the JavaScript compiler. We first check if the required
+	// dependency exists in the package.json and then whether the ecp-js binary
+	// exists in the npm bin directory.
+	fmt.Fprintf(out, "Checking if @fastly/js-compute is installed...\n")
+	if !checkPackageDependencyExists("@fastly/js-compute") {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("`assemblyscript` not found in package.json"),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev assemblyscript")),
+			Inner:       fmt.Errorf("`@fastly/js-compute` not found in package.json"),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev @fastly/js-compute")),
 		}
 	}
 
@@ -84,18 +85,18 @@ func (a JavaScript) Verify(out io.Writer) error {
 		}
 	}
 
-	path, err := exec.LookPath(filepath.Join(p, "asc"))
+	path, err := exec.LookPath(filepath.Join(p, "ecp-js"))
 	if err != nil {
-		return fmt.Errorf("getting asc path: %w", err)
+		return fmt.Errorf("getting ecp-js path: %w", err)
 	}
 	if !filesystem.FileExists(path) {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("`asc` binary not found in %s", p),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev assemblyscript")),
+			Inner:       fmt.Errorf("`ecp-js` binary not found in %s", p),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev @fastly/js-compute")),
 		}
 	}
 
-	fmt.Fprintf(out, "Found asc at %s\n", path)
+	fmt.Fprintf(out, "Found ecp-js at %s\n", path)
 
 	return nil
 }
@@ -167,18 +168,13 @@ func (a JavaScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	args := []string{
-		"assembly/index.ts",
-		"--binaryFile",
-		filepath.Join(binDir, "main.wasm"),
-		"--optimize",
-		"--noAssert",
-	}
-	if verbose {
-		args = append(args, "--verbose")
+		"--skip-pkg",
+		filepath.Join("src", "index.js"),
+		filepath.Join(binDir, "index.wasm"),
 	}
 
 	cmd := fstexec.Streaming{
-		Command: filepath.Join(npmdir, "asc"),
+		Command: filepath.Join(npmdir, "ecp-js"),
 		Args:    args,
 		Env:     []string{},
 		Output:  out,

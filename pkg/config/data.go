@@ -237,6 +237,7 @@ type Rust struct {
 // StarterKitLanguages represents language specific starter kits.
 type StarterKitLanguages struct {
 	AssemblyScript []StarterKit `toml:"assemblyscript"`
+	JavaScript     []StarterKit `toml:"javascript"`
 	Rust           []StarterKit `toml:"rust"`
 }
 

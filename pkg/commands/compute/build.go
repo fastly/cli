@@ -154,6 +154,13 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			IncludeFiles:    []string{"package.json"},
 			Toolchain:       NewAssemblyScript(c.Timeout),
 		})
+	case "javascript":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "javascript",
+			SourceDirectory: "src",
+			IncludeFiles:    []string{"package.json"},
+			Toolchain:       NewJavaScript(c.Timeout),
+		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",

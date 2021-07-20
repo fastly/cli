@@ -250,6 +250,22 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "fastly-temp`,
 		},
 		{
+			name: "with JavaScript language",
+			args: args("compute init --language javascript"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					JavaScript: []config.StarterKit{
+						{
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-javascript-default",
+							Tag:  "v0.1.0",
+						},
+					},
+				},
+			},
+			manifestIncludes: `name = "fastly-temp`,
+		},
+		{
 			name:             "with pre-compiled Wasm binary",
 			args:             args("compute init --language other"),
 			manifestIncludes: `language = "other"`,
