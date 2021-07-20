@@ -1,0 +1,11 @@
+[package]
+name = "edge-compute-default-rust-template"
+version = "0.1.0"
+authors = ["phamann <patrick@fastly.com>"]
+edition = "2018"
+
+[profile.release]
+debug = true
+
+[dependencies]
+fastly = "^0.6.0"
