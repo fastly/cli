@@ -59,6 +59,10 @@ func (l *LogEntries) AddWithContext(err error, ctx map[string]interface{}) {
 
 // Persist persists recorded log entries to disk.
 func (l LogEntries) Persist(logPath string, args []string) error {
+	if len(l) == 0 {
+		return nil
+	}
+
 	errMsg := "error accessing audit log file: %w"
 
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
