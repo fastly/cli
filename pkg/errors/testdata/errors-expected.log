@@ -1,56 +1,127 @@
 
-COMMAND: command one --example
+COMMAND:
+fastly command one --example
 
+TIMESTAMP:
 0001-01-01 00:00:00 +0000 UTC
+
+ERROR:
 foo
 
------------------------------
+FILE:
+/pkg/errors/log_test.go
 
+LINE:
+68
+
+
+TIMESTAMP:
 0001-01-01 00:00:00 +0000 UTC
+
+ERROR:
 bar
 
------------------------------
+FILE:
+/pkg/errors/log_test.go
 
+LINE:
+69
+
+
+TIMESTAMP:
 0001-01-01 00:00:00 +0000 UTC
+
+ERROR:
 baz
 
------------------------------
+FILE:
+/pkg/errors/log_test.go
 
+LINE:
+70
+
+
+TIMESTAMP:
 0001-01-01 00:00:00 +0000 UTC
+
+ERROR:
 qux
 
-   beep: boop
+FILE:
+/pkg/errors/log_test.go
 
-   nums: 123
+LINE:
+76
 
-   this: that
+  beep: boop
 
------------------------------
+  nums: 123
 
-COMMAND: command two --example
+  this: that
 
+
+------------------------------
+
+COMMAND:
+fastly command two --example
+
+TIMESTAMP:
 0001-01-01 00:00:00 +0000 UTC
+
+ERROR:
 foo
 
------------------------------
+FILE:
+/pkg/errors/log_test.go
 
+LINE:
+68
+
+
+TIMESTAMP:
 0001-01-01 00:00:00 +0000 UTC
+
+ERROR:
 bar
 
------------------------------
+FILE:
+/pkg/errors/log_test.go
 
+LINE:
+69
+
+
+TIMESTAMP:
 0001-01-01 00:00:00 +0000 UTC
+
+ERROR:
 baz
 
------------------------------
+FILE:
+/pkg/errors/log_test.go
 
+LINE:
+70
+
+
+TIMESTAMP:
 0001-01-01 00:00:00 +0000 UTC
+
+ERROR:
 qux
 
-   beep: boop
+FILE:
+/pkg/errors/log_test.go
 
-   nums: 123
+LINE:
+76
 
-   this: that
 
------------------------------
+  beep: boop
+
+  nums: 123
+
+  this: that
+
+
+------------------------------

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"text/template"
@@ -39,21 +40,17 @@ type LogEntries []LogEntry
 // Add adds a new log entry.
 func (l *LogEntries) Add(err error) {
 	logMutex.Lock()
-	*l = append(*l, LogEntry{
-		Time: Now(),
-		Err:  err,
-	})
+	*l = append(*l, createLogEntry(err))
 	logMutex.Unlock()
 }
 
 // AddWithContext adds a new log entry with extra contextual data.
 func (l *LogEntries) AddWithContext(err error, ctx map[string]interface{}) {
+	le := createLogEntry(err)
+	le.Context = ctx
+
 	logMutex.Lock()
-	*l = append(*l, LogEntry{
-		Time:    Now(),
-		Err:     err,
-		Context: ctx,
-	})
+	*l = append(*l, le)
 	logMutex.Unlock()
 }
 
@@ -88,18 +85,23 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 	/* #nosec */
 	defer f.Close()
 
-	cmd := "\nCOMMAND: " + strings.Join(args, " ") + "\n"
+	cmd := "\nCOMMAND:\nfastly " + strings.Join(args, " ") + "\n\n"
 	if _, err := f.Write([]byte(cmd)); err != nil {
 		return err
 	}
 
-	record := `
+	record := `TIMESTAMP:
 {{.Time}}
+
+ERROR:
 {{.Err}}
-{{ range $key, $value := .Context }}
-   {{ $key }}: {{ $value }}
+{{ range $key, $value := .Caller }}
+{{ $key }}:
+{{ $value }}
 {{ end }}
------------------------------
+{{ range $key, $value := .Context }}
+  {{ $key }}: {{ $value }}
+{{ end }}
 `
 	t := template.Must(template.New("record").Parse(record))
 	for _, entry := range l {
@@ -109,14 +111,41 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 		}
 	}
 
+	f.Write([]byte("------------------------------\n\n"))
+
 	return nil
+}
+
+// createLogEntry generates the boilerplate of a LogEntry.
+func createLogEntry(err error) LogEntry {
+	le := LogEntry{
+		Time: Now(),
+		Err:  err,
+	}
+
+	_, file, line, ok := runtime.Caller(2)
+	if ok {
+		le.Caller = map[string]interface{}{
+			"FILE": file[strings.Index(file, "/pkg/"):],
+			"LINE": line,
+		}
+	}
+
+	return le
 }
 
 // LogEntry represents a single error log entry.
 type LogEntry struct {
 	Time    time.Time
 	Err     error
+	Caller  map[string]interface{}
 	Context map[string]interface{}
+}
+
+// Caller represents where an error occurred.
+type Caller struct {
+	File string
+	Line int
 }
 
 // Appending to a slice isn't threadsafe, and although we currently don't
