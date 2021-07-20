@@ -221,9 +221,9 @@ func TestPublish(t *testing.T) {
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Copy: []testutil.FileIO{
-					{Src: filepath.Join("testdata", "build", "Cargo.lock"), Dst: "Cargo.lock"},
-					{Src: filepath.Join("testdata", "build", "Cargo.toml"), Dst: "Cargo.toml"},
-					{Src: filepath.Join("testdata", "build", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+					{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
+					{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
+					{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
 					{Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"), Dst: filepath.Join("pkg", "package.tar.gz")},
 				},
 				Write: []testutil.FileIO{
