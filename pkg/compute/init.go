@@ -72,6 +72,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if !c.forceNonEmpty {
 		cont, err := verifyDirectory(out, in)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		if !cont {
@@ -89,11 +90,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// Use a null progress writer whilst gathering input.
 		progress = text.NewNullProgress()
 	}
-	defer func() {
+	defer func(errLog errors.LogInterface) {
 		if err != nil {
+			errLog.Add(err)
 			progress.Fail() // progress.Done is handled inline
 		}
-	}()
+	}(c.Globals.ErrLog)
 
 	var (
 		name     string
@@ -134,6 +136,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		fmt.Fprintf(progress, "--path not specified, using current directory\n")
 		path, err := os.Getwd()
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error determining current directory: %w", err)
 		}
 		c.path = path
@@ -141,6 +144,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	abspath, err := verifyDestination(c.path, progress)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path": c.path,
+		})
 		return err
 	}
 	c.path = abspath
@@ -148,23 +154,37 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	name, _ = c.manifest.Name()
 	name, err = pkgName(name, c.path, in, out)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path": c.path,
+			"Name": name,
+		})
 		return err
 	}
 
 	desc, _ = c.manifest.Description()
 	desc, err = pkgDesc(desc, in, out)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Description": desc,
+		})
 		return err
 	}
 
 	authors, _ = c.manifest.Authors()
 	authors, err = pkgAuthors(authors, c.Globals.File.User.Email, in, out)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Authors": authors,
+			"Email":   c.Globals.File.User.Email,
+		})
 		return err
 	}
 
 	language, err = pkgLang(c.language, languages, in, out)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Language": c.language,
+		})
 		return err
 	}
 
@@ -173,6 +193,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		from, branch, tag, err := pkgFrom(c.from, c.branch, c.tag, manifestExist, language.StarterKits, in, out)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"From":           c.from,
+				"Branch":         c.branch,
+				"Tag":            c.tag,
+				"Manifest Exist": manifestExist,
+			})
 			return err
 		}
 
@@ -184,6 +210,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		_, err = exec.LookPath("git")
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			return errors.RemediationError{
 				Inner:       fmt.Errorf("`git` not found in $PATH"),
 				Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
@@ -193,6 +220,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if from != "" && !manifestExist {
 			err := pkgFetch(from, branch, tag, c.path, progress)
 			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"From":   from,
+					"Branch": branch,
+					"Tag":    tag,
+					"Path":   c.path,
+				})
 				return err
 			}
 		}
@@ -200,6 +233,13 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	m, err := updateManifest(c.manifest.File, progress, c.path, name, desc, authors, language)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path":        c.path,
+			"Name":        name,
+			"Description": desc,
+			"Authors":     authors,
+			"Language":    language,
+		})
 		return err
 	}
 
@@ -207,7 +247,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if language.Name != "other" {
 		if err := language.Initialize(progress); err != nil {
-			fmt.Println(err)
+			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error initializing package: %w", err)
 		}
 	}

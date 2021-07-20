@@ -137,6 +137,7 @@ func (c *TailCommand) Exec(in io.Reader, out io.Writer) error {
 
 	// Enable managed logging if not already enabled.
 	if err := c.enableManagedLogging(out); err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -185,6 +186,9 @@ func (c *TailCommand) tail(out io.Writer) {
 
 		req, err := http.NewRequest("GET", path, nil)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"GET": path,
+			})
 			text.Error(out, "unable to create new request: %v", err)
 			os.Exit(1)
 		}
@@ -192,6 +196,7 @@ func (c *TailCommand) tail(out io.Writer) {
 
 		resp, err := c.doReq(req)
 		if err != nil {
+			c.Globals.ErrLog.Add(err)
 			text.Error(out, "unable to execute request: %v", err)
 			os.Exit(1)
 		}
@@ -245,6 +250,7 @@ func (c *TailCommand) tail(out io.Writer) {
 			b := scanner.Bytes()
 			batch, err := parseResponseData(b)
 			if err != nil {
+				c.Globals.ErrLog.Add(err)
 				// We can't parse the response, attempt to
 				// re-request from the last window & batch.
 				text.Warning(out, "unable to parse response body: %v", err)
@@ -266,6 +272,7 @@ func (c *TailCommand) tail(out io.Writer) {
 		resp.Body.Close()
 
 		if err := scanner.Err(); err != nil {
+			c.Globals.ErrLog.Add(err)
 			// ErrUnexpectedEOFs need to be retried, but they
 			// produce a lot of noise for the user, so don't log.
 			if err != io.ErrUnexpectedEOF {
@@ -282,6 +289,9 @@ func (c *TailCommand) tail(out io.Writer) {
 		_, next := getLinks(resp.Header)
 		curWindow, err = getTimeFromLink(next)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Next link": next,
+			})
 			text.Error(out, "error generating window from next link")
 		}
 
@@ -311,6 +321,7 @@ func (c *TailCommand) adjustTimes() {
 func (c *TailCommand) enableManagedLogging(out io.Writer) error {
 	_, err := c.Globals.Client.CreateManagedLogging(&c.Input)
 	if err != nil && err != fastly.ErrManagedLoggingEnabled {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

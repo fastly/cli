@@ -6,6 +6,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
@@ -44,6 +45,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": errors.ServiceVersion(serviceVersion),
+		})
 		return err
 	}
 
@@ -52,6 +57,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	dictionary, err := c.Globals.Client.GetDictionary(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 
@@ -67,6 +76,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		info, err := c.Globals.Client.GetDictionaryInfo(&infoInput)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
 			return err
 		}
 		text.Output(out, "Digest: %s", info.Digest)
@@ -78,6 +91,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		items, err := c.Globals.Client.ListDictionaryItems(&itemInput)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
 			return err
 		}
 		for i, item := range items {

@@ -46,16 +46,19 @@ func (c *BatchCommand) Exec(in io.Reader, out io.Writer) error {
 
 	jsonFile, err := os.Open(c.file.Value)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	jsonBytes, err := io.ReadAll(jsonFile)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	err = json.Unmarshal(jsonBytes, &c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -65,6 +68,7 @@ func (c *BatchCommand) Exec(in io.Reader, out io.Writer) error {
 
 	err = c.Globals.Client.BatchModifyDictionaryItems(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

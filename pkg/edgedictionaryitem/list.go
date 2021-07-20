@@ -40,6 +40,9 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	dictionaries, err := c.Globals.Client.ListDictionaryItems(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
 		return err
 	}
 

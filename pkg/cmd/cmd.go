@@ -133,16 +133,17 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 	}
 
 	if opts.AutoCloneFlag.WasSet {
-		v, err = opts.AutoCloneFlag.Parse(v, serviceID, opts.VerboseMode, opts.Out, opts.Client)
+		currentVersion := v
+		v, err = opts.AutoCloneFlag.Parse(currentVersion, serviceID, opts.VerboseMode, opts.Out, opts.Client)
 		if err != nil {
-			return serviceID, serviceVersion, err
+			return serviceID, currentVersion, err
 		}
 	} else if !opts.AllowActiveLocked && (v.Active || v.Locked) {
 		err = errors.RemediationError{
 			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
 			Remediation: errors.AutoCloneRemediation,
 		}
-		return serviceID, serviceVersion, err
+		return serviceID, v, err
 	}
 
 	return serviceID, v, nil

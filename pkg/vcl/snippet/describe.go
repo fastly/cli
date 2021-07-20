@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
@@ -54,16 +55,28 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": errors.ServiceVersion(serviceVersion),
+		})
 		return err
 	}
 
 	if c.dynamic.WasSet {
 		input, err := c.constructDynamicInput(serviceID, serviceVersion.Number)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
 			return err
 		}
 		v, err := c.Globals.Client.GetDynamicSnippet(input)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
 			return err
 		}
 		c.printDynamic(out, v)
@@ -72,10 +85,18 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 	v, err := c.Globals.Client.GetSnippet(input)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return err
 	}
 	c.print(out, v)

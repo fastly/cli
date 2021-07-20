@@ -92,6 +92,7 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	err = c.build.Exec(in, out)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -120,6 +121,7 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	err = c.deploy.Exec(in, out)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

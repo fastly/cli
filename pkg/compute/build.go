@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/kennygrant/sanitize"
@@ -103,17 +104,19 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewQuietProgress(out)
 	}
 
-	defer func() {
+	defer func(errLog errors.LogInterface) {
 		if err != nil {
+			errLog.Add(err)
 			progress.Fail() // progress.Done is handled inline
 		}
-	}()
+	}(c.Globals.ErrLog)
 
 	progress.Step("Verifying package manifest...")
 
 	var m manifest.File
 	m.SetOutput(c.Globals.Output)
 	if err := m.Read(manifest.Filename); err != nil {
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error reading package manifest: %w", err)
 	}
 
@@ -167,6 +170,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		err = language.Verify(progress)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Language": language.Name,
+			})
 			return err
 		}
 	}
@@ -174,6 +180,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", lang))
 
 	if err := language.Build(progress, c.Globals.Flag.Verbose); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Language": language.Name,
+		})
 		return err
 	}
 
@@ -188,11 +197,15 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	ignoreFiles, err := GetIgnoredFiles(IgnoreFilePath)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	binFiles, err := GetNonIgnoredFiles("bin", ignoreFiles)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Ignore files": ignoreFiles,
+		})
 		return err
 	}
 	files = append(files, binFiles...)
@@ -200,6 +213,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.IncludeSrc {
 		srcFiles, err := GetNonIgnoredFiles(language.SourceDirectory, ignoreFiles)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Source directory": language.SourceDirectory,
+				"Ignore files":     ignoreFiles,
+			})
 			return err
 		}
 		files = append(files, srcFiles...)
@@ -207,6 +224,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	err = CreatePackageArchive(files, dest)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Files":       files,
+			"Destination": dest,
+		})
 		return fmt.Errorf("error creating package archive: %w", err)
 	}
 

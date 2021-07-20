@@ -41,11 +41,18 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	current, latest, shouldUpdate, err := Check(context.Background(), revision.AppVersion, c.cliVersioner)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"App version": revision.AppVersion,
+		})
 		return fmt.Errorf("error checking for latest version: %w", err)
 	}
 
+	text.Break(out)
+	text.Break(out)
 	text.Output(out, "Current version: %s", current)
 	text.Output(out, "Latest version: %s", latest)
+	text.Break(out)
+
 	if !shouldUpdate {
 		text.Output(out, "No update required.")
 		return nil
@@ -54,26 +61,38 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	progress.Step("Fetching latest release...")
 	latestPath, err := c.cliVersioner.Download(context.Background(), latest)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Current CLI version": current,
+			"Latest CLI version":  latest,
+		})
 		progress.Fail()
 		return fmt.Errorf("error downloading latest release: %w", err)
 	}
 	defer os.RemoveAll(latestPath)
 
 	progress.Step("Replacing binary...")
-	currentPath, err := os.Executable()
+	execPath, err := os.Executable()
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		progress.Fail()
 		return fmt.Errorf("error determining executable path: %w", err)
 	}
 
-	currentPath, err = filepath.Abs(currentPath)
+	currentPath, err := filepath.Abs(execPath)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Executable path": execPath,
+		})
 		progress.Fail()
 		return fmt.Errorf("error determining absolute target path: %w", err)
 	}
 
 	if err := os.Rename(latestPath, currentPath); err != nil {
 		if err := filesystem.CopyFile(latestPath, currentPath); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Executable (source)":      latestPath,
+				"Executable (destination)": currentPath,
+			})
 			progress.Fail()
 			return fmt.Errorf("error moving latest binary in place: %w", err)
 		}

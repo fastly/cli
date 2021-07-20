@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
@@ -44,6 +45,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": errors.ServiceVersion(serviceVersion),
+		})
 		return err
 	}
 
@@ -52,6 +57,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	loggly, err := c.Globals.Client.GetLoggly(&c.Input)
 	if err != nil {
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 

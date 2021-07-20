@@ -94,6 +94,7 @@ type Data struct {
 	Env    Environment
 	Output io.Writer
 	Flag   Flag
+	ErrLog fsterr.LogInterface
 
 	Client    api.Interface
 	RTSClient api.RealtimeStatsInterface

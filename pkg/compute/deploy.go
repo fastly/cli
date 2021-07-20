@@ -88,9 +88,17 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	name, source := c.Manifest.Name()
 	path, err := pkgPath(c.Path, name, source)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path":   c.Path,
+			"Name":   name,
+			"Source": source,
+		})
 		return err
 	}
 	if err := validate(path); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path": path,
+		})
 		return err
 	}
 
@@ -111,11 +119,19 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Domain":           c.Domain,
+				"Domain (default)": defaultTopLevelDomain,
+			})
 			return err
 		}
 
 		backend, backendPort, err = cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Backend":      c.Backend,
+				"Backend port": c.BackendPort,
+			})
 			return err
 		}
 
@@ -123,6 +139,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	} else {
 		version, err = c.ServiceVersion.Parse(serviceID, c.Globals.Client)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+			})
 			return err
 		}
 
@@ -136,6 +155,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				ServiceVersion: version.Number,
 			})
 			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"Service ID":      serviceID,
+					"Service Version": version.Number,
+				})
 				return fmt.Errorf("error cloning service version: %w", err)
 			}
 			if c.Globals.Flag.Verbose {
@@ -156,6 +179,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// check and allow the user to configure these settings before continuing.
 		ok, invalidType, err = validateService(serviceID, c.Globals.Client, version)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": version.Number,
+			})
 			return err
 		}
 
@@ -169,20 +196,36 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			case resourceBoth:
 				domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
 				if err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+						"Domain":           c.Domain,
+						"Domain (default)": defaultTopLevelDomain,
+					})
 					return err
 				}
 				backend, backendPort, err = cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
 				if err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+						"Backend":      c.Backend,
+						"Backend port": c.BackendPort,
+					})
 					return err
 				}
 			case resourceDomain:
 				domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
 				if err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+						"Domain":           c.Domain,
+						"Domain (default)": defaultTopLevelDomain,
+					})
 					return err
 				}
 			case resourceBackend:
 				backend, backendPort, err = cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
 				if err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+						"Backend":      c.Backend,
+						"Backend port": c.BackendPort,
+					})
 					return err
 				}
 			}
@@ -204,12 +247,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	undoStack := undo.NewStack()
 
-	defer func() {
+	defer func(errLog errors.LogInterface) {
 		if err != nil {
+			errLog.Add(err)
 			progress.Fail() // progress.Done is handled inline
 		}
 		undoStack.RunIfError(out, err)
-	}()
+	}(c.Globals.ErrLog)
 
 	if sidSrc == manifest.SourceUndefined {
 		// There is no service and so we'll do a one time creation of the service
@@ -220,6 +264,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// NOTE: we're shadowing the `version` and `serviceID` variable.
 		version, serviceID, err = createService(progress, c.Globals.Client, name, desc)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Name":        name,
+				"Description": desc,
+			})
 			return err
 		}
 
@@ -241,14 +289,28 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// we have all the information, then we proceed with the creation of resources.
 		err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Domain":          domain,
+				"Service ID":      serviceID,
+				"Service Version": version.Number,
+			})
 			return err
 		}
 		err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Backend":         backend,
+				"Backend port":    backendPort,
+				"Service ID":      serviceID,
+				"Service Version": version.Number,
+			})
 			return err
 		}
 		err = updateManifestServiceID(&c.Manifest.File, manifest.Filename, progress, serviceID)
 		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+			})
 			return err
 		}
 	}
@@ -261,20 +323,42 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		case resourceBoth:
 			err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
 			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"Domain":          domain,
+					"Service ID":      serviceID,
+					"Service Version": version.Number,
+				})
 				return err
 			}
 			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
 			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"Backend":         backend,
+					"Backend port":    backendPort,
+					"Service ID":      serviceID,
+					"Service Version": version.Number,
+				})
 				return err
 			}
 		case resourceDomain:
 			err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
 			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"Domain":          domain,
+					"Service ID":      serviceID,
+					"Service Version": version.Number,
+				})
 				return err
 			}
 		case resourceBackend:
 			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
 			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"Backend":         backend,
+					"Backend port":    backendPort,
+					"Service ID":      serviceID,
+					"Service Version": version.Number,
+				})
 				return err
 			}
 		}
@@ -282,6 +366,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	cont, err := pkgCompare(c.Globals.Client, serviceID, version.Number, path, progress, out)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path":            path,
+			"Service ID":      serviceID,
+			"Service Version": version.Number,
+		})
 		return err
 	}
 	if !cont {
@@ -290,6 +379,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	err = pkgUpload(progress, c.Globals.Client, serviceID, version.Number, path)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path":            path,
+			"Service ID":      serviceID,
+			"Service Version": version.Number,
+		})
 		return err
 	}
 
@@ -312,6 +406,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		ServiceVersion: version.Number,
 	})
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": version.Number,
+		})
 		return fmt.Errorf("error activating version: %w", err)
 	}
 
