@@ -324,7 +324,7 @@ COMMANDS
   compute serve [<flags>]
     Build and run a Compute@Edge package locally
 
-    --addr="127.0.0.1:7676"  The IPv4 address to listen on
+    --addr="127.0.0.1:7676"  The IPv4 address and port to listen on
     --env=ENV                The environment configuration to use (e.g. stage)
     --file="bin/main.wasm"   The Wasm file to run
     --force                  Skip verification steps and force build
