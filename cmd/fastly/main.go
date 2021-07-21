@@ -11,11 +11,11 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/check"
+	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
 	fsterrors "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/update"
 )
 
 //go:embed static/config.toml
