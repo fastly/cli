@@ -150,7 +150,7 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	if err != nil {
 		// We presume an error executing `viceroy --version` means it isn't installed.
 		//
-		// NOTE: we dont't use exec.LookPath("viceroy") because PATH is unreliable
+		// NOTE: we don't use exec.LookPath("viceroy") because PATH is unreliable
 		// across OS platforms but also we actually install viceroy in the same
 		// location as the application configuration, which means it wouldn't be
 		// found looking up by the PATH env var. We can pass the path for the
