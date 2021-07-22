@@ -14,22 +14,22 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// AssemblyScript implements a Toolchain for the AssemblyScript language.
-type AssemblyScript struct {
+// JavaScript implements a Toolchain for the JavaScript language.
+type JavaScript struct {
 	timeout int
 }
 
-// NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript(timeout int) *AssemblyScript {
-	return &AssemblyScript{timeout}
+// NewJavaScript constructs a new JavaScript.
+func NewJavaScript(timeout int) *JavaScript {
+	return &JavaScript{timeout}
 }
 
 // Verify implements the Toolchain interface and verifies whether the
-// AssemblyScript language toolchain is correctly configured on the host.
-func (a AssemblyScript) Verify(out io.Writer) error {
+// JavaScript language toolchain is correctly configured on the host.
+func (a JavaScript) Verify(out io.Writer) error {
 	// 1) Check `npm` is on $PATH
 	//
-	// npm is Node/AssemblyScript's toolchain installer and manager, it is
+	// npm is Node/JavaScript's toolchain installer and manager, it is
 	// needed to assert that the correct versions of the asc compiler and
 	// @fastly/as-compute package are installed. We only check whether the
 	// binary exists on the users $PATH and error with installation help text.
@@ -66,9 +66,9 @@ func (a AssemblyScript) Verify(out io.Writer) error {
 
 	// 3) Check if `asc` is installed.
 	//
-	// asc is the AssemblyScript compiler. We first check if it exists in the
+	// asc is the JavaScript compiler. We first check if it exists in the
 	// package.json and then whether the binary exists in the npm bin directory.
-	fmt.Fprintf(out, "Checking if AssemblyScript is installed...\n")
+	fmt.Fprintf(out, "Checking if JavaScript is installed...\n")
 	if !checkPackageDependencyExists("assemblyscript") {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`assemblyscript` not found in package.json"),
@@ -102,10 +102,10 @@ func (a AssemblyScript) Verify(out io.Writer) error {
 
 // Initialize implements the Toolchain interface and initializes a newly cloned
 // package by installing required dependencies.
-func (a AssemblyScript) Initialize(out io.Writer) error {
+func (a JavaScript) Initialize(out io.Writer) error {
 	// 1) Check `npm` is on $PATH
 	//
-	// npm is Node/AssemblyScript's toolchain package manager, it is needed to
+	// npm is Node/JavaScript's toolchain package manager, it is needed to
 	// install the package dependencies on initialization. We only check whether
 	// the binary exists on the users $PATH and error with installation help text.
 	fmt.Fprintf(out, "Checking if npm is installed...\n")
@@ -149,8 +149,8 @@ func (a AssemblyScript) Initialize(out io.Writer) error {
 }
 
 // Build implements the Toolchain interface and attempts to compile the package
-// AssemblyScript source to a Wasm binary.
-func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
+// JavaScript source to a Wasm binary.
+func (a JavaScript) Build(out io.Writer, verbose bool) error {
 	// Check if bin directory exists and create if not.
 	pwd, err := os.Getwd()
 	if err != nil {
