@@ -249,6 +249,12 @@ type Interface interface {
 	PurgeKey(i *fastly.PurgeKeyInput) (*fastly.Purge, error)
 	PurgeKeys(i *fastly.PurgeKeysInput) (map[string]string, error)
 	PurgeAll(i *fastly.PurgeAllInput) (*fastly.Purge, error)
+
+	CreateACL(i *fastly.CreateACLInput) (*fastly.ACL, error)
+	DeleteACL(i *fastly.DeleteACLInput) error
+	GetACL(i *fastly.GetACLInput) (*fastly.ACL, error)
+	ListACLs(i *fastly.ListACLsInput) ([]*fastly.ACL, error)
+	UpdateACL(i *fastly.UpdateACLInput) (*fastly.ACL, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

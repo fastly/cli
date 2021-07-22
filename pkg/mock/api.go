@@ -240,6 +240,12 @@ type API struct {
 	PurgeKeyFn  func(i *fastly.PurgeKeyInput) (*fastly.Purge, error)
 	PurgeKeysFn func(i *fastly.PurgeKeysInput) (map[string]string, error)
 	PurgeAllFn  func(i *fastly.PurgeAllInput) (*fastly.Purge, error)
+
+	CreateACLFn func(i *fastly.CreateACLInput) (*fastly.ACL, error)
+	DeleteACLFn func(i *fastly.DeleteACLInput) error
+	GetACLFn    func(i *fastly.GetACLInput) (*fastly.ACL, error)
+	ListACLsFn  func(i *fastly.ListACLsInput) ([]*fastly.ACL, error)
+	UpdateACLFn func(i *fastly.UpdateACLInput) (*fastly.ACL, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1200,4 +1206,29 @@ func (m API) PurgeKeys(i *fastly.PurgeKeysInput) (map[string]string, error) {
 // PurgeAll implements Interface.
 func (m API) PurgeAll(i *fastly.PurgeAllInput) (*fastly.Purge, error) {
 	return m.PurgeAllFn(i)
+}
+
+// CreateACL implements Interface.
+func (m API) CreateACL(i *fastly.CreateACLInput) (*fastly.ACL, error) {
+	return m.CreateACLFn(i)
+}
+
+// DeleteACL implements Interface.
+func (m API) DeleteACL(i *fastly.DeleteACLInput) error {
+	return m.DeleteACLFn(i)
+}
+
+// GetACL implements Interface.
+func (m API) GetACL(i *fastly.GetACLInput) (*fastly.ACL, error) {
+	return m.GetACLFn(i)
+}
+
+// ListACLs implements Interface.
+func (m API) ListACLs(i *fastly.ListACLsInput) ([]*fastly.ACL, error) {
+	return m.ListACLsFn(i)
+}
+
+// UpdateACL implements Interface.
+func (m API) UpdateACL(i *fastly.UpdateACLInput) (*fastly.ACL, error) {
+	return m.UpdateACLFn(i)
 }
