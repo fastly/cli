@@ -238,7 +238,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "indentical package",
+			name: "identical package",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
