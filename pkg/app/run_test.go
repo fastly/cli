@@ -82,6 +82,7 @@ GLOBAL FLAGS
 COMMANDS
   help             Show help.
   acl              Manipulate Fastly ACLs (Access Control Lists)
+  acl-entry        Manipulate Fastly ACL (Access Control List) entries
   backend          Manipulate Fastly service version backends
   compute          Manage Compute@Edge packages
   configure        Configure the Fastly CLI
@@ -223,6 +224,56 @@ COMMANDS
                                  editable, clone it and use the clone.
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+
+  acl-entry create --acl-id=ACL-ID --ip=IP [<flags>]
+    Add an ACL entry to an ACL
+
+        --acl-id=ACL-ID          Alphanumeric string identifying a ACL
+        --ip=IP                  An IP address
+        --comment=COMMENT        A freeform descriptive note
+        --negated                Whether to negate the match
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+        --subnet=SUBNET          Number of bits for the subnet mask applied to
+                                 the IP address
+
+  acl-entry delete --acl-id=ACL-ID --id=ID [<flags>]
+    Delete an ACL entry from a specified ACL
+
+        --acl-id=ACL-ID          Alphanumeric string identifying a ACL
+        --id=ID                  Alphanumeric string identifying an ACL Entry
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
+  acl-entry describe --acl-id=ACL-ID --id=ID [<flags>]
+    Retrieve a single ACL entry
+
+        --acl-id=ACL-ID          Alphanumeric string identifying a ACL
+        --id=ID                  Alphanumeric string identifying an ACL Entry
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
+  acl-entry list --acl-id=ACL-ID [<flags>]
+    List ACLs
+
+        --acl-id=ACL-ID          Alphanumeric string identifying a ACL
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
+  acl-entry update --acl-id=ACL-ID [<flags>]
+    Update an ACL entry for a specified ACL
+
+        --acl-id=ACL-ID          Alphanumeric string identifying a ACL
+        --comment=COMMENT        A freeform descriptive note
+        --file=FILE              Batch update json passed as file path or
+                                 content, e.g. $(< batch.json)
+        --id=ID                  Alphanumeric string identifying an ACL Entry
+        --ip=IP                  An IP address
+        --negated                Whether to negate the match
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+        --subnet=SUBNET          Number of bits for the subnet mask applied to
+                                 the IP address
 
   backend create --version=VERSION --name=NAME --address=ADDRESS [<flags>]
     Create a backend on a Fastly service version
@@ -3822,7 +3873,7 @@ COMMANDS
   vcl custom create --content=CONTENT --name=NAME --version=VERSION [<flags>]
     Upload a VCL for a particular service and version
 
-        --content=CONTENT        VCL passed as file path or content, e.g. $(cat
+        --content=CONTENT        VCL passed as file path or content, e.g. $(<
                                  main.vcl)
         --name=NAME              The name of the VCL
         --version=VERSION        'latest', 'active', or the number of a specific
@@ -3870,7 +3921,7 @@ COMMANDS
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
         --new-name=NEW-NAME      New name for the VCL
-        --content=CONTENT        VCL passed as file path or content, e.g. $(cat
+        --content=CONTENT        VCL passed as file path or content, e.g. $(<
                                  main.vcl)
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
@@ -3879,7 +3930,7 @@ COMMANDS
     Create a snippet for a particular service and version
 
         --content=CONTENT        VCL snippet passed as file path or content,
-                                 e.g. $(cat snippet.vcl)
+                                 e.g. $(< snippet.vcl)
         --name=NAME              The name of the VCL snippet
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
@@ -3931,7 +3982,7 @@ COMMANDS
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
         --content=CONTENT        VCL snippet passed as file path or content,
-                                 e.g. $(cat snippet.vcl)
+                                 e.g. $(< snippet.vcl)
         --dynamic                Whether the VCL snippet is dynamic or versioned
         --name=NAME              The name of the VCL snippet to update
         --new-name=NEW-NAME      New name for the VCL snippet

@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/acl"
+	"github.com/fastly/cli/pkg/commands/aclentry"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/configure"
@@ -147,6 +148,12 @@ func Run(opts RunOpts) error {
 	aclDescribe := acl.NewDescribeCommand(aclCmdRoot.CmdClause, &globals)
 	aclList := acl.NewListCommand(aclCmdRoot.CmdClause, &globals)
 	aclUpdate := acl.NewUpdateCommand(aclCmdRoot.CmdClause, &globals)
+	aclEntryCmdRoot := aclentry.NewRootCommand(app, &globals)
+	aclEntryCreate := aclentry.NewCreateCommand(aclEntryCmdRoot.CmdClause, &globals)
+	aclEntryDelete := aclentry.NewDeleteCommand(aclEntryCmdRoot.CmdClause, &globals)
+	aclEntryDescribe := aclentry.NewDescribeCommand(aclEntryCmdRoot.CmdClause, &globals)
+	aclEntryList := aclentry.NewListCommand(aclEntryCmdRoot.CmdClause, &globals)
+	aclEntryUpdate := aclentry.NewUpdateCommand(aclEntryCmdRoot.CmdClause, &globals)
 	backendCmdRoot := backend.NewRootCommand(app, &globals)
 	backendCreate := backend.NewCreateCommand(backendCmdRoot.CmdClause, &globals)
 	backendDelete := backend.NewDeleteCommand(backendCmdRoot.CmdClause, &globals)
@@ -386,6 +393,12 @@ func Run(opts RunOpts) error {
 		aclDescribe,
 		aclList,
 		aclUpdate,
+		aclEntryCmdRoot,
+		aclEntryCreate,
+		aclEntryDelete,
+		aclEntryDescribe,
+		aclEntryList,
+		aclEntryUpdate,
 		backendCmdRoot,
 		backendCreate,
 		backendDelete,

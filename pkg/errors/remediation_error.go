@@ -91,3 +91,8 @@ var ExistingDirRemediation = strings.Join([]string{
 var AutoCloneRemediation = strings.Join([]string{
 	"Repeat the command with the --autoclone flag to allow the version to be cloned",
 }, " ")
+
+// IDRemediation suggests an ID via --id flag should be provided.
+var IDRemediation = strings.Join([]string{
+	"Please provide one via the --id flag",
+}, " ")

@@ -25,3 +25,6 @@ var ErrSignalInterrupt = fmt.Errorf("a SIGINT was received")
 
 // ErrSignalKilled means a SIGTERM was received.
 var ErrSignalKilled = fmt.Errorf("a SIGTERM was received")
+
+// ErrNoID means no --id value has been provided.
+var ErrNoID = RemediationError{Inner: fmt.Errorf("no ID found"), Remediation: IDRemediation}

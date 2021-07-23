@@ -272,7 +272,7 @@ func TestACLList(t *testing.T) {
 			WantOutput: "SERVICE ID  VERSION  NAME  ID\n123         1        foo   456\n123         1        bar   789\n",
 		},
 		{
-			Name: "validate missing --verbose flag",
+			Name: "validate --verbose flag",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,

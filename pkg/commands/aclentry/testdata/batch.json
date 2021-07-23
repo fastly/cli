@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "op": "create",
+      "ip": "192.168.0.1",
+      "subnet": 8
+    },
+    {
+      "op": "update",
+      "id": "6yxNzlOpW1V7JfSwvLGtOc",
+      "ip": "192.168.0.2",
+      "subnet": 16
+    },
+    {
+      "op": "delete",
+      "id": "6yxNzlOpW1V7JfSwvLGtOc"
+    }
+  ]
+}
