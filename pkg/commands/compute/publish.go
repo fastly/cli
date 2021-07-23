@@ -109,10 +109,10 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.deploy.Domain = c.domain.Value
 	}
 	if c.backend.WasSet {
-		c.deploy.Backend = c.backend.Value
+		c.deploy.Backend.Address = c.backend.Value
 	}
 	if c.backendPort.WasSet {
-		c.deploy.BackendPort = c.backendPort.Value
+		c.deploy.Backend.Port = c.backendPort.Value
 	}
 	if c.comment.WasSet {
 		c.deploy.Comment = c.comment
