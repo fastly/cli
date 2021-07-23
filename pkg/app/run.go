@@ -11,6 +11,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/configure"
@@ -140,548 +141,482 @@ func Run(opts RunOpts) error {
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 
-	configureRoot := configure.NewRootCommand(app, opts.ConfigPath, configure.APIClientFactory(opts.APIClient), &globals)
-	whoamiRoot := whoami.NewRootCommand(app, opts.HTTPClient, &globals)
-	versionRoot := version.NewRootCommand(app)
+	aclCmdRoot := acl.NewRootCommand(app, &globals)
+	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, &globals)
+	aclDelete := acl.NewDeleteCommand(aclCmdRoot.CmdClause, &globals)
+	aclDescribe := acl.NewDescribeCommand(aclCmdRoot.CmdClause, &globals)
+	aclList := acl.NewListCommand(aclCmdRoot.CmdClause, &globals)
+	aclUpdate := acl.NewUpdateCommand(aclCmdRoot.CmdClause, &globals)
+	backendCmdRoot := backend.NewRootCommand(app, &globals)
+	backendCreate := backend.NewCreateCommand(backendCmdRoot.CmdClause, &globals)
+	backendDelete := backend.NewDeleteCommand(backendCmdRoot.CmdClause, &globals)
+	backendDescribe := backend.NewDescribeCommand(backendCmdRoot.CmdClause, &globals)
+	backendList := backend.NewListCommand(backendCmdRoot.CmdClause, &globals)
+	backendUpdate := backend.NewUpdateCommand(backendCmdRoot.CmdClause, &globals)
+	computeCmdRoot := compute.NewRootCommand(app, &globals)
+	computeBuild := compute.NewBuildCommand(computeCmdRoot.CmdClause, opts.HTTPClient, &globals)
+	computeDeploy := compute.NewDeployCommand(computeCmdRoot.CmdClause, opts.HTTPClient, &globals)
+	computeInit := compute.NewInitCommand(computeCmdRoot.CmdClause, opts.HTTPClient, &globals)
+	computePack := compute.NewPackCommand(computeCmdRoot.CmdClause, &globals)
+	computePublish := compute.NewPublishCommand(computeCmdRoot.CmdClause, &globals, computeBuild, computeDeploy)
+	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, &globals, computeBuild, opts.Versioners.Viceroy)
+	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, opts.HTTPClient, &globals)
+	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, &globals)
+	configureCmdRoot := configure.NewRootCommand(app, opts.ConfigPath, configure.APIClientFactory(opts.APIClient), &globals)
+	dictionaryCmdRoot := edgedictionary.NewRootCommand(app, &globals)
+	dictionaryCreate := edgedictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, &globals)
+	dictionaryDelete := edgedictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, &globals)
+	dictionaryDescribe := edgedictionary.NewDescribeCommand(dictionaryCmdRoot.CmdClause, &globals)
+	dictionaryItemCmdRoot := edgedictionaryitem.NewRootCommand(app, &globals)
+	dictionaryItemBatchModify := edgedictionaryitem.NewBatchCommand(dictionaryItemCmdRoot.CmdClause, &globals)
+	dictionaryItemCreate := edgedictionaryitem.NewCreateCommand(dictionaryItemCmdRoot.CmdClause, &globals)
+	dictionaryItemDelete := edgedictionaryitem.NewDeleteCommand(dictionaryItemCmdRoot.CmdClause, &globals)
+	dictionaryItemDescribe := edgedictionaryitem.NewDescribeCommand(dictionaryItemCmdRoot.CmdClause, &globals)
+	dictionaryItemList := edgedictionaryitem.NewListCommand(dictionaryItemCmdRoot.CmdClause, &globals)
+	dictionaryItemUpdate := edgedictionaryitem.NewUpdateCommand(dictionaryItemCmdRoot.CmdClause, &globals)
+	dictionaryList := edgedictionary.NewListCommand(dictionaryCmdRoot.CmdClause, &globals)
+	dictionaryUpdate := edgedictionary.NewUpdateCommand(dictionaryCmdRoot.CmdClause, &globals)
+	domainCmdRoot := domain.NewRootCommand(app, &globals)
+	domainCreate := domain.NewCreateCommand(domainCmdRoot.CmdClause, &globals)
+	domainDelete := domain.NewDeleteCommand(domainCmdRoot.CmdClause, &globals)
+	domainDescribe := domain.NewDescribeCommand(domainCmdRoot.CmdClause, &globals)
+	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, &globals)
+	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, &globals)
+	healthcheckCmdRoot := healthcheck.NewRootCommand(app, &globals)
+	healthcheckCreate := healthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, &globals)
+	healthcheckDelete := healthcheck.NewDeleteCommand(healthcheckCmdRoot.CmdClause, &globals)
+	healthcheckDescribe := healthcheck.NewDescribeCommand(healthcheckCmdRoot.CmdClause, &globals)
+	healthcheckList := healthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, &globals)
+	healthcheckUpdate := healthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, &globals)
+	ipCmdRoot := ip.NewRootCommand(app, &globals)
+	loggingCmdRoot := logging.NewRootCommand(app, &globals)
+	loggingAzureblobCmdRoot := azureblob.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingAzureblobCreate := azureblob.NewCreateCommand(loggingAzureblobCmdRoot.CmdClause, &globals)
+	loggingAzureblobDelete := azureblob.NewDeleteCommand(loggingAzureblobCmdRoot.CmdClause, &globals)
+	loggingAzureblobDescribe := azureblob.NewDescribeCommand(loggingAzureblobCmdRoot.CmdClause, &globals)
+	loggingAzureblobList := azureblob.NewListCommand(loggingAzureblobCmdRoot.CmdClause, &globals)
+	loggingAzureblobUpdate := azureblob.NewUpdateCommand(loggingAzureblobCmdRoot.CmdClause, &globals)
+	loggingBigQueryCmdRoot := bigquery.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingBigQueryCreate := bigquery.NewCreateCommand(loggingBigQueryCmdRoot.CmdClause, &globals)
+	loggingBigQueryDelete := bigquery.NewDeleteCommand(loggingBigQueryCmdRoot.CmdClause, &globals)
+	loggingBigQueryDescribe := bigquery.NewDescribeCommand(loggingBigQueryCmdRoot.CmdClause, &globals)
+	loggingBigQueryList := bigquery.NewListCommand(loggingBigQueryCmdRoot.CmdClause, &globals)
+	loggingBigQueryUpdate := bigquery.NewUpdateCommand(loggingBigQueryCmdRoot.CmdClause, &globals)
+	loggingCloudfilesCmdRoot := cloudfiles.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingCloudfilesCreate := cloudfiles.NewCreateCommand(loggingCloudfilesCmdRoot.CmdClause, &globals)
+	loggingCloudfilesDelete := cloudfiles.NewDeleteCommand(loggingCloudfilesCmdRoot.CmdClause, &globals)
+	loggingCloudfilesDescribe := cloudfiles.NewDescribeCommand(loggingCloudfilesCmdRoot.CmdClause, &globals)
+	loggingCloudfilesList := cloudfiles.NewListCommand(loggingCloudfilesCmdRoot.CmdClause, &globals)
+	loggingCloudfilesUpdate := cloudfiles.NewUpdateCommand(loggingCloudfilesCmdRoot.CmdClause, &globals)
+	loggingDatadogCmdRoot := datadog.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingDatadogCreate := datadog.NewCreateCommand(loggingDatadogCmdRoot.CmdClause, &globals)
+	loggingDatadogDelete := datadog.NewDeleteCommand(loggingDatadogCmdRoot.CmdClause, &globals)
+	loggingDatadogDescribe := datadog.NewDescribeCommand(loggingDatadogCmdRoot.CmdClause, &globals)
+	loggingDatadogList := datadog.NewListCommand(loggingDatadogCmdRoot.CmdClause, &globals)
+	loggingDatadogUpdate := datadog.NewUpdateCommand(loggingDatadogCmdRoot.CmdClause, &globals)
+	loggingDigitaloceanCmdRoot := digitalocean.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingDigitaloceanCreate := digitalocean.NewCreateCommand(loggingDigitaloceanCmdRoot.CmdClause, &globals)
+	loggingDigitaloceanDelete := digitalocean.NewDeleteCommand(loggingDigitaloceanCmdRoot.CmdClause, &globals)
+	loggingDigitaloceanDescribe := digitalocean.NewDescribeCommand(loggingDigitaloceanCmdRoot.CmdClause, &globals)
+	loggingDigitaloceanList := digitalocean.NewListCommand(loggingDigitaloceanCmdRoot.CmdClause, &globals)
+	loggingDigitaloceanUpdate := digitalocean.NewUpdateCommand(loggingDigitaloceanCmdRoot.CmdClause, &globals)
+	loggingElasticsearchCmdRoot := elasticsearch.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingElasticsearchCreate := elasticsearch.NewCreateCommand(loggingElasticsearchCmdRoot.CmdClause, &globals)
+	loggingElasticsearchDelete := elasticsearch.NewDeleteCommand(loggingElasticsearchCmdRoot.CmdClause, &globals)
+	loggingElasticsearchDescribe := elasticsearch.NewDescribeCommand(loggingElasticsearchCmdRoot.CmdClause, &globals)
+	loggingElasticsearchList := elasticsearch.NewListCommand(loggingElasticsearchCmdRoot.CmdClause, &globals)
+	loggingElasticsearchUpdate := elasticsearch.NewUpdateCommand(loggingElasticsearchCmdRoot.CmdClause, &globals)
+	loggingFtpCmdRoot := ftp.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingFtpCreate := ftp.NewCreateCommand(loggingFtpCmdRoot.CmdClause, &globals)
+	loggingFtpDelete := ftp.NewDeleteCommand(loggingFtpCmdRoot.CmdClause, &globals)
+	loggingFtpDescribe := ftp.NewDescribeCommand(loggingFtpCmdRoot.CmdClause, &globals)
+	loggingFtpList := ftp.NewListCommand(loggingFtpCmdRoot.CmdClause, &globals)
+	loggingFtpUpdate := ftp.NewUpdateCommand(loggingFtpCmdRoot.CmdClause, &globals)
+	loggingGcsCmdRoot := gcs.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingGcsCreate := gcs.NewCreateCommand(loggingGcsCmdRoot.CmdClause, &globals)
+	loggingGcsDelete := gcs.NewDeleteCommand(loggingGcsCmdRoot.CmdClause, &globals)
+	loggingGcsDescribe := gcs.NewDescribeCommand(loggingGcsCmdRoot.CmdClause, &globals)
+	loggingGcsList := gcs.NewListCommand(loggingGcsCmdRoot.CmdClause, &globals)
+	loggingGcsUpdate := gcs.NewUpdateCommand(loggingGcsCmdRoot.CmdClause, &globals)
+	loggingGooglepubsubCmdRoot := googlepubsub.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingGooglepubsubCreate := googlepubsub.NewCreateCommand(loggingGooglepubsubCmdRoot.CmdClause, &globals)
+	loggingGooglepubsubDelete := googlepubsub.NewDeleteCommand(loggingGooglepubsubCmdRoot.CmdClause, &globals)
+	loggingGooglepubsubDescribe := googlepubsub.NewDescribeCommand(loggingGooglepubsubCmdRoot.CmdClause, &globals)
+	loggingGooglepubsubList := googlepubsub.NewListCommand(loggingGooglepubsubCmdRoot.CmdClause, &globals)
+	loggingGooglepubsubUpdate := googlepubsub.NewUpdateCommand(loggingGooglepubsubCmdRoot.CmdClause, &globals)
+	loggingHerokuCmdRoot := heroku.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingHerokuCreate := heroku.NewCreateCommand(loggingHerokuCmdRoot.CmdClause, &globals)
+	loggingHerokuDelete := heroku.NewDeleteCommand(loggingHerokuCmdRoot.CmdClause, &globals)
+	loggingHerokuDescribe := heroku.NewDescribeCommand(loggingHerokuCmdRoot.CmdClause, &globals)
+	loggingHerokuList := heroku.NewListCommand(loggingHerokuCmdRoot.CmdClause, &globals)
+	loggingHerokuUpdate := heroku.NewUpdateCommand(loggingHerokuCmdRoot.CmdClause, &globals)
+	loggingHoneycombCmdRoot := honeycomb.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingHoneycombCreate := honeycomb.NewCreateCommand(loggingHoneycombCmdRoot.CmdClause, &globals)
+	loggingHoneycombDelete := honeycomb.NewDeleteCommand(loggingHoneycombCmdRoot.CmdClause, &globals)
+	loggingHoneycombDescribe := honeycomb.NewDescribeCommand(loggingHoneycombCmdRoot.CmdClause, &globals)
+	loggingHoneycombList := honeycomb.NewListCommand(loggingHoneycombCmdRoot.CmdClause, &globals)
+	loggingHoneycombUpdate := honeycomb.NewUpdateCommand(loggingHoneycombCmdRoot.CmdClause, &globals)
+	loggingHttpsCmdRoot := https.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingHttpsCreate := https.NewCreateCommand(loggingHttpsCmdRoot.CmdClause, &globals)
+	loggingHttpsDelete := https.NewDeleteCommand(loggingHttpsCmdRoot.CmdClause, &globals)
+	loggingHttpsDescribe := https.NewDescribeCommand(loggingHttpsCmdRoot.CmdClause, &globals)
+	loggingHttpsList := https.NewListCommand(loggingHttpsCmdRoot.CmdClause, &globals)
+	loggingHttpsUpdate := https.NewUpdateCommand(loggingHttpsCmdRoot.CmdClause, &globals)
+	loggingKafkaCmdRoot := kafka.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingKafkaCreate := kafka.NewCreateCommand(loggingKafkaCmdRoot.CmdClause, &globals)
+	loggingKafkaDelete := kafka.NewDeleteCommand(loggingKafkaCmdRoot.CmdClause, &globals)
+	loggingKafkaDescribe := kafka.NewDescribeCommand(loggingKafkaCmdRoot.CmdClause, &globals)
+	loggingKafkaList := kafka.NewListCommand(loggingKafkaCmdRoot.CmdClause, &globals)
+	loggingKafkaUpdate := kafka.NewUpdateCommand(loggingKafkaCmdRoot.CmdClause, &globals)
+	loggingKinesisCmdRoot := kinesis.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingKinesisCreate := kinesis.NewCreateCommand(loggingKinesisCmdRoot.CmdClause, &globals)
+	loggingKinesisDelete := kinesis.NewDeleteCommand(loggingKinesisCmdRoot.CmdClause, &globals)
+	loggingKinesisDescribe := kinesis.NewDescribeCommand(loggingKinesisCmdRoot.CmdClause, &globals)
+	loggingKinesisList := kinesis.NewListCommand(loggingKinesisCmdRoot.CmdClause, &globals)
+	loggingKinesisUpdate := kinesis.NewUpdateCommand(loggingKinesisCmdRoot.CmdClause, &globals)
+	loggingLogentriesCmdRoot := logentries.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingLogentriesCreate := logentries.NewCreateCommand(loggingLogentriesCmdRoot.CmdClause, &globals)
+	loggingLogentriesDelete := logentries.NewDeleteCommand(loggingLogentriesCmdRoot.CmdClause, &globals)
+	loggingLogentriesDescribe := logentries.NewDescribeCommand(loggingLogentriesCmdRoot.CmdClause, &globals)
+	loggingLogentriesList := logentries.NewListCommand(loggingLogentriesCmdRoot.CmdClause, &globals)
+	loggingLogentriesUpdate := logentries.NewUpdateCommand(loggingLogentriesCmdRoot.CmdClause, &globals)
+	loggingLogglyCmdRoot := loggly.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingLogglyCreate := loggly.NewCreateCommand(loggingLogglyCmdRoot.CmdClause, &globals)
+	loggingLogglyDelete := loggly.NewDeleteCommand(loggingLogglyCmdRoot.CmdClause, &globals)
+	loggingLogglyDescribe := loggly.NewDescribeCommand(loggingLogglyCmdRoot.CmdClause, &globals)
+	loggingLogglyList := loggly.NewListCommand(loggingLogglyCmdRoot.CmdClause, &globals)
+	loggingLogglyUpdate := loggly.NewUpdateCommand(loggingLogglyCmdRoot.CmdClause, &globals)
+	loggingLogshuttleCmdRoot := logshuttle.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingLogshuttleCreate := logshuttle.NewCreateCommand(loggingLogshuttleCmdRoot.CmdClause, &globals)
+	loggingLogshuttleDelete := logshuttle.NewDeleteCommand(loggingLogshuttleCmdRoot.CmdClause, &globals)
+	loggingLogshuttleDescribe := logshuttle.NewDescribeCommand(loggingLogshuttleCmdRoot.CmdClause, &globals)
+	loggingLogshuttleList := logshuttle.NewListCommand(loggingLogshuttleCmdRoot.CmdClause, &globals)
+	loggingLogshuttleUpdate := logshuttle.NewUpdateCommand(loggingLogshuttleCmdRoot.CmdClause, &globals)
+	loggingOpenstackCmdRoot := openstack.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingOpenstackCreate := openstack.NewCreateCommand(loggingOpenstackCmdRoot.CmdClause, &globals)
+	loggingOpenstackDelete := openstack.NewDeleteCommand(loggingOpenstackCmdRoot.CmdClause, &globals)
+	loggingOpenstackDescribe := openstack.NewDescribeCommand(loggingOpenstackCmdRoot.CmdClause, &globals)
+	loggingOpenstackList := openstack.NewListCommand(loggingOpenstackCmdRoot.CmdClause, &globals)
+	loggingOpenstackUpdate := openstack.NewUpdateCommand(loggingOpenstackCmdRoot.CmdClause, &globals)
+	loggingPapertrailCmdRoot := papertrail.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingPapertrailCreate := papertrail.NewCreateCommand(loggingPapertrailCmdRoot.CmdClause, &globals)
+	loggingPapertrailDelete := papertrail.NewDeleteCommand(loggingPapertrailCmdRoot.CmdClause, &globals)
+	loggingPapertrailDescribe := papertrail.NewDescribeCommand(loggingPapertrailCmdRoot.CmdClause, &globals)
+	loggingPapertrailList := papertrail.NewListCommand(loggingPapertrailCmdRoot.CmdClause, &globals)
+	loggingPapertrailUpdate := papertrail.NewUpdateCommand(loggingPapertrailCmdRoot.CmdClause, &globals)
+	loggingS3CmdRoot := s3.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingS3Create := s3.NewCreateCommand(loggingS3CmdRoot.CmdClause, &globals)
+	loggingS3Delete := s3.NewDeleteCommand(loggingS3CmdRoot.CmdClause, &globals)
+	loggingS3Describe := s3.NewDescribeCommand(loggingS3CmdRoot.CmdClause, &globals)
+	loggingS3List := s3.NewListCommand(loggingS3CmdRoot.CmdClause, &globals)
+	loggingS3Update := s3.NewUpdateCommand(loggingS3CmdRoot.CmdClause, &globals)
+	loggingScalyrCmdRoot := scalyr.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingScalyrCreate := scalyr.NewCreateCommand(loggingScalyrCmdRoot.CmdClause, &globals)
+	loggingScalyrDelete := scalyr.NewDeleteCommand(loggingScalyrCmdRoot.CmdClause, &globals)
+	loggingScalyrDescribe := scalyr.NewDescribeCommand(loggingScalyrCmdRoot.CmdClause, &globals)
+	loggingScalyrList := scalyr.NewListCommand(loggingScalyrCmdRoot.CmdClause, &globals)
+	loggingScalyrUpdate := scalyr.NewUpdateCommand(loggingScalyrCmdRoot.CmdClause, &globals)
+	loggingSftpCmdRoot := sftp.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingSftpCreate := sftp.NewCreateCommand(loggingSftpCmdRoot.CmdClause, &globals)
+	loggingSftpDelete := sftp.NewDeleteCommand(loggingSftpCmdRoot.CmdClause, &globals)
+	loggingSftpDescribe := sftp.NewDescribeCommand(loggingSftpCmdRoot.CmdClause, &globals)
+	loggingSftpList := sftp.NewListCommand(loggingSftpCmdRoot.CmdClause, &globals)
+	loggingSftpUpdate := sftp.NewUpdateCommand(loggingSftpCmdRoot.CmdClause, &globals)
+	loggingSplunkCmdRoot := splunk.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingSplunkCreate := splunk.NewCreateCommand(loggingSplunkCmdRoot.CmdClause, &globals)
+	loggingSplunkDelete := splunk.NewDeleteCommand(loggingSplunkCmdRoot.CmdClause, &globals)
+	loggingSplunkDescribe := splunk.NewDescribeCommand(loggingSplunkCmdRoot.CmdClause, &globals)
+	loggingSplunkList := splunk.NewListCommand(loggingSplunkCmdRoot.CmdClause, &globals)
+	loggingSplunkUpdate := splunk.NewUpdateCommand(loggingSplunkCmdRoot.CmdClause, &globals)
+	loggingSumologicCmdRoot := sumologic.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingSumologicCreate := sumologic.NewCreateCommand(loggingSumologicCmdRoot.CmdClause, &globals)
+	loggingSumologicDelete := sumologic.NewDeleteCommand(loggingSumologicCmdRoot.CmdClause, &globals)
+	loggingSumologicDescribe := sumologic.NewDescribeCommand(loggingSumologicCmdRoot.CmdClause, &globals)
+	loggingSumologicList := sumologic.NewListCommand(loggingSumologicCmdRoot.CmdClause, &globals)
+	loggingSumologicUpdate := sumologic.NewUpdateCommand(loggingSumologicCmdRoot.CmdClause, &globals)
+	loggingSyslogCmdRoot := syslog.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingSyslogCreate := syslog.NewCreateCommand(loggingSyslogCmdRoot.CmdClause, &globals)
+	loggingSyslogDelete := syslog.NewDeleteCommand(loggingSyslogCmdRoot.CmdClause, &globals)
+	loggingSyslogDescribe := syslog.NewDescribeCommand(loggingSyslogCmdRoot.CmdClause, &globals)
+	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, &globals)
+	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, &globals)
+	logsCmdRoot := logs.NewRootCommand(app, &globals)
+	logsTail := logs.NewTailCommand(logsCmdRoot.CmdClause, &globals)
+	popCmdRoot := pop.NewRootCommand(app, &globals)
+	purgeCmdRoot := purge.NewRootCommand(app, &globals)
+	serviceCmdRoot := service.NewRootCommand(app, &globals)
+	serviceCreate := service.NewCreateCommand(serviceCmdRoot.CmdClause, &globals)
+	serviceDelete := service.NewDeleteCommand(serviceCmdRoot.CmdClause, &globals)
+	serviceDescribe := service.NewDescribeCommand(serviceCmdRoot.CmdClause, &globals)
+	serviceList := service.NewListCommand(serviceCmdRoot.CmdClause, &globals)
+	serviceSearch := service.NewSearchCommand(serviceCmdRoot.CmdClause, &globals)
+	serviceUpdate := service.NewUpdateCommand(serviceCmdRoot.CmdClause, &globals)
+	serviceVersionCmdRoot := serviceversion.NewRootCommand(app, &globals)
+	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionCmdRoot.CmdClause, &globals)
+	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionCmdRoot.CmdClause, &globals)
+	serviceVersionDeactivate := serviceversion.NewDeactivateCommand(serviceVersionCmdRoot.CmdClause, &globals)
+	serviceVersionList := serviceversion.NewListCommand(serviceVersionCmdRoot.CmdClause, &globals)
+	serviceVersionLock := serviceversion.NewLockCommand(serviceVersionCmdRoot.CmdClause, &globals)
+	serviceVersionUpdate := serviceversion.NewUpdateCommand(serviceVersionCmdRoot.CmdClause, &globals)
+	statsCmdRoot := stats.NewRootCommand(app, &globals)
+	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, &globals)
+	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, &globals)
+	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, &globals)
 	updateRoot := update.NewRootCommand(app, opts.ConfigPath, opts.Versioners.CLI, opts.HTTPClient, &globals)
-	ipRoot := ip.NewRootCommand(app, &globals)
-	popRoot := pop.NewRootCommand(app, &globals)
-	purgeRoot := purge.NewRootCommand(app, &globals)
-
-	serviceRoot := service.NewRootCommand(app, &globals)
-	serviceCreate := service.NewCreateCommand(serviceRoot.CmdClause, &globals)
-	serviceList := service.NewListCommand(serviceRoot.CmdClause, &globals)
-	serviceDescribe := service.NewDescribeCommand(serviceRoot.CmdClause, &globals)
-	serviceUpdate := service.NewUpdateCommand(serviceRoot.CmdClause, &globals)
-	serviceDelete := service.NewDeleteCommand(serviceRoot.CmdClause, &globals)
-	serviceSearch := service.NewSearchCommand(serviceRoot.CmdClause, &globals)
-
-	serviceVersionRoot := serviceversion.NewRootCommand(app, &globals)
-	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionRoot.CmdClause, &globals)
-	serviceVersionList := serviceversion.NewListCommand(serviceVersionRoot.CmdClause, &globals)
-	serviceVersionUpdate := serviceversion.NewUpdateCommand(serviceVersionRoot.CmdClause, &globals)
-	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionRoot.CmdClause, &globals)
-	serviceVersionDeactivate := serviceversion.NewDeactivateCommand(serviceVersionRoot.CmdClause, &globals)
-	serviceVersionLock := serviceversion.NewLockCommand(serviceVersionRoot.CmdClause, &globals)
-
-	computeRoot := compute.NewRootCommand(app, &globals)
-	computeInit := compute.NewInitCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
-	computeBuild := compute.NewBuildCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
-	computeServe := compute.NewServeCommand(computeRoot.CmdClause, &globals, computeBuild, opts.Versioners.Viceroy)
-	computePack := compute.NewPackCommand(computeRoot.CmdClause, &globals)
-	computeDeploy := compute.NewDeployCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
-	computePublish := compute.NewPublishCommand(computeRoot.CmdClause, &globals, computeBuild, computeDeploy)
-	computeUpdate := compute.NewUpdateCommand(computeRoot.CmdClause, opts.HTTPClient, &globals)
-	computeValidate := compute.NewValidateCommand(computeRoot.CmdClause, &globals)
-
-	domainRoot := domain.NewRootCommand(app, &globals)
-	domainCreate := domain.NewCreateCommand(domainRoot.CmdClause, &globals)
-	domainList := domain.NewListCommand(domainRoot.CmdClause, &globals)
-	domainDescribe := domain.NewDescribeCommand(domainRoot.CmdClause, &globals)
-	domainUpdate := domain.NewUpdateCommand(domainRoot.CmdClause, &globals)
-	domainDelete := domain.NewDeleteCommand(domainRoot.CmdClause, &globals)
-
-	backendRoot := backend.NewRootCommand(app, &globals)
-	backendCreate := backend.NewCreateCommand(backendRoot.CmdClause, &globals)
-	backendList := backend.NewListCommand(backendRoot.CmdClause, &globals)
-	backendDescribe := backend.NewDescribeCommand(backendRoot.CmdClause, &globals)
-	backendUpdate := backend.NewUpdateCommand(backendRoot.CmdClause, &globals)
-	backendDelete := backend.NewDeleteCommand(backendRoot.CmdClause, &globals)
-
-	healthcheckRoot := healthcheck.NewRootCommand(app, &globals)
-	healthcheckCreate := healthcheck.NewCreateCommand(healthcheckRoot.CmdClause, &globals)
-	healthcheckList := healthcheck.NewListCommand(healthcheckRoot.CmdClause, &globals)
-	healthcheckDescribe := healthcheck.NewDescribeCommand(healthcheckRoot.CmdClause, &globals)
-	healthcheckUpdate := healthcheck.NewUpdateCommand(healthcheckRoot.CmdClause, &globals)
-	healthcheckDelete := healthcheck.NewDeleteCommand(healthcheckRoot.CmdClause, &globals)
-
-	dictionaryRoot := edgedictionary.NewRootCommand(app, &globals)
-	dictionaryCreate := edgedictionary.NewCreateCommand(dictionaryRoot.CmdClause, &globals)
-	dictionaryDescribe := edgedictionary.NewDescribeCommand(dictionaryRoot.CmdClause, &globals)
-	dictionaryDelete := edgedictionary.NewDeleteCommand(dictionaryRoot.CmdClause, &globals)
-	dictionaryList := edgedictionary.NewListCommand(dictionaryRoot.CmdClause, &globals)
-	dictionaryUpdate := edgedictionary.NewUpdateCommand(dictionaryRoot.CmdClause, &globals)
-
-	dictionaryItemRoot := edgedictionaryitem.NewRootCommand(app, &globals)
-	dictionaryItemList := edgedictionaryitem.NewListCommand(dictionaryItemRoot.CmdClause, &globals)
-	dictionaryItemDescribe := edgedictionaryitem.NewDescribeCommand(dictionaryItemRoot.CmdClause, &globals)
-	dictionaryItemCreate := edgedictionaryitem.NewCreateCommand(dictionaryItemRoot.CmdClause, &globals)
-	dictionaryItemUpdate := edgedictionaryitem.NewUpdateCommand(dictionaryItemRoot.CmdClause, &globals)
-	dictionaryItemDelete := edgedictionaryitem.NewDeleteCommand(dictionaryItemRoot.CmdClause, &globals)
-	dictionaryItemBatchModify := edgedictionaryitem.NewBatchCommand(dictionaryItemRoot.CmdClause, &globals)
-
-	loggingRoot := logging.NewRootCommand(app, &globals)
-
-	bigQueryRoot := bigquery.NewRootCommand(loggingRoot.CmdClause, &globals)
-	bigQueryCreate := bigquery.NewCreateCommand(bigQueryRoot.CmdClause, &globals)
-	bigQueryList := bigquery.NewListCommand(bigQueryRoot.CmdClause, &globals)
-	bigQueryDescribe := bigquery.NewDescribeCommand(bigQueryRoot.CmdClause, &globals)
-	bigQueryUpdate := bigquery.NewUpdateCommand(bigQueryRoot.CmdClause, &globals)
-	bigQueryDelete := bigquery.NewDeleteCommand(bigQueryRoot.CmdClause, &globals)
-
-	s3Root := s3.NewRootCommand(loggingRoot.CmdClause, &globals)
-	s3Create := s3.NewCreateCommand(s3Root.CmdClause, &globals)
-	s3List := s3.NewListCommand(s3Root.CmdClause, &globals)
-	s3Describe := s3.NewDescribeCommand(s3Root.CmdClause, &globals)
-	s3Update := s3.NewUpdateCommand(s3Root.CmdClause, &globals)
-	s3Delete := s3.NewDeleteCommand(s3Root.CmdClause, &globals)
-
-	kinesisRoot := kinesis.NewRootCommand(loggingRoot.CmdClause, &globals)
-	kinesisCreate := kinesis.NewCreateCommand(kinesisRoot.CmdClause, &globals)
-	kinesisList := kinesis.NewListCommand(kinesisRoot.CmdClause, &globals)
-	kinesisDescribe := kinesis.NewDescribeCommand(kinesisRoot.CmdClause, &globals)
-	kinesisUpdate := kinesis.NewUpdateCommand(kinesisRoot.CmdClause, &globals)
-	kinesisDelete := kinesis.NewDeleteCommand(kinesisRoot.CmdClause, &globals)
-
-	syslogRoot := syslog.NewRootCommand(loggingRoot.CmdClause, &globals)
-	syslogCreate := syslog.NewCreateCommand(syslogRoot.CmdClause, &globals)
-	syslogList := syslog.NewListCommand(syslogRoot.CmdClause, &globals)
-	syslogDescribe := syslog.NewDescribeCommand(syslogRoot.CmdClause, &globals)
-	syslogUpdate := syslog.NewUpdateCommand(syslogRoot.CmdClause, &globals)
-	syslogDelete := syslog.NewDeleteCommand(syslogRoot.CmdClause, &globals)
-
-	logentriesRoot := logentries.NewRootCommand(loggingRoot.CmdClause, &globals)
-	logentriesCreate := logentries.NewCreateCommand(logentriesRoot.CmdClause, &globals)
-	logentriesList := logentries.NewListCommand(logentriesRoot.CmdClause, &globals)
-	logentriesDescribe := logentries.NewDescribeCommand(logentriesRoot.CmdClause, &globals)
-	logentriesUpdate := logentries.NewUpdateCommand(logentriesRoot.CmdClause, &globals)
-	logentriesDelete := logentries.NewDeleteCommand(logentriesRoot.CmdClause, &globals)
-
-	papertrailRoot := papertrail.NewRootCommand(loggingRoot.CmdClause, &globals)
-	papertrailCreate := papertrail.NewCreateCommand(papertrailRoot.CmdClause, &globals)
-	papertrailList := papertrail.NewListCommand(papertrailRoot.CmdClause, &globals)
-	papertrailDescribe := papertrail.NewDescribeCommand(papertrailRoot.CmdClause, &globals)
-	papertrailUpdate := papertrail.NewUpdateCommand(papertrailRoot.CmdClause, &globals)
-	papertrailDelete := papertrail.NewDeleteCommand(papertrailRoot.CmdClause, &globals)
-
-	sumologicRoot := sumologic.NewRootCommand(loggingRoot.CmdClause, &globals)
-	sumologicCreate := sumologic.NewCreateCommand(sumologicRoot.CmdClause, &globals)
-	sumologicList := sumologic.NewListCommand(sumologicRoot.CmdClause, &globals)
-	sumologicDescribe := sumologic.NewDescribeCommand(sumologicRoot.CmdClause, &globals)
-	sumologicUpdate := sumologic.NewUpdateCommand(sumologicRoot.CmdClause, &globals)
-	sumologicDelete := sumologic.NewDeleteCommand(sumologicRoot.CmdClause, &globals)
-
-	gcsRoot := gcs.NewRootCommand(loggingRoot.CmdClause, &globals)
-	gcsCreate := gcs.NewCreateCommand(gcsRoot.CmdClause, &globals)
-	gcsList := gcs.NewListCommand(gcsRoot.CmdClause, &globals)
-	gcsDescribe := gcs.NewDescribeCommand(gcsRoot.CmdClause, &globals)
-	gcsUpdate := gcs.NewUpdateCommand(gcsRoot.CmdClause, &globals)
-	gcsDelete := gcs.NewDeleteCommand(gcsRoot.CmdClause, &globals)
-
-	ftpRoot := ftp.NewRootCommand(loggingRoot.CmdClause, &globals)
-	ftpCreate := ftp.NewCreateCommand(ftpRoot.CmdClause, &globals)
-	ftpList := ftp.NewListCommand(ftpRoot.CmdClause, &globals)
-	ftpDescribe := ftp.NewDescribeCommand(ftpRoot.CmdClause, &globals)
-	ftpUpdate := ftp.NewUpdateCommand(ftpRoot.CmdClause, &globals)
-	ftpDelete := ftp.NewDeleteCommand(ftpRoot.CmdClause, &globals)
-
-	splunkRoot := splunk.NewRootCommand(loggingRoot.CmdClause, &globals)
-	splunkCreate := splunk.NewCreateCommand(splunkRoot.CmdClause, &globals)
-	splunkList := splunk.NewListCommand(splunkRoot.CmdClause, &globals)
-	splunkDescribe := splunk.NewDescribeCommand(splunkRoot.CmdClause, &globals)
-	splunkUpdate := splunk.NewUpdateCommand(splunkRoot.CmdClause, &globals)
-	splunkDelete := splunk.NewDeleteCommand(splunkRoot.CmdClause, &globals)
-
-	scalyrRoot := scalyr.NewRootCommand(loggingRoot.CmdClause, &globals)
-	scalyrCreate := scalyr.NewCreateCommand(scalyrRoot.CmdClause, &globals)
-	scalyrList := scalyr.NewListCommand(scalyrRoot.CmdClause, &globals)
-	scalyrDescribe := scalyr.NewDescribeCommand(scalyrRoot.CmdClause, &globals)
-	scalyrUpdate := scalyr.NewUpdateCommand(scalyrRoot.CmdClause, &globals)
-	scalyrDelete := scalyr.NewDeleteCommand(scalyrRoot.CmdClause, &globals)
-
-	logglyRoot := loggly.NewRootCommand(loggingRoot.CmdClause, &globals)
-	logglyCreate := loggly.NewCreateCommand(logglyRoot.CmdClause, &globals)
-	logglyList := loggly.NewListCommand(logglyRoot.CmdClause, &globals)
-	logglyDescribe := loggly.NewDescribeCommand(logglyRoot.CmdClause, &globals)
-	logglyUpdate := loggly.NewUpdateCommand(logglyRoot.CmdClause, &globals)
-	logglyDelete := loggly.NewDeleteCommand(logglyRoot.CmdClause, &globals)
-
-	honeycombRoot := honeycomb.NewRootCommand(loggingRoot.CmdClause, &globals)
-	honeycombCreate := honeycomb.NewCreateCommand(honeycombRoot.CmdClause, &globals)
-	honeycombList := honeycomb.NewListCommand(honeycombRoot.CmdClause, &globals)
-	honeycombDescribe := honeycomb.NewDescribeCommand(honeycombRoot.CmdClause, &globals)
-	honeycombUpdate := honeycomb.NewUpdateCommand(honeycombRoot.CmdClause, &globals)
-	honeycombDelete := honeycomb.NewDeleteCommand(honeycombRoot.CmdClause, &globals)
-
-	herokuRoot := heroku.NewRootCommand(loggingRoot.CmdClause, &globals)
-	herokuCreate := heroku.NewCreateCommand(herokuRoot.CmdClause, &globals)
-	herokuList := heroku.NewListCommand(herokuRoot.CmdClause, &globals)
-	herokuDescribe := heroku.NewDescribeCommand(herokuRoot.CmdClause, &globals)
-	herokuUpdate := heroku.NewUpdateCommand(herokuRoot.CmdClause, &globals)
-	herokuDelete := heroku.NewDeleteCommand(herokuRoot.CmdClause, &globals)
-
-	sftpRoot := sftp.NewRootCommand(loggingRoot.CmdClause, &globals)
-	sftpCreate := sftp.NewCreateCommand(sftpRoot.CmdClause, &globals)
-	sftpList := sftp.NewListCommand(sftpRoot.CmdClause, &globals)
-	sftpDescribe := sftp.NewDescribeCommand(sftpRoot.CmdClause, &globals)
-	sftpUpdate := sftp.NewUpdateCommand(sftpRoot.CmdClause, &globals)
-	sftpDelete := sftp.NewDeleteCommand(sftpRoot.CmdClause, &globals)
-
-	logshuttleRoot := logshuttle.NewRootCommand(loggingRoot.CmdClause, &globals)
-	logshuttleCreate := logshuttle.NewCreateCommand(logshuttleRoot.CmdClause, &globals)
-	logshuttleList := logshuttle.NewListCommand(logshuttleRoot.CmdClause, &globals)
-	logshuttleDescribe := logshuttle.NewDescribeCommand(logshuttleRoot.CmdClause, &globals)
-	logshuttleUpdate := logshuttle.NewUpdateCommand(logshuttleRoot.CmdClause, &globals)
-	logshuttleDelete := logshuttle.NewDeleteCommand(logshuttleRoot.CmdClause, &globals)
-
-	cloudfilesRoot := cloudfiles.NewRootCommand(loggingRoot.CmdClause, &globals)
-	cloudfilesCreate := cloudfiles.NewCreateCommand(cloudfilesRoot.CmdClause, &globals)
-	cloudfilesList := cloudfiles.NewListCommand(cloudfilesRoot.CmdClause, &globals)
-	cloudfilesDescribe := cloudfiles.NewDescribeCommand(cloudfilesRoot.CmdClause, &globals)
-	cloudfilesUpdate := cloudfiles.NewUpdateCommand(cloudfilesRoot.CmdClause, &globals)
-	cloudfilesDelete := cloudfiles.NewDeleteCommand(cloudfilesRoot.CmdClause, &globals)
-
-	digitaloceanRoot := digitalocean.NewRootCommand(loggingRoot.CmdClause, &globals)
-	digitaloceanCreate := digitalocean.NewCreateCommand(digitaloceanRoot.CmdClause, &globals)
-	digitaloceanList := digitalocean.NewListCommand(digitaloceanRoot.CmdClause, &globals)
-	digitaloceanDescribe := digitalocean.NewDescribeCommand(digitaloceanRoot.CmdClause, &globals)
-	digitaloceanUpdate := digitalocean.NewUpdateCommand(digitaloceanRoot.CmdClause, &globals)
-	digitaloceanDelete := digitalocean.NewDeleteCommand(digitaloceanRoot.CmdClause, &globals)
-
-	elasticsearchRoot := elasticsearch.NewRootCommand(loggingRoot.CmdClause, &globals)
-	elasticsearchCreate := elasticsearch.NewCreateCommand(elasticsearchRoot.CmdClause, &globals)
-	elasticsearchList := elasticsearch.NewListCommand(elasticsearchRoot.CmdClause, &globals)
-	elasticsearchDescribe := elasticsearch.NewDescribeCommand(elasticsearchRoot.CmdClause, &globals)
-	elasticsearchUpdate := elasticsearch.NewUpdateCommand(elasticsearchRoot.CmdClause, &globals)
-	elasticsearchDelete := elasticsearch.NewDeleteCommand(elasticsearchRoot.CmdClause, &globals)
-
-	azureblobRoot := azureblob.NewRootCommand(loggingRoot.CmdClause, &globals)
-	azureblobCreate := azureblob.NewCreateCommand(azureblobRoot.CmdClause, &globals)
-	azureblobList := azureblob.NewListCommand(azureblobRoot.CmdClause, &globals)
-	azureblobDescribe := azureblob.NewDescribeCommand(azureblobRoot.CmdClause, &globals)
-	azureblobUpdate := azureblob.NewUpdateCommand(azureblobRoot.CmdClause, &globals)
-	azureblobDelete := azureblob.NewDeleteCommand(azureblobRoot.CmdClause, &globals)
-
-	datadogRoot := datadog.NewRootCommand(loggingRoot.CmdClause, &globals)
-	datadogCreate := datadog.NewCreateCommand(datadogRoot.CmdClause, &globals)
-	datadogList := datadog.NewListCommand(datadogRoot.CmdClause, &globals)
-	datadogDescribe := datadog.NewDescribeCommand(datadogRoot.CmdClause, &globals)
-	datadogUpdate := datadog.NewUpdateCommand(datadogRoot.CmdClause, &globals)
-	datadogDelete := datadog.NewDeleteCommand(datadogRoot.CmdClause, &globals)
-
-	httpsRoot := https.NewRootCommand(loggingRoot.CmdClause, &globals)
-	httpsCreate := https.NewCreateCommand(httpsRoot.CmdClause, &globals)
-	httpsList := https.NewListCommand(httpsRoot.CmdClause, &globals)
-	httpsDescribe := https.NewDescribeCommand(httpsRoot.CmdClause, &globals)
-	httpsUpdate := https.NewUpdateCommand(httpsRoot.CmdClause, &globals)
-	httpsDelete := https.NewDeleteCommand(httpsRoot.CmdClause, &globals)
-
-	kafkaRoot := kafka.NewRootCommand(loggingRoot.CmdClause, &globals)
-	kafkaCreate := kafka.NewCreateCommand(kafkaRoot.CmdClause, &globals)
-	kafkaList := kafka.NewListCommand(kafkaRoot.CmdClause, &globals)
-	kafkaDescribe := kafka.NewDescribeCommand(kafkaRoot.CmdClause, &globals)
-	kafkaUpdate := kafka.NewUpdateCommand(kafkaRoot.CmdClause, &globals)
-	kafkaDelete := kafka.NewDeleteCommand(kafkaRoot.CmdClause, &globals)
-
-	googlepubsubRoot := googlepubsub.NewRootCommand(loggingRoot.CmdClause, &globals)
-	googlepubsubCreate := googlepubsub.NewCreateCommand(googlepubsubRoot.CmdClause, &globals)
-	googlepubsubList := googlepubsub.NewListCommand(googlepubsubRoot.CmdClause, &globals)
-	googlepubsubDescribe := googlepubsub.NewDescribeCommand(googlepubsubRoot.CmdClause, &globals)
-	googlepubsubUpdate := googlepubsub.NewUpdateCommand(googlepubsubRoot.CmdClause, &globals)
-	googlepubsubDelete := googlepubsub.NewDeleteCommand(googlepubsubRoot.CmdClause, &globals)
-
-	openstackRoot := openstack.NewRootCommand(loggingRoot.CmdClause, &globals)
-	openstackCreate := openstack.NewCreateCommand(openstackRoot.CmdClause, &globals)
-	openstackList := openstack.NewListCommand(openstackRoot.CmdClause, &globals)
-	openstackDescribe := openstack.NewDescribeCommand(openstackRoot.CmdClause, &globals)
-	openstackUpdate := openstack.NewUpdateCommand(openstackRoot.CmdClause, &globals)
-	openstackDelete := openstack.NewDeleteCommand(openstackRoot.CmdClause, &globals)
-
-	logsRoot := logs.NewRootCommand(app, &globals)
-	logsTail := logs.NewTailCommand(logsRoot.CmdClause, &globals)
-
-	statsRoot := stats.NewRootCommand(app, &globals)
-	statsRegions := stats.NewRegionsCommand(statsRoot.CmdClause, &globals)
-	statsHistorical := stats.NewHistoricalCommand(statsRoot.CmdClause, &globals)
-	statsRealtime := stats.NewRealtimeCommand(statsRoot.CmdClause, &globals)
-
-	vclRoot := vcl.NewRootCommand(app, &globals)
-
-	vclCustomRoot := custom.NewRootCommand(vclRoot.CmdClause, &globals)
-	vclCustomCreate := custom.NewCreateCommand(vclCustomRoot.CmdClause, &globals)
-	vclCustomDelete := custom.NewDeleteCommand(vclCustomRoot.CmdClause, &globals)
-	vclCustomDescribe := custom.NewDescribeCommand(vclCustomRoot.CmdClause, &globals)
-	vclCustomList := custom.NewListCommand(vclCustomRoot.CmdClause, &globals)
-	vclCustomUpdate := custom.NewUpdateCommand(vclCustomRoot.CmdClause, &globals)
-
-	vclSnippetRoot := snippet.NewRootCommand(vclRoot.CmdClause, &globals)
-	vclSnippetCreate := snippet.NewCreateCommand(vclSnippetRoot.CmdClause, &globals)
-	vclSnippetDelete := snippet.NewDeleteCommand(vclSnippetRoot.CmdClause, &globals)
-	vclSnippetDescribe := snippet.NewDescribeCommand(vclSnippetRoot.CmdClause, &globals)
-	vclSnippetList := snippet.NewListCommand(vclSnippetRoot.CmdClause, &globals)
-	vclSnippetUpdate := snippet.NewUpdateCommand(vclSnippetRoot.CmdClause, &globals)
+	vclCmdRoot := vcl.NewRootCommand(app, &globals)
+	vclCustomCmdRoot := custom.NewRootCommand(vclCmdRoot.CmdClause, &globals)
+	vclCustomCreate := custom.NewCreateCommand(vclCustomCmdRoot.CmdClause, &globals)
+	vclCustomDelete := custom.NewDeleteCommand(vclCustomCmdRoot.CmdClause, &globals)
+	vclCustomDescribe := custom.NewDescribeCommand(vclCustomCmdRoot.CmdClause, &globals)
+	vclCustomList := custom.NewListCommand(vclCustomCmdRoot.CmdClause, &globals)
+	vclCustomUpdate := custom.NewUpdateCommand(vclCustomCmdRoot.CmdClause, &globals)
+	vclSnippetCmdRoot := snippet.NewRootCommand(vclCmdRoot.CmdClause, &globals)
+	vclSnippetCreate := snippet.NewCreateCommand(vclSnippetCmdRoot.CmdClause, &globals)
+	vclSnippetDelete := snippet.NewDeleteCommand(vclSnippetCmdRoot.CmdClause, &globals)
+	vclSnippetDescribe := snippet.NewDescribeCommand(vclSnippetCmdRoot.CmdClause, &globals)
+	vclSnippetList := snippet.NewListCommand(vclSnippetCmdRoot.CmdClause, &globals)
+	vclSnippetUpdate := snippet.NewUpdateCommand(vclSnippetCmdRoot.CmdClause, &globals)
+	versionCmdRoot := version.NewRootCommand(app)
+	whoamiCmdRoot := whoami.NewRootCommand(app, opts.HTTPClient, &globals)
 
 	commands := []cmd.Command{
-		configureRoot,
-		whoamiRoot,
-		versionRoot,
-		updateRoot,
-		ipRoot,
-		popRoot,
-		purgeRoot,
-
-		serviceRoot,
-		serviceCreate,
-		serviceList,
-		serviceDescribe,
-		serviceUpdate,
-		serviceDelete,
-		serviceSearch,
-
-		serviceVersionRoot,
-		serviceVersionClone,
-		serviceVersionList,
-		serviceVersionUpdate,
-		serviceVersionActivate,
-		serviceVersionDeactivate,
-		serviceVersionLock,
-
-		computeRoot,
-		computeInit,
+		aclCmdRoot,
+		aclCreate,
+		aclDelete,
+		aclDescribe,
+		aclList,
+		aclUpdate,
+		backendCmdRoot,
+		backendCreate,
+		backendDelete,
+		backendDescribe,
+		backendList,
+		backendUpdate,
 		computeBuild,
+		computeCmdRoot,
 		computeDeploy,
-		computePublish,
+		computeInit,
 		computePack,
+		computePublish,
 		computeServe,
 		computeUpdate,
 		computeValidate,
-
-		domainRoot,
-		domainCreate,
-		domainList,
-		domainDescribe,
-		domainUpdate,
-		domainDelete,
-
-		backendRoot,
-		backendCreate,
-		backendList,
-		backendDescribe,
-		backendUpdate,
-		backendDelete,
-
-		healthcheckRoot,
-		healthcheckCreate,
-		healthcheckList,
-		healthcheckDescribe,
-		healthcheckUpdate,
-		healthcheckDelete,
-
-		dictionaryRoot,
+		configureCmdRoot,
+		dictionaryCmdRoot,
 		dictionaryCreate,
-		dictionaryDescribe,
 		dictionaryDelete,
+		dictionaryDescribe,
+		dictionaryItemBatchModify,
+		dictionaryItemCmdRoot,
+		dictionaryItemCreate,
+		dictionaryItemDelete,
+		dictionaryItemDescribe,
+		dictionaryItemList,
+		dictionaryItemUpdate,
 		dictionaryList,
 		dictionaryUpdate,
-
-		dictionaryItemRoot,
-		dictionaryItemList,
-		dictionaryItemDescribe,
-		dictionaryItemCreate,
-		dictionaryItemUpdate,
-		dictionaryItemDelete,
-		dictionaryItemBatchModify,
-
-		loggingRoot,
-
-		bigQueryRoot,
-		bigQueryCreate,
-		bigQueryList,
-		bigQueryDescribe,
-		bigQueryUpdate,
-		bigQueryDelete,
-
-		s3Root,
-		s3Create,
-		s3List,
-		s3Describe,
-		s3Update,
-		s3Delete,
-
-		kinesisRoot,
-		kinesisCreate,
-		kinesisList,
-		kinesisDescribe,
-		kinesisUpdate,
-		kinesisDelete,
-
-		syslogRoot,
-		syslogCreate,
-		syslogList,
-		syslogDescribe,
-		syslogUpdate,
-		syslogDelete,
-
-		logentriesRoot,
-		logentriesCreate,
-		logentriesList,
-		logentriesDescribe,
-		logentriesUpdate,
-		logentriesDelete,
-
-		papertrailRoot,
-		papertrailCreate,
-		papertrailList,
-		papertrailDescribe,
-		papertrailUpdate,
-		papertrailDelete,
-
-		sumologicRoot,
-		sumologicCreate,
-		sumologicList,
-		sumologicDescribe,
-		sumologicUpdate,
-		sumologicDelete,
-
-		gcsRoot,
-		gcsCreate,
-		gcsList,
-		gcsDescribe,
-		gcsUpdate,
-		gcsDelete,
-
-		ftpRoot,
-		ftpCreate,
-		ftpList,
-		ftpDescribe,
-		ftpUpdate,
-		ftpDelete,
-
-		splunkRoot,
-		splunkCreate,
-		splunkList,
-		splunkDescribe,
-		splunkUpdate,
-		splunkDelete,
-
-		scalyrRoot,
-		scalyrCreate,
-		scalyrList,
-		scalyrDescribe,
-		scalyrUpdate,
-		scalyrDelete,
-
-		logglyRoot,
-		logglyCreate,
-		logglyList,
-		logglyDescribe,
-		logglyUpdate,
-		logglyDelete,
-
-		honeycombRoot,
-		honeycombCreate,
-		honeycombList,
-		honeycombDescribe,
-		honeycombUpdate,
-		honeycombDelete,
-
-		herokuRoot,
-		herokuCreate,
-		herokuList,
-		herokuDescribe,
-		herokuUpdate,
-		herokuDelete,
-
-		sftpRoot,
-		sftpCreate,
-		sftpList,
-		sftpDescribe,
-		sftpUpdate,
-		sftpDelete,
-
-		logshuttleRoot,
-		logshuttleCreate,
-		logshuttleList,
-		logshuttleDescribe,
-		logshuttleUpdate,
-		logshuttleDelete,
-
-		cloudfilesRoot,
-		cloudfilesCreate,
-		cloudfilesList,
-		cloudfilesDescribe,
-		cloudfilesUpdate,
-		cloudfilesDelete,
-
-		digitaloceanRoot,
-		digitaloceanCreate,
-		digitaloceanList,
-		digitaloceanDescribe,
-		digitaloceanUpdate,
-		digitaloceanDelete,
-
-		elasticsearchRoot,
-		elasticsearchCreate,
-		elasticsearchList,
-		elasticsearchDescribe,
-		elasticsearchUpdate,
-		elasticsearchDelete,
-
-		azureblobRoot,
-		azureblobCreate,
-		azureblobList,
-		azureblobDescribe,
-		azureblobUpdate,
-		azureblobDelete,
-
-		datadogRoot,
-		datadogCreate,
-		datadogList,
-		datadogDescribe,
-		datadogUpdate,
-		datadogDelete,
-
-		httpsRoot,
-		httpsCreate,
-		httpsList,
-		httpsDescribe,
-		httpsUpdate,
-		httpsDelete,
-
-		kafkaRoot,
-		kafkaCreate,
-		kafkaList,
-		kafkaDescribe,
-		kafkaUpdate,
-		kafkaDelete,
-
-		googlepubsubRoot,
-		googlepubsubCreate,
-		googlepubsubList,
-		googlepubsubDescribe,
-		googlepubsubUpdate,
-		googlepubsubDelete,
-
-		openstackRoot,
-		openstackCreate,
-		openstackList,
-		openstackDescribe,
-		openstackUpdate,
-		openstackDelete,
-
-		logsRoot,
+		domainCmdRoot,
+		domainCreate,
+		domainDelete,
+		domainDescribe,
+		domainList,
+		domainUpdate,
+		healthcheckCmdRoot,
+		healthcheckCreate,
+		healthcheckDelete,
+		healthcheckDescribe,
+		healthcheckList,
+		healthcheckUpdate,
+		ipCmdRoot,
+		loggingAzureblobCmdRoot,
+		loggingAzureblobCreate,
+		loggingAzureblobDelete,
+		loggingAzureblobDescribe,
+		loggingAzureblobList,
+		loggingAzureblobUpdate,
+		loggingBigQueryCmdRoot,
+		loggingBigQueryCreate,
+		loggingBigQueryDelete,
+		loggingBigQueryDescribe,
+		loggingBigQueryList,
+		loggingBigQueryUpdate,
+		loggingCloudfilesCmdRoot,
+		loggingCloudfilesCreate,
+		loggingCloudfilesDelete,
+		loggingCloudfilesDescribe,
+		loggingCloudfilesList,
+		loggingCloudfilesUpdate,
+		loggingCmdRoot,
+		loggingDatadogCmdRoot,
+		loggingDatadogCreate,
+		loggingDatadogDelete,
+		loggingDatadogDescribe,
+		loggingDatadogList,
+		loggingDatadogUpdate,
+		loggingDigitaloceanCmdRoot,
+		loggingDigitaloceanCreate,
+		loggingDigitaloceanDelete,
+		loggingDigitaloceanDescribe,
+		loggingDigitaloceanList,
+		loggingDigitaloceanUpdate,
+		loggingElasticsearchCmdRoot,
+		loggingElasticsearchCreate,
+		loggingElasticsearchDelete,
+		loggingElasticsearchDescribe,
+		loggingElasticsearchList,
+		loggingElasticsearchUpdate,
+		loggingFtpCmdRoot,
+		loggingFtpCreate,
+		loggingFtpDelete,
+		loggingFtpDescribe,
+		loggingFtpList,
+		loggingFtpUpdate,
+		loggingGcsCmdRoot,
+		loggingGcsCreate,
+		loggingGcsDelete,
+		loggingGcsDescribe,
+		loggingGcsList,
+		loggingGcsUpdate,
+		loggingGooglepubsubCmdRoot,
+		loggingGooglepubsubCreate,
+		loggingGooglepubsubDelete,
+		loggingGooglepubsubDescribe,
+		loggingGooglepubsubList,
+		loggingGooglepubsubUpdate,
+		loggingHerokuCmdRoot,
+		loggingHerokuCreate,
+		loggingHerokuDelete,
+		loggingHerokuDescribe,
+		loggingHerokuList,
+		loggingHerokuUpdate,
+		loggingHoneycombCmdRoot,
+		loggingHoneycombCreate,
+		loggingHoneycombDelete,
+		loggingHoneycombDescribe,
+		loggingHoneycombList,
+		loggingHoneycombUpdate,
+		loggingHttpsCmdRoot,
+		loggingHttpsCreate,
+		loggingHttpsDelete,
+		loggingHttpsDescribe,
+		loggingHttpsList,
+		loggingHttpsUpdate,
+		loggingKafkaCmdRoot,
+		loggingKafkaCreate,
+		loggingKafkaDelete,
+		loggingKafkaDescribe,
+		loggingKafkaList,
+		loggingKafkaUpdate,
+		loggingKinesisCmdRoot,
+		loggingKinesisCreate,
+		loggingKinesisDelete,
+		loggingKinesisDescribe,
+		loggingKinesisList,
+		loggingKinesisUpdate,
+		loggingLogentriesCmdRoot,
+		loggingLogentriesCreate,
+		loggingLogentriesDelete,
+		loggingLogentriesDescribe,
+		loggingLogentriesList,
+		loggingLogentriesUpdate,
+		loggingLogglyCmdRoot,
+		loggingLogglyCreate,
+		loggingLogglyDelete,
+		loggingLogglyDescribe,
+		loggingLogglyList,
+		loggingLogglyUpdate,
+		loggingLogshuttleCmdRoot,
+		loggingLogshuttleCreate,
+		loggingLogshuttleDelete,
+		loggingLogshuttleDescribe,
+		loggingLogshuttleList,
+		loggingLogshuttleUpdate,
+		loggingOpenstackCmdRoot,
+		loggingOpenstackCreate,
+		loggingOpenstackDelete,
+		loggingOpenstackDescribe,
+		loggingOpenstackList,
+		loggingOpenstackUpdate,
+		loggingPapertrailCmdRoot,
+		loggingPapertrailCreate,
+		loggingPapertrailDelete,
+		loggingPapertrailDescribe,
+		loggingPapertrailList,
+		loggingPapertrailUpdate,
+		loggingS3CmdRoot,
+		loggingS3Create,
+		loggingS3Delete,
+		loggingS3Describe,
+		loggingS3List,
+		loggingS3Update,
+		loggingScalyrCmdRoot,
+		loggingScalyrCreate,
+		loggingScalyrDelete,
+		loggingScalyrDescribe,
+		loggingScalyrList,
+		loggingScalyrUpdate,
+		loggingSftpCmdRoot,
+		loggingSftpCreate,
+		loggingSftpDelete,
+		loggingSftpDescribe,
+		loggingSftpList,
+		loggingSftpUpdate,
+		loggingSplunkCmdRoot,
+		loggingSplunkCreate,
+		loggingSplunkDelete,
+		loggingSplunkDescribe,
+		loggingSplunkList,
+		loggingSplunkUpdate,
+		loggingSumologicCmdRoot,
+		loggingSumologicCreate,
+		loggingSumologicDelete,
+		loggingSumologicDescribe,
+		loggingSumologicList,
+		loggingSumologicUpdate,
+		loggingSyslogCmdRoot,
+		loggingSyslogCreate,
+		loggingSyslogDelete,
+		loggingSyslogDescribe,
+		loggingSyslogList,
+		loggingSyslogUpdate,
+		logsCmdRoot,
 		logsTail,
-
-		statsRoot,
-		statsRegions,
+		popCmdRoot,
+		purgeCmdRoot,
+		serviceCmdRoot,
+		serviceCreate,
+		serviceDelete,
+		serviceDescribe,
+		serviceList,
+		serviceSearch,
+		serviceUpdate,
+		serviceVersionActivate,
+		serviceVersionClone,
+		serviceVersionCmdRoot,
+		serviceVersionDeactivate,
+		serviceVersionList,
+		serviceVersionLock,
+		serviceVersionUpdate,
+		statsCmdRoot,
 		statsHistorical,
 		statsRealtime,
-
-		vclRoot,
-
-		vclCustomRoot,
+		statsRegions,
+		updateRoot,
+		vclCmdRoot,
+		vclCustomCmdRoot,
 		vclCustomCreate,
 		vclCustomDelete,
 		vclCustomDescribe,
 		vclCustomList,
 		vclCustomUpdate,
-
-		vclSnippetRoot,
+		vclSnippetCmdRoot,
 		vclSnippetCreate,
 		vclSnippetDelete,
 		vclSnippetDescribe,
 		vclSnippetList,
 		vclSnippetUpdate,
+		versionCmdRoot,
+		whoamiCmdRoot,
 	}
 
 	// Handle parse errors and display contextal usage if possible. Due to bugs
