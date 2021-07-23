@@ -404,6 +404,8 @@ COMMANDS
                                  package backend
         --backend-port=BACKEND-PORT
                                  A port number for the package backend
+        --override-host=OVERRIDE-HOST
+                                 The hostname to override the Host header
         --comment=COMMENT        Human-readable comment
 
   compute init [<flags>]
@@ -445,6 +447,8 @@ COMMANDS
                                  package backend
         --backend-port=BACKEND-PORT
                                  A port number for the package backend
+        --override-host=OVERRIDE-HOST
+                                 The hostname to override the Host header
         --comment=COMMENT        Human-readable comment
 
   compute serve [<flags>]

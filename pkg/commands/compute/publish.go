@@ -21,6 +21,7 @@ type PublishCommand struct {
 	domain         cmd.OptionalString
 	backend        cmd.OptionalString
 	backendPort    cmd.OptionalUint
+	overrideHost   cmd.OptionalString
 	serviceVersion cmd.OptionalServiceVersion
 	comment        cmd.OptionalString
 
@@ -60,6 +61,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").Action(c.backend.Set).StringVar(&c.backend.Value)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").Action(c.backendPort.Set).UintVar(&c.backendPort.Value)
+	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.backendPort.Set).StringVar(&c.overrideHost.Value)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 
 	return &c
@@ -113,6 +115,9 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.backendPort.WasSet {
 		c.deploy.Backend.Port = c.backendPort.Value
+	}
+	if c.overrideHost.WasSet {
+		c.deploy.Backend.OverrideHost = c.overrideHost.Value
 	}
 	if c.comment.WasSet {
 		c.deploy.Comment = c.comment
