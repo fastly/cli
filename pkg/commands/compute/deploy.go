@@ -51,9 +51,10 @@ type DeployCommand struct {
 
 // Backend represents the configuration parameters for a backend
 type Backend struct {
-	Address      string
-	Port         uint
-	OverrideHost string
+	Address        string
+	Port           uint
+	OverrideHost   string
+	SSLSNIHostname string
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -77,6 +78,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.Backend.Address)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.Backend.Port)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").StringVar(&c.Backend.OverrideHost)
+	c.CmdClause.Flag("ssl-sni-hostname", "The hostname to use at the start of the TLS handshake").StringVar(&c.Backend.SSLSNIHostname)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	return &c
 }
@@ -136,9 +138,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		backend, err = cfgBackend(c.Backend, out, in, validateBackend)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Backend":       c.Backend.Address,
-				"Backend port":  c.Backend.Port,
-				"Override host": c.Backend.OverrideHost,
+				"Backend":          c.Backend.Address,
+				"Backend port":     c.Backend.Port,
+				"Override host":    c.Backend.OverrideHost,
+				"SSL SNI hostname": c.Backend.SSLSNIHostname,
 			})
 			return err
 		}
@@ -213,9 +216,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				backend, err = cfgBackend(c.Backend, out, in, validateBackend)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Backend":       c.Backend.Address,
-						"Backend port":  c.Backend.Port,
-						"Override host": c.Backend.OverrideHost,
+						"Backend":          c.Backend.Address,
+						"Backend port":     c.Backend.Port,
+						"Override host":    c.Backend.OverrideHost,
+						"SSL SNI hostname": c.Backend.SSLSNIHostname,
 					})
 					return err
 				}
@@ -232,9 +236,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				backend, err = cfgBackend(c.Backend, out, in, validateBackend)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Backend":       c.Backend.Address,
-						"Backend port":  c.Backend.Port,
-						"Override host": c.Backend.OverrideHost,
+						"Backend":          c.Backend.Address,
+						"Backend port":     c.Backend.Port,
+						"Override host":    c.Backend.OverrideHost,
+						"SSL SNI hostname": c.Backend.SSLSNIHostname,
 					})
 					return err
 				}
@@ -309,11 +314,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Backend":         backend.Address,
-				"Backend port":    backend.Port,
-				"Override host":   backend.OverrideHost,
-				"Service ID":      serviceID,
-				"Service Version": version.Number,
+				"Backend":          backend.Address,
+				"Backend port":     backend.Port,
+				"Override host":    backend.OverrideHost,
+				"SSL SNI hostname": backend.SSLSNIHostname,
+				"Service ID":       serviceID,
+				"Service Version":  version.Number,
 			})
 			return err
 		}
@@ -344,11 +350,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Backend":         backend.Address,
-					"Backend port":    backend.Port,
-					"Override host":   backend.OverrideHost,
-					"Service ID":      serviceID,
-					"Service Version": version.Number,
+					"Backend":          backend.Address,
+					"Backend port":     backend.Port,
+					"Override host":    backend.OverrideHost,
+					"SSL SNI hostname": backend.SSLSNIHostname,
+					"Service ID":       serviceID,
+					"Service Version":  version.Number,
 				})
 				return err
 			}
@@ -366,11 +373,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Backend":         backend.Address,
-					"Backend port":    backend.Port,
-					"Override host":   backend.OverrideHost,
-					"Service ID":      serviceID,
-					"Service Version": version.Number,
+					"Backend":          backend.Address,
+					"Backend port":     backend.Port,
+					"Override host":    backend.OverrideHost,
+					"SSL SNI hostname": backend.SSLSNIHostname,
+					"Service ID":       serviceID,
+					"Service Version":  version.Number,
 				})
 				return err
 			}
@@ -711,6 +719,7 @@ func createBackend(progress text.Progress, client api.Interface, serviceID strin
 		Address:        backend.Address,
 		Port:           backend.Port,
 		OverrideHost:   backend.OverrideHost,
+		SSLSNIHostname: backend.SSLSNIHostname,
 	})
 	if err != nil {
 		return fmt.Errorf("error creating backend: %w", err)

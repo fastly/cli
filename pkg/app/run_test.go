@@ -406,6 +406,9 @@ COMMANDS
                                  A port number for the package backend
         --override-host=OVERRIDE-HOST
                                  The hostname to override the Host header
+        --ssl-sni-hostname=SSL-SNI-HOSTNAME
+                                 The hostname to use at the start of the TLS
+                                 handshake
         --comment=COMMENT        Human-readable comment
 
   compute init [<flags>]
@@ -449,6 +452,9 @@ COMMANDS
                                  A port number for the package backend
         --override-host=OVERRIDE-HOST
                                  The hostname to override the Host header
+        --ssl-sni-hostname=SSL-SNI-HOSTNAME
+                                 The hostname to use at the start of the TLS
+                                 handshake
         --comment=COMMENT        Human-readable comment
 
   compute serve [<flags>]
