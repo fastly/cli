@@ -251,6 +251,26 @@ func TestACLEntryUpdate(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
+			Name: "validate error from --file set with invalid json",
+			API: mock.API{
+				BatchModifyACLEntriesFn: func(i *fastly.BatchModifyACLEntriesInput) error {
+					return nil
+				},
+			},
+			Args:      args(`acl-entry update --acl-id 123 --file {"foo":"bar"} --id 456 --service-id 123`),
+			WantError: "missing 'entries'",
+		},
+		{
+			Name: "validate error from --file set with zero json entries",
+			API: mock.API{
+				BatchModifyACLEntriesFn: func(i *fastly.BatchModifyACLEntriesInput) error {
+					return nil
+				},
+			},
+			Args:      args(`acl-entry update --acl-id 123 --file {"entries":[]} --id 456 --service-id 123`),
+			WantError: "missing 'entries'",
+		},
+		{
 			Name: "validate success with --file",
 			API: mock.API{
 				BatchModifyACLEntriesFn: func(i *fastly.BatchModifyACLEntriesInput) error {
@@ -273,26 +293,6 @@ func TestACLEntryUpdate(t *testing.T) {
 			},
 			Args:       args(`acl-entry update --acl-id 123 --file {"entries":[{"op":"create","ip":"127.0.0.1","subnet":8},{"op":"update"},{"op":"upsert"}]} --id 456 --service-id 123`),
 			WantOutput: "Updated 3 ACL entries (service: 123)",
-		},
-		{
-			Name: "validate error from --file set with invalid json",
-			API: mock.API{
-				BatchModifyACLEntriesFn: func(i *fastly.BatchModifyACLEntriesInput) error {
-					return nil
-				},
-			},
-			Args:      args(`acl-entry update --acl-id 123 --file {"foo":"bar"} --id 456 --service-id 123`),
-			WantError: "missing 'entries'",
-		},
-		{
-			Name: "validate error from --file set with zero json entries",
-			API: mock.API{
-				BatchModifyACLEntriesFn: func(i *fastly.BatchModifyACLEntriesInput) error {
-					return nil
-				},
-			},
-			Args:      args(`acl-entry update --acl-id 123 --file {"entries":[]} --id 456 --service-id 123`),
-			WantError: "missing 'entries'",
 		},
 	}
 
