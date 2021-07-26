@@ -299,7 +299,7 @@ func TestACLUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("acl update --version 3"),
+			Args:      args("acl update --new-name beepboop --version 3"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
