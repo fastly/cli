@@ -91,16 +91,16 @@ func AssertRemediationErrorContains(t *testing.T, err error, target string) {
 	}
 }
 
-// AssertContentFlag errors a test scenario if the --content flag value hasn't
+// AssertPathContentFlag errors a test scenario if the given flag value hasn't
 // been parsed as expected.
 //
-// Example: if --content is passed a file path, then we expect the
-// testdata/<fixture> to have been read, otherwise we expect the given flag
-// value to have been used as is.
-func AssertContentFlag(wantError string, args []string, fixture string, content string, t *testing.T) {
+// Example: Some flags will internally be passed to `cmd.Content` to acquire
+// the value. If passed a file path, then we expect the testdata/<fixture> to
+// have been read, otherwise we expect the given flag value to have been used.
+func AssertPathContentFlag(flag string, wantError string, args []string, fixture string, content string, t *testing.T) {
 	if wantError == "" {
 		for i, a := range args {
-			if a == "--content" {
+			if a == fmt.Sprintf("--%s", flag) {
 				want := args[i+1]
 				if want == fmt.Sprintf("./testdata/%s", fixture) {
 					want = cmd.Content(want)

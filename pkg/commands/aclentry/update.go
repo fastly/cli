@@ -114,7 +114,7 @@ func (c *UpdateCommand) constructBatchInput(serviceID string) (*fastly.BatchModi
 
 	if len(input.Entries) == 0 {
 		err := errors.RemediationError{
-			Inner:       fmt.Errorf("'entries' key not found in file %s", c.file.Value),
+			Inner:       fmt.Errorf("missing 'entries' %s", c.file.Value),
 			Remediation: "Consult the API documentation for the JSON format: https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries",
 		}
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
