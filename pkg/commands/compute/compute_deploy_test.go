@@ -380,7 +380,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with --backend and no --backend-port",
-			args: args("compute deploy --token 123 --backend host.com"),
+			args: args("compute deploy --backend host.com --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				GetPackageFn:      getPackageOk,
@@ -394,7 +394,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with --backend and --backend-port",
-			args: args("compute deploy --token 123 --backend host.com --backend-port 443"),
+			args: args("compute deploy --backend host.com --backend-port 443 --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				GetPackageFn:      getPackageOk,
@@ -408,7 +408,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with --backend and --override-host",
-			args: args("compute deploy --token 123 --backend host.com --override-host otherhost.com"),
+			args: args("compute deploy --backend host.com --override-host otherhost.com --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				GetPackageFn:      getPackageOk,
@@ -422,7 +422,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with --backend and --ssl-sni-hostname",
-			args: args("compute deploy --token 123 --backend host.com --ssl-sni-hostname anotherhost.com"),
+			args: args("compute deploy --backend host.com --ssl-sni-hostname anotherhost.com --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				GetPackageFn:      getPackageOk,
