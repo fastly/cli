@@ -547,3 +547,16 @@ func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 func listBackendsError(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return nil, testutil.Err
 }
+
+func createBackendExpect(address string, port uint, overrideHost string, sslSNIHostname string) func(*fastly.CreateBackendInput) (*fastly.Backend, error) {
+	return func(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+		if address != i.Address || port != i.Port || i.OverrideHost != overrideHost || i.SSLSNIHostname != sslSNIHostname {
+			return nil, testutil.Err
+		}
+		return &fastly.Backend{
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           i.Name,
+		}, nil
+	}
+}
