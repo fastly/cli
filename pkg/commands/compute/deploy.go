@@ -52,8 +52,8 @@ type DeployCommand struct {
 // Backend represents the configuration parameters for a backend
 type Backend struct {
 	Address        string
-	Port           uint
 	OverrideHost   string
+	Port           uint
 	SSLSNIHostname string
 }
 
@@ -73,13 +73,13 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 		Dst:      &c.ServiceVersion.Value,
 		Optional: true,
 	})
-	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
-	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.Backend.Address)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.Backend.Port)
-	c.CmdClause.Flag("override-host", "The hostname to override the Host header").StringVar(&c.Backend.OverrideHost)
-	c.CmdClause.Flag("ssl-sni-hostname", "The hostname to use at the start of the TLS handshake").StringVar(&c.Backend.SSLSNIHostname)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
+	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
+	c.CmdClause.Flag("override-host", "The hostname to override the Host header").StringVar(&c.Backend.OverrideHost)
+	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
+	c.CmdClause.Flag("ssl-sni-hostname", "The hostname to use at the start of the TLS handshake").StringVar(&c.Backend.SSLSNIHostname)
 	return &c
 }
 
