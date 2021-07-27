@@ -390,7 +390,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifest: "name = \"package\"\n",
+			manifest: `name = "package"`,
 		},
 		{
 			name: "success with --backend and --backend-port",
@@ -404,7 +404,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifest: "name = \"package\"\n",
+			manifest: `name = "package"`,
 		},
 		{
 			name: "success with --backend and --override-host",
@@ -418,7 +418,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifest: "name = \"package\"\n",
+			manifest: `name = "package"`,
 		},
 		{
 			name: "success with --backend and --ssl-sni-hostname",
@@ -432,7 +432,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifest: "name = \"package\"\n",
+			manifest: `name = "package"`,
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
