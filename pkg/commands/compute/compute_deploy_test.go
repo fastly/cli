@@ -238,7 +238,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "indentical package",
+			name: "identical package",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
@@ -378,6 +378,62 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 4)",
 			},
 		},
+		{
+			name: "success with --backend and no --backend-port",
+			args: args("compute deploy --backend host.com --token 123"),
+			api: mock.API{
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendExpect("host.com", 80, "", ""),
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			manifest: `name = "package"`,
+		},
+		{
+			name: "success with --backend and --backend-port",
+			args: args("compute deploy --backend host.com --backend-port 443 --token 123"),
+			api: mock.API{
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendExpect("host.com", 443, "", ""),
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			manifest: `name = "package"`,
+		},
+		{
+			name: "success with --backend and --override-host",
+			args: args("compute deploy --backend host.com --override-host otherhost.com --token 123"),
+			api: mock.API{
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendExpect("host.com", 80, "otherhost.com", ""),
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			manifest: `name = "package"`,
+		},
+		{
+			name: "success with --backend and --ssl-sni-hostname",
+			args: args("compute deploy --backend host.com --ssl-sni-hostname anotherhost.com --token 123"),
+			api: mock.API{
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendExpect("host.com", 80, "", "anotherhost.com"),
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			manifest: `name = "package"`,
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// We're going to chdir to a deploy environment,
@@ -490,4 +546,17 @@ func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 
 func listBackendsError(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return nil, testutil.Err
+}
+
+func createBackendExpect(address string, port uint, overrideHost string, sslSNIHostname string) func(*fastly.CreateBackendInput) (*fastly.Backend, error) {
+	return func(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+		if address != i.Address || port != i.Port || i.OverrideHost != overrideHost || i.SSLSNIHostname != sslSNIHostname {
+			return nil, testutil.Err
+		}
+		return &fastly.Backend{
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           i.Name,
+		}, nil
+	}
 }

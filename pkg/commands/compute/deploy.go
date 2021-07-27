@@ -44,10 +44,17 @@ type DeployCommand struct {
 	Manifest       manifest.Data
 	Path           string
 	Domain         string
-	Backend        string
-	BackendPort    uint
+	Backend        Backend
 	Comment        cmd.OptionalString
 	ServiceVersion cmd.OptionalServiceVersion
+}
+
+// Backend represents the configuration parameters for a backend
+type Backend struct {
+	Address        string
+	OverrideHost   string
+	Port           uint
+	SSLSNIHostname string
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -66,11 +73,13 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 		Dst:      &c.ServiceVersion.Value,
 		Optional: true,
 	})
-	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
-	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
-	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.Backend)
-	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.BackendPort)
+	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.Backend.Address)
+	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.Backend.Port)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
+	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
+	c.CmdClause.Flag("override-host", "The hostname to override the Host header").StringVar(&c.Backend.OverrideHost)
+	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
+	c.CmdClause.Flag("ssl-sni-hostname", "The hostname to use at the start of the TLS handshake").StringVar(&c.Backend.SSLSNIHostname)
 	return &c
 }
 
@@ -103,11 +112,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	var (
-		domain, backend string
-		backendPort     uint
-		invalidService  bool
-		invalidType     invalidResource
-		version         *fastly.Version
+		domain         string
+		backend        Backend
+		invalidService bool
+		invalidType    invalidResource
+		version        *fastly.Version
 	)
 
 	serviceID, sidSrc := c.Manifest.ServiceID()
@@ -126,11 +135,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 
-		backend, backendPort, err = cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
+		backend, err = cfgBackend(c.Backend, out, in, validateBackend)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Backend":      c.Backend,
-				"Backend port": c.BackendPort,
+				"Backend":          c.Backend.Address,
+				"Backend port":     c.Backend.Port,
+				"Override host":    c.Backend.OverrideHost,
+				"SSL SNI hostname": c.Backend.SSLSNIHostname,
 			})
 			return err
 		}
@@ -202,11 +213,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					})
 					return err
 				}
-				backend, backendPort, err = cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
+				backend, err = cfgBackend(c.Backend, out, in, validateBackend)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Backend":      c.Backend,
-						"Backend port": c.BackendPort,
+						"Backend":          c.Backend.Address,
+						"Backend port":     c.Backend.Port,
+						"Override host":    c.Backend.OverrideHost,
+						"SSL SNI hostname": c.Backend.SSLSNIHostname,
 					})
 					return err
 				}
@@ -220,11 +233,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					return err
 				}
 			case resourceBackend:
-				backend, backendPort, err = cfgBackend(c.Backend, c.BackendPort, out, in, validateBackend)
+				backend, err = cfgBackend(c.Backend, out, in, validateBackend)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Backend":      c.Backend,
-						"Backend port": c.BackendPort,
+						"Backend":          c.Backend.Address,
+						"Backend port":     c.Backend.Port,
+						"Override host":    c.Backend.OverrideHost,
+						"SSL SNI hostname": c.Backend.SSLSNIHostname,
 					})
 					return err
 				}
@@ -296,13 +311,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			})
 			return err
 		}
-		err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
+		err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Backend":         backend,
-				"Backend port":    backendPort,
-				"Service ID":      serviceID,
-				"Service Version": version.Number,
+				"Backend":          backend.Address,
+				"Backend port":     backend.Port,
+				"Override host":    backend.OverrideHost,
+				"SSL SNI hostname": backend.SSLSNIHostname,
+				"Service ID":       serviceID,
+				"Service Version":  version.Number,
 			})
 			return err
 		}
@@ -330,13 +347,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				})
 				return err
 			}
-			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
+			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Backend":         backend,
-					"Backend port":    backendPort,
-					"Service ID":      serviceID,
-					"Service Version": version.Number,
+					"Backend":          backend.Address,
+					"Backend port":     backend.Port,
+					"Override host":    backend.OverrideHost,
+					"SSL SNI hostname": backend.SSLSNIHostname,
+					"Service ID":       serviceID,
+					"Service Version":  version.Number,
 				})
 				return err
 			}
@@ -351,13 +370,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				return err
 			}
 		case resourceBackend:
-			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, backendPort, undoStack)
+			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Backend":         backend,
-					"Backend port":    backendPort,
-					"Service ID":      serviceID,
-					"Service Version": version.Number,
+					"Backend":          backend.Address,
+					"Backend port":     backend.Port,
+					"Override host":    backend.OverrideHost,
+					"SSL SNI hostname": backend.SSLSNIHostname,
+					"Service ID":       serviceID,
+					"Service Version":  version.Number,
 				})
 				return err
 			}
@@ -617,40 +638,40 @@ func cfgDomain(domain string, def string, out io.Writer, in io.Reader, f validat
 }
 
 // cfgBackend configures the backend address and its port number values.
-func cfgBackend(backend string, backendPort uint, out io.Writer, in io.Reader, f validator) (string, uint, error) {
-	if backend == "" {
+func cfgBackend(backend Backend, out io.Writer, in io.Reader, f validator) (Backend, error) {
+	if backend.Address == "" {
 		var err error
-		backend, err = text.Input(out, "Backend (originless, hostname or IP address): [originless] ", in, f)
+		backend.Address, err = text.Input(out, "Backend (originless, hostname or IP address): [originless] ", in, f)
 
 		if err != nil {
-			return "", 0, fmt.Errorf("error reading input %w", err)
+			return Backend{}, fmt.Errorf("error reading input %w", err)
 		}
 
-		if backend == "" || backend == "originless" {
-			backend = "127.0.0.1"
-			backendPort = uint(80)
+		if backend.Address == "" || backend.Address == "originless" {
+			backend.Address = "127.0.0.1"
+			backend.Port = uint(80)
 		}
 	}
 
-	if backendPort == 0 {
+	if backend.Port == 0 {
 		input, err := text.Input(out, "Backend port number: [80] ", in)
 		if err != nil {
-			return "", 0, fmt.Errorf("error reading input %w", err)
+			return Backend{}, fmt.Errorf("error reading input %w", err)
 		}
 
 		portnumber := 80
 		if input != "" {
 			portnumber, err = strconv.Atoi(input)
 			if err != nil {
-				text.Warning(out, "error converting input. We'll use the default port number: [80].")
+				text.Warning(out, "error converting input, using default port number (80)")
 				portnumber = 80
 			}
 		}
 
-		backendPort = uint(portnumber)
+		backend.Port = uint(portnumber)
 	}
 
-	return backend, backendPort, nil
+	return backend, nil
 }
 
 // createDomain creates the given domain and handle unrolling the stack in case
@@ -680,23 +701,25 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 
 // createBackend creates the given domain and handle unrolling the stack in case
 // of an error (i.e. will ensure the backend is deleted if there is an error).
-func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend string, backendPort uint, undoStack undo.Stacker) error {
+func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend Backend, undoStack undo.Stacker) error {
 	progress.Step("Creating backend...")
 
 	undoStack.Push(func() error {
 		return client.DeleteBackend(&fastly.DeleteBackendInput{
 			ServiceID:      serviceID,
 			ServiceVersion: version,
-			Name:           backend,
+			Name:           backend.Address,
 		})
 	})
 
 	_, err := client.CreateBackend(&fastly.CreateBackendInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
-		Name:           backend,
-		Address:        backend,
-		Port:           backendPort,
+		Name:           backend.Address,
+		Address:        backend.Address,
+		Port:           backend.Port,
+		OverrideHost:   backend.OverrideHost,
+		SSLSNIHostname: backend.SSLSNIHostname,
 	})
 	if err != nil {
 		return fmt.Errorf("error creating backend: %w", err)

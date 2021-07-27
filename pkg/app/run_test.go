@@ -397,14 +397,19 @@ COMMANDS
                                  then fastly.toml)
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
-    -p, --path=PATH              Path to package
-        --domain=DOMAIN          The name of the domain associated to the
-                                 package
         --backend=BACKEND        A hostname, IPv4, or IPv6 address for the
                                  package backend
         --backend-port=BACKEND-PORT
                                  A port number for the package backend
         --comment=COMMENT        Human-readable comment
+        --domain=DOMAIN          The name of the domain associated to the
+                                 package
+        --override-host=OVERRIDE-HOST
+                                 The hostname to override the Host header
+    -p, --path=PATH              Path to package
+        --ssl-sni-hostname=SSL-SNI-HOSTNAME
+                                 The hostname to use at the start of the TLS
+                                 handshake
 
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
@@ -438,14 +443,19 @@ COMMANDS
                                  then fastly.toml)
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
-    -p, --path=PATH              Path to package
-        --domain=DOMAIN          The name of the domain associated to the
-                                 package
         --backend=BACKEND        A hostname, IPv4, or IPv6 address for the
                                  package backend
         --backend-port=BACKEND-PORT
                                  A port number for the package backend
         --comment=COMMENT        Human-readable comment
+        --domain=DOMAIN          The name of the domain associated to the
+                                 package
+        --override-host=OVERRIDE-HOST
+                                 The hostname to override the Host header
+    -p, --path=PATH              Path to package
+        --ssl-sni-hostname=SSL-SNI-HOSTNAME
+                                 The hostname to use at the start of the TLS
+                                 handshake
 
   compute serve [<flags>]
     Build and run a Compute@Edge package locally

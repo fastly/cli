@@ -17,12 +17,14 @@ type PublishCommand struct {
 	deploy   *DeployCommand
 
 	// Deploy fields
-	path           cmd.OptionalString
-	domain         cmd.OptionalString
 	backend        cmd.OptionalString
 	backendPort    cmd.OptionalUint
-	serviceVersion cmd.OptionalServiceVersion
 	comment        cmd.OptionalString
+	domain         cmd.OptionalString
+	overrideHost   cmd.OptionalString
+	path           cmd.OptionalString
+	serviceVersion cmd.OptionalServiceVersion
+	sslSNIHostname cmd.OptionalString
 
 	// Build fields
 	name       cmd.OptionalString
@@ -56,11 +58,13 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 		Dst:      &c.serviceVersion.Value,
 		Optional: true,
 	})
-	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
-	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").Action(c.backend.Set).StringVar(&c.backend.Value)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").Action(c.backendPort.Set).UintVar(&c.backendPort.Value)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
+	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
+	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.backendPort.Set).StringVar(&c.overrideHost.Value)
+	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
+	c.CmdClause.Flag("ssl-sni-hostname", "The hostname to use at the start of the TLS handshake").Action(c.sslSNIHostname.Set).StringVar(&c.sslSNIHostname.Value)
 
 	return &c
 }
@@ -109,10 +113,16 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.deploy.Domain = c.domain.Value
 	}
 	if c.backend.WasSet {
-		c.deploy.Backend = c.backend.Value
+		c.deploy.Backend.Address = c.backend.Value
 	}
 	if c.backendPort.WasSet {
-		c.deploy.BackendPort = c.backendPort.Value
+		c.deploy.Backend.Port = c.backendPort.Value
+	}
+	if c.overrideHost.WasSet {
+		c.deploy.Backend.OverrideHost = c.overrideHost.Value
+	}
+	if c.sslSNIHostname.WasSet {
+		c.deploy.Backend.SSLSNIHostname = c.sslSNIHostname.Value
 	}
 	if c.comment.WasSet {
 		c.deploy.Comment = c.comment
