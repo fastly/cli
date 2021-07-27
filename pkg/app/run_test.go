@@ -2784,6 +2784,90 @@ COMMANDS
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
 
+  logging newrelic create --key=KEY --name=NAME --version=VERSION [<flags>]
+    Create an New Relic logging endpoint attached to the specified service
+    version
+
+        --key=KEY                The Insert API key from the Account page of
+                                 your New Relic account
+        --name=NAME              The name for the real-time logging
+                                 configuration
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+        --autoclone              If the selected service version is not
+                                 editable, clone it and use the clone.
+        --format=FORMAT          A Fastly log format string. Must produce valid
+                                 JSON that New Relic Logs can ingest
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
+  logging newrelic delete --name=NAME --version=VERSION [<flags>]
+    Delete the New Relic Logs logging object for a particular service and
+    version
+
+        --name=NAME              The name for the real-time logging
+                                 configuration to delete
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+        --autoclone              If the selected service version is not
+                                 editable, clone it and use the clone.
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
+  logging newrelic describe --name=NAME --version=VERSION [<flags>]
+    Get the details of a New Relic Logs logging object for a particular service
+    and version
+
+        --name=NAME              The name for the real-time logging
+                                 configuration
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
+  logging newrelic list --version=VERSION [<flags>]
+    List all of the New Relic Logs logging objects for a particular service and
+    version
+
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
+  logging newrelic update --name=NAME --version=VERSION [<flags>]
+    Update a New Relic Logs logging object for a particular service and version
+
+        --name=NAME              The name for the real-time logging
+                                 configuration to update
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+        --autoclone              If the selected service version is not
+                                 editable, clone it and use the clone.
+        --format=FORMAT          A Fastly log format string. Must produce valid
+                                 JSON that New Relic Logs can ingest
+        --format-version=FORMAT-VERSION
+                                 The version of the custom logging format used
+                                 for the configured endpoint
+        --key=KEY                The Insert API key from the Account page of
+                                 your New Relic account
+        --new-name=NEW-NAME      The name for the real-time logging
+                                 configuration
+        --placement=PLACEMENT    Where in the generated VCL the logging call
+                                 should be placed
+        --response-condition=RESPONSE-CONDITION
+                                 The name of an existing condition in the
+                                 configured endpoint
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
   logging openstack create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --user=USER --url=URL [<flags>]
     Create an OpenStack logging endpoint on a Fastly service version
 
