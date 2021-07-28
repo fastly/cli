@@ -170,7 +170,7 @@ func (a JavaScript) Build(out io.Writer, verbose bool) error {
 	args := []string{
 		"--skip-pkg",
 		filepath.Join("src", "index.js"),
-		filepath.Join(binDir, "index.wasm"),
+		filepath.Join(binDir, "main.wasm"),
 	}
 
 	cmd := fstexec.Streaming{
