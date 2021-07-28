@@ -496,7 +496,7 @@ func TestBuildJavaScript(t *testing.T) {
 				T: t,
 				Copy: []testutil.FileIO{
 					{Src: filepath.Join("testdata", "build", "javascript", "package.json"), Dst: "package.json"},
-					{Src: filepath.Join("testdata", "build", "javascript", "fastly-js-compute-0.0.1.tgz"), Dst: "fastly-js-compute-0.0.1.tgz"},
+					{Src: filepath.Join("testdata", "build", "javascript", "webpack.config.js"), Dst: "webpack.config.js"},
 					{Src: filepath.Join("testdata", "build", "javascript", "src", "index.js"), Dst: filepath.Join("src", "index.js")},
 				},
 				Write: []testutil.FileIO{

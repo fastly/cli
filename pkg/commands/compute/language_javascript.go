@@ -3,9 +3,9 @@ package compute
 import (
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fastly/cli/pkg/errors"
@@ -147,36 +147,34 @@ func (a JavaScript) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found js-compute-runtime at %s\n", path)
 
+	pkgErr := "package.json requires a `script` field with a `build` step defined that calls the `js-compute-runtime` binary"
+	remediation := fmt.Sprintf("Check your package.json has a `script` field with a `build` step defined:\n\n\t$ %s", text.Bold("npm run"))
+
+	cmd := exec.Command("npm", "run")
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("%s: %w", pkgErr, err),
+			Remediation: remediation,
+		}
+	}
+
+	if !strings.Contains(string(stdoutStderr), "  build\n") {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf(pkgErr),
+			Remediation: remediation,
+		}
+	}
+
 	return nil
 }
 
 // Build implements the Toolchain interface and attempts to compile the package
 // JavaScript source to a Wasm binary.
 func (a JavaScript) Build(out io.Writer, verbose bool) error {
-	// Check if bin directory exists and create if not.
-	pwd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("getting current working directory: %w", err)
-	}
-	binDir := filepath.Join(pwd, "bin")
-	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
-		return fmt.Errorf("making bin directory: %w", err)
-	}
-
-	npmdir, err := getNpmBinPath()
-	if err != nil {
-		return fmt.Errorf("getting npm path: %w", err)
-	}
-
-	args := []string{
-		"--skip-pkg",
-		filepath.Join("src", "index.js"),
-		filepath.Join(binDir, "main.wasm"),
-	}
-
 	cmd := fstexec.Streaming{
-		Command: filepath.Join(npmdir, "js-compute-runtime"),
-		Args:    args,
+		Command: "npm",
+		Args:    []string{"run", "build"},
 		Env:     []string{},
 		Output:  out,
 	}

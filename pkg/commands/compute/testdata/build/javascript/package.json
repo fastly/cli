@@ -1,29 +1,28 @@
 {
-  "name": "compute-starter-kit-js-proto",
-  "version": "0.0.2",
-  "description": "Early prototype of a JS starter kit for Compute@Edge projects",
+  "name": "compute-starter-kit-javascript-default",
+  "version": "0.1.0",
   "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fastly/compute-starter-kit-js-proto.git"
   },
-  "keywords": [],
   "author": "oss@fastly.com",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/fastly/compute-starter-kit-js-proto/issues"
   },
-  "homepage": "https://github.com/fastly/compute-starter-kit-js-proto#readme",
+  "homepage": "https://developer.fastly.com/solutions/starters/compute-starter-kit-javascript-default",
   "devDependencies": {
+    "core-js": "^3.15.2",
     "webpack": "^5.10.0",
     "webpack-cli": "^4.2.0"
   },
   "dependencies": {
-    "@fastly/js-compute": "file:fastly-js-compute-0.0.1.tgz"
+    "@fastly/js-compute": "^0.1.0"
   },
   "scripts": {
     "prebuild": "webpack",
-    "build": "ecp-js",
+    "build": "js-compute-runtime --skip-pkg bin/index.js bin/main.wasm",
     "deploy": "npm run build && fastly compute deploy"
   }
 }
