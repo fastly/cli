@@ -78,9 +78,10 @@ func (a JavaScript) Verify(out io.Writer) error {
 	// 1) Check `npm` is on $PATH
 	//
 	// npm is Node/JavaScript's toolchain installer and manager, it is
-	// needed to assert that the correct versions of the ecp-js compiler and
-	// @fastly/js-compute package are installed. We only check whether the
-	// binary exists on the users $PATH and error with installation help text.
+	// needed to assert that the correct versions of the js-compute-runtime
+	// compiler and @fastly/js-compute package are installed. We only check
+	// whether the binary exists on the users $PATH and error with installation
+	// help text.
 	fmt.Fprintf(out, "Checking if npm is installed...\n")
 
 	p, err := exec.LookPath("npm")
@@ -112,11 +113,11 @@ func (a JavaScript) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found package.json at %s\n", fpath)
 
-	// 3) Check if `ecp-js` is installed.
+	// 3) Check if `js-compute-runtime` is installed.
 	//
-	// ecp-js is the JavaScript compiler. We first check if the required
-	// dependency exists in the package.json and then whether the ecp-js binary
-	// exists in the npm bin directory.
+	// js-compute-runtime is the JavaScript compiler. We first check if the
+	// required dependency exists in the package.json and then whether the
+	// js-compute-runtime binary exists in the npm bin directory.
 	fmt.Fprintf(out, "Checking if @fastly/js-compute is installed...\n")
 	if !checkPackageDependencyExists("@fastly/js-compute") {
 		return errors.RemediationError{
@@ -133,18 +134,18 @@ func (a JavaScript) Verify(out io.Writer) error {
 		}
 	}
 
-	path, err := exec.LookPath(filepath.Join(p, "ecp-js"))
+	path, err := exec.LookPath(filepath.Join(p, "js-compute-runtime"))
 	if err != nil {
-		return fmt.Errorf("getting ecp-js path: %w", err)
+		return fmt.Errorf("getting js-compute-runtime path: %w", err)
 	}
 	if !filesystem.FileExists(path) {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("`ecp-js` binary not found in %s", p),
+			Inner:       fmt.Errorf("`js-compute-runtime` binary not found in %s", p),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev @fastly/js-compute")),
 		}
 	}
 
-	fmt.Fprintf(out, "Found ecp-js at %s\n", path)
+	fmt.Fprintf(out, "Found js-compute-runtime at %s\n", path)
 
 	return nil
 }
@@ -174,7 +175,7 @@ func (a JavaScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	cmd := fstexec.Streaming{
-		Command: filepath.Join(npmdir, "ecp-js"),
+		Command: filepath.Join(npmdir, "js-compute-runtime"),
 		Args:    args,
 		Env:     []string{},
 		Output:  out,
