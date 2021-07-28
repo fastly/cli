@@ -198,10 +198,23 @@ type File struct {
 	Language        string      `toml:"language"`
 	ServiceID       string      `toml:"service_id"`
 	LocalServer     LocalServer `toml:"local_server"`
+	Setup           Setup       `toml:"setup"`
 
 	exists bool
 	output io.Writer
 }
+
+// Setup represents a set of service configuration that works with the code in
+// the package.
+type Setup struct {
+	Backends     []Mapper `toml:"backends"`
+	Dictionaries []Mapper `toml:"dictionaries"`
+	ACLs         []Mapper `toml:"acls"`
+	LogEndpoints []Mapper `toml:"log_endpoints"`
+}
+
+// Mapper represents a generic toml table.
+type Mapper map[string]interface{}
 
 // LocalServer represents a list of backends that should be mocked as per the
 // configuration values.
