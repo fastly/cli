@@ -127,6 +127,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Toolchain:   NewAssemblyScript(0),
 		}),
 		NewLanguage(&LanguageOptions{
+			Name:        "javascript",
+			DisplayName: "JavaScript (beta)",
+			StarterKits: c.Globals.File.StarterKits.JavaScript,
+			Toolchain:   NewJavaScript(0),
+		}),
+		NewLanguage(&LanguageOptions{
 			Name:        "other",
 			DisplayName: "Other ('bring your own' Wasm binary)",
 		}),

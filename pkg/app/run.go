@@ -256,12 +256,12 @@ func Run(opts RunOpts) error {
 	loggingHoneycombDescribe := honeycomb.NewDescribeCommand(loggingHoneycombCmdRoot.CmdClause, &globals)
 	loggingHoneycombList := honeycomb.NewListCommand(loggingHoneycombCmdRoot.CmdClause, &globals)
 	loggingHoneycombUpdate := honeycomb.NewUpdateCommand(loggingHoneycombCmdRoot.CmdClause, &globals)
-	loggingHttpsCmdRoot := https.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
-	loggingHttpsCreate := https.NewCreateCommand(loggingHttpsCmdRoot.CmdClause, &globals)
-	loggingHttpsDelete := https.NewDeleteCommand(loggingHttpsCmdRoot.CmdClause, &globals)
-	loggingHttpsDescribe := https.NewDescribeCommand(loggingHttpsCmdRoot.CmdClause, &globals)
-	loggingHttpsList := https.NewListCommand(loggingHttpsCmdRoot.CmdClause, &globals)
-	loggingHttpsUpdate := https.NewUpdateCommand(loggingHttpsCmdRoot.CmdClause, &globals)
+	loggingHTTPSCmdRoot := https.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingHTTPSCreate := https.NewCreateCommand(loggingHTTPSCmdRoot.CmdClause, &globals)
+	loggingHTTPSDelete := https.NewDeleteCommand(loggingHTTPSCmdRoot.CmdClause, &globals)
+	loggingHTTPSDescribe := https.NewDescribeCommand(loggingHTTPSCmdRoot.CmdClause, &globals)
+	loggingHTTPSList := https.NewListCommand(loggingHTTPSCmdRoot.CmdClause, &globals)
+	loggingHTTPSUpdate := https.NewUpdateCommand(loggingHTTPSCmdRoot.CmdClause, &globals)
 	loggingKafkaCmdRoot := kafka.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
 	loggingKafkaCreate := kafka.NewCreateCommand(loggingKafkaCmdRoot.CmdClause, &globals)
 	loggingKafkaDelete := kafka.NewDeleteCommand(loggingKafkaCmdRoot.CmdClause, &globals)
@@ -495,12 +495,12 @@ func Run(opts RunOpts) error {
 		loggingHoneycombDescribe,
 		loggingHoneycombList,
 		loggingHoneycombUpdate,
-		loggingHttpsCmdRoot,
-		loggingHttpsCreate,
-		loggingHttpsDelete,
-		loggingHttpsDescribe,
-		loggingHttpsList,
-		loggingHttpsUpdate,
+		loggingHTTPSCmdRoot,
+		loggingHTTPSCreate,
+		loggingHTTPSDelete,
+		loggingHTTPSDescribe,
+		loggingHTTPSList,
+		loggingHTTPSUpdate,
 		loggingKafkaCmdRoot,
 		loggingKafkaCreate,
 		loggingKafkaDelete,

@@ -305,9 +305,9 @@ func TestBuildRust(t *testing.T) {
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Copy: []testutil.FileIO{
-					{Src: filepath.Join("testdata", "build", "Cargo.lock"), Dst: "Cargo.lock"},
-					{Src: filepath.Join("testdata", "build", "Cargo.toml"), Dst: "Cargo.toml"},
-					{Src: filepath.Join("testdata", "build", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+					{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
+					{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
+					{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
 					{Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"), Dst: filepath.Join("pkg", "package.tar.gz")},
 				},
 				Write: []testutil.FileIO{
@@ -382,8 +382,8 @@ func TestBuildAssemblyScript(t *testing.T) {
 			fastlyManifest: `
 			manifest_version = 1
 			name = "test"
-			language = "javascript"`,
-			wantError: "unsupported language javascript",
+			language = "foobar"`,
+			wantError: "unsupported language foobar",
 		},
 		{
 			name: "AssemblyScript success",
@@ -407,8 +407,97 @@ func TestBuildAssemblyScript(t *testing.T) {
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Copy: []testutil.FileIO{
-					{Src: filepath.Join("testdata", "build", "package.json"), Dst: "package.json"},
-					{Src: filepath.Join("testdata", "build", "assembly", "index.ts"), Dst: filepath.Join("assembly", "index.ts")},
+					{Src: filepath.Join("testdata", "build", "assemblyscript", "package.json"), Dst: "package.json"},
+					{Src: filepath.Join("testdata", "build", "assemblyscript", "assembly", "index.ts"), Dst: filepath.Join("assembly", "index.ts")},
+				},
+				Write: []testutil.FileIO{
+					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
+				},
+				Exec: []string{"npm", "install"},
+			})
+			defer os.RemoveAll(rootdir)
+
+			// Before running the test, chdir into the build environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably copy the testdata/ fixtures.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(pwd)
+
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			err = app.Run(opts)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
+			if testcase.wantOutputContains != "" {
+				testutil.AssertStringContains(t, stdout.String(), testcase.wantOutputContains)
+			}
+		})
+	}
+}
+
+func TestBuildJavaScript(t *testing.T) {
+	args := testutil.Args
+	if os.Getenv("TEST_COMPUTE_BUILD_JAVASCRIPT") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_BUILD_JAVASCRIPT or TEST_COMPUTE_BUILD to run this test")
+	}
+
+	for _, testcase := range []struct {
+		name                 string
+		args                 []string
+		fastlyManifest       string
+		wantError            string
+		wantRemediationError string
+		wantOutputContains   string
+	}{
+		{
+			name:      "no fastly.toml manifest",
+			args:      args("compute build"),
+			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
+		},
+		{
+			name: "empty language",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 1
+			name = "test"`,
+			wantError: "language cannot be empty, please provide a language",
+		},
+		{
+			name: "empty name",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 1
+			language = "javascript"`,
+			wantError: "name cannot be empty, please provide a name",
+		},
+		{
+			name: "JavaScript success",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 1
+			name = "test"
+			language = "javascript"`,
+			wantOutputContains: "Built javascript package test",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			// We're going to chdir to a build environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "build", "javascript", "package.json"), Dst: "package.json"},
+					{Src: filepath.Join("testdata", "build", "javascript", "webpack.config.js"), Dst: "webpack.config.js"},
+					{Src: filepath.Join("testdata", "build", "javascript", "src", "index.js"), Dst: filepath.Join("src", "index.js")},
 				},
 				Write: []testutil.FileIO{
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
