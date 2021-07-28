@@ -128,7 +128,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "javascript",
-			DisplayName: "javascript (beta)",
+			DisplayName: "JavaScript (beta)",
 			StarterKits: c.Globals.File.StarterKits.JavaScript,
 			Toolchain:   NewJavaScript(0),
 		}),
