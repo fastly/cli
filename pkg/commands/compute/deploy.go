@@ -113,7 +113,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var (
 		domain         string
-		backend        Backend
+		backends       []Backend
 		invalidService bool
 		invalidType    invalidResource
 		version        *fastly.Version
@@ -135,14 +135,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 
-		backend, err = cfgBackend(c.Backend, out, in, validateBackend)
+		backends, err = configureBackends(c, backends, c.Manifest.File.Setup.Backends, out, in)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Backend":          c.Backend.Address,
-				"Backend port":     c.Backend.Port,
-				"Override host":    c.Backend.OverrideHost,
-				"SSL SNI hostname": c.Backend.SSLSNIHostname,
-			})
 			return err
 		}
 
@@ -185,10 +179,18 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// `validateservice` will be able to shadow `invalidType`.
 		var ok bool
 
+		// We require at least one backend but if the project fastly.toml contains
+		// a [setup] with backends defined, then we'll use that as our requirement.
+		defaultRequiredBackends := 1
+		definedBackends := len(c.Manifest.File.Setup.Backends)
+		if definedBackends > 0 {
+			defaultRequiredBackends = definedBackends
+		}
+
 		// Because a service_id exists in the fastly.toml doesn't mean it's valid
 		// e.g. it could be missing either a domain or backend resource. So we
 		// check and allow the user to configure these settings before continuing.
-		ok, invalidType, err = validateService(serviceID, c.Globals.Client, version)
+		ok, invalidType, err = validateService(serviceID, c.Globals.Client, version, defaultRequiredBackends)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Service ID":      serviceID,
@@ -200,7 +202,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if !ok {
 			invalidService = true
 
-			text.Output(out, "Service '%s' is missing required domain or backend. These must be added before the Compute@Edge service can be deployed.", serviceID)
+			text.Output(out, "Service '%s' is missing required domain or backend(s). These must be added before the Compute@Edge service can be deployed.", serviceID)
 			text.Break(out)
 
 			switch invalidType {
@@ -213,14 +215,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					})
 					return err
 				}
-				backend, err = cfgBackend(c.Backend, out, in, validateBackend)
+				backends, err = configureBackends(c, backends, c.Manifest.File.Setup.Backends, out, in)
 				if err != nil {
-					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Backend":          c.Backend.Address,
-						"Backend port":     c.Backend.Port,
-						"Override host":    c.Backend.OverrideHost,
-						"SSL SNI hostname": c.Backend.SSLSNIHostname,
-					})
 					return err
 				}
 			case resourceDomain:
@@ -233,14 +229,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					return err
 				}
 			case resourceBackend:
-				backend, err = cfgBackend(c.Backend, out, in, validateBackend)
+				backends, err = configureBackends(c, backends, c.Manifest.File.Setup.Backends, out, in)
 				if err != nil {
-					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Backend":          c.Backend.Address,
-						"Backend port":     c.Backend.Port,
-						"Override host":    c.Backend.OverrideHost,
-						"SSL SNI hostname": c.Backend.SSLSNIHostname,
-					})
 					return err
 				}
 			}
@@ -272,7 +262,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if sidSrc == manifest.SourceUndefined {
 		// There is no service and so we'll do a one time creation of the service
-		// and the associated domain/backend and store the Service ID within the
+		// and the associated domain/backend(s) and store the Service ID within the
 		// manifest. On subsequent runs of the deploy subcommand we'll skip the
 		// service/domain/backend creation.
 		//
@@ -311,18 +301,22 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			})
 			return err
 		}
-		err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Backend":          backend.Address,
-				"Backend port":     backend.Port,
-				"Override host":    backend.OverrideHost,
-				"SSL SNI hostname": backend.SSLSNIHostname,
-				"Service ID":       serviceID,
-				"Service Version":  version.Number,
-			})
-			return err
+
+		for _, backend := range backends {
+			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
+			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"Backend":          backend.Address,
+					"Backend port":     backend.Port,
+					"Override host":    backend.OverrideHost,
+					"SSL SNI hostname": backend.SSLSNIHostname,
+					"Service ID":       serviceID,
+					"Service Version":  version.Number,
+				})
+				return err
+			}
 		}
+
 		err = updateManifestServiceID(&c.Manifest.File, manifest.Filename, progress, serviceID)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -347,17 +341,19 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				})
 				return err
 			}
-			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
-			if err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Backend":          backend.Address,
-					"Backend port":     backend.Port,
-					"Override host":    backend.OverrideHost,
-					"SSL SNI hostname": backend.SSLSNIHostname,
-					"Service ID":       serviceID,
-					"Service Version":  version.Number,
-				})
-				return err
+			for _, backend := range backends {
+				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
+				if err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+						"Backend":          backend.Address,
+						"Backend port":     backend.Port,
+						"Override host":    backend.OverrideHost,
+						"SSL SNI hostname": backend.SSLSNIHostname,
+						"Service ID":       serviceID,
+						"Service Version":  version.Number,
+					})
+					return err
+				}
 			}
 		case resourceDomain:
 			err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
@@ -370,17 +366,19 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				return err
 			}
 		case resourceBackend:
-			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
-			if err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Backend":          backend.Address,
-					"Backend port":     backend.Port,
-					"Override host":    backend.OverrideHost,
-					"SSL SNI hostname": backend.SSLSNIHostname,
-					"Service ID":       serviceID,
-					"Service Version":  version.Number,
-				})
-				return err
+			for _, backend := range backends {
+				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
+				if err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+						"Backend":          backend.Address,
+						"Backend port":     backend.Port,
+						"Override host":    backend.OverrideHost,
+						"SSL SNI hostname": backend.SSLSNIHostname,
+						"Service ID":       serviceID,
+						"Service Version":  version.Number,
+					})
+					return err
+				}
 			}
 		}
 	}
@@ -452,6 +450,36 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	return nil
 }
 
+// configureBackends determines whether multiple backends need to be configured
+// or a singular backend based on existence of the fastly.toml [setup] table.
+func configureBackends(c *DeployCommand, bs []Backend, predefinedBackends []manifest.Mapper, out io.Writer, in io.Reader) ([]Backend, error) {
+	if len(predefinedBackends) > 0 {
+		for _, backend := range predefinedBackends {
+			b, err := cfgSetupBackend(backend, out, in, validateBackend)
+			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"Backends (predefined)": predefinedBackends,
+				})
+				return nil, err
+			}
+			bs = append(bs, b)
+		}
+	} else {
+		backend, err := cfgBackend(c.Backend, out, in, validateBackend)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Backend":          c.Backend.Address,
+				"Backend port":     c.Backend.Port,
+				"Override host":    c.Backend.OverrideHost,
+				"SSL SNI hostname": c.Backend.SSLSNIHostname,
+			})
+			return nil, err
+		}
+		bs = append(bs, backend)
+	}
+	return bs, nil
+}
+
 // pkgPath generates a path that points to a package tar inside the pkg
 // directory if the `path` flag was not set by the user.
 func pkgPath(path string, name string, source manifest.Source) (string, error) {
@@ -476,7 +504,7 @@ func pkgPath(path string, name string, source manifest.Source) (string, error) {
 // The use of `resourceNone` as a `invalidResource` enum type is to represent a
 // situation where an error occurred and so we were unable to identify whether
 // a domain or backend (or both) were missing from the given service.
-func validateService(serviceID string, client api.Interface, version *fastly.Version) (bool, invalidResource, error) {
+func validateService(serviceID string, client api.Interface, version *fastly.Version, requiredBackends int) (bool, invalidResource, error) {
 	err := checkServiceID(serviceID, client, version)
 	if err != nil {
 		return false, resourceNone, err
@@ -501,13 +529,13 @@ func validateService(serviceID string, client api.Interface, version *fastly.Ver
 	ld := len(domains)
 	lb := len(backends)
 
-	if ld == 0 && lb == 0 {
+	if ld == 0 && lb < requiredBackends {
 		return false, resourceBoth, nil
 	}
 	if ld == 0 {
 		return false, resourceDomain, nil
 	}
-	if lb == 0 {
+	if lb < requiredBackends {
 		return false, resourceBackend, nil
 	}
 
@@ -637,7 +665,99 @@ func cfgDomain(domain string, def string, out io.Writer, in io.Reader, f validat
 	return domain, nil
 }
 
-// cfgBackend configures the backend address and its port number values.
+// cfgSetupBackend configures the backend address and its port number values
+// with values provided by the fastly.toml [setup] configuration.
+func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v validator) (Backend, error) {
+	var (
+		b      Backend
+		err    error
+		name   string
+		prompt string
+		addr   string
+		port   uint
+		ok     bool
+	)
+
+	innerErr := fmt.Errorf("error parsing the [[setup.backends]] configuration")
+	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field."
+
+	name, ok = backend["name"].(string)
+	if !ok || name == "" {
+		return b, errors.RemediationError{
+			Inner:       innerErr,
+			Remediation: fmt.Sprintf(remediation, "name"),
+		}
+	}
+
+	prompt, ok = backend["prompt"].(string)
+	if !ok {
+		return b, errors.RemediationError{
+			Inner:       innerErr,
+			Remediation: fmt.Sprintf(remediation, "prompt"),
+		}
+	}
+	// If not prompt text is provided by the [setup] configuration, then we'll
+	// default to using the name of the backend as the prompt text.
+	if prompt == "" {
+		prompt = fmt.Sprintf("Origin server for '%s'", name)
+	}
+
+	addr, ok = backend["address"].(string)
+	if !ok {
+		return b, errors.RemediationError{
+			Inner:       innerErr,
+			Remediation: fmt.Sprintf(remediation, "address"),
+		}
+	}
+	defaultAddr := ""
+	if addr != "" {
+		defaultAddr = fmt.Sprintf(": [%s]", addr)
+	}
+
+	port, ok = backend["port"].(uint)
+	if !ok {
+		return b, errors.RemediationError{
+			Inner:       innerErr,
+			Remediation: fmt.Sprintf(remediation, "port"),
+		}
+	}
+	if port == 0 {
+		port = 80
+	}
+
+	b.Address, err = text.Input(out, fmt.Sprintf("%s%s ", prompt, defaultAddr), in, v)
+	if err != nil {
+		return b, fmt.Errorf("error reading input %w", err)
+	}
+
+	input, err := text.Input(out, fmt.Sprintf("Backend port number: [%d] ", port), in)
+	if err != nil {
+		return b, fmt.Errorf("error reading input %w", err)
+	}
+	if input != "" {
+		portnumber, err := strconv.Atoi(input)
+		if err != nil {
+			text.Warning(out, fmt.Sprintf("error converting input, using default port number (%d)", port))
+		}
+		port = uint(portnumber)
+	}
+	b.Port = port
+
+	// Default setting the override_host property of the Backend VCL object to
+	// the hostname unless the given input is an IP.
+	b.OverrideHost = b.Address
+	if _, err := net.LookupAddr(b.Address); err == nil {
+		b.OverrideHost = ""
+	}
+
+	return b, nil
+}
+
+// cfgBackend configures the backend address and its port number values based
+// on prompted input from the user.
+//
+// NOTE: If the backend address or port has been set via a flag, then skip
+// prompting the user for that information.
 func cfgBackend(backend Backend, out io.Writer, in io.Reader, f validator) (Backend, error) {
 	if backend.Address == "" {
 		var err error

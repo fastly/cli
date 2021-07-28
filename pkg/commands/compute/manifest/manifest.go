@@ -205,12 +205,9 @@ type File struct {
 }
 
 // Setup represents a set of service configuration that works with the code in
-// the package.
+// the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
-	Backends     []Mapper `toml:"backends"`
-	Dictionaries []Mapper `toml:"dictionaries"`
-	ACLs         []Mapper `toml:"acls"`
-	LogEndpoints []Mapper `toml:"log_endpoints"`
+	Backends []Mapper `toml:"backends"`
 }
 
 // Mapper represents a generic toml table.
