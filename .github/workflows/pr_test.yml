@@ -82,7 +82,7 @@ jobs:
       - name: Pull config
         run: make config
       - name: Test
-        run: make test
+        run: make test TESTARGS="-v -run TestPublish ./pkg/commands/compute"
         shell: bash
         env:
           TEST_COMPUTE_INIT: true
