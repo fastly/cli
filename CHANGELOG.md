@@ -1,5 +1,23 @@
 # Changelog
 
+## [v0.35.0](https://github.com/fastly/cli/releases/tag/v0.35.0) (2021-07-29)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.34.0...v0.35.0)
+
+**Enhancements:**
+
+- Support for Compute@Edge JS SDK (Beta) [#347](https://gthu.com/fastly/cli/pull/347)
+- Implement `--override-host` and `--ssl-sni-hostname` [#352](https://github.com/fastly/cli/pull/352)
+- Implement `acl` command [#350](https://github.com/fastly/cli/pull/350)
+- Implement `acl-entry` command [#351](https://github.com/fastly/cli/pull/351)
+- Separate command files from other logic files [#349](https://github.com/fastly/cli/pull/349)
+- Log a record of errors to disk [#340](https://github.com/fastly/cli/pull/340)
+
+**Bug fixes:**
+
+- Fix nondeterministic flag parsing [#353](https://github.com/fastly/cli/pull/353)
+- Fix `compute serve --addr` description to reference port requirement [#348](https://github.com/fastly/cli/pull/348)
+
 ## [v0.34.0](https://github.com/fastly/cli/releases/tag/v0.34.0) (2021-07-16)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.33.0...v0.34.0)
