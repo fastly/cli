@@ -39,6 +39,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/logentries"
 	"github.com/fastly/cli/pkg/commands/logging/loggly"
 	"github.com/fastly/cli/pkg/commands/logging/logshuttle"
+	"github.com/fastly/cli/pkg/commands/logging/newrelic"
 	"github.com/fastly/cli/pkg/commands/logging/openstack"
 	"github.com/fastly/cli/pkg/commands/logging/papertrail"
 	"github.com/fastly/cli/pkg/commands/logging/s3"
@@ -299,6 +300,12 @@ func Run(opts RunOpts) error {
 	loggingLogshuttleDescribe := logshuttle.NewDescribeCommand(loggingLogshuttleCmdRoot.CmdClause, &globals)
 	loggingLogshuttleList := logshuttle.NewListCommand(loggingLogshuttleCmdRoot.CmdClause, &globals)
 	loggingLogshuttleUpdate := logshuttle.NewUpdateCommand(loggingLogshuttleCmdRoot.CmdClause, &globals)
+	loggingNewRelicCmdRoot := newrelic.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
+	loggingNewRelicCreate := newrelic.NewCreateCommand(loggingNewRelicCmdRoot.CmdClause, &globals)
+	loggingNewRelicDelete := newrelic.NewDeleteCommand(loggingNewRelicCmdRoot.CmdClause, &globals)
+	loggingNewRelicDescribe := newrelic.NewDescribeCommand(loggingNewRelicCmdRoot.CmdClause, &globals)
+	loggingNewRelicList := newrelic.NewListCommand(loggingNewRelicCmdRoot.CmdClause, &globals)
+	loggingNewRelicUpdate := newrelic.NewUpdateCommand(loggingNewRelicCmdRoot.CmdClause, &globals)
 	loggingOpenstackCmdRoot := openstack.NewRootCommand(loggingCmdRoot.CmdClause, &globals)
 	loggingOpenstackCreate := openstack.NewCreateCommand(loggingOpenstackCmdRoot.CmdClause, &globals)
 	loggingOpenstackDelete := openstack.NewDeleteCommand(loggingOpenstackCmdRoot.CmdClause, &globals)
@@ -544,6 +551,12 @@ func Run(opts RunOpts) error {
 		loggingLogshuttleDescribe,
 		loggingLogshuttleList,
 		loggingLogshuttleUpdate,
+		loggingNewRelicCmdRoot,
+		loggingNewRelicCreate,
+		loggingNewRelicDelete,
+		loggingNewRelicDescribe,
+		loggingNewRelicList,
+		loggingNewRelicUpdate,
 		loggingOpenstackCmdRoot,
 		loggingOpenstackCreate,
 		loggingOpenstackDelete,
