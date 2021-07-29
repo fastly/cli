@@ -696,7 +696,7 @@ func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v val
 			Remediation: fmt.Sprintf(remediation, "prompt"),
 		}
 	}
-	// If not prompt text is provided by the [setup] configuration, then we'll
+	// If no prompt text is provided by the [setup] configuration, then we'll
 	// default to using the name of the backend as the prompt text.
 	if prompt == "" {
 		prompt = fmt.Sprintf("Origin server for '%s'", name)
@@ -714,13 +714,14 @@ func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v val
 		defaultAddr = fmt.Sprintf(": [%s]", addr)
 	}
 
-	port, ok = backend["port"].(uint)
+	portnumber, ok := backend["port"].(int64)
 	if !ok {
 		return b, errors.RemediationError{
 			Inner:       innerErr,
 			Remediation: fmt.Sprintf(remediation, "port"),
 		}
 	}
+	port = uint(portnumber)
 	if port == 0 {
 		port = 80
 	}
@@ -822,7 +823,7 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 // createBackend creates the given domain and handle unrolling the stack in case
 // of an error (i.e. will ensure the backend is deleted if there is an error).
 func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend Backend, undoStack undo.Stacker) error {
-	progress.Step("Creating backend...")
+	progress.Step(fmt.Sprintf("Creating backend %s...", backend.Address))
 
 	undoStack.Push(func() error {
 		return client.DeleteBackend(&fastly.DeleteBackendInput{

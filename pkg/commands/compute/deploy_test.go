@@ -213,14 +213,10 @@ func TestDeploy(t *testing.T) {
 				"Creating domain...",
 			},
 		},
-		// The following test mocks the backend API call to fail, and we expect to
-		// see a relevant error message related to that error.
-		//
 		// The following test doesn't provide a Service ID by either a flag nor the
 		// manifest, so this will result in the deploy script attempting to create
 		// a new service. We mock the service creation to be successful while we
-		// mock the backend API call to fail, and we expect to see a relevant error
-		// message related to that error.
+		// mock the backend API call to fail.
 		{
 			name: "service backend error",
 			args: args("compute deploy --token 123"),
@@ -444,6 +440,59 @@ func TestDeploy(t *testing.T) {
 				CreateBackendFn:   createBackendExpect("host.com", 80, "", "anotherhost.com"),
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+			},
+		},
+		// The following test doesn't provide a Service ID by either a flag nor the
+		// manifest, so this will result in the deploy script attempting to create
+		// a new service. Our fastly.toml is configured with a [setup] section so
+		// we expect to see the appropriate messaging in the output.
+		{
+			name: "success with setup configuration",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				GetServiceFn:      getServiceOK,
+				CreateServiceFn:   createServiceOK,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				DeleteBackendFn:   deleteBackendOK,
+				DeleteDomainFn:    deleteDomainOK,
+				DeleteServiceFn:   deleteServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 1
+			language = "rust"
+
+			[setup]
+				[[setup.backends]]
+					name = "backend_name"
+					prompt = "Backend 1"
+					address = "developer.fastly.com"
+					port = 443
+				[[setup.backends]]
+					name = "other_backend_name"
+					prompt = "Backend 2"
+					address = "httpbin.org"
+					port = 443
+			`,
+			wantOutput: []string{
+				"Initializing...",
+				"Creating service...",
+				"Creating domain...",
+
+				// NOTE: The actual running code would display the backend.Address
+				// contents after "Creating backend" but because we can't provide an
+				// io.Reader that contains mocked input from the user, it means the
+				// value shows as empty here.
+				"Creating backend ...",
+
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
 	} {
