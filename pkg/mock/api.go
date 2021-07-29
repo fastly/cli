@@ -246,6 +246,13 @@ type API struct {
 	GetACLFn    func(i *fastly.GetACLInput) (*fastly.ACL, error)
 	ListACLsFn  func(i *fastly.ListACLsInput) ([]*fastly.ACL, error)
 	UpdateACLFn func(i *fastly.UpdateACLInput) (*fastly.ACL, error)
+
+	CreateACLEntryFn        func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error)
+	DeleteACLEntryFn        func(i *fastly.DeleteACLEntryInput) error
+	GetACLEntryFn           func(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error)
+	ListACLEntriesFn        func(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error)
+	UpdateACLEntryFn        func(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error)
+	BatchModifyACLEntriesFn func(i *fastly.BatchModifyACLEntriesInput) error
 }
 
 // AllDatacenters implements Interface.
@@ -1231,4 +1238,34 @@ func (m API) ListACLs(i *fastly.ListACLsInput) ([]*fastly.ACL, error) {
 // UpdateACL implements Interface.
 func (m API) UpdateACL(i *fastly.UpdateACLInput) (*fastly.ACL, error) {
 	return m.UpdateACLFn(i)
+}
+
+// CreateACLEntry implements Interface.
+func (m API) CreateACLEntry(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
+	return m.CreateACLEntryFn(i)
+}
+
+// DeleteACLEntry implements Interface.
+func (m API) DeleteACLEntry(i *fastly.DeleteACLEntryInput) error {
+	return m.DeleteACLEntryFn(i)
+}
+
+// GetACLEntry implements Interface.
+func (m API) GetACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
+	return m.GetACLEntryFn(i)
+}
+
+// ListACLEntries implements Interface.
+func (m API) ListACLEntries(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error) {
+	return m.ListACLEntriesFn(i)
+}
+
+// UpdateACLEntry implements Interface.
+func (m API) UpdateACLEntry(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error) {
+	return m.UpdateACLEntryFn(i)
+}
+
+// BatchModifyACLEntries implements Interface.
+func (m API) BatchModifyACLEntries(i *fastly.BatchModifyACLEntriesInput) error {
+	return m.BatchModifyACLEntriesFn(i)
 }

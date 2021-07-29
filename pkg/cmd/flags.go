@@ -166,9 +166,8 @@ func GetSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version,
 	return nil, fmt.Errorf("specified service version not found: %s", version)
 }
 
-// Content determines if the given flag value for --content is a file path,
-// and if so read the contents from disk, otherwise presume the given value is
-// the content.
+// Content determines if the given flag value is a file path, and if so read
+// the contents from disk, otherwise presume the given value is the content.
 func Content(flagval string) string {
 	content := flagval
 	if path, err := filepath.Abs(flagval); err == nil {

@@ -174,7 +174,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "snippet.vcl", content, t)
+			testutil.AssertPathContentFlag("content", testcase.WantError, testcase.Args, "snippet.vcl", content, t)
 		})
 	}
 }
@@ -535,7 +535,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-			testutil.AssertContentFlag(testcase.WantError, testcase.Args, "snippet.vcl", content, t)
+			testutil.AssertPathContentFlag("content", testcase.WantError, testcase.Args, "snippet.vcl", content, t)
 		})
 	}
 }

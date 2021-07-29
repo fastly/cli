@@ -255,6 +255,13 @@ type Interface interface {
 	GetACL(i *fastly.GetACLInput) (*fastly.ACL, error)
 	ListACLs(i *fastly.ListACLsInput) ([]*fastly.ACL, error)
 	UpdateACL(i *fastly.UpdateACLInput) (*fastly.ACL, error)
+
+	CreateACLEntry(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error)
+	DeleteACLEntry(i *fastly.DeleteACLEntryInput) error
+	GetACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error)
+	ListACLEntries(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error)
+	UpdateACLEntry(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error)
+	BatchModifyACLEntries(i *fastly.BatchModifyACLEntriesInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
