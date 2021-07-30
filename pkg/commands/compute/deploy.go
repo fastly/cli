@@ -51,10 +51,12 @@ type DeployCommand struct {
 
 // Backend represents the configuration parameters for a backend
 type Backend struct {
+	Name           string
 	Address        string
 	OverrideHost   string
 	Port           uint
 	SSLSNIHostname string
+	SetupConfig    bool
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -74,6 +76,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 		Optional: true,
 	})
 	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.Backend.Address)
+	c.CmdClause.Flag("backend-name", "The name of the backend (defaults to BACKEND)").StringVar(&c.Backend.Name)
 	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.Backend.Port)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
@@ -667,33 +670,39 @@ func cfgDomain(domain string, def string, out io.Writer, in io.Reader, f validat
 
 // cfgSetupBackend configures the backend address and its port number values
 // with values provided by the fastly.toml [setup] configuration.
+//
+// NOTE: We expect there to always be a 'name' field for a backend as this is
+// what will be referenced in a Compute@Edge starter kit.
 func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v validator) (Backend, error) {
 	var (
-		b      Backend
-		err    error
-		name   string
-		prompt string
-		addr   string
-		port   uint
-		ok     bool
+		addr       string
+		b          Backend
+		err        error
+		name       string
+		ok         bool
+		port       uint
+		portnumber int64
+		prompt     string
 	)
+
+	b.SetupConfig = true
 
 	innerErr := fmt.Errorf("error parsing the [[setup.backends]] configuration")
 	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field."
 
+	if _, ok = backend["name"]; !ok {
+		return b, backendRemediationError("name", remediation, innerErr)
+	}
 	name, ok = backend["name"].(string)
 	if !ok || name == "" {
-		return b, errors.RemediationError{
-			Inner:       innerErr,
-			Remediation: fmt.Sprintf(remediation, "name"),
-		}
+		return b, backendRemediationError("name", remediation, innerErr)
 	}
+	b.Name = name
 
-	prompt, ok = backend["prompt"].(string)
-	if !ok {
-		return b, errors.RemediationError{
-			Inner:       innerErr,
-			Remediation: fmt.Sprintf(remediation, "prompt"),
+	if _, ok := backend["prompt"]; ok {
+		prompt, ok = backend["prompt"].(string)
+		if !ok {
+			return b, backendRemediationError("prompt", remediation, innerErr)
 		}
 	}
 	// If no prompt text is provided by the [setup] configuration, then we'll
@@ -702,11 +711,10 @@ func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v val
 		prompt = fmt.Sprintf("Origin server for '%s'", name)
 	}
 
-	addr, ok = backend["address"].(string)
-	if !ok {
-		return b, errors.RemediationError{
-			Inner:       innerErr,
-			Remediation: fmt.Sprintf(remediation, "address"),
+	if _, ok = backend["address"]; ok {
+		addr, ok = backend["address"].(string)
+		if !ok {
+			return b, backendRemediationError("address", remediation, innerErr)
 		}
 	}
 	defaultAddr := ""
@@ -714,11 +722,10 @@ func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v val
 		defaultAddr = fmt.Sprintf(": [%s]", addr)
 	}
 
-	portnumber, ok := backend["port"].(int64)
-	if !ok {
-		return b, errors.RemediationError{
-			Inner:       innerErr,
-			Remediation: fmt.Sprintf(remediation, "port"),
+	if _, ok = backend["port"]; ok {
+		portnumber, ok = backend["port"].(int64)
+		if !ok {
+			return b, backendRemediationError("port", remediation, innerErr)
 		}
 	}
 	port = uint(portnumber)
@@ -729,6 +736,9 @@ func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v val
 	b.Address, err = text.Input(out, fmt.Sprintf("%s%s ", prompt, defaultAddr), in, v)
 	if err != nil {
 		return b, fmt.Errorf("error reading input %w", err)
+	}
+	if b.Address == "" {
+		b.Address = addr
 	}
 
 	input, err := text.Input(out, fmt.Sprintf("Backend port number: [%d] ", port), in)
@@ -752,6 +762,15 @@ func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v val
 	}
 
 	return b, nil
+}
+
+// backendRemediationError reduces the boilerplate of serving a remediation
+// error whose only difference is the field it applies to.
+func backendRemediationError(field string, remediation string, err error) error {
+	return errors.RemediationError{
+		Inner:       err,
+		Remediation: fmt.Sprintf(remediation, field),
+	}
 }
 
 // cfgBackend configures the backend address and its port number values based
@@ -792,6 +811,10 @@ func cfgBackend(backend Backend, out io.Writer, in io.Reader, f validator) (Back
 		backend.Port = uint(portnumber)
 	}
 
+	if backend.Name == "" {
+		backend.Name = backend.Address
+	}
+
 	return backend, nil
 }
 
@@ -823,7 +846,11 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 // createBackend creates the given domain and handle unrolling the stack in case
 // of an error (i.e. will ensure the backend is deleted if there is an error).
 func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend Backend, undoStack undo.Stacker) error {
-	progress.Step(fmt.Sprintf("Creating backend '%s'...", backend.Address))
+	display := ""
+	if backend.SetupConfig {
+		display = fmt.Sprintf(" '%s'", backend.Address)
+	}
+	progress.Step(fmt.Sprintf("Creating backend%s...", display))
 
 	undoStack.Push(func() error {
 		return client.DeleteBackend(&fastly.DeleteBackendInput{
@@ -836,7 +863,7 @@ func createBackend(progress text.Progress, client api.Interface, serviceID strin
 	_, err := client.CreateBackend(&fastly.CreateBackendInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
-		Name:           backend.Address,
+		Name:           backend.Name,
 		Address:        backend.Address,
 		Port:           backend.Port,
 		OverrideHost:   backend.OverrideHost,

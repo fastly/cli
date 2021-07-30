@@ -233,7 +233,7 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Creating service...",
 				"Creating domain...",
-				"Creating backend '127.0.0.1'...",
+				"Creating backend...",
 			},
 		},
 		// The following test validates that the undoStack is executed as expected
@@ -483,13 +483,8 @@ func TestDeploy(t *testing.T) {
 				"Initializing...",
 				"Creating service...",
 				"Creating domain...",
-
-				// NOTE: The actual running code would display the backend.Address
-				// contents after "Creating backend" but because we can't provide an
-				// io.Reader that contains mocked input from the user, it means the
-				// value shows as empty here.
-				"Creating backend ''...",
-
+				"Creating backend 'developer.fastly.com'...",
+				"Creating backend 'httpbin.org'...",
 				"Uploading package...",
 				"Activating version...",
 				"SUCCESS: Deployed package (service 12345, version 1)",

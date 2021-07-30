@@ -197,8 +197,8 @@ type File struct {
 	Authors         []string    `toml:"authors"`
 	Language        string      `toml:"language"`
 	ServiceID       string      `toml:"service_id"`
-	LocalServer     LocalServer `toml:"local_server"`
-	Setup           Setup       `toml:"setup"`
+	LocalServer     LocalServer `toml:"local_server,omitempty"`
+	Setup           Setup       `toml:"setup,omitempty"`
 
 	exists bool
 	output io.Writer
