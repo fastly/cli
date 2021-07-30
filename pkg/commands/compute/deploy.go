@@ -41,11 +41,12 @@ type DeployCommand struct {
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
-	Manifest       manifest.Data
-	Path           string
-	Domain         string
+	AcceptDefaults bool
 	Backend        Backend
 	Comment        cmd.OptionalString
+	Domain         string
+	Manifest       manifest.Data
+	Path           string
 	ServiceVersion cmd.OptionalServiceVersion
 }
 
@@ -75,14 +76,10 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 		Dst:      &c.ServiceVersion.Value,
 		Optional: true,
 	})
-	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").StringVar(&c.Backend.Address)
-	c.CmdClause.Flag("backend-name", "The name of the backend (defaults to BACKEND)").StringVar(&c.Backend.Name)
-	c.CmdClause.Flag("backend-port", "A port number for the package backend").UintVar(&c.Backend.Port)
+	c.CmdClause.Flag("accept-defaults", "Accept default configuration from [setup]").BoolVar(&c.AcceptDefaults)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
-	c.CmdClause.Flag("override-host", "The hostname to override the Host header").StringVar(&c.Backend.OverrideHost)
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
-	c.CmdClause.Flag("ssl-sni-hostname", "The hostname to use at the start of the TLS handshake").StringVar(&c.Backend.SSLSNIHostname)
 	return &c
 }
 
@@ -129,17 +126,17 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Output(out, "Press ^C at any time to quit.")
 		text.Break(out)
 
+		backends, err = configureBackends(c, backends, c.Manifest.File.Setup.Backends, out, in)
+		if err != nil {
+			return err
+		}
+
 		domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Domain":           c.Domain,
 				"Domain (default)": defaultTopLevelDomain,
 			})
-			return err
-		}
-
-		backends, err = configureBackends(c, backends, c.Manifest.File.Setup.Backends, out, in)
-		if err != nil {
 			return err
 		}
 
@@ -309,12 +306,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Backend":          backend.Address,
-					"Backend port":     backend.Port,
-					"Override host":    backend.OverrideHost,
-					"SSL SNI hostname": backend.SSLSNIHostname,
-					"Service ID":       serviceID,
-					"Service Version":  version.Number,
+					"Accept defaults": c.AcceptDefaults,
+					"Service ID":      serviceID,
+					"Service Version": version.Number,
 				})
 				return err
 			}
@@ -348,12 +342,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Backend":          backend.Address,
-						"Backend port":     backend.Port,
-						"Override host":    backend.OverrideHost,
-						"SSL SNI hostname": backend.SSLSNIHostname,
-						"Service ID":       serviceID,
-						"Service Version":  version.Number,
+						"Accept defaults": c.AcceptDefaults,
+						"Service ID":      serviceID,
+						"Service Version": version.Number,
 					})
 					return err
 				}
@@ -373,12 +364,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Backend":          backend.Address,
-						"Backend port":     backend.Port,
-						"Override host":    backend.OverrideHost,
-						"SSL SNI hostname": backend.SSLSNIHostname,
-						"Service ID":       serviceID,
-						"Service Version":  version.Number,
+						"Accept defaults": c.AcceptDefaults,
+						"Service ID":      serviceID,
+						"Service Version": version.Number,
 					})
 					return err
 				}
@@ -458,7 +446,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 func configureBackends(c *DeployCommand, bs []Backend, predefinedBackends []manifest.Mapper, out io.Writer, in io.Reader) ([]Backend, error) {
 	if len(predefinedBackends) > 0 {
 		for _, backend := range predefinedBackends {
-			b, err := cfgSetupBackend(backend, out, in, validateBackend)
+			b, err := cfgSetupBackend(backend, c, out, in, validateBackend)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 					"Backends (predefined)": predefinedBackends,
@@ -468,17 +456,14 @@ func configureBackends(c *DeployCommand, bs []Backend, predefinedBackends []mani
 			bs = append(bs, b)
 		}
 	} else {
-		backend, err := cfgBackend(c.Backend, out, in, validateBackend)
+		backends, err := cfgBackends(c, out, in, validateBackend)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Backend":          c.Backend.Address,
-				"Backend port":     c.Backend.Port,
-				"Override host":    c.Backend.OverrideHost,
-				"SSL SNI hostname": c.Backend.SSLSNIHostname,
+				"Accept defaults": c.AcceptDefaults,
 			})
 			return nil, err
 		}
-		bs = append(bs, backend)
+		bs = append(bs, backends...)
 	}
 	return bs, nil
 }
@@ -673,7 +658,7 @@ func cfgDomain(domain string, def string, out io.Writer, in io.Reader, f validat
 //
 // NOTE: We expect there to always be a 'name' field for a backend as this is
 // what will be referenced in a Compute@Edge starter kit.
-func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v validator) (Backend, error) {
+func cfgSetupBackend(backend manifest.Mapper, c *DeployCommand, out io.Writer, in io.Reader, v validator) (Backend, error) {
 	var (
 		addr   string
 		b      Backend
@@ -732,33 +717,34 @@ func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v val
 		port = 80
 	}
 
-	b.Address, err = text.Input(out, fmt.Sprintf("%s%s ", prompt, defaultAddr), in, v)
-	if err != nil {
-		return b, fmt.Errorf("error reading input %w", err)
+	// PROMPT USER INTERACTIVELY...
+
+	if !c.AcceptDefaults {
+		b.Address, err = text.Input(out, fmt.Sprintf("%s%s ", prompt, defaultAddr), in, v)
+		if err != nil {
+			return b, fmt.Errorf("error reading input %w", err)
+		}
 	}
 	if b.Address == "" {
 		b.Address = addr
 	}
 
-	input, err := text.Input(out, fmt.Sprintf("Backend port number: [%d] ", port), in)
-	if err != nil {
-		return b, fmt.Errorf("error reading input %w", err)
-	}
-	if input != "" {
-		i, err := strconv.Atoi(input)
+	if !c.AcceptDefaults {
+		input, err := text.Input(out, fmt.Sprintf("Backend port number: [%d] ", port), in)
 		if err != nil {
-			text.Warning(out, fmt.Sprintf("error converting input, using default port number (%d)", port))
+			return b, fmt.Errorf("error reading input %w", err)
 		}
-		port = uint(i)
+		if input != "" {
+			i, err := strconv.Atoi(input)
+			if err != nil {
+				text.Warning(out, fmt.Sprintf("error converting input, using default port number (%d)", port))
+			}
+			port = uint(i)
+		}
 	}
 	b.Port = port
 
-	// Default setting the override_host property of the Backend VCL object to
-	// the hostname unless the given input is an IP.
-	b.OverrideHost = b.Address
-	if _, err := net.LookupAddr(b.Address); err == nil {
-		b.OverrideHost = ""
-	}
+	setBackendHost(&b)
 
 	return b, nil
 }
@@ -772,30 +758,48 @@ func backendRemediationError(field string, remediation string, err error) error 
 	}
 }
 
-// cfgBackend configures the backend address and its port number values based
-// on prompted input from the user.
+// cfgBackends configures multiple backends based on prompted input from the user.
 //
-// NOTE: If the backend address or port has been set via a flag, then skip
-// prompting the user for that information.
-func cfgBackend(backend Backend, out io.Writer, in io.Reader, f validator) (Backend, error) {
-	if backend.Address == "" {
-		var err error
-		backend.Address, err = text.Input(out, "Backend (originless, hostname or IP address): [originless] ", in, f)
+// NOTE: If `--accept-defaults` is set, then create a single "originless" backend.
+func cfgBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (backends []Backend, err error) {
+	if c.AcceptDefaults {
+		var backend Backend
+		backend.Name = "originless"
+		backend.Address = "127.0.0.1"
+		backend.Port = uint(80)
+		backends = append(backends, backend)
+		return backends, nil
+	}
 
-		if err != nil {
-			return Backend{}, fmt.Errorf("error reading input %w", err)
+	for {
+		var backend Backend
+
+		if backend.Name == "" {
+			backend.Name = backend.Address
 		}
 
-		if backend.Address == "" || backend.Address == "originless" {
+		backend.Address, err = text.Input(out, "Backend (originless, hostname or IP address):", in, f)
+		if err != nil {
+			return backends, fmt.Errorf("error reading input %w", err)
+		}
+
+		// This block short-circuits the endless loop
+		if backend.Address == "" {
+			if len(backends) == 0 {
+				return backends, fmt.Errorf("error configuring a backend (no input given)")
+			}
+			return backends, nil
+		}
+
+		if backend.Address == "originless" {
+			backend.Name = backend.Address
 			backend.Address = "127.0.0.1"
 			backend.Port = uint(80)
 		}
-	}
 
-	if backend.Port == 0 {
 		input, err := text.Input(out, "Backend port number: [80] ", in)
 		if err != nil {
-			return Backend{}, fmt.Errorf("error reading input %w", err)
+			return backends, fmt.Errorf("error reading input %w", err)
 		}
 
 		portnumber := 80
@@ -808,13 +812,42 @@ func cfgBackend(backend Backend, out io.Writer, in io.Reader, f validator) (Back
 		}
 
 		backend.Port = uint(portnumber)
-	}
 
-	if backend.Name == "" {
-		backend.Name = backend.Address
-	}
+		if backend.Name == "" {
+			backend.Name, err = text.Input(out, "Backend name:", in, f)
+			if err != nil {
+				return backends, fmt.Errorf("error reading input %w", err)
+			}
+			if backend.Name == "" {
+				backend.Name = genBackendName(backend.Address)
+			}
+		}
 
-	return backend, nil
+		setBackendHost(&backend)
+
+		backends = append(backends, backend)
+	}
+}
+
+// genBackendName normalises a given name by replacing any period or hyphen
+// characters with an underscore.
+func genBackendName(name string) string {
+	normalise := "_"
+	r := strings.NewReplacer(".", normalise, "-", normalise)
+	return r.Replace(name)
+}
+
+// setBackendHost sets two fields: OverrideHost and SSLSNIHostname.
+func setBackendHost(b *Backend) {
+	// By default set the override_host and ssl_sni_hostname properties of the
+	// Backend VCL object to the hostname unless the given input is an IP.
+	b.OverrideHost = b.Address
+	if _, err := net.LookupAddr(b.Address); err == nil {
+		b.OverrideHost = ""
+	}
+	if b.OverrideHost != "" {
+		b.SSLSNIHostname = b.OverrideHost
+	}
 }
 
 // createDomain creates the given domain and handle unrolling the stack in case

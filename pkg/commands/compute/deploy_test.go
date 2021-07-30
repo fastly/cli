@@ -51,13 +51,14 @@ func TestDeploy(t *testing.T) {
 
 	args := testutil.Args
 	for _, testcase := range []struct {
-		name             string
-		args             []string
 		api              mock.API
+		args             []string
+		manifest         string
+		manifestIncludes string
+		name             string
+		stdin            string
 		wantError        string
 		wantOutput       []string
-		manifestIncludes string
-		noManifest       bool
 	}{
 		{
 			name:      "no token",
@@ -65,10 +66,9 @@ func TestDeploy(t *testing.T) {
 			wantError: "no token provided",
 		},
 		{
-			name:       "no fastly.toml manifest",
-			args:       args("compute deploy --token 123"),
-			wantError:  "error reading package manifest",
-			noManifest: true,
+			name:      "no fastly.toml manifest",
+			args:      args("compute deploy --token 123"),
+			wantError: "error reading package manifest",
 		},
 		{
 			// If no Service ID defined via flag or manifest, then the expectation is
@@ -88,6 +88,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
+			stdin: "originless",
 			wantOutput: []string{
 				"Setting service ID in manifest to \"12345\"...",
 				"Deployed package (service 12345, version 1)",
@@ -107,6 +108,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
+			stdin: "originless",
 			wantOutput: []string{
 				"Setting service ID in manifest to \"12345\"...",
 				"Deployed package (service 12345, version 1)",
@@ -171,6 +173,7 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
+			stdin:     "originless",
 			wantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Uploading package...",
@@ -187,6 +190,7 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn: createServiceError,
 			},
+			stdin:     "originless",
 			wantError: fmt.Sprintf("error creating service: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -207,6 +211,7 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
+			stdin:     "originless",
 			wantError: fmt.Sprintf("error creating domain: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -229,6 +234,7 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
+			stdin:     "originless",
 			wantError: fmt.Sprintf("error creating backend: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -390,58 +396,6 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 4)",
 			},
 		},
-		{
-			name: "success with --backend and no --backend-port",
-			args: args("compute deploy --backend host.com --token 123"),
-			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendExpect("host.com", 80, "", ""),
-				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
-			},
-		},
-		{
-			name: "success with --backend and --backend-port",
-			args: args("compute deploy --backend host.com --backend-port 443 --token 123"),
-			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendExpect("host.com", 443, "", ""),
-				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
-			},
-		},
-		{
-			name: "success with --backend and --override-host",
-			args: args("compute deploy --backend host.com --override-host otherhost.com --token 123"),
-			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendExpect("host.com", 80, "otherhost.com", ""),
-				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
-			},
-		},
-		{
-			name: "success with --backend and --ssl-sni-hostname",
-			args: args("compute deploy --backend host.com --ssl-sni-hostname anotherhost.com --token 123"),
-			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendExpect("host.com", 80, "", "anotherhost.com"),
-				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
-			},
-		},
 		// The following test doesn't provide a Service ID by either a flag nor the
 		// manifest, so this will result in the deploy script attempting to create
 		// a new service. Our fastly.toml is configured with a [setup] section so
@@ -543,7 +497,11 @@ func TestDeploy(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			// Because the manifest can be mutated on each test scenario, we recreate
 			// the file each time.
-			if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(`name = "package"`), 0777); err != nil {
+			manifestContent := `name = "package"`
+			if testcase.manifest != "" {
+				manifestContent = testcase.manifest
+			}
+			if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(manifestContent), 0777); err != nil {
 				t.Fatal(err)
 			}
 
@@ -551,7 +509,7 @@ func TestDeploy(t *testing.T) {
 			// of deleting the manifest and having to recreate it, we'll simply
 			// rename it, and then rename it back once the specific test scenario has
 			// finished running.
-			if testcase.noManifest {
+			if testcase.manifest == "" {
 				old := filepath.Join(rootdir, manifest.Filename)
 				tmp := filepath.Join(rootdir, manifest.Filename+"Tmp")
 				if err := os.Rename(old, tmp); err != nil {
@@ -569,9 +527,17 @@ func TestDeploy(t *testing.T) {
 			opts.APIClient = mock.APIClient(testcase.api)
 
 			// we need to define stdin as the deploy process prompts the user multiple
-			// times, but we don't need to provide any values as all our prompts will
-			// fallback to default values if the input is unrecognised.
-			opts.Stdin = strings.NewReader("")
+			// times, but the issue is once an io.Reader has been read it cannot be
+			// read from again. This means if our tests need the stdin as part of
+			// validating a portion of the code, then we have to try and ensure our tests
+			// side step any flows that would cause a prompt to read our input too early.
+			//
+			// This is why we _used_ to prompt the user for a domain first, but as
+			// that prompt will set a default if none provided by the user we ended
+			// up switching it around so a backend is configured first as those
+			// prompts will cause the entire user flow to fail if no input is
+			// provided (making testing ...tricky)
+			opts.Stdin = strings.NewReader(testcase.stdin)
 
 			err = app.Run(opts)
 
@@ -644,17 +610,4 @@ func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 
 func listBackendsError(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return nil, testutil.Err
-}
-
-func createBackendExpect(address string, port uint, overrideHost string, sslSNIHostname string) func(*fastly.CreateBackendInput) (*fastly.Backend, error) {
-	return func(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
-		if address != i.Address || port != i.Port || i.OverrideHost != overrideHost || i.SSLSNIHostname != sslSNIHostname {
-			return nil, testutil.Err
-		}
-		return &fastly.Backend{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           i.Name,
-		}, nil
-	}
 }

@@ -16,22 +16,19 @@ type PublishCommand struct {
 	build    *BuildCommand
 	deploy   *DeployCommand
 
-	// Deploy fields
-	backend        cmd.OptionalString
-	backendPort    cmd.OptionalUint
-	comment        cmd.OptionalString
-	domain         cmd.OptionalString
-	overrideHost   cmd.OptionalString
-	path           cmd.OptionalString
-	serviceVersion cmd.OptionalServiceVersion
-	sslSNIHostname cmd.OptionalString
-
 	// Build fields
 	name       cmd.OptionalString
 	lang       cmd.OptionalString
 	includeSrc cmd.OptionalBool
 	force      cmd.OptionalBool
 	timeout    cmd.OptionalInt
+
+	// Deploy fields
+	acceptDefaults cmd.OptionalBool
+	comment        cmd.OptionalString
+	domain         cmd.OptionalString
+	path           cmd.OptionalString
+	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
@@ -52,19 +49,16 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 
 	// Deploy flags
+	c.CmdClause.Flag("accept-defaults", "Accept default configuration from [setup]").Action(c.acceptDefaults.Set).BoolVar(&c.acceptDefaults.Value)
+	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
+	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
+	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Action:   c.serviceVersion.Set,
 		Dst:      &c.serviceVersion.Value,
 		Optional: true,
 	})
-	c.CmdClause.Flag("backend", "A hostname, IPv4, or IPv6 address for the package backend").Action(c.backend.Set).StringVar(&c.backend.Value)
-	c.CmdClause.Flag("backend-port", "A port number for the package backend").Action(c.backendPort.Set).UintVar(&c.backendPort.Value)
-	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
-	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
-	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.backendPort.Set).StringVar(&c.overrideHost.Value)
-	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
-	c.CmdClause.Flag("ssl-sni-hostname", "The hostname to use at the start of the TLS handshake").Action(c.sslSNIHostname.Set).StringVar(&c.sslSNIHostname.Value)
 
 	return &c
 }
@@ -103,6 +97,9 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 
 	// Reset the fields on the DeployCommand based on PublishCommand values.
+	if c.acceptDefaults.WasSet {
+		c.deploy.AcceptDefaults = c.acceptDefaults.Value
+	}
 	if c.path.WasSet {
 		c.deploy.Path = c.path.Value
 	}
@@ -111,18 +108,6 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.domain.WasSet {
 		c.deploy.Domain = c.domain.Value
-	}
-	if c.backend.WasSet {
-		c.deploy.Backend.Address = c.backend.Value
-	}
-	if c.backendPort.WasSet {
-		c.deploy.Backend.Port = c.backendPort.Value
-	}
-	if c.overrideHost.WasSet {
-		c.deploy.Backend.OverrideHost = c.overrideHost.Value
-	}
-	if c.sslSNIHostname.WasSet {
-		c.deploy.Backend.SSLSNIHostname = c.sslSNIHostname.Value
 	}
 	if c.comment.WasSet {
 		c.deploy.Comment = c.comment
