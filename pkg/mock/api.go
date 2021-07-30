@@ -253,6 +253,12 @@ type API struct {
 	ListACLEntriesFn        func(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error)
 	UpdateACLEntryFn        func(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error)
 	BatchModifyACLEntriesFn func(i *fastly.BatchModifyACLEntriesInput) error
+
+	CreateNewRelicFn func(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error)
+	DeleteNewRelicFn func(i *fastly.DeleteNewRelicInput) error
+	GetNewRelicFn    func(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error)
+	ListNewRelicFn   func(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error)
+	UpdateNewRelicFn func(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1268,4 +1274,29 @@ func (m API) UpdateACLEntry(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, er
 // BatchModifyACLEntries implements Interface.
 func (m API) BatchModifyACLEntries(i *fastly.BatchModifyACLEntriesInput) error {
 	return m.BatchModifyACLEntriesFn(i)
+}
+
+// CreateNewRelic implements Interface.
+func (m API) CreateNewRelic(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
+	return m.CreateNewRelicFn(i)
+}
+
+// DeleteNewRelic implements Interface.
+func (m API) DeleteNewRelic(i *fastly.DeleteNewRelicInput) error {
+	return m.DeleteNewRelicFn(i)
+}
+
+// GetNewRelic implements Interface.
+func (m API) GetNewRelic(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error) {
+	return m.GetNewRelicFn(i)
+}
+
+// ListNewRelic implements Interface.
+func (m API) ListNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error) {
+	return m.ListNewRelicFn(i)
+}
+
+// UpdateNewRelic implements Interface.
+func (m API) UpdateNewRelic(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
+	return m.UpdateNewRelicFn(i)
 }

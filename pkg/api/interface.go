@@ -262,6 +262,12 @@ type Interface interface {
 	ListACLEntries(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error)
 	UpdateACLEntry(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error)
 	BatchModifyACLEntries(i *fastly.BatchModifyACLEntriesInput) error
+
+	CreateNewRelic(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error)
+	DeleteNewRelic(i *fastly.DeleteNewRelicInput) error
+	GetNewRelic(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error)
+	ListNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error)
+	UpdateNewRelic(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
