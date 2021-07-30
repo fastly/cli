@@ -23,8 +23,6 @@ type EnvOpts struct {
 
 // NewEnv creates a new test environment and returns the root directory.
 func NewEnv(opts EnvOpts) (rootdir string) {
-	opts.T.Helper()
-
 	rootdir, err := os.MkdirTemp("", "fastly-temp-*")
 	if err != nil {
 		opts.T.Fatal(err)
