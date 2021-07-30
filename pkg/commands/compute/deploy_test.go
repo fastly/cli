@@ -490,6 +490,55 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
+		{
+			name: "error with setup configuration -- missing setup.backends.name",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				GetServiceFn: getServiceOK,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 1
+			language = "rust"
+
+			[setup]
+				[[setup.backends]]
+					prompt = "Backend 1"
+					address = "developer.fastly.com"
+					port = 443
+				[[setup.backends]]
+					prompt = "Backend 2"
+					address = "httpbin.org"
+					port = 443
+			`,
+			wantError: "error parsing the [[setup.backends]] configuration",
+		},
+		// The 'name' field should be a string, not an integer
+		{
+			name: "error with setup configuration -- invalid setup.backends.name",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				GetServiceFn: getServiceOK,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 1
+			language = "rust"
+
+			[setup]
+				[[setup.backends]]
+				  name = 123
+					prompt = "Backend 1"
+					address = "developer.fastly.com"
+					port = 443
+				[[setup.backends]]
+				  name = 456
+					prompt = "Backend 2"
+					address = "httpbin.org"
+					port = 443
+			`,
+			wantError: "error parsing the [[setup.backends]] configuration",
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// Because the manifest can be mutated on each test scenario, we recreate

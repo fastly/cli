@@ -675,14 +675,13 @@ func cfgDomain(domain string, def string, out io.Writer, in io.Reader, f validat
 // what will be referenced in a Compute@Edge starter kit.
 func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v validator) (Backend, error) {
 	var (
-		addr       string
-		b          Backend
-		err        error
-		name       string
-		ok         bool
-		port       uint
-		portnumber int64
-		prompt     string
+		addr   string
+		b      Backend
+		err    error
+		name   string
+		ok     bool
+		port   uint
+		prompt string
 	)
 
 	b.SetupConfig = true
@@ -723,12 +722,12 @@ func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v val
 	}
 
 	if _, ok = backend["port"]; ok {
-		portnumber, ok = backend["port"].(int64)
+		p, ok := backend["port"].(int64)
 		if !ok {
 			return b, backendRemediationError("port", remediation, innerErr)
 		}
+		port = uint(p)
 	}
-	port = uint(portnumber)
 	if port == 0 {
 		port = 80
 	}
@@ -746,11 +745,11 @@ func cfgSetupBackend(backend manifest.Mapper, out io.Writer, in io.Reader, v val
 		return b, fmt.Errorf("error reading input %w", err)
 	}
 	if input != "" {
-		portnumber, err := strconv.Atoi(input)
+		i, err := strconv.Atoi(input)
 		if err != nil {
 			text.Warning(out, fmt.Sprintf("error converting input, using default port number (%d)", port))
 		}
-		port = uint(portnumber)
+		port = uint(i)
 	}
 	b.Port = port
 
