@@ -1,12 +1,20 @@
 # Changelog
 
+## [v0.36.0](https://github.com/fastly/cli/releases/tag/v0.36.0) (2021-07-30)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.35.0...v0.36.0)
+
+**Enhancements:**
+
+- Implement `logging newrelic` command [#354](https://github.com/fastly/cli/pull/354)
+
 ## [v0.35.0](https://github.com/fastly/cli/releases/tag/v0.35.0) (2021-07-29)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.34.0...v0.35.0)
 
 **Enhancements:**
 
-- Support for Compute@Edge JS SDK (Beta) [#347](https://gthu.com/fastly/cli/pull/347)
+- Support for Compute@Edge JS SDK (Beta) [#347](https://github.com/fastly/cli/pull/347)
 - Implement `--override-host` and `--ssl-sni-hostname` [#352](https://github.com/fastly/cli/pull/352)
 - Implement `acl` command [#350](https://github.com/fastly/cli/pull/350)
 - Implement `acl-entry` command [#351](https://github.com/fastly/cli/pull/351)
