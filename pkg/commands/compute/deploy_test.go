@@ -233,7 +233,7 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Creating service...",
 				"Creating domain...",
-				"Creating backend...",
+				"Creating backend '127.0.0.1'...",
 			},
 		},
 		// The following test validates that the undoStack is executed as expected
@@ -488,7 +488,7 @@ func TestDeploy(t *testing.T) {
 				// contents after "Creating backend" but because we can't provide an
 				// io.Reader that contains mocked input from the user, it means the
 				// value shows as empty here.
-				"Creating backend ...",
+				"Creating backend ''...",
 
 				"Uploading package...",
 				"Activating version...",

@@ -823,7 +823,7 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 // createBackend creates the given domain and handle unrolling the stack in case
 // of an error (i.e. will ensure the backend is deleted if there is an error).
 func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend Backend, undoStack undo.Stacker) error {
-	progress.Step(fmt.Sprintf("Creating backend %s...", backend.Address))
+	progress.Step(fmt.Sprintf("Creating backend '%s'...", backend.Address))
 
 	undoStack.Push(func() error {
 		return client.DeleteBackend(&fastly.DeleteBackendInput{
