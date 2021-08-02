@@ -194,7 +194,7 @@ func TestGetIgnoredFiles(t *testing.T) {
 			name:         "ignore src",
 			fastlyignore: "src/*",
 			wantfiles: map[string]bool{
-				"src/main.rs": true,
+				filepath.Join("src", "main.rs"): true,
 			},
 		},
 		{
