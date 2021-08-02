@@ -4,7 +4,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
+    - name: "Checkout code"
       uses: actions/checkout@v2
     - name: Install Go
       uses: actions/setup-go@v2
@@ -27,27 +27,27 @@ jobs:
         key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-mod-
-    - name: Install dependencies
+    - name: "Install dependencies"
       if: steps.go-bin-cache.outputs.cache-hit != 'true'
       run: make dependencies
       shell: bash
-    - name: Pull config
+    - name: "Download latest app config"
       run: |
         make config
-    - name: Mod Tidy
+    - name: "Run go mod tidy"
       run: make tidy
-    - name: Fmt
+    - name: "Run go fmt"
       run: make fmt
-    - name: Vet
+    - name: "Run go vet"
       run: make vet
       shell: bash
-    - name: Staticcheck
+    - name: "Static analysis check"
       run: make staticcheck
       shell: bash
-    - name: Lint
+    - name: "Linting"
       run: make lint
       shell: bash
-    - name: Gosec
+    - name: "Security audit"
       run:  make gosec
       shell: bash
   test:
@@ -59,9 +59,9 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-    - name: Checkout code
+    - name: "Checkout code"
       uses: actions/checkout@v2
-    - name: Install Go
+    - name: "Install Go"
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
@@ -81,29 +81,31 @@ jobs:
         key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-mod-
-    - name: Install Rust
+    - name: "Install Rust"
       uses: actions-rs/toolchain@v1
       with:
         toolchain: ${{ matrix.rust-toolchain }}
-    - name: Add wasm32-wasi Rust target
+    - name: "Add wasm32-wasi Rust target"
       run: rustup target add wasm32-wasi --toolchain ${{ matrix.rust-toolchain }}
     - name: "Restore cargo cache"
       uses: actions/cache@v2
       with:
         path: |
+          ~/.rustup/
           ~/.cargo/bin/
           ~/.cargo/registry/index/
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    - uses: actions/setup-node@v2
+    - name: "Install Node"
+      uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Pull config
+    - name: "Download latest app config"
       run: |
         make config
-    - name: Test
+    - name: "Test suite"
       run: make test
       shell: bash
       env:

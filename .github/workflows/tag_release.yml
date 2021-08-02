@@ -7,25 +7,25 @@ jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
+    - name: "Checkout code"
       uses: actions/checkout@v2
-    - name: Unshallow
+    - name: "Fetch unshallow repo"
       run: git fetch --prune --unshallow
-    - name: Set up Go
+    - name: "Install Go"
       uses: actions/setup-go@v2
       with:
         go-version: '1.16.x'
-    - name: Set GOVERSION
+    - name: "Set GOVERSION"
       id: set_goversion
       run: echo "GOVERSION=$(go version)" >> $GITHUB_ENV
-    - name: Pull config
+    - name: "Download latest app config"
       run: |
         make config
-    - name: Print config
+    - name: "Display app config"
       run: cat cmd/fastly/static/config.toml
-    - name: Validate config
+    - name: "Validate app config"
       run: cat cmd/fastly/static/config.toml | grep 'remote_config = "https://developer.fastly.com/api/internal/cli-config"'
-    - name: Run GoReleaser
+    - name: "Run GoReleaser"
       uses: goreleaser/goreleaser-action@v2
       with:
         version: v0.171.0 # goreleaser version (NOT goreleaser-action version)
