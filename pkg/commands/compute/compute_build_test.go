@@ -444,6 +444,33 @@ func TestBuildJavaScript(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD_JAVASCRIPT or TEST_COMPUTE_BUILD to run this test")
 	}
 
+	// We're going to chdir to a build environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{Src: filepath.Join("testdata", "build", "javascript", "package.json"), Dst: "package.json"},
+			{Src: filepath.Join("testdata", "build", "javascript", "webpack.config.js"), Dst: "webpack.config.js"},
+			{Src: filepath.Join("testdata", "build", "javascript", "src", "index.js"), Dst: filepath.Join("src", "index.js")},
+		},
+		Exec: []string{"npm", "install"},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// Before running the test, chdir into the build environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
+
 	for _, testcase := range []struct {
 		name                 string
 		args                 []string
@@ -484,35 +511,11 @@ func TestBuildJavaScript(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			// We're going to chdir to a build environment,
-			// so save the PWD to return to, afterwards.
-			pwd, err := os.Getwd()
-			if err != nil {
-				t.Fatal(err)
+			if testcase.fastlyManifest != "" {
+				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0777); err != nil {
+					t.Fatal(err)
+				}
 			}
-
-			// Create test environment
-			rootdir := testutil.NewEnv(testutil.EnvOpts{
-				T: t,
-				Copy: []testutil.FileIO{
-					{Src: filepath.Join("testdata", "build", "javascript", "package.json"), Dst: "package.json"},
-					{Src: filepath.Join("testdata", "build", "javascript", "webpack.config.js"), Dst: "webpack.config.js"},
-					{Src: filepath.Join("testdata", "build", "javascript", "src", "index.js"), Dst: filepath.Join("src", "index.js")},
-				},
-				Write: []testutil.FileIO{
-					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
-				},
-				Exec: []string{"npm", "install"},
-			})
-			defer os.RemoveAll(rootdir)
-
-			// Before running the test, chdir into the build environment.
-			// When we're done, chdir back to our original location.
-			// This is so we can reliably copy the testdata/ fixtures.
-			if err := os.Chdir(rootdir); err != nil {
-				t.Fatal(err)
-			}
-			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
