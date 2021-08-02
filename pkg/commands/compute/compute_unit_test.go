@@ -83,78 +83,54 @@ func getFlags(cmd *kingpin.CmdClause) reflect.Value {
 }
 
 func TestCreatePackageArchive(t *testing.T) {
-	for _, testcase := range []struct {
-		name            string
-		destination     string
-		inputFiles      []string
-		wantDirectories []string
-		wantFiles       []string
-	}{
-		{
-			name:        "success",
-			destination: "cli.tar.gz",
-			inputFiles: []string{
-				"Cargo.toml",
-				"Cargo.lock",
-				"src/main.rs",
-			},
-			wantDirectories: []string{
-				"cli",
-				"src",
-			},
-			wantFiles: []string{
-				"Cargo.lock",
-				"Cargo.toml",
-				"main.rs",
-			},
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
-			// we're going to chdir to a build environment,
-			// so save the pwd to return to, afterwards.
-			pwd, err := os.Getwd()
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			// Create test environment
-			rootdir := testutil.NewEnv(testutil.EnvOpts{
-				T: t,
-				Copy: []testutil.FileIO{
-					{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
-					{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
-					{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
-				},
-			})
-			defer os.RemoveAll(rootdir)
-
-			// before running the test, chdir into the build environment.
-			// when we're done, chdir back to our original location.
-			// this is so we can reliably copy the testdata/ fixtures.
-			if err := os.Chdir(rootdir); err != nil {
-				t.Fatal(err)
-			}
-			defer os.Chdir(pwd)
-
-			err = compute.CreatePackageArchive(testcase.inputFiles, testcase.destination)
-			testutil.AssertNoError(t, err)
-
-			var files, directories []string
-			if err := archiver.Walk(testcase.destination, func(f archiver.File) error {
-				if f.IsDir() {
-					directories = append(directories, f.Name())
-				} else {
-					files = append(files, f.Name())
-				}
-				return nil
-			}); err != nil {
-				t.Fatal(err)
-			}
-
-			testutil.AssertEqual(t, testcase.wantDirectories, directories)
-			testutil.AssertEqual(t, testcase.wantFiles, files)
-		})
+	// we're going to chdir to a build environment,
+	// so save the pwd to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
+			{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
+			{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// before running the test, chdir into the build environment.
+	// when we're done, chdir back to our original location.
+	// this is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
+
+	destination := "cli.tar.gz"
+
+	err = compute.CreatePackageArchive([]string{"Cargo.toml", "Cargo.lock", "src/main.rs"}, destination)
+	testutil.AssertNoError(t, err)
+
+	var files, directories []string
+	if err := archiver.Walk(destination, func(f archiver.File) error {
+		if f.IsDir() {
+			directories = append(directories, f.Name())
+		} else {
+			files = append(files, f.Name())
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	wantDirectories := []string{"cli", "src"}
+	testutil.AssertEqual(t, wantDirectories, directories)
+
+	wantFiles := []string{"Cargo.lock", "Cargo.toml", "main.rs"}
+	testutil.AssertEqual(t, wantFiles, files)
 }
 
 func TestFileNameWithoutExtension(t *testing.T) {
