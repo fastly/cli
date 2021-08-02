@@ -10,23 +10,25 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
-    - name: Restore cache
-      id: cache
-      uses: actions/cache@v1
+    - name: "Restore golang bin cache"
+      id: go-bin-cache
+      uses: actions/cache@v2
       with:
         path: ~/go/bin
         key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-bin-
-    - name: Restore cache
-      uses: actions/cache@v1
+    - name: "Restore golang mod cache"
+      uses: actions/cache@v2
       with:
-        path: ~/go/pkg/mod
+        path: |
+          ~/Library/Caches/go-build
+          ~/go/pkg/mod
         key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-mod-
     - name: Install dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
+      if: steps.go-bin-cache.outputs.cache-hit != 'true'
       run: make dependencies
       shell: bash
     - name: Pull config
@@ -63,10 +65,19 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
-    - name: Restore cache
-      uses: actions/cache@v1
+    - name: "Restore golang bin cache"
+      uses: actions/cache@v2
       with:
-        path: ~/go/pkg/mod
+        path: ~/go/bin
+        key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-bin-
+    - name: "Restore golang mod cache"
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/Library/Caches/go-build
+          ~/go/pkg/mod
         key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-mod-
@@ -76,7 +87,17 @@ jobs:
         toolchain: ${{ matrix.rust-toolchain }}
     - name: Add wasm32-wasi Rust target
       run: rustup target add wasm32-wasi --toolchain ${{ matrix.rust-toolchain }}
-    - uses: actions/setup-node@v1
+    - name: "Restore cargo cache"
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
     - name: Pull config
