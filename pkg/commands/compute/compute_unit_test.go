@@ -159,6 +159,32 @@ func TestFileNameWithoutExtension(t *testing.T) {
 }
 
 func TestGetIgnoredFiles(t *testing.T) {
+	// we're going to chdir to a build environment,
+	// so save the pwd to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
+			{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
+			{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// before running the test, chdir into the build environment.
+	// when we're done, chdir back to our original location.
+	// this is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
+
 	for _, testcase := range []struct {
 		name         string
 		fastlyignore string
@@ -168,7 +194,7 @@ func TestGetIgnoredFiles(t *testing.T) {
 			name:         "ignore src",
 			fastlyignore: "src/*",
 			wantfiles: map[string]bool{
-				filepath.Join("src/main.rs"): true,
+				"src/main.rs": true,
 			},
 		},
 		{
@@ -191,35 +217,9 @@ func TestGetIgnoredFiles(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			// we're going to chdir to a build environment,
-			// so save the pwd to return to, afterwards.
-			pwd, err := os.Getwd()
-			if err != nil {
+			if err := os.WriteFile(filepath.Join(rootdir, compute.IgnoreFilePath), []byte(testcase.fastlyignore), 0777); err != nil {
 				t.Fatal(err)
 			}
-
-			// Create test environment
-			rootdir := testutil.NewEnv(testutil.EnvOpts{
-				T: t,
-				Copy: []testutil.FileIO{
-					{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
-					{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
-					{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
-				},
-				Write: []testutil.FileIO{
-					{Src: testcase.fastlyignore, Dst: compute.IgnoreFilePath},
-				},
-			})
-			defer os.RemoveAll(rootdir)
-
-			// before running the test, chdir into the build environment.
-			// when we're done, chdir back to our original location.
-			// this is so we can reliably copy the testdata/ fixtures.
-			if err := os.Chdir(rootdir); err != nil {
-				t.Fatal(err)
-			}
-			defer os.Chdir(pwd)
-
 			output, err := compute.GetIgnoredFiles(compute.IgnoreFilePath)
 			testutil.AssertNoError(t, err)
 			testutil.AssertEqual(t, testcase.wantfiles, output)
