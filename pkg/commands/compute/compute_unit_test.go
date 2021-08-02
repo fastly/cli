@@ -228,6 +228,32 @@ func TestGetIgnoredFiles(t *testing.T) {
 }
 
 func TestGetNonIgnoredFiles(t *testing.T) {
+	// We're going to chdir to a build environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
+			{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
+			{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// Before running the test, chdir into the build environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
+
 	for _, testcase := range []struct {
 		name         string
 		path         string
@@ -268,32 +294,6 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			// We're going to chdir to a build environment,
-			// so save the PWD to return to, afterwards.
-			pwd, err := os.Getwd()
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			// Create test environment
-			rootdir := testutil.NewEnv(testutil.EnvOpts{
-				T: t,
-				Copy: []testutil.FileIO{
-					{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
-					{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
-					{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
-				},
-			})
-			defer os.RemoveAll(rootdir)
-
-			// Before running the test, chdir into the build environment.
-			// When we're done, chdir back to our original location.
-			// This is so we can reliably copy the testdata/ fixtures.
-			if err := os.Chdir(rootdir); err != nil {
-				t.Fatal(err)
-			}
-			defer os.Chdir(pwd)
-
 			output, err := compute.GetNonIgnoredFiles(testcase.path, testcase.ignoredFiles)
 			testutil.AssertNoError(t, err)
 			testutil.AssertEqual(t, testcase.wantFiles, output)
