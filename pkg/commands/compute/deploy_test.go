@@ -16,15 +16,48 @@ import (
 )
 
 func TestDeploy(t *testing.T) {
+	// NOTE: Some tests don't provide a Service ID via any mechanism (e.g. flag
+	// or manifest) and if one is provided the test will fail due to a specific
+	// API call not being mocked. Be careful not to add a Service ID to all tests
+	// without first checking whether the Service ID is expected as the user flow
+	// for when no Service ID is provided is to create a new service.
+
+	// We're going to chdir to a deploy environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{
+				Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),
+				Dst: filepath.Join("pkg", "package.tar.gz"),
+			},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// Before running the test, chdir into the build environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
+
 	args := testutil.Args
 	for _, testcase := range []struct {
 		name             string
 		args             []string
-		manifest         string
 		api              mock.API
 		wantError        string
 		wantOutput       []string
 		manifestIncludes string
+		noManifest       bool
 	}{
 		{
 			name:      "no token",
@@ -32,9 +65,10 @@ func TestDeploy(t *testing.T) {
 			wantError: "no token provided",
 		},
 		{
-			name:      "no fastly.toml manifest",
-			args:      args("compute deploy --token 123"),
-			wantError: "error reading package manifest",
+			name:       "no fastly.toml manifest",
+			args:       args("compute deploy --token 123"),
+			wantError:  "error reading package manifest",
+			noManifest: true,
 		},
 		{
 			// If no Service ID defined via flag or manifest, then the expectation is
@@ -54,7 +88,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifest: "name = \"package\"\n",
 			wantOutput: []string{
 				"Setting service ID in manifest to \"12345\"...",
 				"Deployed package (service 12345, version 1)",
@@ -63,9 +96,8 @@ func TestDeploy(t *testing.T) {
 		// Same validation as above with the exception that we use the default path
 		// parsing logic (i.e. we don't explicitly pass a path via `-p` flag).
 		{
-			name:     "empty service ID",
-			args:     args("compute deploy --token 123 -v"),
-			manifest: "name = \"package\"\n",
+			name: "empty service ID",
+			args: args("compute deploy --token 123 -v"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				GetPackageFn:      getPackageOk,
@@ -82,45 +114,41 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "list versions error",
-			args: args("compute deploy --token 123"),
+			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
 				ListVersionsFn: testutil.ListVersionsError,
 			},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: fmt.Sprintf("error listing service versions: %s", testutil.Err.Error()),
 		},
 		{
 			name: "service version is active, clone version error",
-			args: args("compute deploy --token 123 --version 1"),
+			args: args("compute deploy --service-id 123 --token 123 --version 1"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionError,
 			},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: fmt.Sprintf("error cloning service version: %s", testutil.Err.Error()),
 		},
 		{
 			name: "list domains error",
-			args: args("compute deploy --token 123"),
+			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsError,
 			},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: fmt.Sprintf("error fetching service domains: %s", testutil.Err.Error()),
 		},
 		{
 			name: "list backends error",
-			args: args("compute deploy --token 123"),
+			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOk,
 				ListBackendsFn: listBackendsError,
 			},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: fmt.Sprintf("error fetching service backends: %s", testutil.Err.Error()),
 		},
 		// The following test doesn't just validate the package API error behaviour
@@ -143,7 +171,6 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			manifest:  `name = "package"`,
 			wantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Uploading package...",
@@ -160,7 +187,6 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn: createServiceError,
 			},
-			manifest:  "name = \"package\"\n",
 			wantError: fmt.Sprintf("error creating service: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -181,7 +207,6 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			manifest:  "name = \"package\"\n",
 			wantError: fmt.Sprintf("error creating domain: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -208,7 +233,6 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			manifest:  "name = \"package\"\n",
 			wantError: fmt.Sprintf("error creating backend: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -216,11 +240,11 @@ func TestDeploy(t *testing.T) {
 				"Creating backend...",
 			},
 		},
-		// The following test additionally validates that the undoStack is executed
-		// as expected (e.g. the backend and domain resources are deleted).
+		// The following test validates that the undoStack is executed as expected
+		// e.g. the backend and domain resources are deleted.
 		{
 			name: "activate error",
-			args: args("compute deploy --token 123"),
+			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -230,7 +254,6 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionError,
 			},
-			manifest:  "name = \"package\"\nservice_id = \"123\"\n",
 			wantError: fmt.Sprintf("error activating version: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Uploading package...",
@@ -239,7 +262,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "identical package",
-			args: args("compute deploy --token 123"),
+			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
 				ListVersionsFn: testutil.ListVersions,
@@ -247,14 +270,13 @@ func TestDeploy(t *testing.T) {
 				ListBackendsFn: listBackendsOk,
 				GetPackageFn:   getPackageIdentical,
 			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Skipping package deployment",
 			},
 		},
 		{
 			name: "success",
-			args: args("compute deploy --token 123"),
+			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -264,7 +286,6 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
@@ -277,7 +298,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with path",
-			args: args("compute deploy --token 123 -p pkg/package.tar.gz -s 123 --version latest"),
+			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version latest"),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -287,7 +308,6 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
@@ -300,7 +320,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with inactive version",
-			args: args("compute deploy --token 123 -p pkg/package.tar.gz -s 123"),
+			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz"),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -310,7 +330,6 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
@@ -319,7 +338,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with specific locked version",
-			args: args("compute deploy --token 123 -p pkg/package.tar.gz -s 123 --version 2"),
+			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version 2"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -330,7 +349,6 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
@@ -339,7 +357,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with active version",
-			args: args("compute deploy --token 123 -p pkg/package.tar.gz -s 123 --version active"),
+			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version active"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -350,7 +368,6 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
@@ -359,7 +376,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with comment",
-			args: args("compute deploy --token 123 -s 123 -p pkg/package.tar.gz --version 2 --comment foo"),
+			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version 2 --comment foo"),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
@@ -371,7 +388,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				UpdateVersionFn:   updateVersionOk,
 			},
-			manifest: "name = \"package\"\nservice_id = \"123\"\n",
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
@@ -390,7 +406,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifest: `name = "package"`,
 		},
 		{
 			name: "success with --backend and --backend-port",
@@ -404,7 +419,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifest: `name = "package"`,
 		},
 		{
 			name: "success with --backend and --override-host",
@@ -418,7 +432,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifest: `name = "package"`,
 		},
 		{
 			name: "success with --backend and --ssl-sni-hostname",
@@ -432,39 +445,31 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			manifest: `name = "package"`,
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			// We're going to chdir to a deploy environment,
-			// so save the PWD to return to, afterwards.
-			pwd, err := os.Getwd()
-			if err != nil {
+			// Because the manifest can be mutated on each test scenario, we recreate
+			// the file each time.
+			if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(`name = "package"`), 0777); err != nil {
 				t.Fatal(err)
 			}
 
-			// Create test environment
-			rootdir := testutil.NewEnv(testutil.EnvOpts{
-				T: t,
-				Copy: []testutil.FileIO{
-					{
-						Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),
-						Dst: filepath.Join("pkg", "package.tar.gz"),
-					},
-				},
-				Write: []testutil.FileIO{
-					{Src: testcase.manifest, Dst: manifest.Filename},
-				},
-			})
-			defer os.RemoveAll(rootdir)
-
-			// Before running the test, chdir into the build environment.
-			// When we're done, chdir back to our original location.
-			// This is so we can reliably copy the testdata/ fixtures.
-			if err := os.Chdir(rootdir); err != nil {
-				t.Fatal(err)
+			// For any test scenario that expects no manifest to exist, then instead
+			// of deleting the manifest and having to recreate it, we'll simply
+			// rename it, and then rename it back once the specific test scenario has
+			// finished running.
+			if testcase.noManifest {
+				old := filepath.Join(rootdir, manifest.Filename)
+				tmp := filepath.Join(rootdir, manifest.Filename+"Tmp")
+				if err := os.Rename(old, tmp); err != nil {
+					t.Fatal(err)
+				}
+				defer func() {
+					if err := os.Rename(tmp, old); err != nil {
+						t.Fatal(err)
+					}
+				}()
 			}
-			defer os.Chdir(pwd)
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
