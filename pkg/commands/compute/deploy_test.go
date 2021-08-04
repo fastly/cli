@@ -56,6 +56,7 @@ func TestDeploy(t *testing.T) {
 		manifest         string
 		manifestIncludes string
 		name             string
+		noManifest       bool
 		stdin            string
 		wantError        string
 		wantOutput       []string
@@ -66,9 +67,10 @@ func TestDeploy(t *testing.T) {
 			wantError: "no token provided",
 		},
 		{
-			name:      "no fastly.toml manifest",
-			args:      args("compute deploy --token 123"),
-			wantError: "error reading package manifest",
+			name:       "no fastly.toml manifest",
+			args:       args("compute deploy --token 123"),
+			wantError:  "error reading package manifest",
+			noManifest: true,
 		},
 		{
 			// If no Service ID defined via flag or manifest, then the expectation is
@@ -509,7 +511,7 @@ func TestDeploy(t *testing.T) {
 			// of deleting the manifest and having to recreate it, we'll simply
 			// rename it, and then rename it back once the specific test scenario has
 			// finished running.
-			if testcase.manifest == "" {
+			if testcase.noManifest {
 				old := filepath.Join(rootdir, manifest.Filename)
 				tmp := filepath.Join(rootdir, manifest.Filename+"Tmp")
 				if err := os.Rename(old, tmp); err != nil {
