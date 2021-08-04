@@ -303,7 +303,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		for _, backend := range backends {
-			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
+			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack, c.Globals.Verbose())
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 					"Accept defaults": c.AcceptDefaults,
@@ -339,7 +339,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				return err
 			}
 			for _, backend := range backends {
-				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
+				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack, c.Globals.Verbose())
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 						"Accept defaults": c.AcceptDefaults,
@@ -361,7 +361,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 		case resourceBackend:
 			for _, backend := range backends {
-				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
+				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack, c.Globals.Verbose())
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 						"Accept defaults": c.AcceptDefaults,
@@ -877,10 +877,13 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 
 // createBackend creates the given domain and handle unrolling the stack in case
 // of an error (i.e. will ensure the backend is deleted if there is an error).
-func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend Backend, undoStack undo.Stacker) error {
+func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend Backend, undoStack undo.Stacker, verbose bool) error {
 	display := ""
 	if backend.SetupConfig {
 		display = fmt.Sprintf(" '%s'", backend.Address)
+		if verbose {
+			display = fmt.Sprintf("%s (port: %d)", display, backend.Port)
+		}
 	}
 	progress.Step(fmt.Sprintf("Creating backend%s...", display))
 

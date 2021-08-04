@@ -53,6 +53,7 @@ func TestDeploy(t *testing.T) {
 	for _, testcase := range []struct {
 		api              mock.API
 		args             []string
+		dontWantOutput   []string
 		manifest         string
 		manifestIncludes string
 		name             string
@@ -402,9 +403,107 @@ func TestDeploy(t *testing.T) {
 		// manifest, so this will result in the deploy script attempting to create
 		// a new service. Our fastly.toml is configured with a [setup] section so
 		// we expect to see the appropriate messaging in the output.
+		//
+		// It also validates the output displays the port number when telling the
+		// user it is creating the backends. It only displays the port number when
+		// the --verbose flag is provided.
 		{
 			name: "success with setup configuration",
-			args: args("compute deploy --token 123"),
+			args: args("compute deploy --token 123 --verbose"),
+			api: mock.API{
+				GetServiceFn:      getServiceOK,
+				CreateServiceFn:   createServiceOK,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				DeleteBackendFn:   deleteBackendOK,
+				DeleteDomainFn:    deleteDomainOK,
+				DeleteServiceFn:   deleteServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 1
+			language = "rust"
+
+			[setup]
+				[[setup.backends]]
+					name = "backend_name"
+					prompt = "Backend 1"
+					address = "developer.fastly.com"
+					port = 443
+				[[setup.backends]]
+					name = "other_backend_name"
+					prompt = "Backend 2"
+					address = "httpbin.org"
+					port = 443
+			`,
+			wantOutput: []string{
+				"Backend 1: [developer.fastly.com]",
+				"Backend port number: [443]",
+				"Backend 2: [httpbin.org]",
+				"Backend port number: [443]",
+				"Creating service...",
+				"Creating domain...",
+				"Creating backend 'developer.fastly.com' (port: 443)...",
+				"Creating backend 'httpbin.org' (port: 443)...",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		// The following [setup] configuration doesn't define any prompts, nor any
+		// ports, so we validate that the user prompts match our default expectations.
+		{
+			name: "success with setup configuration and no prompts or ports defined",
+			args: args("compute deploy --token 123 --verbose"),
+			api: mock.API{
+				GetServiceFn:      getServiceOK,
+				CreateServiceFn:   createServiceOK,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				DeleteBackendFn:   deleteBackendOK,
+				DeleteDomainFn:    deleteDomainOK,
+				DeleteServiceFn:   deleteServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 1
+			language = "rust"
+
+			[setup]
+				[[setup.backends]]
+					name = "backend_name"
+					address = "developer.fastly.com"
+				[[setup.backends]]
+					name = "other_backend_name"
+					address = "httpbin.org"
+			`,
+			wantOutput: []string{
+				"Origin server for 'backend_name': [developer.fastly.com]",
+				"Backend port number: [80]",
+				"Origin server for 'other_backend_name': [httpbin.org]",
+				"Backend port number: [80]",
+				"Creating service...",
+				"Creating domain...",
+				"Creating backend 'developer.fastly.com' (port: 80)...",
+				"Creating backend 'httpbin.org' (port: 80)...",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		// The following test validates no prompts are displayed to the user due to
+		// the use of the --accept-defaults flag.
+		{
+			name: "success with setup configuration and accept-defaults",
+			args: args("compute deploy --accept-defaults --token 123"),
 			api: mock.API{
 				GetServiceFn:      getServiceOK,
 				CreateServiceFn:   createServiceOK,
@@ -445,7 +544,15 @@ func TestDeploy(t *testing.T) {
 				"Activating version...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
+			dontWantOutput: []string{
+				"Backend 1: [developer.fastly.com]",
+				"Backend port number: [443]",
+				"Backend 2: [httpbin.org]",
+				"Backend port number: [443]",
+			},
 		},
+		// The follow test validates that the setup.backends.name field is a
+		// required property.
 		{
 			name: "error with setup configuration -- missing setup.backends.name",
 			args: args("compute deploy --token 123"),
@@ -469,7 +576,8 @@ func TestDeploy(t *testing.T) {
 			`,
 			wantError: "error parsing the [[setup.backends]] configuration",
 		},
-		// The 'name' field should be a string, not an integer
+		// The following test validates the setup.backends.name field should be a
+		// string, not an integer.
 		{
 			name: "error with setup configuration -- invalid setup.backends.name",
 			args: args("compute deploy --token 123"),
@@ -545,8 +653,14 @@ func TestDeploy(t *testing.T) {
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 
+			t.Log(stdout.String())
+
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, stdout.String(), s)
+			}
+
+			for _, s := range testcase.dontWantOutput {
+				testutil.AssertStringDoesntContain(t, stdout.String(), s)
 			}
 
 			if testcase.manifestIncludes != "" {
