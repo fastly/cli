@@ -3,10 +3,12 @@ package compute_test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
@@ -15,13 +17,29 @@ import (
 	"github.com/fastly/go-fastly/v3/fastly"
 )
 
+// NOTE: Some tests don't provide a Service ID via any mechanism (e.g. flag
+// or manifest) and if one is provided the test will fail due to a specific
+// API call not being mocked. Be careful not to add a Service ID to all tests
+// without first checking whether the Service ID is expected as the user flow
+// for when no Service ID is provided is to create a new service.
+//
+// Additionally, stdin can be mocked in one of two ways...
+//
+// 1. Provide a single value.
+// 2. Provide multiple values (one for each prompt expected).
+//
+// In the first case, the first prompt given to the user will get the value you
+// defined in the testcase.stdin field, all other prompts will get an empty
+// value. This has worked fine for the most part as the prompts have
+// historically provided default values when an empty value is encountered.
+//
+// The second case is to address running the test code successfully as the
+// business logic has changed over time to now 'require' values to be provided
+// for some prompts, this means an empty string will break the test flow. If
+// that's what you're encountering, then you should add multiple values for the
+// testcase.stdin field so that there is a value provided for every prompt your
+// testcase user flow expects to encounter.
 func TestDeploy(t *testing.T) {
-	// NOTE: Some tests don't provide a Service ID via any mechanism (e.g. flag
-	// or manifest) and if one is provided the test will fail due to a specific
-	// API call not being mocked. Be careful not to add a Service ID to all tests
-	// without first checking whether the Service ID is expected as the user flow
-	// for when no Service ID is provided is to create a new service.
-
 	// We're going to chdir to a deploy environment,
 	// so save the PWD to return to, afterwards.
 	pwd, err := os.Getwd()
@@ -58,7 +76,7 @@ func TestDeploy(t *testing.T) {
 		manifestIncludes string
 		name             string
 		noManifest       bool
-		stdin            string
+		stdin            []string
 		wantError        string
 		wantOutput       []string
 	}{
@@ -91,7 +109,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			stdin: "originless",
+			stdin: []string{"originless"},
 			wantOutput: []string{
 				"Setting service ID in manifest to \"12345\"...",
 				"Deployed package (service 12345, version 1)",
@@ -111,7 +129,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			stdin: "originless",
+			stdin: []string{"originless"},
 			wantOutput: []string{
 				"Setting service ID in manifest to \"12345\"...",
 				"Deployed package (service 12345, version 1)",
@@ -176,7 +194,7 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			stdin:     "originless",
+			stdin:     []string{"originless"},
 			wantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Uploading package...",
@@ -193,7 +211,7 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn: createServiceError,
 			},
-			stdin:     "originless",
+			stdin:     []string{"originless"},
 			wantError: fmt.Sprintf("error creating service: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -214,7 +232,7 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			stdin:     "originless",
+			stdin:     []string{"originless"},
 			wantError: fmt.Sprintf("error creating domain: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -237,12 +255,12 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			stdin:     "originless",
+			stdin:     []string{"originless"},
 			wantError: fmt.Sprintf("error creating backend: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
 				"Creating domain...",
-				"Creating backend...",
+				"Creating backend '127.0.0.1'...",
 			},
 		},
 		// The following test validates that the undoStack is executed as expected
@@ -404,9 +422,9 @@ func TestDeploy(t *testing.T) {
 		// a new service. Our fastly.toml is configured with a [setup] section so
 		// we expect to see the appropriate messaging in the output.
 		//
-		// It also validates the output displays the port number when telling the
-		// user it is creating the backends. It only displays the port number when
-		// the --verbose flag is provided.
+		// It also validates the output displays the port number and backend name
+		// when telling the user it is creating the backends. It only displays the
+		// extra information when the --verbose flag is provided.
 		{
 			name: "success with setup configuration",
 			args: args("compute deploy --token 123 --verbose"),
@@ -447,8 +465,8 @@ func TestDeploy(t *testing.T) {
 				"Backend port number: [443]",
 				"Creating service...",
 				"Creating domain...",
-				"Creating backend 'developer.fastly.com' (port: 443)...",
-				"Creating backend 'httpbin.org' (port: 443)...",
+				"Creating backend 'developer.fastly.com' (port: 443, name: backend_name)...",
+				"Creating backend 'httpbin.org' (port: 443, name: other_backend_name)...",
 				"Uploading package...",
 				"Activating version...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -479,21 +497,21 @@ func TestDeploy(t *testing.T) {
 
 			[setup]
 				[[setup.backends]]
-					name = "backend_name"
+					name = "foo_backend"
 					address = "developer.fastly.com"
 				[[setup.backends]]
-					name = "other_backend_name"
+					name = "bar_backend"
 					address = "httpbin.org"
 			`,
 			wantOutput: []string{
-				"Origin server for 'backend_name': [developer.fastly.com]",
+				"Origin server for 'foo_backend': [developer.fastly.com]",
 				"Backend port number: [80]",
-				"Origin server for 'other_backend_name': [httpbin.org]",
+				"Origin server for 'bar_backend': [httpbin.org]",
 				"Backend port number: [80]",
 				"Creating service...",
 				"Creating domain...",
-				"Creating backend 'developer.fastly.com' (port: 80)...",
-				"Creating backend 'httpbin.org' (port: 80)...",
+				"Creating backend 'developer.fastly.com' (port: 80, name: foo_backend)...",
+				"Creating backend 'httpbin.org' (port: 80, name: bar_backend)...",
 				"Uploading package...",
 				"Activating version...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -551,10 +569,11 @@ func TestDeploy(t *testing.T) {
 				"Backend port number: [443]",
 			},
 		},
-		// The follow test validates that the setup.backends.name field is a
-		// required property.
+		// The follow test validates the setup.backends.address field is a required
+		// field. This is because we need an address to generate a name (if no name
+		// was provided by the user).
 		{
-			name: "error with setup configuration -- missing setup.backends.name",
+			name: "error with setup configuration and missing required fields",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				GetServiceFn: getServiceOK,
@@ -567,11 +586,9 @@ func TestDeploy(t *testing.T) {
 			[setup]
 				[[setup.backends]]
 					prompt = "Backend 1"
-					address = "developer.fastly.com"
 					port = 443
 				[[setup.backends]]
 					prompt = "Backend 2"
-					address = "httpbin.org"
 					port = 443
 			`,
 			wantError: "error parsing the [[setup.backends]] configuration",
@@ -602,6 +619,143 @@ func TestDeploy(t *testing.T) {
 					port = 443
 			`,
 			wantError: "error parsing the [[setup.backends]] configuration",
+		},
+		// The following test validates that a new 'originless' backend is created
+		// when the user has no [setup] configuration and they also pass the
+		// --accept-defaults flag.
+		{
+			name: "success with no setup configuration and --accept-defaults for new service creation",
+			args: args("compute deploy --accept-defaults --token 123 --verbose"),
+			api: mock.API{
+				GetServiceFn:      getServiceOK,
+				CreateServiceFn:   createServiceOK,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				DeleteBackendFn:   deleteBackendOK,
+				DeleteDomainFn:    deleteDomainOK,
+				DeleteServiceFn:   deleteServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			wantOutput: []string{
+				"Creating backend '127.0.0.1' (port: 80, name: originless)...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with no setup configuration and single backend entered at prompt for new service",
+			args: args("compute deploy --token 123 --verbose"),
+			api: mock.API{
+				GetServiceFn:      getServiceOK,
+				CreateServiceFn:   createServiceOK,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				DeleteBackendFn:   deleteBackendOK,
+				DeleteDomainFn:    deleteDomainOK,
+				DeleteServiceFn:   deleteServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			stdin: []string{
+				"fastly.com",
+				"443",
+				"my_backend_name",
+				"", // this stops prompting for backends
+				"", // this is to use the default domain
+			},
+			wantOutput: []string{
+				"Backend (originless, hostname or IP address): [leave blank to stop adding backends]",
+				"Backend port number: [80]",
+				"Backend name:",
+				"Creating backend 'fastly.com' (port: 443, name: my_backend_name)...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		// This is the same test as above but when prompted it will provide two
+		// backends instead of one, and will also allow the code to generate the
+		// backend name using its predefined formula.
+		{
+			name: "success with no setup configuration and multiple backends entered at prompt for new service",
+			args: args("compute deploy --token 123 --verbose"),
+			api: mock.API{
+				GetServiceFn:      getServiceOK,
+				CreateServiceFn:   createServiceOK,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				DeleteBackendFn:   deleteBackendOK,
+				DeleteDomainFn:    deleteDomainOK,
+				DeleteServiceFn:   deleteServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			stdin: []string{
+				"fastly.com",
+				"443",
+				"", // this is so we generate a backend name using a formula
+				"google.com",
+				"123",
+				"", // this is so we generate a backend name using a formula
+				"", // this stops prompting for backends
+				"", // this is to use the default domain
+			},
+			wantOutput: []string{
+				"Backend (originless, hostname or IP address): [leave blank to stop adding backends]",
+				"Backend port number: [80]",
+				"Backend name:",
+				"Creating backend 'fastly.com' (port: 443, name: fastly_com)...",
+				"Creating backend 'google.com' (port: 123, name: google_com)...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		// The following test validates that when prompting the user for backends
+		// that we must have an address defined and if they just press ENTER (i.e.
+		// no value given) after the initial prompt then we'll error as we need at
+		// least one backend address defined.
+		{
+			name: "error with no setup configuration and multiple backends prompted for new service",
+			args: args("compute deploy --token 123 --verbose"),
+			api: mock.API{
+				GetServiceFn:      getServiceOK,
+				CreateServiceFn:   createServiceOK,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				DeleteBackendFn:   deleteBackendOK,
+				DeleteDomainFn:    deleteDomainOK,
+				DeleteServiceFn:   deleteServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			wantError: "error configuring a backend (no input given)",
+		},
+		{
+			name: "success with no setup configuration and multiple backends prompted for existing service with no backends",
+			args: args("compute deploy --token 123 --verbose"),
+			api: mock.API{
+				GetServiceFn:      getServiceOK,
+				CreateServiceFn:   createServiceOK,
+				CreateDomainFn:    createDomainOK,
+				CreateBackendFn:   createBackendOK,
+				DeleteBackendFn:   deleteBackendOK,
+				DeleteDomainFn:    deleteDomainOK,
+				DeleteServiceFn:   deleteServiceOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+				ListDomainsFn:     listDomainsOk,
+			},
+			stdin: []string{"originless"},
+			wantOutput: []string{
+				"Backend (originless, hostname or IP address): [leave blank to stop adding backends]",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -636,24 +790,56 @@ func TestDeploy(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
 
-			// we need to define stdin as the deploy process prompts the user multiple
-			// times, but the issue is once an io.Reader has been read it cannot be
-			// read from again. This means if our tests need the stdin as part of
-			// validating a portion of the code, then we have to try and ensure our tests
-			// side step any flows that would cause a prompt to read our input too early.
-			//
-			// This is why we _used_ to prompt the user for a domain first, but as
-			// that prompt will set a default if none provided by the user we ended
-			// up switching it around so a backend is configured first as those
-			// prompts will cause the entire user flow to fail if no input is
-			// provided (making testing ...tricky)
-			opts.Stdin = strings.NewReader(testcase.stdin)
+			if len(testcase.stdin) > 1 {
+				// To handle multiple prompt input from the user we need to do some
+				// coordination around io pipes to mimic the required user behaviour.
+				stdin, prompt := io.Pipe()
+				opts.Stdin = stdin
 
-			err = app.Run(opts)
+				// Wait for user input and write it to the prompt
+				inputc := make(chan string)
+				go func() {
+					for input := range inputc {
+						fmt.Fprintln(prompt, input)
+					}
+				}()
 
-			testutil.AssertErrorContains(t, err, testcase.wantError)
+				// We need a channel so we wait for `run()` to complete
+				done := make(chan bool)
+
+				// Call `app.Run()` and wait for response
+				go func() {
+					err = app.Run(opts)
+					done <- true
+				}()
+
+				// User provides input
+				//
+				// NOTE: Must provide as much input as is expected to be waited on by `run()`.
+				//       For example, if `run()` calls `input()` twice, then provide two messages.
+				//       Otherwise the select statement will trigger the timeout error.
+				for _, input := range testcase.stdin {
+					inputc <- input
+				}
+
+				select {
+				case <-done:
+					// Wait for app.Run() to finish
+				case <-time.After(time.Second):
+					t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
+				}
+			} else {
+				stdin := ""
+				if len(testcase.stdin) > 0 {
+					stdin = testcase.stdin[0]
+				}
+				opts.Stdin = strings.NewReader(stdin)
+				err = app.Run(opts)
+			}
 
 			t.Log(stdout.String())
+
+			testutil.AssertErrorContains(t, err, testcase.wantError)
 
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, stdout.String(), s)

@@ -65,7 +65,8 @@ func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 
 func listBackendsOk(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return []*fastly.Backend{
-		{Name: "foobar"},
+		{Name: "foo"},
+		{Name: "bar"},
 	}, nil
 }
 
