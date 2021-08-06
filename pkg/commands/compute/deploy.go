@@ -112,11 +112,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	var (
-		domain         string
-		backends       []Backend
-		invalidService bool
-		invalidType    invalidResource
-		version        *fastly.Version
+		domain          string
+		backends        []Backend
+		backendsMissing []manifest.Mapper
+		invalidService  bool
+		invalidType     invalidResource
+		version         *fastly.Version
 	)
 
 	serviceID, sidSrc := c.Manifest.ServiceID()
@@ -179,18 +180,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// `validateservice` will be able to shadow `invalidType`.
 		var ok bool
 
-		// We require at least one backend but if the project fastly.toml contains
-		// a [setup] with backends defined, then we'll use that as our requirement.
-		requiredBackends := 1
-		definedBackends := len(c.Manifest.File.Setup.Backends)
-		if definedBackends > 0 {
-			requiredBackends = definedBackends
-		}
-
 		// Because a service_id exists in the fastly.toml doesn't mean it's valid
 		// e.g. it could be missing either a domain or backend resource. So we
 		// check and allow the user to configure these settings before continuing.
-		ok, invalidType, err = validateService(serviceID, c.Globals.Client, version, requiredBackends)
+		ok, invalidType, backendsMissing, err = validateService(serviceID, c.Globals.Client, version, c.Manifest.File.Setup.Backends)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Service ID":      serviceID,
@@ -215,7 +208,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					})
 					return err
 				}
-				backends, err = configureBackends(c, backends, c.Manifest.File.Setup.Backends, out, in)
+				backends, err = configureBackends(c, backends, backendsMissing, out, in)
 				if err != nil {
 					return err
 				}
@@ -229,7 +222,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					return err
 				}
 			case resourceBackend:
-				backends, err = configureBackends(c, backends, c.Manifest.File.Setup.Backends, out, in)
+				backends, err = configureBackends(c, backends, backendsMissing, out, in)
 				if err != nil {
 					return err
 				}
@@ -487,15 +480,26 @@ func pkgPath(path string, name string, source manifest.Source) (string, error) {
 }
 
 // validateService checks if the service version has a domain and backend
-// defined.
+// defined, and in the case of the [setup] configuration it will validate the
+// backends defined in the config exist in the given service.
 //
 // The use of `resourceNone` as a `invalidResource` enum type is to represent a
 // situation where an error occurred and so we were unable to identify whether
 // a domain or backend (or both) were missing from the given service.
-func validateService(serviceID string, client api.Interface, version *fastly.Version, requiredBackends int) (bool, invalidResource, error) {
+func validateService(serviceID string, client api.Interface, version *fastly.Version, predefinedBackends []manifest.Mapper) (bool, invalidResource, []manifest.Mapper, error) {
+	var missingBackends []manifest.Mapper
+
+	// We require at least one backend but if the project fastly.toml contains
+	// a [setup] with backends defined, then we'll use that as our requirement.
+	requiredBackends := 1
+	definedBackends := len(predefinedBackends)
+	if definedBackends > 0 {
+		requiredBackends = definedBackends
+	}
+
 	err := checkServiceID(serviceID, client, version)
 	if err != nil {
-		return false, resourceNone, err
+		return false, resourceNone, missingBackends, err
 	}
 
 	domains, err := client.ListDomains(&fastly.ListDomainsInput{
@@ -503,7 +507,7 @@ func validateService(serviceID string, client api.Interface, version *fastly.Ver
 		ServiceVersion: version.Number,
 	})
 	if err != nil {
-		return false, resourceNone, fmt.Errorf("error fetching service domains: %w", err)
+		return false, resourceNone, missingBackends, fmt.Errorf("error fetching service domains: %w", err)
 	}
 
 	backends, err := client.ListBackends(&fastly.ListBackendsInput{
@@ -511,23 +515,83 @@ func validateService(serviceID string, client api.Interface, version *fastly.Ver
 		ServiceVersion: version.Number,
 	})
 	if err != nil {
-		return false, resourceNone, fmt.Errorf("error fetching service backends: %w", err)
+		return false, resourceNone, missingBackends, fmt.Errorf("error fetching service backends: %w", err)
 	}
 
-	ld := len(domains)
-	lb := len(backends)
+	// At a minimum we need the number of backends in the existing service to
+	// match requiredBackends (and at least one existing domain).
+	{
+		ld := len(domains)
+		lb := len(backends)
+		if ld == 0 && lb < requiredBackends {
+			return false, resourceBoth, missingBackends, nil
+		}
+		if ld == 0 {
+			return false, resourceDomain, missingBackends, nil
+		}
+		if lb < requiredBackends {
+			return false, resourceBackend, missingBackends, nil
+		}
+	}
 
-	if ld == 0 && lb < requiredBackends {
-		return false, resourceBoth, nil
-	}
-	if ld == 0 {
-		return false, resourceDomain, nil
-	}
-	if lb < requiredBackends {
-		return false, resourceBackend, nil
+	// Error descriptions used if we need to handle [setup] configuration
+	innerErr := fmt.Errorf("error parsing the [[setup.backends]] configuration")
+	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field."
+
+	for _, backend := range predefinedBackends {
+		if _, exists := backend["address"]; exists {
+			addr, ok := backend["address"].(string)
+			if !ok || addr == "" {
+				return false, resourceNone, missingBackends, backendRemediationError("address", remediation, innerErr)
+			}
+			match := false
+			for _, bs := range backends {
+				if bs.Address == addr {
+					match = true
+					break
+				}
+			}
+			if !match {
+				missingBackends = append(missingBackends, backend)
+			}
+		}
+
+		if _, exists := backend["name"]; exists {
+			name, ok := backend["name"].(string)
+			if !ok {
+				return false, resourceNone, missingBackends, backendRemediationError("name", remediation, innerErr)
+			}
+			match := false
+			for _, bs := range backends {
+				if bs.Name == name {
+					match = true
+					break
+				}
+			}
+			if !match {
+				missingBackends = append(missingBackends, backend)
+			}
+		}
+
+		if _, exists := backend["port"]; exists {
+			port, ok := backend["port"].(int64)
+			if !ok {
+				return false, resourceNone, missingBackends, backendRemediationError("port", remediation, innerErr)
+			}
+			match := false
+			for _, bs := range backends {
+				if bs.Port == uint(port) {
+					match = true
+					break
+				}
+			}
+			if !match {
+				missingBackends = append(missingBackends, backend)
+			}
+		}
 	}
 
-	return true, resourceNone, nil
+	return true, resourceNone, missingBackends, nil
 }
 
 // checkServiceID validates the given Service ID maps to a real service.
@@ -679,13 +743,10 @@ func cfgSetupBackend(backend manifest.Mapper, c *DeployCommand, out io.Writer, i
 			if !ok {
 				return b, backendRemediationError("address", remediation, innerErr)
 			}
+		} else {
+			return b, backendRemediationError("address", remediation, innerErr)
 		}
-		if addr != "" {
-			defaultAddr = fmt.Sprintf(": [%s] ", addr)
-		}
-		if addr == "" {
-			return b, backendRemediationError("name", remediation, innerErr)
-		}
+		defaultAddr = fmt.Sprintf(": [%s] ", addr)
 	}
 
 	// NAME DEFAULT
