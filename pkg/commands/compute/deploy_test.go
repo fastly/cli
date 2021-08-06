@@ -102,10 +102,10 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123 -v -p pkg/package.tar.gz"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
@@ -122,10 +122,10 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123 -v"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
@@ -181,10 +181,6 @@ func TestDeploy(t *testing.T) {
 			name: "package API error",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				GetServiceFn:    getServiceOK,
-				ListVersionsFn:  testutil.ListVersions,
-				ListDomainsFn:   listDomainsOk,
-				ListBackendsFn:  listBackendsOk,
 				CreateServiceFn: createServiceOK,
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendOK,
@@ -226,7 +222,6 @@ func TestDeploy(t *testing.T) {
 			name: "service domain error",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				GetServiceFn:    getServiceOK,
 				CreateServiceFn: createServiceOK,
 				CreateDomainFn:  createDomainError,
 				DeleteDomainFn:  deleteDomainOK,
@@ -247,7 +242,6 @@ func TestDeploy(t *testing.T) {
 			name: "service backend error",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				GetServiceFn:    getServiceOK,
 				CreateServiceFn: createServiceOK,
 				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendError,
@@ -269,8 +263,8 @@ func TestDeploy(t *testing.T) {
 			name: "activate error",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
+				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -287,8 +281,8 @@ func TestDeploy(t *testing.T) {
 			name: "identical package",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
-				GetServiceFn:   getServiceOK,
 				ListVersionsFn: testutil.ListVersions,
+				GetServiceFn:   getServiceOK,
 				ListDomainsFn:  listDomainsOk,
 				ListBackendsFn: listBackendsOk,
 				GetPackageFn:   getPackageIdentical,
@@ -301,8 +295,8 @@ func TestDeploy(t *testing.T) {
 			name: "success",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
+				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -323,8 +317,8 @@ func TestDeploy(t *testing.T) {
 			name: "success with path",
 			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version latest"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
+				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -345,8 +339,8 @@ func TestDeploy(t *testing.T) {
 			name: "success with inactive version",
 			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				ListVersionsFn:    testutil.ListVersions,
+				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
 				GetPackageFn:      getPackageOk,
@@ -429,13 +423,9 @@ func TestDeploy(t *testing.T) {
 			name: "success with setup configuration",
 			args: args("compute deploy --token 123 --verbose"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
-				DeleteBackendFn:   deleteBackendOK,
-				DeleteDomainFn:    deleteDomainOK,
-				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -478,13 +468,9 @@ func TestDeploy(t *testing.T) {
 			name: "success with setup configuration and no prompts or ports defined",
 			args: args("compute deploy --token 123 --verbose"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
-				DeleteBackendFn:   deleteBackendOK,
-				DeleteDomainFn:    deleteDomainOK,
-				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -523,13 +509,9 @@ func TestDeploy(t *testing.T) {
 			name: "success with setup configuration and accept-defaults",
 			args: args("compute deploy --accept-defaults --token 123"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
-				DeleteBackendFn:   deleteBackendOK,
-				DeleteDomainFn:    deleteDomainOK,
-				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -575,9 +557,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "error with setup configuration and missing required fields",
 			args: args("compute deploy --token 123"),
-			api: mock.API{
-				GetServiceFn: getServiceOK,
-			},
 			manifest: `
 			name = "package"
 			manifest_version = 1
@@ -598,9 +577,6 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "error with setup configuration -- invalid setup.backends.name",
 			args: args("compute deploy --token 123"),
-			api: mock.API{
-				GetServiceFn: getServiceOK,
-			},
 			manifest: `
 			name = "package"
 			manifest_version = 1
@@ -627,13 +603,9 @@ func TestDeploy(t *testing.T) {
 			name: "success with no setup configuration and --accept-defaults for new service creation",
 			args: args("compute deploy --accept-defaults --token 123 --verbose"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
-				DeleteBackendFn:   deleteBackendOK,
-				DeleteDomainFn:    deleteDomainOK,
-				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -648,13 +620,9 @@ func TestDeploy(t *testing.T) {
 			name: "success with no setup configuration and single backend entered at prompt for new service",
 			args: args("compute deploy --token 123 --verbose"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
-				DeleteBackendFn:   deleteBackendOK,
-				DeleteDomainFn:    deleteDomainOK,
-				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -682,13 +650,9 @@ func TestDeploy(t *testing.T) {
 			name: "success with no setup configuration and multiple backends entered at prompt for new service",
 			args: args("compute deploy --token 123 --verbose"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
-				DeleteBackendFn:   deleteBackendOK,
-				DeleteDomainFn:    deleteDomainOK,
-				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -721,13 +685,9 @@ func TestDeploy(t *testing.T) {
 			name: "error with no setup configuration and multiple backends prompted for new service",
 			args: args("compute deploy --token 123 --verbose"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
 				CreateBackendFn:   createBackendOK,
-				DeleteBackendFn:   deleteBackendOK,
-				DeleteDomainFn:    deleteDomainOK,
-				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -737,24 +697,31 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with no setup configuration and multiple backends prompted for existing service with no backends",
-			args: args("compute deploy --token 123 --verbose"),
+			args: args("compute deploy --service-id 123 --token 123 --verbose"),
 			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
 				GetServiceFn:      getServiceOK,
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsNone,
 				CreateBackendFn:   createBackendOK,
-				DeleteBackendFn:   deleteBackendOK,
-				DeleteDomainFn:    deleteDomainOK,
-				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
-				ListDomainsFn:     listDomainsOk,
 			},
-			stdin: []string{"originless"},
+			stdin: []string{
+				"fastly.com",
+				"443",
+				"", // this is so we generate a backend name using a formula
+				"google.com",
+				"123",
+				"", // this is so we generate a backend name using a formula
+				"", // this stops prompting for backends
+			},
 			wantOutput: []string{
 				"Backend (originless, hostname or IP address): [leave blank to stop adding backends]",
-				"SUCCESS: Deployed package (service 12345, version 1)",
+				"Creating backend 'fastly.com' (port: 443, name: fastly_com)...",
+				"Creating backend 'google.com' (port: 123, name: google_com)...",
+				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
 	} {

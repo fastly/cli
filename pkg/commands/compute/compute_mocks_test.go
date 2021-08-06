@@ -70,6 +70,10 @@ func listBackendsOk(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	}, nil
 }
 
+func listBackendsNone(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
+	return []*fastly.Backend{}, nil
+}
+
 type versionClient struct {
 	fastlyVersions    []string
 	fastlySysVersions []string
