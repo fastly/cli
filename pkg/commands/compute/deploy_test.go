@@ -724,6 +724,24 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
+		{
+			name: "success with no setup configuration and use of --accept-defaults for existing service",
+			args: args("compute deploy --accept-defaults --service-id 123 --token 123 --verbose"),
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsNone,
+				CreateBackendFn:   createBackendOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+			},
+			wantOutput: []string{
+				"Creating backend '127.0.0.1' (port: 80, name: originless)...",
+				"SUCCESS: Deployed package (service 123, version 3)",
+			},
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// Because the manifest can be mutated on each test scenario, we recreate
