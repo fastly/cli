@@ -63,17 +63,6 @@ func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	}, nil
 }
 
-func listBackendsOk(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
-	return []*fastly.Backend{
-		{Name: "foo"},
-		{Name: "bar"},
-	}, nil
-}
-
-func listBackendsNone(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
-	return []*fastly.Backend{}, nil
-}
-
 type versionClient struct {
 	fastlyVersions    []string
 	fastlySysVersions []string

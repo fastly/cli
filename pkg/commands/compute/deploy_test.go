@@ -743,6 +743,51 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
+		// The following test validates that when dealing with an existing service,
+		// if there are some backends that exist from the given [setup], then only
+		// prompt the user for backends that don't exist.
+		{
+			name: "success with setup configuration and only prompting missing backends for existing service",
+			args: args("compute deploy --service-id 123 --token 123 --verbose"),
+			api: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsSome,
+				CreateBackendFn:   createBackendOK,
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 1
+			language = "rust"
+
+			[setup]
+				[[setup.backends]]
+					name = "backend_name"
+					prompt = "Backend 1"
+					address = "fastly.com"
+					port = 443
+				[[setup.backends]]
+					name = "other_backend_name"
+					prompt = "Backend 2"
+					address = "google.com"
+					port = 443
+			`,
+			stdin: []string{
+				"google.com",
+				"123",
+				"", // this is so we generate a backend name using a built-in formula
+				"", // this stops prompting for backends
+			},
+			wantOutput: []string{
+				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
+				"Creating backend 'google.com' (port: 123, name: google_com)...",
+				"SUCCESS: Deployed package (service 123, version 3)",
+			},
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// Because the manifest can be mutated on each test scenario, we recreate
@@ -896,6 +941,23 @@ func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, testutil.Err
 }
 
+func listBackendsOk(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
+	return []*fastly.Backend{
+		{Name: "foo"},
+		{Name: "bar"},
+	}, nil
+}
+
 func listBackendsError(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return nil, testutil.Err
+}
+
+func listBackendsNone(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
+	return []*fastly.Backend{}, nil
+}
+
+func listBackendsSome(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
+	return []*fastly.Backend{
+		{Address: "fastly.com", Name: "fastly", Port: 443},
+	}, nil
 }
