@@ -109,7 +109,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			stdin: []string{"originless"},
 			wantOutput: []string{
 				"Setting service ID in manifest to \"12345\"...",
 				"Deployed package (service 12345, version 1)",
@@ -129,7 +128,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			stdin: []string{"originless"},
 			wantOutput: []string{
 				"Setting service ID in manifest to \"12345\"...",
 				"Deployed package (service 12345, version 1)",
@@ -190,7 +188,6 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			stdin:     []string{"originless"},
 			wantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Uploading package...",
@@ -207,7 +204,6 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn: createServiceError,
 			},
-			stdin:     []string{"originless"},
 			wantError: fmt.Sprintf("error creating service: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -227,7 +223,6 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			stdin:     []string{"originless"},
 			wantError: fmt.Sprintf("error creating domain: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -249,7 +244,6 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			stdin:     []string{"originless"},
 			wantError: fmt.Sprintf("error creating backend: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
@@ -636,7 +630,7 @@ func TestDeploy(t *testing.T) {
 				"", // this is to use the default domain
 			},
 			wantOutput: []string{
-				"Backend (originless, hostname or IP address): [leave blank to stop adding backends]",
+				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
 				"Backend port number: [80]",
 				"Backend name:",
 				"Creating backend 'fastly.com' (port: 443, name: my_backend_name)...",
@@ -661,15 +655,15 @@ func TestDeploy(t *testing.T) {
 			stdin: []string{
 				"fastly.com",
 				"443",
-				"", // this is so we generate a backend name using a formula
+				"", // this is so we generate a backend name using a built-in formula
 				"google.com",
 				"123",
-				"", // this is so we generate a backend name using a formula
+				"", // this is so we generate a backend name using a built-in formula
 				"", // this stops prompting for backends
 				"", // this is to use the default domain
 			},
 			wantOutput: []string{
-				"Backend (originless, hostname or IP address): [leave blank to stop adding backends]",
+				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
 				"Backend port number: [80]",
 				"Backend name:",
 				"Creating backend 'fastly.com' (port: 443, name: fastly_com)...",
@@ -678,9 +672,8 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		// The following test validates that when prompting the user for backends
-		// that we must have an address defined and if they just press ENTER (i.e.
-		// no value given) after the initial prompt then we'll error as we need at
-		// least one backend address defined.
+		// that we'll default to creating an 'originless' backend if no value
+		// provided at the prompt.
 		{
 			name: "error with no setup configuration and multiple backends prompted for new service",
 			args: args("compute deploy --token 123 --verbose"),
@@ -693,8 +686,14 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 			},
-			wantError: "error configuring a backend (no input given)",
+			wantOutput: []string{
+				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
+				"Creating backend '127.0.0.1' (port: 80, name: originless)...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
 		},
+		// The following test validates that when dealing with an existing service,
+		// if there are no backends, then we'll prompt the user for backends.
 		{
 			name: "success with no setup configuration and multiple backends prompted for existing service with no backends",
 			args: args("compute deploy --service-id 123 --token 123 --verbose"),
@@ -711,19 +710,21 @@ func TestDeploy(t *testing.T) {
 			stdin: []string{
 				"fastly.com",
 				"443",
-				"", // this is so we generate a backend name using a formula
+				"", // this is so we generate a backend name using a built-in formula
 				"google.com",
 				"123",
-				"", // this is so we generate a backend name using a formula
+				"", // this is so we generate a backend name using a built-in formula
 				"", // this stops prompting for backends
 			},
 			wantOutput: []string{
-				"Backend (originless, hostname or IP address): [leave blank to stop adding backends]",
+				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
 				"Creating backend 'fastly.com' (port: 443, name: fastly_com)...",
 				"Creating backend 'google.com' (port: 123, name: google_com)...",
 				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
+		// The following test is the same setup as above, but if the user provides
+		// the --accept-defaults flag we won't prompt for any backends.
 		{
 			name: "success with no setup configuration and use of --accept-defaults for existing service",
 			args: args("compute deploy --accept-defaults --service-id 123 --token 123 --verbose"),

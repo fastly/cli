@@ -852,7 +852,7 @@ func cfgBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (ba
 			backend.Name = backend.Address
 		}
 
-		backend.Address, err = text.Input(out, "Backend (originless, hostname or IP address): [leave blank to stop adding backends] ", in, f)
+		backend.Address, err = text.Input(out, "Backend (hostname or IP address, or leave blank to stop adding backends): [originless] ", in, f)
 		if err != nil {
 			return backends, fmt.Errorf("error reading input %w", err)
 		}
