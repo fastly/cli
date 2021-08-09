@@ -779,7 +779,7 @@ func cfgSetupBackend(backend manifest.Mapper, c *DeployCommand, out io.Writer, i
 		// If no prompt text is provided by the [setup] configuration, then we'll
 		// default to using the name of the backend as the prompt text.
 		if prompt == "" {
-			prompt = fmt.Sprintf("Origin server for '%s'", b.Name)
+			prompt = fmt.Sprintf("Backend for '%s'", b.Name)
 		}
 	}
 
@@ -857,7 +857,7 @@ func cfgBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (ba
 			backend.Name = backend.Address
 		}
 
-		backend.Address, err = text.Input(out, "Backend (hostname or IP address, or leave blank to stop adding backends): [originless] ", in, f)
+		backend.Address, err = text.Input(out, "Backend (hostname or IP address, or leave blank to stop adding backends): ", in, f)
 		if err != nil {
 			return backends, fmt.Errorf("error reading input %w", err)
 		}
@@ -1028,9 +1028,8 @@ func validateBackend(input string) error {
 		isAddr = true
 	}
 	isEmpty := input == ""
-	isOriginless := strings.ToLower(input) == "originless"
-	if !isEmpty && !isOriginless && !isHost && !isAddr {
-		return fmt.Errorf(`must be "originless" or a valid hostname, IPv4, or IPv6 address`)
+	if !isEmpty && !isHost && !isAddr {
+		return fmt.Errorf(`must be a valid hostname, IPv4, or IPv6 address`)
 	}
 	return nil
 }

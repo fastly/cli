@@ -484,9 +484,9 @@ func TestDeploy(t *testing.T) {
 					address = "httpbin.org"
 			`,
 			wantOutput: []string{
-				"Origin server for 'foo_backend': [developer.fastly.com]",
+				"Backend for 'foo_backend': [developer.fastly.com]",
 				"Backend port number: [80]",
-				"Origin server for 'bar_backend': [httpbin.org]",
+				"Backend for 'bar_backend': [httpbin.org]",
 				"Backend port number: [80]",
 				"Creating service...",
 				"Creating domain...",
@@ -631,7 +631,7 @@ func TestDeploy(t *testing.T) {
 				"", // this is to use the default domain
 			},
 			wantOutput: []string{
-				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
+				"Backend (hostname or IP address, or leave blank to stop adding backends):",
 				"Backend port number: [80]",
 				"Backend name:",
 				"Creating backend 'fastly.com' (port: 443, name: my_backend_name)...",
@@ -664,7 +664,7 @@ func TestDeploy(t *testing.T) {
 				"", // this is to use the default domain
 			},
 			wantOutput: []string{
-				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
+				"Backend (hostname or IP address, or leave blank to stop adding backends):",
 				"Backend port number: [80]",
 				"Backend name:",
 				"Creating backend 'fastly.com' (port: 443, name: fastly_com)...",
@@ -688,7 +688,7 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:     listDomainsOk,
 			},
 			wantOutput: []string{
-				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
+				"Backend (hostname or IP address, or leave blank to stop adding backends):",
 				"Creating backend '127.0.0.1' (port: 80, name: originless)...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
@@ -718,7 +718,7 @@ func TestDeploy(t *testing.T) {
 				"", // this stops prompting for backends
 			},
 			wantOutput: []string{
-				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
+				"Backend (hostname or IP address, or leave blank to stop adding backends):",
 				"Creating backend 'fastly.com' (port: 443, name: fastly_com)...",
 				"Creating backend 'google.com' (port: 123, name: google_com)...",
 				"SUCCESS: Deployed package (service 123, version 3)",
@@ -784,7 +784,7 @@ func TestDeploy(t *testing.T) {
 				"", // this stops prompting for backends
 			},
 			wantOutput: []string{
-				"Backend (hostname or IP address, or leave blank to stop adding backends): [originless]",
+				"Backend (hostname or IP address, or leave blank to stop adding backends):",
 				"Creating backend 'google.com' (port: 123, name: google_com)...",
 				"SUCCESS: Deployed package (service 123, version 3)",
 			},
