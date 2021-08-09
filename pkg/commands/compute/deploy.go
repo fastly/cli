@@ -297,7 +297,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		for _, backend := range backends {
-			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack, c.Globals.Verbose())
+			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 					"Accept defaults": c.AcceptDefaults,
@@ -333,7 +333,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				return err
 			}
 			for _, backend := range backends {
-				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack, c.Globals.Verbose())
+				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 						"Accept defaults": c.AcceptDefaults,
@@ -355,7 +355,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 		case resourceBackend:
 			for _, backend := range backends {
-				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack, c.Globals.Verbose())
+				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 						"Accept defaults": c.AcceptDefaults,
@@ -961,12 +961,13 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 
 // createBackend creates the given domain and handle unrolling the stack in case
 // of an error (i.e. will ensure the backend is deleted if there is an error).
-func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend Backend, undoStack undo.Stacker, verbose bool) error {
-	display := fmt.Sprintf(" '%s'", backend.Address)
-	if verbose {
-		display = fmt.Sprintf("%s (port: %d, name: %s)", display, backend.Port, backend.Name)
+func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend Backend, undoStack undo.Stacker) error {
+	// We don't display the fact we're creating a backend when it's for an
+	// originless purpose as the user shouldn't have to know about this detail.
+	originless := backend.Name == "originless" && backend.Address == "127.0.0.1"
+	if !originless {
+		progress.Step(fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", backend.Name, backend.Address, backend.Port))
 	}
-	progress.Step(fmt.Sprintf("Creating backend%s...", display))
 
 	undoStack.Push(func() error {
 		return client.DeleteBackend(&fastly.DeleteBackendInput{
@@ -986,7 +987,11 @@ func createBackend(progress text.Progress, client api.Interface, serviceID strin
 		SSLSNIHostname: backend.SSLSNIHostname,
 	})
 	if err != nil {
-		return fmt.Errorf("error creating backend: %w", err)
+		if originless {
+			return fmt.Errorf("error configuring the service: %w", err)
+		} else {
+			return fmt.Errorf("error creating backend: %w", err)
+		}
 	}
 
 	return nil

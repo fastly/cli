@@ -244,11 +244,10 @@ func TestDeploy(t *testing.T) {
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 			},
-			wantError: fmt.Sprintf("error creating backend: %s", testutil.Err.Error()),
+			wantError: fmt.Sprintf("error configuring the service: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
 				"Creating domain...",
-				"Creating backend '127.0.0.1'...",
 			},
 		},
 		// The following test validates that the undoStack is executed as expected
@@ -409,13 +408,9 @@ func TestDeploy(t *testing.T) {
 		// manifest, so this will result in the deploy script attempting to create
 		// a new service. Our fastly.toml is configured with a [setup] section so
 		// we expect to see the appropriate messaging in the output.
-		//
-		// It also validates the output displays the port number and backend name
-		// when telling the user it is creating the backends. It only displays the
-		// extra information when the --verbose flag is provided.
 		{
 			name: "success with setup configuration",
-			args: args("compute deploy --token 123 --verbose"),
+			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
@@ -449,8 +444,8 @@ func TestDeploy(t *testing.T) {
 				"Backend port number: [443]",
 				"Creating service...",
 				"Creating domain...",
-				"Creating backend 'developer.fastly.com' (port: 443, name: backend_name)...",
-				"Creating backend 'httpbin.org' (port: 443, name: other_backend_name)...",
+				"Creating backend 'backend_name' (host: developer.fastly.com, port: 443)...",
+				"Creating backend 'other_backend_name' (host: httpbin.org, port: 443)...",
 				"Uploading package...",
 				"Activating version...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -460,7 +455,7 @@ func TestDeploy(t *testing.T) {
 		// ports, so we validate that the user prompts match our default expectations.
 		{
 			name: "success with setup configuration and no prompts or ports defined",
-			args: args("compute deploy --token 123 --verbose"),
+			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
@@ -490,8 +485,8 @@ func TestDeploy(t *testing.T) {
 				"Backend port number: [80]",
 				"Creating service...",
 				"Creating domain...",
-				"Creating backend 'developer.fastly.com' (port: 80, name: foo_backend)...",
-				"Creating backend 'httpbin.org' (port: 80, name: bar_backend)...",
+				"Creating backend 'foo_backend' (host: developer.fastly.com, port: 80)...",
+				"Creating backend 'bar_backend' (host: httpbin.org, port: 80)...",
 				"Uploading package...",
 				"Activating version...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -532,8 +527,8 @@ func TestDeploy(t *testing.T) {
 				"Initializing...",
 				"Creating service...",
 				"Creating domain...",
-				"Creating backend 'developer.fastly.com'...",
-				"Creating backend 'httpbin.org'...",
+				"Creating backend 'backend_name' (host: developer.fastly.com, port: 443)...",
+				"Creating backend 'other_backend_name' (host: httpbin.org, port: 443)...",
 				"Uploading package...",
 				"Activating version...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -593,10 +588,13 @@ func TestDeploy(t *testing.T) {
 		},
 		// The following test validates that a new 'originless' backend is created
 		// when the user has no [setup] configuration and they also pass the
-		// --accept-defaults flag.
+		// --accept-defaults flag. This is done by ensuring we DON'T see the
+		// standard 'Creating backend' output because we want to conceal the fact
+		// that we require a backend for compute services because it's a temporary
+		// implementation detail.
 		{
 			name: "success with no setup configuration and --accept-defaults for new service creation",
-			args: args("compute deploy --accept-defaults --token 123 --verbose"),
+			args: args("compute deploy --accept-defaults --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
@@ -607,13 +605,15 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:     listDomainsOk,
 			},
 			wantOutput: []string{
-				"Creating backend '127.0.0.1' (port: 80, name: originless)...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			dontWantOutput: []string{
+				"Creating backend", // expect originless creation to be hidden
 			},
 		},
 		{
 			name: "success with no setup configuration and single backend entered at prompt for new service",
-			args: args("compute deploy --token 123 --verbose"),
+			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
@@ -634,7 +634,7 @@ func TestDeploy(t *testing.T) {
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
 				"Backend port number: [80]",
 				"Backend name:",
-				"Creating backend 'fastly.com' (port: 443, name: my_backend_name)...",
+				"Creating backend 'my_backend_name' (host: fastly.com, port: 443)...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -643,7 +643,7 @@ func TestDeploy(t *testing.T) {
 		// backend name using its predefined formula.
 		{
 			name: "success with no setup configuration and multiple backends entered at prompt for new service",
-			args: args("compute deploy --token 123 --verbose"),
+			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
@@ -667,8 +667,8 @@ func TestDeploy(t *testing.T) {
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
 				"Backend port number: [80]",
 				"Backend name:",
-				"Creating backend 'fastly.com' (port: 443, name: fastly_com)...",
-				"Creating backend 'google.com' (port: 123, name: google_com)...",
+				"Creating backend 'fastly_com' (host: fastly.com, port: 443)...",
+				"Creating backend 'google_com' (host: google.com, port: 123)...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -677,7 +677,7 @@ func TestDeploy(t *testing.T) {
 		// provided at the prompt.
 		{
 			name: "error with no setup configuration and multiple backends prompted for new service",
-			args: args("compute deploy --token 123 --verbose"),
+			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
 				CreateDomainFn:    createDomainOK,
@@ -689,15 +689,17 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
-				"Creating backend '127.0.0.1' (port: 80, name: originless)...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			dontWantOutput: []string{
+				"Creating backend", // expect originless creation to be hidden
 			},
 		},
 		// The following test validates that when dealing with an existing service,
 		// if there are no backends, then we'll prompt the user for backends.
 		{
 			name: "success with no setup configuration and multiple backends prompted for existing service with no backends",
-			args: args("compute deploy --service-id 123 --token 123 --verbose"),
+			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetServiceFn:      getServiceOK,
@@ -719,8 +721,8 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
-				"Creating backend 'fastly.com' (port: 443, name: fastly_com)...",
-				"Creating backend 'google.com' (port: 123, name: google_com)...",
+				"Creating backend 'fastly_com' (host: fastly.com, port: 443)...",
+				"Creating backend 'google_com' (host: google.com, port: 123)...",
 				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
@@ -728,7 +730,7 @@ func TestDeploy(t *testing.T) {
 		// the --accept-defaults flag we won't prompt for any backends.
 		{
 			name: "success with no setup configuration and use of --accept-defaults for existing service",
-			args: args("compute deploy --accept-defaults --service-id 123 --token 123 --verbose"),
+			args: args("compute deploy --accept-defaults --service-id 123 --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetServiceFn:      getServiceOK,
@@ -740,8 +742,10 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 			},
 			wantOutput: []string{
-				"Creating backend '127.0.0.1' (port: 80, name: originless)...",
 				"SUCCESS: Deployed package (service 123, version 3)",
+			},
+			dontWantOutput: []string{
+				"Creating backend", // expect originless creation to be hidden
 			},
 		},
 		// The following test validates that when dealing with an existing service,
@@ -749,7 +753,7 @@ func TestDeploy(t *testing.T) {
 		// prompt the user for backends that don't exist.
 		{
 			name: "success with setup configuration and only prompting missing backends for existing service",
-			args: args("compute deploy --service-id 123 --token 123 --verbose"),
+			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetServiceFn:      getServiceOK,
@@ -785,7 +789,7 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
-				"Creating backend 'google.com' (port: 123, name: google_com)...",
+				"Creating backend 'google_com' (host: google.com, port: 123)...",
 				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
