@@ -774,7 +774,7 @@ func cfgSetupBackend(backend manifest.Mapper, c *DeployCommand, out io.Writer, i
 		// If no prompt text is provided by the [setup] configuration, then we'll
 		// default to using the name of the backend as the prompt text.
 		if prompt == "" {
-			prompt = fmt.Sprintf("Origin server for '%s'", name)
+			prompt = fmt.Sprintf("Origin server for '%s'", b.Name)
 		}
 	}
 
