@@ -83,7 +83,7 @@ func (m *CargoMetadata) Read() error {
 type Rust struct {
 	client    api.HTTPClient
 	config    *config.Data
-	toolchain *semver.Version
+	toolchain string
 	timeout   int
 }
 
@@ -165,11 +165,7 @@ func (r *Rust) Verify(out io.Writer) error {
 		}
 	}
 
-	// 3) Check that the desired toolchain version is installed
-	//
-	// We use rustup to assert that the toolchain is installed by streaming the output of
-	// `rustup toolchain list` and looking for a toolchain whose prefix matches our desired
-	// version.
+	// 3) Check that the desired rustc version is installed
 	fmt.Fprintf(out, "Checking if Rust %s is installed...\n", r.config.File.Language.Rust.ToolchainConstraint)
 
 	rustConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.ToolchainConstraint)
@@ -177,8 +173,12 @@ func (r *Rust) Verify(out io.Writer) error {
 		return fmt.Errorf("error parsing rust toolchain constraint: %w", err)
 	}
 
-	// Side-effect: sets r.toolchain
-	err = r.toolchainVersion(rustConstraint)
+	err = r.checkRustcVersion(rustConstraint)
+	if err != nil {
+		return err
+	}
+
+	r.toolchain, err = r.getToolchain()
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (r *Rust) Verify(out io.Writer) error {
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
 	/* #nosec */
-	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", r.toolchain.String())
+	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", r.toolchain)
 	stdoutStderr, err = cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error executing rustup: %w", err)
@@ -213,7 +213,7 @@ func (r *Rust) Verify(out io.Writer) error {
 	if !found {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rust target %s not found", r.config.File.Language.Rust.WasmWasiTarget),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", r.config.File.Language.Rust.WasmWasiTarget, r.toolchain.String()))),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", r.config.File.Language.Rust.WasmWasiTarget, r.toolchain))),
 		}
 	}
 
@@ -312,20 +312,24 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	}
 	binName := m.Package.Name
 
-	if r.toolchain == nil {
+	if len(r.toolchain) == 0 {
 		rustConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.ToolchainConstraint)
 		if err != nil {
 			return fmt.Errorf("error parsing rust toolchain constraint: %w", err)
 		}
 
-		// Side-effect: sets r.toolchain
-		err = r.toolchainVersion(rustConstraint)
+		err = r.checkRustcVersion(rustConstraint)
+		if err != nil {
+			return err
+		}
+
+		r.toolchain, err = r.getToolchain()
 		if err != nil {
 			return err
 		}
 	}
 
-	toolchain := fmt.Sprintf("+%s", r.toolchain.String())
+	toolchain := fmt.Sprintf("+%s", r.toolchain)
 
 	args := []string{
 		toolchain,
@@ -391,22 +395,35 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	return nil
 }
 
-func (r *Rust) toolchainVersion(rustConstraint *semver.Constraints) error {
+func (r *Rust) getToolchain() (string, error) {
 	cmd := exec.Command("rustup", "show", "active-toolchain")
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error executing rustup: %w", err)
+		return "", fmt.Errorf("error executing rustup: %w", err)
 	}
+	return strings.Split(strings.Trim(string(stdoutStderr), "\n"), "-")[0], nil
+}
 
-	version := strings.Split(strings.Trim(string(stdoutStderr), "\n"), "-")[0]
-	r.toolchain, err = semver.NewVersion(version)
+func (r *Rust) checkRustcVersion(rustConstraint *semver.Constraints) error {
+	cmd := exec.Command("rustc", "--version")
+	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error parsing rust toolchain version: %w", err)
+		return fmt.Errorf("error executing `rustc --version`: %w", err)
 	}
 
-	if ok := rustConstraint.Check(r.toolchain); !ok {
+	// output looks like: `rustc 1.49.0 (e1884a8e3 2020-12-29)`
+	parts := strings.Split(string(stdoutStderr), " ")
+	if len(parts) < 2 {
+		return fmt.Errorf("error parsing `rustc --version` output: %s", string(stdoutStderr))
+	}
+	version, err := semver.NewVersion(parts[1])
+	if err != nil {
+		return fmt.Errorf("error parsing rustc version: %w", err)
+	}
+
+	if ok := rustConstraint.Check(version); !ok {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("rust toolchain %s is incompatible with the constraint %s", r.toolchain, r.config.File.Language.Rust.ToolchainConstraint),
+			Inner:       fmt.Errorf("rust %s is incompatible with the constraint %s", version, r.config.File.Language.Rust.ToolchainConstraint),
 			Remediation: fmt.Sprintf("To fix this error, run the following command with a version within the given range %s:\n\n\t$ %s\n", r.config.File.Language.Rust.ToolchainConstraint, text.Bold("rustup toolchain install <version>")),
 		}
 	}
