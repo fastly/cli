@@ -439,8 +439,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // or a singular backend based on existence of the fastly.toml [setup] table.
 func configureBackends(c *DeployCommand, bs []Backend, predefinedBackends []manifest.Mapper, out io.Writer, in io.Reader) ([]Backend, error) {
 	if len(predefinedBackends) > 0 {
-		for _, backend := range predefinedBackends {
-			b, err := cfgSetupBackend(backend, c, out, in, validateBackend)
+		for i, backend := range predefinedBackends {
+			b, err := cfgSetupBackend(i, backend, c, out, in, validateBackend)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 					"Backends (predefined)": predefinedBackends,
@@ -725,7 +725,7 @@ func cfgDomain(c *DeployCommand, def string, out io.Writer, in io.Reader, f vali
 
 // cfgSetupBackend configures the backend address and its port number values
 // with values provided by the fastly.toml [setup] configuration.
-func cfgSetupBackend(backend manifest.Mapper, c *DeployCommand, out io.Writer, in io.Reader, v validator) (Backend, error) {
+func cfgSetupBackend(i int, backend manifest.Mapper, c *DeployCommand, out io.Writer, in io.Reader, v validator) (Backend, error) {
 	var (
 		addr        string
 		b           Backend
@@ -764,7 +764,8 @@ func cfgSetupBackend(backend manifest.Mapper, c *DeployCommand, out io.Writer, i
 		}
 		b.Name = name
 		if name == "" {
-			b.Name = genBackendName(addr)
+			i = i + 1
+			b.Name = fmt.Sprintf("backend_%d", i)
 		}
 	}
 
@@ -850,6 +851,7 @@ func cfgBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (ba
 		return backends, nil
 	}
 
+	var i int
 	for {
 		var backend Backend
 
@@ -894,7 +896,8 @@ func cfgBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (ba
 				return backends, fmt.Errorf("error reading input %w", err)
 			}
 			if backend.Name == "" {
-				backend.Name = genBackendName(backend.Address)
+				i = i + 1
+				backend.Name = fmt.Sprintf("backend_%d", i)
 			}
 		}
 
@@ -911,14 +914,6 @@ func createOriginlessBackend() (b Backend) {
 	b.Address = "127.0.0.1"
 	b.Port = uint(80)
 	return b
-}
-
-// genBackendName normalises a given name by replacing any period or hyphen
-// characters with an underscore.
-func genBackendName(name string) string {
-	normalise := "_"
-	r := strings.NewReplacer(".", normalise, "-", normalise)
-	return r.Replace(name)
 }
 
 // setBackendHost sets two fields: OverrideHost and SSLSNIHostname.

@@ -667,8 +667,8 @@ func TestDeploy(t *testing.T) {
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
 				"Backend port number: [80]",
 				"Backend name:",
-				"Creating backend 'fastly_com' (host: fastly.com, port: 443)...",
-				"Creating backend 'google_com' (host: google.com, port: 123)...",
+				"Creating backend 'backend_1' (host: fastly.com, port: 443)...",
+				"Creating backend 'backend_2' (host: google.com, port: 123)...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -721,8 +721,8 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
-				"Creating backend 'fastly_com' (host: fastly.com, port: 443)...",
-				"Creating backend 'google_com' (host: google.com, port: 123)...",
+				"Creating backend 'backend_1' (host: fastly.com, port: 443)...",
+				"Creating backend 'backend_2' (host: google.com, port: 123)...",
 				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
@@ -780,16 +780,25 @@ func TestDeploy(t *testing.T) {
 					prompt = "Backend 2"
 					address = "google.com"
 					port = 443
+				[[setup.backends]]
+					name = "another_backend_name"
+					prompt = "Backend 3"
+					address = "facebook.com"
+					port = 443
 			`,
 			stdin: []string{
 				"google.com",
 				"123",
 				"", // this is so we generate a backend name using a built-in formula
+				"facebook.com",
+				"456",
+				"", // this is so we generate a backend name using a built-in formula
 				"", // this stops prompting for backends
 			},
 			wantOutput: []string{
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
-				"Creating backend 'google_com' (host: google.com, port: 123)...",
+				"Creating backend 'backend_1' (host: google.com, port: 123)...",
+				"Creating backend 'backend_2' (host: facebook.com, port: 456)...",
 				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
