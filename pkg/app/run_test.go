@@ -448,7 +448,8 @@ COMMANDS
                                  then fastly.toml)
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
-        --accept-defaults        Accept default configuration from [setup]
+        --accept-defaults        Accept default values for all prompts and
+                                 perform deploy non-interactively
         --comment=COMMENT        Human-readable comment
         --domain=DOMAIN          The name of the domain associated to the
                                  package
@@ -482,7 +483,8 @@ COMMANDS
         --force                  Skip verification steps and force build
         --timeout=TIMEOUT        Timeout, in seconds, for the build compilation
                                  step
-        --accept-defaults        Accept default configuration from [setup]
+        --accept-defaults        Accept default values for all prompts and
+                                 perform deploy non-interactively
         --comment=COMMENT        Human-readable comment
         --domain=DOMAIN          The name of the domain associated to the
                                  package

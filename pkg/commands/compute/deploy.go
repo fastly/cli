@@ -76,7 +76,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 		Dst:      &c.ServiceVersion.Value,
 		Optional: true,
 	})
-	c.CmdClause.Flag("accept-defaults", "Accept default configuration from [setup]").BoolVar(&c.AcceptDefaults)
+	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and perform deploy non-interactively").BoolVar(&c.AcceptDefaults)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
@@ -133,7 +133,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 
-		domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
+		domain, err = cfgDomain(c, defaultTopLevelDomain, out, in, validateDomain)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Domain":           c.Domain,
@@ -201,7 +201,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 			switch invalidType {
 			case resourceBoth:
-				domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
+				domain, err = cfgDomain(c, defaultTopLevelDomain, out, in, validateDomain)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 						"Domain":           c.Domain,
@@ -214,7 +214,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					return err
 				}
 			case resourceDomain:
-				domain, err = cfgDomain(c.Domain, defaultTopLevelDomain, out, in, validateDomain)
+				domain, err = cfgDomain(c, defaultTopLevelDomain, out, in, validateDomain)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 						"Domain":           c.Domain,
@@ -698,23 +698,28 @@ func pkgUpload(progress text.Progress, client api.Interface, serviceID string, v
 }
 
 // cfgDomain configures the domain value.
-func cfgDomain(domain string, def string, out io.Writer, in io.Reader, f validator) (string, error) {
-	if domain != "" {
-		return domain, nil
+func cfgDomain(c *DeployCommand, def string, out io.Writer, in io.Reader, f validator) (string, error) {
+	if c.Domain != "" {
+		return c.Domain, nil
 	}
 
 	rand.Seed(time.Now().UnixNano())
-
 	defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), def)
-	domain, err := text.Input(out, fmt.Sprintf("Domain: [%s] ", defaultDomain), in, f)
-	if err != nil {
-		return "", fmt.Errorf("error reading input %w", err)
+
+	var (
+		domain string
+		err    error
+	)
+	if !c.AcceptDefaults {
+		domain, err = text.Input(out, fmt.Sprintf("Domain: [%s] ", defaultDomain), in, f)
+		if err != nil {
+			return "", fmt.Errorf("error reading input %w", err)
+		}
 	}
 
 	if domain == "" {
 		return defaultDomain, nil
 	}
-
 	return domain, nil
 }
 

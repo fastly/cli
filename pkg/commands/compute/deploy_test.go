@@ -543,6 +543,7 @@ func TestDeploy(t *testing.T) {
 				"Backend port number: [443]",
 				"Backend 2: [httpbin.org]",
 				"Backend port number: [443]",
+				"Domain: [",
 			},
 		},
 		// The follow test validates the setup.backends.address field is a required
