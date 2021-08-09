@@ -392,23 +392,13 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 }
 
 func (r *Rust) toolchainVersion(rustConstraint *semver.Constraints) error {
-	cmd := exec.Command("rustup", "toolchain", "list")
+	cmd := exec.Command("rustup", "show", "active-toolchain")
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error executing rustup: %w", err)
 	}
 
-	remediation := fmt.Sprintf("To fix this error, run the following command with a version within the given range %s:\n\n\t$ %s\n", r.config.File.Language.Rust.ToolchainConstraint, text.Bold("rustup toolchain install <version>"))
-
-	versions := strings.Split(strings.Trim(string(stdoutStderr), "\n"), "\n")
-	if len(versions) < 1 {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("rust toolchain %s not found", r.config.File.Language.Rust.ToolchainConstraint),
-			Remediation: remediation,
-		}
-	}
-	version := strings.Split(versions[len(versions)-1], "-")[0]
-
+	version := strings.Split(strings.Trim(string(stdoutStderr), "\n"), "-")[0]
 	r.toolchain, err = semver.NewVersion(version)
 	if err != nil {
 		return fmt.Errorf("error parsing rust toolchain version: %w", err)
@@ -417,7 +407,7 @@ func (r *Rust) toolchainVersion(rustConstraint *semver.Constraints) error {
 	if ok := rustConstraint.Check(r.toolchain); !ok {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rust toolchain %s is incompatible with the constraint %s", r.toolchain, r.config.File.Language.Rust.ToolchainConstraint),
-			Remediation: remediation,
+			Remediation: fmt.Sprintf("To fix this error, run the following command with a version within the given range %s:\n\n\t$ %s\n", r.config.File.Language.Rust.ToolchainConstraint, text.Bold("rustup toolchain install <version>")),
 		}
 	}
 
