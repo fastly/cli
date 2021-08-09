@@ -840,10 +840,7 @@ func backendRemediationError(field string, remediation string, err error) error 
 // NOTE: If `--accept-defaults` is set, then create a single "originless" backend.
 func cfgBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (backends []Backend, err error) {
 	if c.AcceptDefaults {
-		var backend Backend
-		backend.Name = "originless"
-		backend.Address = "127.0.0.1"
-		backend.Port = uint(80)
+		backend := createOriginlessBackend()
 		backends = append(backends, backend)
 		return backends, nil
 	}
@@ -863,16 +860,10 @@ func cfgBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (ba
 		// This block short-circuits the endless loop
 		if backend.Address == "" {
 			if len(backends) == 0 {
-				return backends, fmt.Errorf("error configuring a backend (no input given)")
+				backend := createOriginlessBackend()
+				backends = append(backends, backend)
+				return backends, nil
 			}
-			return backends, nil
-		}
-
-		if backend.Address == "originless" {
-			backend.Name = backend.Address
-			backend.Address = "127.0.0.1"
-			backend.Port = uint(80)
-			backends = append(backends, backend)
 			return backends, nil
 		}
 
@@ -906,6 +897,15 @@ func cfgBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (ba
 
 		backends = append(backends, backend)
 	}
+}
+
+// createOriginlessBackend returns a Backend instance configured to the
+// localhost settings expected of an 'originless' backend.
+func createOriginlessBackend() (b Backend) {
+	b.Name = "originless"
+	b.Address = "127.0.0.1"
+	b.Port = uint(80)
+	return b
 }
 
 // genBackendName normalises a given name by replacing any period or hyphen
