@@ -747,7 +747,6 @@ func cfgSetupBackend(backend manifest.Mapper, c *DeployCommand, out io.Writer, i
 		} else {
 			return b, backendRemediationError("address", remediation, innerErr)
 		}
-		defaultAddr = fmt.Sprintf(": [%s] ", addr)
 	}
 
 	// NAME DEFAULT
@@ -796,6 +795,7 @@ func cfgSetupBackend(backend manifest.Mapper, c *DeployCommand, out io.Writer, i
 	// PROMPT USER INTERACTIVELY FOR ADDRESS AND PORT...
 
 	if !c.AcceptDefaults {
+		defaultAddr = fmt.Sprintf(": [%s] ", addr)
 		b.Address, err = text.Input(out, fmt.Sprintf("%s%s ", prompt, defaultAddr), in, v)
 		if err != nil {
 			return b, fmt.Errorf("error reading input %w", err)
