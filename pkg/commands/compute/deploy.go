@@ -122,6 +122,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	serviceID, sidSrc := c.Manifest.ServiceID()
 	if sidSrc == manifest.SourceUndefined {
+		text.Break(out)
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
 		text.Break(out)
 		text.Output(out, "Press ^C at any time to quit.")
