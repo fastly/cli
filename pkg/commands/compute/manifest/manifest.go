@@ -197,11 +197,21 @@ type File struct {
 	Authors         []string    `toml:"authors"`
 	Language        string      `toml:"language"`
 	ServiceID       string      `toml:"service_id"`
-	LocalServer     LocalServer `toml:"local_server"`
+	LocalServer     LocalServer `toml:"local_server,omitempty"`
+	Setup           Setup       `toml:"setup,omitempty"`
 
 	exists bool
 	output io.Writer
 }
+
+// Setup represents a set of service configuration that works with the code in
+// the package. See https://developer.fastly.com/reference/fastly-toml/.
+type Setup struct {
+	Backends []Mapper `toml:"backends"`
+}
+
+// Mapper represents a generic toml table.
+type Mapper map[string]interface{}
 
 // LocalServer represents a list of backends that should be mocked as per the
 // configuration values.

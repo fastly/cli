@@ -42,6 +42,14 @@ func AssertStringContains(t *testing.T, s, substr string) {
 	}
 }
 
+// AssertStringDoesntContain fatals a test if the string does contain a substring.
+func AssertStringDoesntContain(t *testing.T, s, substr string) {
+	t.Helper()
+	if strings.Contains(s, substr) {
+		t.Fatalf("%q contains %q", s, substr)
+	}
+}
+
 // AssertNoError fatals a test if the error is not nil.
 func AssertNoError(t *testing.T, err error) {
 	t.Helper()
