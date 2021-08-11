@@ -168,6 +168,16 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 		}
 	}
 
+	// G302 (CWE-276): Expect file permissions to be 0600 or less
+	// gosec flagged this:
+	// Disabling as the file was not executable without it and we need all users
+	// to be able to execute the binary.
+	/* #nosec */
+	err = os.Chmod(bin, 0777)
+	if err != nil {
+		return "", fmt.Errorf("error setting executable permissions on Viceroy binary: %w", err)
+	}
+
 	return bin, nil
 }
 
