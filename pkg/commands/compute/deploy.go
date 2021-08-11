@@ -235,6 +235,14 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
+	// RESOURCE CREATION...
+	//
+	// We can't create resources earlier in the logic flow as it requires the use
+	// of a text.Progress which overwrites the current line (i.e. it would cause
+	// any text prompts to be hidden) and so we prompt for as much information as
+	// possible at the top of the Exec function. After we have all the information,
+	// then we proceed with the creation of resources.
+
 	var (
 		progress text.Progress
 		desc     string
@@ -258,9 +266,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if sidSrc == manifest.SourceUndefined {
 		// There is no service and so we'll do a one time creation of the service
-		// and the associated domain/backend(s) and store the Service ID within the
+		// and the associated resources and store the Service ID within the
 		// manifest. On subsequent runs of the deploy subcommand we'll skip the
-		// service/domain/backend creation.
+		// resource creation unless there are missing resources detected.
 		//
 		// NOTE: we're shadowing the `version` and `serviceID` variable.
 		version, serviceID, err = createService(progress, c.Globals.Client, name, desc)
@@ -283,11 +291,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			})
 		})
 
-		// We can't create the domain/backend earlier in the logic flow as it
-		// requires the use of a text.Progress which overwrites the current line
-		// (i.e. it would cause any text prompts to be hidden) and so we prompt for
-		// as much information as possible at the top of the Exec function. After
-		// we have all the information, then we proceed with the creation of resources.
 		err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -931,7 +934,7 @@ func setBackendHost(b *Backend) {
 	}
 }
 
-// createDomain creates the given domain and handle unrolling the stack in case
+// createDomain creates the given domain and handles unrolling the stack in case
 // of an error (i.e. will ensure the domain is deleted if there is an error).
 func createDomain(progress text.Progress, client api.Interface, serviceID string, version int, domain string, undoStack undo.Stacker) error {
 	progress.Step("Creating domain...")
@@ -956,7 +959,7 @@ func createDomain(progress text.Progress, client api.Interface, serviceID string
 	return nil
 }
 
-// createBackend creates the given domain and handle unrolling the stack in case
+// createBackend creates the given backend and handles unrolling the stack in case
 // of an error (i.e. will ensure the backend is deleted if there is an error).
 func createBackend(progress text.Progress, client api.Interface, serviceID string, version int, backend Backend, undoStack undo.Stacker) error {
 	// We don't display the fact we're creating a backend when it's for an
