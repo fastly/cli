@@ -24,15 +24,9 @@ import (
 	"github.com/kennygrant/sanitize"
 )
 
-type invalidResource int
-
 const (
-	defaultTopLevelDomain                 = "edgecompute.app"
-	manageServiceBaseURL                  = "https://manage.fastly.com/configure/services/"
-	resourceNone          invalidResource = iota
-	resourceBoth
-	resourceDomain
-	resourceBackend
+	defaultTopLevelDomain = "edgecompute.app"
+	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
 )
 
 // DeployCommand deploys an artifact previously produced by build.
@@ -57,7 +51,6 @@ type Backend struct {
 	OverrideHost   string
 	Port           uint
 	SSLSNIHostname string
-	SetupConfig    bool
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -91,164 +84,127 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return errors.ErrNoToken
 	}
 
-	// The first thing we want to do is validate that a package has been built.
-	// There is no point prompting a user for info if we know we're going to
-	// fail any way because the user didn't build a package first.
-	name, source := c.Manifest.Name()
-	path, err := pkgPath(c.Path, name, source)
+	// Alias' for otherwise long definitions
+	errLog := c.Globals.ErrLog
+	verbose := c.Globals.Verbose()
+	apiClient := c.Globals.Client
+
+	// VALIDATE PACKAGE...
+
+	pkgName, pkgPath, err := validatePackage(c.Manifest, c.Path, errLog)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Path":   c.Path,
-			"Name":   name,
-			"Source": source,
-		})
-		return err
-	}
-	if err := validate(path); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Path": path,
-		})
 		return err
 	}
 
+	// SERVICE MANAGEMENT...
+
 	var (
-		domain          string
-		backends        []Backend
-		backendsMissing []manifest.Mapper
-		invalidService  bool
-		invalidType     invalidResource
-		version         *fastly.Version
+		newService     bool
+		serviceVersion *fastly.Version
 	)
 
 	serviceID, sidSrc := c.Manifest.ServiceID()
 	if sidSrc == manifest.SourceUndefined {
-		if !c.AcceptDefaults {
-			text.Break(out)
-			text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
-			text.Break(out)
-			text.Output(out, "Press ^C at any time to quit.")
-			text.Break(out)
-		}
-
-		backends, err = configureBackends(c, backends, c.Manifest.File.Setup.Backends, out, in)
+		newService = true
+		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.AcceptDefaults, in, out, verbose, apiClient, pkgName, errLog, &c.Manifest.File)
 		if err != nil {
 			return err
 		}
-
-		domain, err = cfgDomain(c, defaultTopLevelDomain, out, in, validateDomain)
+		if serviceID == "" {
+			// The user said NO to creating a service when prompted.
+			return nil
+		}
+	} else {
+		serviceVersion, err = manageExistingServiceFlow(serviceID, c.ServiceVersion, apiClient, verbose, out, errLog)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			return err
+		}
+	}
+
+	// RESOURCE VALIDATION...
+
+	// We only check the Service ID is valid when handling an existing service.
+	if !newService {
+		err = checkServiceID(serviceID, apiClient, serviceVersion)
+		if err != nil {
+			errLogService(errLog, err, serviceID, serviceVersion.Number)
+			return err
+		}
+	}
+
+	// Because a service_id exists in the fastly.toml doesn't mean it's valid
+	// e.g. it could be missing required resources such as a domain or backend.
+	// We check and allow the user to configure these settings before continuing.
+
+	hasDomain, err := serviceHasDomain(serviceID, serviceVersion.Number, apiClient)
+	if err != nil {
+		errLogService(errLog, err, serviceID, serviceVersion.Number)
+		return err
+	}
+
+	availableBackends, err := apiClient.ListBackends(&fastly.ListBackendsInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion.Number,
+	})
+	if err != nil {
+		errLogService(errLog, err, serviceID, serviceVersion.Number)
+		return fmt.Errorf("error fetching service backends: %w", err)
+	}
+
+	var (
+		backendsToCreate    []Backend
+		domainToCreate      string
+		hasRequiredBackends bool
+		missingBackends     []manifest.Mapper
+	)
+
+	predefinedBackends := c.Manifest.File.Setup.Backends
+	if len(predefinedBackends) > 0 {
+		missingBackends, err = serviceMissingConfiguredBackends(serviceID, serviceVersion.Number, apiClient, availableBackends, predefinedBackends)
+		if err != nil {
+			errLogService(errLog, err, serviceID, serviceVersion.Number)
+			return err
+		}
+		if len(missingBackends) == 0 {
+			hasRequiredBackends = true
+		}
+	} else if len(availableBackends) > 0 {
+		hasRequiredBackends = true
+	}
+
+	// RESOURCE CONFIGURATION...
+
+	if !hasDomain || !hasRequiredBackends {
+		if !c.AcceptDefaults {
+			text.Output(out, "Service '%s' is missing required resources. These must be added before the Compute@Edge service can be deployed. Please follow the prompts.", serviceID)
+			text.Break(out)
+		}
+	}
+
+	if !hasDomain {
+		domainToCreate, err = configureDomain(c, defaultTopLevelDomain, out, in, validateDomain)
+		if err != nil {
+			errLog.AddWithContext(err, map[string]interface{}{
 				"Domain":           c.Domain,
 				"Domain (default)": defaultTopLevelDomain,
 			})
 			return err
 		}
+	}
 
-		text.Break(out)
-	} else {
-		version, err = c.ServiceVersion.Parse(serviceID, c.Globals.Client)
+	if !hasRequiredBackends {
+		backendsToCreate, err = configureBackends(c, backendsToCreate, missingBackends, out, in)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Service ID": serviceID,
-			})
 			return err
-		}
-
-		// Unlike other CLI commands that are a direct mapping to an API endpoint,
-		// the compute deploy command is a composite of behaviours, and so as we
-		// already automatically activate a version we should autoclone without
-		// requiring the user to explicitly provide an --autoclone flag.
-		if version.Active || version.Locked {
-			v, err := c.Globals.Client.CloneVersion(&fastly.CloneVersionInput{
-				ServiceID:      serviceID,
-				ServiceVersion: version.Number,
-			})
-			if err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Service ID":      serviceID,
-					"Service Version": version.Number,
-				})
-				return fmt.Errorf("error cloning service version: %w", err)
-			}
-			if c.Globals.Flag.Verbose {
-				msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned. Now operating on version %d.", version.Number, v.Number)
-				text.Break(out)
-				text.Output(out, msg)
-				text.Break(out)
-			}
-			version = v
-		}
-
-		// We define the `ok` variable so that the following call to
-		// `validateservice` will be able to shadow `invalidType`.
-		var ok bool
-
-		// Because a service_id exists in the fastly.toml doesn't mean it's valid
-		// e.g. it could be missing either a domain or backend resource. So we
-		// check and allow the user to configure these settings before continuing.
-		ok, invalidType, backendsMissing, err = validateService(serviceID, c.Globals.Client, version, c.Manifest.File.Setup.Backends)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Service ID":      serviceID,
-				"Service Version": version.Number,
-			})
-			return err
-		}
-
-		if !ok {
-			invalidService = true
-
-			text.Output(out, "Service '%s' is missing required domain or backend(s). These must be added before the Compute@Edge service can be deployed.", serviceID)
-			text.Break(out)
-
-			switch invalidType {
-			case resourceBoth:
-				domain, err = cfgDomain(c, defaultTopLevelDomain, out, in, validateDomain)
-				if err != nil {
-					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Domain":           c.Domain,
-						"Domain (default)": defaultTopLevelDomain,
-					})
-					return err
-				}
-				backends, err = configureBackends(c, backends, backendsMissing, out, in)
-				if err != nil {
-					return err
-				}
-			case resourceDomain:
-				domain, err = cfgDomain(c, defaultTopLevelDomain, out, in, validateDomain)
-				if err != nil {
-					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Domain":           c.Domain,
-						"Domain (default)": defaultTopLevelDomain,
-					})
-					return err
-				}
-			case resourceBackend:
-				backends, err = configureBackends(c, backends, backendsMissing, out, in)
-				if err != nil {
-					return err
-				}
-			}
-
-			text.Break(out)
 		}
 	}
 
+	text.Break(out)
+
 	// RESOURCE CREATION...
-	//
-	// We can't create resources earlier in the logic flow as it requires the use
-	// of a text.Progress which overwrites the current line (i.e. it would cause
-	// any text prompts to be hidden) and so we prompt for as much information as
-	// possible at the top of the Exec function. After we have all the information,
-	// then we proceed with the creation of resources.
 
-	var (
-		progress text.Progress
-		desc     string
-	)
-
-	if c.Globals.Verbose() {
+	var progress text.Progress
+	if verbose {
 		progress = text.NewVerboseProgress(out)
 	} else {
 		progress = text.NewQuietProgress(out)
@@ -256,129 +212,46 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	undoStack := undo.NewStack()
 
-	defer func(errLog errors.LogInterface) {
+	defer func(errLog errors.LogInterface, progress text.Progress) {
 		if err != nil {
 			errLog.Add(err)
-			progress.Fail() // progress.Done is handled inline
+			progress.Fail()
 		}
 		undoStack.RunIfError(out, err)
-	}(c.Globals.ErrLog)
+	}(errLog, progress)
 
-	if sidSrc == manifest.SourceUndefined {
-		// There is no service and so we'll do a one time creation of the service
-		// and the associated resources and store the Service ID within the
-		// manifest. On subsequent runs of the deploy subcommand we'll skip the
-		// resource creation unless there are missing resources detected.
-		//
-		// NOTE: we're shadowing the `version` and `serviceID` variable.
-		version, serviceID, err = createService(progress, c.Globals.Client, name, desc)
+	if !hasDomain && domainToCreate != "" {
+		err = createDomain(progress, apiClient, serviceID, serviceVersion.Number, domainToCreate, undoStack)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Name":        name,
-				"Description": desc,
-			})
-			return err
-		}
-
-		undoStack.Push(func() error {
-			clearServiceID := ""
-			return updateManifestServiceID(&c.Manifest.File, manifest.Filename, nil, clearServiceID)
-		})
-
-		undoStack.Push(func() error {
-			return c.Globals.Client.DeleteService(&fastly.DeleteServiceInput{
-				ID: serviceID,
-			})
-		})
-
-		err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Domain":          domain,
+			errLog.AddWithContext(err, map[string]interface{}{
+				"Domain":          domainToCreate,
 				"Service ID":      serviceID,
-				"Service Version": version.Number,
+				"Service Version": serviceVersion.Number,
 			})
 			return err
 		}
+	}
 
-		for _, backend := range backends {
-			err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
-			if err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Accept defaults": c.AcceptDefaults,
-					"Service ID":      serviceID,
-					"Service Version": version.Number,
-				})
-				return err
-			}
-		}
-
-		err = updateManifestServiceID(&c.Manifest.File, manifest.Filename, progress, serviceID)
+	for _, backend := range backendsToCreate {
+		err = createBackend(progress, apiClient, serviceID, serviceVersion.Number, backend, undoStack)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Service ID": serviceID,
+			errLog.AddWithContext(err, map[string]interface{}{
+				"Accept defaults": c.AcceptDefaults,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
 			})
 			return err
 		}
 	}
 
-	// If the user has specified a Service ID, then we validate it has the
-	// required resources, and if it's invalid we'll drop into the following code
-	// block to ensure we only create the resources that are missing.
-	if invalidService {
-		switch invalidType {
-		case resourceBoth:
-			err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
-			if err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Domain":          domain,
-					"Service ID":      serviceID,
-					"Service Version": version.Number,
-				})
-				return err
-			}
-			for _, backend := range backends {
-				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
-				if err != nil {
-					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Accept defaults": c.AcceptDefaults,
-						"Service ID":      serviceID,
-						"Service Version": version.Number,
-					})
-					return err
-				}
-			}
-		case resourceDomain:
-			err = createDomain(progress, c.Globals.Client, serviceID, version.Number, domain, undoStack)
-			if err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Domain":          domain,
-					"Service ID":      serviceID,
-					"Service Version": version.Number,
-				})
-				return err
-			}
-		case resourceBackend:
-			for _, backend := range backends {
-				err = createBackend(progress, c.Globals.Client, serviceID, version.Number, backend, undoStack)
-				if err != nil {
-					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"Accept defaults": c.AcceptDefaults,
-						"Service ID":      serviceID,
-						"Service Version": version.Number,
-					})
-					return err
-				}
-			}
-		}
-	}
+	// PACKAGE PROCESSING...
 
-	cont, err := pkgCompare(c.Globals.Client, serviceID, version.Number, path, progress, out)
+	cont, err := pkgCompare(apiClient, serviceID, serviceVersion.Number, pkgPath, progress, out)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Path":            path,
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Package path":    pkgPath,
 			"Service ID":      serviceID,
-			"Service Version": version.Number,
+			"Service Version": serviceVersion.Number,
 		})
 		return err
 	}
@@ -386,38 +259,40 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	err = pkgUpload(progress, c.Globals.Client, serviceID, version.Number, path)
+	err = pkgUpload(progress, apiClient, serviceID, serviceVersion.Number, pkgPath)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Path":            path,
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Package path":    pkgPath,
 			"Service ID":      serviceID,
-			"Service Version": version.Number,
+			"Service Version": serviceVersion.Number,
 		})
 		return err
 	}
 
+	// SERVICE PROCESSING...
+
 	if c.Comment.WasSet {
-		_, err = c.Globals.Client.UpdateVersion(&fastly.UpdateVersionInput{
+		_, err = apiClient.UpdateVersion(&fastly.UpdateVersionInput{
 			ServiceID:      serviceID,
-			ServiceVersion: version.Number,
+			ServiceVersion: serviceVersion.Number,
 			Comment:        &c.Comment.Value,
 		})
 
 		if err != nil {
-			return fmt.Errorf("error setting comment for service version %d: %w", version.Number, err)
+			return fmt.Errorf("error setting comment for service version %d: %w", serviceVersion.Number, err)
 		}
 	}
 
 	progress.Step("Activating version...")
 
-	_, err = c.Globals.Client.ActivateVersion(&fastly.ActivateVersionInput{
+	_, err = apiClient.ActivateVersion(&fastly.ActivateVersionInput{
 		ServiceID:      serviceID,
-		ServiceVersion: version.Number,
+		ServiceVersion: serviceVersion.Number,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
-			"Service Version": version.Number,
+			"Service Version": serviceVersion.Number,
 		})
 		return fmt.Errorf("error activating version: %w", err)
 	}
@@ -428,48 +303,43 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
 
-	domains, err := c.Globals.Client.ListDomains(&fastly.ListDomainsInput{
+	domains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
 		ServiceID:      serviceID,
-		ServiceVersion: version.Number,
+		ServiceVersion: serviceVersion.Number,
 	})
 	if err == nil {
 		text.Description(out, "View this service at", fmt.Sprintf("https://%s", domains[0].Name))
 	}
 
-	text.Success(out, "Deployed package (service %s, version %v)", serviceID, version.Number)
+	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
 }
 
-// configureBackends determines whether multiple backends need to be configured
-// or a singular backend based on existence of the fastly.toml [setup] table.
-func configureBackends(c *DeployCommand, bs []Backend, predefinedBackends []manifest.Mapper, out io.Writer, in io.Reader) ([]Backend, error) {
-	if len(predefinedBackends) > 0 {
-		for i, backend := range predefinedBackends {
-			b, err := cfgSetupBackend(i, backend, c, out, in, validateBackend)
-			if err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"Backends (predefined)": predefinedBackends,
-				})
-				return nil, err
-			}
-			bs = append(bs, b)
-		}
-	} else {
-		backends, err := cfgBackends(c, out, in, validateBackend)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Accept defaults": c.AcceptDefaults,
-			})
-			return nil, err
-		}
-		bs = append(bs, backends...)
+// validatePackage short-circuits the deploy command if the user hasn't first
+// built a package to be deployed.
+func validatePackage(data manifest.Data, pathFlag string, errLog errors.LogInterface) (pkgName, pkgPath string, err error) {
+	pkgName, source := data.Name()
+	pkgPath, err = packagePath(pathFlag, pkgName, source)
+	if err != nil {
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Package path": pathFlag,
+			"Package name": pkgName,
+			"Source":       source,
+		})
+		return pkgName, pkgPath, err
 	}
-	return bs, nil
+	if err := validate(pkgPath); err != nil {
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Package path": pkgPath,
+		})
+		return pkgName, pkgPath, err
+	}
+	return pkgName, pkgPath, nil
 }
 
-// pkgPath generates a path that points to a package tar inside the pkg
+// packagePath generates a path that points to a package tar inside the pkg
 // directory if the `path` flag was not set by the user.
-func pkgPath(path string, name string, source manifest.Source) (string, error) {
+func packagePath(path string, name string, source manifest.Source) (string, error) {
 	if path == "" {
 		if source == manifest.SourceUndefined {
 			return "", errors.RemediationError{
@@ -485,119 +355,162 @@ func pkgPath(path string, name string, source manifest.Source) (string, error) {
 	return path, nil
 }
 
-// validateService checks if the service version has a domain and backend
-// defined, and in the case of the [setup] configuration it will validate the
-// backends defined in the config exist in the given service.
+// manageNoServiceIDFlow handles creating a new service when no Service ID is found.
+func manageNoServiceIDFlow(
+	acceptDefaults bool,
+	in io.Reader,
+	out io.Writer,
+	verbose bool,
+	apiClient api.Interface,
+	pkgName string,
+	errLog errors.LogInterface,
+	manifestFile *manifest.File) (serviceID string, serviceVersion *fastly.Version, err error) {
+
+	if !acceptDefaults {
+		text.Break(out)
+		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
+		text.Break(out)
+		text.Output(out, "Press ^C at any time to quit.")
+		text.Break(out)
+
+		service, err := text.Input(out, "Create new service: [y/N] ", in)
+		if err != nil {
+			return serviceID, serviceVersion, fmt.Errorf("error reading input %w", err)
+		}
+		if service != "y" && service != "Y" {
+			return serviceID, serviceVersion, nil
+		}
+
+		text.Break(out)
+	}
+
+	var progress text.Progress
+
+	if verbose {
+		progress = text.NewVerboseProgress(out)
+	} else {
+		progress = text.NewQuietProgress(out)
+	}
+
+	// There is no service and so we'll do a one time creation of the service
+	//
+	// NOTE: we're shadowing the `serviceVersion` and `serviceID` variables.
+	serviceID, serviceVersion, err = createService(apiClient, pkgName, progress)
+	if err != nil {
+		progress.Fail()
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Package name": pkgName,
+		})
+		return serviceID, serviceVersion, err
+	}
+
+	progress.Done()
+
+	err = updateManifestServiceID(manifestFile, manifest.Filename, serviceID)
+	if err != nil {
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
+		return serviceID, serviceVersion, err
+	}
+
+	text.Break(out)
+	return serviceID, serviceVersion, nil
+}
+
+// createService creates a service to associate with the compute package.
+func createService(client api.Interface, name string, progress text.Progress) (string, *fastly.Version, error) {
+	progress.Step("Creating service...")
+
+	service, err := client.CreateService(&fastly.CreateServiceInput{
+		Name: name,
+		Type: "wasm",
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "Valid values for 'type' are: 'vcl'") {
+			return "", nil, errors.RemediationError{
+				Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge feature flag enabled on your Fastly account"),
+				Remediation: "For more help with this error see fastly.help/cli/ecp-feature",
+			}
+		}
+		return "", nil, fmt.Errorf("error creating service: %w", err)
+	}
+
+	serviceID := service.ID
+	serviceVersion := &fastly.Version{Number: 1}
+
+	return serviceID, serviceVersion, nil
+}
+
+// updateManifestServiceID updates the Service ID in the manifest.
 //
-// The use of `resourceNone` as a `invalidResource` enum type is to represent a
-// situation where an error occurred and so we were unable to identify whether
-// a domain or backend (or both) were missing from the given service.
-func validateService(serviceID string, client api.Interface, version *fastly.Version, predefinedBackends []manifest.Mapper) (bool, invalidResource, []manifest.Mapper, error) {
-	var missingBackends []manifest.Mapper
-
-	// We require at least one backend but if the project fastly.toml contains
-	// a [setup] with backends defined, then we'll use that as our requirement.
-	requiredBackends := 1
-	definedBackends := len(predefinedBackends)
-	if definedBackends > 0 {
-		requiredBackends = definedBackends
+// There are two scenarios where this function is called. The first is when we
+// have a Service ID to insert into the manifest. The other is when there is an
+// error in the deploy flow, and for which the Service ID will be set to an
+// empty string (otherwise the service itself will be deleted while the
+// manifest will continue to hold a reference to it).
+func updateManifestServiceID(m *manifest.File, manifestFilename string, serviceID string) error {
+	if err := m.Read(manifestFilename); err != nil {
+		return fmt.Errorf("error reading package manifest: %w", err)
 	}
 
-	err := checkServiceID(serviceID, client, version)
+	m.ServiceID = serviceID
+
+	if err := m.Write(manifestFilename); err != nil {
+		return fmt.Errorf("error saving package manifest: %w", err)
+	}
+
+	return nil
+}
+
+// manageExistingServiceFlow handles BLAH.
+func manageExistingServiceFlow(
+	serviceID string,
+	serviceVersionFlag cmd.OptionalServiceVersion,
+	apiClient api.Interface,
+	verbose bool,
+	out io.Writer,
+	errLog errors.LogInterface) (serviceVersion *fastly.Version, err error) {
+
+	serviceVersion, err = serviceVersionFlag.Parse(serviceID, apiClient)
 	if err != nil {
-		return false, resourceNone, missingBackends, err
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
+		return serviceVersion, err
 	}
 
-	domains, err := client.ListDomains(&fastly.ListDomainsInput{
-		ServiceID:      serviceID,
-		ServiceVersion: version.Number,
+	// Unlike other CLI commands that are a direct mapping to an API endpoint,
+	// the compute deploy command is a composite of behaviours, and so as we
+	// already automatically activate a version we should autoclone without
+	// requiring the user to explicitly provide an --autoclone flag.
+	if serviceVersion.Active || serviceVersion.Locked {
+		clonedVersion, err := apiClient.CloneVersion(&fastly.CloneVersionInput{
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion.Number,
+		})
+		if err != nil {
+			errLogService(errLog, err, serviceID, serviceVersion.Number)
+			return serviceVersion, fmt.Errorf("error cloning service version: %w", err)
+		}
+		if verbose {
+			msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned. Now operating on version %d.", serviceVersion.Number, clonedVersion.Number)
+			text.Break(out)
+			text.Output(out, msg)
+			text.Break(out)
+		}
+		serviceVersion = clonedVersion
+	}
+
+	return serviceVersion, nil
+}
+
+// errLogService records the error, service id and version into the error log.
+func errLogService(l errors.LogInterface, err error, sid string, sv int) {
+	l.AddWithContext(err, map[string]interface{}{
+		"Service ID":      sid,
+		"Service Version": sv,
 	})
-	if err != nil {
-		return false, resourceNone, missingBackends, fmt.Errorf("error fetching service domains: %w", err)
-	}
-
-	backends, err := client.ListBackends(&fastly.ListBackendsInput{
-		ServiceID:      serviceID,
-		ServiceVersion: version.Number,
-	})
-	if err != nil {
-		return false, resourceNone, missingBackends, fmt.Errorf("error fetching service backends: %w", err)
-	}
-
-	// At a minimum we need the number of backends in the existing service to
-	// match requiredBackends (and at least one existing domain).
-	{
-		ld := len(domains)
-		lb := len(backends)
-		if ld == 0 && lb < requiredBackends {
-			return false, resourceBoth, missingBackends, nil
-		}
-		if ld == 0 {
-			return false, resourceDomain, missingBackends, nil
-		}
-		if lb < requiredBackends {
-			return false, resourceBackend, missingBackends, nil
-		}
-	}
-
-	// Error descriptions used if we need to handle [setup] configuration
-	innerErr := fmt.Errorf("error parsing the [[setup.backends]] configuration")
-	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field."
-
-	for _, backend := range predefinedBackends {
-		if _, exists := backend["address"]; exists {
-			addr, ok := backend["address"].(string)
-			if !ok || addr == "" {
-				return false, resourceNone, missingBackends, backendRemediationError("address", remediation, innerErr)
-			}
-			match := false
-			for _, bs := range backends {
-				if bs.Address == addr {
-					match = true
-					break
-				}
-			}
-			if !match {
-				missingBackends = append(missingBackends, backend)
-			}
-		}
-
-		if _, exists := backend["name"]; exists {
-			name, ok := backend["name"].(string)
-			if !ok {
-				return false, resourceNone, missingBackends, backendRemediationError("name", remediation, innerErr)
-			}
-			match := false
-			for _, bs := range backends {
-				if bs.Name == name {
-					match = true
-					break
-				}
-			}
-			if !match {
-				missingBackends = append(missingBackends, backend)
-			}
-		}
-
-		if _, exists := backend["port"]; exists {
-			port, ok := backend["port"].(int64)
-			if !ok {
-				return false, resourceNone, missingBackends, backendRemediationError("port", remediation, innerErr)
-			}
-			match := false
-			for _, bs := range backends {
-				if bs.Port == uint(port) {
-					match = true
-					break
-				}
-			}
-			if !match {
-				missingBackends = append(missingBackends, backend)
-			}
-		}
-	}
-
-	return true, resourceNone, missingBackends, nil
 }
 
 // checkServiceID validates the given Service ID maps to a real service.
@@ -611,99 +524,120 @@ func checkServiceID(serviceID string, client api.Interface, version *fastly.Vers
 	return nil
 }
 
-// createService creates a service to associate with the compute package.
-func createService(progress text.Progress, client api.Interface, name string, desc string) (*fastly.Version, string, error) {
-	progress.Step("Creating service...")
+// serviceMissingConfiguredBackends analyses the predefined [setup]
+// configuration and returns a list of missing backends.
+func serviceMissingConfiguredBackends(sid string, sv int, apiClient api.Interface, availableBackends []*fastly.Backend, predefinedBackends []manifest.Mapper) ([]manifest.Mapper, error) {
+	var missingBackends []manifest.Mapper
 
-	service, err := client.CreateService(&fastly.CreateServiceInput{
-		Name:    name,
-		Type:    "wasm",
-		Comment: desc,
+	// Error descriptions used if we need to handle [setup] configuration
+	innerErr := fmt.Errorf("error parsing the [[setup.backends]] configuration")
+	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field."
+
+	for _, backend := range predefinedBackends {
+		var (
+			hasAddress bool
+			hasName    bool
+			hasPort    bool
+
+			addr string
+			name string
+			ok   bool
+			port int64
+		)
+
+		// ACQUIRE CONFIG FIELDS...
+
+		if _, exists := backend["address"]; exists {
+			addr, ok = backend["address"].(string)
+			if !ok || addr == "" {
+				return missingBackends, backendRemediationError("address", remediation, innerErr)
+			}
+			hasAddress = true
+		} else {
+			return missingBackends, backendRemediationError("address", remediation, innerErr)
+		}
+
+		if _, exists := backend["name"]; exists {
+			name, ok = backend["name"].(string)
+			if !ok {
+				return missingBackends, backendRemediationError("name", remediation, innerErr)
+			}
+			hasName = true
+		}
+
+		if _, exists := backend["port"]; exists {
+			port, ok = backend["port"].(int64)
+			if !ok {
+				return missingBackends, backendRemediationError("port", remediation, innerErr)
+			}
+			hasPort = true
+		}
+
+		// VALIDATE CONFIG FIELDS...
+
+		if hasAddress && hasName && hasPort {
+			match := false
+			for _, bs := range availableBackends {
+				if bs.Address == addr && bs.Name == name && bs.Port == uint(port) {
+					match = true
+					break
+				}
+			}
+			if !match {
+				missingBackends = append(missingBackends, backend)
+			}
+			continue
+		}
+
+		if hasAddress && hasName {
+			match := false
+			for _, bs := range availableBackends {
+				if bs.Address == addr && bs.Name == name {
+					match = true
+					break
+				}
+			}
+			if !match {
+				missingBackends = append(missingBackends, backend)
+			}
+			continue
+		}
+
+		if hasAddress && hasPort {
+			match := false
+			for _, bs := range availableBackends {
+				if bs.Address == addr && bs.Port == uint(port) {
+					match = true
+					break
+				}
+			}
+			if !match {
+				missingBackends = append(missingBackends, backend)
+			}
+			continue
+		}
+	}
+
+	return missingBackends, nil
+}
+
+// serviceHasDomain validates whether the service has a domain defined.
+func serviceHasDomain(sid string, sv int, apiClient api.Interface) (bool, error) {
+	domains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
+		ServiceID:      sid,
+		ServiceVersion: sv,
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), "Valid values for 'type' are: 'vcl'") {
-			return nil, "", errors.RemediationError{
-				Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge feature flag enabled on your Fastly account"),
-				Remediation: "For more help with this error see fastly.help/cli/ecp-feature",
-			}
-		}
-		return nil, "", fmt.Errorf("error creating service: %w", err)
+		return false, fmt.Errorf("error fetching service domains: %w", err)
 	}
-
-	version := &fastly.Version{Number: 1}
-	serviceID := service.ID
-
-	return version, serviceID, nil
-}
-
-// updateManifestServiceID updates the Service ID in the manifest.
-//
-// There are two scenarios where this function is called. The first is when we
-// have a Service ID to insert into the manifest. The other is when there is an
-// error in the deploy flow, and for which the Service ID will be set to an
-// empty string (otherwise the service itself will be deleted while the
-// manifest will continue to hold a reference to it).
-func updateManifestServiceID(m *manifest.File, manifestFilename string, progress text.Progress, serviceID string) error {
-	if err := m.Read(manifestFilename); err != nil {
-		return fmt.Errorf("error reading package manifest: %w", err)
+	if len(domains) < 1 {
+		return false, nil
 	}
-
-	if progress != nil {
-		fmt.Fprintf(progress, "Setting service ID in manifest to %q...\n", serviceID)
-	}
-
-	m.ServiceID = serviceID
-
-	if err := m.Write(manifestFilename); err != nil {
-		return fmt.Errorf("error saving package manifest: %w", err)
-	}
-
-	return nil
-}
-
-// pkgCompare compares the local package hashsum against the existing service
-// package version and exits early with message if identical.
-func pkgCompare(client api.Interface, serviceID string, version int, path string, progress text.Progress, out io.Writer) (bool, error) {
-	p, err := client.GetPackage(&fastly.GetPackageInput{
-		ServiceID:      serviceID,
-		ServiceVersion: version,
-	})
-
-	if err == nil {
-		hashSum, err := getHashSum(path)
-		if err != nil {
-			return false, fmt.Errorf("error getting package hashsum: %w", err)
-		}
-
-		if hashSum == p.Metadata.HashSum {
-			progress.Done()
-			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version)
-			return false, nil
-		}
-	}
-
 	return true, nil
 }
 
-// pkgUpload uploads the package to the specified service and version.
-func pkgUpload(progress text.Progress, client api.Interface, serviceID string, version int, path string) error {
-	progress.Step("Uploading package...")
-
-	_, err := client.UpdatePackage(&fastly.UpdatePackageInput{
-		ServiceID:      serviceID,
-		ServiceVersion: version,
-		PackagePath:    path,
-	})
-
-	if err != nil {
-		return fmt.Errorf("error uploading package: %w", err)
-	}
-
-	return nil
-}
-
-// cfgDomain configures the domain value.
-func cfgDomain(c *DeployCommand, def string, out io.Writer, in io.Reader, f validator) (string, error) {
+// configureDomain configures the domain value.
+func configureDomain(c *DeployCommand, def string, out io.Writer, in io.Reader, f validator) (string, error) {
 	if c.Domain != "" {
 		return c.Domain, nil
 	}
@@ -728,9 +662,50 @@ func cfgDomain(c *DeployCommand, def string, out io.Writer, in io.Reader, f vali
 	return domain, nil
 }
 
-// cfgSetupBackend configures the backend address and its port number values
-// with values provided by the fastly.toml [setup] configuration.
-func cfgSetupBackend(i int, backend manifest.Mapper, c *DeployCommand, out io.Writer, in io.Reader, v validator) (Backend, error) {
+// validator represents a function that validates an input.
+type validator func(input string) error
+
+// validateDomain ensures the input domain looks like a domain.
+func validateDomain(input string) error {
+	if input == "" {
+		return nil
+	}
+	if !domainNameRegEx.MatchString(input) {
+		return fmt.Errorf("must be valid domain name")
+	}
+	return nil
+}
+
+// configureBackends determines whether multiple backends need to be configured
+// or a singular backend based on existence of the fastly.toml [setup] table.
+func configureBackends(c *DeployCommand, backendsToCreate []Backend, missingBackends []manifest.Mapper, out io.Writer, in io.Reader) ([]Backend, error) {
+	if len(missingBackends) > 0 {
+		for i, backend := range missingBackends {
+			b, err := configurePredefinedBackend(i, backend, c, out, in, validateBackend)
+			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+					"Backends (predefined)": missingBackends,
+				})
+				return nil, err
+			}
+			backendsToCreate = append(backendsToCreate, b)
+		}
+	} else {
+		backends, err := configurePromptBackends(c, out, in, validateBackend)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Accept defaults": c.AcceptDefaults,
+			})
+			return nil, err
+		}
+		backendsToCreate = append(backendsToCreate, backends...)
+	}
+	return backendsToCreate, nil
+}
+
+// configurePredefinedBackend configures the backend address and its port number
+// using values provided by the fastly.toml [setup] configuration.
+func configurePredefinedBackend(i int, backend manifest.Mapper, c *DeployCommand, out io.Writer, in io.Reader, v validator) (Backend, error) {
 	var (
 		addr        string
 		b           Backend
@@ -741,8 +716,6 @@ func cfgSetupBackend(i int, backend manifest.Mapper, c *DeployCommand, out io.Wr
 		port        uint
 		prompt      string
 	)
-
-	b.SetupConfig = true
 
 	innerErr := fmt.Errorf("error parsing the [[setup.backends]] configuration")
 	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field."
@@ -846,10 +819,24 @@ func backendRemediationError(field string, remediation string, err error) error 
 	}
 }
 
-// cfgBackends configures multiple backends based on prompted input from the user.
+// setBackendHost sets two fields: OverrideHost and SSLSNIHostname.
+func setBackendHost(b *Backend) {
+	// By default set the override_host and ssl_sni_hostname properties of the
+	// Backend VCL object to the hostname unless the given input is an IP.
+	b.OverrideHost = b.Address
+	if _, err := net.LookupAddr(b.Address); err == nil {
+		b.OverrideHost = ""
+	}
+	if b.OverrideHost != "" {
+		b.SSLSNIHostname = b.OverrideHost
+	}
+}
+
+// configurePromptBackends configures multiple backends based on prompted input
+// from the user.
 //
 // NOTE: If `--accept-defaults` is set, then create a single "originless" backend.
-func cfgBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (backends []Backend, err error) {
+func configurePromptBackends(c *DeployCommand, out io.Writer, in io.Reader, f validator) (backends []Backend, err error) {
 	if c.AcceptDefaults {
 		backend := createOriginlessBackend()
 		backends = append(backends, backend)
@@ -921,17 +908,21 @@ func createOriginlessBackend() (b Backend) {
 	return b
 }
 
-// setBackendHost sets two fields: OverrideHost and SSLSNIHostname.
-func setBackendHost(b *Backend) {
-	// By default set the override_host and ssl_sni_hostname properties of the
-	// Backend VCL object to the hostname unless the given input is an IP.
-	b.OverrideHost = b.Address
-	if _, err := net.LookupAddr(b.Address); err == nil {
-		b.OverrideHost = ""
+// validateBackend ensures the input backend is a valid hostname or IP.
+func validateBackend(input string) error {
+	var isHost bool
+	if _, err := net.LookupHost(input); err == nil {
+		isHost = true
 	}
-	if b.OverrideHost != "" {
-		b.SSLSNIHostname = b.OverrideHost
+	var isAddr bool
+	if _, err := net.LookupAddr(input); err == nil {
+		isAddr = true
 	}
+	isEmpty := input == ""
+	if !isEmpty && !isHost && !isAddr {
+		return fmt.Errorf(`must be a valid hostname, IPv4, or IPv6 address`)
+	}
+	return nil
 }
 
 // createDomain creates the given domain and handles unrolling the stack in case
@@ -989,14 +980,38 @@ func createBackend(progress text.Progress, client api.Interface, serviceID strin
 	if err != nil {
 		if originless {
 			return fmt.Errorf("error configuring the service: %w", err)
-		} else {
-			return fmt.Errorf("error creating backend: %w", err)
 		}
+		return fmt.Errorf("error creating backend: %w", err)
 	}
 
 	return nil
 }
 
+// pkgCompare compares the local package hashsum against the existing service
+// package version and exits early with message if identical.
+func pkgCompare(client api.Interface, serviceID string, version int, path string, progress text.Progress, out io.Writer) (bool, error) {
+	p, err := client.GetPackage(&fastly.GetPackageInput{
+		ServiceID:      serviceID,
+		ServiceVersion: version,
+	})
+
+	if err == nil {
+		hashSum, err := getHashSum(path)
+		if err != nil {
+			return false, fmt.Errorf("error getting package hashsum: %w", err)
+		}
+
+		if hashSum == p.Metadata.HashSum {
+			progress.Done()
+			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version)
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+// getHashSum creates a SHA 512 hash from the given path input.
 func getHashSum(path string) (hash string, err error) {
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
@@ -1021,30 +1036,19 @@ func getHashSum(path string) (hash string, err error) {
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-type validator func(input string) error
+// pkgUpload uploads the package to the specified service and version.
+func pkgUpload(progress text.Progress, client api.Interface, serviceID string, version int, path string) error {
+	progress.Step("Uploading package...")
 
-func validateBackend(input string) error {
-	var isHost bool
-	if _, err := net.LookupHost(input); err == nil {
-		isHost = true
-	}
-	var isAddr bool
-	if _, err := net.LookupAddr(input); err == nil {
-		isAddr = true
-	}
-	isEmpty := input == ""
-	if !isEmpty && !isHost && !isAddr {
-		return fmt.Errorf(`must be a valid hostname, IPv4, or IPv6 address`)
-	}
-	return nil
-}
+	_, err := client.UpdatePackage(&fastly.UpdatePackageInput{
+		ServiceID:      serviceID,
+		ServiceVersion: version,
+		PackagePath:    path,
+	})
 
-func validateDomain(input string) error {
-	if input == "" {
-		return nil
+	if err != nil {
+		return fmt.Errorf("error uploading package: %w", err)
 	}
-	if !domainNameRegEx.MatchString(input) {
-		return fmt.Errorf("must be valid domain name")
-	}
+
 	return nil
 }

@@ -12,11 +12,49 @@ import (
 	"github.com/mholt/archiver/v3"
 )
 
+// NewValidateCommand returns a usable command registered under the parent.
+func NewValidateCommand(parent cmd.Registerer, globals *config.Data) *ValidateCommand {
+	var c ValidateCommand
+	c.Globals = globals
+	c.CmdClause = parent.Command("validate", "Validate a Compute@Edge package")
+	c.CmdClause.Flag("path", "Path to package").Required().Short('p').StringVar(&c.path)
+	return &c
+}
+
+// Exec implements the command interface.
+func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
+	p, err := filepath.Abs(c.path)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path": c.path,
+		})
+		return fmt.Errorf("error reading file path: %w", err)
+	}
+
+	if err := validate(p); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Path": c.path,
+		})
+		return err
+	}
+
+	text.Success(out, "Validated package %s", p)
+	return nil
+}
+
+// ValidateCommand validates a package archive.
+type ValidateCommand struct {
+	cmd.Base
+	path string
+}
+
 // validate is a utility function to determine whether a package is valid.
 // It attemptes to unarchive and read a tar.gz file from a specfic path,
 // if successful, it then iterates through (streams) each file in the archive
 // checking the filename against a list of required files. If one of the files
 // doesn't exist it returns an error.
+//
+// NOTE: This function is also called by the `deploy` command.
 func validate(path string) error {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
@@ -63,41 +101,5 @@ func validate(path string) error {
 		}
 	}
 
-	return nil
-}
-
-// ValidateCommand validates a package archive.
-type ValidateCommand struct {
-	cmd.Base
-	path string
-}
-
-// NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent cmd.Registerer, globals *config.Data) *ValidateCommand {
-	var c ValidateCommand
-	c.Globals = globals
-	c.CmdClause = parent.Command("validate", "Validate a Compute@Edge package")
-	c.CmdClause.Flag("path", "Path to package").Required().Short('p').StringVar(&c.path)
-	return &c
-}
-
-// Exec implements the command interface.
-func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
-	p, err := filepath.Abs(c.path)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Path": c.path,
-		})
-		return fmt.Errorf("error reading file path: %w", err)
-	}
-
-	if err := validate(p); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Path": c.path,
-		})
-		return err
-	}
-
-	text.Success(out, "Validated package %s", p)
 	return nil
 }

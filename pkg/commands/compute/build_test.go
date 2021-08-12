@@ -199,9 +199,13 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						// NOTE: my local rust environment has versions 1.[45|46|49].0
+						// NOTE: my local rust environment has versions 1.[45|46|49|54].0
 						// So I've set the constraint to ensure the test fails.
-						// Example, the code logic will select 1.49.0, which is outside the constraint limit 1.40.0
+						// Example, the code logic will select 1.54.0, which is outside the constraint limit 1.40.0
+						//
+						// The .github/workflows/pr_test.yml should have the same version
+						// 1.54.0 set which should align with the constraint defined in the
+						// CLI's dynamic config.
 						ToolchainVersion:    "1.0.0",
 						ToolchainConstraint: ">= 1.0.0 < 1.40.0",
 						WasmWasiTarget:      "wasm32-wasi",
@@ -213,7 +217,7 @@ func TestBuildRust(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
-			wantError:            "rust toolchain 1.49.0 is incompatible with the constraint >= 1.0.0 < 1.40.0",
+			wantError:            "rust toolchain 1.54.0 is incompatible with the constraint >= 1.0.0 < 1.40.0",
 			wantRemediationError: "To fix this error, run the following command with a version within the given range >= 1.0.0 < 1.40.0:\n\n\t$ rustup toolchain install <version>\n",
 		},
 		{
