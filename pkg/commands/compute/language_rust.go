@@ -194,7 +194,7 @@ func (r *Rust) Verify(out io.Writer) error {
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
 	/* #nosec */
-	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", r.toolchain.String())
+	cmd = exec.Command("rustup", "target", "list", "--installed", "--toolchain", "stable")
 	stdoutStderr, err = cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error executing rustup: %w", err)
@@ -213,7 +213,7 @@ func (r *Rust) Verify(out io.Writer) error {
 	if !found {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rust target %s not found", r.config.File.Language.Rust.WasmWasiTarget),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", r.config.File.Language.Rust.WasmWasiTarget, r.toolchain.String()))),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain stable", r.config.File.Language.Rust.WasmWasiTarget))),
 		}
 	}
 
@@ -325,10 +325,8 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 		}
 	}
 
-	toolchain := fmt.Sprintf("+%s", r.toolchain.String())
-
 	args := []string{
-		toolchain,
+		"+stable", // this should point to same value as `rustc --version`
 		"build",
 		"--bin",
 		binName,
@@ -392,24 +390,25 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 }
 
 func (r *Rust) toolchainVersion(rustConstraint *semver.Constraints) error {
-	cmd := exec.Command("rustup", "toolchain", "list")
+	cmd := exec.Command("rustc", "--version")
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error executing rustup: %w", err)
+		return fmt.Errorf("error executing `rustc --version`: %w", err)
 	}
 
-	remediation := fmt.Sprintf("To fix this error, run the following command with a version within the given range %s:\n\n\t$ %s\n", r.config.File.Language.Rust.ToolchainConstraint, text.Bold("rustup toolchain install <version>"))
+	remediation := fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("rustup update stable"))
 
-	versions := strings.Split(strings.Trim(string(stdoutStderr), "\n"), "\n")
-	if len(versions) < 1 {
+	// output should look like:
+	// rustc 1.54.0 (a178d0322 2021-07-26)
+	version := strings.Split(string(stdoutStderr), " ")
+	if len(version) < 2 {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("rust toolchain %s not found", r.config.File.Language.Rust.ToolchainConstraint),
+			Inner:       fmt.Errorf("rust toolchain %s not found: %s", r.config.File.Language.Rust.ToolchainConstraint, string(stdoutStderr)),
 			Remediation: remediation,
 		}
 	}
-	version := strings.Split(versions[len(versions)-1], "-")[0]
 
-	r.toolchain, err = semver.NewVersion(version)
+	r.toolchain, err = semver.NewVersion(version[1])
 	if err != nil {
 		return fmt.Errorf("error parsing rust toolchain version: %w", err)
 	}
