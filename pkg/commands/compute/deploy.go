@@ -176,7 +176,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if !hasDomain || !hasRequiredBackends {
 		if !c.AcceptDefaults {
-			text.Output(out, "Service '%s' is missing required resources. These must be added before the Compute@Edge service can be deployed. Please follow the prompts.", serviceID)
+			text.Output(out, "Service '%s' is missing required resources. These must be added before the Compute@Edge service can be deployed. Please ensure your fastly.toml configuration reflects any manual changes made via manage.fastly.com, otherwise follow the prompts to create the required resources.", serviceID)
 			text.Break(out)
 		}
 	}
