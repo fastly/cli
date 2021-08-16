@@ -463,7 +463,7 @@ func updateManifestServiceID(m *manifest.File, manifestFilename string, serviceI
 	return nil
 }
 
-// manageExistingServiceFlow handles BLAH.
+// manageExistingServiceFlow clones service version if required.
 func manageExistingServiceFlow(
 	serviceID string,
 	serviceVersionFlag cmd.OptionalServiceVersion,
