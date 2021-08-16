@@ -218,8 +218,8 @@ func TestBuildRust(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
-			wantError:            "rust toolchain 1.54.0 is incompatible with the constraint >= 1.0.0 < 1.40.0",
-			wantRemediationError: "To fix this error, run the following command:\n\n\t$ rustup update stable\n",
+			wantError:            "rustc constraint not met: >= 1.0.0 < 1.40.0",
+			wantRemediationError: "Ensure the `rustc` compiler version meets the constraint by installing an appropriate version of `rustc`.",
 		},
 		{
 			name: "fastly crate prerelease",
