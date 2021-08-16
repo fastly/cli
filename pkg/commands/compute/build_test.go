@@ -28,11 +28,12 @@ import (
 // You can locate the default Cargo.toml here:
 // pkg/commands/compute/testdata/build/Cargo.toml
 func TestBuildRust(t *testing.T) {
-	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD_RUST") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
+
+	args := testutil.Args
 
 	for _, testcase := range []struct {
 		name                 string

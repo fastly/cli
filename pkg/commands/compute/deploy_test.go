@@ -40,6 +40,11 @@ import (
 // testcase.stdin field so that there is a value provided for every prompt your
 // testcase user flow expects to encounter.
 func TestDeploy(t *testing.T) {
+	if os.Getenv("TEST_COMPUTE_DEPLOY") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_DEPLOY to run this test")
+	}
+
 	// We're going to chdir to a deploy environment,
 	// so save the PWD to return to, afterwards.
 	pwd, err := os.Getwd()
