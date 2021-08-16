@@ -40,6 +40,11 @@ import (
 // testcase.stdin field so that there is a value provided for every prompt your
 // testcase user flow expects to encounter.
 func TestDeploy(t *testing.T) {
+	if os.Getenv("TEST_COMPUTE_DEPLOY") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_DEPLOY to run this test")
+	}
+
 	// We're going to chdir to a deploy environment,
 	// so save the PWD to return to, afterwards.
 	pwd, err := os.Getwd()
@@ -69,16 +74,15 @@ func TestDeploy(t *testing.T) {
 
 	args := testutil.Args
 	for _, testcase := range []struct {
-		api              mock.API
-		args             []string
-		dontWantOutput   []string
-		manifest         string
-		manifestIncludes string
-		name             string
-		noManifest       bool
-		stdin            []string
-		wantError        string
-		wantOutput       []string
+		api            mock.API
+		args           []string
+		dontWantOutput []string
+		manifest       string
+		name           string
+		noManifest     bool
+		stdin          []string
+		wantError      string
+		wantOutput     []string
 	}{
 		{
 			name:      "no token",
@@ -108,9 +112,12 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Setting service ID in manifest to \"12345\"...",
 				"Deployed package (service 12345, version 1)",
 			},
 		},
@@ -127,9 +134,12 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Setting service ID in manifest to \"12345\"...",
 				"Deployed package (service 12345, version 1)",
 			},
 		},
@@ -187,12 +197,16 @@ func TestDeploy(t *testing.T) {
 				DeleteBackendFn: deleteBackendOK,
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
+				ListDomainsFn:   listDomainsOk,
+				ListBackendsFn:  listBackendsOk,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
 			},
 			wantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Uploading package...",
 			},
-			manifestIncludes: `service_id = ""`,
 		},
 		// The following test doesn't provide a Service ID by either a flag nor the
 		// manifest, so this will result in the deploy script attempting to create
@@ -203,6 +217,9 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn: createServiceError,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
 			},
 			wantError: fmt.Sprintf("error creating service: %s", testutil.Err.Error()),
 			wantOutput: []string{
@@ -222,6 +239,11 @@ func TestDeploy(t *testing.T) {
 				CreateDomainFn:  createDomainError,
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
+				ListDomainsFn:   listDomainsNone,
+				ListBackendsFn:  listBackendsOk,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
 			},
 			wantError: fmt.Sprintf("error creating domain: %s", testutil.Err.Error()),
 			wantOutput: []string{
@@ -243,10 +265,17 @@ func TestDeploy(t *testing.T) {
 				DeleteBackendFn: deleteBackendOK,
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
+				ListDomainsFn:   listDomainsOk,
+				ListBackendsFn:  listBackendsNone,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
 			},
 			wantError: fmt.Sprintf("error configuring the service: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
+			},
+			dontWantOutput: []string{
 				"Creating domain...",
 			},
 		},
@@ -258,14 +287,17 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetServiceFn:      getServiceOK,
-				ListDomainsFn:     listDomainsOk,
+				ListDomainsFn:     listDomainsNone,
 				ListBackendsFn:    listBackendsOk,
+				CreateDomainFn:    createDomainOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionError,
+				DeleteDomainFn:    deleteDomainOK,
 			},
 			wantError: fmt.Sprintf("error activating version: %s", testutil.Err.Error()),
 			wantOutput: []string{
+				"Creating domain...",
 				"Uploading package...",
 				"Activating version...",
 			},
@@ -419,6 +451,7 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
 			},
 			manifest: `
 			name = "package"
@@ -437,13 +470,15 @@ func TestDeploy(t *testing.T) {
 					address = "httpbin.org"
 					port = 443
 			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
 			wantOutput: []string{
 				"Backend 1: [developer.fastly.com]",
 				"Backend port number: [443]",
 				"Backend 2: [httpbin.org]",
 				"Backend port number: [443]",
 				"Creating service...",
-				"Creating domain...",
 				"Creating backend 'backend_name' (host: developer.fastly.com, port: 443)...",
 				"Creating backend 'other_backend_name' (host: httpbin.org, port: 443)...",
 				"Uploading package...",
@@ -464,6 +499,7 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
 			},
 			manifest: `
 			name = "package"
@@ -478,18 +514,23 @@ func TestDeploy(t *testing.T) {
 					name = "bar_backend"
 					address = "httpbin.org"
 			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
 			wantOutput: []string{
 				"Backend for 'foo_backend': [developer.fastly.com]",
 				"Backend port number: [80]",
 				"Backend for 'bar_backend': [httpbin.org]",
 				"Backend port number: [80]",
 				"Creating service...",
-				"Creating domain...",
 				"Creating backend 'foo_backend' (host: developer.fastly.com, port: 80)...",
 				"Creating backend 'bar_backend' (host: httpbin.org, port: 80)...",
 				"Uploading package...",
 				"Activating version...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			dontWantOutput: []string{
+				"Creating domain...",
 			},
 		},
 		// The following test validates no prompts are displayed to the user due to
@@ -505,6 +546,7 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsOk,
 			},
 			manifest: `
 			name = "package"
@@ -526,7 +568,6 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Initializing...",
 				"Creating service...",
-				"Creating domain...",
 				"Creating backend 'backend_name' (host: developer.fastly.com, port: 443)...",
 				"Creating backend 'other_backend_name' (host: httpbin.org, port: 443)...",
 				"Uploading package...",
@@ -547,6 +588,15 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "error with setup configuration and missing required fields",
 			args: args("compute deploy --token 123"),
+			api: mock.API{
+				CreateServiceFn: createServiceOK,
+				ListDomainsFn:   listDomainsOk,
+				ListBackendsFn:  listBackendsNone,
+
+				GetPackageFn:      getPackageOk,
+				UpdatePackageFn:   updatePackageOk,
+				ActivateVersionFn: activateVersionOk,
+			},
 			manifest: `
 			name = "package"
 			manifest_version = 1
@@ -560,6 +610,9 @@ func TestDeploy(t *testing.T) {
 					prompt = "Backend 2"
 					port = 443
 			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
 			wantError: "error parsing the [[setup.backends]] configuration",
 		},
 		// The following test validates the setup.backends.name field should be a
@@ -567,6 +620,11 @@ func TestDeploy(t *testing.T) {
 		{
 			name: "error with setup configuration -- invalid setup.backends.name",
 			args: args("compute deploy --token 123"),
+			api: mock.API{
+				CreateServiceFn: createServiceOK,
+				ListDomainsFn:   listDomainsOk,
+				ListBackendsFn:  listBackendsOk,
+			},
 			manifest: `
 			name = "package"
 			manifest_version = 1
@@ -584,6 +642,9 @@ func TestDeploy(t *testing.T) {
 					address = "httpbin.org"
 					port = 443
 			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
 			wantError: "error parsing the [[setup.backends]] configuration",
 		},
 		// The following test validates that a new 'originless' backend is created
@@ -603,6 +664,7 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsNone,
 			},
 			wantOutput: []string{
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -622,13 +684,14 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsNone,
 			},
 			stdin: []string{
+				"Y", // when prompted to create a new service
 				"fastly.com",
 				"443",
 				"my_backend_name",
 				"", // this stops prompting for backends
-				"", // this is to use the default domain
 			},
 			wantOutput: []string{
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
@@ -652,8 +715,10 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsNone,
 			},
 			stdin: []string{
+				"Y", // when prompted to create a new service
 				"fastly.com",
 				"443",
 				"", // this is so we generate a backend name using a built-in formula
@@ -661,7 +726,6 @@ func TestDeploy(t *testing.T) {
 				"123",
 				"", // this is so we generate a backend name using a built-in formula
 				"", // this stops prompting for backends
-				"", // this is to use the default domain
 			},
 			wantOutput: []string{
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
@@ -676,7 +740,7 @@ func TestDeploy(t *testing.T) {
 		// that we'll default to creating an 'originless' backend if no value
 		// provided at the prompt.
 		{
-			name: "error with no setup configuration and multiple backends prompted for new service",
+			name: "success with no setup configuration and defaulting to originless",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:   createServiceOK,
@@ -686,6 +750,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsNone,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
+				"",  // this stops prompting for backends
 			},
 			wantOutput: []string{
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",
@@ -771,34 +840,30 @@ func TestDeploy(t *testing.T) {
 
 			[setup]
 				[[setup.backends]]
-					name = "backend_name"
+					name = "fastly"
 					prompt = "Backend 1"
 					address = "fastly.com"
 					port = 443
 				[[setup.backends]]
-					name = "other_backend_name"
+					name = "google"
 					prompt = "Backend 2"
 					address = "google.com"
 					port = 443
 				[[setup.backends]]
-					name = "another_backend_name"
+					name = "facebook"
 					prompt = "Backend 3"
 					address = "facebook.com"
 					port = 443
 			`,
 			stdin: []string{
-				"google.com",
+				"beep.com",
 				"123",
-				"", // this is so we generate a backend name using a built-in formula
-				"facebook.com",
+				"boop.com",
 				"456",
-				"", // this is so we generate a backend name using a built-in formula
-				"", // this stops prompting for backends
 			},
 			wantOutput: []string{
-				"Backend (hostname or IP address, or leave blank to stop adding backends):",
-				"Creating backend 'backend_1' (host: google.com, port: 123)...",
-				"Creating backend 'backend_2' (host: facebook.com, port: 456)...",
+				"Creating backend 'google' (host: beep.com, port: 123)",
+				"Creating backend 'facebook' (host: boop.com, port: 456)",
 				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
@@ -882,7 +947,7 @@ func TestDeploy(t *testing.T) {
 				err = app.Run(opts)
 			}
 
-			t.Log(stdout.String())
+			// t.Log(stdout.String())
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 
@@ -892,14 +957,6 @@ func TestDeploy(t *testing.T) {
 
 			for _, s := range testcase.dontWantOutput {
 				testutil.AssertStringDoesntContain(t, stdout.String(), s)
-			}
-
-			if testcase.manifestIncludes != "" {
-				content, err := os.ReadFile(filepath.Join(rootdir, manifest.Filename))
-				if err != nil {
-					t.Fatal(err)
-				}
-				testutil.AssertStringContains(t, string(content), testcase.manifestIncludes)
 			}
 		})
 	}
@@ -974,4 +1031,8 @@ func listBackendsSome(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return []*fastly.Backend{
 		{Address: "fastly.com", Name: "fastly", Port: 443},
 	}, nil
+}
+
+func listDomainsNone(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+	return []*fastly.Domain{}, nil
 }

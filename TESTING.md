@@ -32,6 +32,7 @@ The available environment variables are:
 - `TEST_COMPUTE_BUILD`: runs `TestBuildRust` and `TestBuildAssemblyScript`.
 - `TEST_COMPUTE_BUILD_RUST`: runs `TestBuildRust`.
 - `TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT`: runs `TestBuildAssemblyScript`.
+- `TEST_COMPUTE_DEPLOY`: runs `TestDeploy`.
 
 **Example**:
 
