@@ -326,7 +326,6 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	}
 
 	args := []string{
-		"+stable", // this should point to same value as `rustc --version`
 		"build",
 		"--bin",
 		binName,
