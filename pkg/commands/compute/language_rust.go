@@ -195,30 +195,14 @@ func validateCompilerExists() error {
 
 // validateCompilerVersion checks the `rustc` version meets our constraint.
 func validateCompilerVersion(constraint string) error {
-	cmd := []string{"rustc", "--version"}
-	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
-	stdoutStderr, err := c.CombinedOutput()
+	version, err := rustcVersion()
 	if err != nil {
-		return fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
+		return err
 	}
 
-	reader := bufio.NewReader(bytes.NewReader(stdoutStderr))
-	line, err := reader.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
-	}
-
-	// Example outputs:
-	// rustc 1.54.0 (a178d0322 2021-07-26)
-	// rustc 1.56.0-nightly (2d2bc94c8 2021-08-15)
-	parts := strings.Split(line, " ")
-	if len(parts) < 2 {
-		return fmt.Errorf("error reading `%s` output", strings.Join(cmd, " "))
-	}
-	version := strings.Split(parts[1], "-")[0]
 	rustcVersion, err := semver.NewVersion(version)
 	if err != nil {
-		return fmt.Errorf("error parsing `%s` output into a semver: %w", strings.Join(cmd, " "), err)
+		return fmt.Errorf("error parsing `%s` output into a semver: %w", "rustc --version", err)
 	}
 
 	rustcConstraint, err := semver.NewConstraint(constraint)
@@ -236,8 +220,81 @@ func validateCompilerVersion(constraint string) error {
 	return nil
 }
 
+// rustcVersion returns the active rustc compiler version.
+func rustcVersion() (string, error) {
+	cmd := []string{"rustc", "--version"}
+	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
+	stdoutStderr, err := c.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
+	}
+
+	reader := bufio.NewReader(bytes.NewReader(stdoutStderr))
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
+	}
+
+	// Example outputs:
+	// rustc 1.54.0 (a178d0322 2021-07-26)
+	// rustc 1.56.0-nightly (2d2bc94c8 2021-08-15)
+	parts := strings.Split(line, " ")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("error reading `%s` output", strings.Join(cmd, " "))
+	}
+
+	version := strings.Split(parts[1], "-")[0]
+	return version, nil
+}
+
 // validateWasmTarget checks the `wasm32-wasi` target is installed.
+//
+// If the user has `rustup` installed then we use it to identify if the target
+// is installed, otherwise we fallback to a low-level check of the target
+// directory using `rustc --print sysroot`.
 func validateWasmTarget(target string) error {
+	_, err := exec.LookPath("rustup")
+	if err != nil {
+		return rustcSysroot(target)
+	}
+
+	version, err := rustcVersion()
+	if err != nil {
+		return err
+	}
+
+	cmd := []string{"rustup", "target", "list", "--installed", "--toolchain", version}
+	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
+	stdoutStderr, err := c.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(string(stdoutStderr)))
+	scanner.Split(bufio.ScanWords)
+	found := false
+	for scanner.Scan() {
+		if scanner.Text() == target {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("rust target %s not found", target),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", target, version))),
+		}
+	}
+
+	return nil
+}
+
+// rustcSysroot validates if the wasm32-wasi target is installed by using the
+// low-level rustc compiler `--print sysroot` flag.
+//
+// This is called only when the user doesn't have `rustup` installed.
+func rustcSysroot(target string) error {
 	cmd := []string{"rustc", "--print", "sysroot"}
 	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
 	stdoutStderr, err := c.CombinedOutput()
