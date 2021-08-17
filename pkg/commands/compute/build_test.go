@@ -200,13 +200,8 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						// NOTE: my local rust environment has versions 1.[45|46|49|54].0
-						// So I've set the constraint to ensure the test fails.
-						// Example, the code logic will select 1.54.0, which is outside the constraint limit 1.40.0
-						//
-						// The .github/workflows/pr_test.yml should have the same version
-						// 1.54.0 set which should align with the constraint defined in the
-						// CLI's dynamic config.
+						// NOTE: A 'stable' release will fail the constraint, which is set
+						// to something lower than current stable.
 						ToolchainVersion:    "1.0.0",
 						ToolchainConstraint: ">= 1.0.0 < 1.40.0",
 						WasmWasiTarget:      "wasm32-wasi",
