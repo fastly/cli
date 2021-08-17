@@ -81,10 +81,9 @@ func (m *CargoMetadata) Read() error {
 
 // Rust implements a Toolchain for the Rust language.
 type Rust struct {
-	client    api.HTTPClient
-	config    *config.Data
-	toolchain *semver.Version
-	timeout   int
+	client  api.HTTPClient
+	config  *config.Data
+	timeout int
 }
 
 // NewRust constructs a new Rust.
