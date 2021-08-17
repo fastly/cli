@@ -257,12 +257,12 @@ func validateWasmTarget(target string) error {
 		return rustcSysroot(target)
 	}
 
-	version, err := rustcVersion()
+	toolchain, err := rustupToolchain()
 	if err != nil {
 		return err
 	}
 
-	cmd := []string{"rustup", "target", "list", "--installed", "--toolchain", version}
+	cmd := []string{"rustup", "target", "list", "--installed", "--toolchain", toolchain}
 	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
@@ -282,11 +282,37 @@ func validateWasmTarget(target string) error {
 	if !found {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rust target %s not found", target),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", target, version))),
+			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", target, toolchain))),
 		}
 	}
 
 	return nil
+}
+
+// rustupToolchain returns the active rustup toolchain.
+func rustupToolchain() (string, error) {
+	cmd := []string{"rustup", "show", "active-toolchain"}
+	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
+	stdoutStderr, err := c.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
+	}
+
+	reader := bufio.NewReader(bytes.NewReader(stdoutStderr))
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
+	}
+
+	// Example outputs:
+	// stable-x86_64-apple-darwin (default)
+	// 1.54.0-x86_64-apple-darwin (directory override for '/Users/integralist/Code/fastly/cli')
+	parts := strings.Split(line, "-")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("error reading `%s` output", strings.Join(cmd, " "))
+	}
+
+	return parts[0], nil
 }
 
 // rustcSysroot validates if the wasm32-wasi target is installed by using the
