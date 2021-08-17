@@ -415,6 +415,8 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	binName := m.Package.Name
 
 	args := []string{
+		"-v",
+		"-v",
 		"build",
 		"--bin",
 		binName,
