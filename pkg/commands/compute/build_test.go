@@ -336,6 +336,7 @@ func TestBuildRust(t *testing.T) {
 			opts.ConfigFile = testcase.applicationConfig
 			opts.HTTPClient = testcase.client
 			err = app.Run(opts)
+			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {

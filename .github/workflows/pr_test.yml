@@ -112,3 +112,4 @@ jobs:
       env:
         TEST_COMPUTE_INIT: true
         TEST_COMPUTE_BUILD: true
+        TEST_COMPUTE_DEPLOY: true
