@@ -415,19 +415,6 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	}
 	binName := m.Package.Name
 
-	if r.toolchain == nil {
-		rustConstraint, err := semver.NewConstraint(r.config.File.Language.Rust.ToolchainConstraint)
-		if err != nil {
-			return fmt.Errorf("error parsing rust toolchain constraint: %w", err)
-		}
-
-		// Side-effect: sets r.toolchain
-		err = r.toolchainVersion(rustConstraint)
-		if err != nil {
-			return err
-		}
-	}
-
 	args := []string{
 		"build",
 		"--bin",
@@ -486,40 +473,6 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	err = filesystem.CopyFile(src, dst)
 	if err != nil {
 		return fmt.Errorf("copying wasm binary: %w", err)
-	}
-
-	return nil
-}
-
-func (r *Rust) toolchainVersion(rustConstraint *semver.Constraints) error {
-	cmd := exec.Command("rustc", "--version")
-	stdoutStderr, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("error executing `rustc --version`: %w", err)
-	}
-
-	remediation := fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold("rustup update stable"))
-
-	// output should look like:
-	// rustc 1.54.0 (a178d0322 2021-07-26)
-	version := strings.Split(string(stdoutStderr), " ")
-	if len(version) < 2 {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("rust toolchain %s not found: %s", r.config.File.Language.Rust.ToolchainConstraint, string(stdoutStderr)),
-			Remediation: remediation,
-		}
-	}
-
-	r.toolchain, err = semver.NewVersion(version[1])
-	if err != nil {
-		return fmt.Errorf("error parsing rust toolchain version: %w", err)
-	}
-
-	if ok := rustConstraint.Check(r.toolchain); !ok {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("rust toolchain %s is incompatible with the constraint %s", r.toolchain, r.config.File.Language.Rust.ToolchainConstraint),
-			Remediation: remediation,
-		}
 	}
 
 	return nil
