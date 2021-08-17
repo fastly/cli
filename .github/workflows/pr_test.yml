@@ -106,9 +106,6 @@ jobs:
     - name: "Download latest app config"
       run: |
         make config
-    - name: "Validate rust environment"
-      run: rustup show && rustc --print sysroot
-      shell: bash
     - name: "Test suite"
       run: make test
       shell: bash
