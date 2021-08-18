@@ -102,13 +102,11 @@ func NewTailCommand(parent cmd.Registerer, globals *config.Data) *TailCommand {
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("tail", "Tail Compute@Edge logs")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-	c.CmdClause.Flag("from", "From time, in unix seconds").Int64Var(&c.cfg.from)
-	c.CmdClause.Flag("to", "To time, in unix seconds").Int64Var(&c.cfg.to)
-	c.CmdClause.Flag("sort-buffer",
-		"Sort buffer is how long to buffer logs, attempting to sort them before printing, defaults to 1s (second)").Default("1s").DurationVar(&c.cfg.sortBuffer)
-	c.CmdClause.Flag("search-padding",
-		"Search padding is how much of a window on either side of From and To to use for searching, defaults to 2s (seconds)").Default("2s").DurationVar(&c.cfg.searchPadding)
-	c.CmdClause.Flag("stream", "Stream specifies which of 'stdout' or 'stderr' to output, defaults to undefined (all streams)").StringVar(&c.cfg.stream)
+	c.CmdClause.Flag("from", "From time, in Unix seconds").Int64Var(&c.cfg.from)
+	c.CmdClause.Flag("to", "To time, in Unix seconds").Int64Var(&c.cfg.to)
+	c.CmdClause.Flag("sort-buffer", "Duration of sort buffer for received logs").Default("1s").DurationVar(&c.cfg.sortBuffer)
+	c.CmdClause.Flag("search-padding", "Time beyond from/to to consider in searches").Default("2s").DurationVar(&c.cfg.searchPadding)
+	c.CmdClause.Flag("stream", "Output: stdout, stderr, both (default)").StringVar(&c.cfg.stream)
 
 	return &c
 }
@@ -122,7 +120,8 @@ func (c *TailCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 
 	c.Input.Kind = fastly.ManagedLoggingInstanceOutput
-	c.cfg.path = fmt.Sprintf("%s/service/%s/log_stream/managed/instance_output", config.DefaultEndpoint, c.Input.ServiceID)
+	endpoint, _ := c.Globals.Endpoint()
+	c.cfg.path = fmt.Sprintf("%s/service/%s/log_stream/managed/instance_output", endpoint, c.Input.ServiceID)
 
 	c.dieCh = make(chan struct{})
 	c.batchCh = make(chan Batch)
