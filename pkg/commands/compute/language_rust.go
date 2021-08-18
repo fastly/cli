@@ -109,12 +109,12 @@ func (r Rust) IncludeFiles() []string { return []string{"Cargo.toml"} }
 // NOTE:
 // Steps for validation are:
 //
-// 1. Lookup `rustc` in `$PATH`
-// 2. Execute `rustc --version`
-// 3. Validate `wasm32-wasi` target
-// 4. Lookup `cargo` in `$PATH`
-// 5. Validate `fastly-sys` crate version
-// 6. Validate `fastly` crate version (optional upgrade suggestion)
+// 1. Validate `rustc` installed.
+// 2. Validate `rustc --version` meets the constraint.
+// 3. Validate `wasm32-wasi` target is added to the relevant toolchain.
+// 4. Validate `cargo` is installed.
+// 5. Validate `fastly-sys` crate version.
+// 6. Validate `fastly` crate version (optional upgrade suggestion).
 func (r *Rust) Verify(out io.Writer) (err error) {
 	fmt.Fprintf(out, "Checking if `rustc` is installed...\n")
 
