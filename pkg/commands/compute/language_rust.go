@@ -200,8 +200,8 @@ func validateCompilerVersion(constraint string) error {
 
 	if !rustcConstraint.Check(rustcVersion) {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("rustc constraint not met: %s", constraint),
-			Remediation: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint.",
+			Inner:       fmt.Errorf("rustc constraint '%s' not met: %s", constraint, version),
+			Remediation: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`).",
 		}
 	}
 
@@ -234,8 +234,8 @@ func rustcVersion() (string, error) {
 	version := strings.Split(parts[1], "-")
 	if len(version) > 1 {
 		return "", errors.RemediationError{
-			Inner:       fmt.Errorf("non-stable releases are not supported `%s` output", strings.Join(cmd, " ")),
-			Remediation: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint. Alternatively utilise the CLI's `--force` flag.",
+			Inner:       fmt.Errorf("non-stable releases are not supported: %s", parts[1]),
+			Remediation: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`). Alternatively utilise the CLI's `--force` flag.",
 		}
 	}
 
