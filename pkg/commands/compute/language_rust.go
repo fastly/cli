@@ -113,14 +113,8 @@ func (r Rust) IncludeFiles() []string { return []string{"Cargo.toml"} }
 // 2. Execute `rustc --version`
 // 3. Validate `wasm32-wasi` target
 // 4. Lookup `cargo` in `$PATH`
-// 5. Lookup `Cargo.toml`
-// 6. Validate `fastly-sys` crate version
-// 7. Validate `fastly` crate version (optional upgrade suggestion)
-//
-// We used to use the `rustup` command to help validate some of the toolchain
-// requirements but we no longer presume that to be how `rustc` is exposed to
-// the user's running system. This means we have to use a low-level mechanism
-// for identifying the wasm32-wasi target it available.
+// 5. Validate `fastly-sys` crate version
+// 6. Validate `fastly` crate version (optional upgrade suggestion)
 func (r *Rust) Verify(out io.Writer) (err error) {
 	fmt.Fprintf(out, "Checking if `rustc` is installed...\n")
 
@@ -150,12 +144,7 @@ func (r *Rust) Verify(out io.Writer) (err error) {
 		return err
 	}
 
-	fmt.Fprintf(out, "Checking for a `Cargo.toml` file...\n")
-
-	err = validateCargoToml()
-	if err != nil {
-		return err
-	}
+	// Validate the fastly and fastly-sys crates...
 
 	latestFastlyCrate, err := GetLatestCrateVersion(r.client, "fastly")
 	if err != nil {
@@ -212,7 +201,7 @@ func validateCompilerVersion(constraint string) error {
 	if !rustcConstraint.Check(rustcVersion) {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rustc constraint not met: %s", constraint),
-			Remediation: "Ensure the `rustc` compiler version meets the constraint by installing an appropriate version of `rustc`.",
+			Remediation: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint.",
 		}
 	}
 
@@ -242,8 +231,15 @@ func rustcVersion() (string, error) {
 		return "", fmt.Errorf("error reading `%s` output", strings.Join(cmd, " "))
 	}
 
-	version := strings.Split(parts[1], "-")[0]
-	return version, nil
+	version := strings.Split(parts[1], "-")
+	if len(version) > 1 {
+		return "", errors.RemediationError{
+			Inner:       fmt.Errorf("non-stable releases are not supported `%s` output", strings.Join(cmd, " ")),
+			Remediation: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint. Alternatively utilise the CLI's `--force` flag.",
+		}
+	}
+
+	return version[0], nil
 }
 
 // validateWasmTarget checks the `wasm32-wasi` target is installed.
@@ -282,7 +278,7 @@ func validateWasmTarget(target string) error {
 	if !found {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("rust target %s not found", target),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", target, toolchain))),
+			Remediation: fmt.Sprintf("Run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", target, toolchain))),
 		}
 	}
 
@@ -348,24 +344,6 @@ func validateCargoExists() error {
 			Remediation: "Ensure the `cargo` package manager is installed:\n\n\thttps://doc.rust-lang.org/cargo/getting-started/installation.html",
 		}
 	}
-	return nil
-}
-
-// validateCargoToml checks the `Cargo.toml` file exists.
-func validateCargoToml() error {
-	file := "Cargo.toml"
-	path, err := filepath.Abs(file)
-	if err != nil {
-		return fmt.Errorf("error parsing the %s file path: %w", file, err)
-	}
-
-	if !filesystem.FileExists(path) {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("a Cargo.toml file is missing from the current directory"),
-			Remediation: "Ensure you have a valid `Cargo.toml` file defined.",
-		}
-	}
-
 	return nil
 }
 

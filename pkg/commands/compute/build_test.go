@@ -97,7 +97,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: "0.0.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -131,7 +131,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: "0.0.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -166,7 +166,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.4.0 <= 0.9.0", // the fastly-sys version in 0.6.0 is actually ^0.3.6 so a minimum of 0.4.0 causes the constraint to fail
 						RustupConstraint:    ">= 1.23.0",
@@ -214,7 +214,7 @@ func TestBuildRust(t *testing.T) {
 				fastlyVersions: []string{"0.6.0"},
 			},
 			wantError:            "rustc constraint not met: >= 1.0.0 < 1.40.0",
-			wantRemediationError: "Ensure the `rustc` compiler version meets the constraint by installing an appropriate version of `rustc`.",
+			wantRemediationError: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint.",
 		},
 		{
 			name: "fastly crate prerelease",
@@ -227,7 +227,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -261,7 +261,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
 						RustupConstraint:    ">= 1.23.0",
