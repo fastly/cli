@@ -3795,16 +3795,11 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
-        --from=FROM              From time, in unix seconds
-        --to=TO                  To time, in unix seconds
-        --sort-buffer=1s         Sort buffer is how long to buffer logs,
-                                 attempting to sort them before printing,
-                                 defaults to 1s (second)
-        --search-padding=2s      Search padding is how much of a window on
-                                 either side of From and To to use for
-                                 searching, defaults to 2s (seconds)
-        --stream=STREAM          Stream specifies which of 'stdout' or 'stderr'
-                                 to output, defaults to undefined (all streams)
+        --from=FROM              From time, in Unix seconds
+        --to=TO                  To time, in Unix seconds
+        --sort-buffer=1s         Duration of sort buffer for received logs
+        --search-padding=2s      Time beyond from/to to consider in searches
+        --stream=STREAM          Output: stdout, stderr, both (default)
 
   pops
     List Fastly datacenters
