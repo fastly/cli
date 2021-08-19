@@ -77,3 +77,11 @@ release-changelog:
 .PHONY: config
 config:
 	@curl -so cmd/fastly/static/config.toml https://developer.fastly.com/api/internal/cli-config
+
+.PHONY: scaffold
+scaffold:
+	@$(shell pwd)/scripts/scaffold.sh $(CLI_PACKAGE) $(CLI_COMMAND) $(CLI_API)
+
+.PHONY: scaffold-category
+scaffold-category:
+	@$(shell pwd)/scripts/scaffold-category.sh $(CLI_CATEGORY) $(CLI_CATEGORY_COMMAND) $(CLI_PACKAGE) $(CLI_COMMAND) $(CLI_API)
