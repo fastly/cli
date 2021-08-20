@@ -71,6 +71,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Format version: %d\n", logentries.FormatVersion)
 	fmt.Fprintf(out, "Response condition: %s\n", logentries.ResponseCondition)
 	fmt.Fprintf(out, "Placement: %s\n", logentries.Placement)
+	fmt.Fprintf(out, "Region: %s\n", logentries.Region)
 
 	return nil
 }

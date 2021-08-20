@@ -2551,6 +2551,7 @@ COMMANDS
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug. This field
                                  is not required and has no default value
+        --region=REGION          The region to which to stream logs
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -2618,6 +2619,7 @@ COMMANDS
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug. This field
                                  is not required and has no default value
+        --region=REGION          The region to which to stream logs
 
   logging loggly create --name=NAME --version=VERSION --auth-token=AUTH-TOKEN [<flags>]
     Create a Loggly logging endpoint on a Fastly service version

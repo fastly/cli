@@ -84,6 +84,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", logentries.FormatVersion)
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", logentries.ResponseCondition)
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", logentries.Placement)
+		fmt.Fprintf(out, "\t\tRegion: %s\n", logentries.Region)
 	}
 	fmt.Fprintln(out)
 
