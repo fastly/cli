@@ -2804,6 +2804,7 @@ COMMANDS
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint
+        --region=REGION          The region to which to stream logs
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
 
@@ -2863,6 +2864,7 @@ COMMANDS
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint
+        --region=REGION          The region to which to stream logs
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
 

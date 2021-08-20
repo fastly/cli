@@ -93,6 +93,7 @@ func (c *DescribeCommand) print(out io.Writer, l *fastly.NewRelic) {
 	fmt.Fprintf(out, "Format: %s\n", l.Format)
 	fmt.Fprintf(out, "Format Version: %d\n", l.FormatVersion)
 	fmt.Fprintf(out, "Placement: %s\n", l.Placement)
+	fmt.Fprintf(out, "Region: %s\n", l.Region)
 	fmt.Fprintf(out, "Response Condition: %s\n\n", l.ResponseCondition)
 
 	if l.CreatedAt != nil {

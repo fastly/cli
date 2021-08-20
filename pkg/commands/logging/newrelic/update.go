@@ -37,6 +37,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 	c.CmdClause.Flag("new-name", "The name for the real-time logging configuration").Action(c.newName.Set).StringVar(&c.newName.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
+	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.region.Set).StringVar(&c.region.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 
 	return &c
@@ -55,6 +56,7 @@ type UpdateCommand struct {
 	newName           cmd.OptionalString
 	placement         cmd.OptionalString
 	responseCondition cmd.OptionalString
+	region            cmd.OptionalString
 	serviceVersion    cmd.OptionalServiceVersion
 }
 
@@ -121,6 +123,9 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) *fa
 	}
 	if c.responseCondition.WasSet {
 		input.ResponseCondition = fastly.String(c.responseCondition.Value)
+	}
+	if c.region.WasSet {
+		input.Region = fastly.String(c.region.Value)
 	}
 
 	return &input
