@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
@@ -37,8 +38,6 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner V
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	progress := text.NewQuietProgress(out)
-
 	current, latest, shouldUpdate, err := Check(context.Background(), revision.AppVersion, c.cliVersioner)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -48,11 +47,23 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Break(out)
-	text.Break(out)
 	text.Output(out, "Current version: %s", current)
 	text.Output(out, "Latest version: %s", latest)
 	text.Break(out)
 
+	progress := text.NewQuietProgress(out)
+	progress.Step("Updating versioning information...")
+
+	err = c.Globals.File.Load(c.Globals.File.CLI.RemoteConfig, c.client, config.ConfigRequestTimeout, config.FilePath)
+	if err != nil {
+		progress.Fail()
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("there was a problem updating the versioning information for the Fastly CLI:\n\n%w", err),
+			Remediation: errors.BugRemediation,
+		}
+	}
+
+	progress.Step("Checking CLI binary update...")
 	if !shouldUpdate {
 		text.Output(out, "No update required.")
 		return nil

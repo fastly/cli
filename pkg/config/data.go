@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
@@ -75,6 +76,14 @@ var ErrInvalidConfig = errors.New("the configuration file is invalid")
 // and that the user rejected the use of the static config embedded into the
 // compiled CLI binary and so the user must resolve their invalid config.
 var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
+
+// writeMutex provides synchronisation for the WRITE operation on the CLI config.
+//
+// NOTE: Historically the CLI has only had to write to the CLI config from
+// within the `main` function but now the `fastly update` command accepts a
+// flag that allows explicitly updating the CLI config, which means we need to
+// ensure there isn't a race condition with writing the config to disk.
+var writeMutex = &sync.Mutex{}
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -460,6 +469,9 @@ func (f *File) Write(fpath string) error {
 	defer func(static []byte) {
 		f.Static = static
 	}(static)
+
+	writeMutex.Lock()
+	defer writeMutex.Unlock()
 
 	fp, err := os.OpenFile(fpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
 	if err != nil {
