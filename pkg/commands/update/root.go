@@ -23,7 +23,6 @@ type RootCommand struct {
 	cliVersioner   Versioner
 	client         api.HTTPClient
 	configFilePath string
-	configUpdate   bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -34,25 +33,11 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner V
 	c.cliVersioner = cliVersioner
 	c.client = client
 	c.configFilePath = configFilePath
-	c.CmdClause.Flag("config", "Update the CLI application configuation").Short('c').BoolVar(&c.configUpdate)
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	progress := text.NewQuietProgress(out)
-
-	if c.configUpdate {
-		err := c.Globals.File.Load(c.Globals.File.CLI.RemoteConfig, c.client, config.ConfigRequestTimeout, config.FilePath)
-		if err != nil {
-			return errors.RemediationError{
-				Inner:       fmt.Errorf("there was a problem updating the versioning information for the Fastly CLI:\n\n%w", err),
-				Remediation: errors.BugRemediation,
-			}
-		}
-		return nil
-	}
-
 	current, latest, shouldUpdate, err := Check(context.Background(), revision.AppVersion, c.cliVersioner)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -62,11 +47,23 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Break(out)
-	text.Break(out)
 	text.Output(out, "Current version: %s", current)
 	text.Output(out, "Latest version: %s", latest)
 	text.Break(out)
 
+	progress := text.NewQuietProgress(out)
+	progress.Step("Updating versioning information...")
+
+	err = c.Globals.File.Load(c.Globals.File.CLI.RemoteConfig, c.client, config.ConfigRequestTimeout, config.FilePath)
+	if err != nil {
+		progress.Fail()
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("there was a problem updating the versioning information for the Fastly CLI:\n\n%w", err),
+			Remediation: errors.BugRemediation,
+		}
+	}
+
+	progress.Step("Checking CLI binary update...")
 	if !shouldUpdate {
 		text.Output(out, "No update required.")
 		return nil

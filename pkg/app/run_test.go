@@ -3931,10 +3931,9 @@ COMMANDS
     List stats regions
 
 
-  update [<flags>]
+  update
     Update the CLI to the latest version
 
-    -c, --config  Update the CLI application configuation
 
   vcl custom create --content=CONTENT --name=NAME --version=VERSION [<flags>]
     Upload a VCL for a particular service and version
