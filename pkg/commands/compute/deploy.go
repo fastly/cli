@@ -27,6 +27,10 @@ import (
 const (
 	defaultTopLevelDomain = "edgecompute.app"
 	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
+
+	// PackageSizeLimit describes the package size limit in bytes (currently 50mb)
+	// https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
+	PackageSizeLimit = 50000000
 )
 
 // DeployCommand deploys an artifact previously produced by build.
@@ -317,6 +321,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 // validatePackage short-circuits the deploy command if the user hasn't first
 // built a package to be deployed.
+//
+// NOTE: It also validates if the package size exceeds limit:
+// https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
 func validatePackage(data manifest.Data, pathFlag string, errLog errors.LogInterface) (pkgName, pkgPath string, err error) {
 	pkgName, source := data.Name()
 	pkgPath, err = packagePath(pathFlag, pkgName, source)
@@ -328,9 +335,23 @@ func validatePackage(data manifest.Data, pathFlag string, errLog errors.LogInter
 		})
 		return pkgName, pkgPath, err
 	}
+	pkgSize, err := packageSize(pkgPath)
+	if err != nil {
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Package path": pkgPath,
+		})
+		return pkgName, pkgPath, err
+	}
+	if pkgSize > PackageSizeLimit {
+		return pkgName, pkgPath, errors.RemediationError{
+			Inner:       fmt.Errorf("package size (%d bytes) is too large", pkgSize),
+			Remediation: errors.PackageSizeRemediation,
+		}
+	}
 	if err := validate(pkgPath); err != nil {
 		errLog.AddWithContext(err, map[string]interface{}{
 			"Package path": pkgPath,
+			"Package size": pkgSize,
 		})
 		return pkgName, pkgPath, err
 	}
@@ -353,6 +374,15 @@ func packagePath(path string, name string, source manifest.Source) (string, erro
 	}
 
 	return path, nil
+}
+
+// packageSize returns the size of the .tar.gz package.
+func packageSize(path string) (size int64, err error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return size, err
+	}
+	return fi.Size(), nil
 }
 
 // manageNoServiceIDFlow handles creating a new service when no Service ID is found.

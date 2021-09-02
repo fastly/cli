@@ -96,3 +96,10 @@ var AutoCloneRemediation = strings.Join([]string{
 var IDRemediation = strings.Join([]string{
 	"Please provide one via the --id flag",
 }, " ")
+
+// PackageSizeRemediation suggests checking the resources documentation for the
+// current package size limit.
+var PackageSizeRemediation = strings.Join([]string{
+	"Please check our Compute@Edge resource limits:",
+	"https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits",
+}, " ")
