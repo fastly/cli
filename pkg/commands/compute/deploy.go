@@ -27,11 +27,11 @@ import (
 const (
 	defaultTopLevelDomain = "edgecompute.app"
 	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
-
-	// PackageSizeLimit describes the package size limit in bytes (currently 50mb)
-	// https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-	PackageSizeLimit = 50000000
 )
+
+// PackageSizeLimit describes the package size limit in bytes (currently 50mb)
+// https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
+var PackageSizeLimit int64 = 50000000
 
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
@@ -344,7 +344,7 @@ func validatePackage(data manifest.Data, pathFlag string, errLog errors.LogInter
 	}
 	if pkgSize > PackageSizeLimit {
 		return pkgName, pkgPath, errors.RemediationError{
-			Inner:       fmt.Errorf("package size (%d bytes) is too large", pkgSize),
+			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
 			Remediation: errors.PackageSizeRemediation,
 		}
 	}

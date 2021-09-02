@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -74,20 +76,29 @@ func TestDeploy(t *testing.T) {
 
 	args := testutil.Args
 	for _, testcase := range []struct {
-		api            mock.API
-		args           []string
-		dontWantOutput []string
-		manifest       string
-		name           string
-		noManifest     bool
-		stdin          []string
-		wantError      string
-		wantOutput     []string
+		api                  mock.API
+		args                 []string
+		dontWantOutput       []string
+		manifest             string
+		name                 string
+		noManifest           bool
+		reduceSizeLimit      bool
+		stdin                []string
+		wantError            string
+		wantRemediationError string
+		wantOutput           []string
 	}{
 		{
 			name:      "no token",
 			args:      args("compute deploy"),
 			wantError: "no token provided",
+		},
+		{
+			name:                 "package size too large",
+			args:                 args("compute deploy -p pkg/package.tar.gz --token 123"),
+			reduceSizeLimit:      true,
+			wantError:            "package size is too large",
+			wantRemediationError: errors.PackageSizeRemediation,
 		},
 		{
 			name:       "no fastly.toml manifest",
@@ -900,6 +911,10 @@ func TestDeploy(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
 
+			if testcase.reduceSizeLimit {
+				compute.PackageSizeLimit = 1000000 // 1mb (our test package should above this)
+			}
+
 			if len(testcase.stdin) > 1 {
 				// To handle multiple prompt input from the user we need to do some
 				// coordination around io pipes to mimic the required user behaviour.
@@ -950,6 +965,7 @@ func TestDeploy(t *testing.T) {
 			t.Log(stdout.String())
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, stdout.String(), s)
