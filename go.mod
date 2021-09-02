@@ -44,7 +44,7 @@ require (
 	github.com/klauspost/pgzip v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/nwaples/rardecode v1.0.0 // indirect
-	github.com/ulikunitz/xz v0.5.6 // indirect
+	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b // indirect
 )
