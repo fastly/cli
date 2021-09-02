@@ -1,6 +1,6 @@
 module github.com/fastly/cli
 
-go 1.16
+go 1.17
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.0
@@ -31,4 +31,20 @@ require (
 	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
+)
+
+require (
+	github.com/andybalholm/brotli v0.0.0-20190621154722-5f990b63d2d6 // indirect
+	github.com/dsnet/compress v0.0.1 // indirect
+	github.com/golang/gddo v0.0.0-20190419222130-af0f2af80721 // indirect
+	github.com/golang/snappy v0.0.1 // indirect
+	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/jsonapi v0.0.0-20201022225600-f822737867f6 // indirect
+	github.com/klauspost/compress v1.9.2 // indirect
+	github.com/klauspost/pgzip v1.2.1 // indirect
+	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/nwaples/rardecode v1.0.0 // indirect
+	github.com/ulikunitz/xz v0.5.6 // indirect
+	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b // indirect
 )

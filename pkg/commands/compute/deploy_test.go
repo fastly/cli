@@ -947,7 +947,7 @@ func TestDeploy(t *testing.T) {
 				err = app.Run(opts)
 			}
 
-			// t.Log(stdout.String())
+			t.Log(stdout.String())
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 

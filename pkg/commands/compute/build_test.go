@@ -97,7 +97,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: "0.0.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -131,7 +131,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: "0.0.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -166,7 +166,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.4.0 <= 0.9.0", // the fastly-sys version in 0.6.0 is actually ^0.3.6 so a minimum of 0.4.0 causes the constraint to fail
 						RustupConstraint:    ">= 1.23.0",
@@ -200,13 +200,8 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						// NOTE: my local rust environment has versions 1.[45|46|49|54].0
-						// So I've set the constraint to ensure the test fails.
-						// Example, the code logic will select 1.54.0, which is outside the constraint limit 1.40.0
-						//
-						// The .github/workflows/pr_test.yml should have the same version
-						// 1.54.0 set which should align with the constraint defined in the
-						// CLI's dynamic config.
+						// NOTE: A 'stable' release will fail the constraint, which is set
+						// to something lower than current stable.
 						ToolchainVersion:    "1.0.0",
 						ToolchainConstraint: ">= 1.0.0 < 1.40.0",
 						WasmWasiTarget:      "wasm32-wasi",
@@ -218,8 +213,8 @@ func TestBuildRust(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
-			wantError:            "rust toolchain 1.54.0 is incompatible with the constraint >= 1.0.0 < 1.40.0",
-			wantRemediationError: "To fix this error, run the following command with a version within the given range >= 1.0.0 < 1.40.0:\n\n\t$ rustup toolchain install <version>\n",
+			wantError:            "rustc constraint '>= 1.0.0 < 1.40.0' not met: 1.54.0",
+			wantRemediationError: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`).",
 		},
 		{
 			name: "fastly crate prerelease",
@@ -232,7 +227,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -266,7 +261,7 @@ func TestBuildRust(t *testing.T) {
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainVersion:    "1.49.0",
-						ToolchainConstraint: ">= 1.49.0 < 2.0.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
 						RustupConstraint:    ">= 1.23.0",
@@ -336,6 +331,7 @@ func TestBuildRust(t *testing.T) {
 			opts.ConfigFile = testcase.applicationConfig
 			opts.HTTPClient = testcase.client
 			err = app.Run(opts)
+			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
