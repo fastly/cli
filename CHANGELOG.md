@@ -1,5 +1,30 @@
 # Changelog
 
+## [v0.37.0](https://github.com/fastly/cli/releases/tag/v0.37.0) (2021-09-03)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.36.0...v0.37.0)
+
+**Enhancements:**
+
+- GitHub Packages support via goreleaser [#262](https://github.com/fastly/cli/pull/262)
+- Update CLI config using flag on `update` command [#382](https://github.com/fastly/cli/pull/382)
+- Validate package size doesn't exceed limit [#380](https://github.com/fastly/cli/pull/380)
+- Log tailing should respect the configured `--endpoint` [#374](https://github.com/fastly/cli/pull/374)
+- Support Windows arm64 [#372](https://github.com/fastly/cli/pull/372)
+- Refactor compute deploy logic to better support `[setup]` configuration [#370](https://github.com/fastly/cli/pull/370)
+- Omit messaging when using `--accept-defaults` [#366](https://github.com/fastly/cli/pull/366)
+- Implement `[setup]` configuration for backends [#355](https://github.com/fastly/cli/pull/355)
+- Refactor code to help CI performance [#360](https://github.com/fastly/cli/pull/360)
+
+**Bug fixes:**
+
+- add executable permissions to Viceroy binary after renaming/moving it [#368](https://github.com/fastly/cli/pull/368)
+- Update rust toolchain validation steps [#371](https://github.com/fastly/cli/pull/371)
+
+**Security:**
+
+- Update dependency to avoid dependabot warning in GitHub UI [#381](https://github.com/fastly/cli/pull/381)
+
 ## [v0.36.0](https://github.com/fastly/cli/releases/tag/v0.36.0) (2021-07-30)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.35.0...v0.36.0)
