@@ -7,7 +7,9 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/fastly/kingpin"
 )
@@ -147,4 +149,23 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 	}
 
 	return serviceID, v, nil
+}
+
+// DisplayServiceID acquires the Service ID (if provided) and displays both it
+// and its source location.
+func DisplayServiceID(d manifest.Data, out io.Writer) {
+	sid, source := d.ServiceID()
+	var via string
+	switch source {
+	case manifest.SourceFlag:
+		via = " (via --service-id)"
+	case manifest.SourceFile:
+		via = fmt.Sprintf(" (via %s)", manifest.Filename)
+	case manifest.SourceEnv:
+		via = fmt.Sprintf(" (via %s)", env.ServiceID)
+	case manifest.SourceUndefined:
+		via = " (not provided)"
+	}
+	text.Output(out, "Service ID%s: %s", via, sid)
+	text.Break(out)
 }
