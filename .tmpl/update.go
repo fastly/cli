@@ -51,10 +51,6 @@ type UpdateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(c.manifest, out)
-	}
-
 	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
