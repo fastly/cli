@@ -50,8 +50,9 @@ type RootCommand struct {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+	serviceID, source := c.manifest.ServiceID()
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(c.manifest, out)
+		cmd.DisplayServiceID(serviceID, source, out)
 	}
 
 	// Exit early if no token configured.
@@ -61,10 +62,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	// The URL purge API call doesn't require a Service ID.
-	var serviceID string
-	var source manifest.Source
 	if c.url == "" {
-		serviceID, source = c.manifest.ServiceID()
 		if source == manifest.SourceUndefined {
 			return errors.ErrNoServiceID
 		}

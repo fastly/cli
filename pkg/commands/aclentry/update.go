@@ -52,11 +52,10 @@ type UpdateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(c.manifest, out)
-	}
-
 	serviceID, source := c.manifest.ServiceID()
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, source, out)
+	}
 	if source == manifest.SourceUndefined {
 		err := errors.ErrNoServiceID
 		c.Globals.ErrLog.Add(err)

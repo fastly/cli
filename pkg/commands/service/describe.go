@@ -31,11 +31,10 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCo
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(c.manifest, out)
-	}
-
 	serviceID, source := c.manifest.ServiceID()
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, source, out)
+	}
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}

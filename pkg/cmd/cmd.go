@@ -124,11 +124,12 @@ type ServiceDetailsOpts struct {
 
 // ServiceDetails returns the Service ID and Service Version.
 func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *fastly.Version, err error) {
+	serviceID, source := opts.Manifest.ServiceID()
+
 	if opts.VerboseMode {
-		DisplayServiceID(opts.Manifest, opts.Out)
+		DisplayServiceID(serviceID, source, opts.Out)
 	}
 
-	serviceID, source := opts.Manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		return serviceID, serviceVersion, errors.ErrNoServiceID
 	}
@@ -157,10 +158,9 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 
 // DisplayServiceID acquires the Service ID (if provided) and displays both it
 // and its source location.
-func DisplayServiceID(d manifest.Data, out io.Writer) {
-	sid, source := d.ServiceID()
+func DisplayServiceID(sid string, s manifest.Source, out io.Writer) {
 	var via string
-	switch source {
+	switch s {
 	case manifest.SourceFlag:
 		via = " (via --service-id)"
 	case manifest.SourceFile:

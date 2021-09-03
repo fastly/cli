@@ -82,8 +82,9 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	serviceID, sidSrc := c.Manifest.ServiceID()
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(c.Manifest, out)
+		cmd.DisplayServiceID(serviceID, sidSrc, out)
 	}
 
 	// Exit early if no token configured.
@@ -111,7 +112,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		serviceVersion *fastly.Version
 	)
 
-	serviceID, sidSrc := c.Manifest.ServiceID()
 	if sidSrc == manifest.SourceUndefined {
 		newService = true
 		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.AcceptDefaults, in, out, verbose, apiClient, pkgName, errLog, &c.Manifest.File)
