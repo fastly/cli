@@ -96,7 +96,7 @@ changelog:
   skip: true
 dockers:
 - <<: &build_opts
-    use_buildx: true
+    use: buildx
     goos: linux
     goarch: amd64
     image_templates:
