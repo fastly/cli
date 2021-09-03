@@ -101,5 +101,5 @@ var IDRemediation = strings.Join([]string{
 // current package size limit.
 var PackageSizeRemediation = strings.Join([]string{
 	"Please check our Compute@Edge resource limits:",
-	"https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits",
+	"https://developer.fastly.com/learning/compute/#limitations-and-constraints",
 }, " ")
