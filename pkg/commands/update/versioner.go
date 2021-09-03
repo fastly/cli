@@ -149,8 +149,13 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 		extension = ".tar.gz"
 	}
 
-	tmp := os.TempDir()
-	assetFile := filepath.Join(tmp, fmt.Sprintf("%s_%s%s", g.binary, version, extension))
+	dir, err := os.MkdirTemp("", "download")
+	if err != nil {
+		return filename, fmt.Errorf("error creating temp release asset directory: %w", err)
+	}
+	defer os.RemoveAll(dir)
+
+	assetFile := filepath.Join(dir, fmt.Sprintf("%s_%s%s", g.binary, version, extension))
 
 	dst, err := os.Create(assetFile)
 	if err != nil {
@@ -168,14 +173,14 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 
 	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
 		defer os.RemoveAll(assetFile)
-		if err := archiver.NewTarGz().Extract(assetFile, g.binary, tmp); err != nil {
+		if err := archiver.NewTarGz().Extract(assetFile, g.binary, dir); err != nil {
 			return filename, fmt.Errorf("error extracting binary: %w", err)
 		}
-		assetFile = filepath.Join(tmp, g.binary)
+		assetFile = filepath.Join(dir, g.binary)
 	}
 
 	if g.local != "" {
-		newName := filepath.Join(tmp, g.local)
+		newName := filepath.Join(dir, g.local)
 		if err := os.Rename(assetFile, newName); err != nil {
 			return filename, fmt.Errorf("error renaming binary: %w", err)
 		}
