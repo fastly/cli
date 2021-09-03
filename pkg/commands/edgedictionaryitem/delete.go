@@ -33,6 +33,10 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(c.manifest, out)
+	}
+
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID

@@ -35,6 +35,10 @@ func NewCloneCommand(parent cmd.Registerer, globals *config.Data) *CloneCommand 
 
 // Exec invokes the application logic for the command.
 func (c *CloneCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(c.manifest, out)
+	}
+
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		Client:             c.Globals.Client,

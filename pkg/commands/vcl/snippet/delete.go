@@ -47,6 +47,10 @@ type DeleteCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(c.manifest, out)
+	}
+
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		Client:             c.Globals.Client,

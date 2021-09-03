@@ -40,6 +40,10 @@ func NewActivateCommand(parent cmd.Registerer, globals *config.Data) *ActivateCo
 
 // Exec invokes the application logic for the command.
 func (c *ActivateCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(c.manifest, out)
+	}
+
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		Client:             c.Globals.Client,

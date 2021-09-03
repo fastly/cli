@@ -82,6 +82,10 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(c.Manifest, out)
+	}
+
 	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {

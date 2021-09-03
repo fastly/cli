@@ -39,6 +39,10 @@ type ListCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(c.manifest, out)
+	}
+
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
 		err := errors.ErrNoServiceID
