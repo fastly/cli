@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/mitchellh/go-wordwrap"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // DefaultTextWidth is the width that should be passed to Wrap for most
@@ -101,7 +101,7 @@ func InputSecure(w io.Writer, prefix string, r io.Reader, validators ...func(str
 
 	read := func() (string, error) {
 		fmt.Fprint(w, Bold(prefix))
-		p, err := terminal.ReadPassword(int(syscall.Stdin))
+		p, err := term.ReadPassword(int(syscall.Stdin))
 		if err != nil {
 			return "", err
 		}
