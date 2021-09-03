@@ -89,7 +89,6 @@ func (c *ListCommand) constructInput(serviceID string, serviceVersion int) *fast
 // printVerbose displays the information returned from the API in a verbose
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, serviceID string, serviceVersion int, vs []*fastly.VCL) {
-	fmt.Fprintf(out, "\nService ID: %s\n", serviceID)
 	fmt.Fprintf(out, "Service Version: %d\n", serviceVersion)
 
 	for _, v := range vs {

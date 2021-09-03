@@ -98,6 +98,7 @@ func (c *ListCommand) printVerbose(out io.Writer, as []*fastly.ACLEntry) {
 		if a.DeletedAt != nil {
 			fmt.Fprintf(out, "Deleted at: %s\n", a.DeletedAt)
 		}
+
 		fmt.Fprintf(out, "\n")
 	}
 }

@@ -349,7 +349,8 @@ SERVICE  VERSION  NAME
 var listDigitalOceansVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
-Service ID: 123
+Service ID (via --service-id): 123
+
 Version: 1
 	DigitalOcean 1/2
 		Service ID: 123

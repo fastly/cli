@@ -307,7 +307,8 @@ SERVICE  VERSION  NAME     METHOD  HOST             PATH
 var listHealthChecksVerboseOutput = strings.Join([]string{
 	"Fastly API token not provided",
 	"Fastly API endpoint: https://api.fastly.com",
-	"Service ID: 123",
+	"Service ID (via --service-id): 123",
+	"",
 	"Version: 1",
 	"	Healthcheck 1/2",
 	"		Name: test",

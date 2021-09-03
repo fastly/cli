@@ -366,7 +366,8 @@ SERVICE  VERSION  NAME
 var listKinesesVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
-Service ID: 123
+Service ID (via --service-id): 123
+
 Version: 1
 	Kinesis 1/2
 		Service ID: 123
