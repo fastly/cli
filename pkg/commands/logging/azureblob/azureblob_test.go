@@ -64,6 +64,10 @@ func TestCreateBlobStorageInput(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
+
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				Client:             testcase.cmd.Base.Globals.Client,
@@ -152,6 +156,10 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Base.Globals.Client = testcase.api
+
+			var bs []byte
+			out := bytes.NewBuffer(bs)
+			verboseMode := true
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,

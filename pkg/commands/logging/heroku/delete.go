@@ -37,6 +37,10 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 	c.CmdClause.Flag("name", "The name of the Heroku logging object").Short('n').Required().StringVar(&c.Input.Name)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	return &c
+}
+
+// Exec invokes the application logic for the command.
+func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		Client:             c.Globals.Client,
