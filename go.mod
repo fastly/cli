@@ -14,7 +14,7 @@ require (
 	github.com/fatih/color v1.12.0
 	github.com/frankban/quicktest v1.13.1 // indirect
 	github.com/google/go-cmp v0.5.6
-	github.com/google/go-github/v28 v28.1.1
+	github.com/google/go-github/v38 v38.1.0
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mattn/go-colorable v0.1.8 // indirect
