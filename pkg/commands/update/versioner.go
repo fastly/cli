@@ -135,15 +135,8 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 		extension = ".tar.gz"
 	}
 
-	dir, err := os.MkdirTemp("", "download")
-	if err != nil {
-		return filename, fmt.Errorf("error creating temp release asset directory: %w", err)
-	}
-	defer os.RemoveAll(dir)
-
-	assetFile := filepath.Join(dir, fmt.Sprintf("%s_%s%s", g.binary, version, extension))
-
-	dst, err := os.Create(assetFile)
+	tmp := os.TempDir()
+	dst, err := os.CreateTemp(tmp, fmt.Sprintf("%s_%s_*%s", g.binary, version, extension))
 	if err != nil {
 		return filename, fmt.Errorf("error creating temp release asset file: %w", err)
 	}
@@ -157,16 +150,28 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 		return filename, fmt.Errorf("error closing release asset file: %w", err)
 	}
 
+	assetFile := dst.Name()
+
+	// If we need to perform an extraction, create a temporary directory and do it there,
+	// then copy the extracted file back to the temporary one so we just track one file.
 	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
-		defer os.RemoveAll(assetFile)
+		dir, err := os.MkdirTemp(tmp, "extract")
+		if err != nil {
+			return filename, fmt.Errorf("error creating temp extraction directory: %w", err)
+		}
+		defer os.RemoveAll(dir)
 		if err := archiver.NewTarGz().Extract(assetFile, g.binary, dir); err != nil {
 			return filename, fmt.Errorf("error extracting binary: %w", err)
 		}
-		assetFile = filepath.Join(dir, g.binary)
+		if err := os.Rename(filepath.Join(dir, g.binary), assetFile); err != nil {
+			return filename, fmt.Errorf("error renaming binary: %w", err)
+		}
 	}
 
+	// TODO: This is racy without the os.CreateTemp() call but does not look like it's used.
+	// Can this be removed and let the Download's caller rename the binary?
 	if g.local != "" {
-		newName := filepath.Join(dir, g.local)
+		newName := filepath.Join(tmp, g.local)
 		if err := os.Rename(assetFile, newName); err != nil {
 			return filename, fmt.Errorf("error renaming binary: %w", err)
 		}
