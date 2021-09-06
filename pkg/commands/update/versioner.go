@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/google/go-github/v28/github"
+	"github.com/google/go-github/v38/github"
 	"github.com/mholt/archiver"
 )
 
@@ -114,23 +114,9 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 		return filename, err
 	}
 
-	rc, redir, err := g.client.Repositories.DownloadReleaseAsset(ctx, g.org, g.repo, assetID)
+	rc, _, err := g.client.Repositories.DownloadReleaseAsset(ctx, g.org, g.repo, assetID, http.DefaultClient)
 	if err != nil {
 		return filename, err
-	}
-	if redir != "" {
-		// gosec flagged this:
-		// G107 (CWE-88): Potential HTTP request made with variable url.
-		// Disabling as we trust the source of the URL variable.
-		/* #nosec */
-		resp, err := http.Get(redir)
-		if err != nil {
-			return filename, err
-		}
-		if resp.StatusCode != http.StatusOK {
-			return filename, fmt.Errorf("GitHub gave %s", resp.Status)
-		}
-		rc = resp.Body
 	}
 	defer rc.Close()
 
@@ -232,7 +218,7 @@ func (g GitHub) getReleaseID(ctx context.Context, version semver.Version) (id in
 	return id, fmt.Errorf("no matching release found")
 }
 
-func (g GitHub) getAssetID(assets []github.ReleaseAsset) (id int64, err error) {
+func (g GitHub) getAssetID(assets []*github.ReleaseAsset) (id int64, err error) {
 	if g.releaseAsset == "" {
 		return id, fmt.Errorf("no release asset specified")
 	}
