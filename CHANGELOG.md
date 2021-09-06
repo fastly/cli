@@ -6,7 +6,7 @@
 
 **Enhancements:**
 
-- GitHub Packages support via goreleaser [#262](https://github.com/fastly/cli/pull/262)
+<!-- - GitHub Packages support via goreleaser [#262](https://github.com/fastly/cli/pull/262) -->
 - Update CLI config using flag on `update` command [#382](https://github.com/fastly/cli/pull/382)
 - Validate package size doesn't exceed limit [#380](https://github.com/fastly/cli/pull/380)
 - Log tailing should respect the configured `--endpoint` [#374](https://github.com/fastly/cli/pull/374)
@@ -18,7 +18,7 @@
 
 **Bug fixes:**
 
-- add executable permissions to Viceroy binary after renaming/moving it [#368](https://github.com/fastly/cli/pull/368)
+- Add executable permissions to Viceroy binary after renaming/moving it [#368](https://github.com/fastly/cli/pull/368)
 - Update rust toolchain validation steps [#371](https://github.com/fastly/cli/pull/371)
 
 **Security:**

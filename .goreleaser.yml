@@ -94,23 +94,23 @@ snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
   skip: true
-dockers:
-- <<: &build_opts
-    use: buildx
-    goos: linux
-    goarch: amd64
-    image_templates:
-      - "ghcr.io/fastly/cli:{{ .Version }}"
-    build_flag_templates:
-      - "--platform=linux/amd64"
-      - --label=title={{ .ProjectName }}
-      - --label=description={{ .ProjectName }}
-      - --label=url=https://github.com/fastly/cli
-      - --label=source=https://github.com/fastly/cli
-      - --label=version={{ .Version }}
-      - --label=created={{ time "2006-01-02T15:04:05Z07:00" }}
-      - --label=revision={{ .FullCommit }}
-      - --label=licenses=Apache-2.0
-  dockerfile: Dockerfile-assemblyscript
-- <<: *build_opts
-  dockerfile: Dockerfile-rust
+# dockers:
+# - <<: &build_opts
+#     use: buildx
+#     goos: linux
+#     goarch: amd64
+#     image_templates:
+#       - "ghcr.io/fastly/cli:{{ .Version }}"
+#     build_flag_templates:
+#       - "--platform=linux/amd64"
+#       - --label=title={{ .ProjectName }}
+#       - --label=description={{ .ProjectName }}
+#       - --label=url=https://github.com/fastly/cli
+#       - --label=source=https://github.com/fastly/cli
+#       - --label=version={{ .Version }}
+#       - --label=created={{ time "2006-01-02T15:04:05Z07:00" }}
+#       - --label=revision={{ .FullCommit }}
+#       - --label=licenses=Apache-2.0
+#   dockerfile: Dockerfile-assemblyscript
+# - <<: *build_opts
+#   dockerfile: Dockerfile-rust
