@@ -85,7 +85,6 @@ scoop:
     owner: fastly
     name: scoop-cli
   homepage: https://github.com/fastly/cli
-  skip_upload: auto
   description: Fastly CLI
   license: Apache 2.0
 checksum:
