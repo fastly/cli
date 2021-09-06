@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.37.1](https://github.com/fastly/cli/releases/tag/v0.37.1) (2021-09-06)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.37.0...v0.37.1)
+
+**Enhancements:**
+
+- Bump `go-github` dependency to latest release [#388](https://github.com/fastly/cli/pull/388)
+- Add Service ID to `--verbose` output [#383](https://github.com/fastly/cli/pull/383)
+
+**Bug fixes:**
+
+- Download Viceroy to a _randomly_ generated directory [#386](https://github.com/fastly/cli/pull/386)
+- Bug fix for ensuring assets are downloaded into a randomly generated directory [#389](https://github.com/fastly/cli/pull/389)
+
 ## [v0.37.0](https://github.com/fastly/cli/releases/tag/v0.37.0) (2021-09-03)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.36.0...v0.37.0)
