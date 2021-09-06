@@ -47,6 +47,9 @@ type CreateCommand struct {
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, source := c.manifest.ServiceID()
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, source, out)
+	}
 	if source == manifest.SourceUndefined {
 		err := errors.ErrNoServiceID
 		c.Globals.ErrLog.Add(err)

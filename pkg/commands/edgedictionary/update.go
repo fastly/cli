@@ -100,7 +100,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	text.Success(out, "Updated dictionary %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
 
 	if c.Globals.Verbose() {
-		text.Output(out, "Service ID: %s", d.ServiceID)
 		text.Output(out, "Version: %d", d.ServiceVersion)
 		text.PrintDictionary(out, "", d)
 	}

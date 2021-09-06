@@ -602,6 +602,8 @@ Versions: 2
 var describeServiceVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Service ID (via --service-id): 123
+
 ID: 123
 Name: Foo
 Type: wasm

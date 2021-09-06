@@ -37,6 +37,9 @@ func NewRealtimeCommand(parent cmd.Registerer, globals *config.Data) *RealtimeCo
 // Exec implements the command interface.
 func (c *RealtimeCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, source := c.manifest.ServiceID()
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, source, out)
+	}
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}

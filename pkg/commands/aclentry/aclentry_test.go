@@ -206,7 +206,7 @@ func TestACLEntryList(t *testing.T) {
 				ListACLEntriesFn: listACLEntries,
 			},
 			Args:       args("acl-entry list --acl-id 123 --service-id 123 --verbose"),
-			WantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\n\nService ID: 123\n\nACL ID: 123\nID: 456\nIP: 127.0.0.1\nSubnet: 0\nNegated: false\nComment: foo\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nACL ID: 123\nID: 789\nIP: 127.0.0.2\nSubnet: 0\nNegated: true\nComment: bar\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\nService ID (via --service-id): 123\n\nACL ID: 123\nID: 456\nIP: 127.0.0.1\nSubnet: 0\nNegated: false\nComment: foo\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nACL ID: 123\nID: 789\nIP: 127.0.0.2\nSubnet: 0\nNegated: true\nComment: bar\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 

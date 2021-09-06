@@ -69,7 +69,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, serviceID, serviceVersion.Number, vs)
+		c.printVerbose(out, serviceVersion.Number, vs)
 	} else {
 		c.printSummary(out, vs)
 	}
@@ -88,8 +88,7 @@ func (c *ListCommand) constructInput(serviceID string, serviceVersion int) *fast
 
 // printVerbose displays the information returned from the API in a verbose
 // format.
-func (c *ListCommand) printVerbose(out io.Writer, serviceID string, serviceVersion int, vs []*fastly.Snippet) {
-	fmt.Fprintf(out, "\nService ID: %s\n", serviceID)
+func (c *ListCommand) printVerbose(out io.Writer, serviceVersion int, vs []*fastly.Snippet) {
 	fmt.Fprintf(out, "Service Version: %d\n", serviceVersion)
 
 	for _, v := range vs {
@@ -100,6 +99,7 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceID string, serviceVersi
 		fmt.Fprintf(out, "Dynamic: %t\n", cmd.IntToBool(v.Dynamic))
 		fmt.Fprintf(out, "Type: %s\n", v.Type)
 		fmt.Fprintf(out, "Content: \n%s\n", v.Content)
+
 		if v.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
 		}

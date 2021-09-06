@@ -40,6 +40,9 @@ type ListCommand struct {
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, source := c.manifest.ServiceID()
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, source, out)
+	}
 	if source == manifest.SourceUndefined {
 		err := errors.ErrNoServiceID
 		c.Globals.ErrLog.Add(err)
@@ -57,7 +60,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, serviceID, as)
+		c.printVerbose(out, as)
 	} else {
 		c.printSummary(out, as)
 	}
@@ -76,11 +79,9 @@ func (c *ListCommand) constructInput(serviceID string) *fastly.ListACLEntriesInp
 
 // printVerbose displays the information returned from the API in a verbose
 // format.
-func (c *ListCommand) printVerbose(out io.Writer, serviceID string, as []*fastly.ACLEntry) {
-	fmt.Fprintf(out, "\nService ID: %s\n", serviceID)
-
+func (c *ListCommand) printVerbose(out io.Writer, as []*fastly.ACLEntry) {
 	for _, a := range as {
-		fmt.Fprintf(out, "\nACL ID: %s\n", a.ACLID)
+		fmt.Fprintf(out, "ACL ID: %s\n", a.ACLID)
 		fmt.Fprintf(out, "ID: %s\n", a.ID)
 		fmt.Fprintf(out, "IP: %s\n", a.IP)
 		fmt.Fprintf(out, "Subnet: %d\n", a.Subnet)
@@ -96,6 +97,8 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceID string, as []*fastly
 		if a.DeletedAt != nil {
 			fmt.Fprintf(out, "Deleted at: %s\n", a.DeletedAt)
 		}
+
+		fmt.Fprintf(out, "\n")
 	}
 }
 

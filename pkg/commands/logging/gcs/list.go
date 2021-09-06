@@ -71,7 +71,6 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", c.Input.ServiceID)
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, gcs := range gcss {
 		fmt.Fprintf(out, "\tGCS %d/%d\n", i+1, len(gcss))

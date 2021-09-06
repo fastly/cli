@@ -64,7 +64,9 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Output(out, "Service ID: %s", dictionary.ServiceID)
+	if !c.Globals.Verbose() {
+		text.Output(out, "Service ID: %s", dictionary.ServiceID)
+	}
 	text.Output(out, "Version: %d", dictionary.ServiceVersion)
 	text.PrintDictionary(out, "", dictionary)
 

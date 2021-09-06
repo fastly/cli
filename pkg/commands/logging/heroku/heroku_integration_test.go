@@ -317,7 +317,8 @@ SERVICE  VERSION  NAME
 var listHerokusVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
-Service ID: 123
+Service ID (via --service-id): 123
+
 Version: 1
 	Heroku 1/2
 		Service ID: 123

@@ -114,6 +114,9 @@ func NewTailCommand(parent cmd.Registerer, globals *config.Data) *TailCommand {
 // Exec invokes the application logic for the command.
 func (c *TailCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, source := c.manifest.ServiceID()
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, source, out)
+	}
 	if source == manifest.SourceUndefined {
 		return errors.ErrNoServiceID
 	}

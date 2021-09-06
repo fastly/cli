@@ -64,6 +64,7 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 
 // Exec implements the command interface.
 func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	text.Break(out)
 	text.Output(out, "Creating a new Compute@Edge project.")
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
