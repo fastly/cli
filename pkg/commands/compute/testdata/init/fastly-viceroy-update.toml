@@ -13,6 +13,7 @@ name = "Default Rust template"
 
     [local_server.backends.backend_a]
       url = "https://example.com/"
+      override_host = "otherexample.com"
 
     [local_server.backends.foo]
       url = "https://foo.com/"
