@@ -20,3 +20,9 @@ name = "Default Rust template"
 
     [local_server.backends.bar]
       url = "https://bar.com/"
+
+  [local_server.dictionaries]
+
+    [local_server.dictionaries.strings]
+      file = "strings.json"
+      format = "json"
