@@ -221,7 +221,8 @@ type LocalServer struct {
 
 // Backend represents a backend to be mocked by the local testing server.
 type Backend struct {
-	URL string `toml:"url"`
+	URL          string `toml:"url"`
+	OverrideHost string `toml:"override_host,omitempty"`
 }
 
 // Exists yields whether the manifest exists.
