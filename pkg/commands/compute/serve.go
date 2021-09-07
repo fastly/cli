@@ -137,7 +137,7 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	asset := fmt.Sprintf(update.DefaultAssetFormat, versioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
 	versioner.SetAsset(asset)
 
-	bin := filepath.Join(InstallDir, versioner.Name())
+	bin := filepath.Join(InstallDir, versioner.Binary())
 
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
