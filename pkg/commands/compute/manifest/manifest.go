@@ -216,13 +216,20 @@ type Mapper map[string]interface{}
 // LocalServer represents a list of backends that should be mocked as per the
 // configuration values.
 type LocalServer struct {
-	Backends map[string]Backend `toml:"backends"`
+	Backends     map[string]Backend    `toml:"backends"`
+	Dictionaries map[string]Dictionary `toml:"dictionaries,omitempty"`
 }
 
 // Backend represents a backend to be mocked by the local testing server.
 type Backend struct {
 	URL          string `toml:"url"`
 	OverrideHost string `toml:"override_host,omitempty"`
+}
+
+// Dictionary represents a dictionary to be mocked by the local testing server.
+type Dictionary struct {
+	File   string `toml:"file"`
+	Format string `toml:"format"`
 }
 
 // Exists yields whether the manifest exists.
