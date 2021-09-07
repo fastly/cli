@@ -57,6 +57,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/vcl"
 	"github.com/fastly/cli/pkg/commands/vcl/custom"
+	"github.com/fastly/cli/pkg/commands/vcl/generated"
 	"github.com/fastly/cli/pkg/commands/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/commands/whoami"
@@ -378,6 +379,8 @@ func Run(opts RunOpts) error {
 	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, &globals)
 	updateRoot := update.NewRootCommand(app, opts.ConfigPath, opts.Versioners.CLI, opts.HTTPClient, &globals)
 	vclCmdRoot := vcl.NewRootCommand(app, &globals)
+	vclGeneratedCmdRoot := generated.NewRootCommand(vclCmdRoot.CmdClause, &globals)
+	vclGeneratedDescribe := generated.NewDescribeCommand(vclGeneratedCmdRoot.CmdClause, &globals)
 	vclCustomCmdRoot := custom.NewRootCommand(vclCmdRoot.CmdClause, &globals)
 	vclCustomCreate := custom.NewCreateCommand(vclCustomCmdRoot.CmdClause, &globals)
 	vclCustomDelete := custom.NewDeleteCommand(vclCustomCmdRoot.CmdClause, &globals)
@@ -394,6 +397,9 @@ func Run(opts RunOpts) error {
 	whoamiCmdRoot := whoami.NewRootCommand(app, opts.HTTPClient, &globals)
 
 	commands := []cmd.Command{
+		vclCmdRoot,
+		vclGeneratedCmdRoot,
+		vclGeneratedDescribe,
 		aclCmdRoot,
 		aclCreate,
 		aclDelete,

@@ -3935,6 +3935,14 @@ COMMANDS
     Update the CLI to the latest version
 
 
+  vcl generated describe --version=VERSION [<flags>]
+    Get the generated VCL content for a particular service and version
+
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
   vcl custom create --content=CONTENT --name=NAME --version=VERSION [<flags>]
     Upload a VCL for a particular service and version
 

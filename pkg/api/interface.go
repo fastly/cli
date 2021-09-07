@@ -268,6 +268,8 @@ type Interface interface {
 	GetNewRelic(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error)
 	ListNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error)
 	UpdateNewRelic(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error)
+
+	GetGeneratedVCL(i *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

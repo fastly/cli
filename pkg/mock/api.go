@@ -259,6 +259,8 @@ type API struct {
 	GetNewRelicFn    func(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error)
 	ListNewRelicFn   func(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error)
 	UpdateNewRelicFn func(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error)
+
+	GetGeneratedVCLFn func(i *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1299,4 +1301,9 @@ func (m API) ListNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, erro
 // UpdateNewRelic implements Interface.
 func (m API) UpdateNewRelic(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 	return m.UpdateNewRelicFn(i)
+}
+
+// GetGeneratedVCL implements Interface.
+func (m API) GetGeneratedVCL(i *fastly.GetGeneratedVCLInput) (*fastly.VCL, error) {
+	return m.GetGeneratedVCLFn(i)
 }
