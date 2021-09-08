@@ -23,8 +23,6 @@ type Versioner interface {
 	Binary() string
 	Download(context.Context, semver.Version) (filename string, err error)
 	LatestVersion(context.Context) (semver.Version, error)
-	Name() string
-	RenameLocalBinary(binName string) error
 	SetAsset(name string)
 }
 
@@ -34,7 +32,6 @@ type GitHub struct {
 	org          string
 	repo         string
 	binary       string // name of compiled binary
-	local        string // name to use for binary once extracted
 	releaseAsset string // name of the release asset file to download
 }
 
@@ -69,23 +66,6 @@ func (g *GitHub) Binary() string {
 // external binaries from within the CLI.
 func (g *GitHub) SetAsset(name string) {
 	g.releaseAsset = name
-}
-
-// RenameLocalBinary will rename the downloaded binary.
-//
-// NOTE: This exists so that we can, for example, rename a binary such as
-// 'viceroy' to something less ambiguous like 'fastly-localtesting'.
-func (g *GitHub) RenameLocalBinary(binName string) error {
-	g.local = binName
-	return nil
-}
-
-// Name will return the name of the binary.
-func (g GitHub) Name() string {
-	if g.local != "" {
-		return g.local
-	}
-	return g.binary
 }
 
 // LatestVersion implements the Versioner interface.
@@ -166,16 +146,6 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 		if err := os.Rename(filepath.Join(dir, g.binary), assetFile); err != nil {
 			return filename, fmt.Errorf("error renaming binary: %w", err)
 		}
-	}
-
-	// TODO: This is racy without the os.CreateTemp() call but does not look like it's used.
-	// Can this be removed and let the Download's caller rename the binary?
-	if g.local != "" {
-		newName := filepath.Join(tmp, g.local)
-		if err := os.Rename(assetFile, newName); err != nil {
-			return filename, fmt.Errorf("error renaming binary: %w", err)
-		}
-		assetFile = newName
 	}
 
 	// G302 (CWE-276): Expect file permissions to be 0600 or less

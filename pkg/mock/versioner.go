@@ -34,26 +34,9 @@ func (v Versioner) Download(context.Context, semver.Version) (filename string, e
 	return filename, fmt.Errorf("not implemented")
 }
 
-// Name will return the name of the binary.
-func (v Versioner) Name() string {
-	if v.Local != "" {
-		return v.Local
-	}
-	return v.BinaryName
-}
-
 // Binary will return the configured name of the binary.
-//
-// NOTE: This is different from Name() in that it takes into account the local
-// field that allows renaming of a binary.
 func (v Versioner) Binary() string {
 	return v.BinaryName
-}
-
-// RenameLocalBinary will rename the downloaded binary.
-func (v Versioner) RenameLocalBinary(binName string) error {
-	// NoOp
-	return nil
 }
 
 // SetAsset allows configuring the release asset format.
