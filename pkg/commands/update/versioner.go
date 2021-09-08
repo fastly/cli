@@ -81,26 +81,46 @@ func (g GitHub) LatestVersion(ctx context.Context) (semver.Version, error) {
 func (g GitHub) Download(ctx context.Context, version semver.Version) (filename string, err error) {
 	releaseID, err := g.getReleaseID(ctx, version)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 
 	release, _, err := g.client.Repositories.GetRelease(ctx, g.org, g.repo, releaseID)
 	if err != nil {
-		return filename, fmt.Errorf("error fetching release: %w", err)
+		return "", fmt.Errorf("error fetching release: %w", err)
 	}
 
 	assetID, err := g.getAssetID(release.Assets)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 
 	rc, _, err := g.client.Repositories.DownloadReleaseAsset(ctx, g.org, g.repo, assetID, http.DefaultClient)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 	defer rc.Close()
 
-	var extension string
+	dir, err := os.MkdirTemp("", "fastly-download")
+	if err != nil {
+		return "", fmt.Errorf("error creating release download directory: %w", err)
+	}
+	defer os.RemoveAll(dir)
+
+	dst, err := os.Create(filepath.Join(dir, g.releaseAsset))
+	if err != nil {
+		return "", fmt.Errorf("error creating release asset file: %w", err)
+	}
+
+	_, err = io.Copy(dst, rc)
+	if err != nil {
+		return "", fmt.Errorf("error downloading release asset: %w", err)
+	}
+
+	if err := dst.Close(); err != nil {
+		return "", fmt.Errorf("error closing release asset file: %w", err)
+	}
+
+	tempFile := dst.Name()
 
 	// TODO: We might need to also account for Window users by also checking for
 	// the .zip extension that goreleaser generates:
@@ -112,40 +132,10 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	// extraction of a binary from the asset file instead of using the current
 	// archiver.NewTarGz().Extract() method.
 	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
-		extension = ".tar.gz"
-	}
-
-	tmp := os.TempDir()
-	dst, err := os.CreateTemp(tmp, fmt.Sprintf("%s_%s_*%s", g.binary, version, extension))
-	if err != nil {
-		return filename, fmt.Errorf("error creating temp release asset file: %w", err)
-	}
-
-	_, err = io.Copy(dst, rc)
-	if err != nil {
-		return filename, fmt.Errorf("error downloading release asset: %w", err)
-	}
-
-	if err := dst.Close(); err != nil {
-		return filename, fmt.Errorf("error closing release asset file: %w", err)
-	}
-
-	assetFile := dst.Name()
-
-	// If we need to perform an extraction, create a temporary directory and do it there,
-	// then copy the extracted file back to the temporary one so we just track one file.
-	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
-		dir, err := os.MkdirTemp(tmp, "extract")
-		if err != nil {
-			return filename, fmt.Errorf("error creating temp extraction directory: %w", err)
+		if err := archiver.NewTarGz().Extract(tempFile, g.binary, dir); err != nil {
+			return "", fmt.Errorf("error extracting binary: %w", err)
 		}
-		defer os.RemoveAll(dir)
-		if err := archiver.NewTarGz().Extract(assetFile, g.binary, dir); err != nil {
-			return filename, fmt.Errorf("error extracting binary: %w", err)
-		}
-		if err := os.Rename(filepath.Join(dir, g.binary), assetFile); err != nil {
-			return filename, fmt.Errorf("error renaming binary: %w", err)
-		}
+		tempFile = filepath.Join(dir, g.binary)
 	}
 
 	// G302 (CWE-276): Expect file permissions to be 0600 or less
@@ -153,9 +143,21 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	// Disabling as the file was not executable without it and we need all users
 	// to be able to execute the binary.
 	/* #nosec */
-	err = os.Chmod(assetFile, 0777)
+	err = os.Chmod(tempFile, 0777)
 	if err != nil {
-		return filename, err
+		return "", err
+	}
+
+	dst, err = os.CreateTemp("", g.binary)
+	if err != nil {
+		return "", fmt.Errorf("error creating temp file: %w", err)
+	}
+
+	assetFile := dst.Name()
+
+	if err := os.Rename(tempFile, assetFile); err != nil {
+		os.Remove(assetFile)
+		return "", fmt.Errorf("error renaming temp file: %w", err)
 	}
 
 	return assetFile, nil
