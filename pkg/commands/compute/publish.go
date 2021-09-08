@@ -97,6 +97,9 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 
 	// Reset the fields on the DeployCommand based on PublishCommand values.
+	if c.name.WasSet {
+		c.manifest.Flag.Name = c.name.Value
+	}
 	if c.acceptDefaults.WasSet {
 		c.deploy.AcceptDefaults = c.acceptDefaults.Value
 	}
