@@ -78,25 +78,25 @@ func (g GitHub) LatestVersion(ctx context.Context) (semver.Version, error) {
 }
 
 // Download implements the Versioner interface.
-func (g GitHub) Download(ctx context.Context, version semver.Version) (filename string, err error) {
+func (g GitHub) Download(ctx context.Context, version semver.Version) (string, error) {
 	releaseID, err := g.getReleaseID(ctx, version)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 
 	release, _, err := g.client.Repositories.GetRelease(ctx, g.org, g.repo, releaseID)
 	if err != nil {
-		return filename, fmt.Errorf("error fetching release: %w", err)
+		return "", fmt.Errorf("error fetching release: %w", err)
 	}
 
 	assetID, err := g.getAssetID(release.Assets)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 
 	rc, _, err := g.client.Repositories.DownloadReleaseAsset(ctx, g.org, g.repo, assetID, http.DefaultClient)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 	defer rc.Close()
 
@@ -118,16 +118,16 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	tmp := os.TempDir()
 	dst, err := os.CreateTemp(tmp, fmt.Sprintf("%s_%s_*%s", g.binary, version, extension))
 	if err != nil {
-		return filename, fmt.Errorf("error creating temp release asset file: %w", err)
+		return "", fmt.Errorf("error creating temp release asset file: %w", err)
 	}
 
 	_, err = io.Copy(dst, rc)
 	if err != nil {
-		return filename, fmt.Errorf("error downloading release asset: %w", err)
+		return "", fmt.Errorf("error downloading release asset: %w", err)
 	}
 
 	if err := dst.Close(); err != nil {
-		return filename, fmt.Errorf("error closing release asset file: %w", err)
+		return "", fmt.Errorf("error closing release asset file: %w", err)
 	}
 
 	assetFile := dst.Name()
@@ -137,14 +137,14 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
 		dir, err := os.MkdirTemp(tmp, "extract")
 		if err != nil {
-			return filename, fmt.Errorf("error creating temp extraction directory: %w", err)
+			return "", fmt.Errorf("error creating temp extraction directory: %w", err)
 		}
 		defer os.RemoveAll(dir)
 		if err := archiver.NewTarGz().Extract(assetFile, g.binary, dir); err != nil {
-			return filename, fmt.Errorf("error extracting binary: %w", err)
+			return "", fmt.Errorf("error extracting binary: %w", err)
 		}
 		if err := os.Rename(filepath.Join(dir, g.binary), assetFile); err != nil {
-			return filename, fmt.Errorf("error renaming binary: %w", err)
+			return "", fmt.Errorf("error renaming binary: %w", err)
 		}
 	}
 
@@ -155,7 +155,7 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	/* #nosec */
 	err = os.Chmod(assetFile, 0777)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 
 	return assetFile, nil
