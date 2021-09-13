@@ -691,6 +691,18 @@ COMMANDS
         --new-name=NEW-NAME      New domain name
         --comment=COMMENT        A descriptive note
 
+  domain validate --version=VERSION [<flags>]
+    Checks the status of a specific domain's DNS record for a Service Version
+
+        --version=VERSION        'latest', 'active', or the number of a specific
+                                 version
+    -a, --all                    Checks the status of all domains' DNS records
+                                 for a Service Version
+    -n, --name=NAME              The name of the domain associated with this
+                                 service
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+
   healthcheck create --version=VERSION --name=NAME [<flags>]
     Create a healthcheck on a Fastly service version
 

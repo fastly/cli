@@ -3,10 +3,12 @@ package domain_test
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
+	fsterrors "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -235,6 +237,95 @@ func TestDomainDelete(t *testing.T) {
 	}
 }
 
+func TestDomainValidate(t *testing.T) {
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing --version flag",
+			Args:      args("domain validate"),
+			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Name:      "validate missing --token flag",
+			Args:      args("domain validate --version 3"),
+			WantError: fsterrors.ErrNoToken.Inner.Error(),
+		},
+		{
+			Name:      "validate missing --service-id flag",
+			Args:      args("domain validate --token 123 --version 3"),
+			WantError: "error reading service: no service ID found",
+		},
+		{
+			Name: "validate missing --name flag",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      args("domain validate --service-id 123 --token 123 --version 3"),
+			WantError: "error parsing arguments: must provide --name",
+		},
+		{
+			Name: "validate ValidateDomain API error",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				ValidateDomainFn: func(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
+					return nil, testutil.Err
+				},
+			},
+			Args:      args("domain validate --name foo.example.com --service-id 123 --token 123 --version 3"),
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Name: "validate ValidateAllDomains API error",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				ValidateAllDomainsFn: func(i *fastly.ValidateAllDomainsInput) ([]*fastly.DomainValidationResult, error) {
+					return nil, testutil.Err
+				},
+			},
+			Args:      args("domain validate --all --service-id 123 --token 123 --version 3"),
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Name: "validate ValidateDomain API success",
+			API: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				ValidateDomainFn: validateDomain,
+			},
+			Args:       args("domain validate --name foo.example.com --service-id 123 --token 123 --version 3"),
+			WantOutput: validateAPISuccess(3),
+		},
+		{
+			Name: "validate ValidateAllDomains API success",
+			API: mock.API{
+				ListVersionsFn:       testutil.ListVersions,
+				ValidateAllDomainsFn: validateAllDomains,
+			},
+			Args:       args("domain validate --all --service-id 123 --token 123 --version 3"),
+			WantOutput: validateAllAPISuccess(),
+		},
+		{
+			Name: "validate missing --autoclone flag is OK",
+			API: mock.API{
+				ListVersionsFn:   testutil.ListVersions,
+				ValidateDomainFn: validateDomain,
+			},
+			Args:       args("domain validate --name foo.example.com --service-id 123 --token 123 --version 1"),
+			WantOutput: validateAPISuccess(1),
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.API)
+			err := app.Run(opts)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+		})
+	}
+}
+
 var errTest = errors.New("fixture error")
 
 func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
@@ -329,4 +420,63 @@ func deleteDomainOK(i *fastly.DeleteDomainInput) error {
 
 func deleteDomainError(i *fastly.DeleteDomainInput) error {
 	return errTest
+}
+
+func validateDomain(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
+	return &fastly.DomainValidationResult{
+		Metadata: fastly.DomainMetadata{
+			ServiceID:      i.ServiceID,
+			ServiceVersion: i.ServiceVersion,
+			Name:           i.Name,
+		},
+		CName: "foo",
+		Valid: true,
+	}, nil
+}
+
+func validateAllDomains(i *fastly.ValidateAllDomainsInput) (results []*fastly.DomainValidationResult, err error) {
+	return []*fastly.DomainValidationResult{
+		{
+			Metadata: fastly.DomainMetadata{
+				ServiceID:      i.ServiceID,
+				ServiceVersion: i.ServiceVersion,
+				Name:           "foo.example.com",
+			},
+			CName: "foo",
+			Valid: true,
+		},
+		{
+			Metadata: fastly.DomainMetadata{
+				ServiceID:      i.ServiceID,
+				ServiceVersion: i.ServiceVersion,
+				Name:           "bar.example.com",
+			},
+			CName: "bar",
+			Valid: true,
+		},
+	}, nil
+}
+
+func validateAPISuccess(version int) string {
+	return fmt.Sprintf(`
+Service ID: 123
+Service Version: %d
+
+Name: foo.example.com
+Valid: true
+CNAME: foo`, version)
+}
+
+func validateAllAPISuccess() string {
+	return `
+Service ID: 123
+Service Version: 3
+
+Name: foo.example.com
+Valid: true
+CNAME: foo
+
+Name: bar.example.com
+Valid: true
+CNAME: bar`
 }
