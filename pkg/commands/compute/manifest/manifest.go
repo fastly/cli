@@ -208,6 +208,7 @@ type File struct {
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
 	Backends []Mapper `toml:"backends"`
+	ACLs     []Mapper `toml:"acls,omitempty"`
 }
 
 // Mapper represents a generic toml table.

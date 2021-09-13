@@ -27,6 +27,8 @@ import (
 const (
 	defaultTopLevelDomain = "edgecompute.app"
 	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
+	setupInnerErr         = "error parsing the [[setup.%s]] configuration"
+	setupRemediationErr   = "Check the fastly.toml configuration for a missing or invalid '%s' field, and consult https://developer.fastly.com/reference/fastly-toml/"
 )
 
 // PackageSizeLimit describes the package size limit in bytes (currently 50mb)
@@ -46,6 +48,19 @@ type DeployCommand struct {
 	Manifest       manifest.Data
 	Path           string
 	ServiceVersion cmd.OptionalServiceVersion
+}
+
+// ACL represents an Access Control List and its entries.
+type ACL struct {
+	Name    string
+	Entries []ACLEntry
+	Exists  bool
+}
+
+// ACLEntry represents an ACL IP entry.
+type ACLEntry struct {
+	IP      string
+	Negated bool
 }
 
 // Backend represents the configuration parameters for a backend
@@ -107,6 +122,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	// SERVICE MANAGEMENT...
+	//
+	// TODO: Design a better abstraction for all this logic. Seems like we might
+	// benefit from explicit Service, Backend, ACL objects that manage the
+	// various workflows rather than procedural/linear. At the very least move
+	// the functions into separate files under the compute package.
 
 	var (
 		newService     bool
@@ -160,16 +180,28 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error fetching service backends: %w", err)
 	}
 
+	availableACLs, err := apiClient.ListACLs(&fastly.ListACLsInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion.Number,
+	})
+	if err != nil {
+		errLogService(errLog, err, serviceID, serviceVersion.Number)
+		return fmt.Errorf("error fetching service ACLs: %w", err)
+	}
+
 	var (
+		aclsToCreate        []ACL
 		backendsToCreate    []Backend
 		domainToCreate      string
+		hasRequiredACLs     bool
 		hasRequiredBackends bool
+		missingACLs         []manifest.Mapper
 		missingBackends     []manifest.Mapper
 	)
 
 	predefinedBackends := c.Manifest.File.Setup.Backends
 	if len(predefinedBackends) > 0 {
-		missingBackends, err = serviceMissingConfiguredBackends(serviceID, serviceVersion.Number, apiClient, availableBackends, predefinedBackends)
+		missingBackends, err = serviceMissingConfiguredBackends(serviceID, serviceVersion.Number, availableBackends, predefinedBackends)
 		if err != nil {
 			errLogService(errLog, err, serviceID, serviceVersion.Number)
 			return err
@@ -181,9 +213,21 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		hasRequiredBackends = true
 	}
 
+	predefinedACLs := c.Manifest.File.Setup.ACLs
+	if len(predefinedACLs) > 0 {
+		missingACLs, err = serviceMissingConfiguredACLs(serviceID, serviceVersion.Number, apiClient, availableACLs, predefinedACLs)
+		if err != nil {
+			errLogService(errLog, err, serviceID, serviceVersion.Number)
+			return err
+		}
+		if len(missingACLs) == 0 {
+			hasRequiredACLs = true
+		}
+	}
+
 	// RESOURCE CONFIGURATION...
 
-	if !hasDomain || !hasRequiredBackends {
+	if !hasDomain || !hasRequiredBackends || !hasRequiredACLs {
 		if !c.AcceptDefaults {
 			text.Output(out, "Service '%s' is missing required resources. These must be added before the Compute@Edge service can be deployed. Please ensure your fastly.toml configuration reflects any manual changes made via manage.fastly.com, otherwise follow the prompts to create the required resources.", serviceID)
 			text.Break(out)
@@ -203,6 +247,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if !hasRequiredBackends {
 		backendsToCreate, err = configureBackends(c, backendsToCreate, missingBackends, out, in)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !hasRequiredACLs {
+		aclsToCreate, err = configureACLs(c, aclsToCreate, missingACLs, out, in)
 		if err != nil {
 			return err
 		}
@@ -237,6 +288,18 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	for _, backend := range backendsToCreate {
 		err = createBackend(progress, apiClient, serviceID, serviceVersion.Number, backend, undoStack)
+		if err != nil {
+			errLog.AddWithContext(err, map[string]interface{}{
+				"Accept defaults": c.AcceptDefaults,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
+			return err
+		}
+	}
+
+	for _, acl := range aclsToCreate {
+		err = createACL(progress, apiClient, serviceID, serviceVersion.Number, acl, undoStack)
 		if err != nil {
 			errLog.AddWithContext(err, map[string]interface{}{
 				"Accept defaults": c.AcceptDefaults,
@@ -547,14 +610,27 @@ func checkServiceID(serviceID string, client api.Interface, version *fastly.Vers
 	return nil
 }
 
+// serviceHasDomain validates whether the service has a domain defined.
+func serviceHasDomain(sid string, sv int, apiClient api.Interface) (bool, error) {
+	domains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
+		ServiceID:      sid,
+		ServiceVersion: sv,
+	})
+	if err != nil {
+		return false, fmt.Errorf("error fetching service domains: %w", err)
+	}
+	if len(domains) < 1 {
+		return false, nil
+	}
+	return true, nil
+}
+
 // serviceMissingConfiguredBackends analyses the predefined [setup]
 // configuration and returns a list of missing backends.
-func serviceMissingConfiguredBackends(sid string, sv int, apiClient api.Interface, availableBackends []*fastly.Backend, predefinedBackends []manifest.Mapper) ([]manifest.Mapper, error) {
+func serviceMissingConfiguredBackends(sid string, sv int, availableBackends []*fastly.Backend, predefinedBackends []manifest.Mapper) ([]manifest.Mapper, error) {
 	var missingBackends []manifest.Mapper
 
-	// Error descriptions used if we need to handle [setup] configuration
-	innerErr := fmt.Errorf("error parsing the [[setup.backends]] configuration")
-	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field."
+	innerErr := fmt.Errorf(setupInnerErr, "backends")
 
 	for _, backend := range predefinedBackends {
 		var (
@@ -573,17 +649,17 @@ func serviceMissingConfiguredBackends(sid string, sv int, apiClient api.Interfac
 		if _, exists := backend["address"]; exists {
 			addr, ok = backend["address"].(string)
 			if !ok || addr == "" {
-				return missingBackends, backendRemediationError("address", remediation, innerErr)
+				return missingBackends, remediationError("address", setupRemediationErr, innerErr)
 			}
 			hasAddress = true
 		} else {
-			return missingBackends, backendRemediationError("address", remediation, innerErr)
+			return missingBackends, remediationError("address", setupRemediationErr, innerErr)
 		}
 
 		if _, exists := backend["name"]; exists {
 			name, ok = backend["name"].(string)
 			if !ok {
-				return missingBackends, backendRemediationError("name", remediation, innerErr)
+				return missingBackends, remediationError("name", setupRemediationErr, innerErr)
 			}
 			hasName = true
 		}
@@ -591,7 +667,7 @@ func serviceMissingConfiguredBackends(sid string, sv int, apiClient api.Interfac
 		if _, exists := backend["port"]; exists {
 			port, ok = backend["port"].(int64)
 			if !ok {
-				return missingBackends, backendRemediationError("port", remediation, innerErr)
+				return missingBackends, remediationError("port", setupRemediationErr, innerErr)
 			}
 			hasPort = true
 		}
@@ -599,42 +675,42 @@ func serviceMissingConfiguredBackends(sid string, sv int, apiClient api.Interfac
 		// VALIDATE CONFIG FIELDS...
 
 		if hasAddress && hasName && hasPort {
-			match := false
+			validBackend := false
 			for _, bs := range availableBackends {
 				if bs.Address == addr && bs.Name == name && bs.Port == uint(port) {
-					match = true
+					validBackend = true
 					break
 				}
 			}
-			if !match {
+			if !validBackend {
 				missingBackends = append(missingBackends, backend)
 			}
 			continue
 		}
 
 		if hasAddress && hasName {
-			match := false
+			validBackend := false
 			for _, bs := range availableBackends {
 				if bs.Address == addr && bs.Name == name {
-					match = true
+					validBackend = true
 					break
 				}
 			}
-			if !match {
+			if !validBackend {
 				missingBackends = append(missingBackends, backend)
 			}
 			continue
 		}
 
 		if hasAddress && hasPort {
-			match := false
+			validBackend := false
 			for _, bs := range availableBackends {
 				if bs.Address == addr && bs.Port == uint(port) {
-					match = true
+					validBackend = true
 					break
 				}
 			}
-			if !match {
+			if !validBackend {
 				missingBackends = append(missingBackends, backend)
 			}
 			continue
@@ -644,19 +720,89 @@ func serviceMissingConfiguredBackends(sid string, sv int, apiClient api.Interfac
 	return missingBackends, nil
 }
 
-// serviceHasDomain validates whether the service has a domain defined.
-func serviceHasDomain(sid string, sv int, apiClient api.Interface) (bool, error) {
-	domains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
-		ServiceID:      sid,
-		ServiceVersion: sv,
-	})
-	if err != nil {
-		return false, fmt.Errorf("error fetching service domains: %w", err)
+// serviceMissingConfiguredACLs analyses the predefined [setup] configuration
+// and returns a list of missing ACLs.
+func serviceMissingConfiguredACLs(sid string, sv int, apiClient api.Interface, availableACLs []*fastly.ACL, predefinedACLs []manifest.Mapper) ([]manifest.Mapper, error) {
+	var missingACLs []manifest.Mapper
+
+	// Error descriptions used if we need to handle [setup] configuration
+	innerErr := fmt.Errorf(setupInnerErr, "acls")
+
+	for _, p := range predefinedACLs {
+		var (
+			hasItems        bool
+			name            string
+			ok              bool
+			predefinedItems []string
+			missingItems    []string
+		)
+
+		// ACQUIRE CONFIG FIELDS...
+
+		if _, exists := p["name"]; exists {
+			name, ok = p["name"].(string)
+			if !ok {
+				return missingACLs, remediationError("name", setupRemediationErr, innerErr)
+			}
+		}
+
+		if _, exists := p["entries"]; exists {
+			predefinedItems, ok = p["entries"].([]string)
+			if !ok {
+				return missingACLs, remediationError("entries", setupRemediationErr, innerErr)
+			}
+			hasItems = true
+		}
+
+		// VALIDATE CONFIG FIELDS...
+
+		aclExists := false
+		for _, a := range availableACLs {
+			if a.Name == name {
+				if !hasItems {
+					aclExists = true
+					break
+				}
+
+				availableACLEntries, err := apiClient.ListACLEntries(&fastly.ListACLEntriesInput{
+					ServiceID: sid,
+					ACLID:     a.ID,
+				})
+				if err != nil {
+					return missingACLs, fmt.Errorf("error fetching ACL entries: %w", err)
+				}
+
+				for _, ip := range predefinedItems {
+					ipMatch := false
+					for _, e := range availableACLEntries {
+						if e.IP == ip {
+							ipMatch = true
+							break
+						}
+					}
+					if !ipMatch {
+						missingItems = append(missingItems, ip)
+					}
+				}
+			}
+		}
+
+		// TODO: Should we use a mutex? I've omitted for now as we're not accessing
+		// this data across threads in the current implementation.
+		if len(missingItems) > 0 {
+			p["entries"] = missingItems
+
+			if aclExists {
+				p["acl_exists"] = true
+			}
+		}
+		if !aclExists || aclExists && len(missingItems) > 0 {
+			missingACLs = append(missingACLs, p)
+		}
+		continue
 	}
-	if len(domains) < 1 {
-		return false, nil
-	}
-	return true, nil
+
+	return missingACLs, nil
 }
 
 // configureDomain configures the domain value.
@@ -740,27 +886,27 @@ func configurePredefinedBackend(i int, backend manifest.Mapper, c *DeployCommand
 		prompt      string
 	)
 
-	innerErr := fmt.Errorf("error parsing the [[setup.backends]] configuration")
-	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field."
+	innerErr := fmt.Errorf(setupInnerErr, "backends")
+	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field, and consult https://developer.fastly.com/reference/fastly-toml/"
 
-	// ADDRESS DEFAULT (REQUIRED)
+	// ADDRESS (REQUIRED)
 	{
 		if _, ok = backend["address"]; ok {
 			addr, ok = backend["address"].(string)
 			if !ok {
-				return b, backendRemediationError("address", remediation, innerErr)
+				return b, remediationError("address", remediation, innerErr)
 			}
 		} else {
-			return b, backendRemediationError("address", remediation, innerErr)
+			return b, remediationError("address", remediation, innerErr)
 		}
 	}
 
-	// NAME DEFAULT
+	// NAME
 	{
 		if _, ok = backend["name"]; ok {
 			name, ok = backend["name"].(string)
 			if !ok {
-				return b, backendRemediationError("name", remediation, innerErr)
+				return b, remediationError("name", remediation, innerErr)
 			}
 		}
 		b.Name = name
@@ -770,12 +916,12 @@ func configurePredefinedBackend(i int, backend manifest.Mapper, c *DeployCommand
 		}
 	}
 
-	// PROMPT DEFAULT
+	// PROMPT
 	{
 		if _, ok := backend["prompt"]; ok {
 			prompt, ok = backend["prompt"].(string)
 			if !ok {
-				return b, backendRemediationError("prompt", remediation, innerErr)
+				return b, remediationError("prompt", remediation, innerErr)
 			}
 		}
 		// If no prompt text is provided by the [setup] configuration, then we'll
@@ -785,12 +931,12 @@ func configurePredefinedBackend(i int, backend manifest.Mapper, c *DeployCommand
 		}
 	}
 
-	// PORT DEFAULT
+	// PORT
 	{
 		if _, ok = backend["port"]; ok {
 			p, ok := backend["port"].(int64)
 			if !ok {
-				return b, backendRemediationError("port", remediation, innerErr)
+				return b, remediationError("port", remediation, innerErr)
 			}
 			port = uint(p)
 		}
@@ -833,9 +979,9 @@ func configurePredefinedBackend(i int, backend manifest.Mapper, c *DeployCommand
 	return b, nil
 }
 
-// backendRemediationError reduces the boilerplate of serving a remediation
-// error whose only difference is the field it applies to.
-func backendRemediationError(field string, remediation string, err error) error {
+// remediationError reduces the boilerplate of serving a remediation error
+// whose only difference is the field it applies to.
+func remediationError(field string, remediation string, err error) error {
 	return errors.RemediationError{
 		Inner:       err,
 		Remediation: fmt.Sprintf(remediation, field),
@@ -870,10 +1016,6 @@ func configurePromptBackends(c *DeployCommand, out io.Writer, in io.Reader, f va
 	for {
 		var backend Backend
 
-		if backend.Name == "" {
-			backend.Name = backend.Address
-		}
-
 		backend.Address, err = text.Input(out, "Backend (hostname or IP address, or leave blank to stop adding backends): ", in, f)
 		if err != nil {
 			return backends, fmt.Errorf("error reading input %w", err)
@@ -905,15 +1047,13 @@ func configurePromptBackends(c *DeployCommand, out io.Writer, in io.Reader, f va
 
 		backend.Port = uint(portnumber)
 
+		backend.Name, err = text.Input(out, "Backend name: ", in)
+		if err != nil {
+			return backends, fmt.Errorf("error reading input %w", err)
+		}
 		if backend.Name == "" {
-			backend.Name, err = text.Input(out, "Backend name: ", in)
-			if err != nil {
-				return backends, fmt.Errorf("error reading input %w", err)
-			}
-			if backend.Name == "" {
-				i = i + 1
-				backend.Name = fmt.Sprintf("backend_%d", i)
-			}
+			i = i + 1
+			backend.Name = fmt.Sprintf("backend_%d", i)
 		}
 
 		setBackendHost(&backend)
@@ -932,6 +1072,9 @@ func createOriginlessBackend() (b Backend) {
 }
 
 // validateBackend ensures the input backend is a valid hostname or IP.
+//
+// NOTE: An empty value is allowed because it allows the caller to
+// short-circuit logic related to whether the user is prompted endlessly.
 func validateBackend(input string) error {
 	var isHost bool
 	if _, err := net.LookupHost(input); err == nil {
@@ -944,6 +1087,181 @@ func validateBackend(input string) error {
 	isEmpty := input == ""
 	if !isEmpty && !isHost && !isAddr {
 		return fmt.Errorf(`must be a valid hostname, IPv4, or IPv6 address`)
+	}
+	return nil
+}
+
+// configureACLs constructs the ACLs needed to be created (including the
+// entries within the ACL container) based on the configuration parsed from the
+// fastly.toml [setup] table.
+func configureACLs(c *DeployCommand, aclsToCreate []ACL, missingACLs []manifest.Mapper, out io.Writer, in io.Reader) ([]ACL, error) {
+	for i, acl := range missingACLs {
+		a, err := configurePredefinedACL(i, acl, c, out, in, validateACLEntry)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"ACLs (predefined)": missingACLs,
+			})
+			return nil, err
+		}
+		aclsToCreate = append(aclsToCreate, a)
+	}
+	return aclsToCreate, nil
+}
+
+// configurePredefinedACL configures the ACL and its entries using values
+// provided by the fastly.toml [setup] configuration.
+func configurePredefinedACL(i int, acl manifest.Mapper, c *DeployCommand, out io.Writer, in io.Reader, v validator) (a ACL, err error) {
+	var (
+		defaultName       string
+		entries           []ACLEntry
+		name              string
+		ok                bool
+		predefinedEntries []string
+		prompt            string
+	)
+
+	innerErr := fmt.Errorf(setupInnerErr, "acls")
+
+	// NAME
+	{
+		if _, exists := acl["name"]; exists {
+			name, ok = acl["name"].(string)
+			if !ok {
+				return a, remediationError("name", setupRemediationErr, innerErr)
+			}
+			a.Name = name
+			if a.Name == "" {
+				a.Name = fmt.Sprintf("acl_%d", i+1)
+			}
+		}
+	}
+
+	// NOTE: There is a scenario where an ACL exists but it's just missing some
+	// ACL entries. In that case we need to track whether the ACL container
+	// should be created.
+	{
+		if _, aclExists := acl["acl_exists"]; aclExists {
+			exists, ok := acl["acl_exists"].(bool)
+			if !ok {
+				return a, remediationError("acl_exists", setupRemediationErr, innerErr)
+			}
+			if exists {
+				a.Exists = true
+			}
+		}
+	}
+
+	// ENTRIES
+	{
+		if _, ok = acl["entries"]; ok {
+			predefinedEntries, ok = acl["entries"].([]string)
+			if !ok {
+				return a, remediationError("name", setupRemediationErr, innerErr)
+			}
+		}
+	}
+
+	// PROMPT
+	{
+		if _, ok := acl["prompt"]; ok {
+			prompt, ok = acl["prompt"].(string)
+			if !ok {
+				return a, remediationError("prompt", setupRemediationErr, innerErr)
+			}
+		}
+		if prompt == "" {
+			prompt = "ACL"
+		}
+	}
+
+	// PROMPT USER INTERACTIVELY FOR ACL NAME AND ACL ENTRIES...
+
+	if !c.AcceptDefaults {
+		defaultName = fmt.Sprintf(": [%s] ", name)
+		a.Name, err = text.Input(out, fmt.Sprintf("%s%s ", prompt, defaultName), in)
+		if err != nil {
+			return a, fmt.Errorf("error reading input %w", err)
+		}
+	}
+
+	if c.AcceptDefaults {
+		entries, err = parseACLEntries(predefinedEntries)
+	} else {
+		entries, err = promptACLEntries(out, in, v)
+	}
+	if err != nil {
+		return a, err
+	}
+	a.Entries = entries
+
+	return a, nil
+}
+
+// parseACLEntries parses the ACL entries from the fastly.toml [setup]
+// configuration.
+func parseACLEntries(predefinedEntries []string) (aclEntries []ACLEntry, err error) {
+	for _, ip := range predefinedEntries {
+		negate := false
+
+		if strings.HasPrefix(ip, "!") {
+			ip = strings.TrimLeft(ip, "!")
+			negate = true
+		}
+
+		var entry ACLEntry
+		entry.IP = ip
+		if negate {
+			entry.Negated = true
+		}
+
+		aclEntries = append(aclEntries, entry)
+	}
+
+	return
+}
+
+// promptACLEntries prompts user for ACL entries.
+//
+// TODO: Do we need to support subnet masks (e.g. 192.0.2.0/24) ?
+func promptACLEntries(out io.Writer, in io.Reader, v validator) (aclEntries []ACLEntry, err error) {
+	for {
+		var aclEntry ACLEntry
+
+		aclEntry.IP, err = text.Input(out, "IP (must be a valid IPv4 or IPv6 address, or leave blank to stop adding ACL entries): ", in, v)
+		if err != nil {
+			return aclEntries, fmt.Errorf("error reading input %w", err)
+		}
+
+		// This block short-circuits the endless loop
+		if aclEntry.IP == "" {
+			return aclEntries, nil
+		}
+		if strings.HasPrefix(aclEntry.IP, "!") {
+			aclEntry.IP = strings.TrimLeft(aclEntry.IP, "!")
+			aclEntry.Negated = true
+		}
+
+		aclEntries = append(aclEntries, aclEntry)
+	}
+}
+
+// validateACLEntry ensures the input ACL IP is valid.
+//
+// NOTE: An empty value is allowed because it allows the caller to
+// short-circuit logic related to whether the user is prompted endlessly.
+func validateACLEntry(input string) error {
+	ip := input
+	if strings.HasPrefix(ip, "!") {
+		ip = strings.TrimLeft(ip, "!")
+	}
+
+	var isAddr bool
+	if _, err := net.LookupAddr(ip); err == nil {
+		isAddr = true
+	}
+	isEmpty := ip == ""
+	if !isEmpty && !isAddr {
+		return fmt.Errorf(`must be a valid IPv4, or IPv6 address`)
 	}
 	return nil
 }
@@ -1005,6 +1323,66 @@ func createBackend(progress text.Progress, client api.Interface, serviceID strin
 			return fmt.Errorf("error configuring the service: %w", err)
 		}
 		return fmt.Errorf("error creating backend: %w", err)
+	}
+
+	return nil
+}
+
+// createACL creates the given ACL (including its entries) and handles unrolling
+// the stack in case of an error (i.e. will ensure the ACL is deleted if there
+// is an error).
+func createACL(progress text.Progress, client api.Interface, serviceID string, version int, acl ACL, undoStack undo.Stacker) error {
+	progress.Step(fmt.Sprintf("Creating ACL '%s'...", acl.Name))
+
+	undoStack.Push(func() error {
+		return client.DeleteACL(&fastly.DeleteACLInput{
+			ServiceID:      serviceID,
+			ServiceVersion: version,
+			Name:           acl.Name,
+		})
+	})
+
+	var (
+		a   *fastly.ACL
+		err error
+	)
+
+	// NOTE: There is a scenario where an ACL exists but it's just missing some
+	// ACL entries. In that case we need don't need to call the API endpoint to
+	// create an ACL container.
+	if !acl.Exists {
+		a, err = client.CreateACL(&fastly.CreateACLInput{
+			ServiceID:      serviceID,
+			ServiceVersion: version,
+			Name:           acl.Name,
+		})
+		if err != nil {
+			return fmt.Errorf("error creating ACL: %w", err)
+		}
+	} else {
+		a, err = client.GetACL(&fastly.GetACLInput{
+			ServiceID:      serviceID,
+			ServiceVersion: version,
+			Name:           acl.Name,
+		})
+		if err != nil {
+			return fmt.Errorf("error retrieving ACL: %w", err)
+		}
+	}
+
+	for _, entry := range acl.Entries {
+		input := fastly.CreateACLEntryInput{
+			ServiceID: serviceID,
+			ACLID:     a.ID,
+			IP:        entry.IP,
+		}
+		if entry.Negated {
+			input.Negated = true
+		}
+		_, err := client.CreateACLEntry(&input)
+		if err != nil {
+			return fmt.Errorf("error creating ACL entry: %w", err)
+		}
 	}
 
 	return nil
