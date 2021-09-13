@@ -21,7 +21,7 @@ func TestPack(t *testing.T) {
 		wantOutput    []string
 		expectedFiles [][]string
 	}{
-		// The following test validates that the expected directory struture was
+		// The following test validates that the expected directory structure was
 		// created successfully.
 		{
 			name:     "success",
@@ -37,6 +37,24 @@ func TestPack(t *testing.T) {
 				{"pkg", "precompiled", "bin", "main.wasm"},
 				{"pkg", "precompiled", "fastly.toml"},
 				{"pkg", "precompiled.tar.gz"},
+			},
+		},
+		// The following test validates that the expected directory structure was
+		// created successfully when `name` contains whitespace.
+		{
+			name:     "success",
+			args:     args("compute pack --path ./main.wasm"),
+			manifest: `name = "another name"`,
+			wantOutput: []string{
+				"Initializing...",
+				"Copying wasm binary...",
+				"Copying manifest...",
+				"Creating .tar.gz file...",
+			},
+			expectedFiles: [][]string{
+				{"pkg", "another-name", "bin", "main.wasm"},
+				{"pkg", "another-name", "fastly.toml"},
+				{"pkg", "another-name.tar.gz"},
 			},
 		},
 		// The following tests validate that a valid path flag value should be
