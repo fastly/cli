@@ -11,6 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 )
 
@@ -51,7 +52,8 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}(c.Globals.ErrLog)
 
-	pkg := fmt.Sprintf("pkg/%s/bin/main.wasm", c.manifest.File.Name)
+	name := sanitize.BaseName(c.manifest.File.Name)
+	pkg := fmt.Sprintf("pkg/%s/bin/main.wasm", name)
 	dir := filepath.Dir(pkg)
 	err = filesystem.MakeDirectoryIfNotExists(dir)
 	if err != nil {
@@ -93,7 +95,7 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Copying manifest...")
 	src = manifest.Filename
-	dst = fmt.Sprintf("pkg/%s/%s", c.manifest.File.Name, manifest.Filename)
+	dst = fmt.Sprintf("pkg/%s/%s", name, manifest.Filename)
 	if err := filesystem.CopyFile(src, dst); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Manifest (destination)": dst,
@@ -106,7 +108,7 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	tar := archiver.NewTarGz()
 	tar.OverwriteExisting = true
 	{
-		dir := fmt.Sprintf("pkg/%s", c.manifest.File.Name)
+		dir := fmt.Sprintf("pkg/%s", name)
 		src := []string{dir}
 		dst := fmt.Sprintf("%s.tar.gz", dir)
 		if err = tar.Archive(src, dst); err != nil {
