@@ -23,8 +23,6 @@ type Versioner interface {
 	Binary() string
 	Download(context.Context, semver.Version) (filename string, err error)
 	LatestVersion(context.Context) (semver.Version, error)
-	Name() string
-	RenameLocalBinary(binName string) error
 	SetAsset(name string)
 }
 
@@ -34,7 +32,6 @@ type GitHub struct {
 	org          string
 	repo         string
 	binary       string // name of compiled binary
-	local        string // name to use for binary once extracted
 	releaseAsset string // name of the release asset file to download
 }
 
@@ -71,23 +68,6 @@ func (g *GitHub) SetAsset(name string) {
 	g.releaseAsset = name
 }
 
-// RenameLocalBinary will rename the downloaded binary.
-//
-// NOTE: This exists so that we can, for example, rename a binary such as
-// 'viceroy' to something less ambiguous like 'fastly-localtesting'.
-func (g *GitHub) RenameLocalBinary(binName string) error {
-	g.local = binName
-	return nil
-}
-
-// Name will return the name of the binary.
-func (g GitHub) Name() string {
-	if g.local != "" {
-		return g.local
-	}
-	return g.binary
-}
-
 // LatestVersion implements the Versioner interface.
 func (g GitHub) LatestVersion(ctx context.Context) (semver.Version, error) {
 	release, _, err := g.client.Repositories.GetLatestRelease(ctx, g.org, g.repo)
@@ -98,25 +78,25 @@ func (g GitHub) LatestVersion(ctx context.Context) (semver.Version, error) {
 }
 
 // Download implements the Versioner interface.
-func (g GitHub) Download(ctx context.Context, version semver.Version) (filename string, err error) {
+func (g GitHub) Download(ctx context.Context, version semver.Version) (string, error) {
 	releaseID, err := g.getReleaseID(ctx, version)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 
 	release, _, err := g.client.Repositories.GetRelease(ctx, g.org, g.repo, releaseID)
 	if err != nil {
-		return filename, fmt.Errorf("error fetching release: %w", err)
+		return "", fmt.Errorf("error fetching release: %w", err)
 	}
 
 	assetID, err := g.getAssetID(release.Assets)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 
 	rc, _, err := g.client.Repositories.DownloadReleaseAsset(ctx, g.org, g.repo, assetID, http.DefaultClient)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 	defer rc.Close()
 
@@ -138,16 +118,16 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	tmp := os.TempDir()
 	dst, err := os.CreateTemp(tmp, fmt.Sprintf("%s_%s_*%s", g.binary, version, extension))
 	if err != nil {
-		return filename, fmt.Errorf("error creating temp release asset file: %w", err)
+		return "", fmt.Errorf("error creating temp release asset file: %w", err)
 	}
 
 	_, err = io.Copy(dst, rc)
 	if err != nil {
-		return filename, fmt.Errorf("error downloading release asset: %w", err)
+		return "", fmt.Errorf("error downloading release asset: %w", err)
 	}
 
 	if err := dst.Close(); err != nil {
-		return filename, fmt.Errorf("error closing release asset file: %w", err)
+		return "", fmt.Errorf("error closing release asset file: %w", err)
 	}
 
 	assetFile := dst.Name()
@@ -157,25 +137,15 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
 		dir, err := os.MkdirTemp(tmp, "extract")
 		if err != nil {
-			return filename, fmt.Errorf("error creating temp extraction directory: %w", err)
+			return "", fmt.Errorf("error creating temp extraction directory: %w", err)
 		}
 		defer os.RemoveAll(dir)
 		if err := archiver.NewTarGz().Extract(assetFile, g.binary, dir); err != nil {
-			return filename, fmt.Errorf("error extracting binary: %w", err)
+			return "", fmt.Errorf("error extracting binary: %w", err)
 		}
 		if err := os.Rename(filepath.Join(dir, g.binary), assetFile); err != nil {
-			return filename, fmt.Errorf("error renaming binary: %w", err)
+			return "", fmt.Errorf("error renaming binary: %w", err)
 		}
-	}
-
-	// TODO: This is racy without the os.CreateTemp() call but does not look like it's used.
-	// Can this be removed and let the Download's caller rename the binary?
-	if g.local != "" {
-		newName := filepath.Join(tmp, g.local)
-		if err := os.Rename(assetFile, newName); err != nil {
-			return filename, fmt.Errorf("error renaming binary: %w", err)
-		}
-		assetFile = newName
 	}
 
 	// G302 (CWE-276): Expect file permissions to be 0600 or less
@@ -185,7 +155,7 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (filename 
 	/* #nosec */
 	err = os.Chmod(assetFile, 0777)
 	if err != nil {
-		return filename, err
+		return "", err
 	}
 
 	return assetFile, nil
