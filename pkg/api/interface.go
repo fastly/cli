@@ -43,6 +43,8 @@ type Interface interface {
 	GetDomain(*fastly.GetDomainInput) (*fastly.Domain, error)
 	UpdateDomain(*fastly.UpdateDomainInput) (*fastly.Domain, error)
 	DeleteDomain(*fastly.DeleteDomainInput) error
+	ValidateDomain(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error)
+	ValidateAllDomains(i *fastly.ValidateAllDomainsInput) (results []*fastly.DomainValidationResult, err error)
 
 	CreateBackend(*fastly.CreateBackendInput) (*fastly.Backend, error)
 	ListBackends(*fastly.ListBackendsInput) ([]*fastly.Backend, error)

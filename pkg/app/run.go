@@ -190,6 +190,7 @@ func Run(opts RunOpts) error {
 	domainDescribe := domain.NewDescribeCommand(domainCmdRoot.CmdClause, &globals)
 	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, &globals)
 	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, &globals)
+	domainValidate := domain.NewValidateCommand(domainCmdRoot.CmdClause, &globals)
 	healthcheckCmdRoot := healthcheck.NewRootCommand(app, &globals)
 	healthcheckCreate := healthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, &globals)
 	healthcheckDelete := healthcheck.NewDeleteCommand(healthcheckCmdRoot.CmdClause, &globals)
@@ -441,6 +442,7 @@ func Run(opts RunOpts) error {
 		domainDescribe,
 		domainList,
 		domainUpdate,
+		domainValidate,
 		healthcheckCmdRoot,
 		healthcheckCreate,
 		healthcheckDelete,

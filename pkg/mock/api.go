@@ -29,11 +29,13 @@ type API struct {
 	LockVersionFn       func(*fastly.LockVersionInput) (*fastly.Version, error)
 	LatestVersionFn     func(*fastly.LatestVersionInput) (*fastly.Version, error)
 
-	CreateDomainFn func(*fastly.CreateDomainInput) (*fastly.Domain, error)
-	ListDomainsFn  func(*fastly.ListDomainsInput) ([]*fastly.Domain, error)
-	GetDomainFn    func(*fastly.GetDomainInput) (*fastly.Domain, error)
-	UpdateDomainFn func(*fastly.UpdateDomainInput) (*fastly.Domain, error)
-	DeleteDomainFn func(*fastly.DeleteDomainInput) error
+	CreateDomainFn       func(*fastly.CreateDomainInput) (*fastly.Domain, error)
+	ListDomainsFn        func(*fastly.ListDomainsInput) ([]*fastly.Domain, error)
+	GetDomainFn          func(*fastly.GetDomainInput) (*fastly.Domain, error)
+	UpdateDomainFn       func(*fastly.UpdateDomainInput) (*fastly.Domain, error)
+	DeleteDomainFn       func(*fastly.DeleteDomainInput) error
+	ValidateDomainFn     func(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error)
+	ValidateAllDomainsFn func(i *fastly.ValidateAllDomainsInput) (results []*fastly.DomainValidationResult, err error)
 
 	CreateBackendFn func(*fastly.CreateBackendInput) (*fastly.Backend, error)
 	ListBackendsFn  func(*fastly.ListBackendsInput) ([]*fastly.Backend, error)
@@ -374,6 +376,16 @@ func (m API) UpdateDomain(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 // DeleteDomain implements Interface.
 func (m API) DeleteDomain(i *fastly.DeleteDomainInput) error {
 	return m.DeleteDomainFn(i)
+}
+
+// ValidateDomain implements Interface.
+func (m API) ValidateDomain(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
+	return m.ValidateDomainFn(i)
+}
+
+// ValidateAllDomains implements Interface.
+func (m API) ValidateAllDomains(i *fastly.ValidateAllDomainsInput) (results []*fastly.DomainValidationResult, err error) {
+	return m.ValidateAllDomainsFn(i)
 }
 
 // CreateBackend implements Interface.
