@@ -270,6 +270,13 @@ type Interface interface {
 	GetNewRelic(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error)
 	ListNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error)
 	UpdateNewRelic(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error)
+
+	CreateUser(i *fastly.CreateUserInput) (*fastly.User, error)
+	DeleteUser(i *fastly.DeleteUserInput) error
+	GetCurrentUser() (*fastly.User, error)
+	GetUser(i *fastly.GetUserInput) (*fastly.User, error)
+	ListCustomerUsers(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error)
+	UpdateUser(i *fastly.UpdateUserInput) (*fastly.User, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

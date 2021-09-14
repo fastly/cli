@@ -261,6 +261,13 @@ type API struct {
 	GetNewRelicFn    func(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error)
 	ListNewRelicFn   func(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error)
 	UpdateNewRelicFn func(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error)
+
+	CreateUserFn        func(i *fastly.CreateUserInput) (*fastly.User, error)
+	DeleteUserFn        func(i *fastly.DeleteUserInput) error
+	GetCurrentUserFn    func() (*fastly.User, error)
+	GetUserFn           func(i *fastly.GetUserInput) (*fastly.User, error)
+	ListCustomerUsersFn func(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error)
+	UpdateUserFn        func(i *fastly.UpdateUserInput) (*fastly.User, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1311,4 +1318,34 @@ func (m API) ListNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, erro
 // UpdateNewRelic implements Interface.
 func (m API) UpdateNewRelic(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 	return m.UpdateNewRelicFn(i)
+}
+
+// CreateUser implements Interface.
+func (m API) CreateUser(i *fastly.CreateUserInput) (*fastly.User, error) {
+	return m.CreateUserFn(i)
+}
+
+// DeleteUser implements Interface.
+func (m API) DeleteUser(i *fastly.DeleteUserInput) (*fastly.User, error) {
+	return m.DeleteUserFn(i)
+}
+
+// GetCurrentUser implements Interface.
+func (m API) GetCurrentUser() (*fastly.User, error) {
+	return m.GetCurrentUserFn(i)
+}
+
+// GetUser implements Interface.
+func (m API) GetUser(i *fastly.GetUserInput) (*fastly.User, error) {
+	return m.GetUserFn(i)
+}
+
+// ListCustomerUsers implements Interface.
+func (m API) ListCustomerUsers(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
+	return m.ListCustomerUsersFn(i)
+}
+
+// UpdateUser implements Interface.
+func (m API) UpdateUser(i *fastly.UpdateUserInput) (*fastly.User, error) {
+	return m.UpdateUserFn(i)
 }
