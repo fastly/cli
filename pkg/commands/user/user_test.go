@@ -123,6 +123,11 @@ func TestDescribe(t *testing.T) {
 			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
+			Name:      "validate missing --id flag",
+			Args:      args("user describe --token 123"),
+			WantError: "error parsing arguments: must provide --id flag",
+		},
+		{
 			Name: "validate GetUser API error",
 			API: mock.API{
 				GetUserFn: func(i *fastly.GetUserInput) (*fastly.User, error) {

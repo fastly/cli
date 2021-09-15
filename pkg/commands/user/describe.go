@@ -51,7 +51,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	input := c.constructInput()
+	input, err := c.constructInput()
+	if err != nil {
+		return err
+	}
 
 	r, err := c.Globals.Client.GetUser(input)
 	if err != nil {
@@ -64,12 +67,18 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *DescribeCommand) constructInput() *fastly.GetUserInput {
+func (c *DescribeCommand) constructInput() (*fastly.GetUserInput, error) {
 	var input fastly.GetUserInput
 
+	if c.id == "" {
+		return nil, errors.RemediationError{
+			Inner:       fmt.Errorf("error parsing arguments: must provide --id flag"),
+			Remediation: "Alternatively pass --current to validate the logged in user.",
+		}
+	}
 	input.ID = c.id
 
-	return &input
+	return &input, nil
 }
 
 // print displays the information returned from the API.
