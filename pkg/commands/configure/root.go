@@ -96,7 +96,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
-	progress := text.NewQuietProgress(out)
+	progress := text.NewProgress(out, c.Globals.Verbose())
 	defer func() {
 		if err != nil {
 			c.Globals.ErrLog.Add(err)

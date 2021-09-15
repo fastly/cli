@@ -97,12 +97,7 @@ func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *conf
 
 // Exec implements the command interface.
 func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	var progress text.Progress
-	if c.Globals.Verbose() {
-		progress = text.NewVerboseProgress(out)
-	} else {
-		progress = text.NewQuietProgress(out)
-	}
+	progress := text.NewProgress(out, c.Globals.Verbose())
 
 	defer func(errLog errors.LogInterface) {
 		if err != nil {

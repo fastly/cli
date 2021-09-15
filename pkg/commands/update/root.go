@@ -51,7 +51,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	text.Output(out, "Latest version: %s", latest)
 	text.Break(out)
 
-	progress := text.NewQuietProgress(out)
+	progress := text.NewProgress(out, c.Globals.Verbose())
 	progress.Step("Updating versioning information...")
 
 	err = c.Globals.File.Load(c.Globals.File.CLI.RemoteConfig, c.client, config.ConfigRequestTimeout, config.FilePath)

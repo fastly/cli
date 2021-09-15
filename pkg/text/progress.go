@@ -6,11 +6,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
+
+	"github.com/mattn/go-isatty"
 )
 
 // Progress is a producer contract, abstracting over the quiet and verbose
@@ -25,6 +28,20 @@ type Progress interface {
 	Step(string)
 	Done()
 	Fail()
+}
+
+// NewProgress returns a Progress based on the given verbosity level or whether
+// the current process is running in a terminal environment.
+func NewProgress(output io.Writer, verbose bool) Progress {
+	var progress Progress
+	if verbose {
+		progress = NewVerboseProgress(output)
+	} else if isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+		progress = NewInteractiveProgress(output)
+	} else {
+		progress = NewQuietProgress(output)
+	}
+	return progress
 }
 
 // Ticker is a small consumer contract for the Spin function,
@@ -52,10 +69,10 @@ func Spin(ctx context.Context, frames []rune, interval time.Duration, target Tic
 	}
 }
 
-// QuietProgress is an implementation of Progress that includes a spinner at the
+// InteractiveProgress is an implementation of Progress that includes a spinner at the
 // beginning of each Step, and where newline-delimited lines written via Write
 // overwrite the current step line in the output.
-type QuietProgress struct {
+type InteractiveProgress struct {
 	mtx    sync.Mutex
 	output io.Writer
 
@@ -68,9 +85,9 @@ type QuietProgress struct {
 	done   <-chan struct{} // wait for Spin to stop
 }
 
-// NewQuietProgress returns a QuietProgress outputting to the writer.
-func NewQuietProgress(output io.Writer) *QuietProgress {
-	p := &QuietProgress{
+// NewInteractiveProgress returns a InteractiveProgress outputting to the writer.
+func NewInteractiveProgress(output io.Writer) *InteractiveProgress {
+	p := &InteractiveProgress{
 		output:     output,
 		stepHeader: "Initializing...",
 	}
@@ -89,7 +106,7 @@ func NewQuietProgress(output io.Writer) *QuietProgress {
 	return p
 }
 
-func (p *QuietProgress) replaceLine(format string, args ...interface{}) {
+func (p *InteractiveProgress) replaceLine(format string, args ...interface{}) {
 	// Clear the current line.
 	n := utf8.RuneCountInString(p.currentOutput)
 	switch runtime.GOOS {
@@ -107,7 +124,7 @@ func (p *QuietProgress) replaceLine(format string, args ...interface{}) {
 	fmt.Fprint(p.output, p.currentOutput)
 }
 
-func (p *QuietProgress) getStatus() string {
+func (p *InteractiveProgress) getStatus() string {
 	if p.lastBufferLine != "" {
 		return p.lastBufferLine // takes precedence
 	}
@@ -115,7 +132,7 @@ func (p *QuietProgress) getStatus() string {
 }
 
 // Tick implements the Progress interface.
-func (p *QuietProgress) Tick(r rune) {
+func (p *InteractiveProgress) Tick(r rune) {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
 
@@ -124,7 +141,7 @@ func (p *QuietProgress) Tick(r rune) {
 
 // Write implements the Progress interface, emitting each incoming byte slice
 // to the internal buffer to be written to the terminal on the next tick.
-func (p *QuietProgress) Write(buf []byte) (int, error) {
+func (p *InteractiveProgress) Write(buf []byte) (int, error) {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
 
@@ -135,7 +152,7 @@ func (p *QuietProgress) Write(buf []byte) (int, error) {
 }
 
 // Step implements the Progress interface.
-func (p *QuietProgress) Step(msg string) {
+func (p *InteractiveProgress) Step(msg string) {
 	msg = strings.TrimSpace(msg)
 
 	p.mtx.Lock()
@@ -156,7 +173,7 @@ func (p *QuietProgress) Step(msg string) {
 }
 
 // Done implements the Progress interface.
-func (p *QuietProgress) Done() {
+func (p *InteractiveProgress) Done() {
 	// It's important to cancel the Spin goroutine before taking the lock,
 	// because otherwise it's possible to generate a deadlock if the output
 	// io.Writer is also synchronized.
@@ -171,7 +188,7 @@ func (p *QuietProgress) Done() {
 }
 
 // Fail implements the Progress interface.
-func (p *QuietProgress) Fail() {
+func (p *InteractiveProgress) Fail() {
 	p.cancel()
 	<-p.done
 
@@ -197,6 +214,48 @@ func LastFullLine(s string) string {
 
 	return strings.TrimSpace(s[prev:last])
 }
+
+//
+//
+//
+
+// QuietProgress is an implementation of Progress that attempts to be quiet in
+// it's output. I.e. it only prints each Step as it progresses and discards any
+// intermediary writes between steps. No spinners are used, therefore it's
+// useful for non-TTY environiments, such as CI.
+type QuietProgress struct {
+	output     io.Writer
+	nullWriter io.Writer
+}
+
+// NewQuietProgress returns a QuietProgress outputting to the writer.
+func NewQuietProgress(output io.Writer) *QuietProgress {
+	qp := &QuietProgress{
+		output:     output,
+		nullWriter: io.Discard,
+	}
+	qp.Step("Initializing...")
+	return qp
+}
+
+// Tick implements the Progress interface. It's a no-op.
+func (p *QuietProgress) Tick(r rune) {}
+
+// Tick implements the Progress interface.
+func (p *QuietProgress) Write(buf []byte) (int, error) {
+	return p.nullWriter.Write(buf)
+}
+
+// Step implements the Progress interface.
+func (p *QuietProgress) Step(msg string) {
+	fmt.Fprintln(p.output, strings.TrimSpace(msg))
+}
+
+// Done implements the Progress interface. It's a no-op.
+func (p *QuietProgress) Done() {}
+
+// Fail implements the Progress interface. It's a no-op.
+func (p *QuietProgress) Fail() {}
 
 //
 //
@@ -241,19 +300,23 @@ func (p *VerboseProgress) Fail() {}
 
 // NullProgress is an implementation of Progress which discards everything
 // written into it and produces no output.
-type NullProgress struct{}
+type NullProgress struct {
+	output io.Writer
+}
 
 // NewNullProgress returns a NullProgress.
 func NewNullProgress() *NullProgress {
-	return &NullProgress{}
+	return &NullProgress{
+		output: io.Discard,
+	}
 }
 
-// Tick implements the Progress interface. It's a no-op.
+// Tick implements the Progress interface. It's a no-opt
 func (p *NullProgress) Tick(r rune) {}
 
 // Tick implements the Progress interface.
 func (p *NullProgress) Write(buf []byte) (int, error) {
-	return 0, nil
+	return p.output.Write(buf)
 }
 
 // Step implements the Progress interface.

@@ -65,7 +65,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	progress := text.NewQuietProgress(out)
+	progress := text.NewProgress(out, c.Globals.Verbose())
 	defer func() {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{

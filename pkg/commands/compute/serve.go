@@ -88,12 +88,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	var progress text.Progress
-	if c.Globals.Verbose() {
-		progress = text.NewVerboseProgress(out)
-	} else {
-		progress = text.NewQuietProgress(out)
-	}
+	progress := text.NewProgress(out, c.Globals.Verbose())
 
 	bin, err := getViceroy(progress, out, c.viceroyVersioner)
 	if err != nil {
