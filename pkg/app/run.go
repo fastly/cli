@@ -55,6 +55,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/stats"
 	"github.com/fastly/cli/pkg/commands/update"
+	"github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/commands/vcl"
 	"github.com/fastly/cli/pkg/commands/vcl/custom"
 	"github.com/fastly/cli/pkg/commands/vcl/snippet"

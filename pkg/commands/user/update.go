@@ -1,7 +1,6 @@
 package user
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -16,24 +15,15 @@ import (
 // NewUpdateCommand returns a usable command registered under the parent.
 func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
 	var c UpdateCommand
-	c.CmdClause = parent.Command("update", "<...>")
+	c.CmdClause = parent.Command("update", "Update a user of the Fastly API and web interface")
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
-
-	// Required flags
-	c.CmdClause.Flag("name", "<...>").Required().StringVar(&c.name)
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
-	})
-
-	// Optional flags
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("new-name", "<...>").Action(c.newName.Set).StringVar(&c.newName.Value)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
+	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").StringVar(&c.login)
+	c.CmdClause.Flag("name", "The real life name of the user").StringVar(&c.name)
+	c.CmdClause.Flag("password-reset", "Requests a password reset for the specified user").BoolVar(&c.reset)
+	c.CmdClause.Flag("role", "The permissions role assigned to the user. Can be user, billing, engineer, or superuser").EnumVar(&c.role, "user", "billing", "engineer", "superuser")
 
 	return &c
 }
@@ -42,11 +32,12 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateComman
 type UpdateCommand struct {
 	cmd.Base
 
-	autoClone      cmd.OptionalAutoClone
+	id       string
+	login    string
 	manifest manifest.Data
-	name           string
-	newName        cmd.OptionalString
-	serviceVersion cmd.OptionalServiceVersion
+	name     string
+	reset    bool
+	role     string
 }
 
 // Exec invokes the application logic for the command.
@@ -57,23 +48,25 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoToken
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
-		Manifest:           c.manifest,
-		Out:                out,
-		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flag.Verbose,
-	})
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
-		})
-		return err
+	if c.reset {
+		input, err := c.constructInputReset()
+		if err != nil {
+			return err
+		}
+
+		err = c.Globals.Client.ResetUserPassword(input)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"User Login": c.login,
+			})
+			return err
+		}
+
+		text.Success(out, "Reset user password (login: %s)", c.login)
+		return nil
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.constructInput()
 	if err != nil {
 		return err
 	}
@@ -81,35 +74,43 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	r, err := c.Globals.Client.UpdateUser(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID": serviceID,
-			"Service Version": serviceVersion.Number,
+			"User ID": c.id,
+			"Input":   input,
 		})
 		return err
 	}
 
-	if input.NewName != nil && *input.NewName != "" {
-		text.Success(out, "Updated <...> '%s' (previously: '%s', service: %s, version: %d)", r.Name, input.Name, r.ServiceID, r.ServiceVersion)
-	} else {
-		text.Success(out, "Updated <...> '%s' (service: %s, version: %d)", r.Name, r.ServiceID, r.ServiceVersion)
-	}
+	text.Success(out, "Updated user '%s' (role: %s)", r.Name, r.Role)
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.UpdateUserInput, error) {
+func (c *UpdateCommand) constructInput() (*fastly.UpdateUserInput, error) {
 	var input fastly.UpdateUserInput
 
-	input.Name = c.name
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion
-
-	if !c.newName.WasSet && !c.content.WasSet {
-		return nil, fmt.Errorf("error parsing arguments: must provide either --new-name or --content to update the <...>")
+	if c.id == "" {
+		return nil, fmt.Errorf("error parsing arguments: must provide --id flag")
 	}
-	if c.newName.WasSet {
-		input.NewName = fastly.String(c.newName.Value)
+	input.ID = c.id
+
+	if c.name != "" {
+		input.Name = fastly.String(c.name)
+	}
+	if c.role != "" {
+		input.Role = fastly.String(c.role)
 	}
 
 	return &input, nil
+}
 
+// constructInputReset transforms values parsed from CLI flags into an object to be used by the API client library.
+func (c *UpdateCommand) constructInputReset() (*fastly.ResetUserPasswordInput, error) {
+	var input fastly.ResetUserPasswordInput
+
+	if c.login == "" {
+		return nil, fmt.Errorf("error parsing arguments: must provide --login when requesting a password reset")
+	}
+	input.Login = c.login
+
+	return &input, nil
 }

@@ -14,21 +14,12 @@ import (
 // NewDescribeCommand returns a usable command registered under the parent.
 func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCommand {
 	var c DescribeCommand
-	c.CmdClause = parent.Command("describe", "<...>").Alias("get")
+	c.CmdClause = parent.Command("describe", "Get a specific user of the Fastly API and web interface").Alias("get")
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
-
-	// Required flags
-	// c.CmdClause.Flag("<...>", "<...>").Required().StringVar(&c.<...>)
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
-	})
-
-	// Optional flags
-	// c.CmdClause.Flag("<...>", "<...>").Action(c.<...>.Set).StringVar(&c.<...>.Value)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-
+	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
+	c.CmdClause.Flag("current", "Get the logged in user").BoolVar(&c.current)
 	return &c
 }
 
@@ -36,8 +27,9 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCo
 type DescribeCommand struct {
 	cmd.Base
 
+	current  bool
+	id       string
 	manifest manifest.Data
-	serviceVersion cmd.OptionalServiceVersion
 }
 
 // Exec invokes the application logic for the command.
@@ -48,30 +40,22 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoToken
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
-		Client:             c.Globals.Client,
-		Manifest:           c.manifest,
-		Out:                out,
-		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flag.Verbose,
-	})
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
-		})
-		return err
+	if c.current {
+		r, err := c.Globals.Client.GetCurrentUser()
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+
+		c.print(out, r)
+		return nil
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput()
 
 	r, err := c.Globals.Client.GetUser(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID": serviceID,
-			"Service Version": serviceVersion.Number,
-		})
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -80,21 +64,27 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) *fastly.GetUserInput {
+func (c *DescribeCommand) constructInput() *fastly.GetUserInput {
 	var input fastly.GetUserInput
 
-	input.ACLID = c.aclID
 	input.ID = c.id
-	input.ServiceID = serviceID
 
 	return &input
 }
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, r *fastly.User) {
-	fmt.Fprintf(out, "\nService ID: %s\n", r.ServiceID)
-	fmt.Fprintf(out, "Service Version: %d\n\n", r.ServiceVersion)
-	fmt.Fprintf(out, "<...>: %s\n\n", r.<...>)
+	fmt.Fprintf(out, "\nID: %s\n", r.ID)
+	fmt.Fprintf(out, "Login: %s\n", r.Login)
+	fmt.Fprintf(out, "Name: %s\n", r.Name)
+	fmt.Fprintf(out, "Role: %s\n", r.Role)
+	fmt.Fprintf(out, "Customer ID: %s\n", r.CustomerID)
+	fmt.Fprintf(out, "Email Hash: %s\n", r.EmailHash)
+	fmt.Fprintf(out, "Limit Services: %t\n", r.LimitServices)
+	fmt.Fprintf(out, "Locked: %t\n", r.Locked)
+	fmt.Fprintf(out, "Require New Password: %t\n", r.RequireNewPassword)
+	fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", r.TwoFactorAuthEnabled)
+	fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", r.TwoFactorSetupRequired)
 
 	if r.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", r.CreatedAt)

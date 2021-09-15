@@ -14,25 +14,11 @@ import (
 // NewDeleteCommand returns a usable command registered under the parent.
 func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteCommand {
 	var c DeleteCommand
-	c.CmdClause = parent.Command("delete", "<...>").Alias("remove")
+	c.CmdClause = parent.Command("delete", "Delete a user of the Fastly API and web interface").Alias("remove")
 	c.Globals = globals
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
-
-	// Required flags
-	// c.CmdClause.Flag("<...>", "<...>").Required().StringVar(&c.<...>)
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
-	})
-
-	// Optional flags
-	// c.CmdClause.Flag("<...>", "<...>").Action(c.<...>.Set).StringVar(&c.<...>.Value)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-
+	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").Required().StringVar(&c.id)
 	return &c
 }
 
@@ -40,9 +26,8 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 type DeleteCommand struct {
 	cmd.Base
 
-	autoClone      cmd.OptionalAutoClone
+	id       string
 	manifest manifest.Data
-	serviceVersion cmd.OptionalServiceVersion
 }
 
 // Exec invokes the application logic for the command.
@@ -53,44 +38,25 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoToken
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
-		Manifest:           c.manifest,
-		Out:                out,
-		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flag.Verbose,
-	})
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
-		})
-		return err
-	}
-
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput()
 
 	err := c.Globals.Client.DeleteUser(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"User ID": c.id,
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted <...> '%s' (service: %s, version: %d)", c.<...>, serviceID, serviceVersion.Number)
+	text.Success(out, "Deleted user (id: %s)", c.id)
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *DeleteCommand) constructInput(serviceID string, serviceVersion int) *fastly.DeleteUserInput {
+func (c *DeleteCommand) constructInput() *fastly.DeleteUserInput {
 	var input fastly.DeleteUserInput
 
-	input.ACLID = c.aclID
 	input.ID = c.id
-	input.ServiceID = serviceID
 
 	return &input
 }

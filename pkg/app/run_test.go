@@ -99,6 +99,7 @@ COMMANDS
   service-version  Manipulate Fastly service versions
   stats            View historical and realtime statistics for a Fastly service
   update           Update the CLI to the latest version
+  user             Manipulate users of the Fastly API and web interface
   vcl              Manipulate Fastly service version VCL
   version          Display version information for the Fastly CLI
   whoami           Get information about the currently authenticated account
@@ -3946,6 +3947,42 @@ COMMANDS
   update
     Update the CLI to the latest version
 
+
+  user create --login=LOGIN --name=NAME [<flags>]
+    Create a user of the Fastly API and web interface
+
+    --login=LOGIN  The login associated with the user (typically, an email
+                   address)
+    --name=NAME    The real life name of the user
+    --role=ROLE    The permissions role assigned to the user. Can be user,
+                   billing, engineer, or superuser
+
+  user delete --id=ID
+    Delete a user of the Fastly API and web interface
+
+    --id=ID  Alphanumeric string identifying the user
+
+  user describe [<flags>]
+    Get a specific user of the Fastly API and web interface
+
+    --id=ID    Alphanumeric string identifying the user
+    --current  Get the logged in user
+
+  user list --customer-id=CUSTOMER-ID
+    List all users from a specified customer id
+
+    --customer-id=CUSTOMER-ID  c
+
+  user update [<flags>]
+    Update a user of the Fastly API and web interface
+
+    --id=ID           Alphanumeric string identifying the user
+    --login=LOGIN     The login associated with the user (typically, an email
+                      address)
+    --name=NAME       The real life name of the user
+    --password-reset  Requests a password reset for the specified user
+    --role=ROLE       The permissions role assigned to the user. Can be user,
+                      billing, engineer, or superuser
 
   vcl custom create --content=CONTENT --name=NAME --version=VERSION [<flags>]
     Upload a VCL for a particular service and version

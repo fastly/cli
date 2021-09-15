@@ -226,8 +226,6 @@ type Interface interface {
 	UpdateOpenstack(*fastly.UpdateOpenstackInput) (*fastly.Openstack, error)
 	DeleteOpenstack(*fastly.DeleteOpenstackInput) error
 
-	GetUser(*fastly.GetUserInput) (*fastly.User, error)
-
 	GetRegions() (*fastly.RegionsResponse, error)
 	GetStatsJSON(*fastly.GetStatsInput, interface{}) error
 
@@ -277,6 +275,7 @@ type Interface interface {
 	GetUser(i *fastly.GetUserInput) (*fastly.User, error)
 	ListCustomerUsers(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error)
 	UpdateUser(i *fastly.UpdateUserInput) (*fastly.User, error)
+	ResetUserPassword(i *fastly.ResetUserPasswordInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

@@ -2,9 +2,11 @@ package user_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v3/fastly"
@@ -14,61 +16,42 @@ func TestCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --version flag",
+			Name:      "validate missing --login flag",
 			Args:      args("user create"),
-			WantError: "error parsing arguments: required flag --version not provided",
+			WantError: "error parsing arguments: required flag --login not provided",
 		},
 		{
-			Name:      "validate missing --service-id flag",
-			Args:      args("user create --version 3"),
-			WantError: "error reading service: no service ID found",
+			Name:      "validate missing --name flag",
+			Args:      args("user create --login foo@example.com"),
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Name: "validate missing --autoclone flag",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      args("user create --service-id 123 --version 1"),
-			WantError: "service version 1 is not editable",
+			Name:      "validate missing --token flag",
+			Args:      args("user create --login foo@example.com --name foobar"),
+			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name: "validate CreateUser API error",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
 				CreateUserFn: func(i *fastly.CreateUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user create --service-id 123 --version 3"),
+			Args:      args("user create --login foo@example.com --name foobar --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate CreateUser API success",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
 				CreateUserFn: func(i *fastly.CreateUserInput) (*fastly.User, error) {
 					return &fastly.User{
-						ServiceID: i.ServiceID,
+						Name: i.Name,
+						Role: "user",
 					}, nil
 				},
 			},
-			Args:       args("user create --service-id 123 --version 3"),
-			WantOutput: "Created <...> '456' (service: 123)",
-		},
-		{
-			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				CreateUserFn: func(i *fastly.CreateUserInput) (*fastly.User, error) {
-					return &fastly.VCL{
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
-					}, nil
-				},
-			},
-			Args:       args("user create --autoclone --service-id 123 --version 1"),
-			WantOutput: "Created <...> 'foo' (service: 123, version: 4)",
+			Args:       args("user create --login foo@example.com --name foobar --token 123"),
+			WantOutput: "Created user 'foobar' (role: user)",
 		},
 	}
 
@@ -88,56 +71,34 @@ func TestDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --version flag",
-			Args:      args("User delete"),
-			WantError: "error parsing arguments: required flag --version not provided",
+			Name:      "validate missing --id flag",
+			Args:      args("user delete"),
+			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			Name:      "validate missing --service-id flag",
-			Args:      args("user delete --version 1"),
-			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name: "validate missing --autoclone flag",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      args("User delete ---service-id 123 --version 1"),
-			WantError: "service version 1 is not editable",
+			Name:      "validate missing --token flag",
+			Args:      args("user delete --id foo123"),
+			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name: "validate DeleteUser API error",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
 				DeleteUserFn: func(i *fastly.DeleteUserInput) error {
 					return testutil.Err
 				},
 			},
-			Args:      args("user delete --service-id 123 --version 3"),
+			Args:      args("user delete --id foo123 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate DeleteUser API success",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
 				DeleteUserFn: func(i *fastly.DeleteUserInput) error {
 					return nil
 				},
 			},
-			Args:       args("user delete --service-id 123 --version 3"),
-			WantOutput: "Deleted <...> '456' (service: 123)",
-		},
-		{
-			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteUserFn: func(i *fastly.DeleteUserInput) error {
-					return nil
-				},
-			},
-			Args:       args("user delete --autoclone --service-id 123 --version 1"),
-			WantOutput: "Deleted <...> 'foo' (service: 123, version: 4)",
+			Args:       args("user delete --id foo123 --token 123"),
+			WantOutput: "Deleted user (id: foo123)",
 		},
 	}
 
@@ -157,43 +118,45 @@ func TestDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --version flag",
-			Args:      args("User describe"),
-			WantError: "error parsing arguments: required flag --version not provided",
-		},
-		{
-			Name:      "validate missing --service-id flag",
-			Args:      args("user describe --version 3"),
-			WantError: "error reading service: no service ID found",
+			Name:      "validate missing --token flag",
+			Args:      args("user describe"),
+			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name: "validate GetUser API error",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
 				GetUserFn: func(i *fastly.GetUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user describe --service-id 123 --version 3"),
+			Args:      args("user describe --id 123 --token 123"),
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Name: "validate GetCurrentUser API error",
+			API: mock.API{
+				GetCurrentUserFn: func() (*fastly.User, error) {
+					return nil, testutil.Err
+				},
+			},
+			Args:      args("user describe --current --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate GetUser API success",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
 				GetUserFn: getUser,
 			},
-			Args:       args("user describe --service-id 123 --version 3"),
-			WantOutput: "<...>",
+			Args:       args("user describe --id 123 --token 123"),
+			WantOutput: describeUserOutput(),
 		},
 		{
-			Name: "validate missing --autoclone flag is OK",
+			Name: "validate GetCurrentUser API success",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetVCLFn:       getVCL,
+				GetCurrentUserFn: getCurrentUser,
 			},
-			Args:       args("User describe --service-id 123 --version 1"),
-			WantOutput: "<...>",
+			Args:       args("user describe --current --token 123"),
+			WantOutput: describeCurrentUserOutput(),
 		},
 	}
 
@@ -213,52 +176,40 @@ func TestList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --version flag",
-			Args:      args("User list"),
-			WantError: "error parsing arguments: required flag --version not provided",
+			Name:      "validate missing --customer-id flag",
+			Args:      args("user list"),
+			WantError: "error parsing arguments: required flag --customer-id not provided",
 		},
 		{
-			Name:      "validate missing --service-id flag",
-			Args:      args("user list --version 3"),
-			WantError: "error reading service: no service ID found",
+			Name:      "validate missing --token flag",
+			Args:      args("user list --customer-id abc"),
+			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name: "validate ListUsers API error",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListUsersFn: func(i *fastly.ListUsersInput) ([]*fastly.User, error) {
+				ListCustomerUsersFn: func(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user list --service-id 123 --version 3"),
+			Args:      args("user list --customer-id abc --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
 			Name: "validate ListUsers API success",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListUsersFn: listUsers,
+				ListCustomerUsersFn: listUsers,
 			},
-			Args:       args("user list --service-id 123 --version 3"),
-			WantOutput: "<...>",
+			Args:       args("user list --customer-id abc --token 123"),
+			WantOutput: listOutput(),
 		},
 		{
-			Name: "validate missing --autoclone flag is OK",
+			Name: "validate ListUsers API success with verbose mode",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListUsersFn:     listUsers,
+				ListCustomerUsersFn: listUsers,
 			},
-			Args:       args("user list --service-id 123 --version 1"),
-			WantOutput: "<...>",
-		},
-		{
-			Name: "validate --verbose flag",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListUsersFn: listUsers,
-			},
-			Args:       args("user list --acl-id 123 --service-id 123 --verbose"),
-			WantOutput: "<...>",
+			Args:       args("user list --customer-id abc --token 123 --verbose"),
+			WantOutput: listVerboseOutput(),
 		},
 	}
 
@@ -278,53 +229,68 @@ func TestUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --name flag",
-			Args:      args("user update --version 3"),
-			WantError: "error parsing arguments: required flag --name not provided",
+			Name:      "validate missing --token flag",
+			Args:      args("user update --id 123"),
+			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
-			Name:      "validate missing --version flag",
-			Args:      args("user update --name foobar"),
-			WantError: "error parsing arguments: required flag --version not provided",
+			Name:      "validate missing --id flag",
+			Args:      args("user update --token 123"),
+			WantError: "error parsing arguments: must provide --id flag",
 		},
 		{
-			Name:      "validate missing --service-id flag",
-			Args:      args("user update --name foobar --version 3"),
-			WantError: "error reading service: no service ID found",
+			Name:      "validate missing --login flag with --password-reset",
+			Args:      args("user update --password-reset --token 123"),
+			WantError: "error parsing arguments: must provide --login when requesting a password reset",
 		},
 		{
-			Name: "validate missing --autoclone flag",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      args("user update --name foobar --service-id 123 --version 1"),
-			WantError: "service version 1 is not editable",
+			Name:      "validate invalid --role value",
+			Args:      args("user update --id 123 --role foobar --token 123"),
+			WantError: "error parsing arguments: enum value must be one of user,billing,engineer,superuser, got 'foobar'",
 		},
 		{
 			Name: "validate UpdateUser API error",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
 				UpdateUserFn: func(i *fastly.UpdateUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user update --name foobar --service-id 123 --version 3"),
+			Args:      args("user update --id 123 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate UpdateUser API success with --new-name",
+			Name: "validate ResetUserPassword API error",
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				ResetUserPasswordFn: func(i *fastly.ResetUserPasswordInput) error {
+					return testutil.Err
+				},
+			},
+			Args:      args("user update --id 123 --login foo@example.com --password-reset --token 123"),
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Name: "validate UpdateUser API success",
+			API: mock.API{
 				UpdateUserFn: func(i *fastly.UpdateUserInput) (*fastly.User, error) {
 					return &fastly.User{
-						Name:           *i.NewName,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						ID:   i.ID,
+						Name: *i.Name,
+						Role: *i.Role,
 					}, nil
 				},
 			},
-			Args:       args("user update --name foobar --new-name beepboop --service-id 123 --version 3"),
-			WantOutput: "Updated <...> 'beepboop' (previously: 'foobar', service: 123, version: 3)",
+			Args:       args("user update --id 123 --name foo --role engineer --token 123"),
+			WantOutput: "Updated user 'foo' (role: engineer)",
+		},
+		{
+			Name: "validate ResetUserPassword API success",
+			API: mock.API{
+				ResetUserPasswordFn: func(i *fastly.ResetUserPasswordInput) error {
+					return nil
+				},
+			},
+			Args:       args("user update --id 123 --login foo@example.com --password-reset --token 123"),
+			WantOutput: "Reset user password (login: foo@example.com)",
 		},
 	}
 
@@ -344,31 +310,103 @@ func getUser(i *fastly.GetUserInput) (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{
-		ServiceID: i.ServiceID,
-
-		CreatedAt: &t,
-		DeletedAt: &t,
-		UpdatedAt: &t,
+		ID:                     i.ID,
+		Login:                  "foo@example.com",
+		Name:                   "foo",
+		Role:                   "user",
+		CustomerID:             "abc",
+		EmailHash:              "example-hash",
+		LimitServices:          true,
+		Locked:                 true,
+		RequireNewPassword:     true,
+		TwoFactorAuthEnabled:   true,
+		TwoFactorSetupRequired: true,
+		CreatedAt:              &t,
+		DeletedAt:              &t,
+		UpdatedAt:              &t,
 	}, nil
 }
 
-func listUsers(i *fastly.ListUsersInput) ([]*fastly.User, error) {
+func getCurrentUser() (*fastly.User, error) {
 	t := testutil.Date
+
+	return &fastly.User{
+		ID:                     "current123",
+		Login:                  "bar@example.com",
+		Name:                   "bar",
+		Role:                   "superuser",
+		CustomerID:             "abc",
+		EmailHash:              "example-hash2",
+		LimitServices:          false,
+		Locked:                 false,
+		RequireNewPassword:     false,
+		TwoFactorAuthEnabled:   false,
+		TwoFactorSetupRequired: false,
+		CreatedAt:              &t,
+		DeletedAt:              &t,
+		UpdatedAt:              &t,
+	}, nil
+}
+
+func listUsers(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
+	user, _ := getUser(&fastly.GetUserInput{ID: "123"})
+	userCurrent, _ := getCurrentUser()
 	vs := []*fastly.User{
-		{
-			ServiceID: i.ServiceID,
-
-			CreatedAt: &t,
-			DeletedAt: &t,
-			UpdatedAt: &t,
-		},
-		{
-			ServiceID: i.ServiceID,
-
-			CreatedAt: &t,
-			DeletedAt: &t,
-			UpdatedAt: &t,
-		},
+		user,
+		userCurrent,
 	}
 	return vs, nil
+}
+
+func describeUserOutput() string {
+	return `
+ID: 123
+Login: foo@example.com
+Name: foo
+Role: user
+Customer ID: abc
+Email Hash: example-hash
+Limit Services: true
+Locked: true
+Require New Password: true
+Two Factor Auth Enabled: true
+Two Factor Setup Required: true
+
+Created at: 2021-06-15 23:00:00 +0000 UTC
+Updated at: 2021-06-15 23:00:00 +0000 UTC
+Deleted at: 2021-06-15 23:00:00 +0000 UTC
+`
+}
+
+func describeCurrentUserOutput() string {
+	return `
+ID: current123
+Login: bar@example.com
+Name: bar
+Role: superuser
+Customer ID: abc
+Email Hash: example-hash2
+Limit Services: false
+Locked: false
+Require New Password: false
+Two Factor Auth Enabled: false
+Two Factor Setup Required: false
+
+Created at: 2021-06-15 23:00:00 +0000 UTC
+Updated at: 2021-06-15 23:00:00 +0000 UTC
+Deleted at: 2021-06-15 23:00:00 +0000 UTC
+`
+}
+
+func listOutput() string {
+	return `LOGIN            NAME  ROLE       LOCKED
+foo@example.com  foo   user       true
+bar@example.com  bar   superuser  false
+`
+}
+
+func listVerboseOutput() string {
+	return fmt.Sprintf(`Fastly API token provided via --token
+Fastly API endpoint: https://api.fastly.com
+%s%s`, describeUserOutput(), describeCurrentUserOutput())
 }

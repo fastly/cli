@@ -217,8 +217,6 @@ type API struct {
 	UpdateOpenstackFn func(*fastly.UpdateOpenstackInput) (*fastly.Openstack, error)
 	DeleteOpenstackFn func(*fastly.DeleteOpenstackInput) error
 
-	GetUserFn func(*fastly.GetUserInput) (*fastly.User, error)
-
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
 	GetStatsJSONFn func(i *fastly.GetStatsInput, dst interface{}) error
 
@@ -268,6 +266,7 @@ type API struct {
 	GetUserFn           func(i *fastly.GetUserInput) (*fastly.User, error)
 	ListCustomerUsersFn func(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error)
 	UpdateUserFn        func(i *fastly.UpdateUserInput) (*fastly.User, error)
+	ResetUserPasswordFn func(i *fastly.ResetUserPasswordInput) error
 }
 
 // AllDatacenters implements Interface.
@@ -1140,11 +1139,6 @@ func (m API) DeleteOpenstack(i *fastly.DeleteOpenstackInput) error {
 	return m.DeleteOpenstackFn(i)
 }
 
-// GetUser implements Interface.
-func (m API) GetUser(i *fastly.GetUserInput) (*fastly.User, error) {
-	return m.GetUserFn(i)
-}
-
 // GetRegions implements Interface.
 func (m API) GetRegions() (*fastly.RegionsResponse, error) {
 	return m.GetRegionsFn()
@@ -1326,13 +1320,13 @@ func (m API) CreateUser(i *fastly.CreateUserInput) (*fastly.User, error) {
 }
 
 // DeleteUser implements Interface.
-func (m API) DeleteUser(i *fastly.DeleteUserInput) (*fastly.User, error) {
+func (m API) DeleteUser(i *fastly.DeleteUserInput) error {
 	return m.DeleteUserFn(i)
 }
 
 // GetCurrentUser implements Interface.
 func (m API) GetCurrentUser() (*fastly.User, error) {
-	return m.GetCurrentUserFn(i)
+	return m.GetCurrentUserFn()
 }
 
 // GetUser implements Interface.
@@ -1348,4 +1342,9 @@ func (m API) ListCustomerUsers(i *fastly.ListCustomerUsersInput) ([]*fastly.User
 // UpdateUser implements Interface.
 func (m API) UpdateUser(i *fastly.UpdateUserInput) (*fastly.User, error) {
 	return m.UpdateUserFn(i)
+}
+
+// ResetUserPassword implements Interface.
+func (m API) ResetUserPassword(i *fastly.ResetUserPasswordInput) error {
+	return m.ResetUserPasswordFn(i)
 }
