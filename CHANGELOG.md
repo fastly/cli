@@ -1,5 +1,27 @@
 # Changelog
 
+## [v0.38.0](https://github.com/fastly/cli/releases/tag/v0.38.0) (2021-09-15)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.37.1...v0.38.0)
+
+**Enhancements:**
+
+* Add support for `override_host` to Local Server configuration [#394](https://github.com/fastly/cli/pull/394)
+* Add support for Dictionaries to Local Server configuration [#395](https://github.com/fastly/cli/pull/395)
+* Integrate domain validation [#402](https://github.com/fastly/cli/pull/402)
+* Refactor Versioner `GitHub.Download()` logic [#403](https://github.com/fastly/cli/pull/403)
+
+**Bug fixes:**
+
+* Pass down `compute publish --name` to `compute deploy` [#398](https://github.com/fastly/cli/pull/398)
+* Sanitise name when packing the wasm file [#401](https://github.com/fastly/cli/pull/401)
+* Use a non-interactive progress writer in non-TTY environments [#405](https://github.com/fastly/cli/pull/405)
+
+**Removed:**
+
+* Remove support for Scoop, the Window's command-line installer [#396](https://github.com/fastly/cli/pull/396)
+* Remove unused 'rename local binary' code [#399](https://github.com/fastly/cli/pull/399)
+
 ## [v0.37.1](https://github.com/fastly/cli/releases/tag/v0.37.1) (2021-09-06)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.37.0...v0.37.1)
