@@ -78,6 +78,11 @@ func (g GitHub) LatestVersion(ctx context.Context) (semver.Version, error) {
 }
 
 // Download implements the Versioner interface.
+//
+// Downloading, unarchiving and changing the file modes is done inside a temporary
+// directory within $TMPDIR.
+// On success, the resulting file is renamed to a temporary one within $TMPDIR, and
+// returned. The temporary directory and its content are always removed.
 func (g GitHub) Download(ctx context.Context, version semver.Version) (string, error) {
 	releaseID, err := g.getReleaseID(ctx, version)
 	if err != nil {
@@ -100,25 +105,15 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 	}
 	defer rc.Close()
 
-	var extension string
-
-	// TODO: We might need to also account for Window users by also checking for
-	// the .zip extension that goreleaser generates:
-	// https://github.com/fastly/cli/blob/26588cfd2d00d18643bac5cc18242b2d5ee84b34/.goreleaser.yml#L51
-	//
-	// Ideally the formats would be the same, but if that's not possible then
-	// we can look to use a genericised method such as
-	// https://pkg.go.dev/github.com/mholt/archiver#Extract for handling the
-	// extraction of a binary from the asset file instead of using the current
-	// archiver.NewTarGz().Extract() method.
-	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
-		extension = ".tar.gz"
-	}
-
-	tmp := os.TempDir()
-	dst, err := os.CreateTemp(tmp, fmt.Sprintf("%s_%s_*%s", g.binary, version, extension))
+	dir, err := os.MkdirTemp("", "fastly-download")
 	if err != nil {
-		return "", fmt.Errorf("error creating temp release asset file: %w", err)
+		return "", fmt.Errorf("error creating temp release directory: %w", err)
+	}
+	defer os.RemoveAll(dir)
+
+	dst, err := os.Create(filepath.Join(dir, g.releaseAsset))
+	if err != nil {
+		return "", fmt.Errorf("error creating release asset file: %w", err)
 	}
 
 	_, err = io.Copy(dst, rc)
@@ -132,20 +127,20 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 
 	assetFile := dst.Name()
 
-	// If we need to perform an extraction, create a temporary directory and do it there,
-	// then copy the extracted file back to the temporary one so we just track one file.
+	// TODO: We might need to also account for Window users by also checking for
+	// the .zip extension that goreleaser generates:
+	// https://github.com/fastly/cli/blob/26588cfd2d00d18643bac5cc18242b2d5ee84b34/.goreleaser.yml#L51
+	//
+	// Ideally the formats would be the same, but if that's not possible then
+	// we can look to use a genericised method such as
+	// https://pkg.go.dev/github.com/mholt/archiver#Extract for handling the
+	// extraction of a binary from the asset file instead of using the current
+	// archiver.NewTarGz().Extract() method.
 	if strings.HasSuffix(g.releaseAsset, ".tar.gz") {
-		dir, err := os.MkdirTemp(tmp, "extract")
-		if err != nil {
-			return "", fmt.Errorf("error creating temp extraction directory: %w", err)
-		}
-		defer os.RemoveAll(dir)
 		if err := archiver.NewTarGz().Extract(assetFile, g.binary, dir); err != nil {
 			return "", fmt.Errorf("error extracting binary: %w", err)
 		}
-		if err := os.Rename(filepath.Join(dir, g.binary), assetFile); err != nil {
-			return "", fmt.Errorf("error renaming binary: %w", err)
-		}
+		assetFile = filepath.Join(dir, g.binary)
 	}
 
 	// G302 (CWE-276): Expect file permissions to be 0600 or less
@@ -158,7 +153,26 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 		return "", err
 	}
 
-	return assetFile, nil
+	dst, err = os.CreateTemp("", g.binary)
+	if err != nil {
+		return "", fmt.Errorf("error creating temp file: %w", err)
+	}
+
+	defer func(name string) {
+		if err != nil {
+			os.Remove(name)
+		}
+	}(dst.Name())
+
+	if err := dst.Close(); err != nil {
+		return "", fmt.Errorf("error closing temp file: %w", err)
+	}
+
+	if err := os.Rename(assetFile, dst.Name()); err != nil {
+		return "", fmt.Errorf("error renaming release asset file: %w", err)
+	}
+
+	return dst.Name(), nil
 }
 
 func (g GitHub) getReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
