@@ -211,13 +211,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// RESOURCE CREATION...
 
-	var progress text.Progress
-	if verbose {
-		progress = text.NewVerboseProgress(out)
-	} else {
-		progress = text.NewQuietProgress(out)
-	}
-
+	progress := text.NewProgress(out, c.Globals.Verbose())
 	undoStack := undo.NewStack()
 
 	defer func(errLog errors.LogInterface, progress text.Progress) {
@@ -418,13 +412,7 @@ func manageNoServiceIDFlow(
 		text.Break(out)
 	}
 
-	var progress text.Progress
-
-	if verbose {
-		progress = text.NewVerboseProgress(out)
-	} else {
-		progress = text.NewQuietProgress(out)
-	}
+	progress := text.NewProgress(out, verbose)
 
 	// There is no service and so we'll do a one time creation of the service
 	//
