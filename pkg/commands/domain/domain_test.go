@@ -261,7 +261,7 @@ func TestDomainValidate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      args("domain validate --service-id 123 --token 123 --version 3"),
-			WantError: "error parsing arguments: must provide --name",
+			WantError: "error parsing arguments: must provide --name flag",
 		},
 		{
 			Name: "validate ValidateDomain API error",
