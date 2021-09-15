@@ -244,6 +244,11 @@ func TestUpdate(t *testing.T) {
 			WantError: "error parsing arguments: must provide --id flag",
 		},
 		{
+			Name:      "validate missing --name and --role flags",
+			Args:      args("user update --id 123 --token 123"),
+			WantError: "error parsing arguments: must provide either the --name or --role with the --id flag",
+		},
+		{
 			Name:      "validate missing --login flag with --password-reset",
 			Args:      args("user update --password-reset --token 123"),
 			WantError: "error parsing arguments: must provide --login when requesting a password reset",
@@ -260,7 +265,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user update --id 123 --token 123"),
+			Args:      args("user update --id 123 --name foo --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{

@@ -93,6 +93,10 @@ func (c *UpdateCommand) constructInput() (*fastly.UpdateUserInput, error) {
 	}
 	input.ID = c.id
 
+	if c.name == "" && c.role == "" {
+		return nil, fmt.Errorf("error parsing arguments: must provide either the --name or --role with the --id flag")
+	}
+
 	if c.name != "" {
 		input.Name = fastly.String(c.name)
 	}
