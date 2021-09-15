@@ -212,7 +212,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 
 		if !c.Globals.Verbose() {
-			progress = text.NewQuietProgress(out)
+			progress = text.NewProgress(out, false)
 		}
 
 		_, err = exec.LookPath("git")
