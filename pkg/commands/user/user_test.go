@@ -17,7 +17,7 @@ func TestCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --login flag",
-			Args:      args("user create"),
+			Args:      args("user create --name foobar"),
 			WantError: "error parsing arguments: required flag --login not provided",
 		},
 		{
