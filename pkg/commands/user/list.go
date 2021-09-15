@@ -98,9 +98,9 @@ func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.User) {
 // format.
 func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.User) {
 	t := text.NewTable(out)
-	t.AddHeader("LOGIN", "NAME", "ROLE", "LOCKED")
+	t.AddHeader("LOGIN", "NAME", "ROLE", "LOCKED", "ID")
 	for _, r := range rs {
-		t.AddLine(r.Login, r.Name, r.Role, r.Locked)
+		t.AddLine(r.Login, r.Name, r.Role, r.Locked, r.ID)
 	}
 	t.Print()
 }

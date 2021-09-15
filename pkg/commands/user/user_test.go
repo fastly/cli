@@ -404,9 +404,9 @@ Deleted at: 2021-06-15 23:00:00 +0000 UTC
 }
 
 func listOutput() string {
-	return `LOGIN            NAME  ROLE       LOCKED
-foo@example.com  foo   user       true
-bar@example.com  bar   superuser  false
+	return `LOGIN            NAME  ROLE       LOCKED  ID
+foo@example.com  foo   user       true    123
+bar@example.com  bar   superuser  false   current123
 `
 }
 
