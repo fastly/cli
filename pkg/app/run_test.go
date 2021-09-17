@@ -83,6 +83,7 @@ COMMANDS
   help             Show help.
   acl              Manipulate Fastly ACLs (Access Control Lists)
   acl-entry        Manipulate Fastly ACL (Access Control List) entries
+  auth-token       Manage API tokens for Fastly service users
   backend          Manipulate Fastly service version backends
   compute          Manage Compute@Edge packages
   configure        Configure the Fastly CLI
@@ -275,6 +276,32 @@ COMMANDS
                                  then fastly.toml)
         --subnet=SUBNET          Number of bits for the subnet mask applied to
                                  the IP address
+
+  auth-token create [<flags>]
+    Create an API token
+
+    --expires=EXPIRES        Time-stamp (UTC) of when the token will expire
+    --name=NAME              Name of the token
+    --scope=SCOPE ...        A comma-separated list of authorization scope
+    --services=SERVICES ...  A comma-separated list of alphanumeric strings
+                             identifying services (default: access to all
+                             services)
+
+  auth-token delete [<flags>]
+    Revoke an API token
+
+    --current    Revoke the token used to authenticate the request
+    --file=FILE  Revoke tokens in bulk from a newline delimited list of tokens
+    --id=ID      Alphanumeric string identifying a token
+
+  auth-token describe
+    Get the current API token
+
+
+  auth-token list [<flags>]
+    List API tokens
+
+    --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
 
   backend create --version=VERSION --name=NAME --address=ADDRESS [<flags>]
     Create a backend on a Fastly service version
