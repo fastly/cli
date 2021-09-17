@@ -408,11 +408,6 @@ func Run(opts RunOpts) error {
 	whoamiCmdRoot := whoami.NewRootCommand(app, opts.HTTPClient, &globals)
 
 	commands := []cmd.Command{
-		authtokenCmdRoot,
-		authtokenCreate,
-		authtokenDelete,
-		authtokenDescribe,
-		authtokenList,
 		aclCmdRoot,
 		aclCreate,
 		aclDelete,
@@ -425,6 +420,11 @@ func Run(opts RunOpts) error {
 		aclEntryDescribe,
 		aclEntryList,
 		aclEntryUpdate,
+		authtokenCmdRoot,
+		authtokenCreate,
+		authtokenDelete,
+		authtokenDescribe,
+		authtokenList,
 		backendCmdRoot,
 		backendCreate,
 		backendDelete,
