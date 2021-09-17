@@ -78,7 +78,7 @@ for fn in "${functions[@]}"; do
 		:exe getreg("a")","line(".")"s/\\\v\\\) (Create|Delete|Get|List|Update)[^(]+/) ${fn}${CLI_API}/"
 		:exe getreg("a")","line(".")"s/\\\v(fastly\\\.)(Create|Delete|Get|List|Update)[^)]+(Input)/\\\1${fn}${CLI_API}\\\3/"
 		:exe getreg("a")","line(".")"s/\\\v\\\((\\\*fastly\\\.)[^,]+/(\\\1${CLI_API}/"
-		:exe getreg("a")","line(".")"s/\\\v^(\\\/\\\/) (Create|Delete|Get|List|Update)([^\\\s]+)( implements)/\\\1 ${fn}${CLI_API}\\\4/"
+		:exe getreg("a")","line(".")"s/\\\v^(\\\/\\\/) (Create|Delete|Get|List|Update)(\\\w+)( implements)/\\\1 ${fn}${CLI_API}\\\4/"
 		:update
 		:quit
 	EOF
