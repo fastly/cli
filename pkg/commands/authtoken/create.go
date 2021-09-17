@@ -28,6 +28,11 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	// forms of authentication).
 	c.CmdClause.Flag("expires", "Time-stamp (UTC) of when the token will expire").HintOptions("2016-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expires)
 	c.CmdClause.Flag("name", "Name of the token").StringVar(&c.name)
+	// NOTE: The API describes 'scope' as being space-delimited but we've opted
+	// for comma-separated as it means users don't have to worry about how best
+	// to handle issues with passing a flag value with whitespace. When
+	// constructing the input for the API call we convert from a comma-separated
+	// value to a space-delimited value.
 	c.CmdClause.Flag("scope", "A comma-separated list of authorization scope").HintOptions("global", "purge_select", "purge_all", "global:read").StringsVar(&c.scope, kingpin.Separator(","))
 	c.CmdClause.Flag("services", "A comma-separated list of alphanumeric strings identifying services (default: access to all services)").StringsVar(&c.services, kingpin.Separator(","))
 	return &c
