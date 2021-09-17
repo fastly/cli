@@ -110,7 +110,7 @@ func (c *ValidateCommand) constructInput(serviceID string, serviceVersion int) (
 
 	if !c.name.WasSet {
 		return nil, errors.RemediationError{
-			Inner:       fmt.Errorf("error parsing arguments: must provide --name"),
+			Inner:       fmt.Errorf("error parsing arguments: must provide --name flag"),
 			Remediation: "Alternatively pass --all to validate all domains.",
 		}
 	}

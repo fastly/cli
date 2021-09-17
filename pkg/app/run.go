@@ -55,6 +55,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/stats"
 	"github.com/fastly/cli/pkg/commands/update"
+	"github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/commands/vcl"
 	"github.com/fastly/cli/pkg/commands/vcl/custom"
 	"github.com/fastly/cli/pkg/commands/vcl/snippet"
@@ -378,6 +379,12 @@ func Run(opts RunOpts) error {
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, &globals)
 	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, &globals)
 	updateRoot := update.NewRootCommand(app, opts.ConfigPath, opts.Versioners.CLI, opts.HTTPClient, &globals)
+	userCmdRoot := user.NewRootCommand(app, &globals)
+	userCreate := user.NewCreateCommand(userCmdRoot.CmdClause, &globals)
+	userDelete := user.NewDeleteCommand(userCmdRoot.CmdClause, &globals)
+	userDescribe := user.NewDescribeCommand(userCmdRoot.CmdClause, &globals)
+	userList := user.NewListCommand(userCmdRoot.CmdClause, &globals)
+	userUpdate := user.NewUpdateCommand(userCmdRoot.CmdClause, &globals)
 	vclCmdRoot := vcl.NewRootCommand(app, &globals)
 	vclCustomCmdRoot := custom.NewRootCommand(vclCmdRoot.CmdClause, &globals)
 	vclCustomCreate := custom.NewCreateCommand(vclCustomCmdRoot.CmdClause, &globals)
@@ -630,6 +637,12 @@ func Run(opts RunOpts) error {
 		statsRealtime,
 		statsRegions,
 		updateRoot,
+		userCmdRoot,
+		userCreate,
+		userDelete,
+		userDescribe,
+		userList,
+		userUpdate,
 		vclCmdRoot,
 		vclCustomCmdRoot,
 		vclCustomCreate,
