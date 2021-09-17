@@ -277,11 +277,9 @@ COMMANDS
         --subnet=SUBNET          Number of bits for the subnet mask applied to
                                  the IP address
 
-  auth-token create --password=PASSWORD --username=USERNAME [<flags>]
+  auth-token create [<flags>]
     Create an API token
 
-    --password=PASSWORD      Existing user's password for authentication
-    --username=USERNAME      Existing user's username for authentication
     --expires=EXPIRES        Time-stamp (UTC) of when the token will expire
     --name=NAME              Name of the token
     --scope=SCOPE ...        A comma-separated list of authorization scope
