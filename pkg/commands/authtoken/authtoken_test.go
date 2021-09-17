@@ -16,8 +16,13 @@ func TestCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --token flag",
+			Name:      "validate missing --password flag",
 			Args:      args("auth-token create"),
+			WantError: "error parsing arguments: required flag --password not provided",
+		},
+		{
+			Name:      "validate missing --token flag",
+			Args:      args("auth-token create --password secure"),
 			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
@@ -27,7 +32,7 @@ func TestCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("auth-token create --token 123"),
+			Args:      args("auth-token create --password secure --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -42,7 +47,7 @@ func TestCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("auth-token create --token 123"),
+			Args:       args("auth-token create --password secure --token 123"),
 			WantOutput: "Created token 'Example' (id: 123, scope: foobar, expires: 2021-06-15 23:00:00 +0000 UTC)",
 		},
 		{
@@ -57,7 +62,7 @@ func TestCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("auth-token create --expires 2021-09-15T23:00:00Z --name Testing --scope purge_all,global:read --services a,b,c --token 123"),
+			Args:       args("auth-token create --expires 2021-09-15T23:00:00Z --name Testing --password secure --scope purge_all,global:read --services a,b,c --token 123"),
 			WantOutput: "Created token 'Testing' (id: 123, scope: purge_all global:read, expires: 2021-09-15 23:00:00 +0000 UTC)",
 		},
 	}
@@ -373,7 +378,7 @@ Expires at: 2021-06-15 23:00:00 +0000 UTC`
 }
 
 func listTokenOutputSummary() string {
-	return `TOKEN ID  USER ID  SCOPE                  SERVICES
-123       456      purge_all global:read  [a b]
-456       789      global                 [a b]`
+	return `TOKEN ID  NAME  USER ID  SCOPE                  SERVICES
+123       Foo   456      purge_all global:read  [a b]
+456       Bar   789      global                 [a b]`
 }

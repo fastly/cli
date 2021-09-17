@@ -277,9 +277,11 @@ COMMANDS
         --subnet=SUBNET          Number of bits for the subnet mask applied to
                                  the IP address
 
-  auth-token create [<flags>]
+  auth-token create --password=PASSWORD [<flags>]
     Create an API token
 
+    --password=PASSWORD      User password corresponding with --token or
+                             $FASTLY_API_TOKEN
     --expires=EXPIRES        Time-stamp (UTC) of when the token will expire
     --name=NAME              Name of the token
     --scope=SCOPE ...        A comma-separated list of authorization scope

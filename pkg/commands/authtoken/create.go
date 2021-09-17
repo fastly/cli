@@ -22,17 +22,23 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 
-	// NOTE: The go-fastly package allows providing a username/password as
-	// authentication, but as the CLI already expects an API token to be present
-	// we will use that instead of a username/password (the API supports both
-	// forms of authentication).
-	c.CmdClause.Flag("expires", "Time-stamp (UTC) of when the token will expire").HintOptions("2016-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expires)
-	c.CmdClause.Flag("name", "Name of the token").StringVar(&c.name)
+	// Required flags
+	//
+	// NOTE: The go-fastly client internally calls `/sudo` before `/tokens` and
+	// the sudo endpoint requires a password to be provided alongside an API
+	// token. The password must be for the user account that created the token
+	// being passed as authentication to the API endpoint.
+	c.CmdClause.Flag("password", "User password corresponding with --token or $FASTLY_API_TOKEN").Required().StringVar(&c.password)
+
+	// Optional flags
+	//
 	// NOTE: The API describes 'scope' as being space-delimited but we've opted
 	// for comma-separated as it means users don't have to worry about how best
 	// to handle issues with passing a flag value with whitespace. When
 	// constructing the input for the API call we convert from a comma-separated
 	// value to a space-delimited value.
+	c.CmdClause.Flag("expires", "Time-stamp (UTC) of when the token will expire").HintOptions("2016-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expires)
+	c.CmdClause.Flag("name", "Name of the token").StringVar(&c.name)
 	c.CmdClause.Flag("scope", "A comma-separated list of authorization scope").HintOptions("global", "purge_select", "purge_all", "global:read").StringsVar(&c.scope, kingpin.Separator(","))
 	c.CmdClause.Flag("services", "A comma-separated list of alphanumeric strings identifying services (default: access to all services)").StringsVar(&c.services, kingpin.Separator(","))
 	return &c
@@ -45,6 +51,7 @@ type CreateCommand struct {
 	expires  time.Time
 	manifest manifest.Data
 	name     string
+	password string
 	scope    []string
 	services []string
 }
@@ -72,6 +79,8 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput() *fastly.CreateTokenInput {
 	var input fastly.CreateTokenInput
+
+	input.Password = c.password
 
 	if !c.expires.IsZero() {
 		input.ExpiresAt = &c.expires
