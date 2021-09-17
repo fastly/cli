@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
+	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/configure"
@@ -156,6 +157,11 @@ func Run(opts RunOpts) error {
 	aclEntryDescribe := aclentry.NewDescribeCommand(aclEntryCmdRoot.CmdClause, &globals)
 	aclEntryList := aclentry.NewListCommand(aclEntryCmdRoot.CmdClause, &globals)
 	aclEntryUpdate := aclentry.NewUpdateCommand(aclEntryCmdRoot.CmdClause, &globals)
+	authtokenCmdRoot := authtoken.NewRootCommand(app, &globals)
+	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, &globals)
+	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, &globals)
+	authtokenDescribe := authtoken.NewDescribeCommand(authtokenCmdRoot.CmdClause, &globals)
+	authtokenList := authtoken.NewListCommand(authtokenCmdRoot.CmdClause, &globals)
 	backendCmdRoot := backend.NewRootCommand(app, &globals)
 	backendCreate := backend.NewCreateCommand(backendCmdRoot.CmdClause, &globals)
 	backendDelete := backend.NewDeleteCommand(backendCmdRoot.CmdClause, &globals)
@@ -402,6 +408,11 @@ func Run(opts RunOpts) error {
 	whoamiCmdRoot := whoami.NewRootCommand(app, opts.HTTPClient, &globals)
 
 	commands := []cmd.Command{
+		authtokenCmdRoot,
+		authtokenCreate,
+		authtokenDelete,
+		authtokenDescribe,
+		authtokenList,
 		aclCmdRoot,
 		aclCreate,
 		aclDelete,
