@@ -8,7 +8,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v3/fastly"
 	"github.com/fastly/kingpin"
@@ -22,10 +21,11 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.manifest.File.SetOutput(c.Globals.Output)
 	c.manifest.File.Read(manifest.Filename)
 
-	// NOTE: The go-fastly package allows providing a username/password as
-	// authentication, but as the CLI already expects an API token to be present
-	// we will use that instead of a username/password (the API supports both
-	// forms of authentication).
+	// Required flags
+	c.CmdClause.Flag("password", "Existing user's password for authentication").Required().StringVar(&c.password)
+	c.CmdClause.Flag("username", "Existing user's username for authentication").Required().StringVar(&c.username)
+
+	// Optional flags
 	c.CmdClause.Flag("expires", "Time-stamp (UTC) of when the token will expire").HintOptions("2016-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expires)
 	c.CmdClause.Flag("name", "Name of the token").StringVar(&c.name)
 	// NOTE: The API describes 'scope' as being space-delimited but we've opted
@@ -45,18 +45,14 @@ type CreateCommand struct {
 	expires  time.Time
 	manifest manifest.Data
 	name     string
+	password string
 	scope    []string
 	services []string
+	username string
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	// Exit early if no token configured.
-	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	input := c.constructInput()
 
 	r, err := c.Globals.Client.CreateToken(input)
@@ -72,6 +68,9 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput() *fastly.CreateTokenInput {
 	var input fastly.CreateTokenInput
+
+	input.Password = c.password
+	input.Username = c.username
 
 	if !c.expires.IsZero() {
 		input.ExpiresAt = &c.expires

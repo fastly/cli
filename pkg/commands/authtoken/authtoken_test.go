@@ -16,9 +16,14 @@ func TestCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token create"),
-			WantError: errors.ErrNoToken.Inner.Error(),
+			Name:      "validate missing --username flag",
+			Args:      args("auth-token create --password secure"),
+			WantError: "error parsing arguments: required flag --username not provided",
+		},
+		{
+			Name:      "validate missing --password flag",
+			Args:      args("auth-token create --username foo@example.com"),
+			WantError: "error parsing arguments: required flag --password not provided",
 		},
 		{
 			Name: "validate CreateToken API error",
@@ -27,11 +32,11 @@ func TestCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("auth-token create --token 123"),
+			Args:      args("auth-token create --username foo@example.com --password secure"),
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate CreateToken API success with no flags",
+			Name: "validate CreateToken API success",
 			API: mock.API{
 				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
@@ -42,7 +47,7 @@ func TestCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("auth-token create --token 123"),
+			Args:       args("auth-token create --username foo@example.com --password secure"),
 			WantOutput: "Created token 'Example' (id: 123, scope: foobar, expires: 2021-06-15 23:00:00 +0000 UTC)",
 		},
 		{
@@ -57,7 +62,7 @@ func TestCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("auth-token create --expires 2021-09-15T23:00:00Z --name Testing --scope purge_all,global:read --services a,b,c --token 123"),
+			Args:       args("auth-token create --username foo@example.com --password secure --expires 2021-09-15T23:00:00Z --name Testing --scope purge_all,global:read --services a,b,c --token 123"),
 			WantOutput: "Created token 'Testing' (id: 123, scope: purge_all global:read, expires: 2021-09-15 23:00:00 +0000 UTC)",
 		},
 	}
