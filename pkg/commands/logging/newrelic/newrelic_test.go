@@ -64,7 +64,7 @@ func TestNewRelicCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("logging newrelic create --key abc --name foo --service-id 123 --version 3 --region eu"),
+			Args:       args("logging newrelic create --key abc --name foo --service-id 123 --version 3"),
 			WantOutput: "Created New Relic logging endpoint 'foo' (service: 123, version: 3)",
 		},
 		{

@@ -2802,10 +2802,10 @@ COMMANDS
                                  for the configured endpoint
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed
+        --region=REGION          The region to which to stream logs
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint
-        --region=REGION          The region to which to stream logs
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
 
@@ -2862,10 +2862,10 @@ COMMANDS
                                  configuration
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed
+        --region=REGION          The region to which to stream logs
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint
-        --region=REGION          The region to which to stream logs
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
 

@@ -34,8 +34,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("format", "A Fastly log format string. Must produce valid JSON that New Relic Logs can ingest").StringVar(&c.format)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint").UintVar(&c.formatVersion)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").StringVar(&c.placement)
-	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
 	c.CmdClause.Flag("region", "The region to which to stream logs").StringVar(&c.region)
+	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 
 	return &c
@@ -52,8 +52,8 @@ type CreateCommand struct {
 	manifest          manifest.Data
 	name              string
 	placement         string
-	responseCondition cmd.OptionalString
 	region            string
+	responseCondition cmd.OptionalString
 	serviceVersion    cmd.OptionalServiceVersion
 }
 
@@ -108,11 +108,11 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 	if c.placement != "" {
 		input.Placement = c.placement
 	}
-	if c.responseCondition.WasSet {
-		input.ResponseCondition = c.responseCondition.Value
-	}
 	if c.region != "" {
 		input.Region = c.region
+	}
+	if c.responseCondition.WasSet {
+		input.ResponseCondition = c.responseCondition.Value
 	}
 
 	return &input
