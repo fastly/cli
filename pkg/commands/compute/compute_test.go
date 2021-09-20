@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"sort"
 	"strings"
 	"testing"
 
@@ -37,37 +36,26 @@ func TestPublishFlagDivergence(t *testing.T) {
 	publishFlags := getFlags(pcmd.CmdClause)
 
 	var (
-		expect []string
-		have   []string
+		expect = make(map[string]int)
+		have   = make(map[string]int)
 	)
 
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect = append(expect, fmt.Sprintf("%s", iter.Key()))
+		expect[iter.Key().String()] = 1
 	}
 	iter = deployFlags.MapRange()
 	for iter.Next() {
-		expect = append(expect, fmt.Sprintf("%s", iter.Key()))
+		expect[iter.Key().String()] = 1
 	}
 
 	iter = publishFlags.MapRange()
 	for iter.Next() {
-		have = append(have, fmt.Sprintf("%s", iter.Key()))
+		have[iter.Key().String()] = 1
 	}
 
-	sort.Strings(expect)
-	sort.Strings(have)
-
-	errMsg := "the flags between build/deploy and publish don't match"
-
-	if len(expect) != len(have) {
-		t.Fatal(errMsg)
-	}
-
-	for i, v := range expect {
-		if have[i] != v {
-			t.Fatalf("%s, expected: %s, got: %s", errMsg, v, have[i])
-		}
+	if !reflect.DeepEqual(expect, have) {
+		t.Fatalf("the flags between build/deploy and publish don't match")
 	}
 }
 
