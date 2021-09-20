@@ -454,6 +454,7 @@ COMMANDS
         --comment=COMMENT        Human-readable comment
         --domain=DOMAIN          The name of the domain associated to the
                                  package
+        --name=NAME              Package name
     -p, --path=PATH              Path to package
 
   compute init [<flags>]

@@ -76,6 +76,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and perform deploy non-interactively").BoolVar(&c.AcceptDefaults)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
+	c.CmdClause.Flag("name", "Package name").StringVar(&c.Manifest.Flag.Name)
 	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
 	return &c
 }
