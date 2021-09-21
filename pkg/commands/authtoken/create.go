@@ -72,7 +72,12 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created token '%s' (id: %s, scope: %s, expires: %s)", r.Name, r.ID, r.Scope, r.ExpiresAt)
+	expires := "never"
+	if r.ExpiresAt != nil {
+		expires = r.ExpiresAt.String()
+	}
+
+	text.Success(out, "Created token '%s' (name: %s, id: %s, scope: %s, expires: %s)", r.AccessToken, r.Name, r.ID, r.Scope, expires)
 	return nil
 }
 
