@@ -53,7 +53,6 @@ func (c *DescribeCommand) print(out io.Writer, r *fastly.Token) {
 	fmt.Fprintf(out, "Name: %s\n", r.Name)
 	fmt.Fprintf(out, "User ID: %s\n", r.UserID)
 	fmt.Fprintf(out, "Services: %s\n", strings.Join(r.Services, ", "))
-	fmt.Fprintf(out, "Access Token: %s\n", r.AccessToken)
 	fmt.Fprintf(out, "Scope: %s\n", r.Scope)
 	fmt.Fprintf(out, "IP: %s\n\n", r.IP)
 

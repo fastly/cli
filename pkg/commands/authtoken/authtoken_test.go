@@ -40,30 +40,32 @@ func TestCreate(t *testing.T) {
 			API: mock.API{
 				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
-						ExpiresAt: &testutil.Date,
-						ID:        "123",
-						Name:      "Example",
-						Scope:     "foobar",
+						ExpiresAt:   &testutil.Date,
+						ID:          "123",
+						Name:        "Example",
+						Scope:       "foobar",
+						AccessToken: "123abc",
 					}, nil
 				},
 			},
 			Args:       args("auth-token create --password secure --token 123"),
-			WantOutput: "Created token 'Example' (id: 123, scope: foobar, expires: 2021-06-15 23:00:00 +0000 UTC)",
+			WantOutput: "Created token '123abc' (name: Example, id: 123, scope: foobar, expires: 2021-06-15 23:00:00 +0000 UTC)",
 		},
 		{
 			Name: "validate CreateToken API success with all flags",
 			API: mock.API{
 				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
-						ExpiresAt: i.ExpiresAt,
-						ID:        "123",
-						Name:      i.Name,
-						Scope:     i.Scope,
+						ExpiresAt:   i.ExpiresAt,
+						ID:          "123",
+						Name:        i.Name,
+						Scope:       i.Scope,
+						AccessToken: "123abc",
 					}, nil
 				},
 			},
 			Args:       args("auth-token create --expires 2021-09-15T23:00:00Z --name Testing --password secure --scope purge_all,global:read --services a,b,c --token 123"),
-			WantOutput: "Created token 'Testing' (id: 123, scope: purge_all global:read, expires: 2021-09-15 23:00:00 +0000 UTC)",
+			WantOutput: "Created token '123abc' (name: Testing, id: 123, scope: purge_all global:read, expires: 2021-09-15 23:00:00 +0000 UTC)",
 		},
 	}
 
@@ -286,16 +288,15 @@ func getToken() (*fastly.Token, error) {
 	t := testutil.Date
 
 	return &fastly.Token{
-		ID:          "123",
-		Name:        "Foo",
-		UserID:      "456",
-		Services:    []string{"a", "b"},
-		AccessToken: "xyz",
-		Scope:       fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope)),
-		IP:          "127.0.0.1",
-		CreatedAt:   &t,
-		ExpiresAt:   &t,
-		LastUsedAt:  &t,
+		ID:         "123",
+		Name:       "Foo",
+		UserID:     "456",
+		Services:   []string{"a", "b"},
+		Scope:      fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope)),
+		IP:         "127.0.0.1",
+		CreatedAt:  &t,
+		ExpiresAt:  &t,
+		LastUsedAt: &t,
 	}, nil
 }
 
@@ -305,16 +306,15 @@ func listTokens() ([]*fastly.Token, error) {
 	vs := []*fastly.Token{
 		token,
 		{
-			ID:          "456",
-			Name:        "Bar",
-			UserID:      "789",
-			Services:    []string{"a", "b"},
-			AccessToken: "999",
-			Scope:       fastly.GlobalScope,
-			IP:          "127.0.0.2",
-			CreatedAt:   &t,
-			ExpiresAt:   &t,
-			LastUsedAt:  &t,
+			ID:         "456",
+			Name:       "Bar",
+			UserID:     "789",
+			Services:   []string{"a", "b"},
+			Scope:      fastly.GlobalScope,
+			IP:         "127.0.0.2",
+			CreatedAt:  &t,
+			ExpiresAt:  &t,
+			LastUsedAt: &t,
 		},
 	}
 	return vs, nil
@@ -339,7 +339,6 @@ ID: 123
 Name: Foo
 User ID: 456
 Services: a, b
-Access Token: xyz
 Scope: purge_all global:read
 IP: 127.0.0.1
 
@@ -356,7 +355,6 @@ ID: 123
 Name: Foo
 User ID: 456
 Services: a, b
-Access Token: xyz
 Scope: purge_all global:read
 IP: 127.0.0.1
 
@@ -368,7 +366,6 @@ ID: 456
 Name: Bar
 User ID: 789
 Services: a, b
-Access Token: 999
 Scope: global
 IP: 127.0.0.2
 
