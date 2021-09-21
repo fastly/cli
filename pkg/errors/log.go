@@ -10,7 +10,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/fastly/go-fastly/v3/fastly"
+	"github.com/fastly/go-fastly/v4/fastly"
 )
 
 // LogPath is the location of the fastly CLI error log.
