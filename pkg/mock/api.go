@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/fastly/go-fastly/v3/fastly"
+	"github.com/fastly/go-fastly/v4/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.
@@ -10,7 +10,6 @@ import (
 type API struct {
 	AllDatacentersFn func() (datacenters []fastly.Datacenter, err error)
 	AllIPsFn         func() (v4, v6 fastly.IPAddrs, err error)
-	GetTokenSelfFn   func() (*fastly.Token, error)
 
 	CreateServiceFn     func(*fastly.CreateServiceInput) (*fastly.Service, error)
 	ListServicesFn      func(*fastly.ListServicesInput) ([]*fastly.Service, error)
@@ -267,6 +266,14 @@ type API struct {
 	ListCustomerUsersFn func(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error)
 	UpdateUserFn        func(i *fastly.UpdateUserInput) (*fastly.User, error)
 	ResetUserPasswordFn func(i *fastly.ResetUserPasswordInput) error
+
+	BatchDeleteTokensFn  func(i *fastly.BatchDeleteTokensInput) error
+	CreateTokenFn        func(i *fastly.CreateTokenInput) (*fastly.Token, error)
+	DeleteTokenFn        func(i *fastly.DeleteTokenInput) error
+	DeleteTokenSelfFn    func() error
+	GetTokenSelfFn       func() (*fastly.Token, error)
+	ListCustomerTokensFn func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error)
+	ListTokensFn         func() ([]*fastly.Token, error)
 }
 
 // AllDatacenters implements Interface.
@@ -277,11 +284,6 @@ func (m API) AllDatacenters() ([]fastly.Datacenter, error) {
 // AllIPs implements Interface.
 func (m API) AllIPs() (fastly.IPAddrs, fastly.IPAddrs, error) {
 	return m.AllIPsFn()
-}
-
-// GetTokenSelf implements Interface.
-func (m API) GetTokenSelf() (*fastly.Token, error) {
-	return m.GetTokenSelfFn()
 }
 
 // CreateService implements Interface.
@@ -1347,4 +1349,39 @@ func (m API) UpdateUser(i *fastly.UpdateUserInput) (*fastly.User, error) {
 // ResetUserPassword implements Interface.
 func (m API) ResetUserPassword(i *fastly.ResetUserPasswordInput) error {
 	return m.ResetUserPasswordFn(i)
+}
+
+// BatchDeleteTokens implements Interface.
+func (m API) BatchDeleteTokens(i *fastly.BatchDeleteTokensInput) error {
+	return m.BatchDeleteTokensFn(i)
+}
+
+// CreateToken implements Interface.
+func (m API) CreateToken(i *fastly.CreateTokenInput) (*fastly.Token, error) {
+	return m.CreateTokenFn(i)
+}
+
+// DeleteToken implements Interface.
+func (m API) DeleteToken(i *fastly.DeleteTokenInput) error {
+	return m.DeleteTokenFn(i)
+}
+
+// DeleteTokenSelf implements Interface.
+func (m API) DeleteTokenSelf() error {
+	return m.DeleteTokenSelfFn()
+}
+
+// GetTokenSelf implements Interface.
+func (m API) GetTokenSelf() (*fastly.Token, error) {
+	return m.GetTokenSelfFn()
+}
+
+// ListCustomerTokens implements Interface.
+func (m API) ListCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
+	return m.ListCustomerTokensFn(i)
+}
+
+// ListTokens implements Interface.
+func (m API) ListTokens() ([]*fastly.Token, error) {
+	return m.ListTokensFn()
 }

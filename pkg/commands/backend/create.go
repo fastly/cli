@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v3/fastly"
+	"github.com/fastly/go-fastly/v4/fastly"
 )
 
 // CreateCommand calls the Fastly API to create backends.
@@ -64,7 +64,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.CmdClause.Flag("ssl-sni-hostname", "Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all.").StringVar(&c.Input.SSLSNIHostname)
 	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").StringVar(&c.Input.MinTLSVersion)
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").StringVar(&c.Input.MaxTLSVersion)
-	c.CmdClause.Flag("ssl-ciphers", "List of OpenSSL ciphers (see https://www.openssl.org/docs/man1.0.2/man1/ciphers for details)").StringsVar(&c.Input.SSLCiphers)
+	c.CmdClause.Flag("ssl-ciphers", "Colon delimited list of OpenSSL ciphers (see https://www.openssl.org/docs/man1.0.2/man1/ciphers for details)").StringVar(&c.Input.SSLCiphers)
 
 	return &c
 }

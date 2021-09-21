@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/go-fastly/v3/fastly"
+	"github.com/fastly/go-fastly/v4/fastly"
 )
 
 // DescribeCommand calls the Fastly API to describe a Google Cloud Pub/Sub logging endpoint.

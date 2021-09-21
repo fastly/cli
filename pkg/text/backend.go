@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v3/fastly"
+	"github.com/fastly/go-fastly/v4/fastly"
 	"github.com/segmentio/textio"
 )
 

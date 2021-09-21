@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/fastly/go-fastly/v3/fastly"
+	"github.com/fastly/go-fastly/v4/fastly"
 )
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some
@@ -19,7 +19,6 @@ type HTTPClient interface {
 type Interface interface {
 	AllIPs() (v4, v6 fastly.IPAddrs, err error)
 	AllDatacenters() (datacenters []fastly.Datacenter, err error)
-	GetTokenSelf() (*fastly.Token, error)
 
 	CreateService(*fastly.CreateServiceInput) (*fastly.Service, error)
 	ListServices(*fastly.ListServicesInput) ([]*fastly.Service, error)
@@ -276,6 +275,14 @@ type Interface interface {
 	ListCustomerUsers(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error)
 	UpdateUser(i *fastly.UpdateUserInput) (*fastly.User, error)
 	ResetUserPassword(i *fastly.ResetUserPasswordInput) error
+
+	BatchDeleteTokens(i *fastly.BatchDeleteTokensInput) error
+	CreateToken(i *fastly.CreateTokenInput) (*fastly.Token, error)
+	DeleteToken(i *fastly.DeleteTokenInput) error
+	DeleteTokenSelf() error
+	GetTokenSelf() (*fastly.Token, error)
+	ListCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error)
+	ListTokens() ([]*fastly.Token, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
