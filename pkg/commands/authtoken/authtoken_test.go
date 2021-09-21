@@ -379,6 +379,6 @@ Expires at: 2021-06-15 23:00:00 +0000 UTC`
 
 func listTokenOutputSummary() string {
 	return `NAME  TOKEN ID  USER ID  SCOPE                  SERVICES
-Foo   123       456      purge_all global:read  [a b]
-Bar   456       789      global                 [a b]`
+Foo   123       456      purge_all global:read  a, b
+Bar   456       789      global                 a, b`
 }

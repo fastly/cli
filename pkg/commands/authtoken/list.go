@@ -109,7 +109,7 @@ func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.Token) {
 	t := text.NewTable(out)
 	t.AddHeader("NAME", "TOKEN ID", "USER ID", "SCOPE", "SERVICES")
 	for _, r := range rs {
-		t.AddLine(r.Name, r.ID, r.UserID, r.Scope, r.Services)
+		t.AddLine(r.Name, r.ID, r.UserID, r.Scope, strings.Join(r.Services, ", "))
 	}
 	t.Print()
 }
