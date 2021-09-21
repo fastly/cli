@@ -364,8 +364,7 @@ COMMANDS
         --max-tls-version=MAX-TLS-VERSION
                                    Maximum allowed TLS version on SSL
                                    connections to this backend
-        --ssl-ciphers=SSL-CIPHERS ...
-                                   List of OpenSSL ciphers (see
+        --ssl-ciphers=SSL-CIPHERS  Colon delimited list of OpenSSL ciphers (see
                                    https://www.openssl.org/docs/man1.0.2/man1/ciphers
                                    for details)
 
@@ -457,8 +456,7 @@ COMMANDS
         --max-tls-version=MAX-TLS-VERSION
                                    Maximum allowed TLS version on SSL
                                    connections to this backend
-        --ssl-ciphers=SSL-CIPHERS ...
-                                   List of OpenSSL ciphers (see
+        --ssl-ciphers=SSL-CIPHERS  Colon delimited list of OpenSSL ciphers (see
                                    https://www.openssl.org/docs/man1.0.2/man1/ciphers
                                    for details)
 

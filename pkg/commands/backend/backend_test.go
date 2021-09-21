@@ -360,7 +360,7 @@ var listBackendsVerboseOutput = strings.Join([]string{
 	"		SSL SNI hostname: ",
 	"		Min TLS version: ",
 	"		Max TLS version: ",
-	"		SSL ciphers: []",
+	"		SSL ciphers: ",
 	"	Backend 2/2",
 	"		Name: example.com",
 	"		Comment: example",
@@ -384,7 +384,7 @@ var listBackendsVerboseOutput = strings.Join([]string{
 	"		SSL SNI hostname: ",
 	"		Min TLS version: ",
 	"		Max TLS version: ",
-	"		SSL ciphers: []",
+	"		SSL ciphers: ",
 }, "\n") + "\n\n"
 
 func getBackendOK(i *fastly.GetBackendInput) (*fastly.Backend, error) {
@@ -427,7 +427,7 @@ var describeBackendOutput = strings.Join([]string{
 	"SSL SNI hostname: ",
 	"Min TLS version: ",
 	"Max TLS version: ",
-	"SSL ciphers: []",
+	"SSL ciphers: ",
 }, "\n") + "\n"
 
 func updateBackendOK(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
