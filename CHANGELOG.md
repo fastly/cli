@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.39.1](https://github.com/fastly/cli/releases/tag/v0.39.1) (2021-09-21)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.39.0...v0.39.1)
+
+**Bug fixes:**
+
+* Bug fixes for `auth-token` [#413](https://github.com/fastly/cli/pull/413)
+
 ## [v0.39.0](https://github.com/fastly/cli/releases/tag/v0.39.0) (2021-09-21)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.38.0...v0.39.0)
