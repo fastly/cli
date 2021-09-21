@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.39.0](https://github.com/fastly/cli/releases/tag/v0.39.0) (2021-09-21)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.38.0...v0.39.0)
+
+**Enhancements:**
+
+* Implement `user` commands [#406](https://github.com/fastly/cli/pull/406)
+* Implement `auth-token` commands [#409](https://github.com/fastly/cli/pull/409)
+* Add region support for New Relic logging endpoint [#378](https://github.com/fastly/cli/pull/378)
+
+**Bug fixes:**
+
+* Add the `--name` flag to `compute deploy` [#410](https://github.com/fastly/cli/pull/410)
+
 ## [v0.38.0](https://github.com/fastly/cli/releases/tag/v0.38.0) (2021-09-15)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.37.1...v0.38.0)
