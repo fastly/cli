@@ -227,7 +227,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// RESOURCE CONFIGURATION...
 
-	if !hasDomain || !hasRequiredBackends || !hasRequiredACLs {
+	if !hasDomain || !hasRequiredBackends || len(predefinedACLs) > 0 && !hasRequiredACLs {
 		if !c.AcceptDefaults {
 			text.Output(out, "Service '%s' is missing required resources. These must be added before the Compute@Edge service can be deployed. Please ensure your fastly.toml configuration reflects any manual changes made via manage.fastly.com, otherwise follow the prompts to create the required resources.", serviceID)
 			text.Break(out)
@@ -252,7 +252,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if !hasRequiredACLs {
+	if len(predefinedACLs) > 0 && !hasRequiredACLs {
 		aclsToCreate, err = configureACLs(c, aclsToCreate, missingACLs, out, in)
 		if err != nil {
 			return err
