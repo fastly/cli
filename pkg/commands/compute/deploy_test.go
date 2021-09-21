@@ -118,6 +118,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -140,6 +141,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -211,6 +213,7 @@ func TestDeploy(t *testing.T) {
 				DeleteServiceFn: deleteServiceOK,
 				ListDomainsFn:   listDomainsOk,
 				ListBackendsFn:  listBackendsOk,
+				ListACLsFn:      listACLsOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -253,6 +256,7 @@ func TestDeploy(t *testing.T) {
 				DeleteServiceFn: deleteServiceOK,
 				ListDomainsFn:   listDomainsNone,
 				ListBackendsFn:  listBackendsOk,
+				ListACLsFn:      listACLsOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -266,7 +270,8 @@ func TestDeploy(t *testing.T) {
 		// The following test doesn't provide a Service ID by either a flag nor the
 		// manifest, so this will result in the deploy script attempting to create
 		// a new service. We mock the service creation to be successful while we
-		// mock the backend API call to fail.
+		// mock the backend API call to succeed but to return an unexpected empty
+		// list of Backends.
 		{
 			name: "service backend error",
 			args: args("compute deploy --token 123"),
@@ -279,6 +284,7 @@ func TestDeploy(t *testing.T) {
 				DeleteServiceFn: deleteServiceOK,
 				ListDomainsFn:   listDomainsOk,
 				ListBackendsFn:  listBackendsNone,
+				ListACLsFn:      listACLsOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -301,6 +307,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsNone,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 				CreateDomainFn:    createDomainOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
@@ -322,6 +329,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:   getServiceOK,
 				ListDomainsFn:  listDomainsOk,
 				ListBackendsFn: listBackendsOk,
+				ListACLsFn:     listACLsOk,
 				GetPackageFn:   getPackageIdentical,
 			},
 			wantOutput: []string{
@@ -336,6 +344,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -358,6 +367,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -380,6 +390,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -399,6 +410,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -418,6 +430,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -437,6 +450,7 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -464,6 +478,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 			},
 			manifest: `
 			name = "package"
@@ -512,6 +527,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 			},
 			manifest: `
 			name = "package"
@@ -559,6 +575,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsOk,
+				ListACLsFn:        listACLsOk,
 			},
 			manifest: `
 			name = "package"
@@ -601,10 +618,10 @@ func TestDeploy(t *testing.T) {
 			name: "error with setup configuration and missing required fields",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn: createServiceOK,
-				ListDomainsFn:   listDomainsOk,
-				ListBackendsFn:  listBackendsNone,
-
+				CreateServiceFn:   createServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListBackendsFn:    listBackendsNone,
+				ListACLsFn:        listACLsOk,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
@@ -636,6 +653,7 @@ func TestDeploy(t *testing.T) {
 				CreateServiceFn: createServiceOK,
 				ListDomainsFn:   listDomainsOk,
 				ListBackendsFn:  listBackendsOk,
+				ListACLsFn:      listACLsOk,
 			},
 			manifest: `
 			name = "package"
@@ -677,6 +695,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsNone,
+				ListACLsFn:        listACLsOk,
 			},
 			wantOutput: []string{
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -697,6 +716,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsNone,
+				ListACLsFn:        listACLsOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -728,6 +748,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsNone,
+				ListACLsFn:        listACLsOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -763,6 +784,7 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn: activateVersionOk,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsNone,
+				ListACLsFn:        listACLsOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -786,6 +808,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsNone,
+				ListACLsFn:        listACLsOk,
 				CreateBackendFn:   createBackendOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
@@ -817,6 +840,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsNone,
+				ListACLsFn:        listACLsOk,
 				CreateBackendFn:   createBackendOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
@@ -840,6 +864,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
 				ListBackendsFn:    listBackendsSome,
+				ListACLsFn:        listACLsOk,
 				CreateBackendFn:   createBackendOK,
 				GetPackageFn:      getPackageOk,
 				UpdatePackageFn:   updatePackageOk,
@@ -1056,4 +1081,11 @@ func listBackendsSome(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 
 func listDomainsNone(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{}, nil
+}
+
+func listACLsOk(i *fastly.ListACLsInput) ([]*fastly.ACL, error) {
+	return []*fastly.ACL{
+		{Name: "foo"},
+		{Name: "bar"},
+	}, nil
 }
