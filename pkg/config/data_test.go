@@ -53,22 +53,20 @@ var staticConfig []byte
 var staticConfigInvalid []byte
 
 type testReadScenario struct {
-	lastCheckedVersionSet bool
-	name                  string
-	remediation           bool
-	staticConfig          []byte
-	userConfigFilename    string
-	userResponseToPrompt  string
-	wantError             string
+	name                 string
+	remediation          bool
+	staticConfig         []byte
+	userConfigFilename   string
+	userResponseToPrompt string
+	wantError            string
 }
 
 // TestConfigRead validates all logic flows within config.File.Read()
 func TestConfigRead(t *testing.T) {
 	scenarios := []testReadScenario{
 		{
-			name:                  "static config should be used when there is no local user config",
-			lastCheckedVersionSet: true,
-			staticConfig:          staticConfig,
+			name:         "static config should be used when there is no local user config",
+			staticConfig: staticConfig,
 		},
 		{
 			name:         "static config should return an error when invalid",
@@ -91,12 +89,16 @@ func TestConfigRead(t *testing.T) {
 			wantError:            config.RemediationManualFix,
 		},
 		{
-			name:                  "when user config is in the legacy format, it should return a specific error",
-			lastCheckedVersionSet: true,
-			staticConfig:          staticConfig,
-			userConfigFilename:    "config-legacy.toml",
-			userResponseToPrompt:  "no",
-			wantError:             config.ErrLegacyConfig.Error(),
+			name:                 "when user config is in the legacy format, it should return a specific error",
+			staticConfig:         staticConfig,
+			userConfigFilename:   "config-legacy.toml",
+			userResponseToPrompt: "no",
+			wantError:            config.ErrLegacyConfig.Error(),
+		},
+		{
+			name:               "when user config is valid, it should return no error",
+			staticConfig:       staticConfig,
+			userConfigFilename: "config.toml",
 		},
 	}
 

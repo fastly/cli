@@ -20,16 +20,21 @@ version = "0.0.1"
 [starter-kits]
 [[starter-kits.assemblyscript]]
   name = "Default"
+  description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
   path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
-  tag = "v0.2.1"
+[[starter-kits.javascript]]
+  name = "Default"
+  description = "A basic starter kit that demonstrates routing and simple synthetic responses."
+  path = "https://github.com/fastly/compute-starter-kit-javascript-default"
 [[starter-kits.rust]]
   name = "Default"
-  path = "https://github.com/fastly/compute-starter-kit-rust-default.git"
-  branch = "0.7"
+  description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+  path = "https://github.com/fastly/compute-starter-kit-rust-default"
 [[starter-kits.rust]]
   name = "Beacon"
-  path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination.git"
+  description = "Capture beacon data from the browser, divert beacon request payloads to a log endpoint, and avoid putting load on your own infrastructure."
+  path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination"
 [[starter-kits.rust]]
   name = "Static"
-  path = "https://github.com/fastly/compute-starter-kit-rust-static-content.git"
-
+  description = "Apply performance, security and usability upgrades to static bucket services such as Google Cloud Storage or AWS S3."
+  path = "https://github.com/fastly/compute-starter-kit-rust-static-content"
