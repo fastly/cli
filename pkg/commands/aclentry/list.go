@@ -106,9 +106,9 @@ func (c *ListCommand) printVerbose(out io.Writer, as []*fastly.ACLEntry) {
 // format.
 func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry) {
 	t := text.NewTable(out)
-	t.AddHeader("SERVICE ID", "ID", "IP", "SUBNET")
+	t.AddHeader("SERVICE ID", "ID", "IP", "SUBNET", "NEGATED")
 	for _, a := range as {
-		t.AddLine(a.ServiceID, a.ID, a.IP, a.Subnet)
+		t.AddLine(a.ServiceID, a.ID, a.IP, a.Subnet, a.Negated)
 	}
 	t.Print()
 }

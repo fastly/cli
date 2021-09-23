@@ -214,7 +214,7 @@ func TestACLEntryList(t *testing.T) {
 				ListACLEntriesFn: listACLEntries,
 			},
 			Args:       args("acl-entry list --acl-id 123 --service-id 123"),
-			WantOutput: "SERVICE ID  ID   IP         SUBNET\n123         456  127.0.0.1  0\n123         789  127.0.0.2  0\n",
+			WantOutput: "SERVICE ID  ID   IP         SUBNET  NEGATED\n123         456  127.0.0.1  0       false\n123         789  127.0.0.2  0       true\n",
 		},
 		{
 			Name: "validate --verbose flag",
