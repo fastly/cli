@@ -10,7 +10,7 @@ import (
 	fsterrs "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v4/fastly"
+	"github.com/fastly/go-fastly/v5/fastly"
 )
 
 func TestScalyrCreate(t *testing.T) {
