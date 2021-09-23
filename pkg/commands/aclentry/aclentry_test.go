@@ -51,7 +51,23 @@ func TestACLEntryCreate(t *testing.T) {
 				},
 			},
 			Args:       args("acl-entry create --acl-id 123 --ip 127.0.0.1 --service-id 123"),
-			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, service: 123)",
+			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, negated: false, service: 123)",
+		},
+		{
+			Name: "validate CreateACLEntry API success with negated IP",
+			API: mock.API{
+				CreateACLEntryFn: func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
+					return &fastly.ACLEntry{
+						ACLID:     i.ACLID,
+						ID:        "456",
+						IP:        i.IP,
+						ServiceID: i.ServiceID,
+						Negated:   bool(i.Negated),
+					}, nil
+				},
+			},
+			Args:       args("acl-entry create --acl-id 123 --ip 127.0.0.1 --negated --service-id 123"),
+			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, negated: true, service: 123)",
 		},
 	}
 

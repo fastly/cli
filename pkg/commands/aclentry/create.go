@@ -66,7 +66,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created ACL entry '%s' (ip: %s, service: %s)", a.ID, a.IP, a.ServiceID)
+	text.Success(out, "Created ACL entry '%s' (ip: %s, negated: %t, service: %s)", a.ID, a.IP, a.Negated, a.ServiceID)
 	return nil
 }
 
@@ -82,7 +82,7 @@ func (c *CreateCommand) constructInput(serviceID string) *fastly.CreateACLEntryI
 		input.Comment = c.comment.Value
 	}
 	if c.negated.WasSet {
-		input.Negated = c.negated.Value
+		input.Negated = fastly.Compatibool(c.negated.Value)
 	}
 	if c.subnet.WasSet {
 		input.Subnet = c.subnet.Value
