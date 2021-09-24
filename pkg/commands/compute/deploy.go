@@ -742,7 +742,7 @@ func configurePredefinedBackend(i int, backend manifest.Mapper, c *DeployCommand
 	innerErr := fmt.Errorf("error parsing the [[setup.backends]] configuration")
 	remediation := "Check the fastly.toml configuration for a missing or invalid '%s' field."
 
-	// ADDRESS DEFAULT (REQUIRED)
+	// ADDRESS (REQUIRED)
 	{
 		if _, ok = backend["address"]; ok {
 			addr, ok = backend["address"].(string)
@@ -754,7 +754,7 @@ func configurePredefinedBackend(i int, backend manifest.Mapper, c *DeployCommand
 		}
 	}
 
-	// NAME DEFAULT
+	// NAME
 	{
 		if _, ok = backend["name"]; ok {
 			name, ok = backend["name"].(string)
@@ -769,7 +769,7 @@ func configurePredefinedBackend(i int, backend manifest.Mapper, c *DeployCommand
 		}
 	}
 
-	// PROMPT DEFAULT
+	// PROMPT
 	{
 		if _, ok := backend["prompt"]; ok {
 			prompt, ok = backend["prompt"].(string)
@@ -784,7 +784,7 @@ func configurePredefinedBackend(i int, backend manifest.Mapper, c *DeployCommand
 		}
 	}
 
-	// PORT DEFAULT
+	// PORT
 	{
 		if _, ok = backend["port"]; ok {
 			p, ok := backend["port"].(int64)
