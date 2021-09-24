@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v4/fastly"
+	"github.com/fastly/go-fastly/v5/fastly"
 )
 
 func TestACLEntryCreate(t *testing.T) {
@@ -51,7 +51,23 @@ func TestACLEntryCreate(t *testing.T) {
 				},
 			},
 			Args:       args("acl-entry create --acl-id 123 --ip 127.0.0.1 --service-id 123"),
-			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, service: 123)",
+			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, negated: false, service: 123)",
+		},
+		{
+			Name: "validate CreateACLEntry API success with negated IP",
+			API: mock.API{
+				CreateACLEntryFn: func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
+					return &fastly.ACLEntry{
+						ACLID:     i.ACLID,
+						ID:        "456",
+						IP:        i.IP,
+						ServiceID: i.ServiceID,
+						Negated:   bool(i.Negated),
+					}, nil
+				},
+			},
+			Args:       args("acl-entry create --acl-id 123 --ip 127.0.0.1 --negated --service-id 123"),
+			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, negated: true, service: 123)",
 		},
 	}
 
@@ -198,7 +214,7 @@ func TestACLEntryList(t *testing.T) {
 				ListACLEntriesFn: listACLEntries,
 			},
 			Args:       args("acl-entry list --acl-id 123 --service-id 123"),
-			WantOutput: "SERVICE ID  ID   IP         SUBNET\n123         456  127.0.0.1  0\n123         789  127.0.0.2  0\n",
+			WantOutput: "SERVICE ID  ID   IP         SUBNET  NEGATED\n123         456  127.0.0.1  0       false\n123         789  127.0.0.2  0       true\n",
 		},
 		{
 			Name: "validate --verbose flag",

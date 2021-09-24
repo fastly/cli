@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v4/fastly"
+	"github.com/fastly/go-fastly/v5/fastly"
 )
 
 func TestOpenstackCreate(t *testing.T) {

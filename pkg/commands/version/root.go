@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/useragent"
-	"github.com/fastly/go-fastly/v4/fastly"
+	"github.com/fastly/go-fastly/v5/fastly"
 )
 
 func init() {

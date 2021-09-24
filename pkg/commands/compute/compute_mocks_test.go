@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v4/fastly"
+	"github.com/fastly/go-fastly/v5/fastly"
 )
 
 func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {

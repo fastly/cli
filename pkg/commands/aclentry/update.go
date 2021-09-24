@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v4/fastly"
+	"github.com/fastly/go-fastly/v5/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -148,7 +148,7 @@ func (c *UpdateCommand) constructInput(serviceID string) (*fastly.UpdateACLEntry
 		input.IP = fastly.String(c.ip.Value)
 	}
 	if c.negated.WasSet {
-		input.Negated = fastly.Bool(c.negated.Value)
+		input.Negated = fastly.CBool(c.negated.Value)
 	}
 	if c.subnet.WasSet {
 		input.Subnet = fastly.Int(c.subnet.Value)
