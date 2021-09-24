@@ -168,7 +168,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	predefinedBackends := c.Manifest.File.Setup.Backends
 	if len(predefinedBackends) > 0 {
-		missingBackends, err = serviceMissingConfiguredBackends(serviceID, serviceVersion.Number, apiClient, availableBackends, predefinedBackends)
+		missingBackends, err = serviceMissingConfiguredBackends(serviceID, serviceVersion.Number, availableBackends, predefinedBackends)
 		if err != nil {
 			errLogService(errLog, err, serviceID, serviceVersion.Number)
 			return err
@@ -548,7 +548,7 @@ func checkServiceID(serviceID string, client api.Interface, version *fastly.Vers
 
 // serviceMissingConfiguredBackends analyses the predefined [setup]
 // configuration and returns a list of missing backends.
-func serviceMissingConfiguredBackends(sid string, sv int, apiClient api.Interface, availableBackends []*fastly.Backend, predefinedBackends []manifest.Mapper) ([]manifest.Mapper, error) {
+func serviceMissingConfiguredBackends(sid string, sv int, availableBackends []*fastly.Backend, predefinedBackends []manifest.Mapper) ([]manifest.Mapper, error) {
 	var missingBackends []manifest.Mapper
 
 	// Error descriptions used if we need to handle [setup] configuration
