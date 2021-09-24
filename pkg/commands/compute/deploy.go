@@ -925,6 +925,9 @@ func createOriginlessBackend() (b Backend) {
 }
 
 // validateBackend ensures the input backend is a valid hostname or IP.
+//
+// NOTE: An empty value is allowed because it allows the caller to
+// short-circuit logic related to whether the user is prompted endlessly.
 func validateBackend(input string) error {
 	var isHost bool
 	if _, err := net.LookupHost(input); err == nil {
