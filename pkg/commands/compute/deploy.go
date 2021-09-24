@@ -869,10 +869,6 @@ func configurePromptBackends(c *DeployCommand, out io.Writer, in io.Reader, f va
 	for {
 		var backend Backend
 
-		if backend.Name == "" {
-			backend.Name = backend.Address
-		}
-
 		backend.Address, err = text.Input(out, "Backend (hostname or IP address, or leave blank to stop adding backends): ", in, f)
 		if err != nil {
 			return backends, fmt.Errorf("error reading input %w", err)
@@ -904,15 +900,13 @@ func configurePromptBackends(c *DeployCommand, out io.Writer, in io.Reader, f va
 
 		backend.Port = uint(portnumber)
 
+		backend.Name, err = text.Input(out, "Backend name: ", in)
+		if err != nil {
+			return backends, fmt.Errorf("error reading input %w", err)
+		}
 		if backend.Name == "" {
-			backend.Name, err = text.Input(out, "Backend name: ", in)
-			if err != nil {
-				return backends, fmt.Errorf("error reading input %w", err)
-			}
-			if backend.Name == "" {
-				i = i + 1
-				backend.Name = fmt.Sprintf("backend_%d", i)
-			}
+			i = i + 1
+			backend.Name = fmt.Sprintf("backend_%d", i)
 		}
 
 		setBackendHost(&backend)
