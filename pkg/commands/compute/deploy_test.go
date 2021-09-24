@@ -266,7 +266,8 @@ func TestDeploy(t *testing.T) {
 		// The following test doesn't provide a Service ID by either a flag nor the
 		// manifest, so this will result in the deploy script attempting to create
 		// a new service. We mock the service creation to be successful while we
-		// mock the backend API call to fail.
+		// mock the backend API call to succeed but to return an unexpected empty
+		// list of Backends.
 		{
 			name: "service backend error",
 			args: args("compute deploy --token 123"),
