@@ -396,7 +396,7 @@ func pkgFrom(from string, branch string, tag string, manifestExist bool, kits []
 			text.Indent(out, 4, "%s", kit.Description)
 			text.Indent(out, 4, "%s", kit.Path)
 		}
-		option, err := text.Input(out, "Choose option or type URL: [1] ", in, validateTemplateOptionOrURL(kits))
+		option, err := text.Input(out, "Choose option or paste git URL: [1] ", in, validateTemplateOptionOrURL(kits))
 		if err != nil {
 			return "", "", "", fmt.Errorf("error reading input %w", err)
 		}
@@ -662,7 +662,7 @@ func validateLanguageOption(languages []*Language) func(string) error {
 
 func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) error {
 	return func(input string) error {
-		msg := "must be a valid option or Git URL"
+		msg := "must be a valid option or git URL"
 		if input == "" {
 			return nil
 		}
