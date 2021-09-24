@@ -389,7 +389,12 @@ func pkgFrom(from string, branch string, tag string, manifestExist bool, kits []
 	if from == "" && !manifestExist {
 		text.Output(out, "%s", text.Bold("Starter kit:"))
 		for i, kit := range kits {
-			text.Output(out, "[%d] %s (%s)", i+1, kit.Name, kit.Path)
+			// NOTE: the text.Indent and text.Output internal implementation means
+			// newlines and spaces get stripped, so we have to make multiple calls to
+			// get the format we need.
+			fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
+			text.Indent(out, 4, "%s", kit.Description)
+			text.Indent(out, 4, "%s", kit.Path)
 		}
 		option, err := text.Input(out, "Choose option or type URL: [1] ", in, validateTemplateOptionOrURL(kits))
 		if err != nil {
