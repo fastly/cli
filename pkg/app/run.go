@@ -65,7 +65,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/whoami"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -89,7 +89,7 @@ type RunOpts struct {
 	ConfigFile config.File
 	ConfigPath string
 	Env        config.Environment
-	ErrLog     errors.LogInterface
+	ErrLog     fsterr.LogInterface
 	HTTPClient api.HTTPClient
 	Stdin      io.Reader
 	Stdout     io.Writer
@@ -148,7 +148,7 @@ func Run(opts RunOpts) error {
 
 	var data manifest.Data
 	data.File.SetOutput(globals.Output)
-	data.File.Read(manifest.Filename)
+	err := data.File.Read(manifest.Filename)
 
 	aclCmdRoot := acl.NewRootCommand(app, &globals)
 	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, &globals, data)
@@ -687,11 +687,11 @@ func Run(opts RunOpts) error {
 	if err != nil && !argsIsHelpJSON(opts.Args) { // Ignore error if `help --format json`
 		globals.ErrLog.Add(err)
 		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
-		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("error parsing arguments: %w", err)}
+		return fsterr.RemediationError{Prefix: usage, Inner: fmt.Errorf("error parsing arguments: %w", err)}
 	}
 	if ctx, _ := app.ParseContext(opts.Args); contextHasHelpFlag(ctx) {
 		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
-		return errors.RemediationError{Prefix: usage}
+		return fsterr.RemediationError{Prefix: usage}
 	}
 	app.Writers(opts.Stdout, io.Discard)
 
@@ -732,7 +732,7 @@ func Run(opts RunOpts) error {
 			fmt.Fprintln(&buf, "")
 		}
 
-		return errors.RemediationError{Prefix: buf.String()}
+		return fsterr.RemediationError{Prefix: buf.String()}
 	}
 
 	token, source := globals.Token()
@@ -790,7 +790,7 @@ func Run(opts RunOpts) error {
 	command, found := cmd.Select(name, commands)
 	if !found {
 		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
-		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
+		return fsterr.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
 	}
 
 	if opts.Versioners.CLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {

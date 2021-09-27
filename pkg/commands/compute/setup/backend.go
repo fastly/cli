@@ -8,25 +8,30 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/undo"
 	"github.com/fastly/go-fastly/v5/fastly"
 )
 
 // Backends represents the service state related to backends defined within the
 // fastly.toml [setup] configuration.
+//
+// NOTE: It implements the setup.Interface interface.
 type Backends struct {
+	// Public
 	Available      []*fastly.Backend
 	APIClient      api.Interface
 	Progress       text.Progress
 	Required       []Backend
 	ServiceID      string
 	ServiceVersion int
-	Setup          map[string]manifest.SetupBackend
+	Setup          map[string]*manifest.SetupBackend
 	AcceptDefaults bool
 	Stdin          io.Reader
 	Stdout         io.Writer
-	UndoStack      undo.Stacker
+
+	// Private
+	missing bool
 }
 
 // Backend represents the configuration parameters for creating a backend via
@@ -39,35 +44,9 @@ type Backend struct {
 	SSLSNIHostname string
 }
 
-// Predefined implements the setup interface.
-func (b *Backends) Predefined() bool {
-	return len(b.Setup) > 0
-}
-
-// Missing implements the setup interface.
-//
-// NOTE: We return 'false' if the user has ended up with an originless backend.
-// This is because we don't want to reveal the fact a backend is still
-// currently required even when dealing with the C@E platform.
-func (b *Backends) Missing() bool {
-	if b.isOriginless() {
-		return false
-	}
-	if len(b.Required) > 0 {
-		return true
-	}
-	return false
-}
-
-// isOriginless indicates if the required backend is originless.
-func (b *Backends) isOriginless() bool {
-	return len(b.Required) == 1 && b.Required[0].Name == "originless" && b.Required[0].Address == "127.0.0.1"
-}
-
-// Configure implements the setup interface.
-func (b *Backends) Configure() error {
-	//
-
+// Configure prompts the user (if necessary) for specific values related to the
+// service resource.
+func (b *Backends) Configure() (err error) {
 	if b.Predefined() {
 		return b.checkPredefined()
 	} else {
@@ -75,66 +54,189 @@ func (b *Backends) Configure() error {
 	}
 }
 
-// checkPredefined identifies required backends that are missing from the
-// user's service.
-func (b *Backends) checkPredefined() (err error) {
-	for name, settings := range b.Setup {
-		prompt := settings.Prompt
-		if settings.Prompt == "" {
-			prompt = fmt.Sprintf("Backend for '%s'", name)
+// Create calls the relevant API to create the service resource(s).
+func (b *Backends) Create() error {
+	if b.Progress == nil {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.Backends"),
+			Remediation: errors.BugRemediation,
+		}
+	}
+
+	for _, backend := range b.Required {
+		if !b.isOriginless() {
+			b.Progress.Step(fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", backend.Name, backend.Address, backend.Port))
 		}
 
-		if settings.Address == "" {
-			settings.Address, err = text.Input(b.Stdout, prompt, b.Stdin, b.validateAddress)
-			if err != nil || settings.Address == "" {
-				return fmt.Errorf("error reading prompt input: %w", err)
+		_, err := b.APIClient.CreateBackend(&fastly.CreateBackendInput{
+			ServiceID:      b.ServiceID,
+			ServiceVersion: b.ServiceVersion,
+			Name:           backend.Name,
+			Address:        backend.Address,
+			Port:           backend.Port,
+			OverrideHost:   backend.OverrideHost,
+			SSLSNIHostname: backend.SSLSNIHostname,
+		})
+		if err != nil {
+			b.Progress.Fail()
+			if b.isOriginless() {
+				return fmt.Errorf("error configuring the service: %w", err)
+			}
+			return fmt.Errorf("error creating backend: %w", err)
+		}
+	}
+
+	b.missing = false
+	return nil
+}
+
+// Missing indicates if there are missing resources that need to be created.
+func (b *Backends) Missing() bool {
+	return b.missing || len(b.Required) > 0
+}
+
+// Predefined indicates if the service resource has been specified within the
+// fastly.toml file using a [setup] configuration block.
+func (b *Backends) Predefined() bool {
+	return len(b.Setup) > 0
+}
+
+// Validate checks if the service has the required resources.
+//
+// NOTE: It should set an internal `missing` field (boolean) accordingly so that
+// the Missing() method can report the state of the resource.
+func (b *Backends) Validate() (err error) {
+	if err = b.available(); err != nil {
+		return err
+	}
+
+	if b.Predefined() {
+		for name, settings := range b.Setup {
+			var (
+				condition bool
+				found     bool
+			)
+
+			for _, backend := range b.Available {
+				condition = backend.Name == name && backend.Address == settings.Address
+				if settings.Port != 0 {
+					condition = condition && backend.Port == settings.Port
+				}
+				if condition {
+					settings.Exists = true
+					found = true
+				}
+			}
+
+			if !found {
+				b.missing = true
+				break
 			}
 		}
+	}
 
-		if settings.Port == 0 {
-			port := uint(80)
+	return nil
+}
 
-			if !b.AcceptDefaults {
-				input, err := text.Input(b.Stdout, fmt.Sprintf("Backend port number: [%d]", port), b.Stdin)
-				if err != nil {
-					return fmt.Errorf("error reading prompt input: %w", err)
-				}
+// isOriginless indicates if the required backend is originless.
+func (b *Backends) isOriginless() bool {
+	return len(b.Required) == 1 && b.Required[0].Name == "originless" && b.Required[0].Address == "127.0.0.1"
+}
+
+// available sets the Available field with the result of calling the
+// ListBackends API.
+func (b *Backends) available() (err error) {
+	b.Available, err = b.APIClient.ListBackends(&fastly.ListBackendsInput{
+		ServiceID:      b.ServiceID,
+		ServiceVersion: b.ServiceVersion,
+	})
+	if err != nil {
+		return fmt.Errorf("error fetching service backends: %w", err)
+	}
+	return nil
+}
+
+// checkPredefined identifies specific backends that are required but missing
+// from the user's service.
+func (b *Backends) checkPredefined() error {
+	var i int
+	for name, settings := range b.Setup {
+		if settings.Exists {
+			continue
+		}
+
+		if i > 0 {
+			text.Break(b.Stdout)
+		}
+		i++
+		text.Output(b.Stdout, "%s %s", text.Bold("Backend name:"), name)
+
+		var defaultAddress string
+		if settings.Address != "" {
+			defaultAddress = fmt.Sprintf(": [%s] ", settings.Address)
+		}
+
+		prompt := fmt.Sprintf("%s%s ", settings.Prompt, defaultAddress)
+		if settings.Prompt == "" {
+			prompt = fmt.Sprintf("Backend for '%s'%s", name, defaultAddress)
+		}
+
+		addr, err := text.Input(b.Stdout, prompt, b.Stdin, b.validateAddress)
+		if err != nil {
+			return fmt.Errorf("error reading prompt input: %w", err)
+		}
+		if addr == "" {
+			if settings.Address == "" {
+				return fmt.Errorf("error reading prompt input: backend address is required")
+			}
+			addr = settings.Address
+		}
+
+		port := uint(80)
+		if settings.Port > 0 {
+			port = settings.Port
+		}
+		if !b.AcceptDefaults {
+			input, err := text.Input(b.Stdout, fmt.Sprintf("Backend port number: [%d] ", port), b.Stdin)
+			if err != nil {
+				return fmt.Errorf("error reading prompt input: %w", err)
+			}
+			if input != "" {
 				if i, err := strconv.Atoi(input); err != nil {
 					text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)", port))
 				} else {
 					port = uint(i)
 				}
 			}
-
-			settings.Port = port
 		}
-		fmt.Printf("\n\nPredefined settings updated:\n%+v\n\n", settings)
 
 		var found bool
 		for _, backend := range b.Available {
-			if backend.Name == name && backend.Address == settings.Address && backend.Port == settings.Port {
+			if backend.Name == name && backend.Address == addr && backend.Port == port {
+				text.Break(b.Stdout)
+				text.Output(b.Stdout, "We wont attempt to create the backend '%s' as it looks to already exist.", name)
 				found = true
 				break
 			}
 		}
 
 		if !found {
-			overrideHost, sslSNIHostname := b.setBackendHost(settings.Address)
+			overrideHost, sslSNIHostname := b.setBackendHost(addr)
 			b.Required = append(b.Required, Backend{
 				Name:           name,
-				Address:        settings.Address,
+				Address:        addr,
 				OverrideHost:   overrideHost,
-				Port:           settings.Port,
+				Port:           port,
 				SSLSNIHostname: sslSNIHostname,
 			})
 		}
 	}
 
-	fmt.Printf("\n\nPredefined b.Required:\n%+v\n\n", b.Required)
 	return nil
 }
 
-// promptForBackend issues a prompt requesting one or more Backends.
+// promptForBackend issues a prompt requesting one or more Backends that will
+// be created within the user's service.
 func (b *Backends) promptForBackend() error {
 	if b.AcceptDefaults {
 		b.Required = append(b.Required, b.createOriginlessBackend())
@@ -157,18 +259,20 @@ func (b *Backends) promptForBackend() error {
 		}
 
 		port := uint(80)
-		input, err := text.Input(b.Stdout, fmt.Sprintf("Backend port number: [%d]", port), b.Stdin)
+		input, err := text.Input(b.Stdout, fmt.Sprintf("Backend port number: [%d] ", port), b.Stdin)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input: %w", err)
 		}
-		if i, err := strconv.Atoi(input); err != nil {
-			text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)", port))
-		} else {
-			port = uint(i)
+		if input != "" {
+			if i, err := strconv.Atoi(input); err != nil {
+				text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)", port))
+			} else {
+				port = uint(i)
+			}
 		}
 
 		defaultName := fmt.Sprintf("backend_%d", i+1)
-		name, err := text.Input(b.Stdout, fmt.Sprintf("Backend name: [%s]", defaultName), b.Stdin)
+		name, err := text.Input(b.Stdout, fmt.Sprintf("Backend name: [%s] ", defaultName), b.Stdin)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input %w", err)
 		}
@@ -213,7 +317,7 @@ func (b *Backends) setBackendHost(address string) (overrideHost, sslSNIHostname 
 
 // validateAddress checks the user entered address is a valid hostname or IP.
 //
-// NOTE: An empty value is allowed because it allows the caller to
+// NOTE: An empty value can be allowed because it enables the caller to
 // short-circuit logic related to whether the user is prompted endlessly.
 func (b *Backends) validateAddress(input string) error {
 	var isHost bool
@@ -227,40 +331,6 @@ func (b *Backends) validateAddress(input string) error {
 	isEmpty := input == ""
 	if !isEmpty && !isHost && !isAddr {
 		return fmt.Errorf(`must be a valid hostname, IPv4, or IPv6 address`)
-	}
-	return nil
-}
-
-// Create implements the setup interface.
-func (b *Backends) Create() error {
-	for _, backend := range b.Required {
-		if !b.isOriginless() {
-			b.Progress.Step(fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", backend.Name, backend.Address, backend.Port))
-		}
-
-		b.UndoStack.Push(func() error {
-			return b.APIClient.DeleteBackend(&fastly.DeleteBackendInput{
-				ServiceID:      b.ServiceID,
-				ServiceVersion: b.ServiceVersion,
-				Name:           backend.Address,
-			})
-		})
-
-		_, err := b.APIClient.CreateBackend(&fastly.CreateBackendInput{
-			ServiceID:      b.ServiceID,
-			ServiceVersion: b.ServiceVersion,
-			Name:           backend.Name,
-			Address:        backend.Address,
-			Port:           backend.Port,
-			OverrideHost:   backend.OverrideHost,
-			SSLSNIHostname: backend.SSLSNIHostname,
-		})
-		if err != nil {
-			if b.isOriginless() {
-				return fmt.Errorf("error configuring the service: %w", err)
-			}
-			return fmt.Errorf("error creating backend: %w", err)
-		}
 	}
 	return nil
 }

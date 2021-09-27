@@ -27,7 +27,7 @@ const (
 
 	// ManifestLatestVersion represents the latest known manifest schema version
 	// supported by the CLI.
-	ManifestLatestVersion = 1
+	ManifestLatestVersion = 2
 
 	// FilePermissions represents a read/write file mode.
 	FilePermissions = 0666
@@ -147,7 +147,7 @@ type Version int
 // We also constrain the version so that if a user has a manifest_version
 // defined as "99.0.0" then we won't accidentally store it as the integer 99
 // but instead will return an error because it exceeds the current
-// ManifestLatestVersion version of 1.
+// ManifestLatestVersion version.
 func (v *Version) UnmarshalText(text []byte) error {
 	s := string(text)
 
@@ -208,7 +208,7 @@ type File struct {
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
-	Backends     map[string]SetupBackend    `toml:"backends,omitempty"`
+	Backends     map[string]*SetupBackend   `toml:"backends,omitempty"`
 	Dictionaries map[string]SetupDictionary `toml:"dictionaries,omitempty"`
 }
 
@@ -217,6 +217,7 @@ type SetupBackend struct {
 	Address string
 	Port    uint
 	Prompt  string
+	Exists  bool // not defined in fastly.toml but used internally by the CLI.
 }
 
 // SetupDictionary represents a '[setup.dictionaries.<T>]' instance.
@@ -294,6 +295,11 @@ func (f *File) Read(fpath string) error {
 		bs = buf.Bytes()
 	}
 
+	manifestVersion, err := getManifestVersion(bs)
+	if err != nil || manifestVersion != ManifestLatestVersion {
+		return errors.ErrIncompatibleManifestVersion
+	}
+
 	err = toml.Unmarshal(bs, f)
 	if err != nil {
 		// NOTE: The toml library messes with the returned error so when we use
@@ -320,13 +326,13 @@ func (f *File) Read(fpath string) error {
 	f.exists = true
 
 	if f.ManifestVersion == 0 {
-		f.ManifestVersion = 1
+		f.ManifestVersion = ManifestLatestVersion
 
 		// NOTE: the use of once is a quick-fix to side-step duplicate outputs.
 		// To fix this properly will require a refactor of the structure of how our
 		// global output is passed around.
 		once.Do(func() {
-			text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
+			text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
 			text.Break(f.output)
 			text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
 			text.Break(f.output)
@@ -388,6 +394,20 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 	}
 
 	return buf, nil
+}
+
+// getManifestVersion returns the version number.
+func getManifestVersion(bs []byte) (int64, error) {
+	tree, err := toml.LoadBytes(bs)
+	if err != nil {
+		return 0, err
+	}
+
+	if version, ok := tree.GetArray("manifest_version").(int64); ok {
+		return version, nil
+	}
+
+	return 0, nil
 }
 
 // Write persists the manifest content to disk.
