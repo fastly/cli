@@ -208,27 +208,44 @@ type File struct {
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
-	Backends []Mapper `toml:"backends"`
+	Backends     map[string]SetupBackend    `toml:"backends,omitempty"`
+	Dictionaries map[string]SetupDictionary `toml:"dictionaries,omitempty"`
 }
 
-// Mapper represents a generic toml table.
-type Mapper map[string]interface{}
+// SetupBackend represents a '[setup.backends.<T>]' instance.
+type SetupBackend struct {
+	Address string
+	Port    uint
+	Prompt  string
+}
+
+// SetupDictionary represents a '[setup.dictionaries.<T>]' instance.
+type SetupDictionary struct {
+	Items  map[string]SetupDictionaryItems
+	Prompt string
+}
+
+// SetupDictionaryItems represents a '[setup.dictionaries.<T>.items]' instance.
+type SetupDictionaryItems struct {
+	Type  string
+	Value string
+}
 
 // LocalServer represents a list of backends that should be mocked as per the
 // configuration values.
 type LocalServer struct {
-	Backends     map[string]Backend    `toml:"backends"`
-	Dictionaries map[string]Dictionary `toml:"dictionaries,omitempty"`
+	Backends     map[string]LocalBackend    `toml:"backends"`
+	Dictionaries map[string]LocalDictionary `toml:"dictionaries,omitempty"`
 }
 
-// Backend represents a backend to be mocked by the local testing server.
-type Backend struct {
+// LocalBackend represents a backend to be mocked by the local testing server.
+type LocalBackend struct {
 	URL          string `toml:"url"`
 	OverrideHost string `toml:"override_host,omitempty"`
 }
 
-// Dictionary represents a dictionary to be mocked by the local testing server.
-type Dictionary struct {
+// LocalDictionary represents a dictionary to be mocked by the local testing server.
+type LocalDictionary struct {
 	File   string `toml:"file"`
 	Format string `toml:"format"`
 }
