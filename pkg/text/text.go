@@ -51,6 +51,18 @@ func Wrap(text string, width uint) string {
 	return wordwrap.WrapString(strings.TrimSpace(b.String()), width)
 }
 
+// WrapIndent a string at word boundaries with a maximum line length of width
+// and indenting the lines by a specified number of spaces.
+func WrapIndent(s string, lim uint, indent uint) string {
+	lim -= indent
+	wrapped := wordwrap.WrapString(s, lim)
+	var result []string
+	for _, line := range strings.Split(wrapped, "\n") {
+		result = append(result, strings.Repeat(" ", int(indent))+line)
+	}
+	return strings.Join(result, "\n")
+}
+
 // Output writes the help text to the writer using Wrap with DefaultTextWidth,
 // suffixed by a newlines. It's intended to be used to provide detailed
 // information, context, or help to the user.
@@ -166,4 +178,12 @@ func Success(w io.Writer, format string, args ...interface{}) {
 //
 func Description(w io.Writer, term, description string) {
 	fmt.Fprintf(w, "%s:\n\t%s\n\n", term, Bold(description))
+}
+
+// Indent writes the help text to the writer using WrapIndent with
+// DefaultTextWidth, suffixed by a newlines. It's intended to be used to provide
+// detailed information, context, or help to the user.
+func Indent(w io.Writer, indent uint, format string, args ...interface{}) {
+	text := fmt.Sprintf(format, args...)
+	fmt.Fprintf(w, "%s\n", WrapIndent(text, DefaultTextWidth, indent))
 }

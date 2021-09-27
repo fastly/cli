@@ -252,10 +252,11 @@ type StarterKitLanguages struct {
 
 // StarterKit represents starter kit specific configuration.
 type StarterKit struct {
-	Name   string `toml:"name"`
-	Path   string `toml:"path"`
-	Tag    string `toml:"tag"`
-	Branch string `toml:"branch"`
+	Name        string `toml:"name"`
+	Description string `toml:"description"`
+	Path        string `toml:"path"`
+	Tag         string `toml:"tag"`
+	Branch      string `toml:"branch"`
 }
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
