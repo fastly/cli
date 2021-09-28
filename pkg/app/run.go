@@ -148,7 +148,7 @@ func Run(opts RunOpts) error {
 
 	var data manifest.Data
 	data.File.SetOutput(globals.Output)
-	err := data.File.Read(manifest.Filename)
+	data.File.Read(manifest.Filename)
 
 	aclCmdRoot := acl.NewRootCommand(app, &globals)
 	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, &globals, data)
