@@ -23,12 +23,10 @@ type PackCommand struct {
 }
 
 // NewPackCommand returns a usable command registered under the parent.
-func NewPackCommand(parent cmd.Registerer, globals *config.Data) *PackCommand {
+func NewPackCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *PackCommand {
 	var c PackCommand
 	c.Globals = globals
-
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	c.CmdClause = parent.Command("pack", "Package a pre-compiled Wasm binary for a Fastly Compute@Edge service")
 	c.CmdClause.Flag("path", "Path to a pre-compiled Wasm binary").Short('p').Required().StringVar(&c.path)

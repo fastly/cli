@@ -17,12 +17,11 @@ import (
 )
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *RootCommand {
 	var c RootCommand
 	c.CmdClause = parent.Command("purge", "Invalidate objects in the Fastly cache")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	// Optional flags
 	c.CmdClause.Flag("all", "Purge everything from a service").BoolVar(&c.all)

@@ -13,12 +13,11 @@ import (
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "Get the current API token").Alias("get")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	return &c
 }
 

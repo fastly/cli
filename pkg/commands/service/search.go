@@ -18,11 +18,10 @@ type SearchCommand struct {
 }
 
 // NewSearchCommand returns a usable command registered under the parent.
-func NewSearchCommand(parent cmd.Registerer, globals *config.Data) *SearchCommand {
+func NewSearchCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *SearchCommand {
 	var c SearchCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("search", "Search for a Fastly service by name")
 	c.CmdClause.Flag("name", "Service name").Short('n').StringVar(&c.Input.Name)
 	return &c

@@ -12,12 +12,11 @@ import (
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "Get the details of a New Relic Logs logging object for a particular service and version").Alias("get")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	// Required flags
 	c.CmdClause.Flag("name", "The name for the real-time logging configuration").Required().StringVar(&c.name)

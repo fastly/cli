@@ -12,12 +12,11 @@ import (
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
 	var c CreateCommand
 	c.CmdClause = parent.Command("create", "Create a snippet for a particular service and version").Alias("add")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	// Required flags
 	c.CmdClause.Flag("content", "VCL snippet passed as file path or content, e.g. $(< snippet.vcl)").Required().StringVar(&c.content)

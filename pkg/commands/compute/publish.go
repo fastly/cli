@@ -32,11 +32,10 @@ type PublishCommand struct {
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
-func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, deploy *DeployCommand) *PublishCommand {
+func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, deploy *DeployCommand, data manifest.Data) *PublishCommand {
 	var c PublishCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.build = build
 	c.deploy = deploy
 	c.CmdClause = parent.Command("publish", "Build and deploy a Compute@Edge package to a Fastly service")

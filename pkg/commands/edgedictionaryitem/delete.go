@@ -19,11 +19,10 @@ type DeleteCommand struct {
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("delete", "Delete an item from a Fastly edge dictionary")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)

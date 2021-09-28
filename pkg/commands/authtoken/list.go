@@ -14,12 +14,11 @@ import (
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
 	var c ListCommand
 	c.CmdClause = parent.Command("list", "List API tokens")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause.Flag("customer-id", "Alphanumeric string identifying the customer").StringVar(&c.customerID)
 	return &c
 }

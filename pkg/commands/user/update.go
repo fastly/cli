@@ -13,12 +13,11 @@ import (
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.CmdClause = parent.Command("update", "Update a user of the Fastly API and web interface")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
 	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").StringVar(&c.login)
 	c.CmdClause.Flag("name", "The real life name of the user").StringVar(&c.name)

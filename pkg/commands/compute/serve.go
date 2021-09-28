@@ -39,7 +39,7 @@ type ServeCommand struct {
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, viceroyVersioner update.Versioner) *ServeCommand {
+func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, viceroyVersioner update.Versioner, data manifest.Data) *ServeCommand {
 	var c ServeCommand
 
 	c.build = build
@@ -47,9 +47,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 
 	c.Globals = globals
 	c.CmdClause = parent.Command("serve", "Build and run a Compute@Edge package locally")
-
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)

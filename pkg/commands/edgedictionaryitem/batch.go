@@ -24,11 +24,10 @@ type BatchCommand struct {
 }
 
 // NewBatchCommand returns a usable command registered under the parent.
-func NewBatchCommand(parent cmd.Registerer, globals *config.Data) *BatchCommand {
+func NewBatchCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *BatchCommand {
 	var c BatchCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("batchmodify", "Update multiple items in a Fastly edge dictionary")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)

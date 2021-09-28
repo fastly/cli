@@ -13,12 +13,11 @@ import (
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
 	var c ListCommand
 	c.CmdClause = parent.Command("list", "List the uploaded VCLs for a particular service and version")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	// Required flags
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{

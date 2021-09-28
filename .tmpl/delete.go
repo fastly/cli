@@ -12,12 +12,11 @@ import (
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.CmdClause = parent.Command("delete", "<...>").Alias("remove")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	// Required flags
 	// c.CmdClause.Flag("<...>", "<...>").Required().StringVar(&c.<...>)

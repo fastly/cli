@@ -13,12 +13,11 @@ import (
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.CmdClause = parent.Command("update", "Update a VCL snippet for a particular service and version")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	// Required flags
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{

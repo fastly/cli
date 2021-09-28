@@ -13,6 +13,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/compute"
+	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/kingpin"
@@ -23,13 +24,16 @@ import (
 // within the `compute publish` command doesn't fall out of sync with the
 // `compute build` and `compute deploy` commands from which publish is composed.
 func TestPublishFlagDivergence(t *testing.T) {
-	var cfg config.Data
+	var (
+		cfg  config.Data
+		data manifest.Data
+	)
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
 	bcmd := compute.NewBuildCommand(rcmd.CmdClause, client{}, &cfg)
-	dcmd := compute.NewDeployCommand(rcmd.CmdClause, client{}, &cfg)
-	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &cfg, bcmd, dcmd)
+	dcmd := compute.NewDeployCommand(rcmd.CmdClause, client{}, &cfg, data)
+	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &cfg, bcmd, dcmd, data)
 
 	buildFlags := getFlags(bcmd.CmdClause)
 	deployFlags := getFlags(dcmd.CmdClause)

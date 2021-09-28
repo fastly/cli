@@ -58,11 +58,10 @@ type Backend struct {
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
-func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *DeployCommand {
+func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *DeployCommand {
 	var c DeployCommand
 	c.Globals = globals
-	c.Manifest.File.SetOutput(c.Globals.Output)
-	c.Manifest.File.Read(manifest.Filename)
+	c.Manifest = data
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
 
 	// NOTE: when updating these flags, be sure to update the composite command:
