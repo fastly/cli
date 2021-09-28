@@ -20,11 +20,10 @@ type LockCommand struct {
 }
 
 // NewLockCommand returns a usable command registered under the parent.
-func NewLockCommand(parent cmd.Registerer, globals *config.Data) *LockCommand {
+func NewLockCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *LockCommand {
 	var c LockCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("lock", "Lock a Fastly service version")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{

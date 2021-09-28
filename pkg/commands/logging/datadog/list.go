@@ -21,11 +21,10 @@ type ListCommand struct {
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("list", "List Datadog endpoints on a Fastly service version")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{

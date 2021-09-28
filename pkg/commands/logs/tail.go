@@ -95,11 +95,10 @@ type (
 )
 
 // NewTailCommand returns a usable command registered under the parent.
-func NewTailCommand(parent cmd.Registerer, globals *config.Data) *TailCommand {
+func NewTailCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *TailCommand {
 	var c TailCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("tail", "Tail Compute@Edge logs")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("from", "From time, in Unix seconds").Int64Var(&c.cfg.from)

@@ -20,11 +20,10 @@ type CloneCommand struct {
 }
 
 // NewCloneCommand returns a usable command registered under the parent.
-func NewCloneCommand(parent cmd.Registerer, globals *config.Data) *CloneCommand {
+func NewCloneCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CloneCommand {
 	var c CloneCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("clone", "Clone a Fastly service version")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{

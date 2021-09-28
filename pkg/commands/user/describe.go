@@ -12,12 +12,11 @@ import (
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, globals *config.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "Get a specific user of the Fastly API and web interface").Alias("get")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
 	c.CmdClause.Flag("current", "Get the logged in user").BoolVar(&c.current)
 	return &c

@@ -42,12 +42,11 @@ type InitCommand struct {
 }
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *InitCommand {
+func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *InitCommand {
 	var c InitCommand
 	c.Globals = globals
 	c.client = client
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
 	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.manifest.File.Name)
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)

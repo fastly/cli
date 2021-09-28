@@ -12,12 +12,11 @@ import (
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent cmd.Registerer, globals *config.Data) *ValidateCommand {
+func NewValidateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ValidateCommand {
 	var c ValidateCommand
 	c.CmdClause = parent.Command("validate", "Checks the status of a specific domain's DNS record for a Service Version")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	// Required flags
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{

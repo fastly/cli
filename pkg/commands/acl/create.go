@@ -12,12 +12,11 @@ import (
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
 	var c CreateCommand
 	c.CmdClause = parent.Command("create", "Create a new ACL attached to the specified service version").Alias("add")
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 
 	// Required flags
 	c.CmdClause.Flag("name", "Name for the ACL. Must start with an alphanumeric character and contain only alphanumeric characters, underscores, and whitespace").Required().StringVar(&c.name)

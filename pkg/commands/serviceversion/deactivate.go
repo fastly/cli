@@ -20,11 +20,10 @@ type DeactivateCommand struct {
 }
 
 // NewDeactivateCommand returns a usable command registered under the parent.
-func NewDeactivateCommand(parent cmd.Registerer, globals *config.Data) *DeactivateCommand {
+func NewDeactivateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeactivateCommand {
 	var c DeactivateCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("deactivate", "Deactivate a Fastly service version")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{

@@ -21,11 +21,10 @@ type ActivateCommand struct {
 }
 
 // NewActivateCommand returns a usable command registered under the parent.
-func NewActivateCommand(parent cmd.Registerer, globals *config.Data) *ActivateCommand {
+func NewActivateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ActivateCommand {
 	var c ActivateCommand
 	c.Globals = globals
-	c.manifest.File.SetOutput(c.Globals.Output)
-	c.manifest.File.Read(manifest.Filename)
+	c.manifest = data
 	c.CmdClause = parent.Command("activate", "Activate a Fastly service version")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
