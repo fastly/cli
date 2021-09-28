@@ -49,9 +49,8 @@ type Backend struct {
 func (b *Backends) Configure() (err error) {
 	if b.Predefined() {
 		return b.checkPredefined()
-	} else {
-		return b.promptForBackend()
 	}
+	return b.promptForBackend()
 }
 
 // Create calls the relevant API to create the service resource(s).
@@ -118,7 +117,11 @@ func (b *Backends) Validate() (err error) {
 			)
 
 			for _, backend := range b.Available {
-				condition = backend.Name == name && backend.Address == settings.Address
+				condition = backend.Name == name
+
+				if settings.Address != "" {
+					condition = condition && backend.Address == settings.Address
+				}
 				if settings.Port != 0 {
 					condition = condition && backend.Port == settings.Port
 				}
@@ -173,12 +176,12 @@ func (b *Backends) checkPredefined() error {
 
 		var defaultAddress string
 		if settings.Address != "" {
-			defaultAddress = fmt.Sprintf(": [%s] ", settings.Address)
+			defaultAddress = fmt.Sprintf(": [%s]", settings.Address)
 		}
 
 		prompt := fmt.Sprintf("%s%s ", settings.Prompt, defaultAddress)
 		if settings.Prompt == "" {
-			prompt = fmt.Sprintf("Backend for '%s'%s", name, defaultAddress)
+			prompt = fmt.Sprintf("Backend address%s ", defaultAddress)
 		}
 
 		addr, err := text.Input(b.Stdout, prompt, b.Stdin, b.validateAddress)
