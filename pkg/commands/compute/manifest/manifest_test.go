@@ -18,9 +18,10 @@ func TestManifest(t *testing.T) {
 	prefix := filepath.Join("../", "testdata", "init")
 
 	tests := map[string]struct {
-		manifest      string
-		valid         bool
-		expectedError error
+		manifest             string
+		valid                bool
+		expectedError        error
+		wantRemediationError string
 	}{
 		"valid: semver": {
 			manifest: "fastly-valid-semver.toml",
@@ -39,14 +40,16 @@ func TestManifest(t *testing.T) {
 			valid:    true,
 		},
 		"invalid: manifest_version Atoi error": {
-			manifest:      "fastly-invalid-unrecognised.toml",
-			valid:         false,
-			expectedError: errs.ErrUnrecognisedManifestVersion,
+			manifest:             "fastly-invalid-unrecognised.toml",
+			valid:                false,
+			expectedError:        errs.ErrUnrecognisedManifestVersion,
+			wantRemediationError: errs.ErrUnrecognisedManifestVersion.Remediation,
 		},
 		"unrecognised: manifest_version exceeded limit": {
-			manifest:      "fastly-invalid-version-exceeded.toml",
-			valid:         false,
-			expectedError: errs.ErrUnrecognisedManifestVersion,
+			manifest:             "fastly-invalid-version-exceeded.toml",
+			valid:                false,
+			expectedError:        errs.ErrUnrecognisedManifestVersion,
+			wantRemediationError: errs.ErrUnrecognisedManifestVersion.Remediation,
 		},
 	}
 
@@ -103,6 +106,8 @@ func TestManifest(t *testing.T) {
 				if !errors.As(err, &tc.expectedError) {
 					t.Fatalf("incorrect error type: %T, expected: %T", err, tc.expectedError)
 				}
+				// Ensure the remediation error is as expected.
+				testutil.AssertRemediationErrorContains(t, err, tc.wantRemediationError)
 			}
 		})
 	}

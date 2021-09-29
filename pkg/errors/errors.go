@@ -2,15 +2,30 @@ package errors
 
 import "fmt"
 
+// ErrSignalInterrupt means a SIGINT was received.
+var ErrSignalInterrupt = fmt.Errorf("a SIGINT was received")
+
+// ErrSignalKilled means a SIGTERM was received.
+var ErrSignalKilled = fmt.Errorf("a SIGTERM was received")
+
 // ErrNoToken means no --token has been provided.
-var ErrNoToken = RemediationError{Inner: fmt.Errorf("no token provided"), Remediation: AuthRemediation}
+var ErrNoToken = RemediationError{
+	Inner:       fmt.Errorf("no token provided"),
+	Remediation: AuthRemediation,
+}
 
 // ErrNoServiceID means no --service-id or service_id package manifest value has
 // been provided.
-var ErrNoServiceID = RemediationError{Inner: fmt.Errorf("error reading service: no service ID found"), Remediation: ServiceIDRemediation}
+var ErrNoServiceID = RemediationError{
+	Inner:       fmt.Errorf("error reading service: no service ID found"),
+	Remediation: ServiceIDRemediation,
+}
 
 // ErrMissingManifestVersion means an invalid manifest (fastly.toml) has been used.
-var ErrMissingManifestVersion = RemediationError{Inner: fmt.Errorf("no manifest_version found in the fastly.toml"), Remediation: BugRemediation}
+var ErrMissingManifestVersion = RemediationError{
+	Inner:       fmt.Errorf("no manifest_version found in the fastly.toml"),
+	Remediation: BugRemediation,
+}
 
 // ErrUnrecognisedManifestVersion means an invalid manifest (fastly.toml)
 // version has been specified.
@@ -26,11 +41,8 @@ var ErrInvalidManifestVersion = RemediationError{
 	Remediation: "Delete `[manifest_version]` from the fastly.toml if present",
 }
 
-// ErrSignalInterrupt means a SIGINT was received.
-var ErrSignalInterrupt = fmt.Errorf("a SIGINT was received")
-
-// ErrSignalKilled means a SIGTERM was received.
-var ErrSignalKilled = fmt.Errorf("a SIGTERM was received")
-
 // ErrNoID means no --id value has been provided.
-var ErrNoID = RemediationError{Inner: fmt.Errorf("no ID found"), Remediation: IDRemediation}
+var ErrNoID = RemediationError{
+	Inner:       fmt.Errorf("no ID found"),
+	Remediation: IDRemediation,
+}
