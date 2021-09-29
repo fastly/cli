@@ -3,6 +3,7 @@ package manifest
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/fastly/cli/pkg/env"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
 )
@@ -173,7 +174,7 @@ func (v *Version) UnmarshalText(text []byte) error {
 			if segs[0] != "0" {
 				if i, err := strconv.Atoi(segs[0]); err == nil {
 					if i > ManifestLatestVersion {
-						return errors.ErrUnrecognisedManifestVersion
+						return fsterr.ErrUnrecognisedManifestVersion
 					}
 					*v = Version(i)
 					return nil
@@ -185,7 +186,7 @@ func (v *Version) UnmarshalText(text []byte) error {
 		}
 	}
 
-	return errors.ErrUnrecognisedManifestVersion
+	return fsterr.ErrUnrecognisedManifestVersion
 }
 
 // File represents all of the configuration parameters in the fastly.toml
@@ -271,13 +272,31 @@ func (f *File) Read(fpath string) error {
 	if manifestSection {
 		buf, err := stripManifestSection(bytes.NewReader(bs), fpath)
 		if err != nil {
-			return errors.ErrInvalidManifestVersion
+			return fsterr.ErrInvalidManifestVersion
 		}
 		bs = buf.Bytes()
 	}
 
 	err = toml.Unmarshal(bs, f)
 	if err != nil {
+		// NOTE: The toml library messes with the returned error so when we use
+		// fsterrors.Deduce(err).Print(os.Stderr) to determine the remediation
+		// error we actually fail to find a match and end up using a BugRemediation
+		// as a default (losing important information for the user).
+		//
+		// To work around this we type assert the underlying error, and if a match
+		// is found we return the specific remediation error, otherwise we return
+		// whatever error the toml library gave us.
+		//
+		// We also need to declare the errtype variable explicitly as being of an
+		// `error` type for errors.As() to correctly report the underlying error
+		// type. This is because our remediation errors are actually a struct type
+		// that implement the error interface.
+		var errtype error = fsterr.ErrUnrecognisedManifestVersion
+		if errors.As(err, &errtype) {
+			return fsterr.ErrUnrecognisedManifestVersion
+		}
+
 		return err
 	}
 

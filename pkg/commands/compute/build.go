@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
@@ -53,6 +54,24 @@ type LanguageOptions struct {
 
 // NewLanguage constructs a new Language from a LangaugeOptions.
 func NewLanguage(options *LanguageOptions) *Language {
+	// Ensure the 'default' starter kit is always first.
+	sort.Slice(options.StarterKits, func(i, j int) bool {
+		suffix := fmt.Sprintf("%s-default", options.Name)
+		a := strings.HasSuffix(options.StarterKits[i].Path, suffix)
+		b := strings.HasSuffix(options.StarterKits[j].Path, suffix)
+		var (
+			bitSetA int8
+			bitSetB int8
+		)
+		if a {
+			bitSetA = 1
+		}
+		if b {
+			bitSetB = 1
+		}
+		return bitSetA > bitSetB
+	})
+
 	return &Language{
 		options.Name,
 		options.DisplayName,
