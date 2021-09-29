@@ -1,5 +1,20 @@
 # Changelog
 
+## [v0.39.2](https://github.com/fastly/cli/releases/tag/v0.39.2) (2021-09-29)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.39.1...v0.39.2)
+
+**Bug fixes:**
+
+* Provide better remediation for unrecognised `manifest_version` [#422](https://github.com/fastly/cli/pull/422)
+* Bump `go-fastly` to `v5.0.0` to fix ACL entries bug [#417](https://github.com/fastly/cli/pull/417)
+* Remove Rust debug flags [#416](https://github.com/fastly/cli/pull/416)
+
+**Enhancements:**
+
+* Clarify Starter Kit options in `compute init` flow [#418](https://github.com/fastly/cli/pull/418)
+* Avoid excessive manifest reads [#420](https://github.com/fastly/cli/pull/420)
+
 ## [v0.39.1](https://github.com/fastly/cli/releases/tag/v0.39.1) (2021-09-21)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.39.0...v0.39.1)
