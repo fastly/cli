@@ -168,6 +168,11 @@ func (b *Backends) promptForBackend() error {
 
 	var i int
 	for {
+		if i > 0 {
+			text.Break(b.Stdout)
+		}
+		i++
+
 		addr, err := text.Input(b.Stdout, "Backend (hostname or IP address, or leave blank to stop adding backends): ", b.Stdin, b.validateAddress)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input %w", err)
@@ -187,14 +192,14 @@ func (b *Backends) promptForBackend() error {
 			return fmt.Errorf("error reading prompt input: %w", err)
 		}
 		if input != "" {
-			if i, err := strconv.Atoi(input); err != nil {
+			if portnumber, err := strconv.Atoi(input); err != nil {
 				text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)", port))
 			} else {
-				port = uint(i)
+				port = uint(portnumber)
 			}
 		}
 
-		defaultName := fmt.Sprintf("backend_%d", i+1)
+		defaultName := fmt.Sprintf("backend_%d", i)
 		name, err := text.Input(b.Stdout, fmt.Sprintf("Backend name: [%s] ", defaultName), b.Stdin)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input %w", err)
