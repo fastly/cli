@@ -103,3 +103,10 @@ var PackageSizeRemediation = strings.Join([]string{
 	"Please check our Compute@Edge resource limits:",
 	"https://developer.fastly.com/learning/compute/#limitations-and-constraints",
 }, " ")
+
+// CLIUpdateRemediation suggests updating the installed CLI version.
+var CLIUpdateRemediation = strings.Join([]string{
+	"Please try updating the installed CLI version using:",
+	"`fastly update`.",
+	BugRemediation,
+}, " ")
