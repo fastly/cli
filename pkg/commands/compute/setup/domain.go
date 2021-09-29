@@ -95,6 +95,8 @@ func (d *Domains) Create() error {
 	}
 
 	for _, domain := range d.Required {
+		d.Progress.Step(fmt.Sprintf("Creating domain '%s'...", domain.Name))
+
 		_, err := d.APIClient.CreateDomain(&fastly.CreateDomainInput{
 			ServiceID:      d.ServiceID,
 			ServiceVersion: d.ServiceVersion,
