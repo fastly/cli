@@ -46,7 +46,7 @@ type Backend struct {
 
 // Configure prompts the user (if necessary) for specific values related to the
 // service resource.
-func (b *Backends) Configure() (err error) {
+func (b *Backends) Configure() error {
 	if b.Predefined() {
 		return b.checkPredefined()
 	}
@@ -104,8 +104,8 @@ func (b *Backends) Predefined() bool {
 //
 // NOTE: It should set an internal `missing` field (boolean) accordingly so that
 // the Missing() method can report the state of the resource.
-func (b *Backends) Validate() (err error) {
-	if err = b.available(); err != nil {
+func (b *Backends) Validate() error {
+	if err := b.available(); err != nil {
 		return err
 	}
 
@@ -148,7 +148,11 @@ func (b *Backends) isOriginless() bool {
 
 // available sets the Available field with the result of calling the
 // ListBackends API.
-func (b *Backends) available() (err error) {
+//
+// NOTE: We can't use the short variable declaration := when trying to assign
+// to a struct field, so we need to declare the `err` variable separately. Here
+func (b *Backends) available() error {
+	var err error
 	b.Available, err = b.APIClient.ListBackends(&fastly.ListBackendsInput{
 		ServiceID:      b.ServiceID,
 		ServiceVersion: b.ServiceVersion,

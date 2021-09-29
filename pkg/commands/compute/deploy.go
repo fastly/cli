@@ -4,13 +4,10 @@ import (
 	"crypto/sha512"
 	"fmt"
 	"io"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
-	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
@@ -24,8 +21,7 @@ import (
 )
 
 const (
-	defaultTopLevelDomain = "edgecompute.app"
-	manageServiceBaseURL  = "https://manage.fastly.com/configure/services/"
+	manageServiceBaseURL = "https://manage.fastly.com/configure/services/"
 )
 
 // PackageSizeLimit describes the package size limit in bytes (currently 50mb)
@@ -133,10 +129,20 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// e.g. it could be missing required resources such as a domain or backend.
 	// We check and allow the user to configure these settings before continuing.
 
-	hasDomain, err := serviceHasDomain(serviceID, serviceVersion.Number, apiClient)
+	domains := &setup.Domains{
+		AcceptDefaults: c.AcceptDefaults,
+		APIClient:      apiClient,
+		PackageDomain:  c.Domain,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion.Number,
+		Stdin:          in,
+		Stdout:         out,
+	}
+
+	err = domains.Validate()
 	if err != nil {
 		errLogService(errLog, err, serviceID, serviceVersion.Number)
-		return err
+		return fmt.Errorf("error configuring service domains: %w", err)
 	}
 
 	backends := &setup.Backends{
@@ -155,25 +161,20 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error configuring service backends: %w", err)
 	}
 
-	var domainToCreate string
-
 	// RESOURCE CONFIGURATION...
 
-	if !hasDomain || backends.Missing() {
+	if domains.Missing() || backends.Missing() {
 		if !c.AcceptDefaults {
 			text.Output(out, "Service '%s' is missing required resources. These must be added before the Compute@Edge service can be deployed. Please ensure your fastly.toml configuration reflects any manual changes made via manage.fastly.com, otherwise follow the prompts to create the required resources.", serviceID)
 			text.Break(out)
 		}
 	}
 
-	if !hasDomain {
-		domainToCreate, err = configureDomain(c, defaultTopLevelDomain, out, in, validateDomain)
+	if domains.Missing() {
+		err = domains.Configure()
 		if err != nil {
-			errLog.AddWithContext(err, map[string]interface{}{
-				"Domain":           c.Domain,
-				"Domain (default)": defaultTopLevelDomain,
-			})
-			return err
+			errLogService(errLog, err, serviceID, serviceVersion.Number)
+			return fmt.Errorf("error configuring service domains: %w", err)
 		}
 	}
 
@@ -200,11 +201,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		undoStack.RunIfError(out, err)
 	}(errLog, progress)
 
-	if !hasDomain && domainToCreate != "" {
-		err = createDomain(progress, apiClient, serviceID, serviceVersion.Number, domainToCreate, undoStack)
-		if err != nil {
+	if domains.Missing() {
+		// NOTE: We can't pass a text.Progress instance to setup.Domains at the
+		// point of constructing the domains object, as the text.Progress instance
+		// prevents other stdout from being read.
+		domains.Progress = progress
+
+		if err := domains.Create(); err != nil {
 			errLog.AddWithContext(err, map[string]interface{}{
-				"Domain":          domainToCreate,
+				"Accept defaults": c.AcceptDefaults,
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})
@@ -214,7 +219,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if backends.Missing() {
 		// NOTE: We can't pass a text.Progress instance to setup.Backends at the
-		// point of constructing the backends object as the text.Progress instance
+		// point of constructing the backends object, as the text.Progress instance
 		// prevents other stdout from being read.
 		backends.Progress = progress
 
@@ -287,12 +292,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
 
-	domains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
+	latestDomains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
 	})
 	if err == nil {
-		text.Description(out, "View this service at", fmt.Sprintf("https://%s", domains[0].Name))
+		text.Description(out, "View this service at", fmt.Sprintf("https://%s", latestDomains[0].Name))
 	}
 
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
@@ -529,87 +534,6 @@ func checkServiceID(serviceID string, client api.Interface, version *fastly.Vers
 	if err != nil {
 		return fmt.Errorf("error fetching service details: %w", err)
 	}
-	return nil
-}
-
-// serviceHasDomain validates whether the service has a domain defined.
-func serviceHasDomain(sid string, sv int, apiClient api.Interface) (bool, error) {
-	domains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
-		ServiceID:      sid,
-		ServiceVersion: sv,
-	})
-	if err != nil {
-		return false, fmt.Errorf("error fetching service domains: %w", err)
-	}
-	if len(domains) < 1 {
-		return false, nil
-	}
-	return true, nil
-}
-
-// configureDomain configures the domain value.
-func configureDomain(c *DeployCommand, def string, out io.Writer, in io.Reader, f validator) (string, error) {
-	if c.Domain != "" {
-		return c.Domain, nil
-	}
-
-	rand.Seed(time.Now().UnixNano())
-	defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), def)
-
-	var (
-		domain string
-		err    error
-	)
-	if !c.AcceptDefaults {
-		domain, err = text.Input(out, fmt.Sprintf("Domain: [%s] ", defaultDomain), in, f)
-		if err != nil {
-			return "", fmt.Errorf("error reading input %w", err)
-		}
-		text.Break(out)
-	}
-
-	if domain == "" {
-		return defaultDomain, nil
-	}
-	return domain, nil
-}
-
-// validator represents a function that validates an input.
-type validator func(input string) error
-
-// validateDomain ensures the input domain looks like a domain.
-func validateDomain(input string) error {
-	if input == "" {
-		return nil
-	}
-	if !domainNameRegEx.MatchString(input) {
-		return fmt.Errorf("must be valid domain name")
-	}
-	return nil
-}
-
-// createDomain creates the given domain and handles unrolling the stack in case
-// of an error (i.e. will ensure the domain is deleted if there is an error).
-func createDomain(progress text.Progress, client api.Interface, serviceID string, version int, domain string, undoStack undo.Stacker) error {
-	progress.Step("Creating domain...")
-
-	undoStack.Push(func() error {
-		return client.DeleteDomain(&fastly.DeleteDomainInput{
-			ServiceID:      serviceID,
-			ServiceVersion: version,
-			Name:           domain,
-		})
-	})
-
-	_, err := client.CreateDomain(&fastly.CreateDomainInput{
-		ServiceID:      serviceID,
-		ServiceVersion: version,
-		Name:           domain,
-	})
-	if err != nil {
-		return fmt.Errorf("error creating domain: %w", err)
-	}
-
 	return nil
 }
 
