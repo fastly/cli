@@ -45,11 +45,15 @@ type Domain struct {
 	Name string
 }
 
-// Configure prompts the user (if necessary) for specific values related to the
-// service resource.
+// Configure prompts the user for specific values related to the service resource.
+//
+// NOTE: If --domain flag is used we'll use that as the domain to create.
 func (d *Domains) Configure() error {
 	// PackageDomain is the --domain flag value.
 	if d.PackageDomain != "" {
+		d.Required = append(d.Required, Domain{
+			Name: d.PackageDomain,
+		})
 		return nil
 	}
 

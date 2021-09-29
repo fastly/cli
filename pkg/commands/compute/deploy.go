@@ -145,30 +145,21 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error configuring service domains: %w", err)
 	}
 
-	backends := &setup.Backends{
-		AcceptDefaults: c.AcceptDefaults,
-		APIClient:      apiClient,
-		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
-		Setup:          c.Manifest.File.Setup.Backends,
-		Stdin:          in,
-		Stdout:         out,
-	}
+	var backends *setup.Backends
 
-	err = backends.Validate()
-	if err != nil {
-		errLogService(errLog, err, serviceID, serviceVersion.Number)
-		return fmt.Errorf("error configuring service backends: %w", err)
+	if newService {
+		backends = &setup.Backends{
+			AcceptDefaults: c.AcceptDefaults,
+			APIClient:      apiClient,
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion.Number,
+			Setup:          c.Manifest.File.Setup.Backends,
+			Stdin:          in,
+			Stdout:         out,
+		}
 	}
 
 	// RESOURCE CONFIGURATION...
-
-	if domains.Missing() || backends.Missing() {
-		if !c.AcceptDefaults {
-			text.Output(out, "Service '%s' is missing required resources. These must be added before the Compute@Edge service can be deployed. Please ensure your fastly.toml configuration reflects any manual changes made via manage.fastly.com, otherwise follow the prompts to create the required resources.", serviceID)
-			text.Break(out)
-		}
-	}
 
 	if domains.Missing() {
 		err = domains.Configure()
@@ -178,7 +169,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if backends.Missing() {
+	if newService {
 		err = backends.Configure()
 		if err != nil {
 			errLogService(errLog, err, serviceID, serviceVersion.Number)
@@ -217,7 +208,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if backends.Missing() {
+	if newService {
 		// NOTE: We can't pass a text.Progress instance to setup.Backends at the
 		// point of constructing the backends object, as the text.Progress instance
 		// prevents other stdout from being read.

@@ -217,7 +217,6 @@ type SetupBackend struct {
 	Address string
 	Port    uint
 	Prompt  string
-	Exists  bool // not defined in fastly.toml but used internally by the CLI.
 }
 
 // SetupDictionary represents a '[setup.dictionaries.<T>]' instance.

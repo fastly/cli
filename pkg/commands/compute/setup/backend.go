@@ -29,9 +29,6 @@ type Backends struct {
 	AcceptDefaults bool
 	Stdin          io.Reader
 	Stdout         io.Writer
-
-	// Private
-	missing bool
 }
 
 // Backend represents the configuration parameters for creating a backend via
@@ -44,8 +41,7 @@ type Backend struct {
 	SSLSNIHostname string
 }
 
-// Configure prompts the user (if necessary) for specific values related to the
-// service resource.
+// Configure prompts the user for specific values related to the service resource.
 func (b *Backends) Configure() error {
 	if b.Predefined() {
 		return b.checkPredefined()
@@ -85,13 +81,7 @@ func (b *Backends) Create() error {
 		}
 	}
 
-	b.missing = false
 	return nil
-}
-
-// Missing indicates if there are missing resources that need to be created.
-func (b *Backends) Missing() bool {
-	return b.missing || len(b.Required) > 0
 }
 
 // Predefined indicates if the service resource has been specified within the
@@ -100,78 +90,16 @@ func (b *Backends) Predefined() bool {
 	return len(b.Setup) > 0
 }
 
-// Validate checks if the service has the required resources.
-//
-// NOTE: It should set an internal `missing` field (boolean) accordingly so that
-// the Missing() method can report the state of the resource.
-func (b *Backends) Validate() error {
-	if err := b.available(); err != nil {
-		return err
-	}
-
-	if b.Predefined() {
-		for name, settings := range b.Setup {
-			var (
-				condition bool
-				found     bool
-			)
-
-			for _, backend := range b.Available {
-				condition = backend.Name == name
-
-				if settings.Address != "" {
-					condition = condition && backend.Address == settings.Address
-				}
-				if settings.Port != 0 {
-					condition = condition && backend.Port == settings.Port
-				}
-				if condition {
-					settings.Exists = true
-					found = true
-				}
-			}
-
-			if !found {
-				b.missing = true
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // isOriginless indicates if the required backend is originless.
 func (b *Backends) isOriginless() bool {
 	return len(b.Required) == 1 && b.Required[0].Name == "originless" && b.Required[0].Address == "127.0.0.1"
 }
 
-// available sets the Available field with the result of calling the
-// ListBackends API.
-//
-// NOTE: We can't use the short variable declaration := when trying to assign
-// to a struct field, so we need to declare the `err` variable separately. Here
-func (b *Backends) available() error {
-	var err error
-	b.Available, err = b.APIClient.ListBackends(&fastly.ListBackendsInput{
-		ServiceID:      b.ServiceID,
-		ServiceVersion: b.ServiceVersion,
-	})
-	if err != nil {
-		return fmt.Errorf("error fetching service backends: %w", err)
-	}
-	return nil
-}
-
 // checkPredefined identifies specific backends that are required but missing
-// from the user's service.
+// from the user's service (based on the [setup.backends] configuration).
 func (b *Backends) checkPredefined() error {
 	var i int
 	for name, settings := range b.Setup {
-		if settings.Exists {
-			continue
-		}
-
 		if i > 0 {
 			text.Break(b.Stdout)
 		}
@@ -217,26 +145,14 @@ func (b *Backends) checkPredefined() error {
 			}
 		}
 
-		var found bool
-		for _, backend := range b.Available {
-			if backend.Name == name && backend.Address == addr && backend.Port == port {
-				text.Break(b.Stdout)
-				text.Output(b.Stdout, "We wont attempt to create the backend '%s' as it looks to already exist.", name)
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			overrideHost, sslSNIHostname := b.setBackendHost(addr)
-			b.Required = append(b.Required, Backend{
-				Name:           name,
-				Address:        addr,
-				OverrideHost:   overrideHost,
-				Port:           port,
-				SSLSNIHostname: sslSNIHostname,
-			})
-		}
+		overrideHost, sslSNIHostname := b.setBackendHost(addr)
+		b.Required = append(b.Required, Backend{
+			Name:           name,
+			Address:        addr,
+			OverrideHost:   overrideHost,
+			Port:           port,
+			SSLSNIHostname: sslSNIHostname,
+		})
 	}
 
 	return nil
