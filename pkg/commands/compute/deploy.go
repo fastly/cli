@@ -2,6 +2,7 @@ package compute
 
 import (
 	"crypto/sha512"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/commands/compute/setup"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/undo"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -75,7 +76,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
-		return errors.ErrNoToken
+		return fsterr.ErrNoToken
 	}
 
 	// Alias' for otherwise long definitions
@@ -184,7 +185,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress := text.NewProgress(out, c.Globals.Verbose())
 	undoStack := undo.NewStack()
 
-	defer func(errLog errors.LogInterface, progress text.Progress) {
+	defer func(errLog fsterr.LogInterface, progress text.Progress) {
 		if err != nil {
 			errLog.Add(err)
 			progress.Fail()
@@ -300,11 +301,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 //
 // NOTE: It also validates if the package size exceeds limit:
 // https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-func validatePackage(data manifest.Data, pathFlag string, errLog errors.LogInterface) (pkgName, pkgPath string, err error) {
+func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInterface) (pkgName, pkgPath string, err error) {
 	err = data.File.Read(manifest.Filename)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			err = fsterr.ErrReadingManifest
+		}
 		return pkgName, pkgPath, err
 	}
+
 	pkgName, source := data.Name()
 	pkgPath, err = packagePath(pathFlag, pkgName, source)
 	if err != nil {
@@ -323,9 +328,9 @@ func validatePackage(data manifest.Data, pathFlag string, errLog errors.LogInter
 		return pkgName, pkgPath, err
 	}
 	if pkgSize > PackageSizeLimit {
-		return pkgName, pkgPath, errors.RemediationError{
+		return pkgName, pkgPath, fsterr.RemediationError{
 			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
-			Remediation: errors.PackageSizeRemediation,
+			Remediation: fsterr.PackageSizeRemediation,
 		}
 	}
 	if err := validate(pkgPath); err != nil {
@@ -343,10 +348,7 @@ func validatePackage(data manifest.Data, pathFlag string, errLog errors.LogInter
 func packagePath(path string, name string, source manifest.Source) (string, error) {
 	if path == "" {
 		if source == manifest.SourceUndefined {
-			return "", errors.RemediationError{
-				Inner:       fmt.Errorf("error reading package manifest"),
-				Remediation: "Run `fastly compute init` to ensure a correctly configured manifest. See more at https://developer.fastly.com/reference/fastly-toml/",
-			}
+			return "", fsterr.ErrReadingManifest
 		}
 
 		path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(name)))
@@ -373,7 +375,7 @@ func manageNoServiceIDFlow(
 	verbose bool,
 	apiClient api.Interface,
 	pkgName string,
-	errLog errors.LogInterface,
+	errLog fsterr.LogInterface,
 	manifestFile *manifest.File) (serviceID string, serviceVersion *fastly.Version, err error) {
 
 	if !acceptDefaults {
@@ -432,7 +434,7 @@ func createService(client api.Interface, name string, progress text.Progress) (s
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), "Valid values for 'type' are: 'vcl'") {
-			return "", nil, errors.RemediationError{
+			return "", nil, fsterr.RemediationError{
 				Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge feature flag enabled on your Fastly account"),
 				Remediation: "For more help with this error see fastly.help/cli/ecp-feature",
 			}
@@ -474,7 +476,7 @@ func manageExistingServiceFlow(
 	apiClient api.Interface,
 	verbose bool,
 	out io.Writer,
-	errLog errors.LogInterface) (serviceVersion *fastly.Version, err error) {
+	errLog fsterr.LogInterface) (serviceVersion *fastly.Version, err error) {
 
 	serviceVersion, err = serviceVersionFlag.Parse(serviceID, apiClient)
 	if err != nil {
@@ -510,7 +512,7 @@ func manageExistingServiceFlow(
 }
 
 // errLogService records the error, service id and version into the error log.
-func errLogService(l errors.LogInterface, err error, sid string, sv int) {
+func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 	l.AddWithContext(err, map[string]interface{}{
 		"Service ID":      sid,
 		"Service Version": sv,
