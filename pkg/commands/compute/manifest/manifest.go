@@ -159,7 +159,7 @@ func (v *Version) UnmarshalText(text []byte) error {
 	if f, err := strconv.ParseFloat(s, 32); err == nil {
 		intfl := int(f)
 		if intfl == 0 {
-			*v = 1
+			*v = ManifestLatestVersion
 		} else {
 			*v = Version(intfl)
 		}
@@ -180,7 +180,7 @@ func (v *Version) UnmarshalText(text []byte) error {
 					return nil
 				}
 			} else {
-				*v = 1
+				*v = ManifestLatestVersion
 				return nil
 			}
 		}
