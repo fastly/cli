@@ -1,4 +1,4 @@
-manifest_version = "0.1.0"
+manifest_version = "0.2.0"
 name = "Default Rust template"
 description = "Default package template for Rust based edge compute projects."
 authors = ["phamann <patrick@fastly.com>"]

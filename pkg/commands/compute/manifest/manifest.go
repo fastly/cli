@@ -411,9 +411,6 @@ func validateManifestVersion(bs []byte) error {
 	}
 
 	i := tree.GetArray("manifest_version")
-	if i == nil {
-		return errors.ErrMissingManifestVersion
-	}
 
 	if version, ok := i.(int64); ok {
 		if version == ManifestLatestVersion {
