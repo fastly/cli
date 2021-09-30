@@ -468,7 +468,7 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: `
 			name = "package"
-			manifest_version = 1
+			manifest_version = 2
 			language = "rust"
 
 			[setup]
@@ -516,7 +516,7 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: `
 			name = "package"
-			manifest_version = 1
+			manifest_version = 2
 			language = "rust"
 
 			[setup]
@@ -563,7 +563,7 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: `
 			name = "package"
-			manifest_version = 1
+			manifest_version = 2
 			language = "rust"
 
 			[setup]
@@ -612,7 +612,7 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: `
 			name = "package"
-			manifest_version = 1
+			manifest_version = 2
 			language = "rust"
 
 			[setup]
@@ -640,7 +640,7 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: `
 			name = "package"
-			manifest_version = 1
+			manifest_version = 2
 			language = "rust"
 
 			[setup]
@@ -848,7 +848,7 @@ func TestDeploy(t *testing.T) {
 			},
 			manifest: `
 			name = "package"
-			manifest_version = 1
+			manifest_version = 2
 			language = "rust"
 
 			[setup]

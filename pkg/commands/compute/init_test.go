@@ -156,7 +156,7 @@ func TestInit(t *testing.T) {
 				},
 			},
 			manifest: strings.Join([]string{
-				"manifest_version = \"1\"",
+				"manifest_version = \"2\"",
 				"service_id = \"1234\"",
 				"name = \"test\"",
 				"language = \"rust\"",
