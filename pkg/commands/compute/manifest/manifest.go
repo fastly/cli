@@ -412,14 +412,14 @@ func validateManifestVersion(bs []byte) error {
 
 	i := tree.GetArray("manifest_version")
 	if i == nil {
-		return errors.ErrMissingManifestVersion
+		return fsterr.ErrMissingManifestVersion
 	}
 
 	if version, ok := i.(int64); ok {
 		if version == ManifestLatestVersion {
 			return nil
 		}
-		return errors.ErrIncompatibleManifestVersion
+		return fsterr.ErrIncompatibleManifestVersion
 	}
 
 	if version, ok := i.(float64); ok {
@@ -427,7 +427,7 @@ func validateManifestVersion(bs []byte) error {
 		if intfloat == ManifestLatestVersion {
 			return nil
 		}
-		return errors.ErrIncompatibleManifestVersion
+		return fsterr.ErrIncompatibleManifestVersion
 	}
 
 	if version, ok := i.(string); ok {
@@ -445,10 +445,10 @@ func validateManifestVersion(bs []byte) error {
 						return nil
 					}
 				}
-				return errors.ErrIncompatibleManifestVersion
+				return fsterr.ErrIncompatibleManifestVersion
 			}
 
-			return errors.ErrUnrecognisedManifestVersion
+			return fsterr.ErrUnrecognisedManifestVersion
 		}
 	}
 
