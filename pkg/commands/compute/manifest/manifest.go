@@ -294,9 +294,11 @@ func (f *File) Read(fpath string) error {
 		bs = buf.Bytes()
 	}
 
-	manifestVersion, err := getManifestVersion(bs)
-	if err != nil || manifestVersion != ManifestLatestVersion {
-		return errors.ErrIncompatibleManifestVersion
+	// We want to avoid a generic error from toml.Unmarshal when dealing with toml
+	// configuration that's in a older/unsupported format.
+	err = validateManifestVersion(bs)
+	if err != nil {
+		return err
 	}
 
 	err = toml.Unmarshal(bs, f)
@@ -395,18 +397,62 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-// getManifestVersion returns the version number.
-func getManifestVersion(bs []byte) (int64, error) {
+// validateManifestVersion tests if the manifest_version is set to the same
+// value as ManifestLatestVersion.
+//
+// NOTE: It validates similar conversions as Version.UnmarshalText().
+// Specifically, it will attempt to convert the interface{} into an integer so
+// it can be compared against ManifestLatestVersion. Otherwise it'll attempt to
+// convert it into a float, and lastly it'll check for a semver.
+func validateManifestVersion(bs []byte) error {
 	tree, err := toml.LoadBytes(bs)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	if version, ok := tree.GetArray("manifest_version").(int64); ok {
-		return version, nil
+	i := tree.GetArray("manifest_version")
+	if i == nil {
+		return errors.ErrMissingManifestVersion
 	}
 
-	return 0, nil
+	if version, ok := i.(int64); ok {
+		if version == ManifestLatestVersion {
+			return nil
+		}
+		return errors.ErrIncompatibleManifestVersion
+	}
+
+	if version, ok := i.(float64); ok {
+		intfloat := int(version)
+		if intfloat == ManifestLatestVersion {
+			return nil
+		}
+		return errors.ErrIncompatibleManifestVersion
+	}
+
+	if version, ok := i.(string); ok {
+		if strings.Contains(version, ".") {
+			segs := strings.Split(version, ".")
+
+			// A length of 3 presumes a semver (e.g. 0.1.0)
+			if len(segs) == 3 {
+				compare := segs[0]
+				if segs[0] == "0" {
+					compare = segs[1]
+				}
+				if intstr, err := strconv.Atoi(compare); err == nil {
+					if intstr == ManifestLatestVersion {
+						return nil
+					}
+				}
+				return errors.ErrIncompatibleManifestVersion
+			}
+
+			return errors.ErrUnrecognisedManifestVersion
+		}
+	}
+
+	return nil
 }
 
 // Write persists the manifest content to disk.
