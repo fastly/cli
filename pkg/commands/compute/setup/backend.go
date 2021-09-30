@@ -100,11 +100,13 @@ func (b *Backends) isOriginless() bool {
 func (b *Backends) checkPredefined() error {
 	var i int
 	for name, settings := range b.Setup {
-		if i > 0 {
-			text.Break(b.Stdout)
+		if !b.AcceptDefaults {
+			if i > 0 {
+				text.Break(b.Stdout)
+			}
+			i++
+			text.Output(b.Stdout, "%s %s", text.Bold("Backend name:"), name)
 		}
-		i++
-		text.Output(b.Stdout, "%s %s", text.Bold("Backend name:"), name)
 
 		var defaultAddress string
 		if settings.Address != "" {
@@ -116,15 +118,22 @@ func (b *Backends) checkPredefined() error {
 			prompt = fmt.Sprintf("Backend address%s ", defaultAddress)
 		}
 
-		addr, err := text.Input(b.Stdout, prompt, b.Stdin, b.validateAddress)
-		if err != nil {
-			return fmt.Errorf("error reading prompt input: %w", err)
+		var (
+			addr string
+			err  error
+		)
+
+		if !b.AcceptDefaults {
+			addr, err = text.Input(b.Stdout, prompt, b.Stdin, b.validateAddress)
+			if err != nil {
+				return fmt.Errorf("error reading prompt input: %w", err)
+			}
 		}
 		if addr == "" {
-			if settings.Address == "" {
-				return fmt.Errorf("error reading prompt input: backend address is required")
-			}
 			addr = settings.Address
+			if settings.Address == "" {
+				addr = "127.0.0.1"
+			}
 		}
 
 		port := uint(80)

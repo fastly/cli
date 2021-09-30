@@ -95,10 +95,11 @@ func TestDeploy(t *testing.T) {
 			wantError: "no token provided",
 		},
 		{
-			name:       "no fastly.toml manifest",
-			args:       args("compute deploy --token 123"),
-			wantError:  "error reading package manifest",
-			noManifest: true,
+			name:                 "no fastly.toml manifest",
+			args:                 args("compute deploy --token 123"),
+			wantError:            "error reading package manifest",
+			wantRemediationError: errors.ComputeInitRemediation,
+			noManifest:           true,
 		},
 		{
 			// If no Service ID defined via flag or manifest, then the expectation is
@@ -110,14 +111,13 @@ func TestDeploy(t *testing.T) {
 			name: "path with no service ID",
 			args: args("compute deploy --token 123 -v -p pkg/package.tar.gz"),
 			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
+				UpdatePackageFn:   updatePackageOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -132,14 +132,13 @@ func TestDeploy(t *testing.T) {
 			name: "empty service ID",
 			args: args("compute deploy --token 123 -v"),
 			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
+				UpdatePackageFn:   updatePackageOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -161,8 +160,8 @@ func TestDeploy(t *testing.T) {
 			name: "service version is active, clone version error",
 			args: args("compute deploy --service-id 123 --token 123 --version 1"),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionError,
+				ListVersionsFn: testutil.ListVersions,
 			},
 			wantError: fmt.Sprintf("error cloning service version: %s", testutil.Err.Error()),
 		},
@@ -171,21 +170,10 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				GetServiceFn:   getServiceOK,
-				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsError,
+				ListVersionsFn: testutil.ListVersions,
 			},
 			wantError: fmt.Sprintf("error fetching service domains: %s", testutil.Err.Error()),
-		},
-		{
-			name: "list backends error",
-			args: args("compute deploy --service-id 123 --token 123"),
-			api: mock.API{
-				GetServiceFn:   getServiceOK,
-				ListVersionsFn: testutil.ListVersions,
-				ListDomainsFn:  listDomainsOk,
-				ListBackendsFn: listBackendsError,
-			},
-			wantError: fmt.Sprintf("error fetching service backends: %s", testutil.Err.Error()),
 		},
 		{
 			name:                 "package size too large",
@@ -201,16 +189,15 @@ func TestDeploy(t *testing.T) {
 			name: "package API error",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendOK,
-				GetPackageFn:    getPackageOk,
-				UpdatePackageFn: updatePackageError,
+				CreateDomainFn:  createDomainOK,
+				CreateServiceFn: createServiceOK,
 				DeleteBackendFn: deleteBackendOK,
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
+				GetPackageFn:    getPackageOk,
 				ListDomainsFn:   listDomainsOk,
-				ListBackendsFn:  listBackendsOk,
+				UpdatePackageFn: updatePackageError,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -247,12 +234,11 @@ func TestDeploy(t *testing.T) {
 			name: "service domain error",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn: createServiceOK,
 				CreateDomainFn:  createDomainError,
+				CreateServiceFn: createServiceOK,
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 				ListDomainsFn:   listDomainsNone,
-				ListBackendsFn:  listBackendsOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -260,7 +246,7 @@ func TestDeploy(t *testing.T) {
 			wantError: fmt.Sprintf("error creating domain: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
-				"Creating domain...",
+				"Creating domain '",
 			},
 		},
 		// The following test doesn't provide a Service ID by either a flag nor the
@@ -272,14 +258,13 @@ func TestDeploy(t *testing.T) {
 			name: "service backend error",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn: createServiceOK,
-				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendError,
+				CreateDomainFn:  createDomainOK,
+				CreateServiceFn: createServiceOK,
 				DeleteBackendFn: deleteBackendOK,
 				DeleteDomainFn:  deleteDomainOK,
 				DeleteServiceFn: deleteServiceOK,
 				ListDomainsFn:   listDomainsOk,
-				ListBackendsFn:  listBackendsNone,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -289,7 +274,7 @@ func TestDeploy(t *testing.T) {
 				"Creating service...",
 			},
 			dontWantOutput: []string{
-				"Creating domain...",
+				"Creating domain '",
 			},
 		},
 		// The following test validates that the undoStack is executed as expected
@@ -298,19 +283,18 @@ func TestDeploy(t *testing.T) {
 			name: "activate error",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: activateVersionError,
+				CreateDomainFn:    createDomainOK,
+				DeleteDomainFn:    deleteDomainOK,
+				GetPackageFn:      getPackageOk,
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsNone,
-				ListBackendsFn:    listBackendsOk,
-				CreateDomainFn:    createDomainOK,
-				GetPackageFn:      getPackageOk,
+				ListVersionsFn:    testutil.ListVersions,
 				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionError,
-				DeleteDomainFn:    deleteDomainOK,
 			},
 			wantError: fmt.Sprintf("error activating version: %s", testutil.Err.Error()),
 			wantOutput: []string{
-				"Creating domain...",
+				"Creating domain '",
 				"Uploading package...",
 				"Activating version...",
 			},
@@ -319,11 +303,10 @@ func TestDeploy(t *testing.T) {
 			name: "identical package",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetPackageFn:   getPackageIdentical,
 				GetServiceFn:   getServiceOK,
 				ListDomainsFn:  listDomainsOk,
-				ListBackendsFn: listBackendsOk,
-				GetPackageFn:   getPackageIdentical,
+				ListVersionsFn: testutil.ListVersions,
 			},
 			wantOutput: []string{
 				"Skipping package deployment",
@@ -333,13 +316,12 @@ func TestDeploy(t *testing.T) {
 			name: "success",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: activateVersionOk,
+				GetPackageFn:      getPackageOk,
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
-				GetPackageFn:      getPackageOk,
+				ListVersionsFn:    testutil.ListVersions,
 				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
 			},
 			wantOutput: []string{
 				"Uploading package...",
@@ -355,13 +337,12 @@ func TestDeploy(t *testing.T) {
 			name: "success with path",
 			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version latest"),
 			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: activateVersionOk,
+				GetPackageFn:      getPackageOk,
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
-				GetPackageFn:      getPackageOk,
+				ListVersionsFn:    testutil.ListVersions,
 				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
 			},
 			wantOutput: []string{
 				"Uploading package...",
@@ -377,13 +358,12 @@ func TestDeploy(t *testing.T) {
 			name: "success with inactive version",
 			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz"),
 			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: activateVersionOk,
+				GetPackageFn:      getPackageOk,
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
-				GetPackageFn:      getPackageOk,
+				ListVersionsFn:    testutil.ListVersions,
 				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
 			},
 			wantOutput: []string{
 				"Uploading package...",
@@ -395,14 +375,13 @@ func TestDeploy(t *testing.T) {
 			name: "success with specific locked version",
 			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version 2"),
 			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: activateVersionOk,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
+				GetPackageFn:      getPackageOk,
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
-				GetPackageFn:      getPackageOk,
+				ListVersionsFn:    testutil.ListVersions,
 				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
 			},
 			wantOutput: []string{
 				"Uploading package...",
@@ -414,14 +393,13 @@ func TestDeploy(t *testing.T) {
 			name: "success with active version",
 			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version active"),
 			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: activateVersionOk,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
+				GetPackageFn:      getPackageOk,
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
-				GetPackageFn:      getPackageOk,
+				ListVersionsFn:    testutil.ListVersions,
 				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
 			},
 			wantOutput: []string{
 				"Uploading package...",
@@ -433,14 +411,13 @@ func TestDeploy(t *testing.T) {
 			name: "success with comment",
 			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version 2 --comment foo"),
 			api: mock.API{
-				GetServiceFn:      getServiceOK,
-				ListVersionsFn:    testutil.ListVersions,
-				CloneVersionFn:    testutil.CloneVersionResult(4),
-				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				GetPackageFn:      getPackageOk,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListVersionsFn:    testutil.ListVersions,
+				UpdatePackageFn:   updatePackageOk,
 				UpdateVersionFn:   updateVersionOk,
 			},
 			wantOutput: []string{
@@ -457,31 +434,27 @@ func TestDeploy(t *testing.T) {
 			name: "success with setup configuration",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
+				UpdatePackageFn:   updatePackageOk,
 			},
 			manifest: `
 			name = "package"
 			manifest_version = 2
 			language = "rust"
 
-			[setup]
-				[[setup.backends]]
-					name = "backend_name"
-					prompt = "Backend 1"
-					address = "developer.fastly.com"
-					port = 443
-				[[setup.backends]]
-					name = "other_backend_name"
-					prompt = "Backend 2"
-					address = "httpbin.org"
-					port = 443
+			[setup.backends.backend_name]
+			prompt = "Backend 1"
+			address = "developer.fastly.com"
+			port = 443
+			[setup.backends.other_backend_name]
+			prompt = "Backend 2"
+			address = "httpbin.org"
+			port = 443
 			`,
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -505,35 +478,33 @@ func TestDeploy(t *testing.T) {
 			name: "success with setup configuration and no prompts or ports defined",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
+				UpdatePackageFn:   updatePackageOk,
 			},
 			manifest: `
 			name = "package"
 			manifest_version = 2
 			language = "rust"
 
-			[setup]
-				[[setup.backends]]
-					name = "foo_backend"
-					address = "developer.fastly.com"
-				[[setup.backends]]
-					name = "bar_backend"
-					address = "httpbin.org"
+			[setup.backends.foo_backend]
+			address = "developer.fastly.com"
+			[setup.backends.bar_backend]
+			address = "httpbin.org"
 			`,
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Backend for 'foo_backend': [developer.fastly.com]",
+				"Backend name: foo_backend",
+				"Backend address: [developer.fastly.com]",
 				"Backend port number: [80]",
-				"Backend for 'bar_backend': [httpbin.org]",
+				"Backend name: bar_backend",
+				"Backend address: [httpbin.org]",
 				"Backend port number: [80]",
 				"Creating service...",
 				"Creating backend 'foo_backend' (host: developer.fastly.com, port: 80)...",
@@ -543,7 +514,7 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 			dontWantOutput: []string{
-				"Creating domain...",
+				"Creating domain '",
 			},
 		},
 		// The following test validates no prompts are displayed to the user due to
@@ -552,31 +523,27 @@ func TestDeploy(t *testing.T) {
 			name: "success with setup configuration and accept-defaults",
 			args: args("compute deploy --accept-defaults --token 123"),
 			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsOk,
+				UpdatePackageFn:   updatePackageOk,
 			},
 			manifest: `
 			name = "package"
 			manifest_version = 2
 			language = "rust"
 
-			[setup]
-				[[setup.backends]]
-					name = "backend_name"
-					prompt = "Backend 1"
-					address = "developer.fastly.com"
-					port = 443
-				[[setup.backends]]
-					name = "other_backend_name"
-					prompt = "Backend 2"
-					address = "httpbin.org"
-					port = 443
+			[setup.backends.backend_name]
+			prompt = "Backend 1"
+			address = "developer.fastly.com"
+			port = 443
+			[setup.backends.other_backend_name]
+			prompt = "Backend 2"
+			address = "httpbin.org"
+			port = 443
 			`,
 			wantOutput: []string{
 				"Initializing...",
@@ -595,71 +562,6 @@ func TestDeploy(t *testing.T) {
 				"Domain: [",
 			},
 		},
-		// The follow test validates the setup.backends.address field is a required
-		// field. This is because we need an address to generate a name (if no name
-		// was provided by the user).
-		{
-			name: "error with setup configuration and missing required fields",
-			args: args("compute deploy --token 123"),
-			api: mock.API{
-				CreateServiceFn: createServiceOK,
-				ListDomainsFn:   listDomainsOk,
-				ListBackendsFn:  listBackendsNone,
-
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
-			},
-			manifest: `
-			name = "package"
-			manifest_version = 2
-			language = "rust"
-
-			[setup]
-				[[setup.backends]]
-					prompt = "Backend 1"
-					port = 443
-				[[setup.backends]]
-					prompt = "Backend 2"
-					port = 443
-			`,
-			stdin: []string{
-				"Y", // when prompted to create a new service
-			},
-			wantError: "error parsing the [[setup.backends]] configuration",
-		},
-		// The following test validates the setup.backends.name field should be a
-		// string, not an integer.
-		{
-			name: "error with setup configuration -- invalid setup.backends.name",
-			args: args("compute deploy --token 123"),
-			api: mock.API{
-				CreateServiceFn: createServiceOK,
-				ListDomainsFn:   listDomainsOk,
-				ListBackendsFn:  listBackendsOk,
-			},
-			manifest: `
-			name = "package"
-			manifest_version = 2
-			language = "rust"
-
-			[setup]
-				[[setup.backends]]
-				  name = 123
-					prompt = "Backend 1"
-					address = "developer.fastly.com"
-					port = 443
-				[[setup.backends]]
-				  name = 456
-					prompt = "Backend 2"
-					address = "httpbin.org"
-					port = 443
-			`,
-			stdin: []string{
-				"Y", // when prompted to create a new service
-			},
-			wantError: "error parsing the [[setup.backends]] configuration",
-		},
 		// The following test validates that a new 'originless' backend is created
 		// when the user has no [setup] configuration and they also pass the
 		// --accept-defaults flag. This is done by ensuring we DON'T see the
@@ -670,14 +572,13 @@ func TestDeploy(t *testing.T) {
 			name: "success with no setup configuration and --accept-defaults for new service creation",
 			args: args("compute deploy --accept-defaults --token 123"),
 			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsNone,
+				UpdatePackageFn:   updatePackageOk,
 			},
 			wantOutput: []string{
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -690,14 +591,13 @@ func TestDeploy(t *testing.T) {
 			name: "success with no setup configuration and single backend entered at prompt for new service",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsNone,
+				UpdatePackageFn:   updatePackageOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -721,14 +621,13 @@ func TestDeploy(t *testing.T) {
 			name: "success with no setup configuration and multiple backends entered at prompt for new service",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsNone,
+				UpdatePackageFn:   updatePackageOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -756,14 +655,13 @@ func TestDeploy(t *testing.T) {
 			name: "success with no setup configuration and defaulting to originless",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn:   createServiceOK,
-				CreateDomainFn:    createDomainOK,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
 				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsNone,
+				UpdatePackageFn:   updatePackageOk,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -777,114 +675,81 @@ func TestDeploy(t *testing.T) {
 				"Creating backend", // expect originless creation to be hidden
 			},
 		},
-		// The following test validates that when dealing with an existing service,
-		// if there are no backends, then we'll prompt the user for backends.
-		{
-			name: "success with no setup configuration and multiple backends prompted for existing service with no backends",
-			args: args("compute deploy --service-id 123 --token 123"),
-			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
-				GetServiceFn:      getServiceOK,
-				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsNone,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
-				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
-			},
-			stdin: []string{
-				"fastly.com",
-				"443",
-				"", // this is so we generate a backend name using a built-in formula
-				"google.com",
-				"123",
-				"", // this is so we generate a backend name using a built-in formula
-				"", // this stops prompting for backends
-			},
-			wantOutput: []string{
-				"Backend (hostname or IP address, or leave blank to stop adding backends):",
-				"Creating backend 'backend_1' (host: fastly.com, port: 443)...",
-				"Creating backend 'backend_2' (host: google.com, port: 123)...",
-				"SUCCESS: Deployed package (service 123, version 3)",
-			},
-		},
 		// The following test is the same setup as above, but if the user provides
 		// the --accept-defaults flag we won't prompt for any backends.
 		{
-			name: "success with no setup configuration and use of --accept-defaults for existing service",
-			args: args("compute deploy --accept-defaults --service-id 123 --token 123"),
+			name: "success with no setup configuration and use of --accept-defaults",
+			args: args("compute deploy --accept-defaults --token 123"),
 			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
 				GetServiceFn:      getServiceOK,
 				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsNone,
-				CreateBackendFn:   createBackendOK,
-				GetPackageFn:      getPackageOk,
+				ListVersionsFn:    testutil.ListVersions,
 				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
 			},
 			wantOutput: []string{
-				"SUCCESS: Deployed package (service 123, version 3)",
+				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 			dontWantOutput: []string{
+				"Create new service",
 				"Creating backend", // expect originless creation to be hidden
 			},
 		},
 		// The following test validates that when dealing with an existing service,
-		// if there are some backends that exist from the given [setup], then only
-		// prompt the user for backends that don't exist.
+		// no [setup.backends] configuration is utilised.
+		//
+		// i.e. we will not validate the service for missing backends, nor will we
+		// prompt the user to create any backends.
 		{
-			name: "success with setup configuration and only prompting missing backends for existing service",
+			name: "success with setup configuration and existing service",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
-				GetServiceFn:      getServiceOK,
-				ListDomainsFn:     listDomainsOk,
-				ListBackendsFn:    listBackendsSome,
+				ActivateVersionFn: activateVersionOk,
 				CreateBackendFn:   createBackendOK,
 				GetPackageFn:      getPackageOk,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListVersionsFn:    testutil.ListVersions,
 				UpdatePackageFn:   updatePackageOk,
-				ActivateVersionFn: activateVersionOk,
 			},
 			manifest: `
 			name = "package"
 			manifest_version = 2
 			language = "rust"
 
-			[setup]
-				[[setup.backends]]
-					name = "fastly"
-					prompt = "Backend 1"
-					address = "fastly.com"
-					port = 443
-				[[setup.backends]]
-					name = "google"
-					prompt = "Backend 2"
-					address = "google.com"
-					port = 443
-				[[setup.backends]]
-					name = "facebook"
-					prompt = "Backend 3"
-					address = "facebook.com"
-					port = 443
+			[setup.backends.fastly]
+			prompt = "Backend 1"
+			address = "fastly.com"
+			port = 443
+			[setup.backends.google]
+			prompt = "Backend 2"
+			address = "google.com"
+			port = 443
+			[setup.backends.facebook]
+			prompt = "Backend 3"
+			address = "facebook.com"
+			port = 443
 			`,
-			stdin: []string{
-				"beep.com",
-				"123",
-				"boop.com",
-				"456",
-			},
 			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 123, version 3)",
+			},
+			dontWantOutput: []string{
 				"Creating backend 'google' (host: beep.com, port: 123)",
 				"Creating backend 'facebook' (host: boop.com, port: 456)",
-				"SUCCESS: Deployed package (service 123, version 3)",
 			},
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// Because the manifest can be mutated on each test scenario, we recreate
 			// the file each time.
-			manifestContent := `name = "package"`
+			manifestContent := `manifest_version = 2
+			name = "package"			
+			`
 			if testcase.manifest != "" {
 				manifestContent = testcase.manifest
 			}
@@ -1032,27 +897,6 @@ func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, erro
 
 func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, testutil.Err
-}
-
-func listBackendsOk(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
-	return []*fastly.Backend{
-		{Name: "foo"},
-		{Name: "bar"},
-	}, nil
-}
-
-func listBackendsError(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
-	return nil, testutil.Err
-}
-
-func listBackendsNone(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
-	return []*fastly.Backend{}, nil
-}
-
-func listBackendsSome(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
-	return []*fastly.Backend{
-		{Address: "fastly.com", Name: "fastly", Port: 443},
-	}, nil
 }
 
 func listDomainsNone(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {

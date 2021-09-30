@@ -53,3 +53,9 @@ var ErrNoID = RemediationError{
 	Inner:       fmt.Errorf("no ID found"),
 	Remediation: IDRemediation,
 }
+
+// ErrReadingManifest means there was a problem reading the package manifest.
+var ErrReadingManifest = RemediationError{
+	Inner:       fmt.Errorf("error reading package manifest"),
+	Remediation: ComputeInitRemediation,
+}
