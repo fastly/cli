@@ -201,8 +201,9 @@ type File struct {
 	LocalServer     LocalServer `toml:"local_server,omitempty"`
 	Setup           Setup       `toml:"setup,omitempty"`
 
-	exists bool
-	output io.Writer
+	exists    bool
+	output    io.Writer
+	readError error
 }
 
 // Setup represents a set of service configuration that works with the code in
@@ -251,8 +252,24 @@ type LocalDictionary struct {
 }
 
 // Exists yields whether the manifest exists.
+//
+// Specifically, it indicates that a toml.Unmarshal() of the toml disk content
+// to data in memory was successful without error.
 func (f *File) Exists() bool {
 	return f.exists
+}
+
+// ReadError yields the error returned from Read().
+//
+// NOTE: We no longer call Read() from every command. We only call it once
+// within app.Run() but we don't handle any errors that are returned from the
+// Read() method. This is because failing to read the manifest is fine if the
+// error is caused by the file not existing in a directory where the user is
+// working on a non-C@E project. This will enable code elsewhere in the CLI to
+// understand why the Read() failed. For example, we can use errors.Is() to
+// allow returning a specific remediation error from a C@E related command.
+func (f *File) ReadError() error {
+	return f.readError
 }
 
 // SetOutput sets the output stream for any messages.
@@ -261,7 +278,13 @@ func (f *File) SetOutput(output io.Writer) {
 }
 
 // Read loads the manifest file content from disk.
-func (f *File) Read(fpath string) error {
+func (f *File) Read(fpath string) (err error) {
+	defer func() {
+		if err != nil {
+			f.readError = err
+		}
+	}()
+
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// Disabling as we need to load the fastly.toml from the user's file system.

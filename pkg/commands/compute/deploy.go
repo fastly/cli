@@ -302,7 +302,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // NOTE: It also validates if the package size exceeds limit:
 // https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
 func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInterface) (pkgName, pkgPath string, err error) {
-	err = data.File.Read(manifest.Filename)
+	err = data.File.ReadError()
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			err = fsterr.ErrReadingManifest

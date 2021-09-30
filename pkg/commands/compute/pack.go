@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/kennygrant/sanitize"
@@ -38,13 +38,16 @@ func NewPackCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress := text.NewProgress(out, c.Globals.Verbose())
 
-	defer func(errLog errors.LogInterface) {
+	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
 			errLog.Add(err)
 			progress.Fail()
 		}
 	}(c.Globals.ErrLog)
 
+	if err = c.manifest.File.ReadError(); err != nil {
+		return err
+	}
 	name := sanitize.BaseName(c.manifest.File.Name)
 	pkg := fmt.Sprintf("pkg/%s/bin/main.wasm", name)
 	dir := filepath.Dir(pkg)
@@ -80,7 +83,7 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if !filesystem.FileExists(pkg) {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("no wasm binary found"),
 			Remediation: "Run `fastly compute pack --path </path/to/wasm/binary>` to copy your wasm binary to the required location",
 		}

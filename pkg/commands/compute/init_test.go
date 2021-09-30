@@ -3,6 +3,7 @@ package compute_test
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,6 +21,10 @@ func TestInit(t *testing.T) {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_INIT to run this test")
 	}
+
+	// TODO: Change back to "main" before merging PR.
+	starterkitBranch := "integralist/update-setup-structure"
+	starterkitBranchJSAS := "integralist/manifest-version-2"
 
 	for _, testcase := range []struct {
 		name             string
@@ -46,7 +51,7 @@ func TestInit(t *testing.T) {
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Branch: starterkitBranch,
 						},
 					},
 				},
@@ -67,7 +72,7 @@ func TestInit(t *testing.T) {
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Branch: starterkitBranch,
 						},
 					},
 				},
@@ -88,7 +93,7 @@ func TestInit(t *testing.T) {
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Branch: starterkitBranch,
 						},
 					},
 				},
@@ -109,7 +114,7 @@ func TestInit(t *testing.T) {
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Branch: starterkitBranch,
 						},
 					},
 				},
@@ -123,14 +128,13 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with from repository and branch",
-			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default.git --branch main"),
+			args: args(fmt.Sprintf("compute init --from https://github.com/fastly/compute-starter-kit-rust-default.git --branch %s", starterkitBranch)),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
 						},
 					},
 				},
@@ -150,19 +154,18 @@ func TestInit(t *testing.T) {
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Branch: starterkitBranch,
 						},
 					},
 				},
 			},
-			manifest: strings.Join([]string{
-				"manifest_version = \"2\"",
-				"service_id = \"1234\"",
-				"name = \"test\"",
-				"language = \"rust\"",
-				"description = \"test\"",
-				"authors = [\"test@fastly.com\"]",
-			}, "\n"),
+			manifest: `
+			manifest_version = 2
+			service_id = 1234
+			name = "test"
+			language = "rust"
+			description = "test"
+			authors = ["test@fastly.com"]`,
 			wantOutput: []string{
 				"Updating package manifest...",
 				"Initializing package...",
@@ -180,7 +183,7 @@ func TestInit(t *testing.T) {
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Branch: starterkitBranch,
 						},
 					},
 				},
@@ -209,13 +212,15 @@ func TestInit(t *testing.T) {
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Branch: starterkitBranch,
 						},
 					},
 				},
 			},
 			wantError: "project directory not empty",
-			manifest:  `name = "test"`, // causes a file to be created as part of test setup
+			manifest: `
+			manifest_version = 2
+			name = "test"`,
 		},
 		{
 			name: "with default name inferred from directory",
@@ -226,7 +231,7 @@ func TestInit(t *testing.T) {
 						{
 							Name:   "Default",
 							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Branch: starterkitBranch,
 						},
 					},
 				},
@@ -240,9 +245,9 @@ func TestInit(t *testing.T) {
 				StarterKits: config.StarterKitLanguages{
 					AssemblyScript: []config.StarterKit{
 						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
-							Tag:  "v0.2.0",
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
+							Branch: starterkitBranchJSAS,
 						},
 					},
 				},
@@ -256,9 +261,9 @@ func TestInit(t *testing.T) {
 				StarterKits: config.StarterKitLanguages{
 					JavaScript: []config.StarterKit{
 						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-javascript-default",
-							Tag:  "v0.1.0",
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-javascript-default",
+							Branch: starterkitBranchJSAS,
 						},
 					},
 				},

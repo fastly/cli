@@ -24,9 +24,11 @@ func TestPack(t *testing.T) {
 		// The following test validates that the expected directory structure was
 		// created successfully.
 		{
-			name:     "success",
-			args:     args("compute pack --path ./main.wasm"),
-			manifest: `name = "precompiled"`,
+			name: "success for directory structure",
+			args: args("compute pack --path ./main.wasm"),
+			manifest: `
+			manifest_version = 2
+			name = "mypackagename"`,
 			wantOutput: []string{
 				"Initializing...",
 				"Copying wasm binary...",
@@ -34,17 +36,19 @@ func TestPack(t *testing.T) {
 				"Creating .tar.gz file...",
 			},
 			expectedFiles: [][]string{
-				{"pkg", "precompiled", "bin", "main.wasm"},
-				{"pkg", "precompiled", "fastly.toml"},
-				{"pkg", "precompiled.tar.gz"},
+				{"pkg", "mypackagename", "bin", "main.wasm"},
+				{"pkg", "mypackagename", "fastly.toml"},
+				{"pkg", "mypackagename.tar.gz"},
 			},
 		},
 		// The following test validates that the expected directory structure was
 		// created successfully when `name` contains whitespace.
 		{
-			name:     "success",
-			args:     args("compute pack --path ./main.wasm"),
-			manifest: `name = "another name"`,
+			name: "success with name containing whitespace",
+			args: args("compute pack --path ./main.wasm"),
+			manifest: `
+			manifest_version = 2
+			name = "another name"`,
 			wantOutput: []string{
 				"Initializing...",
 				"Copying wasm binary...",
@@ -66,9 +70,11 @@ func TestPack(t *testing.T) {
 			wantError: "error parsing arguments: required flag --path not provided",
 		},
 		{
-			name:      "error no path flag value provided",
-			args:      args("compute pack --path "),
-			manifest:  `name = "precompiled"`,
+			name: "error no path flag value provided",
+			args: args("compute pack --path "),
+			manifest: `
+			manifest_version = 2
+			name = "precompiled"`,
 			wantError: "error copying wasm binary",
 		},
 	} {
@@ -102,6 +108,9 @@ func TestPack(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			err = app.Run(opts)
+
+			t.Log(stdout.String())
+
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {
 				testutil.AssertStringContains(t, stdout.String(), s)

@@ -50,8 +50,8 @@ func TestManifest(t *testing.T) {
 		"unrecognised: manifest_version exceeded limit": {
 			manifest:             "fastly-invalid-version-exceeded.toml",
 			valid:                false,
-			expectedError:        errs.ErrUnrecognisedManifestVersion,
-			wantRemediationError: errs.ErrUnrecognisedManifestVersion.Remediation,
+			expectedError:        errs.ErrIncompatibleManifestVersion,
+			wantRemediationError: errs.ErrIncompatibleManifestVersion.Remediation,
 		},
 	}
 
