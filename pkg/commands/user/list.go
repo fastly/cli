@@ -18,7 +18,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause = parent.Command("list", "List all users from a specified customer id")
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause.Flag("customer-id", "c").Required().StringVar(&c.customerID)
+	c.CmdClause.Flag("customer-id", "Alphanumeric string identifying the customer").Required().StringVar(&c.customerID)
 	return &c
 }
 

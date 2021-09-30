@@ -4001,7 +4001,7 @@ COMMANDS
   user list --customer-id=CUSTOMER-ID
     List all users from a specified customer id
 
-    --customer-id=CUSTOMER-ID  c
+    --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
 
   user update [<flags>]
     Update a user of the Fastly API and web interface
