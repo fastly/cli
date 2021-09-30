@@ -31,13 +31,15 @@ func TestManifest(t *testing.T) {
 			manifest: "fastly-valid-integer.toml",
 			valid:    true,
 		},
-		"invalid: missing manifest_version causes default to be set": {
-			manifest: "fastly-invalid-missing-version.toml",
-			valid:    true,
+		"invalid: missing manifest_version": {
+			manifest:      "fastly-invalid-missing-version.toml",
+			valid:         false,
+			expectedError: errs.ErrMissingManifestVersion,
 		},
-		"invalid: manifest_version as a section causes default to be set": {
-			manifest: "fastly-invalid-section-version.toml",
-			valid:    true,
+		"invalid: manifest_version as a section": {
+			manifest:      "fastly-invalid-section-version.toml",
+			valid:         false,
+			expectedError: errs.ErrMissingManifestVersion,
 		},
 		"invalid: manifest_version Atoi error": {
 			manifest:             "fastly-invalid-unrecognised.toml",
