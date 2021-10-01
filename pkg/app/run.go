@@ -676,23 +676,52 @@ func Run(opts RunOpts) error {
 		whoamiCmdRoot,
 	}
 
-	// Handle parse errors and display contextal usage if possible. Due to bugs
+	// Get information about the incoming command/args.
+	ctx, _ := app.ParseContext(opts.Args)
+
+	// Identify the command to be executed
+	command, found := cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
+	var examples string
+	if found {
+		examples = command.Examples()
+	}
+
+	// Usage scenario: command has --help flag
+	if contextHasHelpFlag(ctx) {
+		usage := fmt.Sprintf("%s%s", Usage(opts.Args, app, opts.Stdout, io.Discard), examples)
+		return errors.RemediationError{Prefix: usage}
+	}
+
+	// Usage scenario: subcommand not recognised (e.g. typo when writing the command)
+	if !found {
+		usage := fmt.Sprintf("%s%s", Usage(opts.Args, app, opts.Stdout, io.Discard), examples)
+		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
+	}
+
+	// Handle parse errors and display contextual usage if possible. Due to bugs
 	// and an obession for lots of output side-effects in the kingpin.Parse
 	// logic, we suppress it from writing any usage or errors to the writer by
 	// swapping the writer with a no-op and then restoring the real writer
 	// afterwards. This ensures usage text is only written once to the writer
 	// and gives us greater control over our error formatting.
 	app.Writers(io.Discard, io.Discard)
+
+	// NOTE: `name` is the command including any subcommands.
+	// e.g. `pops` or `backend create`
+	//
+	// The Parse() method is different from the earlier ParseContext() in that it
+	// also validates the flags and will error, for example, if the caller missed
+	// a required flag.
 	name, err := app.Parse(opts.Args)
+
+	// Usage scenario: unable to parse command (e.g. required flag not provided)
 	if err != nil && !argsIsHelpJSON(opts.Args) { // Ignore error if `help --format json`
 		globals.ErrLog.Add(err)
 		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("error parsing arguments: %w", err)}
 	}
-	if ctx, _ := app.ParseContext(opts.Args); contextHasHelpFlag(ctx) {
-		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
-		return errors.RemediationError{Prefix: usage}
-	}
+
+	// Restore output writers
 	app.Writers(opts.Stdout, io.Discard)
 
 	// As the `help` command model gets privately added as a side-effect of
@@ -785,12 +814,6 @@ func Run(opts RunOpts) error {
 	if err != nil {
 		globals.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
-	}
-
-	command, found := cmd.Select(name, commands)
-	if !found {
-		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
-		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
 	}
 
 	if opts.Versioners.CLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {

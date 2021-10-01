@@ -20,6 +20,7 @@ import (
 type Command interface {
 	Name() string
 	Exec(in io.Reader, out io.Writer) error
+	Examples() string
 }
 
 // Select chooses the command matching name, if it exists.
@@ -59,6 +60,12 @@ type Base struct {
 // kingpin.Command that's used to select which command to actually run.
 func (b Base) Name() string {
 	return b.CmdClause.FullCommand()
+}
+
+// Examples on Base is a no-op. It's up to each individual command to define
+// this method.
+func (b Base) Examples() string {
+	return ""
 }
 
 // Optional models an optional type that consumers can use to assert whether the
