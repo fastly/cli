@@ -209,27 +209,14 @@ type File struct {
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
-	Backends     map[string]*SetupBackend   `toml:"backends,omitempty"`
-	Dictionaries map[string]SetupDictionary `toml:"dictionaries,omitempty"`
+	Backends map[string]*SetupBackend `toml:"backends,omitempty"`
 }
 
 // SetupBackend represents a '[setup.backends.<T>]' instance.
 type SetupBackend struct {
-	Address string
-	Port    uint
-	Prompt  string
-}
-
-// SetupDictionary represents a '[setup.dictionaries.<T>]' instance.
-type SetupDictionary struct {
-	Items  map[string]SetupDictionaryItems
-	Prompt string
-}
-
-// SetupDictionaryItems represents a '[setup.dictionaries.<T>.items]' instance.
-type SetupDictionaryItems struct {
-	Type  string
-	Value string
+	Address     string
+	Port        uint
+	Description string
 }
 
 // LocalServer represents a list of backends that should be mocked as per the

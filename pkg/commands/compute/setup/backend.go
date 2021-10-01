@@ -112,9 +112,9 @@ func (b *Backends) checkPredefined() error {
 				text.Break(b.Stdout)
 			}
 			i++
-			text.Output(b.Stdout, text.Bold("Configure a backend called '%s':"), name)
-			if settings.Prompt != "" {
-				text.Output(b.Stdout, settings.Prompt)
+			text.Output(b.Stdout, "Configure a backend called '%s'", name)
+			if settings.Description != "" {
+				text.Output(b.Stdout, settings.Description)
 			}
 			text.Break(b.Stdout)
 		}

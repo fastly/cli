@@ -539,10 +539,10 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configure a backend called 'foo_backend':",
+				"Configure a backend called 'foo_backend'",
 				"Hostname or IP address: [127.0.0.1]",
 				"Port: [80]",
-				"Configure a backend called 'bar_backend':",
+				"Configure a backend called 'bar_backend'",
 				"Hostname or IP address: [127.0.0.1]",
 				"Port: [80]",
 				"Creating service...",
@@ -576,11 +576,11 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.backends.backend_name]
-			prompt = "Backend 1"
+			description = "Backend 1"
 			address = "developer.fastly.com"
 			port = 443
 			[setup.backends.other_backend_name]
-			prompt = "Backend 2"
+			description = "Backend 2"
 			address = "httpbin.org"
 			port = 443
 			`,
@@ -760,15 +760,15 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.backends.fastly]
-			prompt = "Backend 1"
+			description = "Backend 1"
 			address = "fastly.com"
 			port = 443
 			[setup.backends.google]
-			prompt = "Backend 2"
+			description = "Backend 2"
 			address = "google.com"
 			port = 443
 			[setup.backends.facebook]
-			prompt = "Backend 3"
+			description = "Backend 3"
 			address = "facebook.com"
 			port = 443
 			`,
