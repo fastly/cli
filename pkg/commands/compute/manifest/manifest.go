@@ -214,9 +214,9 @@ type Setup struct {
 
 // SetupBackend represents a '[setup.backends.<T>]' instance.
 type SetupBackend struct {
-	Address     string
-	Port        uint
-	Description string
+	Address     string `toml:"address,omitempty"`
+	Port        uint   `toml:"port,omitempty"`
+	Description string `toml:"description,omitempty"`
 }
 
 // LocalServer represents a list of backends that should be mocked as per the
