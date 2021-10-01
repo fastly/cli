@@ -100,29 +100,29 @@ func (b *Backends) isOriginless() bool {
 func (b *Backends) checkPredefined() error {
 	var i int
 	for name, settings := range b.Setup {
+		defaultAddress := "127.0.0.1"
+		if settings.Address != "" {
+			defaultAddress = settings.Address
+		}
+
+		prompt := fmt.Sprintf("Hostname or IP address: [%s] ", defaultAddress)
+
 		if !b.AcceptDefaults {
 			if i > 0 {
 				text.Break(b.Stdout)
 			}
 			i++
-			text.Output(b.Stdout, "%s %s", text.Bold("Backend name:"), name)
-		}
-
-		var defaultAddress string
-		if settings.Address != "" {
-			defaultAddress = fmt.Sprintf(": [%s]", settings.Address)
-		}
-
-		prompt := fmt.Sprintf("%s%s ", settings.Prompt, defaultAddress)
-		if settings.Prompt == "" {
-			prompt = fmt.Sprintf("Backend address%s ", defaultAddress)
+			text.Output(b.Stdout, text.Bold("Configure a backend called '%s':"), name)
+			if settings.Prompt != "" {
+				text.Output(b.Stdout, settings.Prompt)
+			}
+			text.Break(b.Stdout)
 		}
 
 		var (
 			addr string
 			err  error
 		)
-
 		if !b.AcceptDefaults {
 			addr, err = text.Input(b.Stdout, prompt, b.Stdin, b.validateAddress)
 			if err != nil {
@@ -130,10 +130,7 @@ func (b *Backends) checkPredefined() error {
 			}
 		}
 		if addr == "" {
-			addr = settings.Address
-			if settings.Address == "" {
-				addr = "127.0.0.1"
-			}
+			addr = defaultAddress
 		}
 
 		port := uint(80)
@@ -141,7 +138,7 @@ func (b *Backends) checkPredefined() error {
 			port = settings.Port
 		}
 		if !b.AcceptDefaults {
-			input, err := text.Input(b.Stdout, fmt.Sprintf("Backend port number: [%d] ", port), b.Stdin)
+			input, err := text.Input(b.Stdout, fmt.Sprintf("Port: [%d] ", port), b.Stdin)
 			if err != nil {
 				return fmt.Errorf("error reading prompt input: %w", err)
 			}

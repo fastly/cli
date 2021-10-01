@@ -460,10 +460,10 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Backend 1: [developer.fastly.com]",
-				"Backend port number: [443]",
-				"Backend 2: [httpbin.org]",
-				"Backend port number: [443]",
+				"Hostname or IP address: [developer.fastly.com]",
+				"Port: [443]",
+				"Hostname or IP address: [httpbin.org]",
+				"Port: [443]",
 				"Creating service...",
 				"Creating backend 'backend_name' (host: developer.fastly.com, port: 443)...",
 				"Creating backend 'other_backend_name' (host: httpbin.org, port: 443)...",
@@ -500,15 +500,54 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Backend name: foo_backend",
-				"Backend address: [developer.fastly.com]",
-				"Backend port number: [80]",
-				"Backend name: bar_backend",
-				"Backend address: [httpbin.org]",
-				"Backend port number: [80]",
+				"Hostname or IP address: [developer.fastly.com]",
+				"Port: [80]",
+				"Hostname or IP address: [httpbin.org]",
+				"Port: [80]",
 				"Creating service...",
 				"Creating backend 'foo_backend' (host: developer.fastly.com, port: 80)...",
 				"Creating backend 'bar_backend' (host: httpbin.org, port: 80)...",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			dontWantOutput: []string{
+				"Creating domain '",
+			},
+		},
+		{
+			name: "success with setup configuration but no fields for the required resources",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				ListDomainsFn:     listDomainsOk,
+				UpdatePackageFn:   updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.backends.foo_backend]
+			[setup.backends.bar_backend]
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Configure a backend called 'foo_backend':",
+				"Hostname or IP address: [127.0.0.1]",
+				"Port: [80]",
+				"Configure a backend called 'bar_backend':",
+				"Hostname or IP address: [127.0.0.1]",
+				"Port: [80]",
+				"Creating service...",
+				"Creating backend 'foo_backend' (host: 127.0.0.1, port: 80)...",
+				"Creating backend 'bar_backend' (host: 127.0.0.1, port: 80)...",
 				"Uploading package...",
 				"Activating version...",
 				"SUCCESS: Deployed package (service 12345, version 1)",
