@@ -676,23 +676,27 @@ func Run(opts RunOpts) error {
 		whoamiCmdRoot,
 	}
 
-	// Get information about the incoming command/args.
+	// Get contextual information about the incoming command/args.
 	ctx, _ := app.ParseContext(opts.Args)
 
-	// Identify the command to be executed
+	// Identify the cmd.Command object which we'll call the `Exec()` on.
 	command, found := cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
+
+	// If the cmd.Command has defined any examples, then store off the example
+	// string so we can append it to the help output (in case we need to display
+	// the help output).
 	var examples string
 	if found {
 		examples = command.Examples()
 	}
 
-	// Usage scenario: command has --help flag
+	// Display help output if `--help` flag was passed.
 	if contextHasHelpFlag(ctx) {
 		usage := fmt.Sprintf("%s%s", Usage(opts.Args, app, opts.Stdout, io.Discard), examples)
 		return errors.RemediationError{Prefix: usage}
 	}
 
-	// Usage scenario: subcommand not recognised (e.g. typo when writing the command)
+	// Display help output if the command was not recognised.
 	if !found {
 		usage := fmt.Sprintf("%s%s", Usage(opts.Args, app, opts.Stdout, io.Discard), examples)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
@@ -714,7 +718,7 @@ func Run(opts RunOpts) error {
 	// a required flag.
 	name, err := app.Parse(opts.Args)
 
-	// Usage scenario: unable to parse command (e.g. required flag not provided)
+	// Display help output if command is invalid (e.g. required flag missing).
 	if err != nil && !argsIsHelpJSON(opts.Args) { // Ignore error if `help --format json`
 		globals.ErrLog.Add(err)
 		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
