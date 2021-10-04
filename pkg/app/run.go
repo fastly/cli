@@ -144,10 +144,6 @@ func Run(opts RunOpts) error {
 	// failed, which happens if the given command or one of its sub commands are
 	// unrecognised or if an unrecognised flag is provided, while Parse() can also
 	// fail if a 'required' flag is missing.
-	//
-	// This is why we check if --help is provided before calling Parse() because
-	// a user shouldn't be required to provide all defined required flags in
-	// order to see help output!
 	ctx, err := app.ParseContext(opts.Args)
 	if err != nil {
 		return help(err)
