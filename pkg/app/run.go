@@ -142,12 +142,24 @@ func Run(opts RunOpts) error {
 	//
 	// Ultimately this means that Parse() might fail because ParseContext()
 	// failed, which happens if the given command or one of its sub commands are
-	// unrecognised, while Parse() can also fail if a required flag is missing.
+	// unrecognised or if an unrecognised flag is provided, while Parse() can also
+	// fail if a 'required' flag is missing.
+	//
 	// This is why we check if --help is provided before calling Parse() because
 	// a user shouldn't be required to provide all defined required flags in
 	// order to see help output!
 	ctx, err := app.ParseContext(opts.Args)
 	if err != nil {
+		return help(err)
+	}
+
+	if len(opts.Args) == 0 {
+		err := fmt.Errorf("command not specified")
+		return help(err)
+	}
+
+	command, found := cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
+	if !found && !cmd.IsHelp(opts.Args) {
 		return help(err)
 	}
 
@@ -157,12 +169,6 @@ func Run(opts RunOpts) error {
 
 	name, err := app.Parse(opts.Args)
 	if err != nil {
-		return help(err)
-	}
-
-	// Identify the cmd.Command object which we'll call the `Exec()` on.
-	command, found := cmd.Select(name, commands)
-	if !found {
 		return help(err)
 	}
 
