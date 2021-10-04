@@ -21,13 +21,12 @@ debug:
 	@go build -gcflags="all=-N -l" -o "fastly" ./cmd/fastly
 
 .PHONY: all
-all: config tidy fmt vet staticcheck lint gosec test build install
+all: config tidy fmt vet staticcheck gosec test build install
 
 .PHONY: dependencies
 dependencies:
 	go get -v -u github.com/securego/gosec/cmd/gosec
 	go get -v -u honnef.co/go/tools/cmd/staticcheck
-	go get -v -u golang.org/x/lint/golint
 
 .PHONY: tidy
 tidy:
@@ -49,10 +48,6 @@ gosec:
 .PHONY: staticcheck
 staticcheck:
 	staticcheck ./{cmd,pkg}/...
-
-.PHONY: lint
-lint:
-	golint ./{cmd,pkg}/...
 
 .PHONY: test
 test: config
