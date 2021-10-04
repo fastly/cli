@@ -190,7 +190,7 @@ func validateCompilerVersion(constraint string) error {
 
 	rustcVersion, err := semver.NewVersion(version)
 	if err != nil {
-		return fmt.Errorf("error parsing `%s` output into a semver: %w", "rustc --version", err)
+		return fmt.Errorf("error parsing `%s` output %q into a semver: %w", "rustc --version", version, err)
 	}
 
 	rustcConstraint, err := semver.NewConstraint(constraint)
@@ -222,6 +222,7 @@ func rustcVersion() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
 	}
+	line = strings.TrimSpace(line)
 
 	// Example outputs:
 	// rustc 1.54.0 (a178d0322 2021-07-26)
