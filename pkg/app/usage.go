@@ -333,10 +333,12 @@ func processCommandInput(
 	// behaviours such as configuring pre and post conditional behaviours, as well
 	// as other related settings.
 	//
-	// Ultimately this means that Parse() might fail because ParseContext()
-	// failed, which happens if the given command or one of its sub commands are
+	// Normally this would mean Parse() could fail because ParseContext() failed,
+	// which happens if the given command or one of its sub commands are
 	// unrecognised or if an unrecognised flag is provided, while Parse() can also
-	// fail if a 'required' flag is missing.
+	// fail if a 'required' flag is missing. But in reality, because we call
+	// ParseContext() first, it means the Parse() function should only really
+	// error on things not already caught by ParseContext().
 	noargs := len(opts.Args) == 0
 	ctx, err := app.ParseContext(opts.Args)
 	if err != nil || noargs {
