@@ -145,12 +145,7 @@ func Run(opts RunOpts) error {
 	// unrecognised or if an unrecognised flag is provided, while Parse() can also
 	// fail if a 'required' flag is missing.
 	ctx, err := app.ParseContext(opts.Args)
-	if err != nil {
-		return help(err)
-	}
-
-	if len(opts.Args) == 0 {
-		err := fmt.Errorf("command not specified")
+	if err != nil || len(opts.Args) == 0 {
 		return help(err)
 	}
 
