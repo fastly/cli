@@ -188,3 +188,11 @@ func ArgsIsHelpJSON(args []string) bool {
 		args[1] == "--format" &&
 		args[2] == "json")
 }
+
+// IsHelp indicates if the user called `fastly help` alone.
+func IsHelp(args []string) bool {
+	if args[0] == "help" && len(args) == 1 {
+		return true
+	}
+	return false
+}
