@@ -44,9 +44,6 @@ jobs:
     - name: "Static analysis check"
       run: make staticcheck
       shell: bash
-    - name: "Linting"
-      run: make lint
-      shell: bash
     - name: "Security audit"
       run:  make gosec
       shell: bash
