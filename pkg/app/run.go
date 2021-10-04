@@ -129,24 +129,32 @@ func Run(opts RunOpts) error {
 	// and gives us greater control over our error formatting.
 	app.Writers(io.Discard, io.Discard)
 
-	// Get contextual information about the incoming command/args.
+	// NOTE: We call two similar methods below: ParseContext() and Parse().
 	//
-	// NOTE: ParseContext() is different from Parse() in that it is called
-	// internally by Parse() for the purpose of handling pre and post behaviours,
-	// as well as other settings. We require the context object separately so we
-	// can identify if the --help flag was passed.
+	// We call Parse() because we want the high-level side effect of processing
+	// the command information, but we call ParseContext() because we require a
+	// context object separately to identify if the --help flag was passed (this
+	// isn't possible to do with the Parse() method).
+	//
+	// Internally Parse() calls ParseContext(), to help it handle specific
+	// behaviours such as configuring pre and post conditional behaviours, as well
+	// as other related settings.
+	//
+	// Ultimately this means that Parse() might fail because ParseContext()
+	// failed, which happens if the given command or one of its sub commands are
+	// unrecognised, while Parse() can also fail if a required flag is missing.
+	// This is why we check if --help is provided before calling Parse() because
+	// a user shouldn't be required to provide all defined required flags in
+	// order to see help output!
 	ctx, err := app.ParseContext(opts.Args)
 	if err != nil {
 		return help(err)
 	}
 
-	// Display help output if `--help` flag was passed.
 	if cmd.ContextHasHelpFlag(ctx) {
 		return help(nil)
 	}
 
-	// Process the incoming command/args and display generic help output if there
-	// was an error applying any of the pre/post behaviours.
 	name, err := app.Parse(opts.Args)
 	if err != nil {
 		return help(err)
