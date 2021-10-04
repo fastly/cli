@@ -103,45 +103,6 @@ func Run(opts RunOpts) error {
 
 	commands := defineCommands(app, &globals, data, opts)
 
-	// Handle parse errors and display contextual usage if possible. Due to bugs
-	// and an obsession for lots of output side-effects in the kingpin.Parse
-	// logic, we suppress it from writing any usage or errors to the writer by
-	// swapping the writer with a no-op and then restoring the real writer
-	// afterwards. This ensures usage text is only written once to the writer
-	// and gives us greater control over our error formatting.
-	app.Writers(io.Discard, io.Discard)
-
-	// Parse the incoming command/args and display generic help output if there
-	// was an error parsing the information (e.g. a required flag was missing or
-	// the user had a typo in the command).
-	name, err := app.Parse(opts.Args)
-	if err != nil && !cmd.ArgsIsHelpJSON(opts.Args) { // Ignore error if `help --format json`
-		globals.ErrLog.Add(err)
-		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
-		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("error parsing arguments: %w", err)}
-	}
-
-	// Get contextual information about the incoming command/args and display
-	// help output if `--help` flag was passed.
-	//
-	// ParseContext() is different from Parse() in that it is called internally
-	// by Parse() for the purpose of handling pre and post behaviours, as well as
-	// other settings.
-	if ctx, _ := app.ParseContext(opts.Args); cmd.ContextHasHelpFlag(ctx) {
-		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
-		return errors.RemediationError{Prefix: usage}
-	}
-
-	// Restore output writers
-	app.Writers(opts.Stdout, io.Discard)
-
-	// Identify the cmd.Command object which we'll call the `Exec()` on.
-	command, found := cmd.Select(name, commands)
-	if !found {
-		usage := fmt.Sprintf("%s", Usage(opts.Args, app, opts.Stdout, io.Discard))
-		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
-	}
-
 	// As the `help` command model gets privately added as a side-effect of
 	// kingping.Parse, we cannot add the `--format json` flag to the model.
 	// Therefore, we have to manually parse the args slice here to check for the
@@ -156,6 +117,49 @@ func Run(opts RunOpts) error {
 		fmt.Fprintf(opts.Stdout, "%s", json)
 		return nil
 	}
+
+	// Use partial application to generate help output function.
+	help := displayHelp(globals.ErrLog, opts.Args, app, opts.Stdout, io.Discard)
+
+	// Handle parse errors and display contextual usage if possible. Due to bugs
+	// and an obsession for lots of output side-effects in the kingpin.Parse
+	// logic, we suppress it from writing any usage or errors to the writer by
+	// swapping the writer with a no-op and then restoring the real writer
+	// afterwards. This ensures usage text is only written once to the writer
+	// and gives us greater control over our error formatting.
+	app.Writers(io.Discard, io.Discard)
+
+	// Get contextual information about the incoming command/args.
+	//
+	// NOTE: ParseContext() is different from Parse() in that it is called
+	// internally by Parse() for the purpose of handling pre and post behaviours,
+	// as well as other settings. We require the context object separately so we
+	// can identify if the --help flag was passed.
+	ctx, err := app.ParseContext(opts.Args)
+	if err != nil {
+		return help(err)
+	}
+
+	// Display help output if `--help` flag was passed.
+	if cmd.ContextHasHelpFlag(ctx) {
+		return help(nil)
+	}
+
+	// Process the incoming command/args and display generic help output if there
+	// was an error applying any of the pre/post behaviours.
+	name, err := app.Parse(opts.Args)
+	if err != nil {
+		return help(err)
+	}
+
+	// Identify the cmd.Command object which we'll call the `Exec()` on.
+	command, found := cmd.Select(name, commands)
+	if !found {
+		return help(err)
+	}
+
+	// Restore output writers
+	app.Writers(opts.Stdout, io.Discard)
 
 	// A side-effect of suppressing app.Parse from writing output is the usage
 	// isn't printed for the default `help` command. Therefore we capture it

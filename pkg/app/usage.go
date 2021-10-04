@@ -3,10 +3,12 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"text/template"
 
+	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/kingpin"
 )
@@ -248,3 +250,25 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
   {{template "FormatCommands" .App}}
 {{end -}}
 `
+
+// displayHelp returns a function that prints the help output for a command or
+// command set.
+//
+// NOTE: This function is called multiple times within app.Run() and so we use
+// a closure to prevent having to pass the same unchanging arguments each time.
+func displayHelp(
+	errLog errors.LogInterface,
+	args []string,
+	app *kingpin.Application,
+	stdout, stderr io.Writer) func(err error) error {
+
+	return func(err error) error {
+		usage := Usage(args, app, stdout, stderr)
+		remediation := errors.RemediationError{Prefix: usage}
+		if err != nil {
+			errLog.Add(err)
+			remediation.Inner = fmt.Errorf("error parsing arguments: %w", err)
+		}
+		return remediation
+	}
+}
