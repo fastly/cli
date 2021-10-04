@@ -8,6 +8,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/kingpin"
@@ -276,4 +278,126 @@ func displayHelp(
 		}
 		return remediation
 	}
+}
+
+// processCommandInput groups together all the logic related to parsing and
+// processing the incoming command request from the user, as well as handling
+// the various places where help output can be displayed.
+func processCommandInput(
+	opts RunOpts,
+	app *kingpin.Application,
+	globals *config.Data,
+	commands []cmd.Command) (command cmd.Command, cmdName string, err error) {
+	// As the `help` command model gets privately added as a side-effect of
+	// kingping.Parse, we cannot add the `--format json` flag to the model.
+	// Therefore, we have to manually parse the args slice here to check for the
+	// existence of `help --format json`, if present we print usage JSON and
+	// exit early.
+	if cmd.ArgsIsHelpJSON(opts.Args) {
+		json, err := UsageJSON(app)
+		if err != nil {
+			globals.ErrLog.Add(err)
+			return command, cmdName, err
+		}
+		fmt.Fprintf(opts.Stdout, "%s", json)
+		return command, cmdName, nil
+	}
+
+	// Use partial application to generate help output function.
+	help := displayHelp(globals.ErrLog, opts.Args, app, opts.Stdout, io.Discard)
+
+	// Handle parse errors and display contextual usage if possible. Due to bugs
+	// and an obsession for lots of output side-effects in the kingpin.Parse
+	// logic, we suppress it from writing any usage or errors to the writer by
+	// swapping the writer with a no-op and then restoring the real writer
+	// afterwards. This ensures usage text is only written once to the writer
+	// and gives us greater control over our error formatting.
+	app.Writers(io.Discard, io.Discard)
+
+	// The `vars` variable is passed into our CLI's Usage() function and exposes
+	// variables to the template used to generate help output.
+	//
+	// NOTE: The zero value of a map is nil.
+	// A nil map has no keys, nor can keys be added until initialised.
+	// We only initialise the map if a command has .Notes() implemented.
+	var vars map[string]interface{}
+
+	// NOTE: We call two similar methods below: ParseContext() and Parse().
+	//
+	// We call Parse() because we want the high-level side effect of processing
+	// the command information, but we call ParseContext() because we require a
+	// context object separately to identify if the --help flag was passed (this
+	// isn't possible to do with the Parse() method).
+	//
+	// Internally Parse() calls ParseContext(), to help it handle specific
+	// behaviours such as configuring pre and post conditional behaviours, as well
+	// as other related settings.
+	//
+	// Ultimately this means that Parse() might fail because ParseContext()
+	// failed, which happens if the given command or one of its sub commands are
+	// unrecognised or if an unrecognised flag is provided, while Parse() can also
+	// fail if a 'required' flag is missing.
+	ctx, err := app.ParseContext(opts.Args)
+	if err != nil || len(opts.Args) == 0 {
+		return command, cmdName, help(vars, err)
+	}
+
+	// NOTE: The `fastly help` and `fastly --help` behaviours need to avoid
+	// trying to call cmd.Select() as the context object will not return a useful
+	// value for FullCommand(). The former will fail to find a match as it will
+	// be set to `help [<command>...]` as it's a built-in command that we don't
+	// control, and the latter --help flag variation will be an empty string as
+	// there were no actual 'command' specified.
+	var found bool
+	if !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) {
+		command, found = cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
+		if !found {
+			return command, cmdName, help(vars, err)
+		}
+	}
+
+	// NOTE: Neither `fastly help` nor `fastly --help` have a .Notes() method.
+	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(opts.Args) {
+		notes := command.Notes()
+		if notes != "" {
+			vars = make(map[string]interface{})
+			vars["Notes"] = command.Notes()
+		}
+		return command, cmdName, help(vars, nil)
+	}
+
+	cmdName, err = app.Parse(opts.Args)
+	if err != nil {
+		return command, cmdName, help(vars, err)
+	}
+
+	// Restore output writers
+	app.Writers(opts.Stdout, io.Discard)
+
+	// A side-effect of suppressing app.Parse from writing output is the usage
+	// isn't printed for the default `help` command. Therefore we capture it
+	// here by calling Parse, again swapping the Writers. This also ensures the
+	// larger and more verbose help formatting is used.
+	if cmdName == "help" {
+		var buf bytes.Buffer
+		app.Writers(&buf, io.Discard)
+		app.Parse(opts.Args)
+		app.Writers(opts.Stdout, io.Discard)
+
+		// The full-fat output of `fastly help` should have a hint at the bottom
+		// for more specific help. Unfortunately I don't know of a better way to
+		// distinguish `fastly help` from e.g. `fastly help configure` than this
+		// check.
+		if len(opts.Args) > 0 && opts.Args[len(opts.Args)-1] == "help" {
+			fmt.Fprintln(&buf, "For help on a specific command, try e.g.")
+			fmt.Fprintln(&buf, "")
+			fmt.Fprintln(&buf, "\tfastly help configure")
+			fmt.Fprintln(&buf, "\tfastly configure --help")
+			fmt.Fprintln(&buf, "")
+		}
+
+		return command, cmdName, errors.RemediationError{Prefix: buf.String()}
+	}
+
+	return command, cmdName, nil
 }
