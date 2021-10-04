@@ -92,12 +92,13 @@ func UsageJSON(app *kingpin.Application) (string, error) {
 // with Kingpin's annoying love of side effects, we have to swap the app.Writers
 // to capture output; the out and err parameters, therefore, are the io.Writers
 // re-assigned to the app via app.Writers after calling Usage.
-func Usage(args []string, app *kingpin.Application, out, err io.Writer) string {
+func Usage(args []string, app *kingpin.Application, out, err io.Writer, vars map[string]interface{}) string {
 	var buf bytes.Buffer
 	app.Writers(&buf, io.Discard)
 	app.UsageContext(&kingpin.UsageContext{
 		Template: CompactUsageTemplate,
 		Funcs:    UsageTemplateFuncs,
+		Vars:     vars,
 	})
 	app.Usage(args)
 	app.Writers(out, err)
@@ -204,6 +205,10 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{T "COMMANDS"|Bold}}
 {{.App.Commands|CommandsToTwoColumns|FormatTwoColumns}}
 {{end -}}
+{{if .Notes}}
+{{T "NOTES"|Bold}}
+{{.Notes}}
+{{end -}}
 `
 
 // VerboseUsageTemplate is the full-fat usage template, rendered when users type
@@ -260,10 +265,10 @@ func displayHelp(
 	errLog errors.LogInterface,
 	args []string,
 	app *kingpin.Application,
-	stdout, stderr io.Writer) func(err error) error {
+	stdout, stderr io.Writer) func(vars map[string]interface{}, err error) error {
 
-	return func(err error) error {
-		usage := Usage(args, app, stdout, stderr)
+	return func(vars map[string]interface{}, err error) error {
+		usage := Usage(args, app, stdout, stderr, vars)
 		remediation := errors.RemediationError{Prefix: usage}
 		if err != nil {
 			errLog.Add(err)

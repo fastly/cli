@@ -1,1 +1,2 @@
-Backend Create notes here.
+API endpoint information:
+https://developer.fastly.com/reference/api/services/backend/#create-backend

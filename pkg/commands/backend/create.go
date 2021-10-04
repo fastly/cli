@@ -13,7 +13,7 @@ import (
 )
 
 //go:embed notes/create.txt
-var notes string
+var createNote string
 
 // CreateCommand calls the Fastly API to create backends.
 type CreateCommand struct {
@@ -74,7 +74,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // Notes displays useful contextual information.
 func (c *CreateCommand) Notes() string {
-	return notes
+	return createNote
 }
 
 // Exec invokes the application logic for the command.
