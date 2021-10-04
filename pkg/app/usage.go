@@ -337,8 +337,12 @@ func processCommandInput(
 	// failed, which happens if the given command or one of its sub commands are
 	// unrecognised or if an unrecognised flag is provided, while Parse() can also
 	// fail if a 'required' flag is missing.
+	noargs := len(opts.Args) == 0
 	ctx, err := app.ParseContext(opts.Args)
-	if err != nil || len(opts.Args) == 0 {
+	if err != nil || noargs {
+		if noargs {
+			err = fmt.Errorf("command not specified")
+		}
 		return command, cmdName, help(vars, err)
 	}
 
