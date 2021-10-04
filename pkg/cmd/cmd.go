@@ -20,7 +20,7 @@ import (
 type Command interface {
 	Name() string
 	Exec(in io.Reader, out io.Writer) error
-	Examples() string
+	Notes() string
 }
 
 // Select chooses the command matching name, if it exists.
@@ -62,9 +62,8 @@ func (b Base) Name() string {
 	return b.CmdClause.FullCommand()
 }
 
-// Examples on Base is a no-op. It's up to each individual command to define
-// this method.
-func (b Base) Examples() string {
+// Notes is a no-op. It's up to each individual command to define this method.
+func (b Base) Notes() string {
 	return ""
 }
 
@@ -179,4 +178,13 @@ func DisplayServiceID(sid string, s manifest.Source, out io.Writer) {
 	}
 	text.Output(out, "Service ID%s: %s", via, sid)
 	text.Break(out)
+}
+
+// ArgsIsHelpJSON determines whether the supplied command arguments are exactly
+// `help --format json`.
+func ArgsIsHelpJSON(args []string) bool {
+	return (len(args) == 3 &&
+		args[0] == "help" &&
+		args[1] == "--format" &&
+		args[2] == "json")
 }
