@@ -129,6 +129,12 @@ func Run(opts RunOpts) error {
 	// and gives us greater control over our error formatting.
 	app.Writers(io.Discard, io.Discard)
 
+	// The `vars` variable is passed into our CLI's Usage() function and exposes
+	// variables to the template used to generate help output.
+	//
+	// NOTE: The zero value of a map is nil.
+	// A nil map has no keys, nor can keys be added until initialised.
+	// We only initialise the map if a command has .Notes() implemented.
 	var vars map[string]interface{}
 
 	// NOTE: We call two similar methods below: ParseContext() and Parse().
@@ -155,7 +161,8 @@ func Run(opts RunOpts) error {
 	// trying to call cmd.Select() as the context object will not return a useful
 	// value for FullCommand(). The former will fail to find a match as it will
 	// be set to `help [<command>...]` as it's a built-in command that we don't
-	// control, and the latter --help flag variation will be an empty string.
+	// control, and the latter --help flag variation will be an empty string as
+	// there were no actual 'command' specified.
 	var (
 		command cmd.Command
 		found   bool
@@ -167,7 +174,7 @@ func Run(opts RunOpts) error {
 		}
 	}
 
-	// NOTE: Neither `fastly help` or `fastly --help` have a .Notes() method.
+	// NOTE: Neither `fastly help` nor `fastly --help` have a .Notes() method.
 	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(opts.Args) {
 		notes := command.Notes()
 		if notes != "" {
