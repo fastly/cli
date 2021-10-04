@@ -129,6 +129,8 @@ func Run(opts RunOpts) error {
 	// and gives us greater control over our error formatting.
 	app.Writers(io.Discard, io.Discard)
 
+	var vars map[string]interface{}
+
 	// NOTE: We call two similar methods below: ParseContext() and Parse().
 	//
 	// We call Parse() because we want the high-level side effect of processing
@@ -146,21 +148,38 @@ func Run(opts RunOpts) error {
 	// fail if a 'required' flag is missing.
 	ctx, err := app.ParseContext(opts.Args)
 	if err != nil || len(opts.Args) == 0 {
-		return help(err)
+		return help(vars, err)
 	}
 
-	command, found := cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
-	if !found && !cmd.IsHelp(opts.Args) {
-		return help(err)
+	// NOTE: The `fastly help` and `fastly --help` behaviours need to avoid
+	// trying to call cmd.Select() as the context object will not return a useful
+	// value for FullCommand(). The former will fail to find a match as it will
+	// be set to `help [<command>...]` as it's a built-in command that we don't
+	// control, and the latter --help flag variation will be an empty string.
+	var (
+		command cmd.Command
+		found   bool
+	)
+	if !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) {
+		command, found = cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
+		if !found {
+			return help(vars, err)
+		}
 	}
 
-	if cmd.ContextHasHelpFlag(ctx) {
-		return help(nil)
+	// NOTE: Neither `fastly help` or `fastly --help` have a .Notes() method.
+	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(opts.Args) {
+		notes := command.Notes()
+		if notes != "" {
+			vars = make(map[string]interface{})
+			vars["Notes"] = command.Notes()
+		}
+		return help(vars, nil)
 	}
 
 	name, err := app.Parse(opts.Args)
 	if err != nil {
-		return help(err)
+		return help(vars, err)
 	}
 
 	// Restore output writers

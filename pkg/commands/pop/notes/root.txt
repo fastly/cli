@@ -1,1 +1,2 @@
-POP notes here.
+API endpoint information:
+https://developer.fastly.com/reference/api/utils/pops/#list-pops

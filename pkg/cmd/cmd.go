@@ -189,9 +189,17 @@ func ArgsIsHelpJSON(args []string) bool {
 		args[2] == "json")
 }
 
-// IsHelp indicates if the user called `fastly help [...]`.
-func IsHelp(args []string) bool {
+// IsHelpOnly indicates if the user called `fastly help [...]`.
+func IsHelpOnly(args []string) bool {
 	if args[0] == "help" {
+		return true
+	}
+	return false
+}
+
+// IsHelpFlagOnly indicates if the user called `fastly --help [...]`.
+func IsHelpFlagOnly(args []string) bool {
+	if args[0] == "--help" {
 		return true
 	}
 	return false

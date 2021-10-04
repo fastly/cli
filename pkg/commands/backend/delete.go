@@ -1,6 +1,7 @@
 package backend
 
 import (
+	_ "embed"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -10,6 +11,9 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
 )
+
+//go:embed notes/delete.txt
+var deleteNote string
 
 // DeleteCommand calls the Fastly API to delete backends.
 type DeleteCommand struct {
@@ -36,6 +40,11 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("name", "Backend name").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
+}
+
+// Notes displays useful contextual information.
+func (c *DeleteCommand) Notes() string {
+	return deleteNote
 }
 
 // Exec invokes the application logic for the command.
