@@ -189,9 +189,9 @@ func ArgsIsHelpJSON(args []string) bool {
 		args[2] == "json")
 }
 
-// IsHelp indicates if the user called `fastly help` alone.
+// IsHelp indicates if the user called `fastly help [...]`.
 func IsHelp(args []string) bool {
-	if args[0] == "help" && len(args) == 1 {
+	if args[0] == "help" {
 		return true
 	}
 	return false
