@@ -1,6 +1,7 @@
 package pop
 
 import (
+	_ "embed"
 	"fmt"
 	"io"
 
@@ -10,11 +11,13 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+//go:embed notes/root.txt
+var notes string
+
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	examples string
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -22,12 +25,12 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("pops", "List Fastly datacenters")
-	c.examples = "Lots of examples here too"
 	return &c
 }
 
-func (c *RootCommand) Examples() string {
-	return c.examples
+// Notes displays useful contextual information.
+func (c *RootCommand) Notes() string {
+	return notes
 }
 
 // Exec implements the command interface.

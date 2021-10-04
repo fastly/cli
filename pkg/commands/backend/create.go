@@ -1,6 +1,7 @@
 package backend
 
 import (
+	_ "embed"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -11,6 +12,9 @@ import (
 	"github.com/fastly/go-fastly/v5/fastly"
 )
 
+//go:embed notes/create.txt
+var notes string
+
 // CreateCommand calls the Fastly API to create backends.
 type CreateCommand struct {
 	cmd.Base
@@ -18,7 +22,6 @@ type CreateCommand struct {
 	Input          fastly.CreateBackendInput
 	serviceVersion cmd.OptionalServiceVersion
 	autoClone      cmd.OptionalAutoClone
-	examples       string
 
 	// We must store all of the boolean flags separately to the input structure
 	// so they can be casted to go-fastly's custom `Compatibool` type later.
@@ -66,13 +69,12 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").StringVar(&c.Input.MaxTLSVersion)
 	c.CmdClause.Flag("ssl-ciphers", "Colon delimited list of OpenSSL ciphers (see https://www.openssl.org/docs/man1.0.2/man1/ciphers for details)").StringVar(&c.Input.SSLCiphers)
 
-	c.examples = "Lots of examples here"
-
 	return &c
 }
 
-func (c *CreateCommand) Examples() string {
-	return c.examples
+// Notes displays useful contextual information.
+func (c *CreateCommand) Notes() string {
+	return notes
 }
 
 // Exec invokes the application logic for the command.

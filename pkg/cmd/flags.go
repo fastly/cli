@@ -182,3 +182,10 @@ func Content(flagval string) string {
 func IntToBool(i int) bool {
 	return i > 0
 }
+
+// ContextHasHelpFlag asserts whether a given kingpin.ParseContext contains a
+// `help` flag.
+func ContextHasHelpFlag(ctx *kingpin.ParseContext) bool {
+	_, ok := ctx.Elements.FlagMap()["help"]
+	return ok
+}

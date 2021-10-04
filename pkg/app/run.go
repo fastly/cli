@@ -103,64 +103,51 @@ func Run(opts RunOpts) error {
 
 	commands := defineCommands(app, &globals, data, opts)
 
-	// Get contextual information about the incoming command/args.
-	ctx, _ := app.ParseContext(opts.Args)
-
-	// Identify the cmd.Command object which we'll call the `Exec()` on.
-	command, found := cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
-
-	// If the cmd.Command has defined any examples, then store off the example
-	// string so we can append it to the help output (in case we need to display
-	// the help output).
-	var examples string
-	if found {
-		examples = command.Examples()
-	}
-
-	// Display help output if `--help` flag was passed.
-	if contextHasHelpFlag(ctx) {
-		usage := fmt.Sprintf("%s%s", Usage(opts.Args, app, opts.Stdout, io.Discard), examples)
-		return errors.RemediationError{Prefix: usage}
-	}
-
-	// Display help output if the command was not recognised.
-	if !found {
-		usage := fmt.Sprintf("%s%s", Usage(opts.Args, app, opts.Stdout, io.Discard), examples)
-		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
-	}
-
 	// Handle parse errors and display contextual usage if possible. Due to bugs
-	// and an obession for lots of output side-effects in the kingpin.Parse
+	// and an obsession for lots of output side-effects in the kingpin.Parse
 	// logic, we suppress it from writing any usage or errors to the writer by
 	// swapping the writer with a no-op and then restoring the real writer
 	// afterwards. This ensures usage text is only written once to the writer
 	// and gives us greater control over our error formatting.
 	app.Writers(io.Discard, io.Discard)
 
-	// NOTE: `name` is the command including any subcommands.
-	// e.g. `pops` or `backend create`
-	//
-	// The Parse() method is different from the earlier ParseContext() in that it
-	// also validates the flags and will error, for example, if the caller missed
-	// a required flag.
+	// Parse the incoming command/args and display generic help output if there
+	// was an error parsing the information (e.g. a required flag was missing or
+	// the user had a typo in the command).
 	name, err := app.Parse(opts.Args)
-
-	// Display help output if command is invalid (e.g. required flag missing).
-	if err != nil && !argsIsHelpJSON(opts.Args) { // Ignore error if `help --format json`
+	if err != nil && !cmd.ArgsIsHelpJSON(opts.Args) { // Ignore error if `help --format json`
 		globals.ErrLog.Add(err)
 		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
 		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("error parsing arguments: %w", err)}
 	}
 
+	// Get contextual information about the incoming command/args and display
+	// help output if `--help` flag was passed.
+	//
+	// ParseContext() is different from Parse() in that it is called internally
+	// by Parse() for the purpose of handling pre and post behaviours, as well as
+	// other settings.
+	if ctx, _ := app.ParseContext(opts.Args); cmd.ContextHasHelpFlag(ctx) {
+		usage := Usage(opts.Args, app, opts.Stdout, io.Discard)
+		return errors.RemediationError{Prefix: usage}
+	}
+
 	// Restore output writers
 	app.Writers(opts.Stdout, io.Discard)
+
+	// Identify the cmd.Command object which we'll call the `Exec()` on.
+	command, found := cmd.Select(name, commands)
+	if !found {
+		usage := fmt.Sprintf("%s", Usage(opts.Args, app, opts.Stdout, io.Discard))
+		return errors.RemediationError{Prefix: usage, Inner: fmt.Errorf("command not found")}
+	}
 
 	// As the `help` command model gets privately added as a side-effect of
 	// kingping.Parse, we cannot add the `--format json` flag to the model.
 	// Therefore, we have to manually parse the args slice here to check for the
 	// existence of `help --format json`, if present we print usage JSON and
 	// exit early.
-	if argsIsHelpJSON(opts.Args) {
+	if cmd.ArgsIsHelpJSON(opts.Args) {
 		json, err := UsageJSON(app)
 		if err != nil {
 			globals.ErrLog.Add(err)
@@ -269,22 +256,6 @@ type APIClientFactory func(token, endpoint string) (api.Interface, error)
 func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
 	client, err := fastly.NewClientForEndpoint(token, endpoint)
 	return client, err
-}
-
-// contextHasHelpFlag asserts whether a given kingpin.ParseContext contains a
-// `help` flag.
-func contextHasHelpFlag(ctx *kingpin.ParseContext) bool {
-	_, ok := ctx.Elements.FlagMap()["help"]
-	return ok
-}
-
-// argsIsHelpJSON determines whether the supplied command arguments are exactly
-// `help --format json`.
-func argsIsHelpJSON(args []string) bool {
-	return (len(args) == 3 &&
-		args[0] == "help" &&
-		args[1] == "--format" &&
-		args[2] == "json")
 }
 
 // isCompletion determines whether the supplied command arguments are for
