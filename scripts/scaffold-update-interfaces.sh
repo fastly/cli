@@ -126,12 +126,12 @@ done
 # manually sort the newly created lines yourself.
 #
 if [[ -z "${CLI_CATEGORY}" ]]; then
-vim -E -s pkg/app/run.go <<-EOF
+vim -E -s pkg/app/commands.go <<-EOF
   :g/backendCmdRoot :=/norm 0
   :norm V5jyP
   :,+5s/backend/${CLI_PACKAGE}/g
   :norm V5k"ay
-  :g/commands := \\[]cmd.Command/norm 0
+  :g/return \\[]cmd.Command/norm 0
   :norm "ap
   :,+5s/\\v :=.+/,/
   :norm V5k>
@@ -139,7 +139,7 @@ vim -E -s pkg/app/run.go <<-EOF
   :quit
 EOF
 else
-vim -E -s pkg/app/run.go <<-EOF
+vim -E -s pkg/app/commands.go <<-EOF
   :g/vclCmdRoot :=/norm 0
   :norm V6jyP
   :,+6s/vcl/${CLI_CATEGORY}/g
@@ -149,7 +149,7 @@ vim -E -s pkg/app/run.go <<-EOF
   :,+6s/Custom/\\u${CLI_PACKAGE}/g
   :-6
   :norm V6j"ay
-  :g/commands := \\[]cmd.Command/norm 0
+  :g/return \\[]cmd.Command/norm 0
   :norm "ap
   :,+6s/\\v :=.+/,/
   :norm V6k>
