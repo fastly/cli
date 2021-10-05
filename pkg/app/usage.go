@@ -191,7 +191,8 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{end -}}
 {{if .Context.Flags|GlobalFlags -}}
 {{T "GLOBAL FLAGS"|Bold}}
-{{.Context.Flags|GlobalFlags|FlagsToTwoColumns|FormatTwoColumns}}{{end -}}
+{{.Context.Flags|GlobalFlags|FlagsToTwoColumns|FormatTwoColumns}}
+{{end -}}
 {{if .Context.Args -}}
 {{T "ARGS"|Bold}}
 {{.Context.Args|ArgsToTwoColumns|FormatTwoColumns}}
