@@ -34,6 +34,11 @@ func TestApplication(t *testing.T) {
 			Args:      args("help service"),
 			WantError: helpService,
 		},
+		{
+			Name:      "help specific service with NOTES defined",
+			Args:      args("backend describe --help"),
+			WantError: helpNotes,
+		},
 	}
 	// These tests should only verify the app.Run helper wires things up
 	// correctly, and check behaviors that can't be associated with a specific
@@ -4152,4 +4157,29 @@ For help on a specific command, try e.g.
 	fastly configure --help
 
 
+`) + "\n\n"
+
+var helpNotes = strings.TrimSpace(`
+USAGE
+  fastly backend describe --version=VERSION --name=NAME [<flags>]
+
+Show detailed information about a backend on a Fastly service version
+
+REQUIRED FLAGS
+      --version=VERSION  'latest', 'active', or the number of a specific version
+  -n, --name=NAME        Name of backend
+
+OPTIONAL FLAGS
+  -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID, then
+                               fastly.toml)
+
+GLOBAL FLAGS
+      --help         Show context-sensitive help.
+  -t, --token=TOKEN  Fastly API token (or via FASTLY_API_TOKEN)
+  -v, --verbose      Verbose logging
+
+
+NOTES
+API endpoint information:
+https://developer.fastly.com/reference/api/services/backend/#get-backend
 `) + "\n\n"
