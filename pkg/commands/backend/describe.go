@@ -1,7 +1,6 @@
 package backend
 
 import (
-	_ "embed"
 	"fmt"
 	"io"
 
@@ -12,9 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
 )
-
-//go:embed notes/describe.txt
-var describeNote string
 
 // DescribeCommand calls the Fastly API to describe a backend.
 type DescribeCommand struct {
@@ -36,11 +32,6 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 	})
 	c.CmdClause.Flag("name", "Name of backend").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
-}
-
-// Notes displays useful contextual information.
-func (c *DescribeCommand) Notes() string {
-	return describeNote
 }
 
 // Exec invokes the application logic for the command.

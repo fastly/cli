@@ -1,7 +1,6 @@
 package backend
 
 import (
-	_ "embed"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -11,9 +10,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
 )
-
-//go:embed notes/update.txt
-var updateNote string
 
 // UpdateCommand calls the Fastly API to update backends.
 type UpdateCommand struct {
@@ -90,11 +86,6 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.MaxTLSVersion.Set).StringVar(&c.MaxTLSVersion.Value)
 	c.CmdClause.Flag("ssl-ciphers", "Colon delimited list of OpenSSL ciphers (see https://www.openssl.org/docs/man1.0.2/man1/ciphers for details)").Action(c.SSLCiphers.Set).StringVar(&c.SSLCiphers.Value)
 	return &c
-}
-
-// Notes displays useful contextual information.
-func (c *UpdateCommand) Notes() string {
-	return updateNote
 }
 
 // Exec invokes the application logic for the command.

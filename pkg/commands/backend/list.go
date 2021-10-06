@@ -1,7 +1,6 @@
 package backend
 
 import (
-	_ "embed"
 	"fmt"
 	"io"
 
@@ -12,9 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
 )
-
-//go:embed notes/list.txt
-var listNote string
 
 // ListCommand calls the Fastly API to list backends.
 type ListCommand struct {
@@ -35,11 +31,6 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Dst: &c.serviceVersion.Value,
 	})
 	return &c
-}
-
-// Notes displays useful contextual information.
-func (c *ListCommand) Notes() string {
-	return listNote
 }
 
 // Exec invokes the application logic for the command.

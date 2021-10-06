@@ -1,2 +1,0 @@
-API endpoint information:
-https://developer.fastly.com/reference/api/services/backend/#list-backends

@@ -1,7 +1,6 @@
 package backend
 
 import (
-	_ "embed"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -11,9 +10,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
 )
-
-//go:embed notes/create.txt
-var createNote string
 
 // CreateCommand calls the Fastly API to create backends.
 type CreateCommand struct {
@@ -70,11 +66,6 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("ssl-ciphers", "Colon delimited list of OpenSSL ciphers (see https://www.openssl.org/docs/man1.0.2/man1/ciphers for details)").StringVar(&c.Input.SSLCiphers)
 
 	return &c
-}
-
-// Notes displays useful contextual information.
-func (c *CreateCommand) Notes() string {
-	return createNote
 }
 
 // Exec invokes the application logic for the command.

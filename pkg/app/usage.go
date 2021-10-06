@@ -207,10 +207,6 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{T "COMMANDS"|Bold}}
 {{.App.Commands|CommandsToTwoColumns|FormatTwoColumns}}
 {{end -}}
-{{if .Notes}}
-{{T "NOTES"|Bold}}
-{{.Notes}}
-{{end -}}
 `
 
 // VerboseUsageTemplate is the full-fat usage template, rendered when users type
@@ -319,7 +315,10 @@ func processCommandInput(
 	//
 	// NOTE: The zero value of a map is nil.
 	// A nil map has no keys, nor can keys be added until initialised.
-	// We only initialise the map if a command has .Notes() implemented.
+	//
+	// TODO: In the future expose some variables for the template to utilise.
+	// We don't initialise the map currently as there are no variables to expose.
+	// But it's useful to have it implemented so it's ready to roll when we do.
 	var vars map[string]interface{}
 
 	// NOTE: We call two similar methods below: ParseContext() and Parse().
@@ -362,13 +361,7 @@ func processCommandInput(
 		}
 	}
 
-	// NOTE: Neither `fastly help` nor `fastly --help` have a .Notes() method.
 	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(opts.Args) {
-		notes := command.Notes()
-		if notes != "" {
-			vars = make(map[string]interface{})
-			vars["Notes"] = command.Notes()
-		}
 		return command, cmdName, help(vars, nil)
 	}
 
