@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.39.3](https://github.com/fastly/cli/releases/tag/v0.39.3) (2021-10-06)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.39.2...v0.39.3)
+
+**Bug fixes:**
+
+* Add missing description for `user list --customer-id` [#425](https://github.com/fastly/cli/pull/425)
+* Trim the rust version to fix parse errors [#427](https://github.com/fastly/cli/pull/427)
+
+**Enhancements:**
+
+* Abstraction layer for `[setup.backends]` [#421](https://github.com/fastly/cli/pull/421)
+
 ## [v0.39.2](https://github.com/fastly/cli/releases/tag/v0.39.2) (2021-09-29)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.39.1...v0.39.2)
