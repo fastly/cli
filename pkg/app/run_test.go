@@ -603,6 +603,7 @@ COMMANDS
     -a, --author=AUTHOR ...        Author(s) of the package
     -l, --language=LANGUAGE        Language of the package
     -f, --from=FROM                Git repository containing package template
+                                   (or Fastly Fiddle endpoint)
     -p, --path=PATH                Destination to write the new package,
                                    defaulting to the current directory
         --force                    Skip non-empty directory verification step
