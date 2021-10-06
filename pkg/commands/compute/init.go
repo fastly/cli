@@ -1,9 +1,12 @@
 package compute
 
 import (
+	"archive/zip"
 	"crypto/rand"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -51,7 +54,7 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').StringVar(&c.language)
-	c.CmdClause.Flag("from", "Git repository containing package template").Short('f').StringVar(&c.from)
+	c.CmdClause.Flag("from", "Git repository containing package template (or Fastly Fiddle endpoint)").Short('f').StringVar(&c.from)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
@@ -103,48 +106,15 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		language *Language
 	)
 
-	// NOTE: We have to define a Toolchain below so that the resulting Language
-	// type will get the relevant embedded methods, one of which is called later
-	// (language.Initialize) and although is a no-op for Rust, it's still used by
-	// NPM to ensure the binary is available on the user's system.
-	//
-	// The 'timeout' value zero is passed into each New<Language> call as it's
-	// only useful during the `compute build` phase and is expected to be
-	// provided by the user via a flag on the build command.
-
-	languages := []*Language{
-		NewLanguage(&LanguageOptions{
-			Name:        "rust",
-			DisplayName: "Rust",
-			StarterKits: c.Globals.File.StarterKits.Rust,
-			Toolchain:   NewRust(c.client, c.Globals, 0),
-		}),
-		NewLanguage(&LanguageOptions{
-			Name:        "assemblyscript",
-			DisplayName: "AssemblyScript (beta)",
-			StarterKits: c.Globals.File.StarterKits.AssemblyScript,
-			Toolchain:   NewAssemblyScript(0),
-		}),
-		NewLanguage(&LanguageOptions{
-			Name:        "javascript",
-			DisplayName: "JavaScript (beta)",
-			StarterKits: c.Globals.File.StarterKits.JavaScript,
-			Toolchain:   NewJavaScript(0),
-		}),
-		NewLanguage(&LanguageOptions{
-			Name:        "other",
-			DisplayName: "Other ('bring your own' Wasm binary)",
-		}),
+	wd, err := os.Getwd()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("error determining current directory: %w", err)
 	}
 
 	if c.path == "" && !c.manifest.File.Exists() {
 		fmt.Fprintf(progress, "--path not specified, using current directory\n")
-		path, err := os.Getwd()
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error determining current directory: %w", err)
-		}
-		c.path = path
+		c.path = wd
 	}
 
 	abspath, err := verifyDestination(c.path, progress)
@@ -185,58 +155,89 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	language, err = pkgLang(c.language, languages, in, out)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Language": c.language,
-		})
-		return err
+	// NOTE: We have to define a Toolchain below so that the resulting Language
+	// type will get the relevant embedded methods, one of which is called later
+	// (language.Initialize) and although is a no-op for Rust, it's still used by
+	// NPM to ensure the binary is available on the user's system.
+	//
+	// The 'timeout' value zero is passed into each New<Language> call as it's
+	// only useful during the `compute build` phase and is expected to be
+	// provided by the user via a flag on the build command.
+
+	languages := []*Language{
+		NewLanguage(&LanguageOptions{
+			Name:        "rust",
+			DisplayName: "Rust",
+			StarterKits: c.Globals.File.StarterKits.Rust,
+			Toolchain:   NewRust(c.client, c.Globals, 0),
+		}),
+		NewLanguage(&LanguageOptions{
+			Name:        "assemblyscript",
+			DisplayName: "AssemblyScript (beta)",
+			StarterKits: c.Globals.File.StarterKits.AssemblyScript,
+			Toolchain:   NewAssemblyScript(0),
+		}),
+		NewLanguage(&LanguageOptions{
+			Name:        "javascript",
+			DisplayName: "JavaScript (beta)",
+			StarterKits: c.Globals.File.StarterKits.JavaScript,
+			Toolchain:   NewJavaScript(0),
+		}),
+		NewLanguage(&LanguageOptions{
+			Name:        "other",
+			DisplayName: "Other ('bring your own' Wasm binary)",
+		}),
 	}
 
-	if language.Name != "other" {
-		manifestExist := c.manifest.File.Exists()
+	m := c.manifest.File
+	from := c.from
+	var branch, tag string
 
-		from, branch, tag, err := pkgFrom(c.from, c.branch, c.tag, manifestExist, language.StarterKits, in, out)
+	if from == "" {
+		language, err = pkgLang(c.language, languages, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"From":           c.from,
-				"Branch":         c.branch,
-				"Tag":            c.tag,
-				"Manifest Exist": manifestExist,
+				"Language": c.language,
 			})
 			return err
 		}
 
-		text.Break(out)
-
-		if !c.Globals.Verbose() {
-			progress = text.NewProgress(out, false)
-		}
-
-		_, err = exec.LookPath("git")
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return errors.RemediationError{
-				Inner:       fmt.Errorf("`git` not found in $PATH"),
-				Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
-			}
-		}
-
-		if from != "" && !manifestExist {
-			err := pkgFetch(from, branch, tag, c.path, progress)
-			if err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-					"From":   from,
-					"Branch": branch,
-					"Tag":    tag,
-					"Path":   c.path,
-				})
-				return err
+		if language.Name != "other" {
+			if !m.Exists() {
+				from, branch, tag, err = pkgFrom(c.branch, c.tag, language.StarterKits, in, out)
+				if err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+						"From":           c.from,
+						"Branch":         c.branch,
+						"Tag":            c.tag,
+						"Manifest Exist": false,
+					})
+					return err
+				}
 			}
 		}
 	}
 
-	m, err := updateManifest(c.manifest.File, progress, c.path, name, desc, authors, language)
+	text.Break(out)
+	if !c.Globals.Verbose() {
+		progress = text.NewProgress(out, false)
+	}
+
+	// We don't try fetching a package when user chooses "other" language option.
+	if from != "" && !c.manifest.File.Exists() {
+		err = pkgFetch(from, branch, tag, c.path, progress, c.client, out)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"From":   from,
+				"Branch": branch,
+				"Tag":    tag,
+				"Path":   c.path,
+			})
+			return err
+		}
+	}
+
+	m, err = updateManifest(m, progress, c.path, name, desc, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Path":        c.path,
@@ -248,7 +249,31 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	if wd != c.path {
+		err = os.Chdir(c.path)
+		if err != nil {
+			return fmt.Errorf("error changing to your project directory: %w", err)
+		}
+	}
+
 	progress.Step("Initializing package...")
+
+	// Language will not be set if user provides the --from flag. So we'll check
+	// the manifest content and ensure what's set there is the language instance
+	// used for the sake of `compute build` operations.
+	if language == nil {
+		var match bool
+		for _, l := range languages {
+			if strings.EqualFold(m.Language, l.Name) {
+				language = l
+				match = true
+				break
+			}
+		}
+		if !match {
+			return fmt.Errorf("unrecognised package language")
+		}
+	}
 
 	if language.Name != "other" {
 		if err := language.Initialize(progress); err != nil {
@@ -376,45 +401,160 @@ func pkgLang(lang string, languages []*Language, in io.Reader, out io.Writer) (*
 	return language, nil
 }
 
-// pkgFrom prompts the user for a package starter kit unless already defined
-// either via the corresponding CLI flag or the manifest file.
+// pkgFrom prompts the user for a package starter kit.
 //
 // It returns the path to the starter kit, and the corresponding branch/tag,
-// otherwise if there' is an error converting the prompt input, then the option
-// number is returned along with the branch/tag that was potentially provided
-// via the corresponding CLI flag or manifest content.
-func pkgFrom(from string, branch string, tag string, manifestExist bool, kits []config.StarterKit, in io.Reader, out io.Writer) (string, string, string, error) {
-	if from == "" && !manifestExist {
-		text.Output(out, "%s", text.Bold("Starter kit:"))
-		for i, kit := range kits {
-			fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
-			text.Indent(out, 4, "%s\n%s", kit.Description, kit.Path)
-		}
-		option, err := text.Input(out, "Choose option or paste git URL: [1] ", in, validateTemplateOptionOrURL(kits))
-		if err != nil {
-			return "", "", "", fmt.Errorf("error reading input %w", err)
-		}
-		if option == "" {
-			option = "1"
-		}
-
-		if i, err := strconv.Atoi(option); err == nil {
-			template := kits[i-1]
-			from = template.Path
-			branch = template.Branch
-			tag = template.Tag
-		} else {
-			from = option
-		}
+func pkgFrom(branch string, tag string, kits []config.StarterKit, in io.Reader, out io.Writer) (string, string, string, error) {
+	text.Output(out, "%s", text.Bold("Starter kit:"))
+	for i, kit := range kits {
+		fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
+		text.Indent(out, 4, "%s\n%s", kit.Description, kit.Path)
 	}
+	option, err := text.Input(out, "Choose option or paste git URL: [1] ", in, validateTemplateOptionOrURL(kits))
+	if err != nil {
+		return "", "", "", fmt.Errorf("error reading input: %w", err)
+	}
+	if option == "" {
+		option = "1"
+	}
+
+	var i int
+	if i, err = strconv.Atoi(option); err != nil {
+		return "", "", "", fmt.Errorf("error parsing input: %w", err)
+	}
+
+	template := kits[i-1]
+	from := template.Path
+	branch = template.Branch
+	tag = template.Tag
 
 	return from, branch, tag, nil
 }
 
-// pkgFetch clones the given repo (from) into a temp directory, then copies
-// specific files to the destination directory (path).
-func pkgFetch(from string, branch string, tag string, fpath string, progress text.Progress) error {
+// pkgFetch will determine if the package code should be fetched from Fiddle
+// endpoint as a zip file or cloned from GitHub repo.
+func pkgFetch(from string, branch string, tag string, dst string, progress text.Progress, client api.HTTPClient, out io.Writer) error {
 	progress.Step("Fetching package template...")
+
+	u, err := url.Parse(from)
+	if err != nil {
+		return fmt.Errorf("error parsing --from as URL: %w", err)
+	}
+
+	if u.Host == "fiddle.fastlydemo.net" {
+		return pkgFiddle(from, dst, client, out)
+	}
+	return pkgClones(from, branch, tag, dst)
+}
+
+// pkgFiddle downloads a zip file from the given fiddle endpoint.
+func pkgFiddle(from string, dst string, client api.HTTPClient, out io.Writer) error {
+	if !strings.HasSuffix(from, ".zip") {
+		return fmt.Errorf("the Fiddle URL is not pointing to a .zip file")
+	}
+
+	req, err := http.NewRequest("GET", from, nil)
+	if err != nil {
+		return fmt.Errorf("failed to construct fiddle request URL: %w", err)
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to get fiddle zip archive: %w", err)
+	}
+	defer res.Body.Close()
+
+	fname := filepath.Base(from)
+	local, err := os.Create(fname)
+	if err != nil {
+		return fmt.Errorf("failed to create local zip archive: %w", err)
+	}
+	defer local.Close()
+
+	defer func(fname string) {
+		err := os.Remove(fname)
+		if err != nil {
+			text.Break(out)
+			text.Info(out, "We were unable to clean-up the local '%s' file (it can be safely removed)", fname)
+		}
+	}(fname)
+
+	_, err = io.Copy(local, res.Body)
+	if err != nil {
+		return fmt.Errorf("failed to write zip archive to disk: %w", err)
+	}
+
+	_, err = unzip(fname, dst)
+	if err != nil {
+		return fmt.Errorf("failed to extract zip archive content: %w", err)
+	}
+
+	return nil
+}
+
+// unzip will decompress a zip archive, moving all files and folders
+// within the zip file (parameter 1) to an output directory (parameter 2).
+func unzip(src string, dst string) ([]string, error) {
+	var filenames []string
+
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return filenames, err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		// The zip contains a folder, and inside that folder are the files we're
+		// interested in. So while looping over the files (whose .Name field is the
+		// full path including the containing folder) we strip out the first path
+		// segment to ensure the files we need are extracted to the current directory.
+		segs := strings.Split(f.Name, string(filepath.Separator))
+		segs = segs[1:]
+		fpath := filepath.Join(dst, filepath.Join(segs...))
+		filenames = append(filenames, fpath)
+
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(fpath, os.ModePerm)
+			continue
+		}
+
+		if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+			return filenames, err
+		}
+
+		fd, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return filenames, err
+		}
+
+		rc, err := f.Open()
+		if err != nil {
+			return filenames, err
+		}
+
+		_, err = io.Copy(fd, rc)
+
+		fd.Close()
+		rc.Close()
+
+		if err != nil {
+			return filenames, err
+		}
+	}
+
+	return filenames, nil
+}
+
+// pkgClone clones the given repo (from) into a temp directory, then copies
+// specific files to the destination directory (path).
+func pkgClones(from string, branch string, tag string, dst string) error {
+	_, err := exec.LookPath("git")
+	if err != nil {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("`git` not found in $PATH"),
+			Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
+		}
+	}
 
 	tempdir, err := tempDir("package-init")
 	if err != nil {
@@ -476,7 +616,7 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 			return nil
 		}
 
-		dst := filepath.Join(fpath, rel)
+		dst := filepath.Join(dst, rel)
 		if err := os.MkdirAll(filepath.Dir(dst), 0750); err != nil {
 			return err
 		}
@@ -497,22 +637,30 @@ func pkgFetch(from string, branch string, tag string, fpath string, progress tex
 
 // updateManifest updates the manifest with data acquired from various sources.
 // e.g. prompting the user, existing manifest file.
+//
+// NOTE: The lang argument might be nil (if the user passes --from flag).
 func updateManifest(m manifest.File, progress text.Progress, path string, name string, desc string, authors []string, lang *Language) (manifest.File, error) {
 	progress.Step("Updating package manifest...")
 
 	mp := filepath.Join(path, manifest.Filename)
 
 	if err := m.Read(mp); err != nil {
-		if lang.Name != "other" {
-			return m, fmt.Errorf("error reading package manifest: %w", err)
+		if lang != nil {
+			if lang.Name == "other" {
+				// We create a fastly.toml manifest on behalf of the user if they're
+				// bringing their own pre-compiled Wasm binary to be packaged.
+				m.ManifestVersion = manifest.ManifestLatestVersion
+				m.Name = name
+				m.Description = desc
+				m.Authors = authors
+				m.Language = lang.Name
+				if err := m.Write(mp); err != nil {
+					return m, fmt.Errorf("error saving package manifest: %w", err)
+				}
+				return m, nil
+			}
 		}
-
-		// We create a fastly.toml manifest on behalf of the user if they're
-		// bringing their own pre-compiled Wasm binary to be packaged.
-		m.ManifestVersion = manifest.ManifestLatestVersion
-		if err := m.Write(mp); err != nil {
-			return m, fmt.Errorf("error saving package manifest: %w", err)
-		}
+		return m, fmt.Errorf("error reading package manifest: %w", err)
 	}
 
 	fmt.Fprintf(progress, "Setting package name in manifest to %q...\n", name)
@@ -528,8 +676,10 @@ func updateManifest(m manifest.File, progress text.Progress, path string, name s
 		m.Authors = authors
 	}
 
-	fmt.Fprintf(progress, "Setting language in manifest to %s...\n", lang.Name)
-	m.Language = lang.Name
+	if lang != nil {
+		fmt.Fprintf(progress, "Setting language in manifest to %s...\n", lang.Name)
+		m.Language = lang.Name
+	}
 
 	if err := m.Write(mp); err != nil {
 		return m, fmt.Errorf("error saving package manifest: %w", err)
