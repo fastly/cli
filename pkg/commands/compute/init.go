@@ -65,8 +65,13 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 
 // Exec implements the command interface.
 func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	var introContext string
+	if c.from != "" {
+		introContext = " (using --from to locate package template)"
+	}
+
 	text.Break(out)
-	text.Output(out, "Creating a new Compute@Edge project.")
+	text.Output(out, "Creating a new Compute@Edge project%s.", introContext)
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
 	text.Break(out)
