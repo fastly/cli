@@ -204,7 +204,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		if language.Name != "other" {
 			if !m.Exists() {
-				from, branch, tag, err = pkgFrom(c.branch, c.tag, language.StarterKits, in, out)
+				from, branch, tag, err = pkgFrom(language.StarterKits, in, out)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 						"From":           c.from,
@@ -225,7 +225,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// We don't try fetching a package when user chooses "other" language option.
 	if from != "" && !c.manifest.File.Exists() {
-		err = pkgFetch(from, branch, tag, c.path, progress, c.client, out)
+		err = pkgFetch(from, branch, tag, c.path, progress, c.client, out, c.Globals.ErrLog)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"From":   from,
@@ -404,7 +404,7 @@ func pkgLang(lang string, languages []*Language, in io.Reader, out io.Writer) (*
 // pkgFrom prompts the user for a package starter kit.
 //
 // It returns the path to the starter kit, and the corresponding branch/tag,
-func pkgFrom(branch string, tag string, kits []config.StarterKit, in io.Reader, out io.Writer) (string, string, string, error) {
+func pkgFrom(kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
 	text.Output(out, "%s", text.Bold("Starter kit:"))
 	for i, kit := range kits {
 		fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
@@ -424,16 +424,13 @@ func pkgFrom(branch string, tag string, kits []config.StarterKit, in io.Reader, 
 	}
 
 	template := kits[i-1]
-	from := template.Path
-	branch = template.Branch
-	tag = template.Tag
 
-	return from, branch, tag, nil
+	return template.Path, template.Branch, template.Tag, nil
 }
 
 // pkgFetch will determine if the package code should be fetched from Fiddle
 // endpoint as a zip file or cloned from GitHub repo.
-func pkgFetch(from string, branch string, tag string, dst string, progress text.Progress, client api.HTTPClient, out io.Writer) error {
+func pkgFetch(from string, branch string, tag string, dst string, progress text.Progress, client api.HTTPClient, out io.Writer, errLog errors.LogInterface) error {
 	progress.Step("Fetching package template...")
 
 	u, err := url.Parse(from)
@@ -442,13 +439,13 @@ func pkgFetch(from string, branch string, tag string, dst string, progress text.
 	}
 
 	if u.Host == "fiddle.fastlydemo.net" {
-		return pkgFiddle(from, dst, client, out)
+		return pkgFiddle(from, dst, client, out, errLog)
 	}
 	return pkgClones(from, branch, tag, dst)
 }
 
 // pkgFiddle downloads a zip file from the given fiddle endpoint.
-func pkgFiddle(from string, dst string, client api.HTTPClient, out io.Writer) error {
+func pkgFiddle(from string, dst string, client api.HTTPClient, out io.Writer, errLog errors.LogInterface) error {
 	if !strings.HasSuffix(from, ".zip") {
 		return fmt.Errorf("the Fiddle URL is not pointing to a .zip file")
 	}
@@ -469,7 +466,11 @@ func pkgFiddle(from string, dst string, client api.HTTPClient, out io.Writer) er
 	if err != nil {
 		return fmt.Errorf("failed to create local zip archive: %w", err)
 	}
-	defer local.Close()
+	defer func() {
+		if err := local.Close(); err != nil {
+			errLog.Add(err)
+		}
+	}()
 
 	defer func(fname string) {
 		err := os.Remove(fname)
@@ -532,7 +533,17 @@ func unzip(src string, dst string) ([]string, error) {
 			return filenames, err
 		}
 
-		_, err = io.Copy(fd, rc)
+		// NOTE: We use looped CopyN() not Copy() to avoid gosec G110 (CWE-409):
+		// Potential DoS vulnerability via decompression bomb.
+		for {
+			_, err := io.CopyN(fd, rc, 1024)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				return filenames, err
+			}
+		}
 
 		fd.Close()
 		rc.Close()
