@@ -1,5 +1,55 @@
 # Changelog
 
+## [v0.39.3](https://github.com/fastly/cli/releases/tag/v0.39.3) (2021-10-06)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.39.2...v0.39.3)
+
+**Bug fixes:**
+
+* Add missing description for `user list --customer-id` [#425](https://github.com/fastly/cli/pull/425)
+* Trim the rust version to fix parse errors [#427](https://github.com/fastly/cli/pull/427)
+
+**Enhancements:**
+
+* Abstraction layer for `[setup.backends]` [#421](https://github.com/fastly/cli/pull/421)
+
+### `fastly.toml` manifest version update
+
+The structure of the `[setup]` table changed between manifest version `1` and `2`.
+
+It changed from `manifest_version = 1`:
+
+```toml
+[[setup.backends]]
+name = "backend_name"
+prompt = "Backend able to serve `/articles` path"
+address = "reqbin.com"
+port = 443
+
+[[setup.backends]]
+name = "other_backend_name"
+prompt = "Backend able to serve `/anything` path"
+address = "httpbin.org"
+port = 443
+```
+
+To `manifest_version = 2`:
+
+```toml
+[setup.backends.backend_name]
+address = "reqbin.com"
+port = 443
+prompt = "Backend able to serve `/articles` path"
+
+[setup.backends.other_backend_name]
+address = "httpbin.org"
+port = 443
+prompt = "Backend able to serve `/anything` path"
+```
+
+Refer to the specification documentation for details:
+https://developer.fastly.com/reference/compute/fastly-toml/
+
 ## [v0.39.2](https://github.com/fastly/cli/releases/tag/v0.39.2) (2021-09-29)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.39.1...v0.39.2)
