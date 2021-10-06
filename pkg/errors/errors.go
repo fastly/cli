@@ -41,8 +41,21 @@ var ErrInvalidManifestVersion = RemediationError{
 	Remediation: "Delete `[manifest_version]` from the fastly.toml if present",
 }
 
+// ErrIncompatibleManifestVersion means the manifest_version defined is no
+// longer compatible with the current CLI version.
+var ErrIncompatibleManifestVersion = RemediationError{
+	Inner:       fmt.Errorf("the fastly.toml contains an incompatible manifest_version number"),
+	Remediation: "Update the `manifest_version` in the fastly.toml and refer to https://github.com/fastly/cli/releases/tag/v0.39.3 for changes to the manifest structure",
+}
+
 // ErrNoID means no --id value has been provided.
 var ErrNoID = RemediationError{
 	Inner:       fmt.Errorf("no ID found"),
 	Remediation: IDRemediation,
+}
+
+// ErrReadingManifest means there was a problem reading the package manifest.
+var ErrReadingManifest = RemediationError{
+	Inner:       fmt.Errorf("error reading package manifest"),
+	Remediation: ComputeInitRemediation,
 }

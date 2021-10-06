@@ -27,7 +27,7 @@ const (
 
 	// ManifestLatestVersion represents the latest known manifest schema version
 	// supported by the CLI.
-	ManifestLatestVersion = 1
+	ManifestLatestVersion = 2
 
 	// FilePermissions represents a read/write file mode.
 	FilePermissions = 0666
@@ -147,7 +147,7 @@ type Version int
 // We also constrain the version so that if a user has a manifest_version
 // defined as "99.0.0" then we won't accidentally store it as the integer 99
 // but instead will return an error because it exceeds the current
-// ManifestLatestVersion version of 1.
+// ManifestLatestVersion version.
 func (v *Version) UnmarshalText(text []byte) error {
 	s := string(text)
 
@@ -159,7 +159,7 @@ func (v *Version) UnmarshalText(text []byte) error {
 	if f, err := strconv.ParseFloat(s, 32); err == nil {
 		intfl := int(f)
 		if intfl == 0 {
-			*v = 1
+			*v = ManifestLatestVersion
 		} else {
 			*v = Version(intfl)
 		}
@@ -180,7 +180,7 @@ func (v *Version) UnmarshalText(text []byte) error {
 					return nil
 				}
 			} else {
-				*v = 1
+				*v = ManifestLatestVersion
 				return nil
 			}
 		}
@@ -201,41 +201,62 @@ type File struct {
 	LocalServer     LocalServer `toml:"local_server,omitempty"`
 	Setup           Setup       `toml:"setup,omitempty"`
 
-	exists bool
-	output io.Writer
+	exists    bool
+	output    io.Writer
+	readError error
 }
 
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
-	Backends []Mapper `toml:"backends"`
+	Backends map[string]*SetupBackend `toml:"backends,omitempty"`
 }
 
-// Mapper represents a generic toml table.
-type Mapper map[string]interface{}
+// SetupBackend represents a '[setup.backends.<T>]' instance.
+type SetupBackend struct {
+	Address     string `toml:"address,omitempty"`
+	Port        uint   `toml:"port,omitempty"`
+	Description string `toml:"description,omitempty"`
+}
 
 // LocalServer represents a list of backends that should be mocked as per the
 // configuration values.
 type LocalServer struct {
-	Backends     map[string]Backend    `toml:"backends"`
-	Dictionaries map[string]Dictionary `toml:"dictionaries,omitempty"`
+	Backends     map[string]LocalBackend    `toml:"backends"`
+	Dictionaries map[string]LocalDictionary `toml:"dictionaries,omitempty"`
 }
 
-// Backend represents a backend to be mocked by the local testing server.
-type Backend struct {
+// LocalBackend represents a backend to be mocked by the local testing server.
+type LocalBackend struct {
 	URL          string `toml:"url"`
 	OverrideHost string `toml:"override_host,omitempty"`
 }
 
-// Dictionary represents a dictionary to be mocked by the local testing server.
-type Dictionary struct {
+// LocalDictionary represents a dictionary to be mocked by the local testing server.
+type LocalDictionary struct {
 	File   string `toml:"file"`
 	Format string `toml:"format"`
 }
 
 // Exists yields whether the manifest exists.
+//
+// Specifically, it indicates that a toml.Unmarshal() of the toml disk content
+// to data in memory was successful without error.
 func (f *File) Exists() bool {
 	return f.exists
+}
+
+// ReadError yields the error returned from Read().
+//
+// NOTE: We no longer call Read() from every command. We only call it once
+// within app.Run() but we don't handle any errors that are returned from the
+// Read() method. This is because failing to read the manifest is fine if the
+// error is caused by the file not existing in a directory where the user is
+// working on a non-C@E project. This will enable code elsewhere in the CLI to
+// understand why the Read() failed. For example, we can use errors.Is() to
+// allow returning a specific remediation error from a C@E related command.
+func (f *File) ReadError() error {
+	return f.readError
 }
 
 // SetOutput sets the output stream for any messages.
@@ -244,7 +265,13 @@ func (f *File) SetOutput(output io.Writer) {
 }
 
 // Read loads the manifest file content from disk.
-func (f *File) Read(fpath string) error {
+func (f *File) Read(fpath string) (err error) {
+	defer func() {
+		if err != nil {
+			f.readError = err
+		}
+	}()
+
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// Disabling as we need to load the fastly.toml from the user's file system.
@@ -277,6 +304,13 @@ func (f *File) Read(fpath string) error {
 		bs = buf.Bytes()
 	}
 
+	// We want to avoid a generic error from toml.Unmarshal when dealing with toml
+	// configuration that's in a older/unsupported format.
+	err = validateManifestVersion(bs)
+	if err != nil {
+		return err
+	}
+
 	err = toml.Unmarshal(bs, f)
 	if err != nil {
 		// NOTE: The toml library messes with the returned error so when we use
@@ -303,13 +337,13 @@ func (f *File) Read(fpath string) error {
 	f.exists = true
 
 	if f.ManifestVersion == 0 {
-		f.ManifestVersion = 1
+		f.ManifestVersion = ManifestLatestVersion
 
 		// NOTE: the use of once is a quick-fix to side-step duplicate outputs.
 		// To fix this properly will require a refactor of the structure of how our
 		// global output is passed around.
 		once.Do(func() {
-			text.Warning(f.output, "The fastly.toml was missing a `manifest_version` field. A default schema version of `1` will be used.")
+			text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
 			text.Break(f.output)
 			text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
 			text.Break(f.output)
@@ -371,6 +405,64 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 	}
 
 	return buf, nil
+}
+
+// validateManifestVersion tests if the manifest_version is set to the same
+// value as ManifestLatestVersion.
+//
+// NOTE: It validates similar conversions as Version.UnmarshalText().
+// Specifically, it will attempt to convert the interface{} into an integer so
+// it can be compared against ManifestLatestVersion. Otherwise it'll attempt to
+// convert it into a float, and lastly it'll check for a semver.
+func validateManifestVersion(bs []byte) error {
+	tree, err := toml.LoadBytes(bs)
+	if err != nil {
+		return err
+	}
+
+	i := tree.GetArray("manifest_version")
+	if i == nil {
+		return fsterr.ErrMissingManifestVersion
+	}
+
+	if version, ok := i.(int64); ok {
+		if version == ManifestLatestVersion {
+			return nil
+		}
+		return fsterr.ErrIncompatibleManifestVersion
+	}
+
+	if version, ok := i.(float64); ok {
+		intfloat := int(version)
+		if intfloat == ManifestLatestVersion {
+			return nil
+		}
+		return fsterr.ErrIncompatibleManifestVersion
+	}
+
+	if version, ok := i.(string); ok {
+		if strings.Contains(version, ".") {
+			segs := strings.Split(version, ".")
+
+			// A length of 3 presumes a semver (e.g. 0.1.0)
+			if len(segs) == 3 {
+				compare := segs[0]
+				if segs[0] == "0" {
+					compare = segs[1]
+				}
+				if intstr, err := strconv.Atoi(compare); err == nil {
+					if intstr == ManifestLatestVersion {
+						return nil
+					}
+				}
+				return fsterr.ErrIncompatibleManifestVersion
+			}
+
+			return fsterr.ErrUnrecognisedManifestVersion
+		}
+	}
+
+	return nil
 }
 
 // Write persists the manifest content to disk.

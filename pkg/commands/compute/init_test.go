@@ -21,6 +21,28 @@ func TestInit(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_INIT to run this test")
 	}
 
+	skRust := []config.StarterKit{
+		{
+			Name:   "Default",
+			Path:   "https://github.com/fastly/compute-starter-kit-rust-default",
+			Branch: "main",
+		},
+	}
+	skJS := []config.StarterKit{
+		{
+			Name:   "Default",
+			Path:   "https://github.com/fastly/compute-starter-kit-javascript-default",
+			Branch: "main",
+		},
+	}
+	skAS := []config.StarterKit{
+		{
+			Name:   "Default",
+			Path:   "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
+			Branch: "main",
+		},
+	}
+
 	for _, testcase := range []struct {
 		name             string
 		args             []string
@@ -42,13 +64,7 @@ func TestInit(t *testing.T) {
 			args: args("compute init --name test"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
+					Rust: skRust,
 				},
 			},
 			wantOutput: []string{
@@ -63,13 +79,7 @@ func TestInit(t *testing.T) {
 			args: args("compute init --description test"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
+					Rust: skRust,
 				},
 			},
 			wantOutput: []string{
@@ -84,13 +94,7 @@ func TestInit(t *testing.T) {
 			args: args("compute init --author test@example.com"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
+					Rust: skRust,
 				},
 			},
 			wantOutput: []string{
@@ -105,13 +109,7 @@ func TestInit(t *testing.T) {
 			args: args("compute init --author test1@example.com --author test2@example.com"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
+					Rust: skRust,
 				},
 			},
 			wantOutput: []string{
@@ -128,9 +126,8 @@ func TestInit(t *testing.T) {
 				StarterKits: config.StarterKitLanguages{
 					Rust: []config.StarterKit{
 						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
 						},
 					},
 				},
@@ -146,23 +143,16 @@ func TestInit(t *testing.T) {
 			args: args("compute init --force"), // --force will ignore a directory that isn't empty
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
+					Rust: skRust,
 				},
 			},
-			manifest: strings.Join([]string{
-				"manifest_version = \"1\"",
-				"service_id = \"1234\"",
-				"name = \"test\"",
-				"language = \"rust\"",
-				"description = \"test\"",
-				"authors = [\"test@fastly.com\"]",
-			}, "\n"),
+			manifest: `
+			manifest_version = 2
+			service_id = 1234
+			name = "test"
+			language = "rust"
+			description = "test"
+			authors = ["test@fastly.com"]`,
 			wantOutput: []string{
 				"Updating package manifest...",
 				"Initializing package...",
@@ -176,13 +166,7 @@ func TestInit(t *testing.T) {
 					Email: "test@example.com",
 				},
 				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
+					Rust: skRust,
 				},
 			},
 			manifestIncludes: `authors = ["test@example.com"]`,
@@ -205,30 +189,20 @@ func TestInit(t *testing.T) {
 			args: args("compute init"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
+					Rust: skRust,
 				},
 			},
 			wantError: "project directory not empty",
-			manifest:  `name = "test"`, // causes a file to be created as part of test setup
+			manifest: `
+			manifest_version = 2
+			name = "test"`,
 		},
 		{
 			name: "with default name inferred from directory",
 			args: args("compute init"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name:   "Default",
-							Path:   "https://github.com/fastly/compute-starter-kit-rust-default.git",
-							Branch: "0.6.0",
-						},
-					},
+					Rust: skRust,
 				},
 			},
 			manifestIncludes: `name = "fastly-temp`,
@@ -238,13 +212,7 @@ func TestInit(t *testing.T) {
 			args: args("compute init --language assemblyscript"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
-					AssemblyScript: []config.StarterKit{
-						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
-							Tag:  "v0.2.0",
-						},
-					},
+					AssemblyScript: skAS,
 				},
 			},
 			manifestIncludes: `name = "fastly-temp`,
@@ -254,13 +222,7 @@ func TestInit(t *testing.T) {
 			args: args("compute init --language javascript"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
-					JavaScript: []config.StarterKit{
-						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-javascript-default",
-							Tag:  "v0.1.0",
-						},
-					},
+					JavaScript: skJS,
 				},
 			},
 			manifestIncludes: `name = "fastly-temp`,

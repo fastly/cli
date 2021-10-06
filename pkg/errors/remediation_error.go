@@ -110,3 +110,10 @@ var CLIUpdateRemediation = strings.Join([]string{
 	"`fastly update`.",
 	BugRemediation,
 }, " ")
+
+// ComputeInitRemediation suggests re-running `compute init` to resolve
+// manifest issue.
+var ComputeInitRemediation = strings.Join([]string{
+	"Run `fastly compute init` to ensure a correctly configured manifest.",
+	"See more at https://developer.fastly.com/reference/fastly-toml/",
+}, " ")
