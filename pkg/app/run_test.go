@@ -602,8 +602,8 @@ COMMANDS
     -d, --description=DESCRIPTION  Description of the package
     -a, --author=AUTHOR ...        Author(s) of the package
     -l, --language=LANGUAGE        Language of the package
-    -f, --from=FROM                Git repository URL containing package
-                                   template or Fastly Fiddle zip URL
+    -f, --from=FROM                Git repository URL, or URL referencing a .zip
+                                   file, containing a package template
     -p, --path=PATH                Destination to write the new package,
                                    defaulting to the current directory
         --force                    Skip non-empty directory verification step
