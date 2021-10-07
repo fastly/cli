@@ -173,3 +173,29 @@ func DisplayServiceID(sid string, s manifest.Source, out io.Writer) {
 	text.Output(out, "Service ID%s: %s", via, sid)
 	text.Break(out)
 }
+
+// ArgsIsHelpJSON determines whether the supplied command arguments are exactly
+// `help --format=json` or `help --format json`.
+func ArgsIsHelpJSON(args []string) bool {
+	switch len(args) {
+	case 2:
+		if args[0] == "help" && args[1] == "--format=json" {
+			return true
+		}
+	case 3:
+		if args[0] == "help" && args[1] == "--format" && args[2] == "json" {
+			return true
+		}
+	}
+	return false
+}
+
+// IsHelpOnly indicates if the user called `fastly help [...]`.
+func IsHelpOnly(args []string) bool {
+	return args[0] == "help"
+}
+
+// IsHelpFlagOnly indicates if the user called `fastly --help [...]`.
+func IsHelpFlagOnly(args []string) bool {
+	return args[0] == "--help"
+}
