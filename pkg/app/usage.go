@@ -10,7 +10,7 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/kingpin"
 )
@@ -260,14 +260,14 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 // NOTE: This function is called multiple times within app.Run() and so we use
 // a closure to prevent having to pass the same unchanging arguments each time.
 func displayHelp(
-	errLog errors.LogInterface,
+	errLog fsterr.LogInterface,
 	args []string,
 	app *kingpin.Application,
 	stdout, stderr io.Writer) func(vars map[string]interface{}, err error) error {
 
 	return func(vars map[string]interface{}, err error) error {
 		usage := Usage(args, app, stdout, stderr, vars)
-		remediation := errors.RemediationError{Prefix: usage}
+		remediation := fsterr.RemediationError{Prefix: usage}
 		if err != nil {
 			errLog.Add(err)
 			remediation.Inner = fmt.Errorf("error parsing arguments: %w", err)
@@ -296,7 +296,7 @@ func processCommandInput(
 			return command, cmdName, err
 		}
 		fmt.Fprintf(opts.Stdout, "%s", json)
-		return command, cmdName, nil
+		return command, strings.Join(opts.Args, ""), nil
 	}
 
 	// Use partial application to generate help output function.
@@ -395,7 +395,7 @@ func processCommandInput(
 			fmt.Fprintln(&buf, "")
 		}
 
-		return command, cmdName, errors.RemediationError{Prefix: buf.String()}
+		return command, cmdName, fsterr.RemediationError{Prefix: buf.String()}
 	}
 
 	return command, cmdName, nil

@@ -104,6 +104,10 @@ func Run(opts RunOpts) error {
 	if err != nil {
 		return err
 	}
+	// We add a special case for when cmd.ArgsIsHelpJSON() is true.
+	if name == "help--format=json" || name == "help--formatjson" {
+		return nil
+	}
 
 	token, source := globals.Token()
 	if globals.Verbose() {
