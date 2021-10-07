@@ -212,13 +212,26 @@ type File struct {
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
-	Backends map[string]*SetupBackend `toml:"backends,omitempty"`
+	Backends     map[string]*SetupBackend    `toml:"backends,omitempty"`
+	Dictionaries map[string]*SetupDictionary `toml:"dictionaries,omitempty"`
 }
 
 // SetupBackend represents a '[setup.backends.<T>]' instance.
 type SetupBackend struct {
 	Address     string `toml:"address,omitempty"`
 	Port        uint   `toml:"port,omitempty"`
+	Description string `toml:"description,omitempty"`
+}
+
+// SetupDictionary represents a '[setup.dictionaries.<T>]' instance.
+type SetupDictionary struct {
+	Items       map[string]SetupDictionaryItems `toml:"items,omitempty"`
+	Description string                          `toml:"description,omitempty"`
+}
+
+// SetupDictionaryItems represents a '[setup.dictionaries.<T>.items]' instance.
+type SetupDictionaryItems struct {
+	Value       string `toml:"value,omitempty"`
 	Description string `toml:"description,omitempty"`
 }
 

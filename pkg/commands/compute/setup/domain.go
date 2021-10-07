@@ -24,19 +24,19 @@ var domainNameRegEx = regexp.MustCompile(`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])
 // NOTE: It implements the setup.Interface interface.
 type Domains struct {
 	// Public
-	Available      []*fastly.Domain
 	APIClient      api.Interface
+	AcceptDefaults bool
 	PackageDomain  string
 	Progress       text.Progress
-	Required       []Domain
 	ServiceID      string
 	ServiceVersion int
-	AcceptDefaults bool
 	Stdin          io.Reader
 	Stdout         io.Writer
 
 	// Private
-	missing bool
+	available []*fastly.Domain
+	missing   bool
+	required  []Domain
 }
 
 // Domain represents the configuration parameters for creating a domain via the
@@ -51,7 +51,7 @@ type Domain struct {
 func (d *Domains) Configure() error {
 	// PackageDomain is the --domain flag value.
 	if d.PackageDomain != "" {
-		d.Required = append(d.Required, Domain{
+		d.required = append(d.required, Domain{
 			Name: d.PackageDomain,
 		})
 		return nil
@@ -73,13 +73,13 @@ func (d *Domains) Configure() error {
 	}
 
 	if domain == "" {
-		d.Required = append(d.Required, Domain{
+		d.required = append(d.required, Domain{
 			Name: defaultDomain,
 		})
 		return nil
 	}
 
-	d.Required = append(d.Required, Domain{
+	d.required = append(d.required, Domain{
 		Name: domain,
 	})
 	return nil
@@ -94,7 +94,7 @@ func (d *Domains) Create() error {
 		}
 	}
 
-	for _, domain := range d.Required {
+	for _, domain := range d.required {
 		d.Progress.Step(fmt.Sprintf("Creating domain '%s'...", domain.Name))
 
 		_, err := d.APIClient.CreateDomain(&fastly.CreateDomainInput{
@@ -113,7 +113,7 @@ func (d *Domains) Create() error {
 
 // Missing indicates if there are missing resources that need to be created.
 func (d *Domains) Missing() bool {
-	return d.missing || len(d.Required) > 0
+	return d.missing || len(d.required) > 0
 }
 
 // Predefined indicates if the service resource has been specified within the
@@ -131,7 +131,7 @@ func (d *Domains) Predefined() bool {
 // the Missing() method can report the state of the resource.
 func (d *Domains) Validate() error {
 	var err error
-	d.Available, err = d.APIClient.ListDomains(&fastly.ListDomainsInput{
+	d.available, err = d.APIClient.ListDomains(&fastly.ListDomainsInput{
 		ServiceID:      d.ServiceID,
 		ServiceVersion: d.ServiceVersion,
 	})
@@ -139,7 +139,7 @@ func (d *Domains) Validate() error {
 		return fmt.Errorf("error fetching service domains: %w", err)
 	}
 
-	if len(d.Available) < 1 {
+	if len(d.available) < 1 {
 		d.missing = true
 	}
 	return nil
