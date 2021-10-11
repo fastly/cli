@@ -1,4 +1,4 @@
-manifest_version = "0.2.0"
+manifest_version = "0.99.0" # minor and patch versions are ignored and zero major is bumped to latest
 name = "Default Rust template"
 description = "Default package template for Rust based edge compute projects."
 authors = ["phamann <patrick@fastly.com>"]

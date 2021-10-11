@@ -166,27 +166,30 @@ func (v *Version) UnmarshalText(text []byte) error {
 		return nil
 	}
 
+	// Presumes semver value (e.g. 1.0.0, 0.1.0 or 0.1)
+	// Major is converted to integer if != zero.
+	// Otherwise if Major == zero, then ignore Minor/Patch and set to latest version.
+	var (
+		err     error
+		version int
+	)
 	if strings.Contains(s, ".") {
 		segs := strings.Split(s, ".")
-
-		// A length of 3 presumes a semver (e.g. 0.1.0)
-		if len(segs) == 3 {
-			if segs[0] != "0" {
-				if i, err := strconv.Atoi(segs[0]); err == nil {
-					if i > ManifestLatestVersion {
-						return fsterr.ErrUnrecognisedManifestVersion
-					}
-					*v = Version(i)
-					return nil
-				}
-			} else {
-				*v = ManifestLatestVersion
-				return nil
-			}
+		s = segs[0]
+		if s == "0" {
+			s = strconv.Itoa(ManifestLatestVersion)
 		}
 	}
+	version, err = strconv.Atoi(s)
+	if err != nil {
+		return err
+	}
 
-	return fsterr.ErrUnrecognisedManifestVersion
+	if version > ManifestLatestVersion {
+		return fsterr.ErrUnrecognisedManifestVersion
+	}
+	*v = Version(version)
+	return nil
 }
 
 // File represents all of the configuration parameters in the fastly.toml
@@ -387,10 +390,13 @@ func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
 		version = int(v)
 	case string:
 		if strings.Contains(v, ".") {
+			// Presumes semver value (e.g. 1.0.0, 0.1.0 or 0.1)
+			// Major is converted to integer if != zero.
+			// Otherwise if Major == zero, then ignore Minor/Patch and set to latest version.
 			segs := strings.Split(v, ".")
 			v = segs[0]
-			if segs[0] == "0" {
-				v = segs[1]
+			if v == "0" {
+				v = strconv.Itoa(ManifestLatestVersion)
 			}
 		}
 		version, err = strconv.Atoi(v)

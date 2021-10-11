@@ -99,6 +99,10 @@ func TestManifest(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
+
+				if m.ManifestVersion != manifest.ManifestLatestVersion {
+					t.Fatalf("manifest_version '%d' doesn't match latest '%d'", m.ManifestVersion, manifest.ManifestLatestVersion)
+				}
 			} else {
 				// otherwise if we expect the manifest to be invalid/unrecognised then
 				// the error should match our expectations.
