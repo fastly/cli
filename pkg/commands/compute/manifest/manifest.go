@@ -29,8 +29,7 @@ const (
 	// supported by the CLI.
 	//
 	// NOTE: The CLI is the primary consumer of the fastly.toml manifest
-	// specification so it's not unreasonable to presume that the latest version
-	// should be coupled to the latest version of the CLI.
+	// specification so its code is coupled to the specification.
 	ManifestLatestVersion = 2
 
 	// FilePermissions represents a read/write file mode.
@@ -310,7 +309,7 @@ func (f *File) Read(fpath string) (err error) {
 
 	// The Validate() method will either return the []byte unmodified or it will
 	// have updated the manifest_version field to reflect the latest version
-	// supported.
+	// supported by the Fastly CLI.
 	//
 	// We do this because we want to avoid a generic error from toml.Unmarshal
 	// when dealing with toml configuration that's in a older/unsupported format.
