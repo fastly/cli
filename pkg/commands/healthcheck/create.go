@@ -21,9 +21,10 @@ type CreateCommand struct {
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
+	c.manifest = data
 	c.CmdClause = parent.Command("create", "Create a healthcheck on a Fastly service version").Alias("add")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{

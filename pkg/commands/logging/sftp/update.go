@@ -43,11 +43,10 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
-	c.Manifest.File.SetOutput(c.Globals.Output)
-	c.Manifest.File.Read(manifest.Filename)
+	c.Manifest = data
 	c.CmdClause = parent.Command("update", "Update an SFTP logging endpoint on a Fastly service version")
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.ServiceVersion.Value,

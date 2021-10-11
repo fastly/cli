@@ -24,9 +24,10 @@ type HistoricalCommand struct {
 }
 
 // NewHistoricalCommand is the "stats historical" subcommand.
-func NewHistoricalCommand(parent cmd.Registerer, globals *config.Data) *HistoricalCommand {
+func NewHistoricalCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *HistoricalCommand {
 	var c HistoricalCommand
 	c.Globals = globals
+	c.manifest = data
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)

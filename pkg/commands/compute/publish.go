@@ -86,6 +86,7 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.timeout.WasSet {
 		c.build.Timeout = c.timeout.Value
 	}
+	c.build.Manifest = c.manifest
 
 	err = c.build.Exec(in, out)
 	if err != nil {

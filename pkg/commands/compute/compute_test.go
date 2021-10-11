@@ -31,7 +31,7 @@ func TestPublishFlagDivergence(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, client{}, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, client{}, &cfg, data)
 	dcmd := compute.NewDeployCommand(rcmd.CmdClause, client{}, &cfg, data)
 	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &cfg, bcmd, dcmd, data)
 

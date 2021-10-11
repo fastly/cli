@@ -22,9 +22,10 @@ type RealtimeCommand struct {
 }
 
 // NewRealtimeCommand is the "stats realtime" subcommand.
-func NewRealtimeCommand(parent cmd.Registerer, globals *config.Data) *RealtimeCommand {
+func NewRealtimeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *RealtimeCommand {
 	var c RealtimeCommand
 	c.Globals = globals
+	c.manifest = data
 
 	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
