@@ -304,13 +304,10 @@ func (f *File) Read(fpath string) (err error) {
 		bs = buf.Bytes()
 	}
 
-	// The Validate() method will either return the []byte unmodified or it will
-	// have updated the manifest_version field to reflect the latest version
-	// supported by the Fastly CLI.
-	//
-	// We do this because we want to avoid a generic error from toml.Unmarshal
-	// when dealing with toml configuration that's in a older/unsupported format.
-	bs, err = f.Validate(bs, fpath)
+	// The AutoMigrateVersion() method will either return the []byte unmodified or
+	// it will have updated the manifest_version field to reflect the latest
+	// version supported by the Fastly CLI.
+	bs, err = f.AutoMigrateVersion(bs, fpath)
 	if err != nil {
 		return err
 	}
@@ -356,25 +353,24 @@ func (f *File) Read(fpath string) (err error) {
 	return nil
 }
 
-// Validate tests two conditions: the first is if the manifest_version is set to
-// the same value as ManifestLatestVersion, and the second is if the fastly.toml
-// contains a [setup] configuration.
+// AutoMigrateVersion updates the manifest_version value to
+// ManifestLatestVersion if the current version is less than the latest
+// supported and only if there is no [setup] configuration defined.
 //
-// NOTE: It validates similar conversions as Version.UnmarshalText().
-// Specifically, it will attempt to convert the interface{} into an integer so
-// it can be compared against ManifestLatestVersion. Otherwise it'll attempt to
-// convert it into a float, and lastly it'll check for a semver.
-func (f *File) Validate(bs []byte, fpath string) ([]byte, error) {
+// NOTE: It contains similar conversions to the custom Version.UnmarshalText().
+// Specifically, it type switches the interface{} into various types before
+// attempting to convert the underlying value into an integer.
+func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
 	tree, err := toml.LoadBytes(bs)
 	if err != nil {
 		return bs, err
 	}
 
 	// If there is no manifest_version set then we return the fastly.toml content
-	// unmodified along with nil so that logic further down the .Read() method
-	// will pick up that the unmarshalled data structure will have a zero value
-	// of 0 for the ManifestVersion field and so will display a message to the
-	// user to inform them that we'll default to setting a manifest_version to
+	// unmodified, along with a nil error, so that logic further down the .Read()
+	// method will pick up that the unmarshalled data structure will have a zero
+	// value of 0 for the ManifestVersion field and so will display a message to
+	// the user to inform them that we'll default to setting a manifest_version to
 	// the ManifestLatestVersion value.
 	i := tree.GetArray("manifest_version")
 	if i == nil {
