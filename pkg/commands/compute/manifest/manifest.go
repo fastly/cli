@@ -27,8 +27,8 @@ const (
 	// ManifestLatestVersion represents the latest known manifest schema version
 	// supported by the CLI.
 	//
-	// NOTE: The CLI is the primary consumer of the fastly.toml manifest
-	// specification so its code is coupled to the specification.
+	// NOTE: The CLI is the primary consumer of the fastly.toml manifest so its
+	// code is typically coupled to the specification.
 	ManifestLatestVersion = 2
 
 	// FilePermissions represents a read/write file mode.
