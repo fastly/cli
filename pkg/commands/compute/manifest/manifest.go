@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -54,8 +53,6 @@ const (
 	// SpecURL points to the fastly.toml manifest specification reference.
 	SpecURL = "https://developer.fastly.com/reference/fastly-toml/"
 )
-
-var once sync.Once
 
 // Data holds global-ish manifest data from manifest files, and flag sources.
 // It has methods to give each parameter to the components that need it,
@@ -349,20 +346,11 @@ func (f *File) Read(fpath string) (err error) {
 	if f.ManifestVersion == 0 {
 		f.ManifestVersion = ManifestLatestVersion
 
-		// NOTE: the use of once is a quick-fix to side-step duplicate outputs.
-		// To fix this properly will require a refactor of the structure of how our
-		// global output is passed around.
-		//
-		// TODO: Now we only read the manifest once in app.Run() this logic block
-		// might be redundant and be ripe for deletion. Removing once.Do() will be
-		// blocked by https://github.com/fastly/cli/pull/433
-		once.Do(func() {
-			text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
-			text.Break(f.output)
-			text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
-			text.Break(f.output)
-			f.Write(fpath)
-		})
+		text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
+		text.Break(f.output)
+		text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
+		text.Break(f.output)
+		f.Write(fpath)
 	}
 
 	return nil
