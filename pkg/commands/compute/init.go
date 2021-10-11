@@ -54,7 +54,7 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').StringVar(&c.language)
-	c.CmdClause.Flag("from", "Git repository URL, or URL referencing a .zip file, containing a package template").Short('f').StringVar(&c.from)
+	c.CmdClause.Flag("from", "Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
