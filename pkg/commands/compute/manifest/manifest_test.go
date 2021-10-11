@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -32,26 +33,23 @@ func TestManifest(t *testing.T) {
 			valid:    true,
 		},
 		"invalid: missing manifest_version": {
-			manifest:      "fastly-invalid-missing-version.toml",
-			valid:         false,
-			expectedError: errs.ErrMissingManifestVersion,
+			manifest: "fastly-invalid-missing-version.toml",
+			valid:    true, // expect manifest_version to be set to latest version
 		},
 		"invalid: manifest_version as a section": {
-			manifest:      "fastly-invalid-section-version.toml",
-			valid:         false,
-			expectedError: errs.ErrMissingManifestVersion,
+			manifest: "fastly-invalid-section-version.toml",
+			valid:    true, // expect manifest_version to be set to latest version
 		},
 		"invalid: manifest_version Atoi error": {
-			manifest:             "fastly-invalid-unrecognised.toml",
-			valid:                false,
-			expectedError:        errs.ErrUnrecognisedManifestVersion,
-			wantRemediationError: errs.ErrUnrecognisedManifestVersion.Remediation,
+			manifest:      "fastly-invalid-unrecognised.toml",
+			valid:         false,
+			expectedError: strconv.ErrSyntax,
 		},
 		"unrecognised: manifest_version exceeded limit": {
 			manifest:             "fastly-invalid-version-exceeded.toml",
 			valid:                false,
-			expectedError:        errs.ErrIncompatibleManifestVersion,
-			wantRemediationError: errs.ErrIncompatibleManifestVersion.Remediation,
+			expectedError:        errs.ErrUnrecognisedManifestVersion,
+			wantRemediationError: errs.ErrUnrecognisedManifestVersion.Remediation,
 		},
 	}
 

@@ -27,6 +27,10 @@ const (
 
 	// ManifestLatestVersion represents the latest known manifest schema version
 	// supported by the CLI.
+	//
+	// NOTE: The CLI is the primary consumer of the fastly.toml manifest
+	// specification so it's not unreasonable to presume that the latest version
+	// should be coupled to the latest version of the CLI.
 	ManifestLatestVersion = 2
 
 	// FilePermissions represents a read/write file mode.
@@ -317,10 +321,13 @@ func (f *File) Read(fpath string) (err error) {
 
 	err = toml.Unmarshal(bs, f)
 	if err != nil {
-		// NOTE: The toml library messes with the returned error so when we use
-		// fsterrors.Deduce(err).Print(os.Stderr) to determine the remediation
-		// error we actually fail to find a match and end up using a BugRemediation
-		// as a default (losing important information for the user).
+		// NOTE: The toml library messes with the returned error by returning not
+		// fsterr.ErrUnrecognisedManifestVersion but errors.errorString.
+		//
+		// This means when we use fsterrors.Deduce(err).Print(os.Stderr) in
+		// app.Run() to determine the remediation error we actually fail to find a
+		// match and end up using a BugRemediation as a default. This results in us
+		// losing important information for the user to act upon.
 		//
 		// To work around this we type assert the underlying error, and if a match
 		// is found we return the specific remediation error, otherwise we return
@@ -348,7 +355,8 @@ func (f *File) Read(fpath string) (err error) {
 		// global output is passed around.
 		//
 		// TODO: Now we only read the manifest once in app.Run() this logic block
-		// might be redundant and be ripe for deletion.
+		// might be redundant and be ripe for deletion. Removing once.Do() will be
+		// blocked by https://github.com/fastly/cli/pull/433
 		once.Do(func() {
 			text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
 			text.Break(f.output)
@@ -375,9 +383,15 @@ func (f *File) Validate(bs []byte, fpath string) ([]byte, error) {
 		return bs, err
 	}
 
+	// If there is no manifest_version set then we return the fastly.toml content
+	// unmodified along with nil so that logic further down the .Read() method
+	// will pick up that the unmarshalled data structure will have a zero value
+	// of 0 for the ManifestVersion field and so will display a message to the
+	// user to inform them that we'll default to setting a manifest_version to
+	// the ManifestLatestVersion value.
 	i := tree.GetArray("manifest_version")
 	if i == nil {
-		return bs, fsterr.ErrMissingManifestVersion
+		return bs, nil
 	}
 
 	setup := tree.GetArray("setup")
@@ -408,6 +422,11 @@ func (f *File) Validate(bs []byte, fpath string) ([]byte, error) {
 	// []byte with the manifest_version field unmodified.
 	if version == ManifestLatestVersion {
 		return bs, nil
+	}
+
+	// User has an unrecognised manifest_version specified.
+	if version > ManifestLatestVersion {
+		return bs, fsterr.ErrUnrecognisedManifestVersion
 	}
 
 	// User has manifest_version less than latest supported by CLI, but as they
