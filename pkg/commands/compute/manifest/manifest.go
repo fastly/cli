@@ -304,9 +304,13 @@ func (f *File) Read(fpath string) (err error) {
 		bs = buf.Bytes()
 	}
 
-	// We want to avoid a generic error from toml.Unmarshal when dealing with toml
-	// configuration that's in a older/unsupported format.
-	err = validateManifestVersion(bs)
+	// The Validate() method will either return the []byte unmodified or it will
+	// have updated the manifest_version field to reflect the latest version
+	// supported.
+	//
+	// We do this because we want to avoid a generic error from toml.Unmarshal
+	// when dealing with toml configuration that's in a older/unsupported format.
+	bs, err = f.Validate(bs, fpath)
 	if err != nil {
 		return err
 	}
@@ -342,6 +346,9 @@ func (f *File) Read(fpath string) (err error) {
 		// NOTE: the use of once is a quick-fix to side-step duplicate outputs.
 		// To fix this properly will require a refactor of the structure of how our
 		// global output is passed around.
+		//
+		// TODO: Now we only read the manifest once in app.Run() this logic block
+		// might be redundant and be ripe for deletion.
 		once.Do(func() {
 			text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
 			text.Break(f.output)
@@ -352,6 +359,79 @@ func (f *File) Read(fpath string) (err error) {
 	}
 
 	return nil
+}
+
+// Validate tests two conditions: the first is if the manifest_version is set to
+// the same value as ManifestLatestVersion, and the second is if the fastly.toml
+// contains a [setup] configuration.
+//
+// NOTE: It validates similar conversions as Version.UnmarshalText().
+// Specifically, it will attempt to convert the interface{} into an integer so
+// it can be compared against ManifestLatestVersion. Otherwise it'll attempt to
+// convert it into a float, and lastly it'll check for a semver.
+func (f *File) Validate(bs []byte, fpath string) ([]byte, error) {
+	tree, err := toml.LoadBytes(bs)
+	if err != nil {
+		return bs, err
+	}
+
+	i := tree.GetArray("manifest_version")
+	if i == nil {
+		return bs, fsterr.ErrMissingManifestVersion
+	}
+
+	setup := tree.GetArray("setup")
+
+	var version int
+	switch v := i.(type) {
+	case int64:
+		version = int(v)
+	case float64:
+		version = int(v)
+	case string:
+		if strings.Contains(v, ".") {
+			segs := strings.Split(v, ".")
+			v = segs[0]
+			if segs[0] == "0" {
+				v = segs[1]
+			}
+		}
+		version, err = strconv.Atoi(v)
+		if err != nil {
+			return bs, err
+		}
+	default:
+		return bs, fmt.Errorf("error parsing manifest_version: unrecognised type")
+	}
+
+	// User is on the latest version supported by the CLI, so we'll return the
+	// []byte with the manifest_version field unmodified.
+	if version == ManifestLatestVersion {
+		return bs, nil
+	}
+
+	// User has manifest_version less than latest supported by CLI, but as they
+	// don't have a [setup] configuration block defined, it means we can
+	// automatically update their fastly.toml file's manifest_version field.
+	if setup == nil {
+		tree.Set("manifest_version", int64(ManifestLatestVersion))
+
+		bs, err = tree.Marshal()
+		if err != nil {
+			return bs, fmt.Errorf("error marshalling modified manifest_version fastly.toml: %w", err)
+		}
+
+		err = toml.Unmarshal(bs, f)
+		if err != nil {
+			return bs, fmt.Errorf("error unmarshalling fastly.toml: %w", err)
+		}
+
+		if err = f.Write(fpath); err != nil {
+			return bs, fsterr.ErrIncompatibleManifestVersion
+		}
+	}
+
+	return bs, fsterr.ErrIncompatibleManifestVersion
 }
 
 // containsManifestSection loads the slice of bytes into a toml tree structure
@@ -405,64 +485,6 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 	}
 
 	return buf, nil
-}
-
-// validateManifestVersion tests if the manifest_version is set to the same
-// value as ManifestLatestVersion.
-//
-// NOTE: It validates similar conversions as Version.UnmarshalText().
-// Specifically, it will attempt to convert the interface{} into an integer so
-// it can be compared against ManifestLatestVersion. Otherwise it'll attempt to
-// convert it into a float, and lastly it'll check for a semver.
-func validateManifestVersion(bs []byte) error {
-	tree, err := toml.LoadBytes(bs)
-	if err != nil {
-		return err
-	}
-
-	i := tree.GetArray("manifest_version")
-	if i == nil {
-		return fsterr.ErrMissingManifestVersion
-	}
-
-	if version, ok := i.(int64); ok {
-		if version == ManifestLatestVersion {
-			return nil
-		}
-		return fsterr.ErrIncompatibleManifestVersion
-	}
-
-	if version, ok := i.(float64); ok {
-		intfloat := int(version)
-		if intfloat == ManifestLatestVersion {
-			return nil
-		}
-		return fsterr.ErrIncompatibleManifestVersion
-	}
-
-	if version, ok := i.(string); ok {
-		if strings.Contains(version, ".") {
-			segs := strings.Split(version, ".")
-
-			// A length of 3 presumes a semver (e.g. 0.1.0)
-			if len(segs) == 3 {
-				compare := segs[0]
-				if segs[0] == "0" {
-					compare = segs[1]
-				}
-				if intstr, err := strconv.Atoi(compare); err == nil {
-					if intstr == ManifestLatestVersion {
-						return nil
-					}
-				}
-				return fsterr.ErrIncompatibleManifestVersion
-			}
-
-			return fsterr.ErrUnrecognisedManifestVersion
-		}
-	}
-
-	return nil
 }
 
 // Write persists the manifest content to disk.
