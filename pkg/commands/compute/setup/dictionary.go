@@ -48,18 +48,13 @@ type DictionaryItem struct {
 
 // Configure prompts the user for specific values related to the service resource.
 func (d *Dictionaries) Configure() error {
-	var i int
 	for name, settings := range d.Setup {
 		if !d.AcceptDefaults {
-			if i > 0 {
-				text.Break(d.Stdout)
-			}
-			i++
-			text.Output(d.Stdout, "Configure a dictionary called '%s'", name)
+			text.Break(d.Stdout)
+			text.Output(d.Stdout, "Configuring dictionary '%s'", name)
 			if settings.Description != "" {
 				text.Output(d.Stdout, settings.Description)
 			}
-			text.Break(d.Stdout)
 		}
 
 		var items []DictionaryItem
@@ -69,7 +64,7 @@ func (d *Dictionaries) Configure() error {
 			if item.Value != "" {
 				dv = item.Value
 			}
-			prompt := fmt.Sprintf("Value: [%s] ", dv)
+			prompt := text.BoldYellow(fmt.Sprintf("Value: [%s] ", dv))
 
 			var (
 				value string
@@ -77,7 +72,8 @@ func (d *Dictionaries) Configure() error {
 			)
 
 			if !d.AcceptDefaults {
-				text.Output(d.Stdout, "Configure a dictionary item called '%s'", key)
+				text.Break(d.Stdout)
+				text.Output(d.Stdout, "Create a dictionary key called '%s'", key)
 				if item.Description != "" {
 					text.Output(d.Stdout, item.Description)
 				}

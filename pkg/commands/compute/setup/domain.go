@@ -65,7 +65,7 @@ func (d *Domains) Configure() error {
 		err    error
 	)
 	if !d.AcceptDefaults {
-		domain, err = text.Input(d.Stdout, fmt.Sprintf("Domain: [%s] ", defaultDomain), d.Stdin, d.validateDomain)
+		domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain: [%s] ", defaultDomain)), d.Stdin, d.validateDomain)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
 		}

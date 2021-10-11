@@ -421,7 +421,7 @@ func manageNoServiceIDFlow(
 		text.Output(out, "Press ^C at any time to quit.")
 		text.Break(out)
 
-		service, err := text.Input(out, "Create new service: [y/N] ", in)
+		service, err := text.Input(out, text.BoldYellow("Create new service: [y/N] "), in)
 		if err != nil {
 			return serviceID, serviceVersion, fmt.Errorf("error reading input %w", err)
 		}
