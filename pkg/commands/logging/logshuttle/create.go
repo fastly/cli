@@ -31,11 +31,10 @@ type CreateCommand struct {
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
-	c.Manifest.File.SetOutput(c.Globals.Output)
-	c.Manifest.File.Read(manifest.Filename)
+	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create a Logshuttle logging endpoint on a Fastly service version").Alias("add")
 	c.CmdClause.Flag("name", "The name of the Logshuttle logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{

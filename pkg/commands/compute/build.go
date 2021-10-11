@@ -3,6 +3,7 @@ package compute
 import (
 	"bufio"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -14,7 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/kennygrant/sanitize"
@@ -89,17 +90,19 @@ type BuildCommand struct {
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
-	PackageName string
-	Lang        string
-	IncludeSrc  bool
 	Force       bool
+	IncludeSrc  bool
+	Lang        string
+	Manifest    manifest.Data
+	PackageName string
 	Timeout     int
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *BuildCommand {
+func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *BuildCommand {
 	var c BuildCommand
 	c.Globals = globals
+	c.Manifest = data
 	c.client = client
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
 
@@ -118,7 +121,7 @@ func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *conf
 func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress := text.NewProgress(out, c.Globals.Verbose())
 
-	defer func(errLog errors.LogInterface) {
+	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
 			errLog.Add(err)
 			progress.Fail() // progress.Done is handled inline
@@ -127,11 +130,13 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Verifying package manifest...")
 
-	var m manifest.File
-	m.SetOutput(c.Globals.Output)
-	if err := m.Read(manifest.Filename); err != nil {
+	err = c.Manifest.File.ReadError()
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			err = fsterr.ErrReadingManifest
+		}
 		c.Globals.ErrLog.Add(err)
-		return fmt.Errorf("error reading package manifest: %w", err)
+		return err
 	}
 
 	// Language from flag takes priority, otherwise infer from manifest and
@@ -139,8 +144,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var lang string
 	if c.Lang != "" {
 		lang = c.Lang
-	} else if m.Language != "" {
-		lang = m.Language
+	} else if c.Manifest.File.Language != "" {
+		lang = c.Manifest.File.Language
 	} else {
 		return fmt.Errorf("language cannot be empty, please provide a language")
 	}
@@ -152,8 +157,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var name string
 	if c.PackageName != "" {
 		name = c.PackageName
-	} else if m.Name != "" {
-		name = m.Name
+	} else if c.Manifest.File.Name != "" {
+		name = c.Manifest.File.Name
 	} else {
 		return fmt.Errorf("name cannot be empty, please provide a name")
 	}

@@ -48,10 +48,11 @@ func TestBuildRust(t *testing.T) {
 		wantOutputContains   string
 	}{
 		{
-			name:      "no fastly.toml manifest",
-			args:      args("compute build"),
-			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
-			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
+			name:                 "no fastly.toml manifest",
+			args:                 args("compute build"),
+			client:               versionClient{fastlyVersions: []string{"0.0.0"}},
+			wantError:            "error reading package manifest",
+			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
 		{
 			name: "empty language",
@@ -357,9 +358,10 @@ func TestBuildAssemblyScript(t *testing.T) {
 		wantOutputContains   string
 	}{
 		{
-			name:      "no fastly.toml manifest",
-			args:      args("compute build"),
-			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
+			name:                 "no fastly.toml manifest",
+			args:                 args("compute build"),
+			wantError:            "error reading package manifest",
+			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
 		{
 			name: "empty language",
@@ -481,9 +483,10 @@ func TestBuildJavaScript(t *testing.T) {
 		wantOutputContains   string
 	}{
 		{
-			name:      "no fastly.toml manifest",
-			args:      args("compute build"),
-			wantError: "error reading package manifest: open fastly.toml:", // actual message differs on Windows
+			name:                 "no fastly.toml manifest",
+			args:                 args("compute build"),
+			wantError:            "error reading package manifest",
+			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
 		{
 			name: "empty language",
