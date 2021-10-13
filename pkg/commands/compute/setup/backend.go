@@ -19,16 +19,17 @@ import (
 // NOTE: It implements the setup.Interface interface.
 type Backends struct {
 	// Public
-	Available      []*fastly.Backend
 	APIClient      api.Interface
+	AcceptDefaults bool
 	Progress       text.Progress
-	Required       []Backend
 	ServiceID      string
 	ServiceVersion int
 	Setup          map[string]*manifest.SetupBackend
-	AcceptDefaults bool
 	Stdin          io.Reader
 	Stdout         io.Writer
+
+	// Private
+	required []Backend
 }
 
 // Backend represents the configuration parameters for creating a backend via
@@ -58,7 +59,7 @@ func (b *Backends) Create() error {
 		}
 	}
 
-	for _, backend := range b.Required {
+	for _, backend := range b.required {
 		if !b.isOriginless() {
 			b.Progress.Step(fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", backend.Name, backend.Address, backend.Port))
 		}
@@ -92,7 +93,7 @@ func (b *Backends) Predefined() bool {
 
 // isOriginless indicates if the required backend is originless.
 func (b *Backends) isOriginless() bool {
-	return len(b.Required) == 1 && b.Required[0].Name == "originless" && b.Required[0].Address == "127.0.0.1"
+	return len(b.required) == 1 && b.required[0].Name == "originless" && b.required[0].Address == "127.0.0.1"
 }
 
 // checkPredefined identifies specific backends that are required but missing
@@ -100,13 +101,6 @@ func (b *Backends) isOriginless() bool {
 func (b *Backends) checkPredefined() error {
 	var i int
 	for name, settings := range b.Setup {
-		defaultAddress := "127.0.0.1"
-		if settings.Address != "" {
-			defaultAddress = settings.Address
-		}
-
-		prompt := fmt.Sprintf("Hostname or IP address: [%s] ", defaultAddress)
-
 		if !b.AcceptDefaults {
 			if i > 0 {
 				text.Break(b.Stdout)
@@ -123,6 +117,14 @@ func (b *Backends) checkPredefined() error {
 			addr string
 			err  error
 		)
+
+		defaultAddress := "127.0.0.1"
+		if settings.Address != "" {
+			defaultAddress = settings.Address
+		}
+
+		prompt := text.BoldYellow(fmt.Sprintf("Hostname or IP address: [%s] ", defaultAddress))
+
 		if !b.AcceptDefaults {
 			addr, err = text.Input(b.Stdout, prompt, b.Stdin, b.validateAddress)
 			if err != nil {
@@ -138,7 +140,7 @@ func (b *Backends) checkPredefined() error {
 			port = settings.Port
 		}
 		if !b.AcceptDefaults {
-			input, err := text.Input(b.Stdout, fmt.Sprintf("Port: [%d] ", port), b.Stdin)
+			input, err := text.Input(b.Stdout, text.BoldYellow(fmt.Sprintf("Port: [%d] ", port)), b.Stdin)
 			if err != nil {
 				return fmt.Errorf("error reading prompt input: %w", err)
 			}
@@ -152,7 +154,7 @@ func (b *Backends) checkPredefined() error {
 		}
 
 		overrideHost, sslSNIHostname := b.setBackendHost(addr)
-		b.Required = append(b.Required, Backend{
+		b.required = append(b.required, Backend{
 			Name:           name,
 			Address:        addr,
 			OverrideHost:   overrideHost,
@@ -168,7 +170,7 @@ func (b *Backends) checkPredefined() error {
 // be created within the user's service.
 func (b *Backends) promptForBackend() error {
 	if b.AcceptDefaults {
-		b.Required = append(b.Required, b.createOriginlessBackend())
+		b.required = append(b.required, b.createOriginlessBackend())
 		return nil
 	}
 
@@ -179,21 +181,21 @@ func (b *Backends) promptForBackend() error {
 		}
 		i++
 
-		addr, err := text.Input(b.Stdout, "Backend (hostname or IP address, or leave blank to stop adding backends): ", b.Stdin, b.validateAddress)
+		addr, err := text.Input(b.Stdout, text.BoldYellow("Backend (hostname or IP address, or leave blank to stop adding backends): "), b.Stdin, b.validateAddress)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input %w", err)
 		}
 
 		// This block short-circuits the endless prompt loop
 		if addr == "" {
-			if len(b.Required) == 0 {
-				b.Required = append(b.Required, b.createOriginlessBackend())
+			if len(b.required) == 0 {
+				b.required = append(b.required, b.createOriginlessBackend())
 			}
 			return nil
 		}
 
 		port := uint(80)
-		input, err := text.Input(b.Stdout, fmt.Sprintf("Backend port number: [%d] ", port), b.Stdin)
+		input, err := text.Input(b.Stdout, text.BoldYellow(fmt.Sprintf("Backend port number: [%d] ", port)), b.Stdin)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input: %w", err)
 		}
@@ -206,7 +208,7 @@ func (b *Backends) promptForBackend() error {
 		}
 
 		defaultName := fmt.Sprintf("backend_%d", i)
-		name, err := text.Input(b.Stdout, fmt.Sprintf("Backend name: [%s] ", defaultName), b.Stdin)
+		name, err := text.Input(b.Stdout, text.BoldYellow(fmt.Sprintf("Backend name: [%s] ", defaultName)), b.Stdin)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input %w", err)
 		}
@@ -215,7 +217,7 @@ func (b *Backends) promptForBackend() error {
 		}
 
 		overrideHost, sslSNIHostname := b.setBackendHost(addr)
-		b.Required = append(b.Required, Backend{
+		b.required = append(b.required, Backend{
 			Name:           name,
 			Address:        addr,
 			OverrideHost:   overrideHost,
@@ -250,9 +252,6 @@ func (b *Backends) setBackendHost(address string) (overrideHost, sslSNIHostname 
 }
 
 // validateAddress checks the user entered address is a valid hostname or IP.
-//
-// NOTE: An empty value can be allowed because it enables the caller to
-// short-circuit logic related to whether the user is prompted endlessly.
 func (b *Backends) validateAddress(input string) error {
 	var isHost bool
 	if _, err := net.LookupHost(input); err == nil {

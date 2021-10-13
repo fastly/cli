@@ -131,8 +131,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// We check and allow the user to configure these settings before continuing.
 
 	domains := &setup.Domains{
-		AcceptDefaults: c.AcceptDefaults,
 		APIClient:      apiClient,
+		AcceptDefaults: c.AcceptDefaults,
 		PackageDomain:  c.Domain,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
@@ -146,15 +146,28 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error configuring service domains: %w", err)
 	}
 
-	var backends *setup.Backends
+	var (
+		backends     *setup.Backends
+		dictionaries *setup.Dictionaries
+	)
 
 	if newService {
 		backends = &setup.Backends{
-			AcceptDefaults: c.AcceptDefaults,
 			APIClient:      apiClient,
+			AcceptDefaults: c.AcceptDefaults,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion.Number,
 			Setup:          c.Manifest.File.Setup.Backends,
+			Stdin:          in,
+			Stdout:         out,
+		}
+
+		dictionaries = &setup.Dictionaries{
+			APIClient:      apiClient,
+			AcceptDefaults: c.AcceptDefaults,
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion.Number,
+			Setup:          c.Manifest.File.Setup.Dictionaries,
 			Stdin:          in,
 			Stdout:         out,
 		}
@@ -171,10 +184,23 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if newService {
+		// NOTE: A service can't be activated without at least one backend defined.
+		// This explains why the following block of code isn't wrapped in a call to
+		// the .Predefined() method, as the call to .Configure() will ensure the
+		// user is prompted regardless of whether there is a [setup.backends]
+		// defined in the fastly.toml configuration.
 		err = backends.Configure()
 		if err != nil {
 			errLogService(errLog, err, serviceID, serviceVersion.Number)
 			return fmt.Errorf("error configuring service backends: %w", err)
+		}
+
+		if dictionaries.Predefined() {
+			err = dictionaries.Configure()
+			if err != nil {
+				errLogService(errLog, err, serviceID, serviceVersion.Number)
+				return fmt.Errorf("error configuring service dictionaries: %w", err)
+			}
 		}
 	}
 
@@ -210,12 +236,22 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if newService {
-		// NOTE: We can't pass a text.Progress instance to setup.Backends at the
-		// point of constructing the backends object, as the text.Progress instance
-		// prevents other stdout from being read.
+		// NOTE: We can't pass a text.Progress instance to setup.Backends or
+		// setup.Dictionaries at the point of constructing the setup objects,
+		// as the text.Progress instance prevents other stdout from being read.
 		backends.Progress = progress
+		dictionaries.Progress = progress
 
 		if err := backends.Create(); err != nil {
+			errLog.AddWithContext(err, map[string]interface{}{
+				"Accept defaults": c.AcceptDefaults,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
+			return err
+		}
+
+		if err := dictionaries.Create(); err != nil {
 			errLog.AddWithContext(err, map[string]interface{}{
 				"Accept defaults": c.AcceptDefaults,
 				"Service ID":      serviceID,
@@ -385,7 +421,7 @@ func manageNoServiceIDFlow(
 		text.Output(out, "Press ^C at any time to quit.")
 		text.Break(out)
 
-		service, err := text.Input(out, "Create new service: [y/N] ", in)
+		service, err := text.Input(out, text.BoldYellow("Create new service: [y/N] "), in)
 		if err != nil {
 			return serviceID, serviceVersion, fmt.Errorf("error reading input %w", err)
 		}
