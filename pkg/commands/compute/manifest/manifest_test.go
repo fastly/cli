@@ -10,14 +10,12 @@ import (
 
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/env"
-	errs "github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/testutil"
 	toml "github.com/pelletier/go-toml"
 )
 
 func TestManifest(t *testing.T) {
-	prefix := filepath.Join("../", "testdata", "init")
-
 	tests := map[string]struct {
 		manifest             string
 		valid                bool
@@ -48,8 +46,8 @@ func TestManifest(t *testing.T) {
 		"unrecognised: manifest_version exceeded limit": {
 			manifest:             "fastly-invalid-version-exceeded.toml",
 			valid:                false,
-			expectedError:        errs.ErrUnrecognisedManifestVersion,
-			wantRemediationError: errs.ErrUnrecognisedManifestVersion.Remediation,
+			expectedError:        fsterr.ErrUnrecognisedManifestVersion,
+			wantRemediationError: fsterr.ErrUnrecognisedManifestVersion.Remediation,
 		},
 	}
 
@@ -58,7 +56,11 @@ func TestManifest(t *testing.T) {
 	// initial read of the data and then write it back to disk once the tests
 	// have completed.
 
+	prefix := filepath.Join("../", "testdata", "init")
+
 	for _, fpath := range []string{
+		"fastly-valid-semver.toml",
+		"fastly-valid-integer.toml",
 		"fastly-invalid-missing-version.toml",
 		"fastly-invalid-section-version.toml",
 		"fastly-invalid-unrecognised.toml",
@@ -85,6 +87,7 @@ func TestManifest(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			var m manifest.File
+			m.ErrLog = fsterr.Log
 			m.SetOutput(os.Stdout)
 
 			path, err := filepath.Abs(filepath.Join(prefix, tc.manifest))

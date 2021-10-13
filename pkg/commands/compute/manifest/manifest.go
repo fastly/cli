@@ -3,7 +3,6 @@ package manifest
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -182,7 +181,7 @@ func (v *Version) UnmarshalText(text []byte) error {
 	}
 	version, err = strconv.Atoi(s)
 	if err != nil {
-		return err
+		return fmt.Errorf("error parsing manifest_version: %w", err)
 	}
 
 	if version > ManifestLatestVersion {
@@ -195,14 +194,15 @@ func (v *Version) UnmarshalText(text []byte) error {
 // File represents all of the configuration parameters in the fastly.toml
 // manifest file schema.
 type File struct {
+	Authors         []string    `toml:"authors"`
+	Description     string      `toml:"description"`
+	Language        string      `toml:"language"`
+	LocalServer     LocalServer `toml:"local_server,omitempty"`
 	ManifestVersion Version     `toml:"manifest_version"`
 	Name            string      `toml:"name"`
-	Description     string      `toml:"description"`
-	Authors         []string    `toml:"authors"`
-	Language        string      `toml:"language"`
 	ServiceID       string      `toml:"service_id"`
-	LocalServer     LocalServer `toml:"local_server,omitempty"`
 	Setup           Setup       `toml:"setup,omitempty"`
+	ErrLog          fsterr.LogInterface
 
 	exists    bool
 	output    io.Writer
@@ -295,6 +295,7 @@ func (f *File) Read(fpath string) (err error) {
 	/* #nosec */
 	bs, err := os.ReadFile(fpath)
 	if err != nil {
+		f.ErrLog.Add(err)
 		return err
 	}
 
@@ -309,12 +310,14 @@ func (f *File) Read(fpath string) (err error) {
 	// structure otherwise we'll see errors from the toml library.
 	manifestSection, err := containsManifestSection(bs)
 	if err != nil {
+		f.ErrLog.Add(err)
 		return fmt.Errorf("failed to parse the fastly.toml manifest: %w", err)
 	}
 
 	if manifestSection {
 		buf, err := stripManifestSection(bytes.NewReader(bs), fpath)
 		if err != nil {
+			f.ErrLog.Add(err)
 			return fsterr.ErrInvalidManifestVersion
 		}
 		bs = buf.Bytes()
@@ -325,33 +328,14 @@ func (f *File) Read(fpath string) (err error) {
 	// version supported by the Fastly CLI.
 	bs, err = f.AutoMigrateVersion(bs, fpath)
 	if err != nil {
+		f.ErrLog.Add(err)
 		return err
 	}
 
 	err = toml.Unmarshal(bs, f)
 	if err != nil {
-		// NOTE: The toml library messes with the returned error by returning not
-		// fsterr.ErrUnrecognisedManifestVersion but errors.errorString.
-		//
-		// This means when we use fsterrors.Deduce(err).Print(os.Stderr) in
-		// app.Run() to determine the remediation error we actually fail to find a
-		// match and end up using a BugRemediation as a default. This results in us
-		// losing important information for the user to act upon.
-		//
-		// To work around this we type assert the underlying error, and if a match
-		// is found we return the specific remediation error, otherwise we return
-		// whatever error the toml library gave us.
-		//
-		// We also need to declare the errtype variable explicitly as being of an
-		// `error` type for errors.As() to correctly report the underlying error
-		// type. This is because our remediation errors are actually a struct type
-		// that implement the error interface.
-		var errtype error = fsterr.ErrUnrecognisedManifestVersion
-		if errors.As(err, &errtype) {
-			return fsterr.ErrUnrecognisedManifestVersion
-		}
-
-		return err
+		f.ErrLog.Add(err)
+		return fsterr.ErrParsingManifest
 	}
 
 	f.exists = true
@@ -408,13 +392,10 @@ func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
 			// Otherwise if Major == zero, then ignore Minor/Patch and set to latest version.
 			segs := strings.Split(v, ".")
 			v = segs[0]
-			if v == "0" {
-				v = strconv.Itoa(ManifestLatestVersion)
-			}
 		}
 		version, err = strconv.Atoi(v)
 		if err != nil {
-			return bs, err
+			return bs, fmt.Errorf("error parsing manifest_version: %w", err)
 		}
 	default:
 		return bs, fmt.Errorf("error parsing manifest_version: unrecognised type")
@@ -434,6 +415,10 @@ func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
 	// User has manifest_version less than latest supported by CLI, but as they
 	// don't have a [setup] configuration block defined, it means we can
 	// automatically update their fastly.toml file's manifest_version field.
+	//
+	// NOTE: Inside this block we also update the bs variable so it contains the
+	// updated manifest_version field too, and that is returned at the end of
+	// the function block.
 	if setup == nil {
 		tree.Set("manifest_version", int64(ManifestLatestVersion))
 
@@ -442,6 +427,9 @@ func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
 			return bs, fmt.Errorf("error marshalling modified manifest_version fastly.toml: %w", err)
 		}
 
+		// NOTE: The scenario will end up triggering two calls to toml.Unmarshal().
+		// The first call here, then a second call inside of the File.Read() caller.
+		// This only happens once. All future file reads result in one Unmarshal.
 		err = toml.Unmarshal(bs, f)
 		if err != nil {
 			return bs, fmt.Errorf("error unmarshalling fastly.toml: %w", err)
@@ -450,6 +438,8 @@ func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
 		if err = f.Write(fpath); err != nil {
 			return bs, fsterr.ErrIncompatibleManifestVersion
 		}
+
+		return bs, nil
 	}
 
 	return bs, fsterr.ErrIncompatibleManifestVersion

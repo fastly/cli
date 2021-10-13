@@ -96,6 +96,7 @@ func Run(opts RunOpts) error {
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 
 	var data manifest.Data
+	data.File.ErrLog = opts.ErrLog
 	data.File.SetOutput(globals.Output)
 	data.File.Read(manifest.Filename)
 
