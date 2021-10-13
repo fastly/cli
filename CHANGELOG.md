@@ -1,5 +1,20 @@
 # Changelog
 
+## [v0.39.4](https://github.com/fastly/cli/releases/tag/v0.39.4) (2021-10-13)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.39.3...v0.39.4)
+
+**Bug fixes:**
+
+* Auto-migrate `manifest_version` from 1 to 2 when applicable [#434](https://github.com/fastly/cli/pull/434)
+* Better error handling for manifest parsing [#436](https://github.com/fastly/cli/pull/436)
+
+**Enhancements:**
+
+* Implement `[setup.dictionaries]` support [#431](https://github.com/fastly/cli/pull/431)
+* Refactor `app.Run()` [#429](https://github.com/fastly/cli/pull/429)
+* Ensure manifest is read only once for all missed references [#433](https://github.com/fastly/cli/pull/433)
+
 ## [v0.39.3](https://github.com/fastly/cli/releases/tag/v0.39.3) (2021-10-06)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.39.2...v0.39.3)
