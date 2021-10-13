@@ -87,7 +87,7 @@ func TestManifest(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			var m manifest.File
-			m.ErrLog = fsterr.Log
+			m.SetErrLog(fsterr.Log)
 			m.SetOutput(os.Stdout)
 
 			path, err := filepath.Abs(filepath.Join(prefix, tc.manifest))

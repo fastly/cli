@@ -202,8 +202,8 @@ type File struct {
 	Name            string      `toml:"name"`
 	ServiceID       string      `toml:"service_id"`
 	Setup           Setup       `toml:"setup,omitempty"`
-	ErrLog          fsterr.LogInterface
 
+	errLog    fsterr.LogInterface
 	exists    bool
 	output    io.Writer
 	readError error
@@ -275,6 +275,11 @@ func (f *File) ReadError() error {
 	return f.readError
 }
 
+// SetErrLog sets an instance of errors.LogInterface.
+func (f *File) SetErrLog(errLog fsterr.LogInterface) {
+	f.errLog = errLog
+}
+
 // SetOutput sets the output stream for any messages.
 func (f *File) SetOutput(output io.Writer) {
 	f.output = output
@@ -295,7 +300,7 @@ func (f *File) Read(fpath string) (err error) {
 	/* #nosec */
 	bs, err := os.ReadFile(fpath)
 	if err != nil {
-		f.ErrLog.Add(err)
+		f.errLog.Add(err)
 		return err
 	}
 
@@ -310,14 +315,14 @@ func (f *File) Read(fpath string) (err error) {
 	// structure otherwise we'll see errors from the toml library.
 	manifestSection, err := containsManifestSection(bs)
 	if err != nil {
-		f.ErrLog.Add(err)
+		f.errLog.Add(err)
 		return fmt.Errorf("failed to parse the fastly.toml manifest: %w", err)
 	}
 
 	if manifestSection {
 		buf, err := stripManifestSection(bytes.NewReader(bs), fpath)
 		if err != nil {
-			f.ErrLog.Add(err)
+			f.errLog.Add(err)
 			return fsterr.ErrInvalidManifestVersion
 		}
 		bs = buf.Bytes()
@@ -328,13 +333,13 @@ func (f *File) Read(fpath string) (err error) {
 	// version supported by the Fastly CLI.
 	bs, err = f.AutoMigrateVersion(bs, fpath)
 	if err != nil {
-		f.ErrLog.Add(err)
+		f.errLog.Add(err)
 		return err
 	}
 
 	err = toml.Unmarshal(bs, f)
 	if err != nil {
-		f.ErrLog.Add(err)
+		f.errLog.Add(err)
 		return fsterr.ErrParsingManifest
 	}
 
