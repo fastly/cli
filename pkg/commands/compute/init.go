@@ -1,7 +1,9 @@
 package compute
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"compress/gzip"
 	"crypto/rand"
 	"fmt"
 	"io"
@@ -228,9 +230,24 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewProgress(out, false)
 	}
 
-	// We don't try fetching a package when user chooses "other" language option.
 	if from != "" && !c.manifest.File.Exists() {
-		err = pkgFetch(from, branch, tag, c.path, progress, c.client, out, c.Globals.ErrLog)
+		tar := &ArchiveGzip{
+			ArchiveBase{
+				Ext:   ".gz",
+				Mimes: []string{"application/gzip", "application/x-gzip"},
+			},
+		}
+
+		zip := &ArchiveZip{
+			ArchiveBase{
+				Ext:   ".zip",
+				Mimes: []string{"application/zip", "application/x-zip"},
+			},
+		}
+
+		var validArchives = []Archive{tar, zip}
+
+		err = pkgFetch(from, branch, tag, c.path, validArchives, progress, c.client, out, c.Globals.ErrLog)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"From":   from,
@@ -433,75 +450,156 @@ func pkgFrom(kits []config.StarterKit, in io.Reader, out io.Writer) (from string
 	return template.Path, template.Branch, template.Tag, nil
 }
 
-// pkgFetch will determine if the package code should be fetched from Fiddle
-// endpoint as a zip file or cloned from GitHub repo.
-func pkgFetch(from string, branch string, tag string, dst string, progress text.Progress, client api.HTTPClient, out io.Writer, errLog errors.LogInterface) error {
-	progress.Step("Fetching package template...")
-
-	u, err := url.Parse(from)
-	if err != nil {
-		return fmt.Errorf("error parsing --from as URL: %w", err)
-	}
-
-	if strings.HasSuffix(u.Path, ".zip") {
-		return pkgFiddle(from, dst, client, out, errLog)
-	}
-	return pkgClones(from, branch, tag, dst)
+// Archive represents the associated behaviour for a collection of files
+// contained inside an archive format.
+type Archive interface {
+	Extension() string
+	Extract() error
+	Filename() string
+	MimeTypes() []string
+	SetDestination(d string)
+	SetFile(r io.ReadSeeker)
+	SetFilename(n string)
 }
 
-// pkgFiddle downloads a zip file from the given fiddle endpoint.
-func pkgFiddle(from string, dst string, client api.HTTPClient, out io.Writer, errLog errors.LogInterface) error {
-	req, err := http.NewRequest("GET", from, nil)
+// ArchiveBase represents a container for a collection of files.
+type ArchiveBase struct {
+	Dst   string
+	Ext   string
+	File  io.ReadSeeker
+	Mimes []string
+	Name  string
+}
+
+// Extension returns the file extension.
+func (a ArchiveBase) Extension() string {
+	return a.Ext
+}
+
+// MimeTypes returns all valid  mime types for the format.
+func (a ArchiveBase) MimeTypes() []string {
+	return a.Mimes
+}
+
+// Filename returns the file name.
+func (a ArchiveBase) Filename() string {
+	return a.Name
+}
+
+// SetDestination sets the destination for where files should be extracted.
+func (a *ArchiveBase) SetDestination(d string) {
+	a.Dst = d
+}
+
+// SetFile sets the local file descriptor where the archive should be written.
+//
+// NOTE: This archive file is the 'container' of the archived files that will
+// be extracted separately.
+func (a *ArchiveBase) SetFile(r io.ReadSeeker) {
+	a.File = r
+}
+
+// SetFilename sets the name of the local archive file.
+//
+// NOTE: This archive file is the 'container' of the archived files that will
+// be extracted separately.
+func (a *ArchiveBase) SetFilename(n string) {
+	a.Name = n
+}
+
+// ArchiveGzip represents a container for the .tar.gz file format.
+type ArchiveGzip struct {
+	ArchiveBase
+}
+
+// Extract all files and folders from the collection.
+func (a ArchiveGzip) Extract() error {
+	// NOTE: After the os.File has content written to it via io.Copy() inside
+	// pkgFetch(), we find the cursor index position is updated. This causes an
+	// EOF error when passing the file into gzip.NewReader() and so we need to
+	// first reset the cursor index.
+	_, err := a.File.Seek(0, io.SeekStart)
 	if err != nil {
-		return fmt.Errorf("failed to construct fiddle request URL: %w", err)
+		return fmt.Errorf("failed to seek to the start of archive: %w", err)
 	}
 
-	res, err := client.Do(req)
+	gr, err := gzip.NewReader(a.File)
 	if err != nil {
-		return fmt.Errorf("failed to get fiddle zip archive: %w", err)
+		return fmt.Errorf("error creating gzip reader: %w", err)
 	}
-	defer res.Body.Close()
+	defer gr.Close()
 
-	fname := filepath.Base(from)
-	local, err := os.Create(fname)
-	if err != nil {
-		return fmt.Errorf("failed to create local zip archive: %w", err)
-	}
-	defer func() {
-		if err := local.Close(); err != nil {
-			errLog.Add(err)
+	tr := tar.NewReader(gr)
+
+	for {
+		header, err := tr.Next()
+
+		switch {
+
+		// If no more files are found return
+		case err == io.EOF:
+			return nil
+
+		// Return any other error
+		case err != nil:
+			return err
+
+		// If the header is nil, skip it
+		case header == nil:
+			continue
+
+		// Skip the any files duplicated as hidden files
+		case strings.HasPrefix(header.Name, "._"):
+			continue
 		}
-	}()
 
-	defer func(fname string) {
-		err := os.Remove(fname)
+		// The target location where the dir/file should be created
+		segs := strings.Split(header.Name, string(filepath.Separator))
+		segs = segs[1:]
+		target := filepath.Join(a.Dst, filepath.Join(segs...))
+
+		fi := header.FileInfo()
+
+		if fi.IsDir() {
+			os.MkdirAll(target, os.ModePerm)
+			continue
+		}
+
+		if err = os.MkdirAll(filepath.Dir(target), os.ModePerm); err != nil {
+			return err
+		}
+
+		fd, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
 		if err != nil {
-			text.Break(out)
-			text.Info(out, "We were unable to clean-up the local '%s' file (it can be safely removed)", fname)
+			return err
 		}
-	}(fname)
 
-	_, err = io.Copy(local, res.Body)
-	if err != nil {
-		return fmt.Errorf("failed to write zip archive to disk: %w", err)
+		// NOTE: We use looped CopyN() not Copy() to avoid gosec G110 (CWE-409):
+		// Potential DoS vulnerability via decompression bomb.
+		for {
+			_, err := io.CopyN(fd, tr, 1024)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				return err
+			}
+		}
+
+		fd.Close()
 	}
-
-	_, err = unzip(fname, dst)
-	if err != nil {
-		return fmt.Errorf("failed to extract zip archive content: %w", err)
-	}
-
-	return nil
 }
 
-// unzip will decompress a zip archive, moving all files and folders
-// within the zip file (parameter 1) to an output directory (parameter 2).
-func unzip(src string, dst string) ([]string, error) {
-	var filenames []string
+// ArchiveZip represents a container for the .zip file format.
+type ArchiveZip struct {
+	ArchiveBase
+}
 
-	r, err := zip.OpenReader(src)
+// Extract all files and folders from the collection.
+func (a ArchiveZip) Extract() error {
+	r, err := zip.OpenReader(a.Name)
 	if err != nil {
-		return filenames, err
+		return err
 	}
 	defer r.Close()
 
@@ -512,26 +610,25 @@ func unzip(src string, dst string) ([]string, error) {
 		// segment to ensure the files we need are extracted to the current directory.
 		segs := strings.Split(f.Name, string(filepath.Separator))
 		segs = segs[1:]
-		fpath := filepath.Join(dst, filepath.Join(segs...))
-		filenames = append(filenames, fpath)
+		target := filepath.Join(a.Dst, filepath.Join(segs...))
 
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(fpath, os.ModePerm)
+			os.MkdirAll(target, os.ModePerm)
 			continue
 		}
 
-		if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-			return filenames, err
+		if err = os.MkdirAll(filepath.Dir(target), os.ModePerm); err != nil {
+			return err
 		}
 
-		fd, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		fd, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
-			return filenames, err
+			return err
 		}
 
 		rc, err := f.Open()
 		if err != nil {
-			return filenames, err
+			return err
 		}
 
 		// NOTE: We use looped CopyN() not Copy() to avoid gosec G110 (CWE-409):
@@ -542,24 +639,131 @@ func unzip(src string, dst string) ([]string, error) {
 				if err == io.EOF {
 					break
 				}
-				return filenames, err
+				return err
 			}
 		}
 
 		fd.Close()
 		rc.Close()
+	}
 
-		if err != nil {
-			return filenames, err
+	return nil
+}
+
+// pkgFetch will determine if the package code should be fetched from GitHub
+// using the git binary to clone the source or a HTTP request that uses
+// content-negotiation to determine the type of archive format used.
+func pkgFetch(
+	from, branch, tag, dst string,
+	validArchives []Archive,
+	progress text.Progress,
+	client api.HTTPClient,
+	out io.Writer,
+	errLog errors.LogInterface) error {
+
+	progress.Step("Fetching package template...")
+
+	_, err := url.Parse(from)
+	if err != nil {
+		errLog.Add(err)
+		return fmt.Errorf("error parsing --from as URL: %w", err)
+	}
+
+	req, err := http.NewRequest("GET", from, nil)
+	if err != nil {
+		errLog.Add(err)
+		return fmt.Errorf("failed to construct package request URL: %w", err)
+	}
+
+	for _, archive := range validArchives {
+		for _, mime := range archive.MimeTypes() {
+			req.Header.Add("Accept", mime)
 		}
 	}
 
-	return filenames, nil
+	res, err := client.Do(req)
+	if err != nil {
+		errLog.Add(err)
+		return fmt.Errorf("failed to get package: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		errLog.Add(err)
+		return fmt.Errorf("failed to get package: %s", http.StatusText(res.StatusCode))
+	}
+
+	filename := filepath.Base(from)
+	f, err := os.Create(filename)
+	if err != nil {
+		errLog.Add(err)
+		return fmt.Errorf("failed to create local %s archive: %w", filename, err)
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			errLog.Add(err)
+		}
+	}()
+	defer func(base string) {
+		err := os.Remove(filename)
+		if err != nil {
+			errLog.Add(err)
+			text.Break(out)
+			text.Info(out, "We were unable to clean-up the local %s file (it can be safely removed)", filename)
+		}
+	}(filename)
+
+	_, err = io.Copy(f, res.Body)
+	if err != nil {
+		errLog.Add(err)
+		return fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
+	}
+
+	var archive Archive
+
+mimes:
+	for _, mimetype := range res.Header.Values("Content-Type") {
+		for _, a := range validArchives {
+			for _, mime := range a.MimeTypes() {
+				if mimetype == mime {
+					archive = a
+					break mimes
+				}
+			}
+		}
+	}
+
+	if archive == nil {
+		ext := filepath.Ext(filename)
+
+		for _, a := range validArchives {
+			if ext == a.Extension() {
+				archive = a
+				break
+			}
+		}
+	}
+
+	if archive != nil {
+		archive.SetDestination(dst)
+		archive.SetFile(f)
+		archive.SetFilename(filename)
+
+		err = archive.Extract()
+		if err != nil {
+			errLog.Add(err)
+			return fmt.Errorf("failed to extract %s archive content: %w", filename, err)
+		}
+
+		return nil
+	}
+
+	return pkgClone(from, branch, tag, dst)
 }
 
 // pkgClone clones the given repo (from) into a temp directory, then copies
 // specific files to the destination directory (path).
-func pkgClones(from string, branch string, tag string, dst string) error {
+func pkgClone(from string, branch string, tag string, dst string) error {
 	_, err := exec.LookPath("git")
 	if err != nil {
 		return errors.RemediationError{
@@ -739,6 +943,11 @@ func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
 	return true, nil
 }
 
+// verifyDestination checks the provided path exists and is a directory.
+//
+// NOTE: For validating user permissions it will create a temporary file within
+// the directory and then remove it before returning the absolute path to the
+// directory itself.
 func verifyDestination(path string, verbose io.Writer) (abspath string, err error) {
 	abspath, err = filepath.Abs(path)
 	if err != nil {
