@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -32,40 +33,36 @@ func TestManifest(t *testing.T) {
 			valid:    true,
 		},
 		"invalid: missing manifest_version": {
-			manifest:      "fastly-invalid-missing-version.toml",
-			valid:         false,
-			expectedError: errs.ErrMissingManifestVersion,
+			manifest: "fastly-invalid-missing-version.toml",
+			valid:    true, // expect manifest_version to be set to latest version
 		},
 		"invalid: manifest_version as a section": {
-			manifest:      "fastly-invalid-section-version.toml",
-			valid:         false,
-			expectedError: errs.ErrMissingManifestVersion,
+			manifest: "fastly-invalid-section-version.toml",
+			valid:    true, // expect manifest_version to be set to latest version
 		},
 		"invalid: manifest_version Atoi error": {
-			manifest:             "fastly-invalid-unrecognised.toml",
-			valid:                false,
-			expectedError:        errs.ErrUnrecognisedManifestVersion,
-			wantRemediationError: errs.ErrUnrecognisedManifestVersion.Remediation,
+			manifest:      "fastly-invalid-unrecognised.toml",
+			valid:         false,
+			expectedError: strconv.ErrSyntax,
 		},
 		"unrecognised: manifest_version exceeded limit": {
 			manifest:             "fastly-invalid-version-exceeded.toml",
 			valid:                false,
-			expectedError:        errs.ErrIncompatibleManifestVersion,
-			wantRemediationError: errs.ErrIncompatibleManifestVersion.Remediation,
+			expectedError:        errs.ErrUnrecognisedManifestVersion,
+			wantRemediationError: errs.ErrUnrecognisedManifestVersion.Remediation,
 		},
 	}
 
-	// NOTE: the fixture files "fastly-invalid-missing-version.toml" and
-	// "fastly-invalid-section-version.toml" will be overwritten by the test as
-	// the internal logic is supposed to add back into the manifest a
-	// manifest_version field if one isn't found (or is invalid).
-	//
-	// To ensure future test runs complete successfully we do an initial read of
-	// the data and then write it back out when the tests have completed.
+	// NOTE: some of the fixture files are overwritten by the application logic
+	// and so to ensure future test runs can complete successfully we do an
+	// initial read of the data and then write it back to disk once the tests
+	// have completed.
 
 	for _, fpath := range []string{
 		"fastly-invalid-missing-version.toml",
 		"fastly-invalid-section-version.toml",
+		"fastly-invalid-unrecognised.toml",
+		"fastly-invalid-version-exceeded.toml",
 	} {
 		path, err := filepath.Abs(filepath.Join(prefix, fpath))
 		if err != nil {
@@ -101,6 +98,10 @@ func TestManifest(t *testing.T) {
 				// that's unexpected behaviour.
 				if err != nil {
 					t.Fatal(err)
+				}
+
+				if m.ManifestVersion != manifest.ManifestLatestVersion {
+					t.Fatalf("manifest_version '%d' doesn't match latest '%d'", m.ManifestVersion, manifest.ManifestLatestVersion)
 				}
 			} else {
 				// otherwise if we expect the manifest to be invalid/unrecognised then

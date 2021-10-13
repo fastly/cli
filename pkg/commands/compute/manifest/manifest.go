@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -27,6 +26,9 @@ const (
 
 	// ManifestLatestVersion represents the latest known manifest schema version
 	// supported by the CLI.
+	//
+	// NOTE: The CLI is the primary consumer of the fastly.toml manifest so its
+	// code is typically coupled to the specification.
 	ManifestLatestVersion = 2
 
 	// FilePermissions represents a read/write file mode.
@@ -51,8 +53,6 @@ const (
 	// SpecURL points to the fastly.toml manifest specification reference.
 	SpecURL = "https://developer.fastly.com/reference/fastly-toml/"
 )
-
-var once sync.Once
 
 // Data holds global-ish manifest data from manifest files, and flag sources.
 // It has methods to give each parameter to the components that need it,
@@ -166,27 +166,30 @@ func (v *Version) UnmarshalText(text []byte) error {
 		return nil
 	}
 
+	// Presumes semver value (e.g. 1.0.0, 0.1.0 or 0.1)
+	// Major is converted to integer if != zero.
+	// Otherwise if Major == zero, then ignore Minor/Patch and set to latest version.
+	var (
+		err     error
+		version int
+	)
 	if strings.Contains(s, ".") {
 		segs := strings.Split(s, ".")
-
-		// A length of 3 presumes a semver (e.g. 0.1.0)
-		if len(segs) == 3 {
-			if segs[0] != "0" {
-				if i, err := strconv.Atoi(segs[0]); err == nil {
-					if i > ManifestLatestVersion {
-						return fsterr.ErrUnrecognisedManifestVersion
-					}
-					*v = Version(i)
-					return nil
-				}
-			} else {
-				*v = ManifestLatestVersion
-				return nil
-			}
+		s = segs[0]
+		if s == "0" {
+			s = strconv.Itoa(ManifestLatestVersion)
 		}
 	}
+	version, err = strconv.Atoi(s)
+	if err != nil {
+		return err
+	}
 
-	return fsterr.ErrUnrecognisedManifestVersion
+	if version > ManifestLatestVersion {
+		return fsterr.ErrUnrecognisedManifestVersion
+	}
+	*v = Version(version)
+	return nil
 }
 
 // File represents all of the configuration parameters in the fastly.toml
@@ -304,19 +307,23 @@ func (f *File) Read(fpath string) (err error) {
 		bs = buf.Bytes()
 	}
 
-	// We want to avoid a generic error from toml.Unmarshal when dealing with toml
-	// configuration that's in a older/unsupported format.
-	err = validateManifestVersion(bs)
+	// The AutoMigrateVersion() method will either return the []byte unmodified or
+	// it will have updated the manifest_version field to reflect the latest
+	// version supported by the Fastly CLI.
+	bs, err = f.AutoMigrateVersion(bs, fpath)
 	if err != nil {
 		return err
 	}
 
 	err = toml.Unmarshal(bs, f)
 	if err != nil {
-		// NOTE: The toml library messes with the returned error so when we use
-		// fsterrors.Deduce(err).Print(os.Stderr) to determine the remediation
-		// error we actually fail to find a match and end up using a BugRemediation
-		// as a default (losing important information for the user).
+		// NOTE: The toml library messes with the returned error by returning not
+		// fsterr.ErrUnrecognisedManifestVersion but errors.errorString.
+		//
+		// This means when we use fsterrors.Deduce(err).Print(os.Stderr) in
+		// app.Run() to determine the remediation error we actually fail to find a
+		// match and end up using a BugRemediation as a default. This results in us
+		// losing important information for the user to act upon.
 		//
 		// To work around this we type assert the underlying error, and if a match
 		// is found we return the specific remediation error, otherwise we return
@@ -339,19 +346,100 @@ func (f *File) Read(fpath string) (err error) {
 	if f.ManifestVersion == 0 {
 		f.ManifestVersion = ManifestLatestVersion
 
-		// NOTE: the use of once is a quick-fix to side-step duplicate outputs.
-		// To fix this properly will require a refactor of the structure of how our
-		// global output is passed around.
-		once.Do(func() {
-			text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
-			text.Break(f.output)
-			text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
-			text.Break(f.output)
-			f.Write(fpath)
-		})
+		text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
+		text.Break(f.output)
+		text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
+		text.Break(f.output)
+		f.Write(fpath)
 	}
 
 	return nil
+}
+
+// AutoMigrateVersion updates the manifest_version value to
+// ManifestLatestVersion if the current version is less than the latest
+// supported and only if there is no [setup] configuration defined.
+//
+// NOTE: It contains similar conversions to the custom Version.UnmarshalText().
+// Specifically, it type switches the interface{} into various types before
+// attempting to convert the underlying value into an integer.
+func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
+	tree, err := toml.LoadBytes(bs)
+	if err != nil {
+		return bs, err
+	}
+
+	// If there is no manifest_version set then we return the fastly.toml content
+	// unmodified, along with a nil error, so that logic further down the .Read()
+	// method will pick up that the unmarshalled data structure will have a zero
+	// value of 0 for the ManifestVersion field and so will display a message to
+	// the user to inform them that we'll default to setting a manifest_version to
+	// the ManifestLatestVersion value.
+	i := tree.GetArray("manifest_version")
+	if i == nil {
+		return bs, nil
+	}
+
+	setup := tree.GetArray("setup")
+
+	var version int
+	switch v := i.(type) {
+	case int64:
+		version = int(v)
+	case float64:
+		version = int(v)
+	case string:
+		if strings.Contains(v, ".") {
+			// Presumes semver value (e.g. 1.0.0, 0.1.0 or 0.1)
+			// Major is converted to integer if != zero.
+			// Otherwise if Major == zero, then ignore Minor/Patch and set to latest version.
+			segs := strings.Split(v, ".")
+			v = segs[0]
+			if v == "0" {
+				v = strconv.Itoa(ManifestLatestVersion)
+			}
+		}
+		version, err = strconv.Atoi(v)
+		if err != nil {
+			return bs, err
+		}
+	default:
+		return bs, fmt.Errorf("error parsing manifest_version: unrecognised type")
+	}
+
+	// User is on the latest version supported by the CLI, so we'll return the
+	// []byte with the manifest_version field unmodified.
+	if version == ManifestLatestVersion {
+		return bs, nil
+	}
+
+	// User has an unrecognised manifest_version specified.
+	if version > ManifestLatestVersion {
+		return bs, fsterr.ErrUnrecognisedManifestVersion
+	}
+
+	// User has manifest_version less than latest supported by CLI, but as they
+	// don't have a [setup] configuration block defined, it means we can
+	// automatically update their fastly.toml file's manifest_version field.
+	if setup == nil {
+		tree.Set("manifest_version", int64(ManifestLatestVersion))
+
+		bs, err = tree.Marshal()
+		if err != nil {
+			return bs, fmt.Errorf("error marshalling modified manifest_version fastly.toml: %w", err)
+		}
+
+		err = toml.Unmarshal(bs, f)
+		if err != nil {
+			return bs, fmt.Errorf("error unmarshalling fastly.toml: %w", err)
+		}
+
+		if err = f.Write(fpath); err != nil {
+			return bs, fsterr.ErrIncompatibleManifestVersion
+		}
+	}
+
+	return bs, fsterr.ErrIncompatibleManifestVersion
 }
 
 // containsManifestSection loads the slice of bytes into a toml tree structure
@@ -405,64 +493,6 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 	}
 
 	return buf, nil
-}
-
-// validateManifestVersion tests if the manifest_version is set to the same
-// value as ManifestLatestVersion.
-//
-// NOTE: It validates similar conversions as Version.UnmarshalText().
-// Specifically, it will attempt to convert the interface{} into an integer so
-// it can be compared against ManifestLatestVersion. Otherwise it'll attempt to
-// convert it into a float, and lastly it'll check for a semver.
-func validateManifestVersion(bs []byte) error {
-	tree, err := toml.LoadBytes(bs)
-	if err != nil {
-		return err
-	}
-
-	i := tree.GetArray("manifest_version")
-	if i == nil {
-		return fsterr.ErrMissingManifestVersion
-	}
-
-	if version, ok := i.(int64); ok {
-		if version == ManifestLatestVersion {
-			return nil
-		}
-		return fsterr.ErrIncompatibleManifestVersion
-	}
-
-	if version, ok := i.(float64); ok {
-		intfloat := int(version)
-		if intfloat == ManifestLatestVersion {
-			return nil
-		}
-		return fsterr.ErrIncompatibleManifestVersion
-	}
-
-	if version, ok := i.(string); ok {
-		if strings.Contains(version, ".") {
-			segs := strings.Split(version, ".")
-
-			// A length of 3 presumes a semver (e.g. 0.1.0)
-			if len(segs) == 3 {
-				compare := segs[0]
-				if segs[0] == "0" {
-					compare = segs[1]
-				}
-				if intstr, err := strconv.Atoi(compare); err == nil {
-					if intstr == ManifestLatestVersion {
-						return nil
-					}
-				}
-				return fsterr.ErrIncompatibleManifestVersion
-			}
-
-			return fsterr.ErrUnrecognisedManifestVersion
-		}
-	}
-
-	return nil
 }
 
 // Write persists the manifest content to disk.
