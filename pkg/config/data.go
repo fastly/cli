@@ -192,7 +192,7 @@ type File struct {
 
 	// Store off copy of the static application configuration that has been
 	// embedded into the compiled CLI binary.
-	Static []byte `toml:",omitempty"`
+	static []byte `toml:",omitempty"`
 }
 
 // Fastly represents fastly specific configuration.
@@ -257,6 +257,21 @@ type StarterKit struct {
 	Path        string `toml:"path"`
 	Tag         string `toml:"tag"`
 	Branch      string `toml:"branch"`
+}
+
+// SetStatic sets the embedded config into the File for backup purposes.
+//
+// NOTE: The reason we have a setter method is because the File struct is
+// expected to be marshalled back into a toml file and we don't want the
+// contents of f.static to be persisted to disk (which happens when a field is
+// defined as public, so we make it private instead and expose a getter/setter).
+func (f *File) SetStatic(static []byte) {
+	f.static = static
+}
+
+// Static returns the embedded backup config.
+func (f *File) Static() []byte {
+	return f.static
 }
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
@@ -331,7 +346,7 @@ func createConfigDir(fpath string) error {
 // the config not valid and we'll fallback to the embedded config.
 func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 	var cfg File
-	err := toml.Unmarshal(f.Static, &cfg)
+	err := toml.Unmarshal(f.static, &cfg)
 	if err != nil {
 		return false
 	}
@@ -363,7 +378,7 @@ func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 	/* #nosec */
 	bs, readErr := os.ReadFile(fpath)
 	if readErr != nil {
-		bs = f.Static
+		bs = f.static
 	}
 
 	unmarshalErr := toml.Unmarshal(bs, f)
@@ -384,7 +399,7 @@ func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 		}
 		contl := strings.ToLower(cont)
 		if contl == "y" || contl == "yes" {
-			bs = f.Static
+			bs = f.static
 			err = toml.Unmarshal(bs, f)
 			if err != nil {
 				return invalidConfigErr(err)
@@ -461,16 +476,6 @@ func (f *File) UseStatic(cfg []byte, fpath string) error {
 
 // Write the instance of File to a local application config file.
 func (f *File) Write(fpath string) error {
-	// We use the File struct to store off a copy of the embedded configuration,
-	// but we don't want to then write that field out to the toml file on disk,
-	// so we reset the value (causing it to be omitted when written) and then
-	// defer the reassigning of the field value.
-	static := f.Static
-	f.Static = []byte{}
-	defer func(static []byte) {
-		f.Static = static
-	}(static)
-
 	writeMutex.Lock()
 	defer writeMutex.Unlock()
 
