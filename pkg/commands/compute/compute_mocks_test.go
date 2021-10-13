@@ -37,6 +37,23 @@ func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	}, nil
 }
 
+func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
+	return &fastly.Dictionary{
+		ServiceID:      i.ServiceID,
+		ServiceVersion: i.ServiceVersion,
+		Name:           i.Name,
+	}, nil
+}
+
+func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
+	return &fastly.DictionaryItem{
+		ServiceID:    i.ServiceID,
+		DictionaryID: i.DictionaryID,
+		ItemKey:      i.ItemKey,
+		ItemValue:    i.ItemValue,
+	}, nil
+}
+
 func getPackageOk(i *fastly.GetPackageInput) (*fastly.Package, error) {
 	return &fastly.Package{ServiceID: i.ServiceID, ServiceVersion: i.ServiceVersion}, nil
 }

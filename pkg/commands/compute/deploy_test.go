@@ -431,7 +431,7 @@ func TestDeploy(t *testing.T) {
 		// a new service. Our fastly.toml is configured with a [setup] section so
 		// we expect to see the appropriate messaging in the output.
 		{
-			name: "success with setup configuration",
+			name: "success with setup.backends configuration",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -475,7 +475,7 @@ func TestDeploy(t *testing.T) {
 		// The following [setup] configuration doesn't define any prompts, nor any
 		// ports, so we validate that the user prompts match our default expectations.
 		{
-			name: "success with setup configuration and no prompts or ports defined",
+			name: "success with setup.backends configuration and no prompts or ports defined",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -516,7 +516,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with setup configuration but no fields for the required resources",
+			name: "success with setup.backends configuration but no fields for the required resources",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -559,7 +559,7 @@ func TestDeploy(t *testing.T) {
 		// The following test validates no prompts are displayed to the user due to
 		// the use of the --accept-defaults flag.
 		{
-			name: "success with setup configuration and accept-defaults",
+			name: "success with setup.backends configuration and accept-defaults",
 			args: args("compute deploy --accept-defaults --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -608,7 +608,7 @@ func TestDeploy(t *testing.T) {
 		// that we require a backend for compute services because it's a temporary
 		// implementation detail.
 		{
-			name: "success with no setup configuration and --accept-defaults for new service creation",
+			name: "success with no setup.backends configuration and --accept-defaults for new service creation",
 			args: args("compute deploy --accept-defaults --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -627,7 +627,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with no setup configuration and single backend entered at prompt for new service",
+			name: "success with no setup.backends configuration and single backend entered at prompt for new service",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -657,7 +657,7 @@ func TestDeploy(t *testing.T) {
 		// backends instead of one, and will also allow the code to generate the
 		// backend name using its predefined formula.
 		{
-			name: "success with no setup configuration and multiple backends entered at prompt for new service",
+			name: "success with no setup.backends configuration and multiple backends entered at prompt for new service",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -691,7 +691,7 @@ func TestDeploy(t *testing.T) {
 		// that we'll default to creating an 'originless' backend if no value
 		// provided at the prompt.
 		{
-			name: "success with no setup configuration and defaulting to originless",
+			name: "success with no setup.backends configuration and defaulting to originless",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -717,7 +717,7 @@ func TestDeploy(t *testing.T) {
 		// The following test is the same setup as above, but if the user provides
 		// the --accept-defaults flag we won't prompt for any backends.
 		{
-			name: "success with no setup configuration and use of --accept-defaults",
+			name: "success with no setup.backends configuration and use of --accept-defaults",
 			args: args("compute deploy --accept-defaults --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -743,7 +743,7 @@ func TestDeploy(t *testing.T) {
 		// i.e. we will not validate the service for missing backends, nor will we
 		// prompt the user to create any backends.
 		{
-			name: "success with setup configuration and existing service",
+			name: "success with setup.backends configuration and existing service",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
@@ -780,6 +780,185 @@ func TestDeploy(t *testing.T) {
 			dontWantOutput: []string{
 				"Creating backend 'google' (host: beep.com, port: 123)",
 				"Creating backend 'facebook' (host: boop.com, port: 456)",
+			},
+		},
+		{
+			name: "success with setup.dictionaries configuration and existing service",
+			args: args("compute deploy --service-id 123 --token 123"),
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				GetPackageFn:      getPackageOk,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListVersionsFn:    testutil.ListVersions,
+				UpdatePackageFn:   updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.dictionaries.dict_a]
+			description = "My first dictionary"
+			[setup.dictionaries.dict_a.items.foo]
+			value = "my default value for foo"
+			description = "a good description about foo"
+			[setup.dictionaries.dict_a.items.bar]
+			value = "my default value for bar"
+			description = "a good description about bar"
+			`,
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 123, version 3)",
+			},
+			dontWantOutput: []string{
+				"Configuring dictionary 'dict_a'",
+				"Create a dictionary key called 'foo'",
+				"Create a dictionary key called 'bar'",
+				"Creating dictionary 'dict_a'...",
+				"Creating dictionary item 'foo'...",
+				"Creating dictionary item 'bar'...",
+			},
+		},
+		{
+			name: "success with setup.dictionaries configuration and no existing service",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:      activateVersionOk,
+				CreateBackendFn:        createBackendOK,
+				CreateDictionaryFn:     createDictionaryOK,
+				CreateDictionaryItemFn: createDictionaryItemOK,
+				CreateDomainFn:         createDomainOK,
+				CreateServiceFn:        createServiceOK,
+				GetPackageFn:           getPackageOk,
+				GetServiceFn:           getServiceOK,
+				ListDomainsFn:          listDomainsOk,
+				ListVersionsFn:         testutil.ListVersions,
+				UpdatePackageFn:        updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.dictionaries.dict_a]
+			description = "My first dictionary"
+			[setup.dictionaries.dict_a.items.foo]
+			value = "my default value for foo"
+			description = "a good description about foo"
+			[setup.dictionaries.dict_a.items.bar]
+			value = "my default value for bar"
+			description = "a good description about bar"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Configuring dictionary 'dict_a'",
+				"My first dictionary",
+				"Create a dictionary key called 'foo'",
+				"my default value for foo",
+				"Create a dictionary key called 'bar'",
+				"my default value for bar",
+				"Creating dictionary 'dict_a'...",
+				"Creating dictionary item 'foo'...",
+				"Creating dictionary item 'bar'...",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with setup.dictionaries configuration and no existing service and --accept-defaults",
+			args: args("compute deploy --accept-defaults --token 123"),
+			api: mock.API{
+				ActivateVersionFn:      activateVersionOk,
+				CreateBackendFn:        createBackendOK,
+				CreateDictionaryFn:     createDictionaryOK,
+				CreateDictionaryItemFn: createDictionaryItemOK,
+				CreateDomainFn:         createDomainOK,
+				CreateServiceFn:        createServiceOK,
+				GetPackageFn:           getPackageOk,
+				GetServiceFn:           getServiceOK,
+				ListDomainsFn:          listDomainsOk,
+				ListVersionsFn:         testutil.ListVersions,
+				UpdatePackageFn:        updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.dictionaries.dict_a]
+			description = "My first dictionary"
+			[setup.dictionaries.dict_a.items.foo]
+			value = "my default value for foo"
+			description = "a good description about foo"
+			[setup.dictionaries.dict_a.items.bar]
+			value = "my default value for bar"
+			description = "a good description about bar"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Creating dictionary 'dict_a'...",
+				"Creating dictionary item 'foo'...",
+				"Creating dictionary item 'bar'...",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with setup.dictionaries configuration and no existing service and no predefined values",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:      activateVersionOk,
+				CreateBackendFn:        createBackendOK,
+				CreateDictionaryFn:     createDictionaryOK,
+				CreateDictionaryItemFn: createDictionaryItemOK,
+				CreateDomainFn:         createDomainOK,
+				CreateServiceFn:        createServiceOK,
+				GetPackageFn:           getPackageOk,
+				GetServiceFn:           getServiceOK,
+				ListDomainsFn:          listDomainsOk,
+				ListVersionsFn:         testutil.ListVersions,
+				UpdatePackageFn:        updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.dictionaries.dict_a]
+			[setup.dictionaries.dict_a.items.foo]
+			[setup.dictionaries.dict_a.items.bar]
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Configuring dictionary 'dict_a'",
+				"Create a dictionary key called 'foo'",
+				"Create a dictionary key called 'bar'",
+				"Creating dictionary 'dict_a'...",
+				"Creating dictionary item 'foo'...",
+				"Creating dictionary item 'bar'...",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			// The following are predefined values for the `description` and `value`
+			// fields from the prior setup.dictionaries tests that we expect to not
+			// be present in the stdout/stderr as the [setup/dictionaries]
+			// configuration does not define them.
+			dontWantOutput: []string{
+				"My first dictionary",
+				"my default value for foo",
+				"my default value for bar",
 			},
 		},
 	} {
