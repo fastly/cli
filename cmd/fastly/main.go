@@ -63,7 +63,7 @@ func main() {
 
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
-	file.Static = cfg
+	file.SetStatic(cfg)
 	err := file.Read(config.FilePath, in, out)
 
 	if err != nil {

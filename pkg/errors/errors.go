@@ -59,3 +59,9 @@ var ErrReadingManifest = RemediationError{
 	Inner:       fmt.Errorf("error reading package manifest"),
 	Remediation: ComputeInitRemediation,
 }
+
+// ErrParsingManifest means there was a problem unmarshalling the package manifest.
+var ErrParsingManifest = RemediationError{
+	Inner:       fmt.Errorf("error parsing package manifest"),
+	Remediation: ComputeInitRemediation,
+}

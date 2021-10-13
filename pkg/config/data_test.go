@@ -145,7 +145,7 @@ func TestConfigRead(t *testing.T) {
 			}
 
 			var f config.File
-			f.Static = testcase.staticConfig
+			f.SetStatic(testcase.staticConfig)
 
 			var out bytes.Buffer
 			in := strings.NewReader(testcase.userResponseToPrompt)
@@ -307,9 +307,9 @@ func TestConfigWrite(t *testing.T) {
 
 	// Validate the f.Static field is reset and restored.
 	var f config.File
-	f.Static = staticConfig
+	f.SetStatic(staticConfig)
 	f.Write(configPath)
-	if len(f.Static) < 1 {
+	if len(f.Static()) < 1 {
 		t.Fatal("expected f.Static to be set")
 	}
 
@@ -325,7 +325,7 @@ func TestConfigWrite(t *testing.T) {
 	// incorrectly marshalled with a static field, we'd expect the contents to be
 	// set back into f.Static when we unmarshal the local toml file. It's that
 	// behaviour of f.Write that we want to validate doesn't happen.
-	f.Static = []byte("")
+	f.SetStatic([]byte(""))
 	bs, err := os.ReadFile(configPath)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
@@ -334,8 +334,8 @@ func TestConfigWrite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
 	}
-	if len(f.Static) > 0 {
-		t.Fatalf("expected f.Static to be not set: %+v", f.Static)
+	if len(f.Static()) > 0 {
+		t.Fatalf("expected f.Static to be not set: %+v", f.Static())
 	}
 }
 
@@ -400,7 +400,7 @@ func TestValidConfig(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var f config.File
-			f.Static = testcase.staticConfig
+			f.SetStatic(testcase.staticConfig)
 
 			var stdout bytes.Buffer
 			in := strings.NewReader("") // these tests won't trigger a user prompt
