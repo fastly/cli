@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.40.1](https://github.com/fastly/cli/releases/tag/v0.40.1) (2021-10-14)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.40.0...v0.40.1)
+
+**Bug fixes:**
+
+* Fix shell completion (and Homebrew upgrade) [#439](https://github.com/fastly/cli/pull/439)
+
 ## [v0.40.0](https://github.com/fastly/cli/releases/tag/v0.40.0) (2021-10-13)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.39.3...v0.40.0)
