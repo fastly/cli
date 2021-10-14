@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.40.2](https://github.com/fastly/cli/releases/tag/v0.40.2) (2021-10-14)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.40.1...v0.40.2)
+
+**Bug fixes:**
+
+* Fix shell autocomplete evaluation [#441](https://github.com/fastly/cli/pull/441)
+
 ## [v0.40.1](https://github.com/fastly/cli/releases/tag/v0.40.1) (2021-10-14)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.40.0...v0.40.1)
