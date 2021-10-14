@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
@@ -19,10 +18,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
 	"github.com/fastly/kingpin"
-)
-
-var (
-	completionRegExp = regexp.MustCompile("completion-(?:script-)?(?:bash|zsh)$")
 )
 
 // Versioners represents all supported versioner types.
@@ -81,12 +76,6 @@ func Run(opts RunOpts) error {
 	// error states and output control flow.
 	app.Terminate(nil)
 
-	// As kingpin generates bash completion as a side-effect of kingpin.Parse we
-	// allow it to call os.Exit, only if a completetion flag is present.
-	if isCompletion(opts.Args) {
-		app.Terminate(os.Exit)
-	}
-
 	// WARNING: kingping has no way of decorating flags as being "global"
 	// therefore if you add/remove a global flag you will also need to update
 	// the globalFlag map in pkg/app/usage.go which is used for usage rendering.
@@ -105,8 +94,16 @@ func Run(opts RunOpts) error {
 	if err != nil {
 		return err
 	}
-	// We add a special case for when cmd.ArgsIsHelpJSON() is true.
-	if name == "help--format=json" || name == "help--formatjson" {
+	// We short-circuit the execution for specific cases:
+	//
+	// - cmd.ArgsIsHelpJSON() == true
+	// - shell autocompletion flag provided
+	switch name {
+	case "help--format=json":
+		fallthrough
+	case "help--formatjson":
+		fallthrough
+	case "shell-autocomplete":
 		return nil
 	}
 
@@ -184,16 +181,4 @@ type APIClientFactory func(token, endpoint string) (api.Interface, error)
 func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
 	client, err := fastly.NewClientForEndpoint(token, endpoint)
 	return client, err
-}
-
-// isCompletion determines whether the supplied command arguments are for
-// bash/zsh completion output.
-func isCompletion(args []string) bool {
-	var found bool
-	for _, arg := range args {
-		if completionRegExp.MatchString(arg) {
-			found = true
-		}
-	}
-	return found
 }

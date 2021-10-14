@@ -3,6 +3,8 @@ package app_test
 import (
 	"bufio"
 	"bytes"
+	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -45,6 +47,7 @@ func TestApplication(t *testing.T) {
 				stdout bytes.Buffer
 				stderr bytes.Buffer
 			)
+
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			err := app.Run(opts)
 			if err != nil {
@@ -52,6 +55,84 @@ func TestApplication(t *testing.T) {
 			}
 
 			testutil.AssertString(t, testcase.WantError, stripTrailingSpace(stderr.String()))
+		})
+	}
+}
+
+func TestShellCompletion(t *testing.T) {
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name: "bash shell complete",
+			Args: args("--completion-script-bash"),
+			WantOutput: `
+_fastly_bash_autocomplete() {
+    local cur prev opts base
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    opts=$( ${COMP_WORDS[0]} --completion-bash ${COMP_WORDS[@]:1:$COMP_CWORD} )
+    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    return 0
+}
+complete -F _fastly_bash_autocomplete fastly
+
+`,
+		},
+		{
+			Name: "zsh shell complete",
+			Args: args("--completion-script-zsh"),
+			WantOutput: `
+#compdef fastly
+autoload -U compinit && compinit
+autoload -U bashcompinit && bashcompinit
+
+_fastly_bash_autocomplete() {
+    local cur prev opts base
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    opts=$( ${COMP_WORDS[0]} --completion-bash ${COMP_WORDS[@]:1:$COMP_CWORD} )
+    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    [[ $COMPREPLY ]] && return
+    compgen -f
+    return 0
+}
+complete -F _fastly_bash_autocomplete fastly
+`,
+		},
+	}
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			var (
+				stdout bytes.Buffer
+				stderr bytes.Buffer
+			)
+
+			// NOTE: The Kingpin dependency internally overrides our stdout
+			// variable when doing shell completion to the os.Stdout variable and so
+			// in order for us to verify it contains the shell completion output, we
+			// need an os.Pipe so we can copy off anything written to os.Stdout.
+			old := os.Stdout
+			r, w, _ := os.Pipe()
+			os.Stdout = w
+			outC := make(chan string)
+
+			go func() {
+				var buf bytes.Buffer
+				io.Copy(&buf, r)
+				outC <- buf.String()
+			}()
+
+			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			err := app.Run(opts)
+			if err != nil {
+				errors.Deduce(err).Print(&stderr)
+			}
+
+			w.Close()
+			os.Stdout = old
+			out := <-outC
+
+			testutil.AssertString(t, testcase.WantOutput, stripTrailingSpace(out))
 		})
 	}
 }

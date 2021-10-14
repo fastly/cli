@@ -46,6 +46,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/purge"
 	"github.com/fastly/cli/pkg/commands/service"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
+	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/stats"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
@@ -63,6 +64,7 @@ func defineCommands(
 	globals *config.Data,
 	data manifest.Data,
 	opts RunOpts) []cmd.Command {
+	shellcompleteCmdRoot := shellcomplete.NewRootCommand(app, globals)
 	aclCmdRoot := acl.NewRootCommand(app, globals)
 	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, globals, data)
 	aclDelete := acl.NewDeleteCommand(aclCmdRoot.CmdClause, globals, data)
@@ -326,6 +328,7 @@ func defineCommands(
 	whoamiCmdRoot := whoami.NewRootCommand(app, opts.HTTPClient, globals)
 
 	return []cmd.Command{
+		shellcompleteCmdRoot,
 		aclCmdRoot,
 		aclCreate,
 		aclDelete,

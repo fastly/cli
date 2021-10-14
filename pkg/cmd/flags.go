@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,6 +15,10 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
 	"github.com/fastly/kingpin"
+)
+
+var (
+	completionRegExp = regexp.MustCompile("completion-(?:script-)?(?:bash|zsh)$")
 )
 
 // RegisterServiceIDFlag defines a --service-id flag that will attempt to
@@ -188,4 +193,16 @@ func IntToBool(i int) bool {
 func ContextHasHelpFlag(ctx *kingpin.ParseContext) bool {
 	_, ok := ctx.Elements.FlagMap()["help"]
 	return ok
+}
+
+// IsCompletion determines whether the supplied command arguments are for
+// bash/zsh completion output.
+func IsCompletion(args []string) bool {
+	var found bool
+	for _, arg := range args {
+		if completionRegExp.MatchString(arg) {
+			found = true
+		}
+	}
+	return found
 }

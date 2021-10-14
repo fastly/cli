@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"text/template"
 
@@ -353,8 +354,12 @@ func processCommandInput(
 	// be set to `help [<command>...]` as it's a built-in command that we don't
 	// control, and the latter --help flag variation will be an empty string as
 	// there were no actual 'command' specified.
+	//
+	// Additionally we don't want to use the ctx if dealing with a shell
+	// completion flag, as that depends on kingpin.Parse() being called, and so
+	// the ctx is otherwise empty.
 	var found bool
-	if !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) {
+	if !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) && !cmd.IsCompletion(opts.Args) {
 		command, found = cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
 		if !found {
 			return command, cmdName, help(vars, err)
@@ -365,6 +370,25 @@ func processCommandInput(
 		return command, cmdName, help(vars, nil)
 	}
 
+	// NOTE: app.Parse() resets the default values for app.Writers() from
+	// io.Discard to os.Stdout and os.Stderr, meaning when using a shell
+	// autocomplete flag we'll not only see the expected output but also a help
+	// message because the parser has no matching command and so it thinks there
+	// is an error and prints the help output for us.
+	//
+	// The only way I've found to prevent this is by ensuring the arguments
+	// provided have a valid command along with the flag, for example:
+	//
+	// fastly --completion-script-bash acl
+	//
+	// But rather than rely on a feature command, we have defined a hidden
+	// command that we can safely append to the arguments and not have to worry
+	// about it getting removed accidentally in the future as we now have a test
+	// to validate the shell autocomplete behaviours.
+	if cmd.IsCompletion(opts.Args) {
+		opts.Args = append(opts.Args, "shellcomplete")
+	}
+
 	cmdName, err = app.Parse(opts.Args)
 	if err != nil {
 		return command, cmdName, help(vars, err)
@@ -372,6 +396,13 @@ func processCommandInput(
 
 	// Restore output writers
 	app.Writers(opts.Stdout, io.Discard)
+
+	// Kingpin generates shell completion as a side-effect of kingpin.Parse() so
+	// we allow it to call os.Exit, only if a completion flag is present.
+	if cmd.IsCompletion(opts.Args) {
+		app.Terminate(os.Exit)
+		return command, "shell-autocomplete", nil
+	}
 
 	// A side-effect of suppressing app.Parse from writing output is the usage
 	// isn't printed for the default `help` command. Therefore we capture it
