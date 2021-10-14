@@ -18,7 +18,8 @@ import (
 )
 
 var (
-	completionRegExp = regexp.MustCompile("completion-(?:script-)?(?:bash|zsh)$")
+	completionRegExp       = regexp.MustCompile("completion-bash$")
+	completionScriptRegExp = regexp.MustCompile("completion-script-(?:bash|zsh)$")
 )
 
 // RegisterServiceIDFlag defines a --service-id flag that will attempt to
@@ -195,8 +196,21 @@ func ContextHasHelpFlag(ctx *kingpin.ParseContext) bool {
 	return ok
 }
 
+// IsCompletionScript determines whether the supplied command arguments are for
+// shell completion output that is then eval()'ed by the user's shell.
+func IsCompletionScript(args []string) bool {
+	var found bool
+	for _, arg := range args {
+		if completionScriptRegExp.MatchString(arg) {
+			found = true
+		}
+	}
+	return found
+}
+
 // IsCompletion determines whether the supplied command arguments are for
-// bash/zsh completion output.
+// shell completion (i.e. --completion-bash) that should produce output that
+// the user's shell can utilise for handling autocomplete behaviour.
 func IsCompletion(args []string) bool {
 	var found bool
 	for _, arg := range args {

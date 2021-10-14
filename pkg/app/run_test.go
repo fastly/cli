@@ -99,6 +99,35 @@ _fastly_bash_autocomplete() {
 complete -F _fastly_bash_autocomplete fastly
 `,
 		},
+		{
+			Name: "shell evaluate completion options",
+			Args: args("--completion-bash"),
+			WantOutput: `help
+acl
+acl-entry
+auth-token
+backend
+compute
+configure
+dictionary
+dictionaryitem
+domain
+healthcheck
+ip-list
+logging
+logs
+pops
+purge
+service
+service-version
+stats
+update
+user
+vcl
+version
+whoami
+`,
+		},
 	}
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {

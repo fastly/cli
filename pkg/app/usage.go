@@ -341,7 +341,7 @@ func processCommandInput(
 	// error on things not already caught by ParseContext().
 	noargs := len(opts.Args) == 0
 	ctx, err := app.ParseContext(opts.Args)
-	if err != nil || noargs {
+	if err != nil && !cmd.IsCompletion(opts.Args) || noargs {
 		if noargs {
 			err = fmt.Errorf("command not specified")
 		}
@@ -359,7 +359,7 @@ func processCommandInput(
 	// completion flag, as that depends on kingpin.Parse() being called, and so
 	// the ctx is otherwise empty.
 	var found bool
-	if !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) && !cmd.IsCompletion(opts.Args) {
+	if !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) && !cmd.IsCompletion(opts.Args) && !cmd.IsCompletionScript(opts.Args) {
 		command, found = cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
 		if !found {
 			return command, cmdName, help(vars, err)
@@ -385,7 +385,12 @@ func processCommandInput(
 	// command that we can safely append to the arguments and not have to worry
 	// about it getting removed accidentally in the future as we now have a test
 	// to validate the shell autocomplete behaviours.
-	if cmd.IsCompletion(opts.Args) {
+	//
+	// Lastly, we don't want to append our hidden shellcomplete command if the
+	// caller passes --completion-bash because adding a command to the arguments
+	// list in that scenario would cause Kingpin logic to fail (as it expects the
+	// flag to be used on its own).
+	if cmd.IsCompletionScript(opts.Args) {
 		opts.Args = append(opts.Args, "shellcomplete")
 	}
 
@@ -399,7 +404,7 @@ func processCommandInput(
 
 	// Kingpin generates shell completion as a side-effect of kingpin.Parse() so
 	// we allow it to call os.Exit, only if a completion flag is present.
-	if cmd.IsCompletion(opts.Args) {
+	if cmd.IsCompletion(opts.Args) || cmd.IsCompletionScript(opts.Args) {
 		app.Terminate(os.Exit)
 		return command, "shell-autocomplete", nil
 	}
