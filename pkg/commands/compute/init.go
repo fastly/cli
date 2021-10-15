@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -159,6 +158,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			})
 			return err
 		}
+		c.from = from
 	}
 
 	text.Break(out)
@@ -166,17 +166,15 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewProgress(out, false)
 	}
 
-	if from != "" && !mf.Exists() {
-		err = pkgFetch(from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"From":   from,
-				"Branch": branch,
-				"Tag":    tag,
-				"Path":   c.path,
-			})
-			return err
-		}
+	err = pkgFetch(language.Name, c.from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"From":   from,
+			"Branch": branch,
+			"Tag":    tag,
+			"Path":   c.path,
+		})
+		return err
 	}
 
 	mf, err = updateManifest(mf, progress, c.path, name, desc, authors, language)
@@ -498,20 +496,19 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 // using the git binary to clone the source or a HTTP request that uses
 // content-negotiation to determine the type of archive format used.
 func pkgFetch(
-	from, branch, tag, dst string,
+	language, from, branch, tag, dst string,
 	archives []file.Archive,
 	progress text.Progress,
 	client api.HTTPClient,
 	out io.Writer,
 	errLog errors.LogInterface) error {
 
-	progress.Step("Fetching package template...")
-
-	_, err := url.Parse(from)
-	if err != nil {
-		errLog.Add(err)
-		return fmt.Errorf("error parsing --from as URL: %w", err)
+	// We don't try to fetch a package template if the user is bringing their own
+	// compiled Wasm binary.
+	if language == "other" {
+		return nil
 	}
+	progress.Step("Fetching package template...")
 
 	req, err := http.NewRequest("GET", from, nil)
 	if err != nil {
