@@ -147,11 +147,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	var (
-		branch string
-		tag    string
+		from, branch, tag string
 	)
 	if c.from == "" && language.Name != "other" && !mf.Exists() {
-		c.from, branch, tag, err = promptForStarterKit(language.StarterKits, in, out)
+		from, branch, tag, err = promptForStarterKit(language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"From":           c.from,
@@ -168,11 +167,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewProgress(out, false)
 	}
 
-	if c.from != "" && !mf.Exists() {
-		err = pkgFetch(c.from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
+	if from != "" && !mf.Exists() {
+		err = pkgFetch(from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"From":   c.from,
+				"From":   from,
 				"Branch": branch,
 				"Tag":    tag,
 				"Path":   c.path,
