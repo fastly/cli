@@ -178,10 +178,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}),
 	}
 
-	from := c.from
 	var branch, tag string
 
-	if from == "" {
+	if c.from == "" {
 		language, err = pkgLang(c.language, languages, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -192,7 +191,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		if language.Name != "other" {
 			if !mf.Exists() {
-				from, branch, tag, err = pkgFrom(language.StarterKits, in, out)
+				c.from, branch, tag, err = pkgFrom(language.StarterKits, in, out)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 						"From":           c.from,
@@ -211,11 +210,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewProgress(out, false)
 	}
 
-	if from != "" && !c.manifest.File.Exists() {
-		err = pkgFetch(from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
+	if c.from != "" && !c.manifest.File.Exists() {
+		err = pkgFetch(c.from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"From":   from,
+				"From":   c.from,
 				"Branch": branch,
 				"Tag":    tag,
 				"Path":   c.path,
