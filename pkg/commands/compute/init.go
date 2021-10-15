@@ -254,37 +254,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	if wd != c.path {
-		err = os.Chdir(c.path)
-		if err != nil {
-			return fmt.Errorf("error changing to your project directory: %w", err)
-		}
-	}
-
-	progress.Step("Initializing package...")
-
-	// Language will not be set if user provides the --from flag. So we'll check
-	// the manifest content and ensure what's set there is the language instance
-	// used for the sake of `compute build` operations.
-	if language == nil {
-		var match bool
-		for _, l := range languages {
-			if strings.EqualFold(mf.Language, l.Name) {
-				language = l
-				match = true
-				break
-			}
-		}
-		if !match {
-			return fmt.Errorf("unrecognised package language")
-		}
-	}
-
-	if language.Name != "other" {
-		if err := language.Initialize(progress); err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error initializing package: %w", err)
-		}
+	language, err = initializeLanguage(progress, language, languages, mf.Language, wd, c.path)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("error initializing package: %w", err)
 	}
 
 	progress.Done()
@@ -1036,6 +1009,43 @@ func updateManifest(m manifest.File, progress text.Progress, path string, name s
 	}
 
 	return m, nil
+}
+
+// initializeLanguage for newly cloned package.
+func initializeLanguage(progress text.Progress, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
+	progress.Step("Initializing package...")
+
+	if wd != path {
+		err := os.Chdir(path)
+		if err != nil {
+			return nil, fmt.Errorf("error changing to your project directory: %w", err)
+		}
+	}
+
+	// Language will not be set if user provides the --from flag. So we'll check
+	// the manifest content and ensure what's set there is the language instance
+	// used for the sake of `compute build` operations.
+	if language == nil {
+		var match bool
+		for _, l := range languages {
+			if strings.EqualFold(name, l.Name) {
+				language = l
+				match = true
+				break
+			}
+		}
+		if !match {
+			return nil, fmt.Errorf("unrecognised package language")
+		}
+	}
+
+	if language.Name != "other" {
+		if err := language.Initialize(progress); err != nil {
+			return nil, err
+		}
+	}
+
+	return language, nil
 }
 
 // displayOutput of package information and useful links.
