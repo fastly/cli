@@ -166,7 +166,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewProgress(out, false)
 	}
 
-	err = pkgFetch(language.Name, c.from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
+	err = fetchPackageTemplate(language.Name, c.from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"From":   from,
@@ -294,19 +294,19 @@ func verifyDestination(path string, verbose io.Writer) (dst string, err error) {
 // returned as is.
 func promptOrReturn(m manifest.Data, path, email string, in io.Reader, out io.Writer) (name, description string, authors []string, err error) {
 	name, _ = m.Name()
-	name, err = pkgName(name, path, in, out)
+	name, err = packageName(name, path, in, out)
 	if err != nil {
 		return name, description, authors, err
 	}
 
 	description, _ = m.Description()
-	description, err = pkgDesc(description, in, out)
+	description, err = packageDescription(description, in, out)
 	if err != nil {
 		return name, description, authors, err
 	}
 
 	authors, _ = m.Authors()
-	authors, err = pkgAuthors(authors, email, in, out)
+	authors, err = packageAuthors(authors, email, in, out)
 	if err != nil {
 		return name, description, authors, err
 	}
@@ -314,12 +314,12 @@ func promptOrReturn(m manifest.Data, path, email string, in io.Reader, out io.Wr
 	return name, description, authors, nil
 }
 
-// pkgName prompts the user for a package name unless already defined either
+// packageName prompts the user for a package name unless already defined either
 // via the corresponding CLI flag or the manifest file.
 //
 // It will use a default of the current directory path if no value provided by
 // the user via the prompt.
-func pkgName(name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
+func packageName(name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
 	defaultName := filepath.Base(dirPath)
 
 	if name == "" {
@@ -338,9 +338,9 @@ func pkgName(name string, dirPath string, in io.Reader, out io.Writer) (string, 
 	return name, nil
 }
 
-// pkgDesc prompts the user for a package description unless already defined
-// either via the corresponding CLI flag or the manifest file.
-func pkgDesc(desc string, in io.Reader, out io.Writer) (string, error) {
+// packageDescription prompts the user for a package description unless already
+// defined either via the corresponding CLI flag or the manifest file.
+func packageDescription(desc string, in io.Reader, out io.Writer) (string, error) {
 	if desc == "" {
 		var err error
 
@@ -353,12 +353,12 @@ func pkgDesc(desc string, in io.Reader, out io.Writer) (string, error) {
 	return desc, nil
 }
 
-// pkgAuthors prompts the user for a package name unless already defined either
-// via the corresponding CLI flag or the manifest file.
+// packageAuthors prompts the user for a package name unless already defined
+// either via the corresponding CLI flag or the manifest file.
 //
 // It will use a default of the user's email found within the manifest, if set
 // there, otherwise the value will be an empty slice.
-func pkgAuthors(authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
+func packageAuthors(authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
 	if len(authors) == 0 {
 		label := "Author: "
 
@@ -492,10 +492,10 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 	}
 }
 
-// pkgFetch will determine if the package code should be fetched from GitHub
-// using the git binary to clone the source or a HTTP request that uses
-// content-negotiation to determine the type of archive format used.
-func pkgFetch(
+// fetchPackageTemplate will determine if the package code should be fetched
+// from GitHub using the git binary to clone the source or a HTTP request that
+// uses content-negotiation to determine the type of archive format used.
+func fetchPackageTemplate(
 	language, from, branch, tag, dst string,
 	archives []file.Archive,
 	progress text.Progress,
@@ -599,12 +599,12 @@ mimes:
 		return nil
 	}
 
-	return pkgClone(from, branch, tag, dst)
+	return clonePackageFromEndpoint(from, branch, tag, dst)
 }
 
-// pkgClone clones the given repo (from) into a temp directory, then copies
-// specific files to the destination directory (path).
-func pkgClone(from string, branch string, tag string, dst string) error {
+// clonePackageFromEndpoint clones the given repo (from) into a temp directory,
+// then copies specific files to the destination directory (path).
+func clonePackageFromEndpoint(from string, branch string, tag string, dst string) error {
 	_, err := exec.LookPath("git")
 	if err != nil {
 		return errors.RemediationError{
