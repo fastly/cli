@@ -424,6 +424,8 @@ func promptForLanguage(languages []*Language, in io.Reader, out io.Writer) (*Lan
 	return language, nil
 }
 
+// validateLanguageOption ensures the user selects an appropriate value from
+// the prompt options displayed.
 func validateLanguageOption(languages []*Language) func(string) error {
 	return func(input string) error {
 		errMsg := fmt.Errorf("must be a valid option")
