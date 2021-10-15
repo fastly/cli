@@ -290,7 +290,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Done()
 
 	text.Break(out)
-
 	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(mf.Name)), abspath)
 
 	if language.Name == "other" {
@@ -304,6 +303,95 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Success(out, "Initialized package %s", text.Bold(mf.Name))
 
 	return nil
+}
+
+// verifyDirectory indicates if the user wants to continue with the execution
+// flow when presented with a prompt that suggests the current directory isn't
+// empty.
+func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
+	files, err := os.ReadDir(".")
+	if err != nil {
+		return false, err
+	}
+
+	if len(files) > 0 {
+		dir, err := os.Getwd()
+		if err != nil {
+			return false, err
+		}
+
+		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
+		cont, err := text.Input(out, label, in)
+		if err != nil {
+			return false, fmt.Errorf("error reading input %w", err)
+		}
+
+		contl := strings.ToLower(cont)
+
+		if contl == "n" || contl == "no" {
+			return false, nil
+		}
+
+		if contl == "y" || contl == "yes" {
+			return true, nil
+		}
+
+		// NOTE: be defensive and default to short-circuiting the execution flow if
+		// the input is unrecognised.
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// verifyDestination checks the provided path exists and is a directory.
+//
+// NOTE: For validating user permissions it will create a temporary file within
+// the directory and then remove it before returning the absolute path to the
+// directory itself.
+func verifyDestination(path string, verbose io.Writer) (abspath string, err error) {
+	abspath, err = filepath.Abs(path)
+	if err != nil {
+		return abspath, err
+	}
+
+	fi, err := os.Stat(abspath)
+	if err != nil && !os.IsNotExist(err) {
+		return abspath, fmt.Errorf("couldn't verify package directory: %w", err) // generic error
+	}
+	if err == nil && !fi.IsDir() {
+		return abspath, fmt.Errorf("package destination is not a directory") // specific problem
+	}
+	if err != nil && os.IsNotExist(err) { // normal-ish case
+		fmt.Fprintf(verbose, "Creating %s...\n", abspath)
+		if err := os.MkdirAll(abspath, 0700); err != nil {
+			return abspath, fmt.Errorf("error creating package destination: %w", err)
+		}
+	}
+
+	tmpname := make([]byte, 16)
+	n, err := rand.Read(tmpname)
+	if err != nil {
+		return abspath, fmt.Errorf("error generating random filename: %w", err)
+	}
+	if n != 16 {
+		return abspath, fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
+	}
+
+	f, err := os.Create(filepath.Join(abspath, fmt.Sprintf("tmp_%x", tmpname)))
+	if err != nil {
+		return abspath, fmt.Errorf("error creating file in package destination: %w", err)
+	}
+
+	if err := f.Close(); err != nil {
+		return abspath, fmt.Errorf("error closing file in package destination: %w", err)
+	}
+
+	if err := os.Remove(f.Name()); err != nil {
+		return abspath, fmt.Errorf("error removing file in package destination: %w", err)
+	}
+
+	return abspath, nil
 }
 
 // promptOrReturn will prompt the user for information missing from the
@@ -431,6 +519,22 @@ func pkgLang(lang string, languages []*Language, in io.Reader, out io.Writer) (*
 	return language, nil
 }
 
+func validateLanguageOption(languages []*Language) func(string) error {
+	return func(input string) error {
+		errMsg := fmt.Errorf("must be a valid option")
+		if input == "" {
+			return nil
+		}
+		if option, err := strconv.Atoi(input); err == nil {
+			if option > len(languages) {
+				return errMsg
+			}
+			return nil
+		}
+		return errMsg
+	}
+}
+
 // pkgFrom prompts the user for a package starter kit.
 //
 // It returns the path to the starter kit, and the corresponding branch/tag,
@@ -456,6 +560,25 @@ func pkgFrom(kits []config.StarterKit, in io.Reader, out io.Writer) (from string
 	template := kits[i-1]
 
 	return template.Path, template.Branch, template.Tag, nil
+}
+
+func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) error {
+	return func(input string) error {
+		msg := "must be a valid option or git URL"
+		if input == "" {
+			return nil
+		}
+		if option, err := strconv.Atoi(input); err == nil {
+			if option > len(templates) {
+				return fmt.Errorf(msg)
+			}
+			return nil
+		}
+		if !gitRepositoryRegEx.MatchString(input) {
+			return fmt.Errorf(msg)
+		}
+		return nil
+	}
 }
 
 // Archive represents the associated behaviour for a collection of files
@@ -859,6 +982,22 @@ func pkgClone(from string, branch string, tag string, dst string) error {
 	return nil
 }
 
+func tempDir(prefix string) (abspath string, err error) {
+	abspath, err = filepath.Abs(filepath.Join(
+		os.TempDir(),
+		fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano()),
+	))
+	if err != nil {
+		return "", err
+	}
+
+	if err = os.MkdirAll(abspath, 0750); err != nil {
+		return "", err
+	}
+
+	return abspath, nil
+}
+
 // updateManifest updates the manifest with data acquired from various sources.
 // e.g. prompting the user, existing manifest file.
 //
@@ -910,144 +1049,4 @@ func updateManifest(m manifest.File, progress text.Progress, path string, name s
 	}
 
 	return m, nil
-}
-
-// verifyDirectory indicates if the user wants to continue with the execution
-// flow when presented with a prompt that suggests the current directory isn't
-// empty.
-func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
-	files, err := os.ReadDir(".")
-	if err != nil {
-		return false, err
-	}
-
-	if len(files) > 0 {
-		dir, err := os.Getwd()
-		if err != nil {
-			return false, err
-		}
-
-		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
-		cont, err := text.Input(out, label, in)
-		if err != nil {
-			return false, fmt.Errorf("error reading input %w", err)
-		}
-
-		contl := strings.ToLower(cont)
-
-		if contl == "n" || contl == "no" {
-			return false, nil
-		}
-
-		if contl == "y" || contl == "yes" {
-			return true, nil
-		}
-
-		// NOTE: be defensive and default to short-circuiting the execution flow if
-		// the input is unrecognised.
-		return false, nil
-	}
-
-	return true, nil
-}
-
-// verifyDestination checks the provided path exists and is a directory.
-//
-// NOTE: For validating user permissions it will create a temporary file within
-// the directory and then remove it before returning the absolute path to the
-// directory itself.
-func verifyDestination(path string, verbose io.Writer) (abspath string, err error) {
-	abspath, err = filepath.Abs(path)
-	if err != nil {
-		return abspath, err
-	}
-
-	fi, err := os.Stat(abspath)
-	if err != nil && !os.IsNotExist(err) {
-		return abspath, fmt.Errorf("couldn't verify package directory: %w", err) // generic error
-	}
-	if err == nil && !fi.IsDir() {
-		return abspath, fmt.Errorf("package destination is not a directory") // specific problem
-	}
-	if err != nil && os.IsNotExist(err) { // normal-ish case
-		fmt.Fprintf(verbose, "Creating %s...\n", abspath)
-		if err := os.MkdirAll(abspath, 0700); err != nil {
-			return abspath, fmt.Errorf("error creating package destination: %w", err)
-		}
-	}
-
-	tmpname := make([]byte, 16)
-	n, err := rand.Read(tmpname)
-	if err != nil {
-		return abspath, fmt.Errorf("error generating random filename: %w", err)
-	}
-	if n != 16 {
-		return abspath, fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
-	}
-
-	f, err := os.Create(filepath.Join(abspath, fmt.Sprintf("tmp_%x", tmpname)))
-	if err != nil {
-		return abspath, fmt.Errorf("error creating file in package destination: %w", err)
-	}
-
-	if err := f.Close(); err != nil {
-		return abspath, fmt.Errorf("error closing file in package destination: %w", err)
-	}
-
-	if err := os.Remove(f.Name()); err != nil {
-		return abspath, fmt.Errorf("error removing file in package destination: %w", err)
-	}
-
-	return abspath, nil
-}
-
-func tempDir(prefix string) (abspath string, err error) {
-	abspath, err = filepath.Abs(filepath.Join(
-		os.TempDir(),
-		fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano()),
-	))
-	if err != nil {
-		return "", err
-	}
-
-	if err = os.MkdirAll(abspath, 0750); err != nil {
-		return "", err
-	}
-
-	return abspath, nil
-}
-
-func validateLanguageOption(languages []*Language) func(string) error {
-	return func(input string) error {
-		errMsg := fmt.Errorf("must be a valid option")
-		if input == "" {
-			return nil
-		}
-		if option, err := strconv.Atoi(input); err == nil {
-			if option > len(languages) {
-				return errMsg
-			}
-			return nil
-		}
-		return errMsg
-	}
-}
-
-func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) error {
-	return func(input string) error {
-		msg := "must be a valid option or git URL"
-		if input == "" {
-			return nil
-		}
-		if option, err := strconv.Atoi(input); err == nil {
-			if option > len(templates) {
-				return fmt.Errorf(msg)
-			}
-			return nil
-		}
-		if !gitRepositoryRegEx.MatchString(input) {
-			return fmt.Errorf(msg)
-		}
-		return nil
-	}
 }
