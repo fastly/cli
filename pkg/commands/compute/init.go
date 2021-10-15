@@ -119,7 +119,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error determining current directory: %w", err)
 	}
 
-	if c.path == "" && !c.manifest.File.Exists() {
+	mf := c.manifest.File
+	if c.path == "" && !mf.Exists() {
 		fmt.Fprintf(progress, "--path not specified, using current directory\n")
 		c.path = wd
 	}
@@ -196,7 +197,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}),
 	}
 
-	m := c.manifest.File
 	from := c.from
 	var branch, tag string
 
@@ -210,7 +210,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		if language.Name != "other" {
-			if !m.Exists() {
+			if !mf.Exists() {
 				from, branch, tag, err = pkgFrom(language.StarterKits, in, out)
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -259,7 +259,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	m, err = updateManifest(m, progress, c.path, name, desc, authors, language)
+	mf, err = updateManifest(mf, progress, c.path, name, desc, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Path":        c.path,
@@ -286,7 +286,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if language == nil {
 		var match bool
 		for _, l := range languages {
-			if strings.EqualFold(m.Language, l.Name) {
+			if strings.EqualFold(mf.Language, l.Name) {
 				language = l
 				match = true
 				break
@@ -308,7 +308,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
-	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(m.Name)), abspath)
+	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(mf.Name)), abspath)
 
 	if language.Name == "other" {
 		text.Description(out, "To package a pre-compiled Wasm binary for deployment, run", "fastly compute pack")
