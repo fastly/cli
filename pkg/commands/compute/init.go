@@ -288,20 +288,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	progress.Done()
-
-	text.Break(out)
-	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(mf.Name)), dst)
-
-	if language.Name == "other" {
-		text.Description(out, "To package a pre-compiled Wasm binary for deployment, run", "fastly compute pack")
-		text.Description(out, "To deploy the package, run", "fastly compute deploy")
-	} else {
-		text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
-	}
-
-	text.Description(out, "To learn about deploying Compute@Edge projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
-	text.Success(out, "Initialized package %s", text.Bold(mf.Name))
-
+	displayOutput(mf.Name, dst, language.Name, out)
 	return nil
 }
 
@@ -1049,4 +1036,20 @@ func updateManifest(m manifest.File, progress text.Progress, path string, name s
 	}
 
 	return m, nil
+}
+
+// displayOutput of package information and useful links.
+func displayOutput(name, dst, language string, out io.Writer) {
+	text.Break(out)
+	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(name)), dst)
+
+	if language == "other" {
+		text.Description(out, "To package a pre-compiled Wasm binary for deployment, run", "fastly compute pack")
+		text.Description(out, "To deploy the package, run", "fastly compute deploy")
+	} else {
+		text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
+	}
+
+	text.Description(out, "To learn about deploying Compute@Edge projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
+	text.Success(out, "Initialized package %s", text.Bold(name))
 }
