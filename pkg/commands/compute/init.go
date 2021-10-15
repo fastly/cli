@@ -134,31 +134,14 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	c.path = abspath
 
-	name, _ = c.manifest.Name()
-	name, err = pkgName(name, c.path, in, out)
+	name, desc, authors, err = promptOrReturn(c.manifest, c.path, c.Globals.File.User.Email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Path": c.path,
-			"Name": name,
-		})
-		return err
-	}
-
-	desc, _ = c.manifest.Description()
-	desc, err = pkgDesc(desc, in, out)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Authors":     authors,
 			"Description": desc,
-		})
-		return err
-	}
-
-	authors, _ = c.manifest.Authors()
-	authors, err = pkgAuthors(authors, c.Globals.File.User.Email, in, out)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Authors": authors,
-			"Email":   c.Globals.File.User.Email,
+			"Email":       c.Globals.File.User.Email,
+			"Name":        name,
+			"Path":        c.path,
 		})
 		return err
 	}
@@ -318,9 +301,34 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	text.Description(out, "To learn about deploying Compute@Edge projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
-	text.Success(out, "Initialized package %s", text.Bold(m.Name))
+	text.Success(out, "Initialized package %s", text.Bold(mf.Name))
 
 	return nil
+}
+
+// promptOrReturn will prompt the user for information missing from the
+// fastly.toml manifest file, otherwise if it already exists then the value is
+// returned as is.
+func promptOrReturn(m manifest.Data, path, email string, in io.Reader, out io.Writer) (name, description string, authors []string, err error) {
+	name, _ = m.Name()
+	name, err = pkgName(name, path, in, out)
+	if err != nil {
+		return name, description, authors, err
+	}
+
+	description, _ = m.Description()
+	description, err = pkgDesc(description, in, out)
+	if err != nil {
+		return name, description, authors, err
+	}
+
+	authors, _ = m.Authors()
+	authors, err = pkgAuthors(authors, email, in, out)
+	if err != nil {
+		return name, description, authors, err
+	}
+
+	return name, description, authors, nil
 }
 
 // pkgName prompts the user for a package name unless already defined either
