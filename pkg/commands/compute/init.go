@@ -146,10 +146,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	var (
-		from, branch, tag string
-	)
-	if c.from == "" && language.Name != "other" && !mf.Exists() {
+	var from, branch, tag string
+
+	if noProjectFiles(c.from, language.Name, mf) {
 		from, branch, tag, err = promptForStarterKit(language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -439,6 +438,12 @@ func validateLanguageOption(languages []*Language) func(string) error {
 		}
 		return errMsg
 	}
+}
+
+// noProjectFiles indicates if the user needs to be prompted to select a
+// Starter Kit for their chosen language.
+func noProjectFiles(from, language string, mf manifest.File) bool {
+	return from == "" && language != "other" && !mf.Exists()
 }
 
 // promptForStarterKit prompts the user for a package starter kit.
