@@ -55,9 +55,9 @@ func TestInit(t *testing.T) {
 		manifestIncludes string
 	}{
 		{
-			name:      "unknown repository",
-			args:      args("compute init --from https://example.com/template"),
-			wantError: "error fetching package template:",
+			name:      "broken endpoint",
+			args:      args("compute init --from https://example.com/i-dont-exist"),
+			wantError: "failed to get package: 404 Not Found",
 		},
 		{
 			name: "with name",
@@ -120,7 +120,27 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `authors = ["test1@example.com", "test2@example.com"]`,
 		},
 		{
-			name: "with from repository and branch",
+			name: "with --from set to starter kit repository",
+			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						},
+					},
+				},
+			},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest...",
+				"SUCCESS: Initialized package",
+			},
+		},
+		{
+			name: "with --from set to starter kit repository with .git extension and branch",
 			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default.git --branch main"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
@@ -136,6 +156,67 @@ func TestInit(t *testing.T) {
 				"Initializing...",
 				"Fetching package template...",
 				"Updating package manifest...",
+				"SUCCESS: Initialized package",
+			},
+		},
+		{
+			name: "with --from set to zip archive",
+			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default/archive/refs/heads/main.zip"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						},
+					},
+				},
+			},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest...",
+				"SUCCESS: Initialized package",
+			},
+		},
+		{
+			name: "with --from set to tar.gz archive",
+			args: args("compute init --from https://github.com/Integralist/devnull/files/7339887/compute-starter-kit-rust-default-main.tar.gz"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						},
+					},
+				},
+			},
+			wantOutput: []string{
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest...",
+				"SUCCESS: Initialized package",
+			},
+		},
+		{
+			name: "with existing package manifest",
+			args: args("compute init --force"), // --force will ignore a directory that isn't empty
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					Rust: skRust,
+				},
+			},
+			manifest: `
+			manifest_version = 2
+			service_id = 1234
+			name = "test"
+			language = "rust"
+			description = "test"
+			authors = ["test@fastly.com"]`,
+			wantOutput: []string{
+				"Updating package manifest...",
+				"Initializing package...",
 			},
 		},
 		{
@@ -273,6 +354,8 @@ func TestInit(t *testing.T) {
 			opts.Stdin = strings.NewReader("")
 
 			err = app.Run(opts)
+
+			t.Log(stdout.String())
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, file := range testcase.wantFiles {

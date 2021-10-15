@@ -690,7 +690,7 @@ func pkgFetch(
 
 	if res.StatusCode != http.StatusOK {
 		errLog.Add(err)
-		return fmt.Errorf("failed to get package: %s", http.StatusText(res.StatusCode))
+		return fmt.Errorf("failed to get package: %s", res.Status)
 	}
 
 	filename := filepath.Base(from)
