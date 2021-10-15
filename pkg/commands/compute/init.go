@@ -88,13 +88,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	var progress text.Progress
-	if c.Globals.Verbose() {
-		progress = text.NewVerboseProgress(out)
-	} else {
-		// Use a null progress writer whilst gathering input.
-		progress = text.NewNullProgress()
-	}
+	progress := instantiateProgress(c.Globals.Verbose(), out)
+
 	defer func(errLog errors.LogInterface) {
 		if err != nil {
 			errLog.Add(err)
@@ -136,7 +131,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals)
-	language, err := selectLanguage(c.language, languages, in, out)
+	language, err := selectLanguage(c.from, c.language, languages, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Language": c.language,
@@ -146,7 +141,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var from, branch, tag string
 
-	if noProjectFiles(c.from, language.Name, mf) {
+	if noProjectFiles(c.from, language, mf) {
 		from, branch, tag, err = promptForStarterKit(language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -165,7 +160,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewProgress(out, false)
 	}
 
-	err = fetchPackageTemplate(language.Name, c.from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
+	err = fetchPackageTemplate(language, c.from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"From":   from,
@@ -240,6 +235,14 @@ func verifyDirectory(skipVerification bool, out io.Writer, in io.Reader) (bool, 
 	}
 
 	return true, nil
+}
+
+// instantiateProgress returns an instance of a text.Progress bar.
+func instantiateProgress(verbose bool, out io.Writer) text.Progress {
+	if verbose {
+		return text.NewVerboseProgress(out)
+	}
+	return text.NewNullProgress()
 }
 
 // verifyDestination checks the provided path exists and is a directory.
@@ -386,7 +389,11 @@ func packageAuthors(authors []string, manifestEmail string, in io.Reader, out io
 
 // selectLanguage decides whether to prompt the user for a language if none
 // defined or try and match the --language flag against available languages.
-func selectLanguage(langFlag string, ls []*Language, in io.Reader, out io.Writer) (*Language, error) {
+func selectLanguage(from string, langFlag string, ls []*Language, in io.Reader, out io.Writer) (*Language, error) {
+	if from != "" {
+		return nil, nil
+	}
+
 	if langFlag == "" {
 		return promptForLanguage(ls, in, out)
 	}
@@ -445,8 +452,11 @@ func validateLanguageOption(languages []*Language) func(string) error {
 
 // noProjectFiles indicates if the user needs to be prompted to select a
 // Starter Kit for their chosen language.
-func noProjectFiles(from, language string, mf manifest.File) bool {
-	return from == "" && language != "other" && !mf.Exists()
+func noProjectFiles(from string, language *Language, mf manifest.File) bool {
+	if from != "" || language == nil || mf.Exists() {
+		return false
+	}
+	return from == "" && language.Name != "other" && !mf.Exists()
 }
 
 // promptForStarterKit prompts the user for a package starter kit.
@@ -499,7 +509,8 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 // from GitHub using the git binary to clone the source or a HTTP request that
 // uses content-negotiation to determine the type of archive format used.
 func fetchPackageTemplate(
-	language, from, branch, tag, dst string,
+	language *Language,
+	from, branch, tag, dst string,
 	archives []file.Archive,
 	progress text.Progress,
 	client api.HTTPClient,
@@ -508,7 +519,7 @@ func fetchPackageTemplate(
 
 	// We don't try to fetch a package template if the user is bringing their own
 	// compiled Wasm binary.
-	if language == "other" {
+	if language != nil && language.Name == "other" {
 		return nil
 	}
 	progress.Step("Fetching package template...")
@@ -714,22 +725,28 @@ func tempDir(prefix string) (abspath string, err error) {
 // updateManifest updates the manifest with data acquired from various sources.
 // e.g. prompting the user, existing manifest file.
 //
-// NOTE: The lang argument might be nil (if the user passes --from flag).
-func updateManifest(m manifest.File, progress text.Progress, path string, name string, desc string, authors []string, lang *Language) (manifest.File, error) {
+// NOTE: The language argument might be nil (if the user passes --from flag).
+func updateManifest(
+	m manifest.File,
+	progress text.Progress,
+	path, name, desc string,
+	authors []string,
+	language *Language) (manifest.File, error) {
+
 	progress.Step("Updating package manifest...")
 
 	mp := filepath.Join(path, manifest.Filename)
 
 	if err := m.Read(mp); err != nil {
-		if lang != nil {
-			if lang.Name == "other" {
+		if language != nil {
+			if language.Name == "other" {
 				// We create a fastly.toml manifest on behalf of the user if they're
 				// bringing their own pre-compiled Wasm binary to be packaged.
 				m.ManifestVersion = manifest.ManifestLatestVersion
 				m.Name = name
 				m.Description = desc
 				m.Authors = authors
-				m.Language = lang.Name
+				m.Language = language.Name
 				if err := m.Write(mp); err != nil {
 					return m, fmt.Errorf("error saving package manifest: %w", err)
 				}
@@ -752,9 +769,9 @@ func updateManifest(m manifest.File, progress text.Progress, path string, name s
 		m.Authors = authors
 	}
 
-	if lang != nil {
-		fmt.Fprintf(progress, "Setting language in manifest to %s...\n", lang.Name)
-		m.Language = lang.Name
+	if language != nil {
+		fmt.Fprintf(progress, "Setting language in manifest to %s...\n", language.Name)
+		m.Language = language.Name
 	}
 
 	if err := m.Write(mp); err != nil {
