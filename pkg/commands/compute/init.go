@@ -32,14 +32,15 @@ var (
 // InitCommand initializes a Compute@Edge project package on the local machine.
 type InitCommand struct {
 	cmd.Base
-	client        api.HTTPClient
-	manifest      manifest.Data
-	language      string
-	from          string
-	branch        string
-	tag           string
-	path          string
-	forceNonEmpty bool
+
+	branch           string
+	client           api.HTTPClient
+	from             string
+	language         string
+	manifest         manifest.Data
+	path             string
+	skipVerification bool
+	tag              string
 }
 
 // NewInitCommand returns a usable command registered under the parent.
@@ -57,7 +58,7 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
-	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.forceNonEmpty)
+	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.skipVerification)
 
 	return &c
 }
@@ -75,17 +76,15 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Output(out, "Press ^C at any time to quit.")
 	text.Break(out)
 
-	if !c.forceNonEmpty {
-		cont, err := verifyDirectory(out, in)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-		if !cont {
-			return errors.RemediationError{
-				Inner:       fmt.Errorf("project directory not empty"),
-				Remediation: errors.ExistingDirRemediation,
-			}
+	cont, err := verifyDirectory(c.skipVerification, out, in)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+	if !cont {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("project directory not empty"),
+			Remediation: errors.ExistingDirRemediation,
 		}
 	}
 
@@ -203,7 +202,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // verifyDirectory indicates if the user wants to continue with the execution
 // flow when presented with a prompt that suggests the current directory isn't
 // empty.
-func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
+func verifyDirectory(skipVerification bool, out io.Writer, in io.Reader) (bool, error) {
+	if skipVerification {
+		return true, nil
+	}
+
 	files, err := os.ReadDir(".")
 	if err != nil {
 		return false, err
