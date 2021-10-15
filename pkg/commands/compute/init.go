@@ -125,14 +125,14 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.path = wd
 	}
 
-	abspath, err := verifyDestination(c.path, progress)
+	dst, err := verifyDestination(c.path, progress)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Path": c.path,
 		})
 		return err
 	}
-	c.path = abspath
+	c.path = dst
 
 	name, desc, authors, err = promptOrReturn(c.manifest, c.path, c.Globals.File.User.Email, in, out)
 	if err != nil {
@@ -290,7 +290,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Done()
 
 	text.Break(out)
-	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(mf.Name)), abspath)
+	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(mf.Name)), dst)
 
 	if language.Name == "other" {
 		text.Description(out, "To package a pre-compiled Wasm binary for deployment, run", "fastly compute pack")
@@ -349,49 +349,49 @@ func verifyDirectory(out io.Writer, in io.Reader) (bool, error) {
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(path string, verbose io.Writer) (abspath string, err error) {
-	abspath, err = filepath.Abs(path)
+func verifyDestination(path string, verbose io.Writer) (dst string, err error) {
+	dst, err = filepath.Abs(path)
 	if err != nil {
-		return abspath, err
+		return dst, err
 	}
 
-	fi, err := os.Stat(abspath)
+	fi, err := os.Stat(dst)
 	if err != nil && !os.IsNotExist(err) {
-		return abspath, fmt.Errorf("couldn't verify package directory: %w", err) // generic error
+		return dst, fmt.Errorf("couldn't verify package directory: %w", err) // generic error
 	}
 	if err == nil && !fi.IsDir() {
-		return abspath, fmt.Errorf("package destination is not a directory") // specific problem
+		return dst, fmt.Errorf("package destination is not a directory") // specific problem
 	}
 	if err != nil && os.IsNotExist(err) { // normal-ish case
-		fmt.Fprintf(verbose, "Creating %s...\n", abspath)
-		if err := os.MkdirAll(abspath, 0700); err != nil {
-			return abspath, fmt.Errorf("error creating package destination: %w", err)
+		fmt.Fprintf(verbose, "Creating %s...\n", dst)
+		if err := os.MkdirAll(dst, 0700); err != nil {
+			return dst, fmt.Errorf("error creating package destination: %w", err)
 		}
 	}
 
 	tmpname := make([]byte, 16)
 	n, err := rand.Read(tmpname)
 	if err != nil {
-		return abspath, fmt.Errorf("error generating random filename: %w", err)
+		return dst, fmt.Errorf("error generating random filename: %w", err)
 	}
 	if n != 16 {
-		return abspath, fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
+		return dst, fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
 	}
 
-	f, err := os.Create(filepath.Join(abspath, fmt.Sprintf("tmp_%x", tmpname)))
+	f, err := os.Create(filepath.Join(dst, fmt.Sprintf("tmp_%x", tmpname)))
 	if err != nil {
-		return abspath, fmt.Errorf("error creating file in package destination: %w", err)
+		return dst, fmt.Errorf("error creating file in package destination: %w", err)
 	}
 
 	if err := f.Close(); err != nil {
-		return abspath, fmt.Errorf("error closing file in package destination: %w", err)
+		return dst, fmt.Errorf("error closing file in package destination: %w", err)
 	}
 
 	if err := os.Remove(f.Name()); err != nil {
-		return abspath, fmt.Errorf("error removing file in package destination: %w", err)
+		return dst, fmt.Errorf("error removing file in package destination: %w", err)
 	}
 
-	return abspath, nil
+	return dst, nil
 }
 
 // promptOrReturn will prompt the user for information missing from the
