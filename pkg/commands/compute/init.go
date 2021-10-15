@@ -104,13 +104,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}(c.Globals.ErrLog)
 
-	var (
-		name     string
-		desc     string
-		authors  []string
-		language *Language
-	)
-
 	wd, err := os.Getwd()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -132,7 +125,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	c.path = dst
 
-	name, desc, authors, err = promptOrReturn(c.manifest, c.path, c.Globals.File.User.Email, in, out)
+	name, desc, authors, err := promptOrReturn(c.manifest, c.path, c.Globals.File.User.Email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Authors":     authors,
@@ -178,30 +171,28 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}),
 	}
 
-	var branch, tag string
+	language, err := selectLanguage(c.language, languages, in, out)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Language": c.language,
+		})
+		return err
+	}
 
-	if c.from == "" {
-		language, err = pkgLang(c.language, languages, in, out)
+	var (
+		branch string
+		tag    string
+	)
+	if c.from == "" && language.Name != "other" && !mf.Exists() {
+		c.from, branch, tag, err = promptForStarterKit(language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Language": c.language,
+				"From":           c.from,
+				"Branch":         c.branch,
+				"Tag":            c.tag,
+				"Manifest Exist": false,
 			})
 			return err
-		}
-
-		if language.Name != "other" {
-			if !mf.Exists() {
-				c.from, branch, tag, err = pkgFrom(language.StarterKits, in, out)
-				if err != nil {
-					c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-						"From":           c.from,
-						"Branch":         c.branch,
-						"Tag":            c.tag,
-						"Manifest Exist": false,
-					})
-					return err
-				}
-			}
 		}
 	}
 
@@ -427,34 +418,42 @@ func pkgAuthors(authors []string, manifestEmail string, in io.Reader, out io.Wri
 	return authors, nil
 }
 
-// pkgLang prompts the user for a package language unless already defined
-// either via the corresponding CLI flag or the manifest file.
-func pkgLang(lang string, languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
+// selectLanguage decides whether to prompt the user for a language if none
+// defined or try and match the --language flag against available languages.
+func selectLanguage(langFlag string, ls []*Language, in io.Reader, out io.Writer) (*Language, error) {
+	if langFlag == "" {
+		return promptForLanguage(ls, in, out)
+	}
+
+	for _, language := range ls {
+		if strings.EqualFold(langFlag, language.Name) {
+			return language, nil
+		}
+	}
+
+	return nil, fmt.Errorf("error looking up specified language: '%s' not supported", langFlag)
+}
+
+// promptForLanguage prompts the user for a package language unless already
+// defined either via the corresponding CLI flag or the manifest file.
+func promptForLanguage(languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
 	var language *Language
 
-	if lang == "" {
-		text.Output(out, "%s", text.Bold("Language:"))
-		for i, lang := range languages {
-			text.Output(out, "[%d] %s", i+1, lang.DisplayName)
-		}
-		option, err := text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
-		if err != nil {
-			return nil, fmt.Errorf("reading input %w", err)
-		}
-		if option == "" {
-			option = "1"
-		}
-		if i, err := strconv.Atoi(option); err == nil {
-			language = languages[i-1]
-		} else {
-			return nil, fmt.Errorf("selecting language")
-		}
+	text.Output(out, "%s", text.Bold("Language:"))
+	for i, lang := range languages {
+		text.Output(out, "[%d] %s", i+1, lang.DisplayName)
+	}
+	option, err := text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
+	if err != nil {
+		return nil, fmt.Errorf("reading input %w", err)
+	}
+	if option == "" {
+		option = "1"
+	}
+	if i, err := strconv.Atoi(option); err == nil {
+		language = languages[i-1]
 	} else {
-		for _, l := range languages {
-			if strings.EqualFold(lang, l.Name) {
-				language = l
-			}
-		}
+		return nil, fmt.Errorf("selecting language")
 	}
 
 	return language, nil
@@ -476,10 +475,10 @@ func validateLanguageOption(languages []*Language) func(string) error {
 	}
 }
 
-// pkgFrom prompts the user for a package starter kit.
+// promptForStarterKit prompts the user for a package starter kit.
 //
 // It returns the path to the starter kit, and the corresponding branch/tag,
-func pkgFrom(kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
+func promptForStarterKit(kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
 	text.Output(out, "%s", text.Bold("Starter kit:"))
 	for i, kit := range kits {
 		fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
