@@ -15,7 +15,7 @@ import (
 var TarGz = &ArchiveGzip{
 	ArchiveBase{
 		Ext:   ".gz",
-		Mimes: []string{"application/gzip", "application/x-gzip"},
+		Mimes: []string{"application/gzip", "application/x-gzip", "application/x-tar"},
 	},
 }
 
