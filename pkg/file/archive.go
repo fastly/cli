@@ -134,7 +134,7 @@ func (a ArchiveGzip) Extract() error {
 		}
 
 		// The target location where the dir/file should be created
-		segs := strings.Split(header.Name, string(filepath.Separator))
+		segs := splitArchivePaths(header.Name)
 		segs = segs[1:]
 		target := filepath.Join(a.Dst, filepath.Join(segs...))
 
@@ -188,12 +188,15 @@ func (a ArchiveZip) Extract() error {
 		// interested in. So while looping over the files (whose .Name field is the
 		// full path including the containing folder) we strip out the first path
 		// segment to ensure the files we need are extracted to the current directory.
-		segs := strings.Split(f.Name, string(filepath.Separator))
+		segs := splitArchivePaths(f.Name)
 		segs = segs[1:]
 		target := filepath.Join(a.Dst, filepath.Join(segs...))
 
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(target, os.ModePerm)
+			err := os.MkdirAll(target, os.ModePerm)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 
@@ -228,4 +231,27 @@ func (a ArchiveZip) Extract() error {
 	}
 
 	return nil
+}
+
+// splitArchivePaths splits a path into segments.
+//
+// The algorithm takes into account archives containing files created by either
+// Windows or unix based system such as macOS or Linux. Specifically the
+// filepath.Separator isn't reliable as the binary could be running on one OS
+// while trying to use an archive created via a different OS.
+//
+// NOTE: We expect the archive to contain a single directory that contains the
+// package files/directories. This means when splitting the file path into
+// segments the length should be at least two (e.g. 'compute-package/...').
+func splitArchivePaths(filepath string) (segments []string) {
+	unix := `/`
+	win := `\`
+
+	segments = strings.Split(filepath, unix)
+
+	if len(segments) < 2 {
+		segments = strings.Split(filepath, win)
+	}
+
+	return segments
 }
