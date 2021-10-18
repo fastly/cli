@@ -269,6 +269,7 @@ func listLogentriesOK(i *fastly.ListLogentriesInput) ([]*fastly.Logentries, erro
 			FormatVersion:     2,
 			ResponseCondition: "Prevent default logging",
 			Placement:         "none",
+			Region:            "us",
 		},
 		{
 			ServiceID:         i.ServiceID,
@@ -281,6 +282,7 @@ func listLogentriesOK(i *fastly.ListLogentriesInput) ([]*fastly.Logentries, erro
 			FormatVersion:     2,
 			ResponseCondition: "Prevent default logging",
 			Placement:         "none",
+			Region:            "us",
 		},
 	}, nil
 }
@@ -312,6 +314,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Region: us
 	Logentries 2/2
 		Service ID: 123
 		Version: 1
@@ -323,6 +326,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Region: us
 `) + "\n\n"
 
 func getLogentriesOK(i *fastly.GetLogentriesInput) (*fastly.Logentries, error) {
@@ -337,6 +341,7 @@ func getLogentriesOK(i *fastly.GetLogentriesInput) (*fastly.Logentries, error) {
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
 		Placement:         "none",
+		Region:            "us",
 	}, nil
 }
 
@@ -355,6 +360,7 @@ Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Response condition: Prevent default logging
 Placement: none
+Region: us
 `) + "\n"
 
 func updateLogentriesOK(i *fastly.UpdateLogentriesInput) (*fastly.Logentries, error) {
@@ -369,6 +375,7 @@ func updateLogentriesOK(i *fastly.UpdateLogentriesInput) (*fastly.Logentries, er
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
 		Placement:         "none",
+		Region:            "us",
 	}, nil
 }
 

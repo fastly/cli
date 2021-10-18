@@ -44,6 +44,7 @@ func TestCreateLogentriesInput(t *testing.T) {
 				FormatVersion:     2,
 				ResponseCondition: "Prevent default logging",
 				Placement:         "none",
+				Region:            "eu",
 			},
 		},
 		{
@@ -128,6 +129,7 @@ func TestUpdateLogentriesInput(t *testing.T) {
 				FormatVersion:     fastly.Uint(3),
 				ResponseCondition: fastly.String("new4"),
 				Placement:         fastly.String("new5"),
+				Region:            fastly.String("new6"),
 			},
 		},
 		{
@@ -213,6 +215,7 @@ func createCommandOK() *logentries.CreateCommand {
 		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -330,6 +333,7 @@ func updateCommandAll() *logentries.UpdateCommand {
 		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
+		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
 	}
 }
 
