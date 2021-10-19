@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.41.0](https://github.com/fastly/cli/releases/tag/v0.41.0) (2021-10-19)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.40.2...v0.41.0)
+
+**Enhancements:**
+
+* Implement `[setup.log_endpoints.<name>]` support [#443](https://github.com/fastly/cli/pull/443)
+* The `compute init --from` flag should support archives [#428](https://github.com/fastly/cli/pull/428)
+* Add region support for logentries logging endpoint [#375](https://github.com/fastly/cli/pull/375)
+
 ## [v0.40.2](https://github.com/fastly/cli/releases/tag/v0.40.2) (2021-10-14)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.40.1...v0.40.2)
