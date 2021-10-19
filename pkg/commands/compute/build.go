@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
@@ -30,57 +29,6 @@ type Toolchain interface {
 	Initialize(out io.Writer) error
 	Verify(out io.Writer) error
 	Build(out io.Writer, verbose bool) error
-}
-
-// Language models a Compute@Edge source language.
-type Language struct {
-	Name            string
-	DisplayName     string
-	StarterKits     []config.StarterKit
-	SourceDirectory string
-	IncludeFiles    []string
-
-	Toolchain
-}
-
-// LanguageOptions models configuration options for a Language.
-type LanguageOptions struct {
-	Name            string
-	DisplayName     string
-	StarterKits     []config.StarterKit
-	SourceDirectory string
-	IncludeFiles    []string
-	Toolchain       Toolchain
-}
-
-// NewLanguage constructs a new Language from a LangaugeOptions.
-func NewLanguage(options *LanguageOptions) *Language {
-	// Ensure the 'default' starter kit is always first.
-	sort.Slice(options.StarterKits, func(i, j int) bool {
-		suffix := fmt.Sprintf("%s-default", options.Name)
-		a := strings.HasSuffix(options.StarterKits[i].Path, suffix)
-		b := strings.HasSuffix(options.StarterKits[j].Path, suffix)
-		var (
-			bitSetA int8
-			bitSetB int8
-		)
-		if a {
-			bitSetA = 1
-		}
-		if b {
-			bitSetB = 1
-		}
-		return bitSetA > bitSetB
-	})
-
-	return &Language{
-		options.Name,
-		options.DisplayName,
-		options.StarterKits,
-		options.SourceDirectory,
-		options.IncludeFiles,
-		options.Toolchain,
-	}
 }
 
 // BuildCommand produces a deployable artifact from files on the local disk.
