@@ -214,6 +214,7 @@ type File struct {
 type Setup struct {
 	Backends     map[string]*SetupBackend    `toml:"backends,omitempty"`
 	Dictionaries map[string]*SetupDictionary `toml:"dictionaries,omitempty"`
+	Loggers      map[string]*SetupLogger     `toml:"log_endpoints,omitempty"`
 }
 
 // SetupBackend represents a '[setup.backends.<T>]' instance.
@@ -233,6 +234,11 @@ type SetupDictionary struct {
 type SetupDictionaryItems struct {
 	Value       string `toml:"value,omitempty"`
 	Description string `toml:"description,omitempty"`
+}
+
+// SetupLogger represents a '[setup.log_endpoints.<T>]' instance.
+type SetupLogger struct {
+	Provider string `toml:"provider,omitempty"`
 }
 
 // LocalServer represents a list of backends that should be mocked as per the
