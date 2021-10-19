@@ -961,6 +961,156 @@ func TestDeploy(t *testing.T) {
 				"my default value for bar",
 			},
 		},
+		{
+			name: "success with setup.log_entries configuration and existing service",
+			args: args("compute deploy --service-id 123 --token 123"),
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				GetPackageFn:      getPackageOk,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListVersionsFn:    testutil.ListVersions,
+				UpdatePackageFn:   updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.log_endpoints.foo]
+			provider = "BigQuery"
+			`,
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 123, version 3)",
+			},
+			dontWantOutput: []string{
+				"The package code requires the following log endpoints to be created.",
+				"Name: foo",
+				"Provider: BigQuery",
+				"Refer to the help documentation for each provider (if no provider shown, then select your own):",
+				"fastly logging <provider> create --help",
+			},
+		},
+		{
+			name: "success with setup.log_entries configuration and no existing service",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:      activateVersionOk,
+				CreateBackendFn:        createBackendOK,
+				CreateDictionaryFn:     createDictionaryOK,
+				CreateDictionaryItemFn: createDictionaryItemOK,
+				CreateDomainFn:         createDomainOK,
+				CreateServiceFn:        createServiceOK,
+				GetPackageFn:           getPackageOk,
+				GetServiceFn:           getServiceOK,
+				ListDomainsFn:          listDomainsOk,
+				ListVersionsFn:         testutil.ListVersions,
+				UpdatePackageFn:        updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.log_endpoints.foo]
+			provider = "BigQuery"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"The package code requires the following log endpoints to be created.",
+				"Name: foo",
+				"Provider: BigQuery",
+				"Refer to the help documentation for each provider (if no provider shown, then select your own):",
+				"fastly logging <provider> create --help",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with setup.log_entries configuration and no existing service and no provider defined",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:      activateVersionOk,
+				CreateBackendFn:        createBackendOK,
+				CreateDictionaryFn:     createDictionaryOK,
+				CreateDictionaryItemFn: createDictionaryItemOK,
+				CreateDomainFn:         createDomainOK,
+				CreateServiceFn:        createServiceOK,
+				GetPackageFn:           getPackageOk,
+				GetServiceFn:           getServiceOK,
+				ListDomainsFn:          listDomainsOk,
+				ListVersionsFn:         testutil.ListVersions,
+				UpdatePackageFn:        updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.log_endpoints.foo]
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"The package code requires the following log endpoints to be created.",
+				"Name: foo",
+				"Refer to the help documentation for each provider (if no provider shown, then select your own):",
+				"fastly logging <provider> create --help",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			dontWantOutput: []string{
+				"Provider: BigQuery",
+			},
+		},
+		{
+			name: "success with setup.log_entries configuration and no existing service and --accept-defaults",
+			args: args("compute deploy --accept-defaults --token 123"),
+			api: mock.API{
+				ActivateVersionFn:      activateVersionOk,
+				CreateBackendFn:        createBackendOK,
+				CreateDictionaryFn:     createDictionaryOK,
+				CreateDictionaryItemFn: createDictionaryItemOK,
+				CreateDomainFn:         createDomainOK,
+				CreateServiceFn:        createServiceOK,
+				GetPackageFn:           getPackageOk,
+				GetServiceFn:           getServiceOK,
+				ListDomainsFn:          listDomainsOk,
+				ListVersionsFn:         testutil.ListVersions,
+				UpdatePackageFn:        updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.log_endpoints.foo]
+			provider = "BigQuery"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			dontWantOutput: []string{
+				"The package code requires the following log endpoints to be created.",
+				"Name: foo",
+				"Provider: BigQuery",
+				"Refer to the help documentation for each provider (if no provider shown, then select your own):",
+				"fastly logging <provider> create --help",
+			},
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			// Because the manifest can be mutated on each test scenario, we recreate

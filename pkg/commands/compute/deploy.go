@@ -149,6 +149,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var (
 		backends     *setup.Backends
 		dictionaries *setup.Dictionaries
+		loggers      *setup.Loggers
 	)
 
 	if newService {
@@ -169,6 +170,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			ServiceVersion: serviceVersion.Number,
 			Setup:          c.Manifest.File.Setup.Dictionaries,
 			Stdin:          in,
+			Stdout:         out,
+		}
+
+		loggers = &setup.Loggers{
+			AcceptDefaults: c.AcceptDefaults,
+			Setup:          c.Manifest.File.Setup.Loggers,
 			Stdout:         out,
 		}
 	}
@@ -201,6 +208,16 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				errLogService(errLog, err, serviceID, serviceVersion.Number)
 				return fmt.Errorf("error configuring service dictionaries: %w", err)
 			}
+		}
+
+		if loggers.Predefined() {
+			// NOTE: We don't handle errors from the Configure() method because we
+			// don't actually do anything other than display a message to the user
+			// informing them that they need to create a log endpoint and which
+			// provider type they should be. The reason we don't implement logic for
+			// creating logging objects is because the API input fields vary
+			// significantly between providers.
+			loggers.Configure()
 		}
 	}
 
