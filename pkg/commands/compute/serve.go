@@ -133,7 +133,7 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	// but also we actually install Viceroy in the same location as the
 	// application configuration, which means it wouldn't be found looking up by
 	// the PATH env var. We could pass the path for the application configuration
-	// into exec.LookPath() but it's arguably simpler to just execute the binary.
+	// into exec.LookPath() but it's simpler to just execute the binary.
 	//
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
