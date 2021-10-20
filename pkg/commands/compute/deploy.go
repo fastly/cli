@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,6 +29,10 @@ const (
 // PackageSizeLimit describes the package size limit in bytes (currently 50mb)
 // https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
 var PackageSizeLimit int64 = 50000000
+
+// ErrStopWalk is used to indicate to filepath.WalkDir that it should stop
+// walking the directory tree.
+var ErrStopWalk = errors.New("stop directory walking")
 
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
@@ -62,7 +67,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.Manifest.Flag.Name)
-	c.CmdClause.Flag("path", "Path to package").Short('p').StringVar(&c.Path)
+	c.CmdClause.Flag("path", "Path to package.tar.gz").Short('p').StringVar(&c.Path)
 	return &c
 }
 
@@ -86,7 +91,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// VALIDATE PACKAGE...
 
-	pkgName, pkgPath, err := validatePackage(c.Manifest, c.Path, errLog)
+	pkgName, pkgPath, err := validatePackage(c.Manifest, c.Path, errLog, out)
 	if err != nil {
 		return err
 	}
@@ -354,13 +359,29 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 //
 // NOTE: It also validates if the package size exceeds limit:
 // https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInterface) (pkgName, pkgPath string, err error) {
+func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInterface, out io.Writer) (pkgName, pkgPath string, err error) {
 	err = data.File.ReadError()
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			err = fsterr.ErrReadingManifest
+		if pathFlag == "" {
+			if errors.Is(err, os.ErrNotExist) {
+				err = fsterr.ErrReadingManifest
+			}
+			return pkgName, pkgPath, err
+		} else {
+			// NOTE: Before returning the manifest read error, we'll attempt to read the
+			// manifest from somewhere within the given --path directory tree.
+			path, err := locateManifest(pathFlag, err)
+			if err != nil {
+				return pkgName, pkgPath, err
+			}
+			text.Break(out)
+			text.Description(out, "Manifest location (discovered via --path tree)", path)
+
+			err = data.File.Read(path)
+			if err != nil {
+				return pkgName, pkgPath, err
+			}
 		}
-		return pkgName, pkgPath, err
 	}
 
 	pkgName, source := data.Name()
@@ -394,6 +415,48 @@ func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInter
 		return pkgName, pkgPath, err
 	}
 	return pkgName, pkgPath, nil
+}
+
+// locateManifest attempts to find the manifest within the given --path
+// directory tree as a fallback for when there is an issue reading the manifest
+// from the current directory the CLI is being run within.
+//
+// NOTE: We pass in the original read error from app.Run() and will generically
+// return that error if necessary.
+func locateManifest(pathFlag string, readError error) (string, error) {
+	segs := strings.Split(pathFlag, string(filepath.Separator))
+	root, err := filepath.Abs(segs[0])
+	if err != nil {
+		return "", readError
+	}
+
+	var foundManifest string
+
+	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return readError
+		}
+		if !entry.IsDir() && filepath.Base(path) == manifest.Filename {
+			foundManifest = path
+			return ErrStopWalk
+		}
+		return nil
+	})
+
+	if err != nil {
+		// If the error isn't ErrStopWalk, then the WalkDir() function had an
+		// issue processing the directory tree.
+		if err != ErrStopWalk {
+			if errors.Is(readError, os.ErrNotExist) {
+				readError = fsterr.ErrReadingManifest
+			}
+			return "", readError
+		}
+
+		return foundManifest, nil
+	}
+
+	return "", fmt.Errorf("error locating manifest within the given --path")
 }
 
 // packagePath generates a path that points to a package tar inside the pkg

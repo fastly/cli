@@ -62,6 +62,13 @@ func TestDeploy(t *testing.T) {
 				Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),
 				Dst: filepath.Join("pkg", "package.tar.gz"),
 			},
+			// NOTE: We copy a valid manifest into the pkg subdirectory, which isn't
+			// expected in practice but we're doing in order to validate that the CLI
+			// will look for a manifest in the base directory given in --path.
+			{
+				Src: filepath.Join("testdata", "init", "fastly-valid-integer.toml"),
+				Dst: filepath.Join("pkg", "fastly.toml"),
+			},
 		},
 	})
 	defer os.RemoveAll(rootdir)
@@ -345,6 +352,34 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"Manage this service at:",
+				"https://manage.fastly.com/configure/services/123",
+				"View this service at:",
+				"https://directly-careful-coyote.edgecompute.app",
+				"Deployed package (service 123, version 3)",
+			},
+		},
+		// NOTE: The following test ensures that if the user runs the CLI from a
+		// directory that isn't a C@E project directory (i.e. it has no manifest
+		// file present) then the deploy command should try to locate a manifest in
+		// the base directory given in the --path flag. Refer to the test
+		// environment configuration at the top of this file for more details.
+		{
+			name: "success with path called from non project directory",
+			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version latest"),
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+				GetPackageFn:      getPackageOk,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListVersionsFn:    testutil.ListVersions,
+				UpdatePackageFn:   updatePackageOk,
+			},
+			noManifest: true,
+			wantOutput: []string{
+				"Manifest location (discovered via --path tree):",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
