@@ -115,7 +115,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // latest version and install it in the same directory as the application
 // configuration data.
 //
-// In the case of a network failure we fallback to an installed version of the
+// In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
 func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner) (bin string, err error) {
 	progress.Step("Checking latest Viceroy release...")
