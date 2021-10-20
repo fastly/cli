@@ -68,7 +68,7 @@ func (g *GitHub) SetAsset(name string) {
 	g.releaseAsset = name
 }
 
-// LatestVersion implements the Versioner interface.
+// LatestVersion calls the GitHub API to return the latest release as a semver.
 func (g GitHub) LatestVersion(ctx context.Context) (semver.Version, error) {
 	release, _, err := g.client.Repositories.GetLatestRelease(ctx, g.org, g.repo)
 	if err != nil {

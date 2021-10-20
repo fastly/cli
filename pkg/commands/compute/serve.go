@@ -114,63 +114,75 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // NOTE: if Viceroy is installed then it is updated, otherwise download the
 // latest version and install it in the same directory as the application
 // configuration data.
-func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner) (string, error) {
+//
+// In the case of a network failure we fallback to the latest installed version of the
+// Viceroy binary as long as one is installed and has the correct permissions.
+func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner) (bin string, err error) {
 	progress.Step("Checking latest Viceroy release...")
 
-	latest, err := versioner.LatestVersion(context.Background())
-	if err != nil {
-		progress.Fail()
-
-		return "", errors.RemediationError{
-			Inner:       fmt.Errorf("error fetching latest version: %w", err),
-			Remediation: errors.NetworkRemediation,
+	defer func(progress text.Progress) {
+		if err != nil {
+			progress.Fail()
 		}
-	}
+	}(progress)
 
-	asset := fmt.Sprintf(update.DefaultAssetFormat, versioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
-	versioner.SetAsset(asset)
+	bin = filepath.Join(InstallDir, versioner.Binary())
 
-	bin := filepath.Join(InstallDir, versioner.Binary())
-
+	// NOTE: When checking if Viceroy is installed we don't use
+	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
+	// but also we actually install Viceroy in the same location as the
+	// application configuration, which means it wouldn't be found looking up by
+	// the PATH env var. We could pass the path for the application configuration
+	// into exec.LookPath() but it's simpler to just execute the binary.
+	//
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as the variables come from trusted sources.
 	/* #nosec */
 	cmd := exec.Command(bin, "--version")
 
-	stdoutStderr, err := cmd.CombinedOutput()
+	var install bool
 
+	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		// We presume an error executing `viceroy --version` means it isn't installed.
-		//
-		// NOTE: we don't use exec.LookPath("viceroy") because PATH is unreliable
-		// across OS platforms but also we actually install viceroy in the same
-		// location as the application configuration, which means it wouldn't be
-		// found looking up by the PATH env var. We can pass the path for the
-		// application configuration into exec.LookPath() although it's arguably
-		// just as much work as just executing the binary.
+		// We presume an error means Viceroy needs to be installed.
+		install = true
+	}
+
+	latest, err := versioner.LatestVersion(context.Background())
+	if err != nil {
+		// When we have an error getting the latest version information for Viceroy
+		// and the user doesn't have a pre-existing install of Viceroy, then we're
+		// forced to return the error.
+		if install {
+			return bin, errors.RemediationError{
+				Inner:       fmt.Errorf("error fetching latest version: %w", err),
+				Remediation: errors.NetworkRemediation,
+			}
+		}
+		return bin, nil
+	}
+
+	asset := fmt.Sprintf(update.DefaultAssetFormat, versioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
+	versioner.SetAsset(asset)
+
+	if install {
 		err := installViceroy(progress, versioner, latest, bin)
 		if err != nil {
-			return "", err
+			return bin, err
 		}
 	} else {
 		version := strings.TrimSpace(string(stdoutStderr))
 		err := updateViceroy(progress, version, out, versioner, latest, bin)
 		if err != nil {
-			return "", err
+			return bin, err
 		}
 	}
 
-	// G302 (CWE-276): Expect file permissions to be 0600 or less
-	// gosec flagged this:
-	// Disabling as the file was not executable without it and we need all users
-	// to be able to execute the binary.
-	/* #nosec */
-	err = os.Chmod(bin, 0777)
+	err = setBinPerms(bin)
 	if err != nil {
-		return "", fmt.Errorf("error setting executable permissions on Viceroy binary: %w", err)
+		return bin, err
 	}
-
 	return bin, nil
 }
 
@@ -272,6 +284,20 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 		}
 	}
 
+	return nil
+}
+
+// setBinPerms ensures 0777 perms are set on the Viceroy binary.
+func setBinPerms(bin string) error {
+	// G302 (CWE-276): Expect file permissions to be 0600 or less
+	// gosec flagged this:
+	// Disabling as the file was not executable without it and we need all users
+	// to be able to execute the binary.
+	/* #nosec */
+	err := os.Chmod(bin, 0777)
+	if err != nil {
+		return fmt.Errorf("error setting executable permissions on Viceroy binary: %w", err)
+	}
 	return nil
 }
 
