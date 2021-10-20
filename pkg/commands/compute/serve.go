@@ -130,7 +130,7 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 
 	// NOTE: When checking if Viceroy is installed we don't use
 	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
-	// but also we actually install viceroy in the same location as the
+	// but also we actually install Viceroy in the same location as the
 	// application configuration, which means it wouldn't be found looking up by
 	// the PATH env var. We could pass the path for the application configuration
 	// into exec.LookPath() but it's arguably simpler to just execute the binary.
