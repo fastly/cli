@@ -51,7 +51,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and perform deploy non-interactively").Action(c.acceptDefaults.Set).BoolVar(&c.acceptDefaults.Value)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
-	c.CmdClause.Flag("path", "Path to package").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
+	c.CmdClause.Flag("path", "Path to package tar.gz").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Action:   c.serviceVersion.Set,

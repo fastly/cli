@@ -93,6 +93,8 @@ type ArchiveGzip struct {
 }
 
 // Extract all files and folders from the collection.
+//
+// TODO: Consider refactoring to use mholt/archiver.
 func (a ArchiveGzip) Extract() error {
 	// NOTE: After the os.File has content written to it via io.Copy() inside
 	// pkgFetch(), we find the cursor index position is updated. This causes an
@@ -176,6 +178,8 @@ type ArchiveZip struct {
 }
 
 // Extract all files and folders from the collection.
+//
+// TODO: Consider refactoring to use mholt/archiver.
 func (a ArchiveZip) Extract() error {
 	r, err := zip.OpenReader(a.Name)
 	if err != nil {

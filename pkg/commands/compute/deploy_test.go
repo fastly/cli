@@ -354,6 +354,33 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 3)",
 			},
 		},
+		// NOTE: The following test ensures that if the user runs the CLI from a
+		// directory that isn't a C@E project directory (i.e. it has no manifest
+		// file present) then the deploy command should try to locate a manifest
+		// inside the given package tar.gz archive.
+		{
+			name: "success with path called from non project directory",
+			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version latest"),
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+				GetPackageFn:      getPackageOk,
+				GetServiceFn:      getServiceOK,
+				ListDomainsFn:     listDomainsOk,
+				ListVersionsFn:    testutil.ListVersions,
+				UpdatePackageFn:   updatePackageOk,
+			},
+			noManifest: true,
+			wantOutput: []string{
+				"Using fastly.toml within --path archive:",
+				"Uploading package...",
+				"Activating version...",
+				"Manage this service at:",
+				"https://manage.fastly.com/configure/services/123",
+				"View this service at:",
+				"https://directly-careful-coyote.edgecompute.app",
+				"Deployed package (service 123, version 3)",
+			},
+		},
 		{
 			name: "success with inactive version",
 			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz"),
