@@ -101,6 +101,9 @@ func (c *CreateCommand) constructInput() *fastly.CreateTokenInput {
 		// For now, if the user ignores the `HintOptions` and gives a scope such as
 		// 'foobar' (which would be invalid), then the API itself will reject the
 		// request and the error bubbled back to our Exec caller to handle.
+		//
+		// UPDATE: We could try using `EnumsVar` which would then allow setting the
+		// same flag multiple times. For example: --scope global --scope purge_select.
 		input.Scope = fastly.TokenScope(strings.Join(c.scope, " "))
 	}
 	if len(c.services) > 0 {
