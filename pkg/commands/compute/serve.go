@@ -211,6 +211,7 @@ func installViceroy(progress text.Progress, versioner update.Versioner, latest s
 		progress.Fail()
 		return fmt.Errorf("error downloading latest Viceroy release: %w", err)
 	}
+	defer os.RemoveAll(tmp)
 
 	if err := os.Rename(tmp, bin); err != nil {
 		if err := filesystem.CopyFile(tmp, bin); err != nil {
