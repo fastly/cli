@@ -20,13 +20,13 @@ func TestPrintService(t *testing.T) {
 			name:       "without prefix",
 			prefix:     "",
 			service:    &fastly.Service{},
-			wantOutput: "ID: \nName: \nType: vcl\nCustomer ID: \nActive version: 0\nVersions: 0\n",
+			wantOutput: "ID: \nName: \nType: \nCustomer ID: \nActive version: 0\nVersions: 0\n",
 		},
 		{
 			name:       "with prefix",
 			prefix:     "\t",
 			service:    &fastly.Service{},
-			wantOutput: "\tID: \n\tName: \n\tType: vcl\n\tCustomer ID: \n\tActive version: 0\n\tVersions: 0\n",
+			wantOutput: "\tID: \n\tName: \n\tType: \n\tCustomer ID: \n\tActive version: 0\n\tVersions: 0\n",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -48,13 +48,13 @@ func TestPrintServiceDetail(t *testing.T) {
 			name:       "without prefix",
 			prefix:     "",
 			service:    &fastly.ServiceDetail{},
-			wantOutput: "ID: \nName: \nType: vcl\nCustomer ID: \nActive version: none\nVersions: 0\n",
+			wantOutput: "ID: \nName: \nType: \nCustomer ID: \nActive version: none\nVersions: 0\n",
 		},
 		{
 			name:       "with prefix",
 			prefix:     "\t",
 			service:    &fastly.ServiceDetail{},
-			wantOutput: "\tID: \n\tName: \n\tType: vcl\n\tCustomer ID: \n\tActive version: none\n\tVersions: 0\n",
+			wantOutput: "\tID: \n\tName: \n\tType: \n\tCustomer ID: \n\tActive version: none\n\tVersions: 0\n",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {

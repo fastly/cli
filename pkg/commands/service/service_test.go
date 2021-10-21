@@ -434,7 +434,7 @@ func listServicesOK(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
 		{
 			ID:            "789",
 			Name:          "Baz",
-			Type:          "",
+			Type:          "vcl",
 			CustomerID:    "mycustomerid",
 			ActiveVersion: 1,
 			// nil UpdatedAt
