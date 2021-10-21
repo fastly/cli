@@ -36,7 +36,7 @@ func NewUpdateCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("path", "Path to package").Required().Short('p').StringVar(&c.path)
+	c.CmdClause.Flag("path", "Path to package tar.gz").Required().Short('p').StringVar(&c.path)
 	return &c
 }
 

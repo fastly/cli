@@ -592,7 +592,7 @@ COMMANDS
         --domain=DOMAIN          The name of the domain associated to the
                                  package
         --name=NAME              Package name
-    -p, --path=PATH              Path to package.tar.gz
+    -p, --path=PATH              Path to package tar.gz
 
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
@@ -629,7 +629,7 @@ COMMANDS
         --comment=COMMENT        Human-readable comment
         --domain=DOMAIN          The name of the domain associated to the
                                  package
-    -p, --path=PATH              Path to package
+    -p, --path=PATH              Path to package tar.gz
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --version=VERSION        'latest', 'active', or the number of a specific
@@ -656,12 +656,12 @@ COMMANDS
                                  version
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
-    -p, --path=PATH              Path to package
+    -p, --path=PATH              Path to package tar.gz
 
   compute validate --path=PATH
     Validate a Compute@Edge package
 
-    -p, --path=PATH  Path to package
+    -p, --path=PATH  Path to package tar.gz
 
   configure [<flags>]
     Configure the Fastly CLI
