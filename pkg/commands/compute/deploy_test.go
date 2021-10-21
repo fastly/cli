@@ -356,9 +356,8 @@ func TestDeploy(t *testing.T) {
 		},
 		// NOTE: The following test ensures that if the user runs the CLI from a
 		// directory that isn't a C@E project directory (i.e. it has no manifest
-		// file present) then the deploy command should try to locate a manifest in
-		// the base directory given in the --path flag. Refer to the test
-		// environment configuration at the top of this file for more details.
+		// file present) then the deploy command should try to locate a manifest
+		// inside the given package tar.gz archive.
 		{
 			name: "success with path called from non project directory",
 			args: args("compute deploy --service-id 123 --token 123 -p pkg/package.tar.gz --version latest"),
