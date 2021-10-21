@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/undo"
 	"github.com/fastly/go-fastly/v5/fastly"
 	"github.com/kennygrant/sanitize"
+	"github.com/mholt/archiver/v3"
 )
 
 const (
@@ -368,16 +369,9 @@ func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInter
 			}
 			return pkgName, pkgPath, err
 		} else {
-			// NOTE: Before returning the manifest read error, we'll attempt to read the
-			// manifest from somewhere within the given --path directory tree.
-			path, err := locateManifest(pathFlag, err)
-			if err != nil {
-				return pkgName, pkgPath, err
-			}
-			text.Break(out)
-			text.Description(out, "Manifest location (discovered via --path tree)", path)
-
-			err = data.File.Read(path)
+			// NOTE: Before returning the manifest read error, we'll attempt to read
+			// the manifest from within the given package archive.
+			err := readManifestFromPackageArchive(&data, pathFlag, out)
 			if err != nil {
 				return pkgName, pkgPath, err
 			}
@@ -417,24 +411,53 @@ func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInter
 	return pkgName, pkgPath, nil
 }
 
-// locateManifest attempts to find the manifest within the given --path
-// directory tree as a fallback for when there is an issue reading the manifest
-// from the current directory the CLI is being run within.
-//
-// NOTE: We pass in the original read error from app.Run() and will generically
-// return that error if necessary.
-func locateManifest(pathFlag string, readError error) (string, error) {
-	segs := strings.Split(pathFlag, string(filepath.Separator))
-	root, err := filepath.Abs(segs[0])
+// readManifestFromPackageArchive extracts the manifest file from the given
+// package archive file and reads it into memory.
+func readManifestFromPackageArchive(data *manifest.Data, pathFlag string, out io.Writer) error {
+	dst, err := os.MkdirTemp("", fmt.Sprintf("%s-*", manifest.Filename))
 	if err != nil {
-		return "", readError
+		return err
+	}
+	defer os.RemoveAll(dst)
+
+	if err = archiver.Unarchive(pathFlag, dst); err != nil {
+		return fmt.Errorf("error extracting package '%s': %w", pathFlag, err)
+	}
+
+	files, err := os.ReadDir(dst)
+	if err != nil {
+		return err
+	}
+	extractedDirName := files[0].Name()
+
+	manifestPath, err := locateManifest(filepath.Join(dst, extractedDirName))
+	if err != nil {
+		return err
+	}
+
+	err = data.File.Read(manifestPath)
+	if err != nil {
+		return err
+	}
+
+	text.Info(out, "Using fastly.toml within --path archive:\n\t%s", pathFlag)
+
+	return nil
+}
+
+// locateManifest attempts to find the manifest within the given path's
+// directory tree.
+func locateManifest(path string) (string, error) {
+	root, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
 	}
 
 	var foundManifest string
 
 	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
-			return readError
+			return err
 		}
 		if !entry.IsDir() && filepath.Base(path) == manifest.Filename {
 			foundManifest = path
@@ -447,16 +470,13 @@ func locateManifest(pathFlag string, readError error) (string, error) {
 		// If the error isn't ErrStopWalk, then the WalkDir() function had an
 		// issue processing the directory tree.
 		if err != ErrStopWalk {
-			if errors.Is(readError, os.ErrNotExist) {
-				readError = fsterr.ErrReadingManifest
-			}
-			return "", readError
+			return "", err
 		}
 
 		return foundManifest, nil
 	}
 
-	return "", fmt.Errorf("error locating manifest within the given --path")
+	return "", fmt.Errorf("error locating manifest within the given path: %s", path)
 }
 
 // packagePath generates a path that points to a package tar inside the pkg

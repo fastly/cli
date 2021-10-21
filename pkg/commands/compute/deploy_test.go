@@ -62,13 +62,6 @@ func TestDeploy(t *testing.T) {
 				Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),
 				Dst: filepath.Join("pkg", "package.tar.gz"),
 			},
-			// NOTE: We copy a valid manifest into the pkg subdirectory, which isn't
-			// expected in practice but we're doing in order to validate that the CLI
-			// will look for a manifest in the base directory given in --path.
-			{
-				Src: filepath.Join("testdata", "init", "fastly-valid-integer.toml"),
-				Dst: filepath.Join("pkg", "fastly.toml"),
-			},
 		},
 	})
 	defer os.RemoveAll(rootdir)
@@ -379,7 +372,7 @@ func TestDeploy(t *testing.T) {
 			},
 			noManifest: true,
 			wantOutput: []string{
-				"Manifest location (discovered via --path tree):",
+				"Using fastly.toml within --path archive:",
 				"Uploading package...",
 				"Activating version...",
 				"Manage this service at:",
