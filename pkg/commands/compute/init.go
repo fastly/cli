@@ -131,7 +131,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals)
-	language, err := selectLanguage(c.from, c.language, languages, in, out)
+	language, err := selectLanguage(c.from, c.language, languages, mf, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Language": c.language,
@@ -160,7 +160,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewProgress(out, false)
 	}
 
-	err = fetchPackageTemplate(language, c.from, branch, tag, c.path, file.Archives, progress, c.client, out, c.Globals.ErrLog)
+	err = fetchPackageTemplate(language, c.from, branch, tag, c.path, mf, file.Archives, progress, c.client, out, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"From":   from,
@@ -389,8 +389,8 @@ func packageAuthors(authors []string, manifestEmail string, in io.Reader, out io
 
 // selectLanguage decides whether to prompt the user for a language if none
 // defined or try and match the --language flag against available languages.
-func selectLanguage(from string, langFlag string, ls []*Language, in io.Reader, out io.Writer) (*Language, error) {
-	if from != "" {
+func selectLanguage(from string, langFlag string, ls []*Language, mf manifest.File, in io.Reader, out io.Writer) (*Language, error) {
+	if from != "" || mf.Exists() {
 		return nil, nil
 	}
 
@@ -511,6 +511,7 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 func fetchPackageTemplate(
 	language *Language,
 	from, branch, tag, dst string,
+	mf manifest.File,
 	archives []file.Archive,
 	progress text.Progress,
 	client api.HTTPClient,
@@ -518,8 +519,9 @@ func fetchPackageTemplate(
 	errLog errors.LogInterface) error {
 
 	// We don't try to fetch a package template if the user is bringing their own
-	// compiled Wasm binary.
-	if language != nil && language.Name == "other" {
+	// compiled Wasm binary (or if the directory currently already contains a
+	// fastly.toml manifest file).
+	if mf.Exists() || language != nil && language.Name == "other" {
 		return nil
 	}
 	progress.Step("Fetching package template...")
