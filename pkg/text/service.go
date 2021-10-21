@@ -9,18 +9,6 @@ import (
 	"github.com/segmentio/textio"
 )
 
-// ServiceType is a utility function which returns the given type string if
-// non-empty otherwise returns the default `vcl`. This should be used until the
-// API properly returns Service.Type for non-wasm services.
-// TODO(phamann): remove once API returns correct type.
-func ServiceType(t string) string {
-	st := "vcl"
-	if t != "" {
-		st = t
-	}
-	return st
-}
-
 // PrintService pretty prints a fastly.Service structure in verbose format
 // to a given io.Writer. Consumers can provide a prefix string which will
 // be used as a prefix to each line, useful for indentation.
@@ -29,7 +17,7 @@ func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 
 	fmt.Fprintf(out, "ID: %s\n", s.ID)
 	fmt.Fprintf(out, "Name: %s\n", s.Name)
-	fmt.Fprintf(out, "Type: %s\n", ServiceType(s.Type))
+	fmt.Fprintf(out, "Type: %s\n", s.Type)
 	if s.Comment != "" {
 		fmt.Fprintf(out, "Comment: %s\n", s.Comment)
 	}
@@ -67,7 +55,7 @@ func PrintServiceDetail(out io.Writer, indent string, s *fastly.ServiceDetail) {
 
 	fmt.Fprintf(out, "ID: %s\n", s.ID)
 	fmt.Fprintf(out, "Name: %s\n", s.Name)
-	fmt.Fprintf(out, "Type: %s\n", ServiceType(s.Type))
+	fmt.Fprintf(out, "Type: %s\n", s.Type)
 	if s.Comment != "" {
 		fmt.Fprintf(out, "Comment: %s\n", s.Comment)
 	}

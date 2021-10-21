@@ -50,7 +50,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 				}
 			}
 
-			tw.AddLine(service.Name, service.ID, text.ServiceType(service.Type), activeVersion, updatedAt)
+			tw.AddLine(service.Name, service.ID, service.Type, activeVersion, updatedAt)
 		}
 		tw.Print()
 		return nil
