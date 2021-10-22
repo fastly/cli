@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/revision"
+	fstruntime "github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -98,6 +99,20 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("error determining absolute target path: %w", err)
 	}
 
+	// Windows does not permit removing a running executable, however it will
+	// permit renaming it! So we first rename the running executable and then we
+	// move the executable that we downloaded to the same location as the
+	// original executable (which is allowed since we first renamed the running
+	// executable).
+	//
+	// Reference:
+	// https://github.com/golang/go/issues/21997#issuecomment-331744930
+	if fstruntime.Windows {
+		if err := os.Rename(execPath, execPath+"~"); err != nil {
+			os.Remove(execPath + "~")
+		}
+	}
+
 	if err := os.Rename(latestPath, currentPath); err != nil {
 		if err := filesystem.CopyFile(latestPath, currentPath); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -105,6 +120,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 				"Executable (destination)": currentPath,
 			})
 			progress.Fail()
+
 			return fmt.Errorf("error moving latest binary in place: %w", err)
 		}
 	}
