@@ -11,6 +11,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/config"
+	fstruntime "github.com/fastly/cli/pkg/runtime"
 )
 
 // Check if the CLI can be updated.
@@ -25,7 +26,12 @@ func Check(ctx context.Context, currentVersion string, cliVersioner Versioner) (
 		return current, latest, false, fmt.Errorf("error fetching latest version: %w", err)
 	}
 
-	asset := fmt.Sprintf(DefaultAssetFormat, cliVersioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
+	// TODO: change goreleaser to produce .tar.gz for CLI on Windows
+	archiveFormat := ".tar.gz"
+	if fstruntime.Windows {
+		archiveFormat = ".zip"
+	}
+	asset := fmt.Sprintf(DefaultAssetFormat, cliVersioner.BinaryName(), latest, runtime.GOOS, runtime.GOARCH, archiveFormat)
 	cliVersioner.SetAsset(asset)
 
 	return current, latest, latest.GT(current), nil

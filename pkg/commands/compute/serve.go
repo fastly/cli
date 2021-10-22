@@ -163,7 +163,8 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 		return bin, nil
 	}
 
-	asset := fmt.Sprintf(update.DefaultAssetFormat, versioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
+	archiveFormat := ".tar.gz"
+	asset := fmt.Sprintf(update.DefaultAssetFormat, versioner.BinaryName(), latest, runtime.GOOS, runtime.GOARCH, archiveFormat)
 	versioner.SetAsset(asset)
 
 	if install {

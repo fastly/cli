@@ -12,7 +12,7 @@ import (
 type Versioner struct {
 	Version        string
 	Error          error
-	BinaryName     string // name of compiled binary
+	BinaryFilename string // name of compiled binary
 	Local          string // name to use for binary once extracted
 	DownloadOK     bool
 	DownloadedFile string
@@ -36,7 +36,12 @@ func (v Versioner) Download(context.Context, semver.Version) (filename string, e
 
 // Binary will return the configured name of the binary.
 func (v Versioner) Binary() string {
-	return v.BinaryName
+	return v.BinaryFilename
+}
+
+// BinaryName will return the binary name minus any extension.
+func (v Versioner) BinaryName() string {
+	return strings.Split(v.BinaryFilename, ".")[0]
 }
 
 // SetAsset allows configuring the release asset format.

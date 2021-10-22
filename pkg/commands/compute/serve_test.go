@@ -37,7 +37,7 @@ func TestGetViceroy(t *testing.T) {
 	progress := text.NewQuietProgress(&out)
 	versioner := mock.Versioner{
 		Version:        "v1.2.3",
-		BinaryName:     binary,
+		BinaryFilename: binary,
 		DownloadOK:     true,
 		DownloadedFile: downloadedFile,
 	}

@@ -3,41 +3,75 @@ package update
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
+
+	"github.com/blang/semver"
+	fstruntime "github.com/fastly/cli/pkg/runtime"
+	"github.com/google/go-github/v38/github"
 )
 
 // TestBinary validates that the Binary method returns the expected binary name.
 func TestName(t *testing.T) {
-	want := "binary"
-	gh := NewGitHub(GitHubOpts{"org", "repo", want})
+	want := "fastly"
+	if fstruntime.Windows {
+		want = want + ".exe"
+	}
+
+	gh := NewGitHub(GitHubOpts{"org", "repo", "fastly"})
 
 	if have := gh.Binary(); have != want {
 		t.Fatalf("want: %s, have: %s", want, have)
 	}
 }
 
+type mockClient struct {
+	name    string
+	release *github.RepositoryRelease
+}
+
+// Satisfy the GitHubRepoClient interface...
+
+func (c mockClient) GetLatestRelease(ctx context.Context, owner, repo string) (release *github.RepositoryRelease, response *github.Response, err error) {
+	return release, response, err
+}
+func (c mockClient) GetRelease(ctx context.Context, owner, repo string, id int64) (release *github.RepositoryRelease, response *github.Response, err error) {
+	return c.release, response, err
+}
+func (c mockClient) DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (asset io.ReadCloser, redirectURL string, err error) {
+	asset, err = os.Open(filepath.Join("testdata", c.name))
+	return asset, redirectURL, err
+}
+func (c mockClient) ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) (releases []*github.RepositoryRelease, response *github.Response, err error) {
+	return []*github.RepositoryRelease{c.release}, response, err
+}
+
+// Mock some functions called by Download() method...
+
+func (c mockClient) GetReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
+	return id, err
+}
+
 // TestDownloadArchiveExtract validates both Windows and Unix release assets.
 func TestDownloadArchiveExtract(t *testing.T) {
-	opts := GitHubOpts{
-		Org:    "fastly",
-		Repo:   "cli",
-		Binary: "fastly",
-	}
-	gh := NewGitHub(opts)
-
 	scenarios := []struct {
 		Platform string
 		Arch     string
+		Ext      string
 	}{
 		{
 			Platform: "darwin",
 			Arch:     "amd64",
+			Ext:      ".tar.gz",
 		},
 		{
 			Platform: "windows",
 			Arch:     "amd64",
+			Ext:      ".zip",
 		},
 	}
 
@@ -51,14 +85,39 @@ func TestDownloadArchiveExtract(t *testing.T) {
 			if runtime.GOOS != testcase.Platform || runtime.GOARCH != testcase.Arch {
 				t.Skip()
 			}
-			latest, err := gh.LatestVersion(context.Background())
+
+			latest, err := semver.Parse("0.41.0")
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
-			asset := fmt.Sprintf(DefaultAssetFormat, opts.Org, latest.String(), testcase.Platform, testcase.Arch)
+			version := latest.String()
+			id := int64(123)
+			asset := fmt.Sprintf(DefaultAssetFormat, "fastly", version, testcase.Platform, testcase.Arch, testcase.Ext)
+
+			binary := "fastly"
+			if fstruntime.Windows {
+				binary = binary + ".exe"
+			}
+
+			gh := GitHub{
+				client: mockClient{
+					name: asset,
+					release: &github.RepositoryRelease{
+						Name: &version,
+						Assets: []*github.ReleaseAsset{
+							{
+								Name: &asset,
+								ID:   &id,
+							},
+						},
+					},
+				},
+				org:    "fastly",
+				repo:   "cli",
+				binary: binary,
+			}
 			gh.SetAsset(asset)
-			fmt.Printf("\n\nasset: %+v\n\n", asset)
 
 			bin, err := gh.Download(context.Background(), latest)
 			if err != nil {
