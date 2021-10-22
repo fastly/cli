@@ -163,7 +163,8 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 		return bin, nil
 	}
 
-	asset := fmt.Sprintf(update.DefaultAssetFormat, versioner.Binary(), latest, runtime.GOOS, runtime.GOARCH)
+	archiveFormat := ".tar.gz"
+	asset := fmt.Sprintf(update.DefaultAssetFormat, versioner.BinaryName(), latest, runtime.GOOS, runtime.GOARCH, archiveFormat)
 	versioner.SetAsset(asset)
 
 	if install {
@@ -211,6 +212,7 @@ func installViceroy(progress text.Progress, versioner update.Versioner, latest s
 		progress.Fail()
 		return fmt.Errorf("error downloading latest Viceroy release: %w", err)
 	}
+	defer os.RemoveAll(tmp)
 
 	if err := os.Rename(tmp, bin); err != nil {
 		if err := filesystem.CopyFile(tmp, bin); err != nil {

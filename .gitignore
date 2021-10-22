@@ -12,6 +12,7 @@ RELEASE_CHANGELOG.md
 !pkg/commands/compute/testdata/build/rust/Cargo.lock
 **/*.tar.gz
 !pkg/commands/compute/testdata/deploy/pkg/package.tar.gz
+!pkg/commands/update/testdata/fastly_v0.41.0_darwin-amd64.tar.gz
 **/bin
 **/src
 !pkg/commands/compute/testdata/build/rust/src
