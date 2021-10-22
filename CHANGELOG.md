@@ -1,5 +1,20 @@
 # Changelog
 
+## [v0.42.0](https://github.com/fastly/cli/releases/tag/v0.42.0) (2021-10-22)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.41.0...v0.42.0)
+
+**Enhancements:**
+
+* Fallback to existing viceroy binary in case of network error [#445](https://github.com/fastly/cli/pull/445)
+* Remove `text.ServiceType` abstraction [#449](https://github.com/fastly/cli/pull/449)
+
+**Bug fixes:**
+
+* Avoid fetching packages when manifest exists [#448](https://github.com/fastly/cli/pull/448)
+* Implement `--path` lookup fallback for manifest [#446](https://github.com/fastly/cli/pull/446)
+* Fix broken Windows support [#450](https://github.com/fastly/cli/pull/450)
+
 ## [v0.41.0](https://github.com/fastly/cli/releases/tag/v0.41.0) (2021-10-19)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.40.2...v0.41.0)
