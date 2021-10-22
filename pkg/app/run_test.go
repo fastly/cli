@@ -394,7 +394,7 @@ COMMANDS
                              $FASTLY_API_TOKEN
     --expires=EXPIRES        Time-stamp (UTC) of when the token will expire
     --name=NAME              Name of the token
-    --scope=SCOPE ...        A comma-separated list of authorization scope
+    --scope=SCOPE ...        Authorization scope (repeat flag per scope)
     --services=SERVICES ...  A comma-separated list of alphanumeric strings
                              identifying services (default: access to all
                              services)
