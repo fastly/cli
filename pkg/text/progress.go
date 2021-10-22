@@ -13,6 +13,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	fstruntime "github.com/fastly/cli/pkg/runtime"
 	"github.com/mattn/go-isatty"
 )
 
@@ -36,12 +37,23 @@ func NewProgress(output io.Writer, verbose bool) Progress {
 	var progress Progress
 	if verbose {
 		progress = NewVerboseProgress(output)
-	} else if isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+	} else if isTerminal() {
 		progress = NewInteractiveProgress(output)
 	} else {
 		progress = NewQuietProgress(output)
 	}
 	return progress
+}
+
+// isTerminal indicates if the consumer is a modern terminal.
+//
+// EXAMPLE: If the user is on a standard Windows 'command prompt' the spinner
+// output doesn't work, nor does any colour ouput, so we avoid both features.
+func isTerminal() bool {
+	if isatty.IsTerminal(os.Stdout.Fd()) && !fstruntime.Windows || isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+		return true
+	}
+	return false
 }
 
 // Ticker is a small consumer contract for the Spin function,
