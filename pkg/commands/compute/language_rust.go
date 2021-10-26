@@ -217,9 +217,24 @@ func rustcVersion() (string, error) {
 		return "", fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
 	}
 
-	reader := bufio.NewReader(bytes.NewReader(stdoutStderr))
-	line, err := reader.ReadString('\n')
-	if err != nil {
+	// Note: when `rustc` is managed by `rustup`, and the toolchain that
+	// `rustup` considers active is not installed, then the first use of `rustc`
+	// (or any Rust distribution executable) will install it. This produces some
+	// `rustup` output before the real `rustc --version` command fires.
+	scanner := bufio.NewScanner(bytes.NewReader(stdoutStderr))
+	// As such, seek the *last* line in the scanner. This loops until the
+	// scanner quits, at which point `scanner.Text()` is the last observed line.
+	line := ""
+	for scanner.Scan() {
+		err = scanner.Err()
+		if err != nil {
+			return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
+		}
+		line = scanner.Text()
+	}
+	err = scanner.Err()
+	// If the scanner never fires, then something has clearly gone wrong
+	if line == "" || err != nil {
 		return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
 	}
 	line = strings.TrimSpace(line)
