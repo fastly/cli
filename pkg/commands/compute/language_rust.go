@@ -226,10 +226,6 @@ func rustcVersion() (string, error) {
 	// scanner quits, at which point `scanner.Text()` is the last observed line.
 	line := ""
 	for scanner.Scan() {
-		err = scanner.Err()
-		if err != nil {
-			return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
-		}
 		line = scanner.Text()
 	}
 	err = scanner.Err()
