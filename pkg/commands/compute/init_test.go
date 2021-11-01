@@ -53,6 +53,8 @@ func TestInit(t *testing.T) {
 		wantError        string
 		wantOutput       []string
 		manifestIncludes string
+		manifestPath     string
+		stdin            string
 	}{
 		{
 			name:      "broken endpoint",
@@ -289,6 +291,19 @@ func TestInit(t *testing.T) {
 			manifestIncludes: `name = "fastly-temp`,
 		},
 		{
+			name: "with directory name inferred from --directory",
+			args: args("compute init --directory ./foo"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					Rust: skRust,
+				},
+			},
+			stdin:            "Y",
+			manifest:         `manifest_version = 2`,
+			manifestPath:     "foo",
+			manifestIncludes: `name = "foo`,
+		},
+		{
 			name: "with AssemblyScript language",
 			args: args("compute init --language assemblyscript"),
 			configFile: config.File{
@@ -327,11 +342,13 @@ func TestInit(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			manifestPath := filepath.Join(testcase.manifestPath, manifest.Filename)
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Write: []testutil.FileIO{
-					{Src: testcase.manifest, Dst: manifest.Filename},
+					{Src: testcase.manifest, Dst: manifestPath},
 				},
 			})
 			defer os.RemoveAll(rootdir)
@@ -351,7 +368,7 @@ func TestInit(t *testing.T) {
 			// we need to define stdin as the init process prompts the user multiple
 			// times, but we don't need to provide any values as all our prompts will
 			// fallback to default values if the input is unrecognised.
-			opts.Stdin = strings.NewReader("")
+			opts.Stdin = strings.NewReader(testcase.stdin)
 
 			err = app.Run(opts)
 
@@ -372,7 +389,7 @@ func TestInit(t *testing.T) {
 				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 			if testcase.manifestIncludes != "" {
-				content, err := os.ReadFile(filepath.Join(rootdir, manifest.Filename))
+				content, err := os.ReadFile(filepath.Join(rootdir, manifestPath))
 				if err != nil {
 					t.Fatal(err)
 				}

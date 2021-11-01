@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -44,6 +45,15 @@ func NewEnv(opts EnvOpts) (rootdir string) {
 		}
 		src := f.Src
 		dst := filepath.Join(rootdir, f.Dst)
+
+		// Ensure any intermediary directories exist before trying to write the
+		// given file to disk.
+		intermediary := strings.Replace(f.Dst, filepath.Base(f.Dst), "", 1)
+		intermediary = filepath.Join(rootdir, intermediary)
+		if err := os.MkdirAll(intermediary, 0750); err != nil {
+			opts.T.Fatal(err)
+		}
+
 		if err := os.WriteFile(dst, []byte(src), 0777); err != nil {
 			opts.T.Fatal(err)
 		}

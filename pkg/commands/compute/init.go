@@ -35,10 +35,10 @@ type InitCommand struct {
 
 	branch           string
 	client           api.HTTPClient
+	dir              string
 	from             string
 	language         string
 	manifest         manifest.Data
-	path             string
 	skipVerification bool
 	tag              string
 }
@@ -50,14 +50,14 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 	c.client = client
 	c.manifest = data
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
-	c.CmdClause.Flag("name", "Name of package, defaulting to directory name of the --path destination").Short('n').StringVar(&c.manifest.File.Name)
+	c.CmdClause.Flag("name", "Name of package, falls back to --directory").Short('n').StringVar(&c.manifest.File.Name)
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
+	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').StringVar(&c.language)
 	c.CmdClause.Flag("from", "Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
-	c.CmdClause.Flag("path", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.path)
 	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.skipVerification)
 
 	return &c
@@ -104,28 +104,28 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	mf := c.manifest.File
-	if c.path == "" && !mf.Exists() {
-		fmt.Fprintf(progress, "--path not specified, using current directory\n")
-		c.path = wd
+	if c.dir == "" && !mf.Exists() {
+		fmt.Fprintf(progress, "--directory not specified, using current directory\n")
+		c.dir = wd
 	}
 
-	dst, err := verifyDestination(c.path, progress)
+	dst, err := verifyDestination(c.dir, progress)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Path": c.path,
+			"Directory": c.dir,
 		})
 		return err
 	}
-	c.path = dst
+	c.dir = dst
 
-	name, desc, authors, err := promptOrReturn(c.manifest, c.path, c.Globals.File.User.Email, in, out)
+	name, desc, authors, err := promptOrReturn(c.manifest, c.dir, c.Globals.File.User.Email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Authors":     authors,
 			"Description": desc,
+			"Directory":   c.dir,
 			"Email":       c.Globals.File.User.Email,
 			"Name":        name,
-			"Path":        c.path,
 		})
 		return err
 	}
@@ -160,21 +160,21 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		progress = text.NewProgress(out, false)
 	}
 
-	err = fetchPackageTemplate(language, c.from, branch, tag, c.path, mf, file.Archives, progress, c.client, out, c.Globals.ErrLog)
+	err = fetchPackageTemplate(language, c.from, branch, tag, c.dir, mf, file.Archives, progress, c.client, out, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"From":   from,
-			"Branch": branch,
-			"Tag":    tag,
-			"Path":   c.path,
+			"From":      from,
+			"Branch":    branch,
+			"Tag":       tag,
+			"Directory": c.dir,
 		})
 		return err
 	}
 
-	mf, err = updateManifest(mf, progress, c.path, name, desc, authors, language)
+	mf, err = updateManifest(mf, progress, c.dir, name, desc, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Path":        c.path,
+			"Directory":   c.dir,
 			"Name":        name,
 			"Description": desc,
 			"Authors":     authors,
@@ -183,7 +183,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	language, err = initializeLanguage(progress, language, languages, mf.Language, wd, c.path)
+	language, err = initializeLanguage(progress, language, languages, mf.Language, wd, c.dir)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error initializing package: %w", err)
