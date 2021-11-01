@@ -40,6 +40,9 @@ type commandJSON struct {
 func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
 	var flags []flagJSON
 	for _, f := range models {
+		if f.Hidden {
+			continue
+		}
 		var flag flagJSON
 		flag.Name = f.Name
 		flag.Description = f.Help
@@ -65,6 +68,9 @@ func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
 func getCommandJSON(models []*kingpin.CmdModel) []commandJSON {
 	var commands []commandJSON
 	for _, c := range models {
+		if c.Hidden {
+			continue
+		}
 		var cmd commandJSON
 		cmd.Name = c.Name
 		cmd.Description = c.Help
