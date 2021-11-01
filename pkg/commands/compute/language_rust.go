@@ -222,14 +222,11 @@ func rustcVersion() (string, error) {
 	// (or any Rust distribution executable) will install it. This produces some
 	// `rustup` output before the real `rustc --version` command fires.
 	scanner := bufio.NewScanner(bytes.NewReader(stdoutStderr))
-	// As such, seek the *last* line in the scanner. This loops until the
-	// scanner quits, at which point `scanner.Text()` is the last observed line.
 	line := ""
 	for scanner.Scan() {
 		line = scanner.Text()
 	}
 	err = scanner.Err()
-	// If the scanner never fires, then something has clearly gone wrong
 	if line == "" || err != nil {
 		return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
 	}
