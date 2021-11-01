@@ -610,10 +610,10 @@ COMMANDS
         --force                    Skip non-empty directory verification step
                                    and force new project creation
 
-  compute pack --path=PATH
+  compute pack --wasm-binary=WASM-BINARY
     Package a pre-compiled Wasm binary for a Fastly Compute@Edge service
 
-    -p, --path=PATH  Path to a pre-compiled Wasm binary
+    -w, --wasm-binary=WASM-BINARY  Path to a pre-compiled Wasm binary
 
   compute publish [<flags>]
     Build and deploy a Compute@Edge package to a Fastly service

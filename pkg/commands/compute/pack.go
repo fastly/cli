@@ -18,8 +18,8 @@ import (
 // PackCommand takes a .wasm and builds the required tar/gzip package ready to be uploaded.
 type PackCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	path     string
+	manifest   manifest.Data
+	wasmBinary string
 }
 
 // NewPackCommand returns a usable command registered under the parent.
@@ -29,7 +29,7 @@ func NewPackCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.manifest = data
 
 	c.CmdClause = parent.Command("pack", "Package a pre-compiled Wasm binary for a Fastly Compute@Edge service")
-	c.CmdClause.Flag("path", "Path to a pre-compiled Wasm binary").Short('p').Required().StringVar(&c.path)
+	c.CmdClause.Flag("wasm-binary", "Path to a pre-compiled Wasm binary").Short('w').Required().StringVar(&c.wasmBinary)
 
 	return &c
 }
@@ -59,7 +59,7 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	src, err := filepath.Abs(c.path)
+	src, err := filepath.Abs(c.wasmBinary)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Path (absolute)": src,
