@@ -217,9 +217,17 @@ func rustcVersion() (string, error) {
 		return "", fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
 	}
 
-	reader := bufio.NewReader(bytes.NewReader(stdoutStderr))
-	line, err := reader.ReadString('\n')
-	if err != nil {
+	// Note: when `rustc` is managed by `rustup`, and the toolchain that
+	// `rustup` considers active is not installed, then the first use of `rustc`
+	// (or any Rust distribution executable) will install it. This produces some
+	// `rustup` output before the real `rustc --version` command fires.
+	scanner := bufio.NewScanner(bytes.NewReader(stdoutStderr))
+	line := ""
+	for scanner.Scan() {
+		line = scanner.Text()
+	}
+	err = scanner.Err()
+	if line == "" || err != nil {
 		return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
 	}
 	line = strings.TrimSpace(line)
