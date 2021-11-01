@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.43.0](https://github.com/fastly/cli/releases/tag/v0.43.0) (2021-11-01)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.42.0...v0.43.0)
+
+**Bug fixes:**
+
+* Ignore possible `rustup` 'sync' output when calling `rustc --version` [#453](https://github.com/fastly/cli/pull/453)
+* Bump goreleaser to avoid Homebrew warning [#455](https://github.com/fastly/cli/pull/455)
+* Prevent `.Hidden()` flags/commands from being documented via `--format json` [#454](https://github.com/fastly/cli/pull/454)
+
 ## [v0.42.0](https://github.com/fastly/cli/releases/tag/v0.42.0) (2021-10-22)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.41.0...v0.42.0)
