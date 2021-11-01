@@ -9,9 +9,9 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/commands/configure"
+	"github.com/fastly/cli/pkg/commands/dictionary"
+	"github.com/fastly/cli/pkg/commands/dictionaryitem"
 	"github.com/fastly/cli/pkg/commands/domain"
-	"github.com/fastly/cli/pkg/commands/edgedictionary"
-	"github.com/fastly/cli/pkg/commands/edgedictionaryitem"
 	"github.com/fastly/cli/pkg/commands/healthcheck"
 	"github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/commands/logging"
@@ -98,19 +98,18 @@ func defineCommands(
 	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, opts.HTTPClient, globals, data)
 	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, globals)
 	configureCmdRoot := configure.NewRootCommand(app, opts.ConfigPath, configure.APIClientFactory(opts.APIClient), globals)
-	dictionaryCmdRoot := edgedictionary.NewRootCommand(app, globals)
-	dictionaryCreate := edgedictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, globals, data)
-	dictionaryDelete := edgedictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, globals, data)
-	dictionaryDescribe := edgedictionary.NewDescribeCommand(dictionaryCmdRoot.CmdClause, globals, data)
-	dictionaryItemCmdRoot := edgedictionaryitem.NewRootCommand(app, globals)
-	dictionaryItemBatchModify := edgedictionaryitem.NewBatchCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
-	dictionaryItemCreate := edgedictionaryitem.NewCreateCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
-	dictionaryItemDelete := edgedictionaryitem.NewDeleteCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
-	dictionaryItemDescribe := edgedictionaryitem.NewDescribeCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
-	dictionaryItemList := edgedictionaryitem.NewListCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
-	dictionaryItemUpdate := edgedictionaryitem.NewUpdateCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
-	dictionaryList := edgedictionary.NewListCommand(dictionaryCmdRoot.CmdClause, globals, data)
-	dictionaryUpdate := edgedictionary.NewUpdateCommand(dictionaryCmdRoot.CmdClause, globals, data)
+	dictionaryCmdRoot := dictionary.NewRootCommand(app, globals)
+	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, globals, data)
+	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, globals, data)
+	dictionaryDescribe := dictionary.NewDescribeCommand(dictionaryCmdRoot.CmdClause, globals, data)
+	dictionaryItemCmdRoot := dictionaryitem.NewRootCommand(app, globals)
+	dictionaryItemCreate := dictionaryitem.NewCreateCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
+	dictionaryItemDelete := dictionaryitem.NewDeleteCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
+	dictionaryItemDescribe := dictionaryitem.NewDescribeCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
+	dictionaryItemList := dictionaryitem.NewListCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
+	dictionaryItemUpdate := dictionaryitem.NewUpdateCommand(dictionaryItemCmdRoot.CmdClause, globals, data)
+	dictionaryList := dictionary.NewListCommand(dictionaryCmdRoot.CmdClause, globals, data)
+	dictionaryUpdate := dictionary.NewUpdateCommand(dictionaryCmdRoot.CmdClause, globals, data)
 	domainCmdRoot := domain.NewRootCommand(app, globals)
 	domainCreate := domain.NewCreateCommand(domainCmdRoot.CmdClause, globals, data)
 	domainDelete := domain.NewDeleteCommand(domainCmdRoot.CmdClause, globals, data)
@@ -366,7 +365,6 @@ func defineCommands(
 		dictionaryCreate,
 		dictionaryDelete,
 		dictionaryDescribe,
-		dictionaryItemBatchModify,
 		dictionaryItemCmdRoot,
 		dictionaryItemCreate,
 		dictionaryItemDelete,

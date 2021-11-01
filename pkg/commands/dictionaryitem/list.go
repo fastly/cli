@@ -1,4 +1,4 @@
-package edgedictionaryitem
+package dictionaryitem
 
 import (
 	"io"
@@ -11,27 +11,26 @@ import (
 	"github.com/fastly/go-fastly/v5/fastly"
 )
 
-// DescribeCommand calls the Fastly API to describe a dictionary item.
-type DescribeCommand struct {
+// ListCommand calls the Fastly API to list dictionary items.
+type ListCommand struct {
 	cmd.Base
 	manifest manifest.Data
-	Input    fastly.GetDictionaryItemInput
+	Input    fastly.ListDictionaryItemsInput
 }
 
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
-	var c DescribeCommand
+// NewListCommand returns a usable command registered under the parent.
+func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
+	var c ListCommand
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly edge dictionary item").Alias("get")
+	c.CmdClause = parent.Command("list", "List items in a Fastly edge dictionary")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
-	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, source := c.manifest.ServiceID()
 	if c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, source, out)
@@ -41,7 +40,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
-	dictionary, err := c.Globals.Client.GetDictionaryItem(&c.Input)
+	dictionaries, err := c.Globals.Client.ListDictionaryItems(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID": serviceID,
@@ -49,7 +48,12 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Output(out, "Service ID: %s", c.Input.ServiceID)
-	text.PrintDictionaryItem(out, "", dictionary)
+	text.Output(out, "Service ID: %s\n", c.Input.ServiceID)
+	for i, dictionary := range dictionaries {
+		text.Output(out, "Item: %d/%d", i+1, len(dictionaries))
+		text.PrintDictionaryItem(out, "\t", dictionary)
+		text.Break(out)
+	}
+
 	return nil
 }

@@ -1,4 +1,4 @@
-package edgedictionary_test
+package dictionary_test
 
 import (
 	"bytes"
@@ -342,7 +342,7 @@ func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryIn
 }
 
 // listDictionaryItemsOK mocks the response from fastly.ListDictionaryItems which is primarily used
-// in the fastly-cli.edgedictionaryitem package and will need to be updated here if that call changes
+// in the fastly-cli.dictionaryitem package and will need to be updated here if that call changes
 func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
 	return []*fastly.DictionaryItem{
 		{

@@ -1,4 +1,4 @@
-package edgedictionaryitem
+package dictionaryitem
 
 import (
 	"io"
@@ -11,28 +11,27 @@ import (
 	"github.com/fastly/go-fastly/v5/fastly"
 )
 
-// UpdateCommand calls the Fastly API to update a dictionary item.
-type UpdateCommand struct {
+// DescribeCommand calls the Fastly API to describe a dictionary item.
+type DescribeCommand struct {
 	cmd.Base
 	manifest manifest.Data
-	Input    fastly.UpdateDictionaryItemInput
+	Input    fastly.GetDictionaryItemInput
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
-	var c UpdateCommand
+// NewDescribeCommand returns a usable command registered under the parent.
+func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
+	var c DescribeCommand
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause = parent.Command("update", "Update or insert an item on a Fastly edge dictionary")
+	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly edge dictionary item").Alias("get")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
 	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
-	c.CmdClause.Flag("value", "Dictionary item value").Required().StringVar(&c.Input.ItemValue)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, source := c.manifest.ServiceID()
 	if c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, source, out)
@@ -42,14 +41,15 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
-	d, err := c.Globals.Client.UpdateDictionaryItem(&c.Input)
+	dictionary, err := c.Globals.Client.GetDictionaryItem(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			"Service ID": serviceID,
+		})
 		return err
 	}
 
-	text.Success(out, "Updated dictionary item (service %s)", d.ServiceID)
-	text.Break(out)
-	text.PrintDictionaryItem(out, "", d)
+	text.Output(out, "Service ID: %s", c.Input.ServiceID)
+	text.PrintDictionaryItem(out, "", dictionary)
 	return nil
 }

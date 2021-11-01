@@ -110,7 +110,7 @@ backend
 compute
 configure
 dictionary
-dictionaryitem
+dictionary-item
 domain
 healthcheck
 ip-list
@@ -198,7 +198,7 @@ COMMANDS
   compute          Manage Compute@Edge packages
   configure        Configure the Fastly CLI
   dictionary       Manipulate Fastly edge dictionaries
-  dictionaryitem   Manipulate Fastly edge dictionary items
+  dictionary-item  Manipulate Fastly edge dictionary items
   domain           Manipulate Fastly service version domains
   healthcheck      Manipulate Fastly service version healthchecks
   ip-list          List Fastly's public IPs
@@ -724,16 +724,7 @@ COMMANDS
         --write-only=WRITE-ONLY  Whether to mark this dictionary as write-only.
                                  Can be true or false (defaults to false)
 
-  dictionaryitem batchmodify --dictionary-id=DICTIONARY-ID --file=FILE [<flags>]
-    Update multiple items in a Fastly edge dictionary
-
-    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
-                                 then fastly.toml)
-        --dictionary-id=DICTIONARY-ID
-                                 Dictionary ID
-        --file=FILE              Batch update json file
-
-  dictionaryitem create --dictionary-id=DICTIONARY-ID --key=KEY --value=VALUE [<flags>]
+  dictionary-item create --dictionary-id=DICTIONARY-ID --key=KEY --value=VALUE [<flags>]
     Create a new item on a Fastly edge dictionary
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
@@ -743,7 +734,7 @@ COMMANDS
         --key=KEY                Dictionary item key
         --value=VALUE            Dictionary item value
 
-  dictionaryitem delete --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
+  dictionary-item delete --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
     Delete an item from a Fastly edge dictionary
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
@@ -752,7 +743,7 @@ COMMANDS
                                  Dictionary ID
         --key=KEY                Dictionary item key
 
-  dictionaryitem describe --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
+  dictionary-item describe --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
     Show detailed information about a Fastly edge dictionary item
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
@@ -761,7 +752,7 @@ COMMANDS
                                  Dictionary ID
         --key=KEY                Dictionary item key
 
-  dictionaryitem list --dictionary-id=DICTIONARY-ID [<flags>]
+  dictionary-item list --dictionary-id=DICTIONARY-ID [<flags>]
     List items in a Fastly edge dictionary
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
@@ -769,14 +760,15 @@ COMMANDS
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
 
-  dictionaryitem update --dictionary-id=DICTIONARY-ID --key=KEY --value=VALUE [<flags>]
+  dictionary-item update --dictionary-id=DICTIONARY-ID [<flags>]
     Update or insert an item on a Fastly edge dictionary
 
-    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
-                                 then fastly.toml)
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
+        --file=FILE              Batch update json file
         --key=KEY                Dictionary item key
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
         --value=VALUE            Dictionary item value
 
   domain create --name=NAME --version=VERSION [<flags>]
