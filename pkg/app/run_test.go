@@ -592,7 +592,7 @@ COMMANDS
         --domain=DOMAIN          The name of the domain associated to the
                                  package
         --name=NAME              Package name
-    -p, --path=PATH              Path to package tar.gz
+    -p, --package=PACKAGE        Path to a package tar.gz
 
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
