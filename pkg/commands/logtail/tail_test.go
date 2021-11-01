@@ -1,4 +1,4 @@
-package logs
+package logtail
 
 import (
 	"net/http"
@@ -33,7 +33,7 @@ func TestAdjustTimes(t *testing.T) {
 			exp: cfg{searchPadding: dur},
 		},
 	} {
-		c := TailCommand{cfg: test.in}
+		c := RootCommand{cfg: test.in}
 		c.adjustTimes()
 		if equal := reflect.DeepEqual(test.exp, c.cfg); !equal {
 			t.Errorf("#%d: adjustTimes mismatch: got: %#+v  want: %#+v", i, c.cfg, test.exp)
