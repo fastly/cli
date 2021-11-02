@@ -646,7 +646,7 @@ COMMANDS
     --name=NAME              Package name
     --skip-build             Skip the build step
 
-  compute update --version=VERSION --path=PATH [<flags>]
+  compute update --version=VERSION --package=PACKAGE [<flags>]
     Update a package on a Fastly Compute@Edge service version
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
@@ -655,12 +655,12 @@ COMMANDS
                                  version
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
-    -p, --path=PATH              Path to package tar.gz
+    -p, --package=PACKAGE        Path to a package tar.gz
 
-  compute validate --path=PATH
+  compute validate --package=PACKAGE
     Validate a Compute@Edge package
 
-    -p, --path=PATH  Path to package tar.gz
+    -p, --package=PACKAGE  Path to a package tar.gz
 
   configure [<flags>]
     Configure the Fastly CLI

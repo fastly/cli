@@ -17,7 +17,7 @@ func NewValidateCommand(parent cmd.Registerer, globals *config.Data) *ValidateCo
 	var c ValidateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("validate", "Validate a Compute@Edge package")
-	c.CmdClause.Flag("path", "Path to package tar.gz").Required().Short('p').StringVar(&c.path)
+	c.CmdClause.Flag("package", "Path to a package tar.gz").Required().Short('p').StringVar(&c.path)
 	return &c
 }
 
