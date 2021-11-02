@@ -231,8 +231,8 @@ SUBCOMMANDS
     Create a Fastly service
 
     -n, --name=NAME        Service name
-        --type=wasm        Service type. Can be one of "wasm" or "vcl", defaults
-                           to "wasm".
+        --type=vcl         Service type. Can be one of "wasm" or "vcl", defaults
+                           to "vcl".
         --comment=COMMENT  Human-readable comment
 
   service delete [<flags>]
@@ -3980,8 +3980,8 @@ COMMANDS
     Create a Fastly service
 
     -n, --name=NAME        Service name
-        --type=wasm        Service type. Can be one of "wasm" or "vcl", defaults
-                           to "wasm".
+        --type=vcl         Service type. Can be one of "wasm" or "vcl", defaults
+                           to "vcl".
         --comment=COMMENT  Human-readable comment
 
   service delete [<flags>]

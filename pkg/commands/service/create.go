@@ -21,7 +21,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	c.Globals = globals
 	c.CmdClause = parent.Command("create", "Create a Fastly service").Alias("add")
 	c.CmdClause.Flag("name", "Service name").Short('n').Required().StringVar(&c.Input.Name)
-	c.CmdClause.Flag("type", `Service type. Can be one of "wasm" or "vcl", defaults to "wasm".`).Default("wasm").EnumVar(&c.Input.Type, "wasm", "vcl")
+	c.CmdClause.Flag("type", `Service type. Can be one of "wasm" or "vcl", defaults to "vcl".`).Default("vcl").EnumVar(&c.Input.Type, "wasm", "vcl")
 	c.CmdClause.Flag("comment", "Human-readable comment").StringVar(&c.Input.Comment)
 	return &c
 }
