@@ -1,5 +1,17 @@
 # Changelog
 
+## [v1.0.0](https://github.com/fastly/cli/releases/tag/v1.0.0) (2021-11-02)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v0.43.0...v1.0.0)
+
+**Changed:**
+
+* Use `EnumsVar` for `auth-token --scope` [#447](https://github.com/fastly/cli/pull/447)
+* Rename `logs tail` to `log-tail` [#456](https://github.com/fastly/cli/pull/456)
+* Rename `dictionaryitem` to `dictionary-item` [#459](https://github.com/fastly/cli/pull/459)
+* Rename `fastly compute ... --path` flags [#460](https://github.com/fastly/cli/pull/460)
+* Rename `--force` to `--skip-verification` [#461](https://github.com/fastly/cli/pull/461)
+
 ## [v0.43.0](https://github.com/fastly/cli/releases/tag/v0.43.0) (2021-11-01)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.42.0...v0.43.0)
