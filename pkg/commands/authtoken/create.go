@@ -14,6 +14,9 @@ import (
 	"github.com/fastly/kingpin"
 )
 
+// https://developer.fastly.com/reference/api/auth/#scopes
+var Scopes = []string{"global", "purge_select", "purge_all", "global:read"}
+
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
 	var c CreateCommand
@@ -38,7 +41,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	// value to a space-delimited value.
 	c.CmdClause.Flag("expires", "Time-stamp (UTC) of when the token will expire").HintOptions("2016-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expires)
 	c.CmdClause.Flag("name", "Name of the token").StringVar(&c.name)
-	c.CmdClause.Flag("scope", "A comma-separated list of authorization scope").HintOptions("global", "purge_select", "purge_all", "global:read").StringsVar(&c.scope, kingpin.Separator(","))
+	c.CmdClause.Flag("scope", "Authorization scope (repeat flag per scope)").HintOptions(Scopes...).EnumsVar(&c.scope, Scopes...)
 	c.CmdClause.Flag("services", "A comma-separated list of alphanumeric strings identifying services (default: access to all services)").StringsVar(&c.services, kingpin.Separator(","))
 	return &c
 }
@@ -93,17 +96,6 @@ func (c *CreateCommand) constructInput() *fastly.CreateTokenInput {
 		input.Name = c.name
 	}
 	if len(c.scope) > 0 {
-		// TODO: Consider validating the input is a valid scope. We could do this
-		// with Kingpin's use of `EnumVar` but we've had to settle for `StringsVar`
-		// with `HintOptions` because enum variant would fail when given a list of
-		// scopes (which could all be valid scopes individually).
-		//
-		// For now, if the user ignores the `HintOptions` and gives a scope such as
-		// 'foobar' (which would be invalid), then the API itself will reject the
-		// request and the error bubbled back to our Exec caller to handle.
-		//
-		// UPDATE: We could try using `EnumsVar` which would then allow setting the
-		// same flag multiple times. For example: --scope global --scope purge_select.
 		input.Scope = fastly.TokenScope(strings.Join(c.scope, " "))
 	}
 	if len(c.services) > 0 {
