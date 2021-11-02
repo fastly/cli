@@ -52,11 +52,11 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
-	c.CmdClause.Flag("force", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
+	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
 
 	return &c
 }

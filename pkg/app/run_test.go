@@ -231,8 +231,8 @@ SUBCOMMANDS
     Create a Fastly service
 
     -n, --name=NAME        Service name
-        --type=wasm        Service type. Can be one of "wasm" or "vcl", defaults
-                           to "wasm".
+        --type=vcl         Service type. Can be one of "wasm" or "vcl", defaults
+                           to "vcl".
         --comment=COMMENT  Human-readable comment
 
   service delete [<flags>]
@@ -576,7 +576,7 @@ COMMANDS
     --name=NAME          Package name
     --language=LANGUAGE  Language type
     --include-source     Include source code in built package
-    --force              Skip verification steps and force build
+    --skip-verification  Skip verification steps and force build
     --timeout=TIMEOUT    Timeout, in seconds, for the build compilation step
 
   compute deploy [<flags>]
@@ -621,7 +621,7 @@ COMMANDS
         --name=NAME              Package name
         --language=LANGUAGE      Language type
         --include-source         Include source code in built package
-        --force                  Skip verification steps and force build
+        --skip-verification      Skip verification steps and force build
         --timeout=TIMEOUT        Timeout, in seconds, for the build compilation
                                  step
         --accept-defaults        Accept default values for all prompts and
@@ -641,11 +641,11 @@ COMMANDS
     --addr="127.0.0.1:7676"  The IPv4 address and port to listen on
     --env=ENV                The environment configuration to use (e.g. stage)
     --file="bin/main.wasm"   The Wasm file to run
-    --force                  Skip verification steps and force build
     --include-source         Include source code in built package
     --language=LANGUAGE      Language type
     --name=NAME              Package name
     --skip-build             Skip the build step
+    --skip-verification      Skip verification steps and force build
 
   compute update --version=VERSION --path=PATH [<flags>]
     Update a package on a Fastly Compute@Edge service version
@@ -3980,8 +3980,8 @@ COMMANDS
     Create a Fastly service
 
     -n, --name=NAME        Service name
-        --type=wasm        Service type. Can be one of "wasm" or "vcl", defaults
-                           to "wasm".
+        --type=vcl         Service type. Can be one of "wasm" or "vcl", defaults
+                           to "vcl".
         --comment=COMMENT  Human-readable comment
 
   service delete [<flags>]

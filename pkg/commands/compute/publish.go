@@ -44,7 +44,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
-	c.CmdClause.Flag("force", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
+	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 
 	// Deploy flags
