@@ -46,18 +46,31 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, cf APIClientFa
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	if c.location || c.display {
-		if c.location {
-			fmt.Printf("\n%s\n\n%s\n", text.Bold("LOCATION"), config.FilePath)
+	if c.location && c.display {
+		fmt.Printf("\n%s\n\n%s\n", text.Bold("LOCATION"), config.FilePath)
+
+		data, err := os.ReadFile(config.FilePath)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
-		if c.display {
-			data, err := os.ReadFile(config.FilePath)
-			if err != nil {
-				c.Globals.ErrLog.Add(err)
-				return err
-			}
-			fmt.Printf("\n%s\n\n%s\n", text.Bold("CONFIG"), string(data))
+		fmt.Printf("\n%s\n\n%s\n", text.Bold("CONFIG"), string(data))
+
+		return nil
+	}
+
+	if c.location {
+		fmt.Println(config.FilePath)
+		return nil
+	}
+
+	if c.display {
+		data, err := os.ReadFile(config.FilePath)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
+		fmt.Println(string(data))
 		return nil
 	}
 
