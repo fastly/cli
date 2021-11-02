@@ -25,7 +25,7 @@ func TestPack(t *testing.T) {
 		// created successfully.
 		{
 			name: "success for directory structure",
-			args: args("compute pack --path ./main.wasm"),
+			args: args("compute pack --wasm-binary ./main.wasm"),
 			manifest: `
 			manifest_version = 2
 			name = "mypackagename"`,
@@ -45,7 +45,7 @@ func TestPack(t *testing.T) {
 		// created successfully when `name` contains whitespace.
 		{
 			name: "success with name containing whitespace",
-			args: args("compute pack --path ./main.wasm"),
+			args: args("compute pack --wasm-binary ./main.wasm"),
 			manifest: `
 			manifest_version = 2
 			name = "another name"`,
@@ -67,11 +67,11 @@ func TestPack(t *testing.T) {
 			name:      "error no path flag",
 			args:      args("compute pack"),
 			manifest:  `name = "precompiled"`,
-			wantError: "error parsing arguments: required flag --path not provided",
+			wantError: "error parsing arguments: required flag --wasm-binary not provided",
 		},
 		{
 			name: "error no path flag value provided",
-			args: args("compute pack --path "),
+			args: args("compute pack --wasm-binary "),
 			manifest: `
 			manifest_version = 2
 			name = "precompiled"`,

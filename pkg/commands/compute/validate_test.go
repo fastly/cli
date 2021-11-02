@@ -15,7 +15,7 @@ func TestValidate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:       "success",
-			Args:       args("compute validate -p pkg/package.tar.gz"),
+			Args:       args("compute validate --package pkg/package.tar.gz"),
 			WantError:  "",
 			WantOutput: "Validated package",
 		},

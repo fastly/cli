@@ -592,28 +592,27 @@ COMMANDS
         --domain=DOMAIN          The name of the domain associated to the
                                  package
         --name=NAME              Package name
-    -p, --path=PATH              Path to package tar.gz
+    -p, --package=PACKAGE        Path to a package tar.gz
 
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
 
-    -n, --name=NAME                Name of package, defaulting to directory name
-                                   of the --path destination
+    -n, --name=NAME                Name of package, falls back to --directory
     -d, --description=DESCRIPTION  Description of the package
+    -p, --directory=DIRECTORY      Destination to write the new package,
+                                   defaulting to the current directory
     -a, --author=AUTHOR ...        Author(s) of the package
     -l, --language=LANGUAGE        Language of the package
     -f, --from=FROM                Git repository URL, or URL referencing a
                                    .zip/.tar.gz file, containing a package
                                    template
-    -p, --path=PATH                Destination to write the new package,
-                                   defaulting to the current directory
         --force                    Skip non-empty directory verification step
                                    and force new project creation
 
-  compute pack --path=PATH
+  compute pack --wasm-binary=WASM-BINARY
     Package a pre-compiled Wasm binary for a Fastly Compute@Edge service
 
-    -p, --path=PATH  Path to a pre-compiled Wasm binary
+    -w, --wasm-binary=WASM-BINARY  Path to a pre-compiled Wasm binary
 
   compute publish [<flags>]
     Build and deploy a Compute@Edge package to a Fastly service
@@ -629,7 +628,7 @@ COMMANDS
         --comment=COMMENT        Human-readable comment
         --domain=DOMAIN          The name of the domain associated to the
                                  package
-    -p, --path=PATH              Path to package tar.gz
+    -p, --package=PACKAGE        Path to a package tar.gz
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --version=VERSION        'latest', 'active', or the number of a specific
@@ -647,7 +646,7 @@ COMMANDS
     --skip-build             Skip the build step
     --skip-verification      Skip verification steps and force build
 
-  compute update --version=VERSION --path=PATH [<flags>]
+  compute update --version=VERSION --package=PACKAGE [<flags>]
     Update a package on a Fastly Compute@Edge service version
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
@@ -656,12 +655,12 @@ COMMANDS
                                  version
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
-    -p, --path=PATH              Path to package tar.gz
+    -p, --package=PACKAGE        Path to a package tar.gz
 
-  compute validate --path=PATH
+  compute validate --package=PACKAGE
     Validate a Compute@Edge package
 
-    -p, --path=PATH  Path to package tar.gz
+    -p, --package=PACKAGE  Path to a package tar.gz
 
   configure [<flags>]
     Configure the Fastly CLI

@@ -44,7 +44,7 @@ func TestUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "package API error",
-			Args: args("compute update -s 123 --version 1 -p pkg/package.tar.gz -t 123 --autoclone"),
+			Args: args("compute update -s 123 --version 1 --package pkg/package.tar.gz -t 123 --autoclone"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -58,7 +58,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "success",
-			Args: args("compute update -s 123 --version 2 -p pkg/package.tar.gz -t 123 --autoclone"),
+			Args: args("compute update -s 123 --version 2 --package pkg/package.tar.gz -t 123 --autoclone"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),

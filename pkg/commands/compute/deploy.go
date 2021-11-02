@@ -68,7 +68,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.Manifest.Flag.Name)
-	c.CmdClause.Flag("path", "Path to package tar.gz").Short('p').StringVar(&c.Path)
+	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Path)
 	return &c
 }
 
@@ -440,7 +440,7 @@ func readManifestFromPackageArchive(data *manifest.Data, pathFlag string, out io
 		return err
 	}
 
-	text.Info(out, "Using fastly.toml within --path archive:\n\t%s", pathFlag)
+	text.Info(out, "Using fastly.toml within --package archive:\n\t%s", pathFlag)
 
 	return nil
 }
