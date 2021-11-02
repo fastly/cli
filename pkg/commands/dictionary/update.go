@@ -1,4 +1,4 @@
-package edgedictionary
+package dictionary
 
 import (
 	"fmt"

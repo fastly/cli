@@ -1,4 +1,4 @@
-package edgedictionaryitem
+package dictionaryitem
 
 import (
 	"io"
