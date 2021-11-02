@@ -1,4 +1,4 @@
-package logs
+package logtail
 
 import (
 	"bufio"
@@ -26,92 +26,38 @@ import (
 	"github.com/tomnomnom/linkheader"
 )
 
-type (
-	// TailCommand represents the CLI subcommand for Log Tailing.
-	TailCommand struct {
-		cmd.Base
-		manifest manifest.Data
-		Input    fastly.CreateManagedLoggingInput
+// RootCommand is the parent command for all subcommands in this package.
+// It should be installed under the primary root command.
+type RootCommand struct {
+	cmd.Base
 
-		cfg cfg
+	Input    fastly.CreateManagedLoggingInput
+	batchCh  chan Batch // send batches to output loop
+	cfg      cfg
+	dieCh    chan struct{} // channel to end output/printing
+	doneCh   chan struct{} // channel to signal we've reached the end of the run
+	hClient  *http.Client  // TODO: this will go away when GET is in go-fastly
+	manifest manifest.Data
+	token    string // TODO: this will go away when GET is in go-fastly
+}
 
-		dieCh   chan struct{} // channel to end output/printing
-		batchCh chan Batch    // send batches to output loop
-		doneCh  chan struct{} // channel to signal we've reached the end of the run
-
-		hClient *http.Client // TODO: this will go away when GET is in go-fastly
-		token   string       // TODO: this will go away when GET is in go-fastly
-	}
-
-	// cfg holds the configuration parameters passed in through
-	// command line arguments.
-	cfg struct {
-		// path is the full path to fetch
-		path string
-
-		// from is how far in the past to start showing logs.
-		from int64
-
-		// to is when to get logs until.
-		to int64
-
-		// sortBuffer is how long to buffer logs from when the cli
-		// receives them to when the cli prints them. It will sort
-		// by RequestID for that buffer period.
-		sortBuffer time.Duration
-		// searchPadding is how much of a window on either side of
-		// from and to to use for searching for the beginning or
-		// through the end timestamps.
-		searchPadding time.Duration
-		// stream specifies which of stdout or stderr or both the
-		// customer wants to consume.
-		// Undefined == both stderr and stdout.
-		stream string
-	}
-
-	// Log defines the message envelope that compute@edge (C@E) wraps the
-	// user messages in.
-	Log struct {
-		// SequenceNum is the message sequence number used to reorder
-		// messages.
-		SequenceNum int `json:"sequence_number"`
-		// RequestTime is the time in microseconds when the request
-		// was received.
-		RequestStart int64 `json:"request_start_us"`
-		// Stream is the C@E stream, either stdout or stderr.
-		Stream string `json:"stream"`
-		// RequestID is a UUID representing individual requests to the
-		// particular Wasm service.
-		RequestID string `json:"id"`
-		// Message is the actual message body the user wants printed.
-		Message string `json:"message"`
-	}
-
-	// Batch encompasses a batch ID and the logs for this batch.
-	Batch struct {
-		ID   string `json:"batch_id"`
-		Logs []Log  `json:"logs"`
-	}
-)
-
-// NewTailCommand returns a usable command registered under the parent.
-func NewTailCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *TailCommand {
-	var c TailCommand
+// NewRootCommand returns a new command registered in the parent.
+func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *RootCommand {
+	var c RootCommand
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause = parent.Command("tail", "Tail Compute@Edge logs")
+	c.CmdClause = parent.Command("log-tail", "Tail Compute@Edge logs")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("from", "From time, in Unix seconds").Int64Var(&c.cfg.from)
 	c.CmdClause.Flag("to", "To time, in Unix seconds").Int64Var(&c.cfg.to)
 	c.CmdClause.Flag("sort-buffer", "Duration of sort buffer for received logs").Default("1s").DurationVar(&c.cfg.sortBuffer)
 	c.CmdClause.Flag("search-padding", "Time beyond from/to to consider in searches").Default("2s").DurationVar(&c.cfg.searchPadding)
 	c.CmdClause.Flag("stream", "Output: stdout, stderr, both (default)").StringVar(&c.cfg.stream)
-
 	return &c
 }
 
-// Exec invokes the application logic for the command.
-func (c *TailCommand) Exec(in io.Reader, out io.Writer) error {
+// Exec implements the command interface.
+func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, source := c.manifest.ServiceID()
 	if c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, source, out)
@@ -157,14 +103,10 @@ func (c *TailCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-//
-// Client
-//
-
 // Tail starts the virtual tail process. Tail fetches data from the eventbuffer
 // API. It hands off the requested logs to the outputloop for the actual
 // printing.
-func (c *TailCommand) tail(out io.Writer) {
+func (c *RootCommand) tail(out io.Writer) {
 	// Start this with --from and --to if set.
 	curWindow := c.cfg.from
 	toWindow := c.cfg.to
@@ -305,7 +247,7 @@ func (c *TailCommand) tail(out io.Writer) {
 
 // adjustTimes adjusts the passed in from and to flags based on the
 // specified padding.
-func (c *TailCommand) adjustTimes() {
+func (c *RootCommand) adjustTimes() {
 	if c.cfg.from != 0 {
 		// Adjust from based on search padding, we want to
 		// look back further.
@@ -319,7 +261,7 @@ func (c *TailCommand) adjustTimes() {
 }
 
 // enableManagedLogging enables managed logging in our API.
-func (c *TailCommand) enableManagedLogging(out io.Writer) error {
+func (c *RootCommand) enableManagedLogging(out io.Writer) error {
 	_, err := c.Globals.Client.CreateManagedLogging(&c.Input)
 	if err != nil && err != fastly.ErrManagedLoggingEnabled {
 		c.Globals.ErrLog.Add(err)
@@ -331,7 +273,7 @@ func (c *TailCommand) enableManagedLogging(out io.Writer) error {
 }
 
 // outputLoop processes the logs out of band from the request/response loop.
-func (c *TailCommand) outputLoop(out io.Writer) {
+func (c *RootCommand) outputLoop(out io.Writer) {
 	type (
 		bufferedLog struct {
 			reqID string
@@ -468,7 +410,7 @@ func (c *TailCommand) outputLoop(out io.Writer) {
 
 // printLogs is a simple printer for Log slices, only printing requested
 // streams.
-func (c *TailCommand) printLogs(out io.Writer, logs []Log) {
+func (c *RootCommand) printLogs(out io.Writer, logs []Log) {
 	if len(logs) > 0 {
 		filtered := filterStream(c.cfg.stream, logs)
 
@@ -479,7 +421,7 @@ func (c *TailCommand) printLogs(out io.Writer, logs []Log) {
 }
 
 // doReq runs the http.Request, returning a http.Response or error.
-func (c *TailCommand) doReq(req *http.Request) (*http.Response, error) {
+func (c *RootCommand) doReq(req *http.Request) (*http.Response, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	req = req.WithContext(ctx)
 	go func() {
@@ -494,9 +436,57 @@ func (c *TailCommand) doReq(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-//
-// Log
-//
+type (
+	// cfg holds the configuration parameters passed in through
+	// command line arguments.
+	cfg struct {
+		// path is the full path to fetch
+		path string
+
+		// from is how far in the past to start showing logs.
+		from int64
+
+		// to is when to get logs until.
+		to int64
+
+		// sortBuffer is how long to buffer logs from when the cli
+		// receives them to when the cli prints them. It will sort
+		// by RequestID for that buffer period.
+		sortBuffer time.Duration
+		// searchPadding is how much of a window on either side of
+		// from and to to use for searching for the beginning or
+		// through the end timestamps.
+		searchPadding time.Duration
+		// stream specifies which of stdout or stderr or both the
+		// customer wants to consume.
+		// Undefined == both stderr and stdout.
+		stream string
+	}
+
+	// Log defines the message envelope that compute@edge (C@E) wraps the
+	// user messages in.
+	Log struct {
+		// SequenceNum is the message sequence number used to reorder
+		// messages.
+		SequenceNum int `json:"sequence_number"`
+		// RequestTime is the time in microseconds when the request
+		// was received.
+		RequestStart int64 `json:"request_start_us"`
+		// Stream is the C@E stream, either stdout or stderr.
+		Stream string `json:"stream"`
+		// RequestID is a UUID representing individual requests to the
+		// particular Wasm service.
+		RequestID string `json:"id"`
+		// Message is the actual message body the user wants printed.
+		Message string `json:"message"`
+	}
+
+	// Batch encompasses a batch ID and the logs for this batch.
+	Batch struct {
+		ID   string `json:"batch_id"`
+		Logs []Log  `json:"logs"`
+	}
+)
 
 // RequestStartFromRaw return a time.Time object representing the
 // RequestStart data.
@@ -515,10 +505,6 @@ func (l *Log) String() string {
 		l.RequestID,
 		l.Message)
 }
-
-//
-// Helpers
-//
 
 // makeNewPath generates a new request path based on current
 // path, window, and batchID.

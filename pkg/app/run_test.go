@@ -114,8 +114,8 @@ dictionary-item
 domain
 healthcheck
 ip-list
+log-tail
 logging
-logs
 pops
 purge
 service
@@ -202,8 +202,8 @@ COMMANDS
   domain           Manipulate Fastly service version domains
   healthcheck      Manipulate Fastly service version healthchecks
   ip-list          List Fastly's public IPs
+  log-tail         Tail Compute@Edge logs
   logging          Manipulate Fastly service version logging endpoints
-  logs             Compute@Edge Log Tailing
   pops             List Fastly datacenters
   purge            Invalidate objects in the Fastly cache
   service          Manipulate Fastly services
@@ -925,6 +925,17 @@ COMMANDS
   ip-list
     List Fastly's public IPs
 
+
+  log-tail [<flags>]
+    Tail Compute@Edge logs
+
+    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
+                                 then fastly.toml)
+        --from=FROM              From time, in Unix seconds
+        --to=TO                  To time, in Unix seconds
+        --sort-buffer=1s         Duration of sort buffer for received logs
+        --search-padding=2s      Time beyond from/to to consider in searches
+        --stream=STREAM          Output: stdout, stderr, both (default)
 
   logging azureblob create --name=NAME --version=VERSION --container=CONTAINER --account-name=ACCOUNT-NAME --sas-token=SAS-TOKEN [<flags>]
     Create an Azure Blob Storage logging endpoint on a Fastly service version
@@ -3937,17 +3948,6 @@ COMMANDS
                                    should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
-
-  logs tail [<flags>]
-    Tail Compute@Edge logs
-
-    -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
-                                 then fastly.toml)
-        --from=FROM              From time, in Unix seconds
-        --to=TO                  To time, in Unix seconds
-        --sort-buffer=1s         Duration of sort buffer for received logs
-        --search-padding=2s      Time beyond from/to to consider in searches
-        --stream=STREAM          Output: stdout, stderr, both (default)
 
   pops
     List Fastly datacenters

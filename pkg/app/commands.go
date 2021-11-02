@@ -41,7 +41,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/splunk"
 	"github.com/fastly/cli/pkg/commands/logging/sumologic"
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
-	"github.com/fastly/cli/pkg/commands/logs"
+	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/purge"
 	"github.com/fastly/cli/pkg/commands/service"
@@ -124,6 +124,7 @@ func defineCommands(
 	healthcheckList := healthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, globals, data)
 	healthcheckUpdate := healthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, globals, data)
 	ipCmdRoot := ip.NewRootCommand(app, globals)
+	logtailCmdRoot := logtail.NewRootCommand(app, globals, data)
 	loggingCmdRoot := logging.NewRootCommand(app, globals)
 	loggingAzureblobCmdRoot := azureblob.NewRootCommand(loggingCmdRoot.CmdClause, globals)
 	loggingAzureblobCreate := azureblob.NewCreateCommand(loggingAzureblobCmdRoot.CmdClause, globals, data)
@@ -281,8 +282,6 @@ func defineCommands(
 	loggingSyslogDescribe := syslog.NewDescribeCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
-	logsCmdRoot := logs.NewRootCommand(app, globals)
-	logsTail := logs.NewTailCommand(logsCmdRoot.CmdClause, globals, data)
 	popCmdRoot := pop.NewRootCommand(app, globals)
 	purgeCmdRoot := purge.NewRootCommand(app, globals, data)
 	serviceCmdRoot := service.NewRootCommand(app, globals)
@@ -387,6 +386,7 @@ func defineCommands(
 		healthcheckList,
 		healthcheckUpdate,
 		ipCmdRoot,
+		logtailCmdRoot,
 		loggingAzureblobCmdRoot,
 		loggingAzureblobCreate,
 		loggingAzureblobDelete,
@@ -544,8 +544,6 @@ func defineCommands(
 		loggingSyslogDescribe,
 		loggingSyslogList,
 		loggingSyslogUpdate,
-		logsCmdRoot,
-		logsTail,
 		popCmdRoot,
 		purgeCmdRoot,
 		serviceCmdRoot,
