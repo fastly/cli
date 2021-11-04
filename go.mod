@@ -36,6 +36,7 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
+	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/jsonapi v0.0.0-20201022225600-f822737867f6 // indirect
