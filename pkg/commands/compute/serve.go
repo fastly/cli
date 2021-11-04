@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
+	"github.com/bep/debounce"
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
@@ -19,6 +22,7 @@ import (
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fsnotify/fsnotify"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -70,10 +74,6 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 
 // Exec implements the command interface.
 func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	if c.watch {
-		// go watchFiles()
-	}
-
 	if !c.skipBuild {
 		err = c.Build(in, out)
 		if err != nil {
@@ -91,7 +91,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Running local server...")
 	progress.Done()
 
-	err = local(bin, c.file, progress, out, c.addr, c.env.Value, c.Globals.Verbose())
+	err = local(bin, c.file, c.addr, c.env.Value, c.watch, c.Globals.Verbose(), progress, out)
 	if err != nil {
 		if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
 			text.Break(out)
@@ -328,7 +328,7 @@ func setBinPerms(bin string) error {
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin string, file string, progress text.Progress, out io.Writer, addr string, env string, verbose bool) error {
+func local(bin, file, addr, env string, watch, verbose bool, progress text.Progress, out io.Writer) error {
 	if env != "" {
 		env = "." + env
 	}
@@ -356,6 +356,10 @@ func local(bin string, file string, progress text.Progress, out io.Writer, addr 
 
 	text.Break(out)
 
+	if watch {
+		go watchFiles(cmd, out)
+	}
+
 	if err := cmd.Exec(); err != nil {
 		e := strings.TrimSpace(err.Error())
 		if strings.Contains(e, "interrupt") {
@@ -368,4 +372,44 @@ func local(bin string, file string, progress text.Progress, out io.Writer, addr 
 	}
 
 	return nil
+}
+
+// watchFiles watches the 'src' directory and restarts the viceroy executable
+// when changes are detected.
+func watchFiles(cmd fstexec.Streaming, out io.Writer) {
+	debounced := debounce.New(1 * time.Second)
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case _, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+				debounced(eventTriggered)
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				text.Output(out, "error event while watching files: %v", err)
+			}
+		}
+	}()
+
+	err = watcher.Add("src")
+	if err != nil {
+		log.Fatal(err)
+	}
+	<-done
+}
+
+func eventTriggered() {
+	fmt.Println("event received!")
 }
