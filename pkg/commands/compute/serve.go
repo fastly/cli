@@ -29,12 +29,13 @@ type ServeCommand struct {
 	build            *BuildCommand
 	env              cmd.OptionalString
 	file             string
-	force            cmd.OptionalBool
 	includeSrc       cmd.OptionalBool
 	lang             cmd.OptionalString
 	manifest         manifest.Data
 	name             cmd.OptionalString
 	skipBuild        bool
+	skipVerification cmd.OptionalBool
+	timeout          cmd.OptionalInt
 	viceroyVersioner update.Versioner
 }
 
@@ -56,7 +57,8 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
-	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.force.Set).BoolVar(&c.force.Value)
+	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
+	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 
 	return &c
 }
@@ -65,17 +67,20 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if !c.skipBuild {
 		// Reset the fields on the BuildCommand based on ServeCommand values.
-		if c.name.WasSet {
-			c.build.PackageName = c.name.Value
+		if c.includeSrc.WasSet {
+			c.build.IncludeSrc = c.includeSrc.Value
 		}
 		if c.lang.WasSet {
 			c.build.Lang = c.lang.Value
 		}
-		if c.includeSrc.WasSet {
-			c.build.IncludeSrc = c.includeSrc.Value
+		if c.name.WasSet {
+			c.build.PackageName = c.name.Value
 		}
-		if c.force.WasSet {
-			c.build.Force = c.force.Value
+		if c.skipVerification.WasSet {
+			c.build.SkipVerification = c.skipVerification.Value
+		}
+		if c.timeout.WasSet {
+			c.build.Timeout = c.timeout.Value
 		}
 
 		err = c.build.Exec(in, out)
