@@ -24,19 +24,23 @@ import (
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
 	cmd.Base
-
-	addr             string
+	manifest         manifest.Data
 	build            *BuildCommand
-	env              cmd.OptionalString
-	file             string
+	viceroyVersioner update.Versioner
+
+	// Build fields
 	includeSrc       cmd.OptionalBool
 	lang             cmd.OptionalString
-	manifest         manifest.Data
 	name             cmd.OptionalString
-	skipBuild        bool
 	skipVerification cmd.OptionalBool
 	timeout          cmd.OptionalInt
-	viceroyVersioner update.Versioner
+
+	// Serve fields
+	addr      string
+	env       cmd.OptionalString
+	file      string
+	skipBuild bool
+	watch     bool
 }
 
 // NewServeCommand returns a usable command registered under the parent.

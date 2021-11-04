@@ -17,9 +17,9 @@ type PublishCommand struct {
 	deploy   *DeployCommand
 
 	// Build fields
-	name             cmd.OptionalString
-	lang             cmd.OptionalString
 	includeSrc       cmd.OptionalBool
+	lang             cmd.OptionalString
+	name             cmd.OptionalString
 	skipVerification cmd.OptionalBool
 	timeout          cmd.OptionalInt
 
