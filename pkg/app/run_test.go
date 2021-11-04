@@ -573,9 +573,9 @@ COMMANDS
   compute build [<flags>]
     Build a Compute@Edge package locally
 
-    --name=NAME          Package name
-    --language=LANGUAGE  Language type
     --include-source     Include source code in built package
+    --language=LANGUAGE  Language type
+    --name=NAME          Package name
     --skip-verification  Skip verification steps and force build
     --timeout=TIMEOUT    Timeout, in seconds, for the build compilation step
 

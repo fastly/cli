@@ -56,9 +56,9 @@ func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *conf
 
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
-	c.CmdClause.Flag("name", "Package name").StringVar(&c.PackageName)
-	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.IncludeSrc)
+	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
+	c.CmdClause.Flag("name", "Package name").StringVar(&c.PackageName)
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.Force)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Timeout)
 
