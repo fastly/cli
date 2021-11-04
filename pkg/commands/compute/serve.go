@@ -70,30 +70,15 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 
 // Exec implements the command interface.
 func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	if !c.skipBuild {
-		// Reset the fields on the BuildCommand based on ServeCommand values.
-		if c.includeSrc.WasSet {
-			c.build.IncludeSrc = c.includeSrc.Value
-		}
-		if c.lang.WasSet {
-			c.build.Lang = c.lang.Value
-		}
-		if c.name.WasSet {
-			c.build.PackageName = c.name.Value
-		}
-		if c.skipVerification.WasSet {
-			c.build.SkipVerification = c.skipVerification.Value
-		}
-		if c.timeout.WasSet {
-			c.build.Timeout = c.timeout.Value
-		}
+	if c.watch {
+		// go watchFiles()
+	}
 
-		err = c.build.Exec(in, out)
+	if !c.skipBuild {
+		err = c.Build(in, out)
 		if err != nil {
 			return err
 		}
-
-		text.Break(out)
 	}
 
 	progress := text.NewProgress(out, c.Globals.Verbose())
@@ -115,6 +100,35 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 		return err
 	}
+
+	return nil
+}
+
+// Build constructs and executes the build logic.
+func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
+	// Reset the fields on the BuildCommand based on ServeCommand values.
+	if c.includeSrc.WasSet {
+		c.build.IncludeSrc = c.includeSrc.Value
+	}
+	if c.lang.WasSet {
+		c.build.Lang = c.lang.Value
+	}
+	if c.name.WasSet {
+		c.build.PackageName = c.name.Value
+	}
+	if c.skipVerification.WasSet {
+		c.build.SkipVerification = c.skipVerification.Value
+	}
+	if c.timeout.WasSet {
+		c.build.Timeout = c.timeout.Value
+	}
+
+	err := c.build.Exec(in, out)
+	if err != nil {
+		return err
+	}
+
+	text.Break(out)
 
 	return nil
 }
