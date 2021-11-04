@@ -54,8 +54,8 @@ func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *conf
 	c.client = client
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
 
-	// NOTE: when updating these flags, be sure to update the composite command:
-	// `compute publish`.
+	// NOTE: when updating these flags, be sure to update the composite commands:
+	// `compute publish` and `compute serve`.
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.PackageName)
