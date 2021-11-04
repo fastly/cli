@@ -645,6 +645,7 @@ COMMANDS
     --name=NAME              Package name
     --skip-build             Skip the build step
     --skip-verification      Skip verification steps and force build
+    --timeout=TIMEOUT        Timeout, in seconds, for the build compilation step
 
   compute update --version=VERSION --package=PACKAGE [<flags>]
     Update a package on a Fastly Compute@Edge service version
