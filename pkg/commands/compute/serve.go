@@ -94,7 +94,6 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	err = local(bin, c.file, c.addr, c.env.Value, c.watch, c.Globals.Verbose(), progress, out)
 	if err != nil {
 		if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
-			text.Break(out)
 			text.Info(out, "Local server stopped")
 			return nil
 		}
@@ -346,9 +345,9 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 		text.Output(out, "Manifest: %s", manifest)
 	}
 
-	cmd := fstexec.Streaming{
-		Command: bin,
+	cmd := &fstexec.Streaming{
 		Args:    args,
+		Command: bin,
 		Env:     os.Environ(),
 		Output:  out,
 	}
@@ -376,8 +375,16 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 
 // watchFiles watches the 'src' directory and restarts the viceroy executable
 // when changes are detected.
-func watchFiles(cmd fstexec.Streaming, out io.Writer) {
+func watchFiles(cmd *fstexec.Streaming, out io.Writer) {
 	debounced := debounce.New(1 * time.Second)
+	eventHandler := func() {
+		text.Info(out, "File system modified: restarting local server")
+
+		err := cmd.Signal(os.Kill)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -393,7 +400,7 @@ func watchFiles(cmd fstexec.Streaming, out io.Writer) {
 				if !ok {
 					return
 				}
-				debounced(eventTriggered)
+				debounced(eventHandler)
 			case err, ok := <-watcher.Errors:
 				if !ok {
 					return
@@ -408,8 +415,4 @@ func watchFiles(cmd fstexec.Streaming, out io.Writer) {
 		log.Fatal(err)
 	}
 	<-done
-}
-
-func eventTriggered() {
-	fmt.Println("event received!")
 }

@@ -19,12 +19,12 @@ import (
 // compute commands can use this to standardize the flow control for each
 // compiler toolchain.
 type Streaming struct {
-	Command string
 	Args    []string
+	Command string
 	Env     []string
 	Output  io.Writer
+	Process *os.Process
 	Timeout time.Duration
-	process *os.Process
 }
 
 // MonitorSignals spawns a goroutine that configures signal handling so that
@@ -55,7 +55,7 @@ func monitorSignals(s *Streaming) {
 // Exec executes the compiler command and pipes the child process stdout and
 // stderr output to the supplied io.Writer, it waits for the command to exit
 // cleanly or returns an error.
-func (s Streaming) Exec() error {
+func (s *Streaming) Exec() error {
 	// Construct the command with given arguments and environment.
 	var cmd *exec.Cmd
 	if s.Timeout > 0 {
@@ -75,16 +75,23 @@ func (s Streaming) Exec() error {
 	}
 	cmd.Env = append(os.Environ(), s.Env...)
 
-	// Store off Process so it can be killed by signals
-	//lint:ignore SA4005 because it doesn't fail on macOS but does when run in CI.
-	s.process = cmd.Process
-
 	// Pipe the child process stdout and stderr to our own output writer.
 	var stderrBuf bytes.Buffer
 	cmd.Stdout = s.Output
 	cmd.Stderr = io.MultiWriter(s.Output, &stderrBuf)
 
-	if err := cmd.Run(); err != nil {
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	// Store off os.Process so it can be killed by signal.
+	//
+	// NOTE: cmd.Process is nil until exec.Start() returns successfully.
+	//
+	//lint:ignore SA4005 because it doesn't fail on macOS but does when run in CI.
+	s.Process = cmd.Process
+
+	if err := cmd.Wait(); err != nil {
 		var ctx string
 		if stderrBuf.Len() > 0 {
 			ctx = fmt.Sprintf(":\n%s", strings.TrimSpace(stderrBuf.String()))
@@ -98,9 +105,9 @@ func (s Streaming) Exec() error {
 }
 
 // Signal enables spawned subprocess to accept given signal.
-func (s Streaming) Signal(signal os.Signal) error {
-	if s.process != nil {
-		err := s.process.Signal(signal)
+func (s *Streaming) Signal(signal os.Signal) error {
+	if s.Process != nil {
+		err := s.Process.Signal(signal)
 		if err != nil {
 			return err
 		}
