@@ -101,8 +101,9 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			if err != errors.ErrViceroyRestart {
 				if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
 					text.Info(out, "Local server stopped")
+					return nil
 				}
-				break
+				return err
 			}
 
 			// Before restarting Viceroy we should rebuild.
@@ -112,8 +113,6 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 		}
 	}
-
-	return nil
 }
 
 // Build constructs and executes the build logic.
@@ -359,10 +358,11 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 	}
 
 	cmd := &fstexec.Streaming{
-		Args:    args,
-		Command: bin,
-		Env:     os.Environ(),
-		Output:  out,
+		Args:     args,
+		Command:  bin,
+		Env:      os.Environ(),
+		Output:   out,
+		SignalCh: make(chan os.Signal, 1),
 	}
 	cmd.MonitorSignals()
 
@@ -381,6 +381,13 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 		if strings.Contains(e, "killed") {
 			select {
 			case <-restart:
+				// NOTE: If we don't tell the signal monitoring channel to close, then
+				// when we restart the viceroy binary we'll end up with N number of
+				// listeners, and this will result in a "os: process already finished"
+				// error when we do finally come to stop the serve command using the
+				// Ctrl-C key, depending on how often the user makes file modifications
+				// this could end up exhausting resources, so best to do a clean-up.
+				// cmd.SignalCh <- syscall.SIGTERM
 				return errors.ErrViceroyRestart
 			case <-time.After(1 * time.Second):
 				return errors.ErrSignalKilled
@@ -405,6 +412,7 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 	debounced := debounce.New(1 * time.Second)
 	eventHandler := func() {
 		text.Info(out, "File system modified: restarting local server")
+		text.Break(out)
 
 		// NOTE: If we don't force watcher.Close() by pushing true into done
 		// channel, then after one restart of the viceroy binary we'll discover we
@@ -414,7 +422,20 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 		// has indeed been 'killed'.
 		done <- true
 
-		fmt.Printf("Kill process: %+v\n", cmd.Process.Pid)
+		fmt.Printf("\nKill process: %+v\n", cmd.Process.Pid)
+
+		// NOTE: We can't just send `true` to the restart channel (which will not
+		// only cause the signal listener to be closed but will also initiate the
+		// process to be killed) as doing so will cause a deadlock. We need to kill
+		// the process here to cause the `cmd.Exec()` from within `local()` to
+		// finish and subsequently the termination error to be handled, where we'll
+		// then be able to close the signal listener and return a
+		// ErrViceroyRestart error to trigger the restart logic.
+		//
+		// The downside here is that we've already killed the viceroy process and
+		// so when we stop the signal listener, itself will try to kill the process
+		// and discover it has already been killed and return an error to say:
+		// `os: process already finished`.
 		err := cmd.Signal(os.Kill)
 		if err != nil {
 			log.Fatal(err)
