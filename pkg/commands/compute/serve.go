@@ -376,6 +376,12 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 // watchFiles watches the 'src' directory and restarts the viceroy executable
 // when changes are detected.
 func watchFiles(cmd *fstexec.Streaming, out io.Writer) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+
 	debounced := debounce.New(1 * time.Second)
 	eventHandler := func() {
 		text.Info(out, "File system modified: restarting local server")
@@ -385,12 +391,6 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer) {
 			log.Fatal(err)
 		}
 	}
-
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer watcher.Close()
 
 	done := make(chan bool)
 	go func() {
