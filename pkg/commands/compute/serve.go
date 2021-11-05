@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/bep/debounce"
@@ -387,7 +388,7 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 				// error when we do finally come to stop the serve command using the
 				// Ctrl-C key, depending on how often the user makes file modifications
 				// this could end up exhausting resources, so best to do a clean-up.
-				// cmd.SignalCh <- syscall.SIGTERM
+				cmd.SignalCh <- syscall.SIGTERM
 				return errors.ErrViceroyRestart
 			case <-time.After(1 * time.Second):
 				return errors.ErrSignalKilled
@@ -422,8 +423,6 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 		// has indeed been 'killed'.
 		done <- true
 
-		fmt.Printf("\nKill process: %+v\n", cmd.Process.Pid)
-
 		// NOTE: We can't just send `true` to the restart channel (which will not
 		// only cause the signal listener to be closed but will also initiate the
 		// process to be killed) as doing so will cause a deadlock. We need to kill
@@ -435,7 +434,9 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 		// The downside here is that we've already killed the viceroy process and
 		// so when we stop the signal listener, itself will try to kill the process
 		// and discover it has already been killed and return an error to say:
-		// `os: process already finished`.
+		// `os: process already finished`. This is why inside `MonitorSignalsAsync`
+		// we don't do error handling when killing the process as it could well be
+		// killed already when a user is doing local development with --watch flag.
 		err := cmd.Signal(os.Kill)
 		if err != nil {
 			log.Fatal(err)

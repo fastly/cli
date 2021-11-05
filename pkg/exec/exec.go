@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -19,14 +18,13 @@ import (
 // compute commands can use this to standardize the flow control for each
 // compiler toolchain.
 type Streaming struct {
-	Args         []string
-	Command      string
-	Env          []string
-	Output       io.Writer
-	Process      *os.Process
-	ProcessState *os.ProcessState
-	SignalCh     chan os.Signal
-	Timeout      time.Duration
+	Args     []string
+	Command  string
+	Env      []string
+	Output   io.Writer
+	Process  *os.Process
+	SignalCh chan os.Signal
+	Timeout  time.Duration
 }
 
 // MonitorSignals spawns a goroutine that configures signal handling so that
@@ -44,17 +42,14 @@ func (s *Streaming) MonitorSignalsAsync() {
 	signal.Notify(s.SignalCh, signals...)
 
 	<-s.SignalCh
-	fmt.Printf("\n\n%s: %+v\n\n", "clean up signal listeners for", s.Process.Pid)
 	signal.Stop(s.SignalCh)
 
-	// if s.ProcessState != nil {
-	// 	fmt.Printf("\n\n%+v\n\n", s.ProcessState)
-	// }
-
-	err := s.Signal(os.Kill)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// NOTE: We don't do error handling here because the user might be doing local
+	// development with the --watch flag and that workflow will have already
+	// killed the process. The reason this line still exists is for users running
+	// their application locally without the --watch flag and who then execute
+	// Ctrl-C to kill the process.
+	s.Signal(os.Kill)
 }
 
 // Exec executes the compiler command and pipes the child process stdout and
@@ -96,11 +91,7 @@ func (s *Streaming) Exec() error {
 	//lint:ignore SA4005 because it doesn't fail on macOS but does when run in CI.
 	s.Process = cmd.Process
 
-	fmt.Printf("\nStart process: %+v\n", s.Process.Pid)
-
 	if err := cmd.Wait(); err != nil {
-		// s.ProcessState = cmd.ProcessState
-
 		var ctx string
 		if stderrBuf.Len() > 0 {
 			ctx = fmt.Sprintf(":\n%s", strings.TrimSpace(stderrBuf.String()))
