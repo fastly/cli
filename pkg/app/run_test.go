@@ -646,7 +646,8 @@ COMMANDS
     --skip-build             Skip the build step
     --skip-verification      Skip verification steps and force build
     --timeout=TIMEOUT        Timeout, in seconds, for the build compilation step
-    --watch                  Watch for file changes and restart local server
+    --watch                  Watch for file changes, then rebuild project and
+                             restart local server
 
   compute update --version=VERSION --package=PACKAGE [<flags>]
     Update a package on a Fastly Compute@Edge service version
