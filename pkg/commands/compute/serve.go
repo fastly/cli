@@ -91,13 +91,14 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Running local server...")
 	progress.Done()
 
-	err = local(bin, c.file, c.addr, c.env.Value, c.watch, c.Globals.Verbose(), progress, out)
-	if err != nil {
-		if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
-			text.Info(out, "Local server stopped")
-			return nil
+	for {
+		err = local(bin, c.file, c.addr, c.env.Value, c.watch, c.Globals.Verbose(), progress, out)
+		if err != nil {
+			if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
+				text.Info(out, "Local server stopped")
+				break
+			}
 		}
-		return err
 	}
 
 	return nil
@@ -355,8 +356,9 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 
 	text.Break(out)
 
+	restart := make(chan bool)
 	if watch {
-		go watchFiles(cmd, out)
+		go watchFiles(cmd, out, restart)
 	}
 
 	if err := cmd.Exec(); err != nil {
@@ -365,7 +367,12 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 			return errors.ErrSignalInterrupt
 		}
 		if strings.Contains(e, "killed") {
-			return errors.ErrSignalKilled
+			select {
+			case <-restart:
+				return errors.ErrViceroyRestart
+			case <-time.After(100 * time.Millisecond):
+				return errors.ErrSignalKilled
+			}
 		}
 		return err
 	}
@@ -375,7 +382,7 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 
 // watchFiles watches the 'src' directory and restarts the viceroy executable
 // when changes are detected.
-func watchFiles(cmd *fstexec.Streaming, out io.Writer) {
+func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -386,10 +393,14 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer) {
 	eventHandler := func() {
 		text.Info(out, "File system modified: restarting local server")
 
+		// TODO: Should we force watcher.Close() by pushing true into done channel?
+
 		err := cmd.Signal(os.Kill)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		restart <- true
 	}
 
 	done := make(chan bool)
