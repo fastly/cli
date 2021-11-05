@@ -60,7 +60,7 @@ func TestPublishFlagDivergence(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(expect, have) {
-		t.Fatalf("the flags between build and serve don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
+		t.Fatalf("the flags between build/deploy and publish don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
 	}
 }
 
