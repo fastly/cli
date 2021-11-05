@@ -12,6 +12,15 @@ var ErrSignalKilled = fmt.Errorf("a SIGTERM was received")
 // file modification noticed while running `compute serve --watch`.
 var ErrViceroyRestart = fmt.Errorf("a RESTART was initiated")
 
+// ErrIncompatibleServeFlags means no --skip-build can't be used with --watch
+// because it defeats the purpose of --watch which is designed to restart
+// Viceroy whenever changes are detected (those changes would not be seen if we
+// allowed --skip-build with --watch).
+var ErrIncompatibleServeFlags = RemediationError{
+	Inner:       fmt.Errorf("--skip-build shouldn't be used with --watch"),
+	Remediation: ComputeServeRemediation,
+}
+
 // ErrNoToken means no --token has been provided.
 var ErrNoToken = RemediationError{
 	Inner:       fmt.Errorf("no token provided"),

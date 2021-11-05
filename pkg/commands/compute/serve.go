@@ -67,13 +67,17 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
-	c.CmdClause.Flag("watch", "Watch for file changes and restart local server").BoolVar(&c.watch)
+	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
 
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	if c.skipBuild && c.watch {
+		return errors.ErrIncompatibleServeFlags
+	}
+
 	if !c.skipBuild {
 		err = c.Build(in, out)
 		if err != nil {
@@ -94,9 +98,17 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	for {
 		err = local(bin, c.file, c.addr, c.env.Value, c.watch, c.Globals.Verbose(), progress, out)
 		if err != nil {
-			if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
-				text.Info(out, "Local server stopped")
+			if err != errors.ErrViceroyRestart {
+				if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
+					text.Info(out, "Local server stopped")
+				}
 				break
+			}
+
+			// Before restarting Viceroy we should rebuild.
+			err = c.Build(in, out)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -370,7 +382,7 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 			select {
 			case <-restart:
 				return errors.ErrViceroyRestart
-			case <-time.After(100 * time.Millisecond):
+			case <-time.After(1 * time.Second):
 				return errors.ErrSignalKilled
 			}
 		}
@@ -389,12 +401,20 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 	}
 	defer watcher.Close()
 
+	done := make(chan bool)
 	debounced := debounce.New(1 * time.Second)
 	eventHandler := func() {
 		text.Info(out, "File system modified: restarting local server")
 
-		// TODO: Should we force watcher.Close() by pushing true into done channel?
+		// NOTE: If we don't force watcher.Close() by pushing true into done
+		// channel, then after one restart of the viceroy binary we'll discover we
+		// get the error: "os: process already finished" which happens because the
+		// watchFiles function is run in a goroutine and so it keeps running with
+		// its copy of the fstexec.Streaming instance, and that is a process that
+		// has indeed been 'killed'.
+		done <- true
 
+		fmt.Printf("Kill process: %+v\n", cmd.Process.Pid)
 		err := cmd.Signal(os.Kill)
 		if err != nil {
 			log.Fatal(err)
@@ -403,7 +423,6 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 		restart <- true
 	}
 
-	done := make(chan bool)
 	go func() {
 		for {
 			select {
