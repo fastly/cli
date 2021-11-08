@@ -477,13 +477,12 @@ func promptForStarterKit(kits []config.StarterKit, in io.Reader, out io.Writer) 
 	}
 
 	var i int
-	if i, err = strconv.Atoi(option); err != nil {
-		return "", "", "", fmt.Errorf("error parsing input: %w", err)
+	if i, err = strconv.Atoi(option); err == nil {
+		template := kits[i-1]
+		return template.Path, template.Branch, template.Tag, nil
 	}
 
-	template := kits[i-1]
-
-	return template.Path, template.Branch, template.Tag, nil
+	return option, "", "", nil
 }
 
 func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) error {
@@ -529,6 +528,9 @@ func fetchPackageTemplate(
 	req, err := http.NewRequest("GET", from, nil)
 	if err != nil {
 		errLog.Add(err)
+		if gitRepositoryRegEx.MatchString(from) {
+			return clonePackageFromEndpoint(from, branch, tag, dst)
+		}
 		return fmt.Errorf("failed to construct package request URL: %w", err)
 	}
 
