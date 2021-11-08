@@ -425,8 +425,17 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 
 	done := make(chan bool)
 	debounced := debounce.New(1 * time.Second)
-	eventHandler := func(modifiedFile string) {
-		text.Info(out, "Restarting: %s has been modified", modifiedFile)
+	eventHandler := func(modifiedFile string, op fsnotify.Op) {
+		action := "modified"
+		switch op {
+		case fsnotify.Create:
+			action = "created"
+		case fsnotify.Remove:
+			action = "removed"
+		case fsnotify.Rename:
+			action = "renamed"
+		}
+		text.Info(out, "Restarting: %s has been %s", modifiedFile, action)
 		text.Break(out)
 
 		// NOTE: We force closing the watcher by pushing true into a done channel.
@@ -475,7 +484,7 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 					return
 				}
 				debounced(func() {
-					eventHandler(event.Name)
+					eventHandler(event.Name, event.Op)
 				})
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -490,5 +499,7 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	text.Info(out, "Watching ./src for changes")
+	text.Break(out)
 	<-done
 }
