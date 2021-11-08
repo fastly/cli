@@ -499,9 +499,9 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 
 	root := "src"
 
-	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+	filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
-			return err
+			log.Fatal(err)
 		}
 		if entry.IsDir() {
 			err = watcher.Add(path)
