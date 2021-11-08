@@ -38,12 +38,12 @@ type BuildCommand struct {
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
-	Force       bool
-	IncludeSrc  bool
-	Lang        string
-	Manifest    manifest.Data
-	PackageName string
-	Timeout     int
+	IncludeSrc       bool
+	Lang             string
+	Manifest         manifest.Data
+	PackageName      string
+	SkipVerification bool
+	Timeout          int
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
@@ -54,12 +54,12 @@ func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *conf
 	c.client = client
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
 
-	// NOTE: when updating these flags, be sure to update the composite command:
-	// `compute publish`.
-	c.CmdClause.Flag("name", "Package name").StringVar(&c.PackageName)
-	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
+	// NOTE: when updating these flags, be sure to update the composite commands:
+	// `compute publish` and `compute serve`.
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.IncludeSrc)
-	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.Force)
+	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
+	c.CmdClause.Flag("name", "Package name").StringVar(&c.PackageName)
+	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.SkipVerification)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Timeout)
 
 	return &c
@@ -139,7 +139,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("unsupported language %s", lang)
 	}
 
-	if !c.Force {
+	if !c.SkipVerification {
 		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", lang))
 
 		err = language.Verify(progress)

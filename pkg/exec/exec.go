@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -19,43 +18,44 @@ import (
 // compute commands can use this to standardize the flow control for each
 // compiler toolchain.
 type Streaming struct {
-	Command string
-	Args    []string
-	Env     []string
-	Output  io.Writer
-	Timeout time.Duration
-	process *os.Process
+	Args     []string
+	Command  string
+	Env      []string
+	Output   io.Writer
+	Process  *os.Process
+	SignalCh chan os.Signal
+	Timeout  time.Duration
 }
 
 // MonitorSignals spawns a goroutine that configures signal handling so that
 // the long running subprocess can be killed using SIGINT/SIGTERM.
 func (s *Streaming) MonitorSignals() {
-	go monitorSignals(s)
+	go s.MonitorSignalsAsync()
 }
 
-func monitorSignals(s *Streaming) {
-	sig := make(chan os.Signal, 1)
-
+func (s *Streaming) MonitorSignalsAsync() {
 	signals := []os.Signal{
 		syscall.SIGINT,
 		syscall.SIGTERM,
 	}
 
-	signal.Notify(sig, signals...)
+	signal.Notify(s.SignalCh, signals...)
 
-	<-sig
-	signal.Stop(sig)
+	<-s.SignalCh
+	signal.Stop(s.SignalCh)
 
-	err := s.Signal(os.Kill)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// NOTE: We don't do error handling here because the user might be doing local
+	// development with the --watch flag and that workflow will have already
+	// killed the process. The reason this line still exists is for users running
+	// their application locally without the --watch flag and who then execute
+	// Ctrl-C to kill the process.
+	s.Signal(os.Kill)
 }
 
 // Exec executes the compiler command and pipes the child process stdout and
 // stderr output to the supplied io.Writer, it waits for the command to exit
 // cleanly or returns an error.
-func (s Streaming) Exec() error {
+func (s *Streaming) Exec() error {
 	// Construct the command with given arguments and environment.
 	var cmd *exec.Cmd
 	if s.Timeout > 0 {
@@ -75,16 +75,21 @@ func (s Streaming) Exec() error {
 	}
 	cmd.Env = append(os.Environ(), s.Env...)
 
-	// Store off Process so it can be killed by signals
-	//lint:ignore SA4005 because it doesn't fail on macOS but does when run in CI.
-	s.process = cmd.Process
-
 	// Pipe the child process stdout and stderr to our own output writer.
 	var stderrBuf bytes.Buffer
 	cmd.Stdout = s.Output
 	cmd.Stderr = io.MultiWriter(s.Output, &stderrBuf)
 
-	if err := cmd.Run(); err != nil {
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	// Store off os.Process so it can be killed by signal listener.
+	//
+	// NOTE: cmd.Process is nil until exec.Start() returns successfully.
+	s.Process = cmd.Process
+
+	if err := cmd.Wait(); err != nil {
 		var ctx string
 		if stderrBuf.Len() > 0 {
 			ctx = fmt.Sprintf(":\n%s", strings.TrimSpace(stderrBuf.String()))
@@ -98,9 +103,9 @@ func (s Streaming) Exec() error {
 }
 
 // Signal enables spawned subprocess to accept given signal.
-func (s Streaming) Signal(signal os.Signal) error {
-	if s.process != nil {
-		err := s.process.Signal(signal)
+func (s *Streaming) Signal(signal os.Signal) error {
+	if s.Process != nil {
+		err := s.Process.Signal(signal)
 		if err != nil {
 			return err
 		}

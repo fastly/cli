@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
+	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/kingpin"
@@ -59,8 +60,73 @@ func TestPublishFlagDivergence(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(expect, have) {
-		t.Fatalf("the flags between build/deploy and publish don't match")
+		t.Fatalf("the flags between build/deploy and publish don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
 	}
+}
+
+// TestServeFlagDivergence validates that the manually curated list of flags
+// within the `compute serve` command doesn't fall out of sync with the
+// `compute build` command as `compute serve` delegates to build.
+func TestServeFlagDivergence(t *testing.T) {
+	var (
+		cfg  config.Data
+		data manifest.Data
+	)
+	versioner := update.NewGitHub(update.GitHubOpts{
+		Org:    "fastly",
+		Repo:   "viceroy",
+		Binary: "viceroy",
+	})
+	acmd := kingpin.New("foo", "bar")
+
+	rcmd := compute.NewRootCommand(acmd, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, client{}, &cfg, data)
+	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd, versioner, data)
+
+	buildFlags := getFlags(bcmd.CmdClause)
+	serveFlags := getFlags(scmd.CmdClause)
+
+	var (
+		expect = make(map[string]int)
+		have   = make(map[string]int)
+	)
+
+	iter := buildFlags.MapRange()
+	for iter.Next() {
+		expect[iter.Key().String()] = 1
+	}
+
+	// Some flags on `compute serve` are unique to it.
+	// We only want to be sure serve contains all build flags.
+	ignoreServeFlags := []string{
+		"addr",
+		"env",
+		"file",
+		"skip-build",
+		"watch",
+	}
+
+	iter = serveFlags.MapRange()
+	for iter.Next() {
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreServeFlags, flag) {
+			have[flag] = 1
+		}
+	}
+
+	if !reflect.DeepEqual(expect, have) {
+		t.Fatalf("the flags between build and serve don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
+	}
+}
+
+// ignoreFlag indicates if needle should be omitted from comparison.
+func ignoreFlag(ignore []string, flag string) bool {
+	for _, i := range ignore {
+		if i == flag {
+			return true
+		}
+	}
+	return false
 }
 
 type client struct{}

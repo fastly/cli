@@ -117,3 +117,10 @@ var ComputeInitRemediation = strings.Join([]string{
 	"Run `fastly compute init` to ensure a correctly configured manifest.",
 	"See more at https://developer.fastly.com/reference/fastly-toml/",
 }, " ")
+
+// ComputeServeRemediation suggests re-running `compute serve` with one of the
+// incompatible flags removed.
+var ComputeServeRemediation = strings.Join([]string{
+	"The --watch flag enables hot reloading of your project to support a faster feedback loop during local development, and subsequently conflicts with the --skip-build flag which avoids rebuilding your project altogether.",
+	"Remove one of the flags based on the outcome you require.",
+}, " ")
