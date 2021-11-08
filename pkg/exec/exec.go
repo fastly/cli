@@ -87,8 +87,6 @@ func (s *Streaming) Exec() error {
 	// Store off os.Process so it can be killed by signal listener.
 	//
 	// NOTE: cmd.Process is nil until exec.Start() returns successfully.
-	//
-	//lint:ignore SA4005 because it doesn't fail on macOS but does when run in CI.
 	s.Process = cmd.Process
 
 	if err := cmd.Wait(); err != nil {
