@@ -1,5 +1,13 @@
 # Changelog
 
+## [v1.0.1](https://github.com/fastly/cli/releases/tag/v1.0.1) (2021-11-08)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.0.0...v1.0.1)
+
+**Bug fixes:**
+
+* Allow git repo to be used as a value at the starter kit prompt [#465](https://github.com/fastly/cli/pull/465)
+
 ## [v1.0.0](https://github.com/fastly/cli/releases/tag/v1.0.0) (2021-11-02)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v0.43.0...v1.0.0)
