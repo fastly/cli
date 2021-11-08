@@ -25,8 +25,8 @@ all: config tidy fmt vet staticcheck gosec test build install
 
 .PHONY: dependencies
 dependencies:
-	go get -v -u github.com/securego/gosec/cmd/gosec
-	go get -v -u honnef.co/go/tools/cmd/staticcheck
+	go install github.com/securego/gosec/cmd/gosec@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
 
 .PHONY: tidy
 tidy:
