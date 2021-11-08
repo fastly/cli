@@ -374,6 +374,26 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 		go watchFiles(cmd, out, restart)
 	}
 
+	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
+	// two separate mechanisms:
+	//
+	// 1. File modification
+	// 2. Explicit signal (SIGINT, SIGTERM etc).
+	//
+	// In the case of a signal (e.g. user presses Ctrl-c) the listener logic
+	// inside of (*fstexec.Streaming).MonitorSignals() will call
+	// (*fstexec.Streaming).Signal(signal os.Signal) to kill the process.
+	//
+	// In the case of a file modification the viceroy executable needs to first
+	// be killed (handled by the watchFiles() function) and then we can stop the
+	// signal listeners (handled below by sending a message to cmd.SignalCh).
+	//
+	// If we don't tell the signal listening channel to close, then the restart
+	// of the viceroy executable will cause the user to end up with N number of
+	// listeners. This will result in a "os: process already finished" error when
+	// we do finally come to stop the `serve` command (e.g. user presses Ctrl-c).
+	// How big an issue this is depends on how many file modifications a user
+	// makes, because having lots of signal listeners could exhaust resources.
 	if err := cmd.Exec(); err != nil {
 		e := strings.TrimSpace(err.Error())
 		if strings.Contains(e, "interrupt") {
@@ -382,12 +402,6 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 		if strings.Contains(e, "killed") {
 			select {
 			case <-restart:
-				// NOTE: If we don't tell the signal monitoring channel to close, then
-				// when we restart the viceroy binary we'll end up with N number of
-				// listeners, and this will result in a "os: process already finished"
-				// error when we do finally come to stop the serve command using the
-				// Ctrl-C key, depending on how often the user makes file modifications
-				// this could end up exhausting resources, so best to do a clean-up.
 				cmd.SignalCh <- syscall.SIGTERM
 				return errors.ErrViceroyRestart
 			case <-time.After(1 * time.Second):
@@ -415,28 +429,36 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 		text.Info(out, "File system modified: restarting local server")
 		text.Break(out)
 
-		// NOTE: If we don't force watcher.Close() by pushing true into done
-		// channel, then after one restart of the viceroy binary we'll discover we
-		// get the error: "os: process already finished" which happens because the
-		// watchFiles function is run in a goroutine and so it keeps running with
-		// its copy of the fstexec.Streaming instance, and that is a process that
-		// has indeed been 'killed'.
+		// NOTE: We force closing the watcher by pushing true into a done channel.
+		// We do this because if we didn't, then we'd get an error after one
+		// restart of the viceroy executable: "os: process already finished".
+		//
+		// This error happens happens because the compute.watchFiles() function is
+		// run in a goroutine and so it will keep running with a copy of the
+		// fstexec.Streaming command instance that wraps a process which has
+		// already been terminated.
 		done <- true
 
-		// NOTE: We can't just send `true` to the restart channel (which will not
-		// only cause the signal listener to be closed but will also initiate the
-		// process to be killed) as doing so will cause a deadlock. We need to kill
-		// the process here to cause the `cmd.Exec()` from within `local()` to
-		// finish and subsequently the termination error to be handled, where we'll
-		// then be able to close the signal listener and return a
-		// ErrViceroyRestart error to trigger the restart logic.
+		// NOTE: To be able to force both the current viceroy process signal listener
+		// to close, and to restart the viceroy executable, we need to kill the
+		// process and also send 'true' to a restart channel.
 		//
-		// The downside here is that we've already killed the viceroy process and
-		// so when we stop the signal listener, itself will try to kill the process
-		// and discover it has already been killed and return an error to say:
-		// `os: process already finished`. This is why inside `MonitorSignalsAsync`
-		// we don't do error handling when killing the process as it could well be
-		// killed already when a user is doing local development with --watch flag.
+		// If we only sent a message to the restart channel, but didn't terminate
+		// the process, then we'd end up in a deadlock because we wouldn't be able
+		// to take a message from the restart channel inside the local() function
+		// because we need to have the process terminate first in order for us to
+		// execute the flushing of channel messages.
+		//
+		// When we stop the signal listener it will internally try to kill the
+		// process and discover it has already been killed and return an error:
+		// `os: process already finished`. This is why we don't do error handling
+		// within (*fstexec.Streaming).MonitorSignalsAsync() as the process could
+		// well be killed already when a user is doing local development with the
+		// --watch flag. The obvious downside to this logic flow is that if the
+		// user is running `compute serve` just to validate the program once, then
+		// there might be an unhandled error when they press Ctrl-c to stop the
+		// serve command from blocking their terminal. That said, this is unlikely
+		// and is a low risk concern.
 		err := cmd.Signal(os.Kill)
 		if err != nil {
 			log.Fatal(err)
