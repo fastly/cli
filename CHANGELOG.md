@@ -1,5 +1,13 @@
 # Changelog
 
+## [v1.1.0](https://github.com/fastly/cli/releases/tag/v1.1.0) (2021-11-08)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.0.1...v1.1.0)
+
+**Enhancements:**
+
+* Implement `--watch` flag for `compute serve` [#464](https://github.com/fastly/cli/pull/464)
+
 ## [v1.0.1](https://github.com/fastly/cli/releases/tag/v1.0.1) (2021-11-08)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.0.0...v1.0.1)
