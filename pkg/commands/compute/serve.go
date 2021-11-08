@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
@@ -435,6 +436,7 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 		case fsnotify.Rename:
 			action = "renamed"
 		}
+
 		text.Info(out, "Restarting: %s has been %s", modifiedFile, action)
 		text.Break(out)
 
@@ -495,11 +497,22 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 		}
 	}()
 
-	err = watcher.Add("src")
-	if err != nil {
-		log.Fatal(err)
-	}
-	text.Info(out, "Watching ./src for changes")
+	root := "src"
+
+	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			err = watcher.Add(path)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		return nil
+	})
+
+	text.Info(out, "Watching ./%s for changes", root)
 	text.Break(out)
 	<-done
 }
