@@ -2,6 +2,7 @@ package backend
 
 import (
 	"io"
+	"net"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
@@ -103,6 +104,13 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		c.Input.Port = 443
 	}
 
+	if c.Input.OverrideHost == "" && c.Input.SSLSNIHostname == "" && c.Input.SSLCertHostname == "" {
+		overrideHost, sslSNIHostname, sslCertHostname := SetBackendHostDefaults(c.Input.Address)
+		c.Input.OverrideHost = overrideHost
+		c.Input.SSLSNIHostname = sslSNIHostname
+		c.Input.SSLCertHostname = sslCertHostname
+	}
+
 	b, err := c.Globals.Client.CreateBackend(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -114,4 +122,19 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	text.Success(out, "Created backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
 	return nil
+}
+
+// SetBackendHostDefaults configures the OverrideHost and SSLSNIHostname fields.
+//
+// By default we set the override_host and ssl_sni_hostname properties of the
+// Backend object to the hostname, unless the given input is an IP.
+func SetBackendHostDefaults(address string) (overrideHost, sslSNIHostname, sslCertHostname string) {
+	if _, err := net.LookupAddr(address); err != nil {
+		overrideHost = address
+	}
+	if overrideHost != "" {
+		sslSNIHostname = overrideHost
+		sslCertHostname = overrideHost
+	}
+	return
 }

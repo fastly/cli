@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
@@ -35,11 +36,12 @@ type Backends struct {
 // Backend represents the configuration parameters for creating a backend via
 // the API client.
 type Backend struct {
-	Address        string
-	Name           string
-	OverrideHost   string
-	Port           uint
-	SSLSNIHostname string
+	Address         string
+	Name            string
+	OverrideHost    string
+	Port            uint
+	SSLCertHostname string
+	SSLSNIHostname  string
 }
 
 // Configure prompts the user for specific values related to the service resource.
@@ -65,13 +67,14 @@ func (b *Backends) Create() error {
 		}
 
 		_, err := b.APIClient.CreateBackend(&fastly.CreateBackendInput{
-			ServiceID:      b.ServiceID,
-			ServiceVersion: b.ServiceVersion,
-			Name:           backend.Name,
-			Address:        backend.Address,
-			Port:           backend.Port,
-			OverrideHost:   backend.OverrideHost,
-			SSLSNIHostname: backend.SSLSNIHostname,
+			ServiceID:       b.ServiceID,
+			ServiceVersion:  b.ServiceVersion,
+			Name:            backend.Name,
+			Address:         backend.Address,
+			Port:            backend.Port,
+			OverrideHost:    backend.OverrideHost,
+			SSLCertHostname: backend.SSLCertHostname,
+			SSLSNIHostname:  backend.SSLSNIHostname,
 		})
 		if err != nil {
 			b.Progress.Fail()
@@ -153,13 +156,14 @@ func (b *Backends) checkPredefined() error {
 			}
 		}
 
-		overrideHost, sslSNIHostname := b.setBackendHost(addr)
+		overrideHost, sslSNIHostname, sslCertHostname := backend.SetBackendHostDefaults(addr)
 		b.required = append(b.required, Backend{
-			Name:           name,
-			Address:        addr,
-			OverrideHost:   overrideHost,
-			Port:           port,
-			SSLSNIHostname: sslSNIHostname,
+			Address:         addr,
+			Name:            name,
+			OverrideHost:    overrideHost,
+			Port:            port,
+			SSLCertHostname: sslCertHostname,
+			SSLSNIHostname:  sslSNIHostname,
 		})
 	}
 
@@ -216,13 +220,14 @@ func (b *Backends) promptForBackend() error {
 			name = defaultName
 		}
 
-		overrideHost, sslSNIHostname := b.setBackendHost(addr)
+		overrideHost, sslSNIHostname, sslCertHostname := backend.SetBackendHostDefaults(addr)
 		b.required = append(b.required, Backend{
-			Name:           name,
-			Address:        addr,
-			OverrideHost:   overrideHost,
-			Port:           port,
-			SSLSNIHostname: sslSNIHostname,
+			Address:         addr,
+			Name:            name,
+			OverrideHost:    overrideHost,
+			Port:            port,
+			SSLCertHostname: sslCertHostname,
+			SSLSNIHostname:  sslSNIHostname,
 		})
 	}
 }
@@ -235,20 +240,6 @@ func (b *Backends) createOriginlessBackend() Backend {
 	backend.Address = "127.0.0.1"
 	backend.Port = uint(80)
 	return backend
-}
-
-// setBackendHost configures the OverrideHost and SSLSNIHostname field values.
-//
-// By default we set the override_host and ssl_sni_hostname properties of the
-// Backend object to the hostname, unless the given input is an IP.
-func (b *Backends) setBackendHost(address string) (overrideHost, sslSNIHostname string) {
-	if _, err := net.LookupAddr(address); err != nil {
-		overrideHost = address
-	}
-	if overrideHost != "" {
-		sslSNIHostname = overrideHost
-	}
-	return
 }
 
 // validateAddress checks the user entered address is a valid hostname or IP.
