@@ -1,31 +1,16 @@
 package file
 
 import (
-	"archive/tar"
-	"archive/zip"
-	"compress/gzip"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/fastly/cli/pkg/errors"
+	"github.com/mholt/archiver"
 )
-
-// TarGz represents an instance of a tar.gz archive file.
-var TarGz = &ArchiveGzip{
-	ArchiveBase{
-		Ext:   ".gz",
-		Mimes: []string{"application/gzip", "application/x-gzip", "application/x-tar"},
-	},
-}
-
-// Zip represents an instance of a zip archive file.
-var Zip = &ArchiveZip{
-	ArchiveBase{
-		Ext:   ".zip",
-		Mimes: []string{"application/zip", "application/x-zip"},
-	},
-}
 
 // Archives is a collection of supported archive formats.
 var Archives = []Archive{TarGz, Zip}
@@ -33,7 +18,7 @@ var Archives = []Archive{TarGz, Zip}
 // Archive represents the associated behaviour for a collection of files
 // contained inside an archive format.
 type Archive interface {
-	Extension() string
+	Extensions() []string
 	Extract() error
 	Filename() string
 	MimeTypes() []string
@@ -42,18 +27,44 @@ type Archive interface {
 	SetFilename(n string)
 }
 
+// TarGz represents an instance of a tar.gz archive file.
+var TarGz = &ArchiveGzip{
+	ArchiveBase{
+		Exts:  []string{".tgz", ".gz"},
+		Mimes: []string{"application/gzip", "application/x-gzip", "application/x-tar"},
+	},
+}
+
+// Zip represents an instance of a zip archive file.
+var Zip = &ArchiveZip{
+	ArchiveBase{
+		Exts:  []string{".zip"},
+		Mimes: []string{"application/zip", "application/x-zip"},
+	},
+}
+
+// ArchiveGzip represents a container for the .tar.gz file format.
+type ArchiveGzip struct {
+	ArchiveBase
+}
+
+// ArchiveZip represents a container for the .zip file format.
+type ArchiveZip struct {
+	ArchiveBase
+}
+
 // ArchiveBase represents a container for a collection of files.
 type ArchiveBase struct {
 	Dst   string
-	Ext   string
+	Exts  []string
 	File  io.ReadSeeker
 	Mimes []string
 	Name  string
 }
 
-// Extension returns the file extension.
-func (a ArchiveBase) Extension() string {
-	return a.Ext
+// Extension returns the accepted file extensions.
+func (a ArchiveBase) Extensions() []string {
+	return a.Exts
 }
 
 // MimeTypes returns all valid  mime types for the format.
@@ -87,175 +98,70 @@ func (a *ArchiveBase) SetFilename(n string) {
 	a.Name = n
 }
 
-// ArchiveGzip represents a container for the .tar.gz file format.
-type ArchiveGzip struct {
-	ArchiveBase
-}
-
 // Extract all files and folders from the collection.
-//
-// TODO: Consider refactoring to use mholt/archiver.
-func (a ArchiveGzip) Extract() error {
-	// NOTE: After the os.File has content written to it via io.Copy() inside
-	// pkgFetch(), we find the cursor index position is updated. This causes an
-	// EOF error when passing the file into gzip.NewReader() and so we need to
-	// first reset the cursor index.
-	_, err := a.File.Seek(0, io.SeekStart)
-	if err != nil {
-		return fmt.Errorf("failed to seek to the start of archive: %w", err)
+func (a ArchiveBase) Extract() error {
+	if err := archiver.Unarchive(a.Filename(), a.Dst); err != nil {
+		return fmt.Errorf("error extracting contents from archive: %w", err)
 	}
 
-	gr, err := gzip.NewReader(a.File)
-	if err != nil {
-		return fmt.Errorf("error creating gzip reader: %w", err)
+	if _, err := os.Stat("fastly.toml"); err == nil {
+		return nil
 	}
-	defer gr.Close()
 
-	tr := tar.NewReader(gr)
+	// Looks like the package files are contained within a top-level directory
+	// that now need to be extracted.
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("error determining current directory: %w", err)
+	}
 
-	for {
-		header, err := tr.Next()
+	var dirContentToMove string
 
-		switch {
-
-		// If no more files are found return
-		case err == io.EOF:
-			return nil
-
-		// Return any other error
-		case err != nil:
-			return err
-
-		// If the header is nil, skip it
-		case header == nil:
-			continue
-
-		// Skip the any files duplicated as hidden files
-		case strings.HasPrefix(header.Name, "._"):
-			continue
-		}
-
-		// The target location where the dir/file should be created
-		segs := splitArchivePaths(header.Name)
-		segs = segs[1:]
-		target := filepath.Join(a.Dst, filepath.Join(segs...))
-
-		fi := header.FileInfo()
-
-		if fi.IsDir() {
-			os.MkdirAll(target, os.ModePerm)
-			continue
-		}
-
-		if err = os.MkdirAll(filepath.Dir(target), os.ModePerm); err != nil {
-			return err
-		}
-
-		fd, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+	err = filepath.WalkDir(wd, func(path string, entry fs.DirEntry, err error) error {
+		// WalkDir() triggered an error
 		if err != nil {
 			return err
 		}
-
-		// NOTE: We use looped CopyN() not Copy() to avoid gosec G110 (CWE-409):
-		// Potential DoS vulnerability via decompression bomb.
-		for {
-			_, err := io.CopyN(fd, tr, 1024)
-			if err != nil {
-				if err == io.EOF {
-					break
-				}
-				return err
+		// We already check if the current directory had a manifest so skip it
+		if entry.IsDir() && path == wd {
+			return nil
+		}
+		// We expect there to be a directory that contains the manifest
+		if entry.IsDir() {
+			if _, err := os.Stat(filepath.Join(path, "fastly.toml")); err == nil {
+				dirContentToMove = path
+				return errors.ErrStopWalk
 			}
 		}
+		return nil
+	})
 
-		fd.Close()
+	if err != nil && err != errors.ErrStopWalk {
+		return err
 	}
-}
+	if dirContentToMove == "" {
+		return errors.ErrInvalidArchive
+	}
 
-// ArchiveZip represents a container for the .zip file format.
-type ArchiveZip struct {
-	ArchiveBase
-}
-
-// Extract all files and folders from the collection.
-//
-// TODO: Consider refactoring to use mholt/archiver.
-func (a ArchiveZip) Extract() error {
-	r, err := zip.OpenReader(a.Name)
+	files, err := filepath.Glob(filepath.Join(dirContentToMove, "*"))
 	if err != nil {
 		return err
 	}
-	defer r.Close()
 
-	for _, f := range r.File {
-		// The zip contains a folder, and inside that folder are the files we're
-		// interested in. So while looping over the files (whose .Name field is the
-		// full path including the containing folder) we strip out the first path
-		// segment to ensure the files we need are extracted to the current directory.
-		segs := splitArchivePaths(f.Name)
-		segs = segs[1:]
-		target := filepath.Join(a.Dst, filepath.Join(segs...))
-
-		if f.FileInfo().IsDir() {
-			err := os.MkdirAll(target, os.ModePerm)
-			if err != nil {
-				return err
-			}
-			continue
+	// Move files from within package directory into its parent directory
+	for _, path := range files {
+		dir, file := filepath.Split(path)
+		if strings.HasSuffix(dir, string(os.PathSeparator)) {
+			dir = dir[:len(dir)-1]
 		}
-
-		if err = os.MkdirAll(filepath.Dir(target), os.ModePerm); err != nil {
-			return err
-		}
-
-		fd, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		parent := filepath.Dir(dir)
+		err := os.Rename(path, filepath.Join(parent, file))
 		if err != nil {
 			return err
 		}
-
-		rc, err := f.Open()
-		if err != nil {
-			return err
-		}
-
-		// NOTE: We use looped CopyN() not Copy() to avoid gosec G110 (CWE-409):
-		// Potential DoS vulnerability via decompression bomb.
-		for {
-			_, err := io.CopyN(fd, rc, 1024)
-			if err != nil {
-				if err == io.EOF {
-					break
-				}
-				return err
-			}
-		}
-
-		fd.Close()
-		rc.Close()
 	}
+
+	os.RemoveAll(dirContentToMove)
 
 	return nil
-}
-
-// splitArchivePaths splits a path into segments.
-//
-// The algorithm takes into account archives containing files created by either
-// Windows or unix based system such as macOS or Linux. Specifically the
-// filepath.Separator isn't reliable as the binary could be running on one OS
-// while trying to use an archive created via a different OS.
-//
-// NOTE: We expect the archive to contain a single directory that contains the
-// package files/directories. This means when splitting the file path into
-// segments the length should be at least two (e.g. 'compute-package/...').
-func splitArchivePaths(filepath string) (segments []string) {
-	unix := `/`
-	win := `\`
-
-	segments = strings.Split(filepath, unix)
-
-	if len(segments) < 2 {
-		segments = strings.Split(filepath, win)
-	}
-
-	return segments
 }

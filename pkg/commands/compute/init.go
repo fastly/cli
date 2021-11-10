@@ -596,9 +596,11 @@ mimes:
 		ext := filepath.Ext(filename)
 
 		for _, a := range archives {
-			if ext == a.Extension() {
-				archive = a
-				break
+			for _, e := range a.Extensions() {
+				if ext == e {
+					archive = a
+					break
+				}
 			}
 		}
 	}

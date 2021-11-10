@@ -31,10 +31,6 @@ const (
 // https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
 var PackageSizeLimit int64 = 50000000
 
-// ErrStopWalk is used to indicate to filepath.WalkDir that it should stop
-// walking the directory tree.
-var ErrStopWalk = errors.New("stop directory walking")
-
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
 	cmd.Base
@@ -455,7 +451,7 @@ func locateManifest(path string) (string, error) {
 		}
 		if !entry.IsDir() && filepath.Base(path) == manifest.Filename {
 			foundManifest = path
-			return ErrStopWalk
+			return fsterr.ErrStopWalk
 		}
 		return nil
 	})
@@ -463,7 +459,7 @@ func locateManifest(path string) (string, error) {
 	if err != nil {
 		// If the error isn't ErrStopWalk, then the WalkDir() function had an
 		// issue processing the directory tree.
-		if err != ErrStopWalk {
+		if err != fsterr.ErrStopWalk {
 			return "", err
 		}
 

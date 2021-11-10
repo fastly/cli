@@ -21,6 +21,12 @@ type Source uint8
 const (
 	// Filename is the name of the package manifest file.
 	// It is expected to be a project specific configuration file.
+	//
+	// TODO: The filename needs to be referenced outside of the compute package
+	// so consider moving this constant to a different location in the top-level
+	// pkg directory instead or even moving the whole manifest package up to the
+	// top-level pkg directory as finding a suitable package for just the
+	// manifest filename could be tricky.
 	Filename = "fastly.toml"
 
 	// ManifestLatestVersion represents the latest known manifest schema version

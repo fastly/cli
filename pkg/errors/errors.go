@@ -1,6 +1,9 @@
 package errors
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // ErrSignalInterrupt means a SIGINT was received.
 var ErrSignalInterrupt = fmt.Errorf("a SIGINT was received")
@@ -77,4 +80,15 @@ var ErrReadingManifest = RemediationError{
 var ErrParsingManifest = RemediationError{
 	Inner:       fmt.Errorf("error parsing package manifest"),
 	Remediation: ComputeInitRemediation,
+}
+
+// ErrStopWalk is used to indicate to filepath.WalkDir that it should stop
+// walking the directory tree.
+var ErrStopWalk = errors.New("stop directory walking")
+
+// ErrInvalidArchive means the package archive didn't contain a recognised
+// directory structure.
+var ErrInvalidArchive = RemediationError{
+	Inner:       fmt.Errorf("invalid package archive structure"),
+	Remediation: "Ensure the archive contains all required package files (such as a 'fastly.toml' manifest, and a 'src' folder etc).",
 }
