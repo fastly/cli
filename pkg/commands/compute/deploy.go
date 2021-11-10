@@ -343,13 +343,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
 
-	latestDomains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
-		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
-	})
-	if err == nil {
-		text.Description(out, "View this service at", fmt.Sprintf("https://%s", latestDomains[0].Name))
-	}
+	displayDomain(apiClient, serviceID, serviceVersion.Number, out)
 
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
@@ -730,4 +724,19 @@ func pkgUpload(progress text.Progress, client api.Interface, serviceID string, v
 	}
 
 	return nil
+}
+
+// displayDomain displays a domain from those available in the service.
+func displayDomain(apiClient api.Interface, serviceID string, serviceVersion int, out io.Writer) {
+	latestDomains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+	})
+	if err == nil {
+		name := latestDomains[0].Name
+		if segs := strings.Split(name, "*."); len(segs) > 1 {
+			name = segs[1]
+		}
+		text.Description(out, "View this service at", fmt.Sprintf("https://%s", name))
+	}
 }
