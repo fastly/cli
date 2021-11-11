@@ -156,6 +156,15 @@ var UsageTemplateFuncs = template.FuncMap{
 	"Bold": func(s string) string {
 		return text.Bold(s)
 	},
+	"SeeAlso": func(cm *kingpin.CmdModel) string {
+		cmd := cm.FullCommand()
+		url := "https://developer.fastly.com/reference/cli/"
+		var trail string
+		if len(cmd) > 0 {
+			trail = "/"
+		}
+		return fmt.Sprintf("  %s%s%s", url, strings.ReplaceAll(cmd, " ", "/"), trail)
+	},
 }
 
 // CompactUsageTemplate is the default usage template, rendered when users type
@@ -214,6 +223,8 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{T "COMMANDS"|Bold}}
 {{.App.Commands|CommandsToTwoColumns|FormatTwoColumns}}
 {{end -}}
+{{T "SEE ALSO"|Bold}}
+{{.Context.SelectedCommand|SeeAlso}}
 `
 
 // VerboseUsageTemplate is the full-fat usage template, rendered when users type
@@ -259,6 +270,8 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 {{T "COMMANDS"|Bold -}}
   {{template "FormatCommands" .App}}
 {{end -}}
+{{T "SEE ALSO"|Bold}}
+{{.Context.SelectedCommand|SeeAlso}}
 `
 
 // displayHelp returns a function that prints the help output for a command or
@@ -430,7 +443,7 @@ func processCommandInput(
 		// distinguish `fastly help` from e.g. `fastly help configure` than this
 		// check.
 		if len(opts.Args) > 0 && opts.Args[len(opts.Args)-1] == "help" {
-			fmt.Fprintln(&buf, "For help on a specific command, try e.g.")
+			fmt.Fprintln(&buf, "\nFor help on a specific command, try e.g.")
 			fmt.Fprintln(&buf, "")
 			fmt.Fprintln(&buf, "\tfastly help configure")
 			fmt.Fprintln(&buf, "\tfastly configure --help")

@@ -214,6 +214,9 @@ COMMANDS
   vcl              Manipulate Fastly service version VCL
   version          Display version information for the Fastly CLI
   whoami           Get information about the currently authenticated account
+
+SEE ALSO
+  https://developer.fastly.com/reference/cli/
 `) + "\n\n"
 
 var helpService = strings.TrimSpace(`
@@ -264,6 +267,9 @@ SUBCOMMANDS
                                  then fastly.toml)
     -n, --name=NAME              Service name
         --comment=COMMENT        Human-readable comment
+
+SEE ALSO
+  https://developer.fastly.com/reference/cli/service/
 
 `) + "\n\n"
 
@@ -4253,6 +4259,9 @@ COMMANDS
   whoami
     Get information about the currently authenticated account
 
+
+SEE ALSO
+  https://developer.fastly.com/reference/cli/
 
 For help on a specific command, try e.g.
 
