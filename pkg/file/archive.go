@@ -23,7 +23,6 @@ type Archive interface {
 	Filename() string
 	MimeTypes() []string
 	SetDestination(d string)
-	SetFile(r io.ReadSeeker)
 	SetFilename(n string)
 }
 
@@ -80,14 +79,6 @@ func (a ArchiveBase) Filename() string {
 // SetDestination sets the destination for where files should be extracted.
 func (a *ArchiveBase) SetDestination(d string) {
 	a.Dst = d
-}
-
-// SetFile sets the local file descriptor where the archive should be written.
-//
-// NOTE: This archive file is the 'container' of the archived files that will
-// be extracted separately.
-func (a *ArchiveBase) SetFile(r io.ReadSeeker) {
-	a.File = r
 }
 
 // SetFilename sets the name of the local archive file.
