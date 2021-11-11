@@ -553,6 +553,8 @@ func fetchPackageTemplate(
 	}
 
 	filename := filepath.Base(from)
+	ext := filepath.Ext(filename)
+
 	f, err := os.Create(filename)
 	if err != nil {
 		errLog.Add(err)
@@ -563,14 +565,14 @@ func fetchPackageTemplate(
 			errLog.Add(err)
 		}
 	}()
-	defer func(base string) {
+	defer func() {
 		err := os.Remove(filename)
 		if err != nil {
 			errLog.Add(err)
 			text.Break(out)
 			text.Info(out, "We were unable to clean-up the local %s file (it can be safely removed)", filename)
 		}
-	}(filename)
+	}()
 
 	_, err = io.Copy(f, res.Body)
 	if err != nil {
@@ -593,19 +595,31 @@ mimes:
 	}
 
 	if archive == nil {
-		ext := filepath.Ext(filename)
-
 		for _, a := range archives {
-			if ext == a.Extension() {
-				archive = a
-				break
+			for _, e := range a.Extensions() {
+				if ext == e {
+					archive = a
+					break
+				}
 			}
 		}
 	}
 
 	if archive != nil {
+		// Ensure there is a file extension on our filename, otherwise we won't
+		// know what type of archive format we're dealing with when we come to call
+		// the archive.Extract() method.
+		if ext == "" {
+			filenameWithExt := filename + archive.Extensions()[0]
+			err := os.Rename(filename, filenameWithExt)
+			if err != nil {
+				errLog.Add(err)
+				return err
+			}
+			filename = filenameWithExt
+		}
+
 		archive.SetDestination(dst)
-		archive.SetFile(f)
 		archive.SetFilename(filename)
 
 		err = archive.Extract()
