@@ -1,0 +1,54 @@
+{
+  "acl": {
+    "create": {
+      "examples": [{
+        "cmd": "fastly acl create --name=\"foo\"",
+        "description": "Create an ACL named \"foo\".",
+        "title": "Standard two level command"
+      }],
+      "apis": [
+        "beep",
+        "boop"
+      ]
+    }
+  },
+  "backend": {
+    "create": {
+      "examples": [{
+        "cmd": "fastly backend create --name=\"foo\"",
+        "description": "Create a backend named \"foo\".",
+        "title": "Another standard two level command"
+      }],
+      "apis": [
+        "foo",
+        "bar"
+      ]
+    }
+  },
+  "logging": {
+    "bigquery": {
+      "create": {
+        "examples": [{
+          "cmd": "fastly logging bigquery create --name=\"foo\"",
+          "description": "Create a bigquery log endpoint named \"foo\".",
+          "title": "Three level command"
+        }],
+        "apis": [
+          "foo",
+          "bar"
+        ]
+      }
+    }
+  },
+  "pops": {
+    "examples": [{
+      "cmd": "fastly pops",
+      "description": "List Fastly datacenters.",
+      "title": "One level command"
+    }],
+    "apis": [
+      "foo",
+      "bar"
+    ]
+  }
+}

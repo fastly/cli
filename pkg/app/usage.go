@@ -1,6 +1,8 @@
 package app
 
 import (
+	_ "embed"
+
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -353,34 +355,25 @@ func processCommandInput(
 	return command, cmdName, nil
 }
 
-// displayHelp returns a function that prints the help output for a command or
-// command set.
-//
-// NOTE: This function is called multiple times within app.Run() and so we use
-// a closure to prevent having to pass the same unchanging arguments each time.
-func displayHelp(
-	errLog fsterr.LogInterface,
-	args []string,
-	app *kingpin.Application,
-	stdout, stderr io.Writer) func(vars map[string]interface{}, err error) error {
+//go:embed metadata.json
+var metadata []byte
 
-	return func(vars map[string]interface{}, err error) error {
-		usage := Usage(args, app, stdout, stderr, vars)
-		remediation := fsterr.RemediationError{Prefix: usage}
-		if err != nil {
-			errLog.Add(err)
-			remediation.Inner = fmt.Errorf("error parsing arguments: %w", err)
-		}
-		return remediation
-	}
-}
+// commands represents the metadata.json content that will provide extra
+// contextual information.
+type commands map[string]interface{}
 
 // UsageJSON returns a structured representation of the application usage
 // documentation in JSON format. This is useful for machine consumtion.
 func UsageJSON(app *kingpin.Application) (string, error) {
+	var c commands
+	err := json.Unmarshal(metadata, &c)
+	if err != nil {
+		return "", err
+	}
+
 	usage := &usageJSON{
 		GlobalFlags: getGlobalFlagJSON(app.Model().Flags),
-		Commands:    getCommandJSON(app.Model().Commands),
+		Commands:    getCommandJSON(app.Model().Commands, c),
 	}
 
 	j, err := json.Marshal(usage)
@@ -410,6 +403,7 @@ type commandJSON struct {
 	Description string        `json:"description"`
 	Flags       []flagJSON    `json:"flags"`
 	Children    []commandJSON `json:"children"`
+	APIs        []string      `json:"apis"`
 }
 
 func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
@@ -422,17 +416,107 @@ func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
 	return getFlagJSON(globalFlags)
 }
 
-func getCommandJSON(models []*kingpin.CmdModel) []commandJSON {
+func getCommandJSON(models []*kingpin.CmdModel, c commands) []commandJSON {
 	var commands []commandJSON
-	for _, c := range models {
-		if c.Hidden {
+	for _, m := range models {
+		if m.Hidden {
 			continue
 		}
 		var cmd commandJSON
-		cmd.Name = c.Name
-		cmd.Description = c.Help
-		cmd.Flags = getFlagJSON(c.Flags)
-		cmd.Children = getCommandJSON(c.Commands)
+		cmd.Name = m.Name
+		cmd.Description = m.Help
+		cmd.Flags = getFlagJSON(m.Flags)
+		cmd.Children = getCommandJSON(m.Commands, c)
+		cmd.APIs = []string{}
+
+		segs := strings.Split(m.FullCommand(), " ")
+		switch m.Depth {
+		case 1:
+			command := segs[0]
+
+			categories, ok := c[command]
+			if ok {
+				categories, ok := categories.(map[string]interface{})
+				if ok {
+					apis, ok := categories["apis"]
+					if ok {
+						apis, ok := apis.([]interface{})
+						if ok {
+							for _, api := range apis {
+								a, ok := api.(string)
+								if ok {
+									cmd.APIs = append(cmd.APIs, a)
+								}
+							}
+						}
+					}
+				}
+			}
+		case 2:
+			command := segs[0]
+			subcommand := segs[1]
+
+			subcommands, ok := c[command]
+			if ok {
+				subcommands, ok := subcommands.(map[string]interface{})
+				if ok {
+					categories, ok := subcommands[subcommand]
+					if ok {
+						categories, ok := categories.(map[string]interface{})
+						if ok {
+							apis, ok := categories["apis"]
+							if ok {
+								apis, ok := apis.([]interface{})
+								if ok {
+									for _, api := range apis {
+										a, ok := api.(string)
+										if ok {
+											cmd.APIs = append(cmd.APIs, a)
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		case 3:
+			command := segs[0]
+			subcommand := segs[1]
+			operation := segs[2]
+
+			subcommands, ok := c[command]
+			if ok {
+				subcommands, ok := subcommands.(map[string]interface{})
+				if ok {
+					operations, ok := subcommands[subcommand]
+					if ok {
+						operations, ok := operations.(map[string]interface{})
+						if ok {
+							categories, ok := operations[operation]
+							if ok {
+								categories, ok := categories.(map[string]interface{})
+								if ok {
+									apis, ok := categories["apis"]
+									if ok {
+										apis, ok := apis.([]interface{})
+										if ok {
+											for _, api := range apis {
+												a, ok := api.(string)
+												if ok {
+													cmd.APIs = append(cmd.APIs, a)
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		commands = append(commands, cmd)
 	}
 	return commands
@@ -440,18 +524,40 @@ func getCommandJSON(models []*kingpin.CmdModel) []commandJSON {
 
 func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
 	var flags []flagJSON
-	for _, f := range models {
-		if f.Hidden {
+	for _, m := range models {
+		if m.Hidden {
 			continue
 		}
 		var flag flagJSON
-		flag.Name = f.Name
-		flag.Description = f.Help
-		flag.Placeholder = f.PlaceHolder
-		flag.Required = f.Required
-		flag.Default = strings.Join(f.Default, ",")
-		flag.IsBool = f.IsBoolFlag()
+		flag.Name = m.Name
+		flag.Description = m.Help
+		flag.Placeholder = m.PlaceHolder
+		flag.Required = m.Required
+		flag.Default = strings.Join(m.Default, ",")
+		flag.IsBool = m.IsBoolFlag()
 		flags = append(flags, flag)
 	}
 	return flags
+}
+
+// displayHelp returns a function that prints the help output for a command or
+// command set.
+//
+// NOTE: This function is called multiple times within app.Run() and so we use
+// a closure to prevent having to pass the same unchanging arguments each time.
+func displayHelp(
+	errLog fsterr.LogInterface,
+	args []string,
+	app *kingpin.Application,
+	stdout, stderr io.Writer) func(vars map[string]interface{}, err error) error {
+
+	return func(vars map[string]interface{}, err error) error {
+		usage := Usage(args, app, stdout, stderr, vars)
+		remediation := fsterr.RemediationError{Prefix: usage}
+		if err != nil {
+			errLog.Add(err)
+			remediation.Inner = fmt.Errorf("error parsing arguments: %w", err)
+		}
+		return remediation
+	}
 }
