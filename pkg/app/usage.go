@@ -156,6 +156,10 @@ var UsageTemplateFuncs = template.FuncMap{
 	"Bold": func(s string) string {
 		return text.Bold(s)
 	},
+	"SeeAlso": func(cm *kingpin.CmdModel) string {
+		url := "https://developer.fastly.com/reference/cli/"
+		return fmt.Sprintf("%s%s", url, strings.ReplaceAll(cm.FullCommand(), " ", "/"))
+	},
 }
 
 // CompactUsageTemplate is the default usage template, rendered when users type
@@ -214,6 +218,8 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{T "COMMANDS"|Bold}}
 {{.App.Commands|CommandsToTwoColumns|FormatTwoColumns}}
 {{end -}}
+{{T "SEE ALSO"|Bold}}
+{{.Context.SelectedCommand|SeeAlso}}
 `
 
 // VerboseUsageTemplate is the full-fat usage template, rendered when users type
@@ -259,6 +265,8 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 {{T "COMMANDS"|Bold -}}
   {{template "FormatCommands" .App}}
 {{end -}}
+{{T "SEE ALSO"|Bold}}
+{{.Context.SelectedCommand|SeeAlso}}
 `
 
 // displayHelp returns a function that prints the help output for a command or
