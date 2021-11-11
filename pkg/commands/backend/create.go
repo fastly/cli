@@ -2,6 +2,7 @@ package backend
 
 import (
 	"io"
+	"net"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
@@ -14,16 +15,21 @@ import (
 // CreateCommand calls the Fastly API to create backends.
 type CreateCommand struct {
 	cmd.Base
-	manifest       manifest.Data
-	Input          fastly.CreateBackendInput
-	serviceVersion cmd.OptionalServiceVersion
-	autoClone      cmd.OptionalAutoClone
+	manifest manifest.Data
+
+	Input fastly.CreateBackendInput
 
 	// We must store all of the boolean flags separately to the input structure
 	// so they can be casted to go-fastly's custom `Compatibool` type later.
 	AutoLoadbalance bool
-	UseSSL          bool
 	SSLCheckCert    bool
+	UseSSL          bool
+
+	autoClone       cmd.OptionalAutoClone
+	overrideHost    cmd.OptionalString
+	serviceVersion  cmd.OptionalServiceVersion
+	sslCertHostname cmd.OptionalString
+	sslSNIHostname  cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -44,7 +50,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Required().StringVar(&c.Input.Address)
 	c.CmdClause.Flag("comment", "A descriptive note").StringVar(&c.Input.Comment)
 	c.CmdClause.Flag("port", "Port number of the address").UintVar(&c.Input.Port)
-	c.CmdClause.Flag("override-host", "The hostname to override the Host header").StringVar(&c.Input.OverrideHost)
+	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.overrideHost.Set).StringVar(&c.overrideHost.Value)
 	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").UintVar(&c.Input.ConnectTimeout)
 	c.CmdClause.Flag("max-conn", "Maximum number of connections").UintVar(&c.Input.MaxConn)
 	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").UintVar(&c.Input.FirstByteTimeout)
@@ -59,8 +65,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("ssl-ca-cert", "CA certificate attached to origin").StringVar(&c.Input.SSLCACert)
 	c.CmdClause.Flag("ssl-client-cert", "Client certificate attached to origin").StringVar(&c.Input.SSLClientCert)
 	c.CmdClause.Flag("ssl-client-key", "Client key attached to origin").StringVar(&c.Input.SSLClientKey)
-	c.CmdClause.Flag("ssl-cert-hostname", "Overrides ssl_hostname, but only for cert verification. Does not affect SNI at all.").StringVar(&c.Input.SSLCertHostname)
-	c.CmdClause.Flag("ssl-sni-hostname", "Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all.").StringVar(&c.Input.SSLSNIHostname)
+	c.CmdClause.Flag("ssl-cert-hostname", "Overrides ssl_hostname, but only for cert verification. Does not affect SNI at all.").Action(c.sslCertHostname.Set).StringVar(&c.sslCertHostname.Value)
+	c.CmdClause.Flag("ssl-sni-hostname", "Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all.").Action(c.sslSNIHostname.Set).StringVar(&c.sslSNIHostname.Value)
 	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").StringVar(&c.Input.MinTLSVersion)
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").StringVar(&c.Input.MaxTLSVersion)
 	c.CmdClause.Flag("ssl-ciphers", "Colon delimited list of OpenSSL ciphers (see https://www.openssl.org/docs/man1.0.2/man1/ciphers for details)").StringVar(&c.Input.SSLCiphers)
@@ -103,6 +109,23 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		c.Input.Port = 443
 	}
 
+	if !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {
+		overrideHost, sslSNIHostname, sslCertHostname := SetBackendHostDefaults(c.Input.Address)
+		c.Input.OverrideHost = overrideHost
+		c.Input.SSLSNIHostname = sslSNIHostname
+		c.Input.SSLCertHostname = sslCertHostname
+	} else {
+		if c.overrideHost.WasSet {
+			c.Input.OverrideHost = c.overrideHost.Value
+		}
+		if c.sslCertHostname.WasSet {
+			c.Input.SSLCertHostname = c.sslCertHostname.Value
+		}
+		if c.sslSNIHostname.WasSet {
+			c.Input.SSLSNIHostname = c.sslSNIHostname.Value
+		}
+	}
+
 	b, err := c.Globals.Client.CreateBackend(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -114,4 +137,19 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	text.Success(out, "Created backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
 	return nil
+}
+
+// SetBackendHostDefaults configures the OverrideHost and SSLSNIHostname fields.
+//
+// By default we set the override_host and ssl_sni_hostname properties of the
+// Backend object to the hostname, unless the given input is an IP.
+func SetBackendHostDefaults(address string) (overrideHost, sslSNIHostname, sslCertHostname string) {
+	if _, err := net.LookupAddr(address); err != nil {
+		overrideHost = address
+	}
+	if overrideHost != "" {
+		sslSNIHostname = overrideHost
+		sslCertHostname = overrideHost
+	}
+	return
 }
