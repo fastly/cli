@@ -216,7 +216,7 @@ COMMANDS
   whoami           Get information about the currently authenticated account
 
 SEE ALSO
-https://developer.fastly.com/reference/cli/
+  https://developer.fastly.com/reference/cli/
 `) + "\n\n"
 
 var helpService = strings.TrimSpace(`
@@ -269,7 +269,7 @@ SUBCOMMANDS
         --comment=COMMENT        Human-readable comment
 
 SEE ALSO
-https://developer.fastly.com/reference/cli/service/
+  https://developer.fastly.com/reference/cli/service/
 
 `) + "\n\n"
 
@@ -4261,7 +4261,7 @@ COMMANDS
 
 
 SEE ALSO
-https://developer.fastly.com/reference/cli/
+  https://developer.fastly.com/reference/cli/
 
 For help on a specific command, try e.g.
 

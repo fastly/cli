@@ -163,7 +163,7 @@ var UsageTemplateFuncs = template.FuncMap{
 		if len(cmd) > 0 {
 			trail = "/"
 		}
-		return fmt.Sprintf("%s%s%s", url, strings.ReplaceAll(cmd, " ", "/"), trail)
+		return fmt.Sprintf("  %s%s%s", url, strings.ReplaceAll(cmd, " ", "/"), trail)
 	},
 }
 
