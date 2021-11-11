@@ -16,87 +16,6 @@ import (
 	"github.com/fastly/kingpin"
 )
 
-type usageJSON struct {
-	GlobalFlags []flagJSON    `json:"globalFlags"`
-	Commands    []commandJSON `json:"commands"`
-}
-
-type flagJSON struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Placeholder string `json:"placeholder"`
-	Required    bool   `json:"required"`
-	Default     string `json:"default"`
-	IsBool      bool   `json:"isBool"`
-}
-
-type commandJSON struct {
-	Name        string        `json:"name"`
-	Description string        `json:"description"`
-	Flags       []flagJSON    `json:"flags"`
-	Children    []commandJSON `json:"children"`
-}
-
-func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
-	var flags []flagJSON
-	for _, f := range models {
-		if f.Hidden {
-			continue
-		}
-		var flag flagJSON
-		flag.Name = f.Name
-		flag.Description = f.Help
-		flag.Placeholder = f.PlaceHolder
-		flag.Required = f.Required
-		flag.Default = strings.Join(f.Default, ",")
-		flag.IsBool = f.IsBoolFlag()
-		flags = append(flags, flag)
-	}
-	return flags
-}
-
-func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
-	var globalFlags []*kingpin.ClauseModel
-	for _, f := range models {
-		if !f.Hidden {
-			globalFlags = append(globalFlags, f)
-		}
-	}
-	return getFlagJSON(globalFlags)
-}
-
-func getCommandJSON(models []*kingpin.CmdModel) []commandJSON {
-	var commands []commandJSON
-	for _, c := range models {
-		if c.Hidden {
-			continue
-		}
-		var cmd commandJSON
-		cmd.Name = c.Name
-		cmd.Description = c.Help
-		cmd.Flags = getFlagJSON(c.Flags)
-		cmd.Children = getCommandJSON(c.Commands)
-		commands = append(commands, cmd)
-	}
-	return commands
-}
-
-// UsageJSON returns a structured representation of the application usage
-// documentation in JSON format. This is useful for machine consumtion.
-func UsageJSON(app *kingpin.Application) (string, error) {
-	usage := &usageJSON{
-		GlobalFlags: getGlobalFlagJSON(app.Model().Flags),
-		Commands:    getCommandJSON(app.Model().Commands),
-	}
-
-	j, err := json.Marshal(usage)
-	if err != nil {
-		return "", err
-	}
-
-	return string(j), nil
-}
-
 // Usage returns a contextual usage string for the application. In order to deal
 // with Kingpin's annoying love of side effects, we have to swap the app.Writers
 // to capture output; the out and err parameters, therefore, are the io.Writers
@@ -112,59 +31,6 @@ func Usage(args []string, app *kingpin.Application, out, err io.Writer, vars map
 	app.Usage(args)
 	app.Writers(out, err)
 	return buf.String()
-}
-
-// WARNING: kingpin has no way of decorating flags as being "global" therefore
-// if you add/remove a global flag you will also need to update flag binding in
-// pkg/app/app.go.
-var globalFlags = map[string]bool{
-	"help":    true,
-	"token":   true,
-	"verbose": true,
-}
-
-// UsageTemplateFuncs is a map of template functions which get passed to the
-// usage template renderer.
-var UsageTemplateFuncs = template.FuncMap{
-	"CommandsToTwoColumns": func(c []*kingpin.CmdModel) [][2]string {
-		rows := [][2]string{}
-		for _, cmd := range c {
-			if !cmd.Hidden {
-				rows = append(rows, [2]string{cmd.Name, cmd.Help})
-			}
-		}
-		return rows
-	},
-	"GlobalFlags": func(f []*kingpin.ClauseModel) []*kingpin.ClauseModel {
-		flags := []*kingpin.ClauseModel{}
-		for _, flag := range f {
-			if globalFlags[flag.Name] {
-				flags = append(flags, flag)
-			}
-		}
-		return flags
-	},
-	"OptionalFlags": func(f []*kingpin.ClauseModel) []*kingpin.ClauseModel {
-		optionalFlags := []*kingpin.ClauseModel{}
-		for _, flag := range f {
-			if !flag.Required && !flag.Hidden && !globalFlags[flag.Name] {
-				optionalFlags = append(optionalFlags, flag)
-			}
-		}
-		return optionalFlags
-	},
-	"Bold": func(s string) string {
-		return text.Bold(s)
-	},
-	"SeeAlso": func(cm *kingpin.CmdModel) string {
-		cmd := cm.FullCommand()
-		url := "https://developer.fastly.com/reference/cli/"
-		var trail string
-		if len(cmd) > 0 {
-			trail = "/"
-		}
-		return fmt.Sprintf("  %s%s%s", url, strings.ReplaceAll(cmd, " ", "/"), trail)
-	},
 }
 
 // CompactUsageTemplate is the default usage template, rendered when users type
@@ -227,6 +93,59 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{.Context.SelectedCommand|SeeAlso}}
 `
 
+// UsageTemplateFuncs is a map of template functions which get passed to the
+// usage template renderer.
+var UsageTemplateFuncs = template.FuncMap{
+	"CommandsToTwoColumns": func(c []*kingpin.CmdModel) [][2]string {
+		rows := [][2]string{}
+		for _, cmd := range c {
+			if !cmd.Hidden {
+				rows = append(rows, [2]string{cmd.Name, cmd.Help})
+			}
+		}
+		return rows
+	},
+	"GlobalFlags": func(f []*kingpin.ClauseModel) []*kingpin.ClauseModel {
+		flags := []*kingpin.ClauseModel{}
+		for _, flag := range f {
+			if globalFlags[flag.Name] {
+				flags = append(flags, flag)
+			}
+		}
+		return flags
+	},
+	"OptionalFlags": func(f []*kingpin.ClauseModel) []*kingpin.ClauseModel {
+		optionalFlags := []*kingpin.ClauseModel{}
+		for _, flag := range f {
+			if !flag.Required && !flag.Hidden && !globalFlags[flag.Name] {
+				optionalFlags = append(optionalFlags, flag)
+			}
+		}
+		return optionalFlags
+	},
+	"Bold": func(s string) string {
+		return text.Bold(s)
+	},
+	"SeeAlso": func(cm *kingpin.CmdModel) string {
+		cmd := cm.FullCommand()
+		url := "https://developer.fastly.com/reference/cli/"
+		var trail string
+		if len(cmd) > 0 {
+			trail = "/"
+		}
+		return fmt.Sprintf("  %s%s%s", url, strings.ReplaceAll(cmd, " ", "/"), trail)
+	},
+}
+
+// WARNING: kingpin has no way of decorating flags as being "global" therefore
+// if you add/remove a global flag you will also need to update flag binding in
+// pkg/app/app.go.
+var globalFlags = map[string]bool{
+	"help":    true,
+	"token":   true,
+	"verbose": true,
+}
+
 // VerboseUsageTemplate is the full-fat usage template, rendered when users type
 // the long-form e.g. `fastly help service`.
 const VerboseUsageTemplate = `{{define "FormatCommands" -}}
@@ -273,28 +192,6 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 {{T "SEE ALSO"|Bold}}
 {{.Context.SelectedCommand|SeeAlso}}
 `
-
-// displayHelp returns a function that prints the help output for a command or
-// command set.
-//
-// NOTE: This function is called multiple times within app.Run() and so we use
-// a closure to prevent having to pass the same unchanging arguments each time.
-func displayHelp(
-	errLog fsterr.LogInterface,
-	args []string,
-	app *kingpin.Application,
-	stdout, stderr io.Writer) func(vars map[string]interface{}, err error) error {
-
-	return func(vars map[string]interface{}, err error) error {
-		usage := Usage(args, app, stdout, stderr, vars)
-		remediation := fsterr.RemediationError{Prefix: usage}
-		if err != nil {
-			errLog.Add(err)
-			remediation.Inner = fmt.Errorf("error parsing arguments: %w", err)
-		}
-		return remediation
-	}
-}
 
 // processCommandInput groups together all the logic related to parsing and
 // processing the incoming command request from the user, as well as handling
@@ -454,4 +351,107 @@ func processCommandInput(
 	}
 
 	return command, cmdName, nil
+}
+
+// displayHelp returns a function that prints the help output for a command or
+// command set.
+//
+// NOTE: This function is called multiple times within app.Run() and so we use
+// a closure to prevent having to pass the same unchanging arguments each time.
+func displayHelp(
+	errLog fsterr.LogInterface,
+	args []string,
+	app *kingpin.Application,
+	stdout, stderr io.Writer) func(vars map[string]interface{}, err error) error {
+
+	return func(vars map[string]interface{}, err error) error {
+		usage := Usage(args, app, stdout, stderr, vars)
+		remediation := fsterr.RemediationError{Prefix: usage}
+		if err != nil {
+			errLog.Add(err)
+			remediation.Inner = fmt.Errorf("error parsing arguments: %w", err)
+		}
+		return remediation
+	}
+}
+
+// UsageJSON returns a structured representation of the application usage
+// documentation in JSON format. This is useful for machine consumtion.
+func UsageJSON(app *kingpin.Application) (string, error) {
+	usage := &usageJSON{
+		GlobalFlags: getGlobalFlagJSON(app.Model().Flags),
+		Commands:    getCommandJSON(app.Model().Commands),
+	}
+
+	j, err := json.Marshal(usage)
+	if err != nil {
+		return "", err
+	}
+
+	return string(j), nil
+}
+
+type usageJSON struct {
+	GlobalFlags []flagJSON    `json:"globalFlags"`
+	Commands    []commandJSON `json:"commands"`
+}
+
+type flagJSON struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Placeholder string `json:"placeholder"`
+	Required    bool   `json:"required"`
+	Default     string `json:"default"`
+	IsBool      bool   `json:"isBool"`
+}
+
+type commandJSON struct {
+	Name        string        `json:"name"`
+	Description string        `json:"description"`
+	Flags       []flagJSON    `json:"flags"`
+	Children    []commandJSON `json:"children"`
+}
+
+func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
+	var globalFlags []*kingpin.ClauseModel
+	for _, f := range models {
+		if !f.Hidden {
+			globalFlags = append(globalFlags, f)
+		}
+	}
+	return getFlagJSON(globalFlags)
+}
+
+func getCommandJSON(models []*kingpin.CmdModel) []commandJSON {
+	var commands []commandJSON
+	for _, c := range models {
+		if c.Hidden {
+			continue
+		}
+		var cmd commandJSON
+		cmd.Name = c.Name
+		cmd.Description = c.Help
+		cmd.Flags = getFlagJSON(c.Flags)
+		cmd.Children = getCommandJSON(c.Commands)
+		commands = append(commands, cmd)
+	}
+	return commands
+}
+
+func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
+	var flags []flagJSON
+	for _, f := range models {
+		if f.Hidden {
+			continue
+		}
+		var flag flagJSON
+		flag.Name = f.Name
+		flag.Description = f.Help
+		flag.Placeholder = f.PlaceHolder
+		flag.Required = f.Required
+		flag.Default = strings.Join(f.Default, ",")
+		flag.IsBool = f.IsBoolFlag()
+		flags = append(flags, flag)
+	}
+	return flags
 }
