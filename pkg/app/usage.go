@@ -157,8 +157,13 @@ var UsageTemplateFuncs = template.FuncMap{
 		return text.Bold(s)
 	},
 	"SeeAlso": func(cm *kingpin.CmdModel) string {
+		cmd := cm.FullCommand()
 		url := "https://developer.fastly.com/reference/cli/"
-		return fmt.Sprintf("%s%s", url, strings.ReplaceAll(cm.FullCommand(), " ", "/"))
+		var trail string
+		if len(cmd) > 0 {
+			trail = "/"
+		}
+		return fmt.Sprintf("%s%s%s", url, strings.ReplaceAll(cmd, " ", "/"), trail)
 	},
 }
 
@@ -438,7 +443,7 @@ func processCommandInput(
 		// distinguish `fastly help` from e.g. `fastly help configure` than this
 		// check.
 		if len(opts.Args) > 0 && opts.Args[len(opts.Args)-1] == "help" {
-			fmt.Fprintln(&buf, "For help on a specific command, try e.g.")
+			fmt.Fprintln(&buf, "\nFor help on a specific command, try e.g.")
 			fmt.Fprintln(&buf, "")
 			fmt.Fprintln(&buf, "\tfastly help configure")
 			fmt.Fprintln(&buf, "\tfastly configure --help")
