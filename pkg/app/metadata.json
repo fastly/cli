@@ -2,53 +2,1864 @@
   "acl": {
     "create": {
       "examples": [{
-        "cmd": "fastly acl create --name=\"foo\"",
-        "description": "Create an ACL named \"foo\".",
-        "title": "Standard two level command"
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/acls/acl/#create-acl"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/acls/acl/#delete-acl"]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/acls/acl/#get-acl"]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/acls/acl/#list-acls"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/acls/acl/#update-acl"]
+    }
+  },
+  "acl-entry": {
+    "create": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/acls/acl-entry/#create-acl-entry"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/acls/acl-entry/#delete-acl-entry"]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/acls/acl-entry/#get-acl-entry"]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/acls/acl-entry/#list-acl-entries"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
       }],
       "apis": [
-        "beep",
-        "boop"
+        "https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries",
+        "https://developer.fastly.com/reference/api/acls/acl-entry/#update-acl-entry"
+      ]
+    }
+  },
+  "auth-token": {
+    "create": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/auth/#create-token"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": [
+        "https://developer.fastly.com/reference/api/auth/#revoke-token-current",
+        "https://developer.fastly.com/reference/api/auth/#bulk-revoke-tokens",
+        "https://developer.fastly.com/reference/api/auth/#revoke-token"
+      ]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/auth/#get-token-current"]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": [
+        "https://developer.fastly.com/reference/api/auth/#list-tokens-customer",
+        "https://developer.fastly.com/reference/api/auth/#list-tokens-user"
       ]
     }
   },
   "backend": {
     "create": {
       "examples": [{
-        "cmd": "fastly backend create --name=\"foo\"",
-        "description": "Create a backend named \"foo\".",
-        "title": "Another standard two level command"
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/backend/#create-backend"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/backend/#delete-backend"]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/backend/#get-backend"]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/backend/#list-backends"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/backend/#update-backend"]
+    }
+  },
+  "compute": {
+    "build": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }]
+    },
+    "deploy": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
       }],
       "apis": [
-        "foo",
-        "bar"
+        "https://developer.fastly.com/reference/api/services/service/#create-service",
+        "https://developer.fastly.com/reference/api/services/service/#get-service",
+        "https://developer.fastly.com/reference/api/services/package/#get-package",
+        "https://developer.fastly.com/reference/api/services/package/#put-package"
+      ]
+    },
+    "init": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }]
+    },
+    "pack": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }]
+    },
+    "publish": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": [
+        "https://developer.fastly.com/reference/api/services/service/#create-service",
+        "https://developer.fastly.com/reference/api/services/service/#get-service",
+        "https://developer.fastly.com/reference/api/services/package/#get-package",
+        "https://developer.fastly.com/reference/api/services/package/#put-package"
+      ]
+    },
+    "serve": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/package/#put-package"]
+    },
+    "validate": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }]
+    }
+  },
+  "configure": {
+    "examples": [{
+      "cmd": "",
+      "description": "",
+      "title": ""
+    }],
+    "apis": [
+      "https://developer.fastly.com/reference/api/auth/#get-token-current",
+      "https://developer.fastly.com/reference/api/account/user/#get-user"
+    ]
+  },
+  "dictionary": {
+    "create": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/dictionaries/dictionary/#get-dictionary"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/dictionaries/dictionary/#delete-dictionary"]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": [
+        "https://developer.fastly.com/reference/api/dictionaries/dictionary/#get-dictionary",
+        "https://developer.fastly.com/reference/api/dictionaries/dictionary-info/#get-dictionary-info",
+        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#list-dictionary-items"
+      ]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/dictionaries/dictionary/#list-dictionaries"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/dictionaries/dictionary/#update-dictionary"]
+    }
+  },
+  "dictionary-item": {
+    "create": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#create-dictionary-item"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#delete-dictionary-item"]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#get-dictionary-item"]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#list-dictionary-items"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": [
+        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#bulk-update-dictionary-item",
+        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#upsert-dictionary-item"
       ]
     }
   },
+  "domain": {
+    "create": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/domain/#create-domain"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/domain/#delete-domain"]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/domain/#get-domain"]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/domain/#list-domains"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/domain/#update-domain"]
+    },
+    "validate": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": [
+        "https://developer.fastly.com/reference/api/services/domain/#check-domains",
+        "https://developer.fastly.com/reference/api/services/domain/#check-domain"
+      ]
+    }
+  },
+  "healthcheck": {
+    "create": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/healthcheck/#create-healthcheck"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/healthcheck/#delete-healthcheck"]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/healthcheck/#get-healthcheck"]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/healthcheck/#list-healthchecks"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/healthcheck/#update-healthcheck"]
+    }
+  },
+  "ip-list": {
+    "examples": [{
+      "cmd": "",
+      "description": "",
+      "title": ""
+    }],
+    "apis": ["https://developer.fastly.com/reference/api/utils/public-ip-list/"]
+  },
+  "log-tail": {
+    "examples": [{
+      "cmd": "",
+      "description": "",
+      "title": ""
+    }],
+    "apis": ["undocumented:https://api.fastly.com/service/%s/log_stream/managed/instance_output"]
+  },
   "logging": {
+    "azureblob": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/azureblob/#create-log-azure"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/azureblob/#delete-log-azure"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/azureblob/#get-log-azure"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/azureblob/#list-log-azure"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/azureblob/#update-log-azure"]
+      }
+    },
     "bigquery": {
       "create": {
         "examples": [{
-          "cmd": "fastly logging bigquery create --name=\"foo\"",
-          "description": "Create a bigquery log endpoint named \"foo\".",
-          "title": "Three level command"
+          "cmd": "",
+          "description": "",
+          "title": ""
         }],
-        "apis": [
-          "foo",
-          "bar"
-        ]
+        "apis": ["https://developer.fastly.com/reference/api/logging/bigquery/#create-log-bigquery"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/bigquery/#delete-log-bigquery"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/bigquery/#get-log-bigquery"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/bigquery/#list-log-bigquery"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/bigquery/#update-log-bigquery"]
+      }
+    },
+    "cloudfiles": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/cloudfiles/#create-log-cloudfiles"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/cloudfiles/#delete-log-cloudfiles"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/cloudfiles/#get-log-cloudfiles"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/cloudfiles/#list-log-cloudfiles"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/cloudfiles/#update-log-cloudfiles"]
+      }
+    },
+    "datadog": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/datadog/#create-log-datadog"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/datadog/#delete-log-datadog"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/datadog/#get-log-datadog"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/datadog/#list-log-datadog"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/datadog/#update-log-datadog"]
+      }
+    },
+    "digitalocean": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/digitalocean/#create-log-digocean"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/digitalocean/#delete-log-digocean"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/digitalocean/#get-log-digocean"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/digitalocean/#list-log-digocean"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/digitalocean/#update-log-digocean"]
+      }
+    },
+    "elasticsearch": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/elasticsearch/#create-log-elasticsearch"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/elasticsearch/#delete-log-elasticsearch"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/elasticsearch/#get-log-elasticsearch"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/elasticsearch/#list-log-elasticsearch"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/elasticsearch/#update-log-elasticsearch"]
+      }
+    },
+    "ftp": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/ftp/#create-log-ftp"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/ftp/#delete-log-ftp"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/ftp/#get-log-ftp"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/ftp/#list-log-ftp"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/ftp/#update-log-ftp"]
+      }
+    },
+    "gcs": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/gcs/#create-log-gcs"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/gcs/#delete-log-gcs"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/gcs/#get-log-gcs"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/gcs/#list-log-gcs"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/gcs/#update-log-gcs"]
+      }
+    },
+    "googlepubsub": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/google-pubsub/#create-log-gcp-pubsub"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/google-pubsub/#delete-log-gcp-pubsub"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/google-pubsub/#get-log-gcp-pubsub"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/google-pubsub/#list-log-gcp-pubsub"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/google-pubsub/#update-log-gcp-pubsub"]
+      }
+    },
+    "heroku": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/heroku/#create-log-heroku"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/heroku/#delete-log-heroku"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/heroku/#get-log-heroku"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/heroku/#list-log-heroku"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/heroku/#update-log-heroku"]
+      }
+    },
+    "honeycomb": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/honeycomb/#create-log-honeycomb"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/honeycomb/#delete-log-honeycomb"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/honeycomb/#get-log-honeycomb"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/honeycomb/#list-log-honeycomb"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/honeycomb/#update-log-honeycomb"]
+      }
+    },
+    "https": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/https/#create-log-https"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/https/#delete-log-https"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/https/#get-log-https"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/https/#list-log-https"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/https/#update-log-https"]
+      }
+    },
+    "kafka": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kafka/#create-log-kafka"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kafka/#delete-log-kafka"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kafka/#get-log-kafka"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kafka/#list-log-kafka"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kafka/#update-log-kafka"]
+      }
+    },
+    "kinesis": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kinesis/#create-log-kinesis"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kinesis/#delete-log-kinesis"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kinesis/#get-log-kinesis"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kinesis/#list-log-kinesis"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/kinesis/#update-log-kinesis"]
+      }
+    },
+    "logentries": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logentries/#create-log-logentries"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logentries/#delete-log-logentries"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logentries/#get-log-logentries"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logentries/#list-log-logentries"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logentries/#update-log-logentries"]
+      }
+    },
+    "loggly": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/loggly/#create-log-loggly"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/loggly/#delete-log-loggly"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/loggly/#get-log-loggly"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/loggly/#list-log-loggly"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/loggly/#update-log-loggly"]
+      }
+    },
+    "logshuttle": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logshuttle/#create-log-logshuttle"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logshuttle/#delete-log-logshuttle"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logshuttle/#get-log-logshuttle"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logshuttle/#list-log-logshuttle"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/logshuttle/#update-log-logshuttle"]
+      }
+    },
+    "newrelic": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/new-relic/#create-log-newrelic"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/new-relic/#delete-log-newrelic"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/new-relic/#get-log-newrelic"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/new-relic/#list-log-newrelic"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/new-relic/#update-log-newrelic"]
+      }
+    },
+    "openstack": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/openstack/#get-log-openstack"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/openstack/#delete-log-openstack"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/openstack/#get-log-openstack"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/openstack/#list-log-openstack"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/openstack/#update-log-openstack"]
+      }
+    },
+    "papertrail": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/papertrail/#create-log-papertrail"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/papertrail/#delete-log-papertrail"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/papertrail/#get-log-papertrail"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/papertrail/#list-log-papertrail"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/papertrail/#update-log-papertrail"]
+      }
+    },
+    "s3": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/s3/#create-log-aws-s3"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/s3/#delete-log-aws-s3"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/s3/#get-log-aws-s3"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/s3/#list-log-aws-s3"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/s3/#update-log-aws-s3"]
+      }
+    },
+    "scalyr": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/scalyr/#create-log-scalyr"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/scalyr/#delete-log-scalyr"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/scalyr/#get-log-scalyr"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/scalyr/#list-log-scalyr"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/scalyr/#update-log-scalyr"]
+      }
+    },
+    "sftp": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sftp/#create-log-sftp"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sftp/#delete-log-sftp"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sftp/#get-log-sftp"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sftp/#list-log-sftp"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sftp/#update-log-sftp"]
+      }
+    },
+    "splunk": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/splunk/#create-log-splunk"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/splunk/#delete-log-splunk"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/splunk/#get-log-splunk"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/splunk/#list-log-splunk"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/splunk/#update-log-splunk"]
+      }
+    },
+    "sumologic": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sumologic/#create-log-sumologic"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sumologic/#delete-log-sumologic"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sumologic/#list-log-sumologic"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sumologic/#list-log-sumologic"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/sumologic/#update-log-sumologic"]
+      }
+    },
+    "syslog": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/syslog/#create-log-syslog"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/syslog/#delete-log-syslog"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/syslog/#get-log-syslog"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/syslog/#list-log-syslog"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/logging/syslog/#update-log-syslog"]
       }
     }
   },
   "pops": {
     "examples": [{
-      "cmd": "fastly pops",
-      "description": "List Fastly datacenters.",
-      "title": "One level command"
+      "cmd": "",
+      "description": "",
+      "title": ""
+    }],
+    "apis": ["https://developer.fastly.com/reference/api/utils/pops/#list-pops"]
+  },
+  "purge": {
+    "examples": [{
+      "cmd": "",
+      "description": "",
+      "title": ""
     }],
     "apis": [
-      "foo",
-      "bar"
+      "https://developer.fastly.com/reference/api/purging/#purge-all",
+      "https://developer.fastly.com/reference/api/purging/#bulk-purge-tag",
+      "https://developer.fastly.com/reference/api/purging/#purge-tag",
+      "https://developer.fastly.com/reference/api/purging/#purge-single-url"
+    ]
+  },
+  "search": {
+    "create": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/service/#create-service"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": [
+        "https://developer.fastly.com/reference/api/services/service/#get-service-detail",
+        "https://developer.fastly.com/reference/api/services/version/#deactivate-service-version",
+        "https://developer.fastly.com/reference/api/services/service/#delete-service"
+      ]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/service/#get-service-detail"]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/service/#list-services"]
+    },
+    "search": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/service/#search-service"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/service/#update-service"]
+    }
+  },
+  "service-version": {
+    "activate": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/version/#activate-service-version"]
+    },
+    "clone": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/version/#clone-service-version"]
+    },
+    "deactivate": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/version/#deactivate-service-version"]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/version/#list-service-versions"]
+    },
+    "lock": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/version/#lock-service-version"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/services/version/#update-service-version"]
+    }
+  },
+  "stats": {
+    "historical": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/metrics-stats/historical-stats/#get-hist-stats-service"]
+    },
+    "realtime": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/metrics-stats/realtime/#get-stats-last-second"]
+    },
+    "regional": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/metrics-stats/historical-stats/#get-regions"]
+    }
+  },
+  "update": {
+    "examples": [{
+      "cmd": "",
+      "description": "",
+      "title": ""
+    }]
+  },
+  "user": {
+    "create": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/account/user/#create-user"]
+    },
+    "delete": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/account/user/#delete-user"]
+    },
+    "describe": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": [
+        "https://developer.fastly.com/reference/api/account/user/#get-current-user",
+        "https://developer.fastly.com/reference/api/account/user/#get-user"
+      ]
+    },
+    "list": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": ["https://developer.fastly.com/reference/api/account/customer/#list-users"]
+    },
+    "update": {
+      "examples": [{
+        "cmd": "",
+        "description": "",
+        "title": ""
+      }],
+      "apis": [
+        "https://developer.fastly.com/reference/api/account/user/#request-password-reset",
+        "https://developer.fastly.com/reference/api/account/user/#update-user"
+      ]
+    }
+  },
+  "vcl": {
+    "custom": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/vcl-services/vcl/#create-custom-vcl"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/vcl-services/vcl/#delete-custom-vcl"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/vcl-services/vcl/#get-custom-vcl"]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/vcl-services/vcl/#list-custom-vcl"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/vcl-services/vcl/#update-custom-vcl"]
+      }
+    },
+    "snippet": {
+      "create": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/vcl-services/snippet/#create-snippet"]
+      },
+      "delete": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/vcl-services/snippet/#delete-snippet"]
+      },
+      "describe": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": [
+          "https://developer.fastly.com/reference/api/vcl-services/snippet/#get-snippet-dynamic",
+          "https://developer.fastly.com/reference/api/vcl-services/snippet/#get-snippet"
+        ]
+      },
+      "list": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": ["https://developer.fastly.com/reference/api/vcl-services/snippet/#list-snippets"]
+      },
+      "update": {
+        "examples": [{
+          "cmd": "",
+          "description": "",
+          "title": ""
+        }],
+        "apis": [
+          "https://developer.fastly.com/reference/api/vcl-services/snippet/#update-snippet-dynamic",
+          "https://developer.fastly.com/reference/api/vcl-services/snippet/#update-snippet"
+        ]
+      }
+    }
+  },
+  "version": {
+    "examples": [{
+      "cmd": "",
+      "description": "",
+      "title": ""
+    }]
+  },
+  "whoami": {
+    "examples": [{
+      "cmd": "",
+      "description": "",
+      "title": ""
+    }],
+    "apis": [
+      "undocumented:https://api.fastly.com/verify"
     ]
   }
 }
