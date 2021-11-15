@@ -358,22 +358,22 @@ func processCommandInput(
 //go:embed metadata.json
 var metadata []byte
 
-// commands represents the metadata.json content that will provide extra
+// commandsMetadata represents the metadata.json content that will provide extra
 // contextual information.
-type commands map[string]interface{}
+type commandsMetadata map[string]interface{}
 
 // UsageJSON returns a structured representation of the application usage
 // documentation in JSON format. This is useful for machine consumtion.
 func UsageJSON(app *kingpin.Application) (string, error) {
-	var c commands
-	err := json.Unmarshal(metadata, &c)
+	var data commandsMetadata
+	err := json.Unmarshal(metadata, &data)
 	if err != nil {
 		return "", err
 	}
 
 	usage := &usageJSON{
 		GlobalFlags: getGlobalFlagJSON(app.Model().Flags),
-		Commands:    getCommandJSON(app.Model().Commands, c),
+		Commands:    getCommandJSON(app.Model().Commands, data),
 	}
 
 	j, err := json.Marshal(usage)
@@ -416,7 +416,7 @@ func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
 	return getFlagJSON(globalFlags)
 }
 
-func getCommandJSON(models []*kingpin.CmdModel, c commands) []commandJSON {
+func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []commandJSON {
 	var cmds []commandJSON
 	for _, m := range models {
 		if m.Hidden {
@@ -426,12 +426,11 @@ func getCommandJSON(models []*kingpin.CmdModel, c commands) []commandJSON {
 		cmd.Name = m.Name
 		cmd.Description = m.Help
 		cmd.Flags = getFlagJSON(m.Flags)
-		cmd.Children = getCommandJSON(m.Commands, c)
+		cmd.Children = getCommandJSON(m.Commands, data)
 		cmd.APIs = []string{}
 
 		segs := strings.Split(m.FullCommand(), " ")
-
-		data := recurse(m.Depth, segs, c)
+		data := recurse(m.Depth, segs, data)
 		apis, ok := data["apis"]
 		if ok {
 			apis, ok := apis.([]interface{})
@@ -458,15 +457,15 @@ func getCommandJSON(models []*kingpin.CmdModel, c commands) []commandJSON {
 //
 // Each recursive call not only decrements the `n` counter but also removes the
 // previous CLI arg, so `segs` becomes shorter on each iteration.
-func recurse(n int, segs []string, c commands) commands {
+func recurse(n int, segs []string, data commandsMetadata) commandsMetadata {
 	if n == 0 {
-		return c
+		return data
 	}
-	data, ok := c[segs[0]]
+	value, ok := data[segs[0]]
 	if ok {
-		data, ok := data.(map[string]interface{})
+		value, ok := value.(map[string]interface{})
 		if ok {
-			return recurse(n-1, segs[1:], data)
+			return recurse(n-1, segs[1:], value)
 		}
 	}
 	return nil
