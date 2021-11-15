@@ -450,8 +450,7 @@
       "cmd": "",
       "description": "",
       "title": ""
-    }],
-    "apis": ["undocumented:https://api.fastly.com/service/%s/log_stream/managed/instance_output"]
+    }]
   },
   "logging": {
     "azureblob": {
@@ -1857,9 +1856,6 @@
       "cmd": "",
       "description": "",
       "title": ""
-    }],
-    "apis": [
-      "undocumented:https://api.fastly.com/verify"
-    ]
+    }]
   }
 }
