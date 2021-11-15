@@ -450,6 +450,14 @@ func getCommandJSON(models []*kingpin.CmdModel, c commands) []commandJSON {
 }
 
 // recurse simplifies the tree style traversal of a complex map.
+//
+// NOTE: The `n` arg represents the number of CLI arguments. For example,
+// with `logging kafka create`, the initial function call would be passed n=3.
+// The `segs` arg represents the CLI arguments. While `c` is the map data
+// structure populated from the metadata.json file.
+//
+// Each recursive call not only decrements the `n` counter but also removes the
+// previous CLI arg, so `segs` becomes shorter on each iteration.
 func recurse(n int, segs []string, c commands) commands {
 	if n == 0 {
 		return c
