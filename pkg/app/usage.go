@@ -403,7 +403,7 @@ type commandJSON struct {
 	Description string        `json:"description"`
 	Flags       []flagJSON    `json:"flags"`
 	Children    []commandJSON `json:"children"`
-	APIs        []string      `json:"apis"`
+	APIs        []string      `json:"apis,omitempty"`
 }
 
 func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
