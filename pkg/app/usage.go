@@ -417,7 +417,7 @@ func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
 }
 
 func getCommandJSON(models []*kingpin.CmdModel, c commands) []commandJSON {
-	var commands []commandJSON
+	var cmds []commandJSON
 	for _, m := range models {
 		if m.Hidden {
 			continue
@@ -430,96 +430,38 @@ func getCommandJSON(models []*kingpin.CmdModel, c commands) []commandJSON {
 		cmd.APIs = []string{}
 
 		segs := strings.Split(m.FullCommand(), " ")
-		switch m.Depth {
-		case 1:
-			command := segs[0]
 
-			categories, ok := c[command]
+		data := recurse(m.Depth, segs, c)
+		apis, ok := data["apis"]
+		if ok {
+			apis, ok := apis.([]interface{})
 			if ok {
-				categories, ok := categories.(map[string]interface{})
-				if ok {
-					apis, ok := categories["apis"]
+				for _, api := range apis {
+					a, ok := api.(string)
 					if ok {
-						apis, ok := apis.([]interface{})
-						if ok {
-							for _, api := range apis {
-								a, ok := api.(string)
-								if ok {
-									cmd.APIs = append(cmd.APIs, a)
-								}
-							}
-						}
-					}
-				}
-			}
-		case 2:
-			command := segs[0]
-			subcommand := segs[1]
-
-			subcommands, ok := c[command]
-			if ok {
-				subcommands, ok := subcommands.(map[string]interface{})
-				if ok {
-					categories, ok := subcommands[subcommand]
-					if ok {
-						categories, ok := categories.(map[string]interface{})
-						if ok {
-							apis, ok := categories["apis"]
-							if ok {
-								apis, ok := apis.([]interface{})
-								if ok {
-									for _, api := range apis {
-										a, ok := api.(string)
-										if ok {
-											cmd.APIs = append(cmd.APIs, a)
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		case 3:
-			command := segs[0]
-			subcommand := segs[1]
-			operation := segs[2]
-
-			subcommands, ok := c[command]
-			if ok {
-				subcommands, ok := subcommands.(map[string]interface{})
-				if ok {
-					operations, ok := subcommands[subcommand]
-					if ok {
-						operations, ok := operations.(map[string]interface{})
-						if ok {
-							categories, ok := operations[operation]
-							if ok {
-								categories, ok := categories.(map[string]interface{})
-								if ok {
-									apis, ok := categories["apis"]
-									if ok {
-										apis, ok := apis.([]interface{})
-										if ok {
-											for _, api := range apis {
-												a, ok := api.(string)
-												if ok {
-													cmd.APIs = append(cmd.APIs, a)
-												}
-											}
-										}
-									}
-								}
-							}
-						}
+						cmd.APIs = append(cmd.APIs, a)
 					}
 				}
 			}
 		}
-
-		commands = append(commands, cmd)
+		cmds = append(cmds, cmd)
 	}
-	return commands
+	return cmds
+}
+
+// recurse simplifies the tree style traversal of a complex map.
+func recurse(n int, segs []string, c commands) commands {
+	if n == 0 {
+		return c
+	}
+	data, ok := c[segs[0]]
+	if ok {
+		data, ok := data.(map[string]interface{})
+		if ok {
+			return recurse(n-1, segs[1:], data)
+		}
+	}
+	return nil
 }
 
 func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
