@@ -15,10 +15,10 @@ import (
 type UpdateCommand struct {
 	cmd.Base
 	manifest       manifest.Data
-	Input          fastly.GetBackendInput
 	serviceVersion cmd.OptionalServiceVersion
 	autoClone      cmd.OptionalAutoClone
 
+	name                string
 	NewName             cmd.OptionalString
 	Comment             cmd.OptionalString
 	Address             cmd.OptionalString
@@ -60,7 +60,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("name", "backend name").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("name", "backend name").Short('n').Required().StringVar(&c.name)
 	c.CmdClause.Flag("new-name", "New backend name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.Address.Set).StringVar(&c.Address.Value)
@@ -106,22 +106,10 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
-
-	b, err := c.Globals.Client.GetBackend(&c.Input)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
-		})
-		return err
-	}
-
 	input := &fastly.UpdateBackendInput{
-		ServiceID:      b.ServiceID,
-		ServiceVersion: b.ServiceVersion,
-		Name:           b.Name,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion.Number,
+		Name:           c.name,
 	}
 
 	if c.NewName.WasSet {
@@ -220,7 +208,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		input.SSLCiphers = c.SSLCiphers.Value
 	}
 
-	b, err = c.Globals.Client.UpdateBackend(input)
+	b, err := c.Globals.Client.UpdateBackend(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
