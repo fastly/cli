@@ -452,7 +452,7 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 //
 // NOTE: The `n` arg represents the number of CLI arguments. For example,
 // with `logging kafka create`, the initial function call would be passed n=3.
-// The `segs` arg represents the CLI arguments. While `c` is the map data
+// The `segs` arg represents the CLI arguments. While `data` is the map data
 // structure populated from the metadata.json file.
 //
 // Each recursive call not only decrements the `n` counter but also removes the
