@@ -103,7 +103,7 @@ func (r Rust) SourceDirectory() string { return "src" }
 // additional files to include in the package archive for Rust packages.
 func (r Rust) IncludeFiles() []string { return []string{"Cargo.toml"} }
 
-// Verify implments the Toolchain interface and verifies whether the Rust
+// Verify implements the Toolchain interface and verifies whether the Rust
 // language toolchain is correctly configured on the host.
 //
 // NOTE:
