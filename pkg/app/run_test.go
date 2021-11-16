@@ -4193,7 +4193,7 @@ COMMANDS
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --type=TYPE              The location in generated VCL where the snippet
-                                 should be placed (e.g. recv, miss, fetch etc)
+                                 should be placed
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
         --dynamic                Whether the VCL snippet is dynamic or versioned
@@ -4250,7 +4250,7 @@ COMMANDS
                                  then fastly.toml)
     -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
         --type=TYPE              The location in generated VCL where the snippet
-                                 should be placed (e.g. recv, miss, fetch etc)
+                                 should be placed
 
   version
     Display version information for the Fastly CLI
