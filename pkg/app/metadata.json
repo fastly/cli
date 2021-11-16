@@ -162,9 +162,9 @@
     },
     "update": {
       "examples": [{
-        "cmd": "",
-        "description": "",
-        "title": ""
+        "cmd": "A",
+        "description": "B",
+        "title": "C"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/backend/#update-backend"]
     }

@@ -439,44 +439,6 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 
 		segs := strings.Split(m.FullCommand(), " ")
 		data := recurse(m.Depth, segs, data)
-
-		examples, ok := data["examples"]
-		if ok {
-			examples, ok := examples.([]interface{})
-			if ok {
-				for _, example := range examples {
-					e, ok := example.(map[string]interface{})
-					if ok {
-						c, ok := e["cmd"]
-						if ok {
-							c, ok := c.(string)
-							if ok {
-								d, ok := e["description"]
-								if ok {
-									d, ok := d.(string)
-									if ok {
-										t, ok := e["title"]
-										if ok {
-											t, _ := t.(string)
-											if ok {
-												if c != "" && d != "" && t != "" {
-													cmd.Examples = append(cmd.Examples, Example{
-														Cmd:         c,
-														Description: d,
-														Title:       t,
-													})
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
 		apis, ok := data["apis"]
 		if ok {
 			apis, ok := apis.([]interface{})
@@ -489,6 +451,26 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 				}
 			}
 		}
+
+		examples, ok := data["examples"]
+		if ok {
+			examples, ok := examples.([]interface{})
+			if ok {
+				for _, example := range examples {
+					c := resolveToString(example, "cmd")
+					d := resolveToString(example, "description")
+					t := resolveToString(example, "title")
+					if c != "" && d != "" && t != "" {
+						cmd.Examples = append(cmd.Examples, Example{
+							Cmd:         c,
+							Description: d,
+							Title:       t,
+						})
+					}
+				}
+			}
+		}
+
 		cmds = append(cmds, cmd)
 	}
 	return cmds
@@ -515,6 +497,21 @@ func recurse(n int, segs []string, data commandsMetadata) commandsMetadata {
 		}
 	}
 	return nil
+}
+
+// resolveToString extracts a value from a map as a string
+func resolveToString(i interface{}, key string) string {
+	m, ok := i.(map[string]interface{})
+	if ok {
+		v, ok := m[key]
+		if ok {
+			v, ok := v.(string)
+			if ok {
+				return v
+			}
+		}
+	}
+	return ""
 }
 
 func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
