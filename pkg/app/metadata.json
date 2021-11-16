@@ -291,8 +291,7 @@
     },
     "delete": {
       "examples": [{
-        "cmd": "",
-        "description": "",
+        "cmd": "fastly domain delete --name example.com --version latest",
         "title": "Delete a domain on a Fastly service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/domain/#delete-domain"]
@@ -921,8 +920,7 @@
       },
       "delete": {
         "examples": [{
-          "cmd": "",
-          "description": "",
+          "cmd": "fastly vcl snippet delete --name example --version latest",
           "title": "Delete a specific snippet for a particular service and version"
         }],
         "apis": ["https://developer.fastly.com/reference/api/vcl-services/snippet/#delete-snippet"]
