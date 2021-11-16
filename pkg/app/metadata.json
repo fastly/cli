@@ -2,9 +2,9 @@
   "acl": {
     "create": {
       "examples": [{
-        "cmd": "",
-        "description": "",
-        "title": ""
+        "cmd": "A",
+        "description": "B",
+        "title": "C"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl/#create-acl"]
     },
@@ -34,9 +34,9 @@
     },
     "update": {
       "examples": [{
-        "cmd": "",
-        "description": "",
-        "title": ""
+        "cmd": "abc",
+        "description": "def",
+        "title": "ghi"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl/#update-acl"]
     }

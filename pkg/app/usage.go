@@ -398,12 +398,19 @@ type flagJSON struct {
 	IsBool      bool   `json:"isBool"`
 }
 
+type Example struct {
+	Cmd         string `json:"cmd"`
+	Description string `json:"description"`
+	Title       string `json:"title"`
+}
+
 type commandJSON struct {
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
 	Flags       []flagJSON    `json:"flags"`
 	Children    []commandJSON `json:"children"`
 	APIs        []string      `json:"apis,omitempty"`
+	Examples    []Example     `json:"examples,omitempty"`
 }
 
 func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
@@ -428,9 +435,48 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 		cmd.Flags = getFlagJSON(m.Flags)
 		cmd.Children = getCommandJSON(m.Commands, data)
 		cmd.APIs = []string{}
+		cmd.Examples = []Example{}
 
 		segs := strings.Split(m.FullCommand(), " ")
 		data := recurse(m.Depth, segs, data)
+
+		examples, ok := data["examples"]
+		if ok {
+			examples, ok := examples.([]interface{})
+			if ok {
+				for _, example := range examples {
+					e, ok := example.(map[string]interface{})
+					if ok {
+						c, ok := e["cmd"]
+						if ok {
+							c, ok := c.(string)
+							if ok {
+								d, ok := e["description"]
+								if ok {
+									d, ok := d.(string)
+									if ok {
+										t, ok := e["title"]
+										if ok {
+											t, _ := t.(string)
+											if ok {
+												if c != "" && d != "" && t != "" {
+													cmd.Examples = append(cmd.Examples, Example{
+														Cmd:         c,
+														Description: d,
+														Title:       t,
+													})
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		apis, ok := data["apis"]
 		if ok {
 			apis, ok := apis.([]interface{})
