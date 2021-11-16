@@ -84,7 +84,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, type: %s, priority: %d)", v.Name, v.ServiceID, v.ServiceVersion, c.dynamic.WasSet, c.location, v.Priority)
+	text.Success(out, "Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, snippet id: %s, type: %s, priority: %d)", v.Name, v.ServiceID, v.ServiceVersion, c.dynamic.WasSet, v.ID, c.location, v.Priority)
 	return nil
 }
 
