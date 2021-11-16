@@ -52,15 +52,15 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 	c.client = client
 	c.manifest = data
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
-	c.CmdClause.Flag("name", "Name of package, falls back to --directory").Short('n').StringVar(&c.manifest.File.Name)
+	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
+	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
-	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
-	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
-	c.CmdClause.Flag("from", "Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
-	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
-	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.skipVerification)
+	c.CmdClause.Flag("from", "Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
+	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
+	c.CmdClause.Flag("name", "Name of package, falls back to --directory").Short('n').StringVar(&c.manifest.File.Name)
+	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 
 	return &c
 }

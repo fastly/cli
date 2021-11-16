@@ -603,17 +603,17 @@ COMMANDS
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
 
-    -n, --name=NAME                Name of package, falls back to --directory
+    -a, --author=AUTHOR ...        Author(s) of the package
     -d, --description=DESCRIPTION  Description of the package
     -p, --directory=DIRECTORY      Destination to write the new package,
                                    defaulting to the current directory
-    -a, --author=AUTHOR ...        Author(s) of the package
-    -l, --language=LANGUAGE        Language of the package
+        --force                    Skip non-empty directory verification step
+                                   and force new project creation
     -f, --from=FROM                Git repository URL, or URL referencing a
                                    .zip/.tar.gz file, containing a package
                                    template
-        --force                    Skip non-empty directory verification step
-                                   and force new project creation
+    -l, --language=LANGUAGE        Language of the package
+    -n, --name=NAME                Name of package, falls back to --directory
 
   compute pack --wasm-binary=WASM-BINARY
     Package a pre-compiled Wasm binary for a Fastly Compute@Edge service
