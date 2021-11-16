@@ -398,9 +398,10 @@ type flagJSON struct {
 	IsBool      bool   `json:"isBool"`
 }
 
+// Example represents a metadata.json command example.
 type Example struct {
 	Cmd         string `json:"cmd"`
-	Description string `json:"description"`
+	Description string `json:"description,omitempty"`
 	Title       string `json:"title"`
 }
 
@@ -460,7 +461,7 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 					c := resolveToString(example, "cmd")
 					d := resolveToString(example, "description")
 					t := resolveToString(example, "title")
-					if c != "" && d != "" && t != "" {
+					if c != "" && t != "" {
 						cmd.Examples = append(cmd.Examples, Example{
 							Cmd:         c,
 							Description: d,
