@@ -37,13 +37,17 @@ type InitCommand struct {
 	client           api.HTTPClient
 	dir              string
 	from             string
+	jsToolchain      string
 	language         string
 	manifest         manifest.Data
 	skipVerification bool
 	tag              string
 }
 
-var Languages = []string{"rust", "assemblyscript", "javascript", "other"}
+var (
+	Languages    = []string{"rust", "assemblyscript", "javascript", "other"}
+	JsToolchains = []string{"npm", "yarn"}
+)
 
 // NewInitCommand returns a usable command registered under the parent.
 func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *InitCommand {
@@ -58,6 +62,7 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.skipVerification)
 	c.CmdClause.Flag("from", "Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
+	c.CmdClause.Flag("js-toolchain", "Select which JavaScript toolchain to use").HintOptions(JsToolchains...).Default(JsToolchains[0]).EnumVar(&c.jsToolchain, JsToolchains...)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
 	c.CmdClause.Flag("name", "Name of package, falls back to --directory").Short('n').StringVar(&c.manifest.File.Name)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)

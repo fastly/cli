@@ -612,6 +612,7 @@ COMMANDS
     -f, --from=FROM                Git repository URL, or URL referencing a
                                    .zip/.tar.gz file, containing a package
                                    template
+        --js-toolchain=npm         Select which JavaScript toolchain to use
     -l, --language=LANGUAGE        Language of the package
     -n, --name=NAME                Name of package, falls back to --directory
 
