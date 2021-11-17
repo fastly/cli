@@ -219,6 +219,11 @@ func (a JavaScript) Verify(out io.Writer) error {
 	pkgErr := "package.json requires a `script` field with a `build` step defined that calls the `js-compute-runtime` binary"
 	remediation = fmt.Sprintf("Check your package.json has a `script` field with a `build` step defined:\n\n\t$ %s", text.Bold(remediation))
 
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as the variables come from trusted sources:
+	// The CLI parser enforces supported values via EnumVar.
+	/* #nosec */
 	cmd := exec.Command(a.toolchain, "run")
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
