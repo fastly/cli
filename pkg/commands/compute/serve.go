@@ -36,6 +36,7 @@ type ServeCommand struct {
 
 	// Build fields
 	includeSrc       cmd.OptionalBool
+	jsToolchain      cmd.OptionalString
 	lang             cmd.OptionalString
 	name             cmd.OptionalString
 	skipVerification cmd.OptionalBool
@@ -64,6 +65,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
+	c.CmdClause.Flag("js-toolchain", "Select which JavaScript toolchain to use").HintOptions(JsToolchains...).Default(JsToolchains[0]).Action(c.jsToolchain.Set).EnumVar(&c.jsToolchain.Value, JsToolchains...)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
@@ -122,6 +124,9 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	// Reset the fields on the BuildCommand based on ServeCommand values.
 	if c.includeSrc.WasSet {
 		c.build.IncludeSrc = c.includeSrc.Value
+	}
+	if c.jsToolchain.WasSet {
+		c.build.JsToolchain = c.jsToolchain.Value
 	}
 	if c.lang.WasSet {
 		c.build.Lang = c.lang.Value

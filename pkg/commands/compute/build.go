@@ -39,6 +39,7 @@ type BuildCommand struct {
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
 	IncludeSrc       bool
+	JsToolchain      string
 	Lang             string
 	Manifest         manifest.Data
 	PackageName      string
@@ -57,6 +58,7 @@ func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *conf
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.IncludeSrc)
+	c.CmdClause.Flag("js-toolchain", "Select which JavaScript toolchain to use").HintOptions(JsToolchains...).Default(JsToolchains[0]).EnumVar(&c.JsToolchain, JsToolchains...)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.PackageName)
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.SkipVerification)
@@ -126,7 +128,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "javascript",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewJavaScript(c.Timeout),
+			Toolchain:       NewJavaScript(c.Timeout, c.JsToolchain),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{

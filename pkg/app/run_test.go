@@ -580,6 +580,7 @@ COMMANDS
     Build a Compute@Edge package locally
 
     --include-source     Include source code in built package
+    --js-toolchain=npm   Select which JavaScript toolchain to use
     --language=LANGUAGE  Language type
     --name=NAME          Package name
     --skip-verification  Skip verification steps and force build
@@ -624,9 +625,10 @@ COMMANDS
   compute publish [<flags>]
     Build and deploy a Compute@Edge package to a Fastly service
 
-        --name=NAME              Package name
-        --language=LANGUAGE      Language type
         --include-source         Include source code in built package
+        --js-toolchain=npm       Select which JavaScript toolchain to use
+        --language=LANGUAGE      Language type
+        --name=NAME              Package name
         --skip-verification      Skip verification steps and force build
         --timeout=TIMEOUT        Timeout, in seconds, for the build compilation
                                  step
@@ -648,6 +650,7 @@ COMMANDS
     --env=ENV                The environment configuration to use (e.g. stage)
     --file="bin/main.wasm"   The Wasm file to run
     --include-source         Include source code in built package
+    --js-toolchain=npm       Select which JavaScript toolchain to use
     --language=LANGUAGE      Language type
     --name=NAME              Package name
     --skip-build             Skip the build step
