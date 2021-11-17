@@ -2,36 +2,37 @@
   "acl": {
     "create": {
       "examples": [{
-        "cmd": "fastly acl create --name robots --version latest",
-        "title": "Create a new ACL attached to the specified service version"
+        "cmd": "fastly acl create --name robots --version active --autoclone",
+        "description": "Uses the `--version` flag to select the currently active service version and the `--autoclone` flag to enable automate cloning of the service version.",
+        "title": "Create a new ACL attached to the currently active service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl/#create-acl"]
     },
     "delete": {
       "examples": [{
-        "cmd": "fastly acl delete --name robots --version latest",
+        "cmd": "fastly acl delete --name robots --version 1",
         "title": "Delete an ACL from the specified service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl/#delete-acl"]
     },
     "describe": {
       "examples": [{
-        "cmd": "fastly acl describe --name robots --version latest",
-        "title": "Retrieve a single ACL by name for the version and service"
+        "cmd": "fastly acl describe --name robots --version active",
+        "title": "Retrieve a single ACL by name for the currently active service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl/#get-acl"]
     },
     "list": {
       "examples": [{
-        "cmd": "fastly acl list --version latest",
-        "title": "List ACLs for the version and service"
+        "cmd": "fastly acl list --version 1",
+        "title": "List ACLs for the specified service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl/#list-acls"]
     },
     "update": {
       "examples": [{
         "cmd": "fastly acl update --name robots --new-name blocklist --version latest",
-        "title": "Update an ACL for a particular service and version"
+        "title": "Update an ACL for the highest numbered existing service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl/#update-acl"]
     }
@@ -39,50 +40,50 @@
   "acl-entry": {
     "create": {
       "examples": [{
-        "cmd": "fastly acl-entry create --acl-id 50CCynNwD3BjaGJjMTFB1j --ip 64.18.0.0",
-        "title": "Add an ACL entry to an ACL"
+        "cmd": "fastly acl-entry create --acl-id SU1Z0isxPaozGVKXdv0eY --ip 192.0.2.0",
+        "title": "Add an ACL entry to the specified ACL"
       },
       {
-        "cmd": "fastly acl-entry create --acl-id 50CCynNwD3BjaGJjMTFB1j --ip 64.18.0.1 --negated",
-        "title": "Add a negated ACL entry to an ACL"
+        "cmd": "fastly acl-entry create --acl-id SU1Z0isxPaozGVKXdv0eY --ip 192.0.2.0 --negated",
+        "title": "Add a negated ACL entry to the specified ACL"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl-entry/#create-acl-entry"]
     },
     "delete": {
       "examples": [{
-        "cmd": "fastly acl-entry delete --acl-id 50CCynNwD3BjaGJjMTFB1j --id 4DiuYrv9nVoa4HFmQmujT1",
-        "title": "Delete an ACL entry from a specified ACL"
+        "cmd": "fastly acl-entry delete --acl-id SU1Z0isxPaozGVKXdv0eY --id 4DiuYrv9nVoa4HFmQmujT1",
+        "title": "Delete an ACL entry from the specified ACL"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl-entry/#delete-acl-entry"]
     },
     "describe": {
       "examples": [{
-        "cmd": "fastly acl-entry describe --acl-id 50CCynNwD3BjaGJjMTFB1j --id 4bgjM6X1gb3670gJMEqdKX",
-        "title": "Retrieve a single ACL entry"
+        "cmd": "fastly acl-entry describe --acl-id SU1Z0isxPaozGVKXdv0eY --id x9KzsrACXZv8tPwlEDsKb6",
+        "title": "Retrieve a single ACL entry from the specified ACL"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl-entry/#get-acl-entry"]
     },
     "list": {
       "examples": [{
-        "cmd": "fastly acl-entry list --acl-id 50CCynNwD3BjaGJjMTFB1j",
-        "title": "List ACLs from a specified ACL"
+        "cmd": "fastly acl-entry list --acl-id SU1Z0isxPaozGVKXdv0eY",
+        "title": "List ACLs from the specified ACL"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl-entry/#list-acl-entries"]
     },
     "update": {
       "examples": [{
-        "cmd": "fastly acl-entry update --acl-id 50CCynNwD3BjaGJjMTFB1j --id 4bgjM6X1gb3670gJMEqdKX --negated",
-        "title": "Update a specific ACL entry"
+        "cmd": "fastly acl-entry update --acl-id SU1Z0isxPaozGVKXdv0eY --id x9KzsrACXZv8tPwlEDsKb6 --negated",
+        "title": "Update an ACL entry from the specified ACL"
       },
       {
-        "cmd": "fastly acl-entry update --acl-id 50CCynNwD3BjaGJjMTFB1j --file ./batch.json",
-        "description": "Update multiple ACL entries using JSON batch file. Refer to https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries for example structure.",
-        "title": "Update multiple ACL entries using a local file"
+        "cmd": "fastly acl-entry update --acl-id SU1Z0isxPaozGVKXdv0eY --file ./batch.json",
+        "description": "Update multiple ACL entries using a [JSON batch file](https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries).",
+        "title": "Update multiple ACL entries from the specified ACL using a local file"
       },
       {
-        "cmd": "fastly acl-entry update --acl-id 50CCynNwD3BjaGJjMTFB1j --file \"$(< batch.json)\"",
-        "description": "Update multiple ACL entries using JSON batch file content passed in using shell command substitution. Refer to https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries for example structure.",
-        "title": "Update multiple ACL entries using command substitution"
+        "cmd": "fastly acl-entry update --acl-id SU1Z0isxPaozGVKXdv0eY --file \"$(< batch.json)\"",
+        "description": "Update multiple ACL entries using a [JSON batch file](https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries)'s content passed in using shell command sustitution.",
+        "title": "Update multiple ACL entries from the specified ACL using command substitution"
       }],
       "apis": [
         "https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries",
@@ -114,37 +115,37 @@
   "backend": {
     "create": {
       "examples": [{
-        "cmd": "fastly backend create --name example --address example.com --version latest",
-        "description": "Create a backend with a hostname assigned to the --address flag. The --override-host, --ssl-cert-hostname and --ssl-sni-hostname will default to the same hostname assigned to --address.",
-        "title": "Create a backend on a Fastly service version"
+        "cmd": "fastly backend create --name example --address example.com --version active --autoclone",
+        "description": "Create a backend with a hostname assigned to the `--address` flag. The `--override-host`, `--ssl-cert-hostname` and `--ssl-sni-hostname` will default to the same hostname assigned to `--address`.",
+        "title": "Create a backend from the currently active service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/backend/#create-backend"]
     },
     "delete": {
       "examples": [{
         "cmd": "fastly backend delete --name example --version latest",
-        "title": "Delete a backend on a Fastly service version"
+        "title": "Delete a backend from the highest numbered existing service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/backend/#delete-backend"]
     },
     "describe": {
       "examples": [{
-        "cmd": "fastly backend describe --name example --version latest",
-        "title": "Show detailed information about a backend on a Fastly service version"
+        "cmd": "fastly backend describe --name example --version 1",
+        "title": "Show detailed information about a backend on the specified service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/backend/#get-backend"]
     },
     "list": {
       "examples": [{
-        "cmd": "fastly backend list --version latest",
-        "title": "List backends on a Fastly service version"
+        "cmd": "fastly backend list --version active",
+        "title": "List backends on the currently active service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/backend/#list-backends"]
     },
     "update": {
       "examples": [{
         "cmd": "fastly backend update --name example --new-name testing --version latest",
-        "title": "Update a backend on a Fastly service version"
+        "title": "Update a backend on the highest numbered existing service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/backend/#update-backend"]
     }
@@ -153,14 +154,14 @@
     "build": {
       "examples": [{
         "cmd": "fastly compute build --skip-verification",
-        "description": "The optional --skip-verification flag will prevent the CLI from validating your local environment has the required language toolchain installed to build your package.",
+        "description": "The optional `--skip-verification` flag will prevent the CLI from validating your local environment has the required language toolchain installed to build your package.",
         "title": "Build a Compute@Edge package locally"
       }]
     },
     "deploy": {
       "examples": [{
         "cmd": "fastly compute deploy --accept-defaults",
-        "description": "The optional --accept-defaults flag accepts default values for all prompts if configured via the fastly.toml `[setup]` section (refer to https://developer.fastly.com/reference/compute/fastly-toml/) and performs a deploy non-interactively",
+        "description": "The optional `--accept-defaults` flag accepts default values for all prompts if configured via the [fastly.toml](https://developer.fastly.com/reference/compute/fastly-toml/) `[setup]` section and performs a deploy non-interactively",
         "title": "Deploy a package to a Fastly Compute@Edge service"
       },
       {
@@ -178,12 +179,12 @@
     "init": {
       "examples": [{
         "cmd": "fastly compute init --name example --language rust",
-        "description": "To initialize a new Compute@Edge package you must select a supported language. The language can be provided using the optional --language flag, which supports tab completion hints, or the flag can be omitted and you'll be prompted interactively. The --name flag can also be omitted, which will result in the CLI prompting you interactively.",
+        "description": "To initialize a new Compute@Edge package you must select a supported language. The language can be provided using the optional `--language` flag, which supports tab completion hints, or the flag can be omitted and you'll be prompted interactively. The `--name` flag can also be omitted, which will result in the CLI prompting you interactively.",
         "title": "Initialize a new Compute@Edge package locally"
       },
       {
         "cmd": "fastly compute init --from=https://fiddle.fastlydemo.net/fiddle/0220c0d2",
-        "description": "Any Compute@Edge examples found on https://developer.fastly.com/solutions/examples/ can be used as a source template for your new package.",
+        "description": "Any [Compute@Edge examples](https://developer.fastly.com/solutions/examples/) can be used as a source template for your new package.",
         "title": "Initialize a new Compute@Edge package locally using a remote package template"
       },
       {
@@ -195,7 +196,7 @@
     "pack": {
       "examples": [{
         "cmd": "fastly compute pack --wasm-binary ./bin/main.wasm",
-        "description": "Write Compute@Edge applications in any WASI-supporting language and use `compute pack` to package the pre-compiled Wasm binary into a supported format. Refer to https://developer.fastly.com/learning/compute/custom/",
+        "description": "Write Compute@Edge applications in [any WASI-supporting language](https://developer.fastly.com/learning/compute/custom/) and use `compute pack` to package the pre-compiled Wasm binary into a supported format.",
         "title": "Package a pre-compiled Wasm binary for a Fastly Compute@Edge service"
       }]
     },
@@ -221,9 +222,9 @@
     },
     "update": {
       "examples": [{
-        "cmd": "fastly compute update --package ./pkg/example.tar.gz --version latest --autoclone",
-        "description": "If unsure the given --version is editable, use --autoclone to automatically clone the version.",
-        "title": "Update a package on a Fastly Compute@Edge service version"
+        "cmd": "fastly compute update --package ./pkg/example.tar.gz --version active --autoclone",
+        "description": "Uses the `--version` flag to select the currently active service version and the `--autoclone` flag to enable automate cloning of the service version.",
+        "title": "Update a package on the currently active service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/package/#put-package"]
     },
@@ -284,44 +285,47 @@
   "domain": {
     "create": {
       "examples": [{
-        "cmd": "fastly domain create --name example.com --version latest",
-        "title": "Create a domain on a Fastly service version"
+        "cmd": "fastly domain create --name example.com --version latest --autoclone",
+        "description": "Uses the `--version` flag to dynamically determine the highest numbered existing service version, and the `--autoclone` flag if the latest version is currently 'active'",
+        "title": "Create a domain on the highest numbered existing service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/domain/#create-domain"]
     },
     "delete": {
       "examples": [{
-        "cmd": "fastly domain delete --name example.com --version latest",
-        "title": "Delete a domain on a Fastly service version"
+        "cmd": "fastly domain delete --name example.com --version latest --autoclone",
+        "description": "Uses the `--version` flag to dynamically determine the highest numbered existing service version, and the `--autoclone` flag if the latest version is currently 'active'",
+        "title": "Delete a domain from the highest numbered existing service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/domain/#delete-domain"]
     },
     "describe": {
       "examples": [{
-        "cmd": "fastly domain describe --name example.com --version latest",
-        "title": "Show detailed information about a domain on a Fastly service version"
+        "cmd": "fastly domain describe --name example.com --version 1",
+        "title": "Show detailed information about a domain on the specified service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/domain/#get-domain"]
     },
     "list": {
       "examples": [{
-        "cmd": "fastly domain list --version latest",
-        "title": "List domains on a Fastly service version"
+        "cmd": "fastly domain list --version active",
+        "title": "List domains on the currently active service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/domain/#list-domains"]
     },
     "update": {
       "examples": [{
-        "cmd": "fastly domain update --name example.com --new-name testing.com --version latest",
-        "title": "Update a domain on a Fastly service version"
+        "cmd": "fastly domain update --name example.com --new-name example.net --version active --autoclone",
+        "description": "Uses the `--version` flag to select the currently active service version and the `--autoclone` flag to enable automate cloning of the service version.",
+        "title": "Update a domain on the currently active service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/domain/#update-domain"]
     },
     "validate": {
       "examples": [{
-        "cmd": "fastly domain validate --name example.com --version latest",
-        "description": "To validate all domains at once replace the --name flag with --all.",
-        "title": "Checks the status of a specific domain's DNS record for a Service Version"
+        "cmd": "fastly domain validate --name example.com --version 2",
+        "description": "To validate all domains at once replace the `--name` flag with `--all`.",
+        "title": "Check the status of a specific domain's DNS record for the specified service version"
       }],
       "apis": [
         "https://developer.fastly.com/reference/api/services/domain/#check-domains",
@@ -348,8 +352,6 @@
   },
   "ip-list": {
     "apis": ["https://developer.fastly.com/reference/api/utils/public-ip-list/"]
-  },
-  "log-tail": {
   },
   "logging": {
     "azureblob": {
@@ -861,8 +863,6 @@
       "apis": ["https://developer.fastly.com/reference/api/metrics-stats/historical-stats/#get-regions"]
     }
   },
-  "update": {
-  },
   "user": {
     "create": {
       "apis": ["https://developer.fastly.com/reference/api/account/user/#create-user"]
@@ -908,28 +908,28 @@
       "create": {
         "examples": [{
           "cmd": "fastly vcl snippet create --name example --content ./example.vcl --type recv --version latest",
-          "description": "The --type flag additionally supports tab completion hints for valid location values.",
-          "title": "Create a snippet using a local file"
+          "description": "The `--type` flag additionally supports tab completion hints for valid location values.",
+          "title": "Create a snippet using a local file for the highest numbered existing service version"
         },
         {
           "cmd": "fastly vcl snippet create --name example --content \"$(< example.vcl)\" --type recv --version latest",
-          "description": "The --type flag additionally supports tab completion hints for valid location values.",
-          "title": "Create a snippet using command substitution"
+          "description": "The `--type` flag additionally supports tab completion hints for valid location values.",
+          "title": "Create a snippet using command substitution for the highest numbered existing service version"
         }],
         "apis": ["https://developer.fastly.com/reference/api/vcl-services/snippet/#create-snippet"]
       },
       "delete": {
         "examples": [{
-          "cmd": "fastly vcl snippet delete --name example --version latest",
-          "title": "Delete a specific snippet for a particular service and version"
+          "cmd": "fastly vcl snippet delete --name example --version 1",
+          "title": "Delete a specific snippet from the specified service version"
         }],
         "apis": ["https://developer.fastly.com/reference/api/vcl-services/snippet/#delete-snippet"]
       },
       "describe": {
         "examples": [{
-          "cmd": "fastly vcl snippet describe --snippet-id 3p8fPcMVB6OqbMxGT83hb9 --dynamic --version latest",
-          "description": "To describe a 'versioned' snippet replace the --snippet-id and --dynamic flags with --name.",
-          "title": "Get the uploaded VCL snippet for a particular service and version"
+          "cmd": "fastly vcl snippet describe --snippet-id 3p8fPcMVB6OqbMxGT83hb9 --dynamic --version active",
+          "description": "To describe a 'versioned' snippet replace the `--snippet-id` and `--dynamic` flags with `--name`.",
+          "title": "Get the uploaded VCL snippet for the currently active service version"
         }],
         "apis": [
           "https://developer.fastly.com/reference/api/vcl-services/snippet/#get-snippet-dynamic",
@@ -938,16 +938,16 @@
       },
       "list": {
         "examples": [{
-          "cmd": "fastly vcl snippet list --version latest",
-          "title": "List the uploaded VCL snippets for a particular service and version"
+          "cmd": "fastly vcl snippet list --version active",
+          "title": "List the uploaded VCL snippets for the currently active service version"
         }],
         "apis": ["https://developer.fastly.com/reference/api/vcl-services/snippet/#list-snippets"]
       },
       "update": {
         "examples": [{
           "cmd": "fastly vcl snippet update --snippet-id 2k5KYQCSJERvR8aB3cbOdA --dynamic --type deliver --version latest",
-          "description": "To update a 'versioned' snippet replace the --snippet-id and --dynamic flags with --name.",
-          "title": "Update a VCL snippet for a particular service and version"
+          "description": "To update a 'versioned' snippet replace the `--snippet-id` and `--dynamic` flags with `--name`.",
+          "title": "Update a VCL snippet for the highest numbered existing service version"
         }],
         "apis": [
           "https://developer.fastly.com/reference/api/vcl-services/snippet/#update-snippet-dynamic",
@@ -955,9 +955,5 @@
         ]
       }
     }
-  },
-  "version": {
-  },
-  "whoami": {
   }
 }
