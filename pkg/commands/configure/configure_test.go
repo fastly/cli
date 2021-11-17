@@ -67,6 +67,9 @@ func TestConfigure(t *testing.T) {
 
 [language]
 
+  [language.javascript]
+    toolchain = ""
+
   [language.rust]
     fastly_sys_constraint = ""
     rustup_constraint = ""
@@ -115,6 +118,9 @@ func TestConfigure(t *testing.T) {
 
 [language]
 
+  [language.javascript]
+    toolchain = ""
+
   [language.rust]
     fastly_sys_constraint = ""
     rustup_constraint = ""
@@ -159,6 +165,9 @@ func TestConfigure(t *testing.T) {
   api_endpoint = "https://api.fastly.com"
 
 [language]
+
+  [language.javascript]
+    toolchain = ""
 
   [language.rust]
     fastly_sys_constraint = ""
@@ -208,6 +217,9 @@ func TestConfigure(t *testing.T) {
 
 [language]
 
+  [language.javascript]
+    toolchain = ""
+
   [language.rust]
     fastly_sys_constraint = ""
     rustup_constraint = ""
@@ -253,6 +265,9 @@ func TestConfigure(t *testing.T) {
   api_endpoint = "https://api.fastly.com"
 
 [language]
+
+  [language.javascript]
+    toolchain = ""
 
   [language.rust]
     fastly_sys_constraint = ""
@@ -302,6 +317,9 @@ func TestConfigure(t *testing.T) {
   api_endpoint = "https://api.fastly.com"
 
 [language]
+
+  [language.javascript]
+    toolchain = ""
 
   [language.rust]
     fastly_sys_constraint = ""
