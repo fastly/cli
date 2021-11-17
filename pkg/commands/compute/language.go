@@ -14,7 +14,7 @@ import (
 // NOTE: The 'timeout' value zero is passed into each New<Language> call as it's
 // only useful during the `compute build` phase and is expected to be
 // provided by the user via a flag on the build command.
-func NewLanguages(kits config.StarterKitLanguages, c api.HTTPClient, d *config.Data, jsToolchain string) []*Language {
+func NewLanguages(kits config.StarterKitLanguages, c api.HTTPClient, d *config.Data, toolchainJS string) []*Language {
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
@@ -26,13 +26,13 @@ func NewLanguages(kits config.StarterKitLanguages, c api.HTTPClient, d *config.D
 			Name:        "assemblyscript",
 			DisplayName: "AssemblyScript (beta)",
 			StarterKits: kits.AssemblyScript,
-			Toolchain:   NewAssemblyScript(0),
+			Toolchain:   NewAssemblyScript(0, toolchainJS),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "javascript",
 			DisplayName: "JavaScript (beta)",
 			StarterKits: kits.JavaScript,
-			Toolchain:   NewJavaScript(0, jsToolchain),
+			Toolchain:   NewJavaScript(0, toolchainJS),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "other",

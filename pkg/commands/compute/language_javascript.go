@@ -14,6 +14,8 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+var errFormat = "To fix this error, run the following command:\n\n\t$ %s"
+
 // JavaScript implements a Toolchain for the JavaScript language.
 type JavaScript struct {
 	timeout   int
@@ -31,36 +33,54 @@ func NewJavaScript(timeout int, toolchain string) *JavaScript {
 // Initialize implements the Toolchain interface and initializes a newly cloned
 // package by installing required dependencies.
 func (a JavaScript) Initialize(out io.Writer) error {
-	// 1) Check `npm` is on $PATH
+	// 1) Check a.toolchain is on $PATH
 	//
-	// npm is Node/JavaScript's toolchain package manager, it is needed to
-	// install the package dependencies on initialization. We only check whether
-	// the binary exists on the users $PATH and error with installation help text.
-	fmt.Fprintf(out, "Checking if npm is installed...\n")
+	// npm and yarn, two popular Node/JavaScript toolchain installers/managers,
+	// is needed to install the package dependencies on initialization. We only
+	// check whether the binary exists on the users $PATH and error with
+	// installation help text.
+	fmt.Fprintf(out, "Checking if %s is installed...\n", a.toolchain)
 
-	p, err := exec.LookPath("npm")
+	p, err := exec.LookPath(a.toolchain)
 	if err != nil {
+		nodejsURL := "https://nodejs.org/"
+		var remediation string
+		switch a.toolchain {
+		case "npm":
+			remediation = fmt.Sprintf("To fix this error, install Node.js and %s by visiting:\n\n\t$ %s", a.toolchain, text.Bold(nodejsURL))
+		case "yarn":
+			remediation = fmt.Sprintf("To fix this error, install Node.js by visiting %s, and install %s by visiting:\n\n\t$ %s", text.Bold(nodejsURL), a.toolchain, text.Bold("https://yarnpkg.com/"))
+		}
+
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("`npm` not found in $PATH"),
-			Remediation: fmt.Sprintf("To fix this error, install Node.js and npm by visiting:\n\n\t$ %s", text.Bold("https://nodejs.org/")),
+			Inner:       fmt.Errorf("`%s` not found in $PATH", a.toolchain),
+			Remediation: remediation,
 		}
 	}
 
-	fmt.Fprintf(out, "Found npm at %s\n", p)
+	fmt.Fprintf(out, "Found %s at %s\n", a.toolchain, p)
 
 	// 2) Check package.json file exists in $PWD
 	//
-	// A valid npm package manifest file is needed for the install command to
-	// work. Therefore, we first assert whether one exists in the current $PWD.
+	// A valid package manifest file is needed for the install command to work.
+	// Therefore, we first assert whether one exists in the current $PWD.
 	fpath, err := filepath.Abs("package.json")
 	if err != nil {
 		return fmt.Errorf("getting package.json path: %w", err)
 	}
 
 	if !filesystem.FileExists(fpath) {
+		var remediation string
+		switch a.toolchain {
+		case "npm":
+			remediation = "npm init"
+		case "yarn":
+			remediation = "yarn init"
+		}
+
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("package.json not found"),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm init")),
+			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
 		}
 	}
 
@@ -68,7 +88,7 @@ func (a JavaScript) Initialize(out io.Writer) error {
 	fmt.Fprintf(out, "Installing package dependencies...\n")
 
 	cmd := fstexec.Streaming{
-		Command: "npm",
+		Command: a.toolchain,
 		Args:    []string{"install"},
 		Env:     []string{},
 		Output:  out,
@@ -79,28 +99,37 @@ func (a JavaScript) Initialize(out io.Writer) error {
 // Verify implements the Toolchain interface and verifies whether the
 // JavaScript language toolchain is correctly configured on the host.
 func (a JavaScript) Verify(out io.Writer) error {
-	// 1) Check `npm` is on $PATH
+	// 1) Check a.toolchain is on $PATH
 	//
-	// npm is Node/JavaScript's toolchain installer and manager, it is
-	// needed to assert that the correct versions of the js-compute-runtime
-	// compiler and @fastly/js-compute package are installed. We only check
-	// whether the binary exists on the users $PATH and error with installation
-	// help text.
-	fmt.Fprintf(out, "Checking if npm is installed...\n")
+	// npm and yarn, two popular Node/JavaScript toolchain installers/managers,
+	// which is needed to assert that the correct versions of the
+	// js-compute-runtime compiler and @fastly/js-compute package are installed.
+	// We only check whether the binary exists on the users $PATH and error with
+	// installation help text.
+	fmt.Fprintf(out, "Checking if %s is installed...\n", a.toolchain)
 
-	p, err := exec.LookPath("npm")
+	p, err := exec.LookPath(a.toolchain)
 	if err != nil {
+		nodejsURL := "https://nodejs.org/"
+		var remediation string
+		switch a.toolchain {
+		case "npm":
+			remediation = fmt.Sprintf("To fix this error, install Node.js and %s by visiting:\n\n\t$ %s", a.toolchain, text.Bold(nodejsURL))
+		case "yarn":
+			remediation = fmt.Sprintf("To fix this error, install Node.js by visiting %s and %s by visiting:\n\n\t$ %s", text.Bold(nodejsURL), a.toolchain, text.Bold("https://yarnpkg.com/"))
+		}
+
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("`npm` not found in $PATH"),
-			Remediation: fmt.Sprintf("To fix this error, install Node.js and npm by visiting:\n\n\t$ %s", text.Bold("https://nodejs.org/")),
+			Inner:       fmt.Errorf("`%s` not found in $PATH", a.toolchain),
+			Remediation: remediation,
 		}
 	}
 
-	fmt.Fprintf(out, "Found npm at %s\n", p)
+	fmt.Fprintf(out, "Found %s at %s\n", a.toolchain, p)
 
 	// 2) Check package.json file exists in $PWD
 	//
-	// A valid npm package is needed for compilation and to assert whether the
+	// A valid package is needed for compilation and to assert whether the
 	// required dependencies are installed locally. Therefore, we first assert
 	// whether one exists in the current $PWD.
 	fpath, err := filepath.Abs("package.json")
@@ -109,9 +138,16 @@ func (a JavaScript) Verify(out io.Writer) error {
 	}
 
 	if !filesystem.FileExists(fpath) {
+		var remediation string
+		switch a.toolchain {
+		case "npm":
+			remediation = "npm init"
+		case "yarn":
+			remediation = "yarn init"
+		}
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("package.json not found"),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm init")),
+			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
 		}
 	}
 
@@ -121,20 +157,34 @@ func (a JavaScript) Verify(out io.Writer) error {
 	//
 	// js-compute-runtime is the JavaScript compiler. We first check if the
 	// required dependency exists in the package.json and then whether the
-	// js-compute-runtime binary exists in the npm bin directory.
+	// js-compute-runtime binary exists in the toolchain bin directory.
 	fmt.Fprintf(out, "Checking if @fastly/js-compute is installed...\n")
-	if !checkPackageDependencyExists("@fastly/js-compute") {
+	if !checkJsPackageDependencyExists(a.toolchain, "@fastly/js-compute") {
+		var remediation string
+		switch a.toolchain {
+		case "npm":
+			remediation = "npm install --save-dev @fastly/js-compute"
+		case "yarn":
+			remediation = "yarn install --save-dev @fastly/js-compute"
+		}
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`@fastly/js-compute` not found in package.json"),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev @fastly/js-compute")),
+			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
 		}
 	}
 
-	p, err = getNpmBinPath()
+	p, err = getJsToolchainBinPath(a.toolchain)
 	if err != nil {
+		var remediation string
+		switch a.toolchain {
+		case "npm":
+			remediation = "npm install --global npm@latest"
+		case "yarn":
+			remediation = "yarn install --global yarn@latest"
+		}
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("could not determine npm bin path"),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --global npm@latest")),
+			Inner:       fmt.Errorf("could not determine %s bin path", a.toolchain),
+			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
 		}
 	}
 
@@ -143,18 +193,33 @@ func (a JavaScript) Verify(out io.Writer) error {
 		return fmt.Errorf("getting js-compute-runtime path: %w", err)
 	}
 	if !filesystem.FileExists(path) {
+		var remediation string
+		switch a.toolchain {
+		case "npm":
+			remediation = "npm install --save-dev @fastly/js-compute"
+		case "yarn":
+			remediation = "yarn install --save-dev @fastly/js-compute"
+		}
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`js-compute-runtime` binary not found in %s", p),
-			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev @fastly/js-compute")),
+			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
 		}
 	}
 
 	fmt.Fprintf(out, "Found js-compute-runtime at %s\n", path)
 
-	pkgErr := "package.json requires a `script` field with a `build` step defined that calls the `js-compute-runtime` binary"
-	remediation := fmt.Sprintf("Check your package.json has a `script` field with a `build` step defined:\n\n\t$ %s", text.Bold("npm run"))
+	var remediation string
+	switch a.toolchain {
+	case "npm":
+		remediation = "npm run"
+	case "yarn":
+		remediation = "yarn run"
+	}
 
-	cmd := exec.Command("npm", "run")
+	pkgErr := "package.json requires a `script` field with a `build` step defined that calls the `js-compute-runtime` binary"
+	remediation = fmt.Sprintf("Check your package.json has a `script` field with a `build` step defined:\n\n\t$ %s", text.Bold(remediation))
+
+	cmd := exec.Command(a.toolchain, "run")
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
 		return errors.RemediationError{
@@ -163,9 +228,9 @@ func (a JavaScript) Verify(out io.Writer) error {
 		}
 	}
 
-	if !strings.Contains(string(stdoutStderr), "  build\n") {
+	if !strings.Contains(string(stdoutStderr), " build\n") {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf(pkgErr),
+			Inner:       fmt.Errorf("%s:\n\n%s", pkgErr, stdoutStderr),
 			Remediation: remediation,
 		}
 	}
@@ -177,7 +242,7 @@ func (a JavaScript) Verify(out io.Writer) error {
 // JavaScript source to a Wasm binary.
 func (a JavaScript) Build(out io.Writer, verbose bool) error {
 	cmd := fstexec.Streaming{
-		Command: "npm",
+		Command: a.toolchain,
 		Args:    []string{"run", "build"},
 		Env:     []string{},
 		Output:  out,

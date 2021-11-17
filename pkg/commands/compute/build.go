@@ -119,16 +119,21 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		toolchainJS = c.Globals.File.JsToolchain()
 	}
 
-	var language *Language
+	var (
+		selectedToolchain string
+		language          *Language
+	)
 	switch lang {
 	case "assemblyscript":
+		selectedToolchain = fmt.Sprintf(" '%s'", toolchainJS)
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
 			SourceDirectory: "assembly",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(c.Timeout),
+			Toolchain:       NewAssemblyScript(c.Timeout, toolchainJS),
 		})
 	case "javascript":
+		selectedToolchain = fmt.Sprintf(" '%s'", toolchainJS)
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: "src",
@@ -147,7 +152,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if !c.SkipVerification {
-		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", lang))
+		progress.Step(fmt.Sprintf("Verifying local %s toolchain%s...", lang, selectedToolchain))
 
 		err = language.Verify(progress)
 		if err != nil {
@@ -158,7 +163,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	progress.Step(fmt.Sprintf("Building package using %s toolchain...", lang))
+	progress.Step(fmt.Sprintf("Building package using %s toolchain%s...", lang, selectedToolchain))
 
 	if err := language.Build(progress, c.Globals.Flag.Verbose); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
