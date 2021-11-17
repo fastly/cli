@@ -55,6 +55,7 @@ func Run(opts RunOpts) error {
 	// from a variety of sources, and is provided to each concrete command.
 	globals := config.Data{
 		File:   opts.ConfigFile,
+		Path:   opts.ConfigPath,
 		Env:    opts.Env,
 		Output: opts.Stdout,
 		ErrLog: opts.ErrLog,

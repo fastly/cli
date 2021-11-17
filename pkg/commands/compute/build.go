@@ -119,6 +119,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		toolchainJS = c.Globals.File.JsToolchain()
 	}
 
+	// Persist the toolchain back to the CLI's app configuration file so that the
+	// user doesn't have to remember to use the flag on future command executions.
+	c.Globals.File.SetJsToolchain(toolchainJS, c.Globals.Path)
+
 	var (
 		selectedToolchain string
 		language          *Language

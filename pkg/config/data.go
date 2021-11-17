@@ -100,6 +100,7 @@ var writeMutex = &sync.Mutex{}
 // command structs, and parsed as flags.
 type Data struct {
 	File   File
+	Path   string
 	Env    Environment
 	Output io.Writer
 	Flag   Flag
@@ -277,6 +278,11 @@ func (f *File) JsToolchain() string {
 	return "npm"
 }
 
+func (f *File) SetJsToolchain(toolchain, path string) {
+	f.Language.JavaScript.Toolchain = toolchain
+	f.Write(path)
+}
+
 // SetStatic sets the embedded config into the File for backup purposes.
 //
 // NOTE: The reason we have a setter method is because the File struct is
@@ -294,7 +300,7 @@ func (f *File) Static() []byte {
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
-func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, fpath string) error {
+func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, path string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), d)
 	defer cancel()
 
@@ -330,12 +336,12 @@ func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, fp
 
 	migrateLegacyData(f)
 
-	err = createConfigDir(fpath)
+	err = createConfigDir(path)
 	if err != nil {
 		return err
 	}
 
-	return f.Write(fpath)
+	return f.Write(path)
 }
 
 // migrateLegacyData ensures legacy data is transitioned to config new format.
@@ -350,8 +356,8 @@ func migrateLegacyData(f *File) {
 
 // createConfigDir creates the application configuration directory if it
 // doesn't already exist.
-func createConfigDir(fpath string) error {
-	basePath := filepath.Dir(fpath)
+func createConfigDir(path string) error {
+	basePath := filepath.Dir(path)
 	err := filesystem.MakeDirectoryIfNotExists(basePath)
 	if err != nil {
 		return err
@@ -388,13 +394,13 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 // the CLI binary (which we expect to be valid). If an attempt to unmarshal
 // the static config fails then we have to consider something fundamental has
 // gone wrong and subsequently expect the caller to exit the program.
-func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
+func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
 	// Disabling as we need to load the config.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
-	bs, readErr := os.ReadFile(fpath)
+	bs, readErr := os.ReadFile(path)
 	if readErr != nil {
 		bs = f.static
 	}
@@ -410,7 +416,7 @@ func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 		// ask the user if they would like us to replace their config with the
 		// version embedded into the CLI binary.
 
-		label := fmt.Sprintf("Your configuration file (%s) is invalid. Replace it with a valid version? (any existing email/token data will be lost) [y/N] ", fpath)
+		label := fmt.Sprintf("Your configuration file (%s) is invalid. Replace it with a valid version? (any existing email/token data will be lost) [y/N] ", path)
 		cont, err := text.Input(out, label, in)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
@@ -438,11 +444,11 @@ func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 		f.CLI.Version = revision.SemVer(revision.AppVersion)
 	}
 
-	err := createConfigDir(fpath)
+	err := createConfigDir(path)
 	if err != nil {
 		return err
 	}
-	f.Write(fpath)
+	f.Write(path)
 
 	// The top-level 'endpoint' key is what we're using to identify whether the
 	// local config.toml file is using the legacy format. If we find that key,
@@ -471,7 +477,7 @@ func (f *File) Read(fpath string, in io.Reader, out io.Writer) error {
 
 // UseStatic allow us to switch the in-memory configuration with the static
 // version embedded into the CLI binary and writes it back to disk.
-func (f *File) UseStatic(cfg []byte, fpath string) error {
+func (f *File) UseStatic(cfg []byte, path string) error {
 	err := toml.Unmarshal(cfg, f)
 	if err != nil {
 		return invalidConfigErr(err)
@@ -482,22 +488,22 @@ func (f *File) UseStatic(cfg []byte, fpath string) error {
 
 	migrateLegacyData(f)
 
-	err = createConfigDir(fpath)
+	err = createConfigDir(path)
 	if err != nil {
 		return err
 	}
 
-	f.Write(fpath)
+	f.Write(path)
 
 	return nil
 }
 
 // Write the instance of File to a local application config file.
-func (f *File) Write(fpath string) error {
+func (f *File) Write(path string) error {
 	writeMutex.Lock()
 	defer writeMutex.Unlock()
 
-	fp, err := os.OpenFile(fpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
+	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
 	if err != nil {
 		return fmt.Errorf("error creating config file: %w", err)
 	}

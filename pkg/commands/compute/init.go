@@ -148,6 +148,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		toolchainJS = c.Globals.File.JsToolchain()
 	}
 
+	// Persist the toolchain back to the CLI's app configuration file so that the
+	// user doesn't have to remember to use the flag on future command executions.
+	c.Globals.File.SetJsToolchain(toolchainJS, c.Globals.Path)
+
 	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals, toolchainJS)
 	language, err := selectLanguage(c.acceptDefaults, c.from, c.language, languages, mf, in, out)
 	if err != nil {
