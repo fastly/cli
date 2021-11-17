@@ -604,6 +604,9 @@ COMMANDS
   compute init [<flags>]
     Initialize a new Compute@Edge package locally
 
+        --accept-defaults          Accept default values for all prompts and
+                                   scaffold project non-interactively (default
+                                   language: Rust)
     -a, --author=AUTHOR ...        Author(s) of the package
     -d, --description=DESCRIPTION  Description of the package
     -p, --directory=DIRECTORY      Destination to write the new package,

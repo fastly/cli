@@ -33,6 +33,7 @@ var (
 type InitCommand struct {
 	cmd.Base
 
+	acceptDefaults   bool
 	branch           string
 	client           api.HTTPClient
 	dir              string
@@ -56,6 +57,7 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 	c.client = client
 	c.manifest = data
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
+	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and scaffold project non-interactively (default language: Rust)").BoolVar(&c.acceptDefaults)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
@@ -80,18 +82,21 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 	text.Output(out, "Creating a new Compute@Edge project%s.", introContext)
 	text.Break(out)
-	text.Output(out, "Press ^C at any time to quit.")
-	text.Break(out)
 
-	cont, err := verifyDirectory(c.dir, c.skipVerification, out, in)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
-	}
-	if !cont {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("project directory not empty"),
-			Remediation: errors.ExistingDirRemediation,
+	if !c.acceptDefaults {
+		text.Output(out, "Press ^C at any time to quit.")
+		text.Break(out)
+
+		cont, err := verifyDirectory(c.dir, c.skipVerification, out, in)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		if !cont {
+			return errors.RemediationError{
+				Inner:       fmt.Errorf("project directory not empty"),
+				Remediation: errors.ExistingDirRemediation,
+			}
 		}
 	}
 
@@ -125,7 +130,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	c.dir = dst
 
-	name, desc, authors, err := promptOrReturn(c.manifest, c.dir, c.Globals.File.User.Email, in, out)
+	name, desc, authors, err := promptOrReturn(c.acceptDefaults, c.manifest, c.dir, c.Globals.File.User.Email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Authors":     authors,
@@ -137,8 +142,13 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals)
-	language, err := selectLanguage(c.from, c.language, languages, mf, in, out)
+	toolchainJS := c.toolchainJS
+	if toolchainJS == "" {
+		toolchainJS = c.Globals.File.JsToolchain()
+	}
+
+	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals, toolchainJS)
+	language, err := selectLanguage(c.acceptDefaults, c.from, c.language, languages, mf, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Language": c.language,
@@ -149,7 +159,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var from, branch, tag string
 
 	if noProjectFiles(c.from, language, mf) {
-		from, branch, tag, err = promptForStarterKit(language.StarterKits, in, out)
+		from, branch, tag, err = promptForStarterKit(c.acceptDefaults, language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"From":           c.from,
@@ -308,21 +318,21 @@ func verifyDestination(path string, verbose io.Writer) (dst string, err error) {
 // promptOrReturn will prompt the user for information missing from the
 // fastly.toml manifest file, otherwise if it already exists then the value is
 // returned as is.
-func promptOrReturn(m manifest.Data, path, email string, in io.Reader, out io.Writer) (name, description string, authors []string, err error) {
+func promptOrReturn(acceptDefaults bool, m manifest.Data, path, email string, in io.Reader, out io.Writer) (name, description string, authors []string, err error) {
 	name, _ = m.Name()
-	name, err = packageName(name, path, in, out)
+	name, err = packageName(acceptDefaults, name, path, in, out)
 	if err != nil {
 		return name, description, authors, err
 	}
 
 	description, _ = m.Description()
-	description, err = packageDescription(description, in, out)
+	description, err = packageDescription(acceptDefaults, description, in, out)
 	if err != nil {
 		return name, description, authors, err
 	}
 
 	authors, _ = m.Authors()
-	authors, err = packageAuthors(authors, email, in, out)
+	authors, err = packageAuthors(acceptDefaults, authors, email, in, out)
 	if err != nil {
 		return name, description, authors, err
 	}
@@ -335,10 +345,14 @@ func promptOrReturn(m manifest.Data, path, email string, in io.Reader, out io.Wr
 //
 // It will use a default of the current directory path if no value provided by
 // the user via the prompt.
-func packageName(name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
+func packageName(acceptDefaults bool, name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
 	defaultName := filepath.Base(dirPath)
 
 	if name == "" {
+		if acceptDefaults {
+			return defaultName, nil
+		}
+
 		var err error
 
 		name, err = text.Input(out, fmt.Sprintf("Name: [%s] ", defaultName), in)
@@ -356,8 +370,8 @@ func packageName(name string, dirPath string, in io.Reader, out io.Writer) (stri
 
 // packageDescription prompts the user for a package description unless already
 // defined either via the corresponding CLI flag or the manifest file.
-func packageDescription(desc string, in io.Reader, out io.Writer) (string, error) {
-	if desc == "" {
+func packageDescription(acceptDefaults bool, desc string, in io.Reader, out io.Writer) (string, error) {
+	if desc == "" && !acceptDefaults {
 		var err error
 
 		desc, err = text.Input(out, "Description: ", in)
@@ -374,8 +388,8 @@ func packageDescription(desc string, in io.Reader, out io.Writer) (string, error
 //
 // It will use a default of the user's email found within the manifest, if set
 // there, otherwise the value will be an empty slice.
-func packageAuthors(authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
-	if len(authors) == 0 {
+func packageAuthors(acceptDefaults bool, authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
+	if len(authors) == 0 && !acceptDefaults {
 		label := "Author: "
 
 		if manifestEmail != "" {
@@ -399,13 +413,25 @@ func packageAuthors(authors []string, manifestEmail string, in io.Reader, out io
 
 // selectLanguage decides whether to prompt the user for a language if none
 // defined or try and match the --language flag against available languages.
-func selectLanguage(from string, langFlag string, ls []*Language, mf manifest.File, in io.Reader, out io.Writer) (*Language, error) {
+//
+// NOTE: If the user passes the --accept-defaults flag, then we'll default to
+// selecting the Rust language.
+func selectLanguage(acceptDefaults bool, from string, langFlag string, ls []*Language, mf manifest.File, in io.Reader, out io.Writer) (*Language, error) {
 	if from != "" || mf.Exists() {
 		return nil, nil
 	}
 
 	if langFlag == "" {
-		return promptForLanguage(ls, in, out)
+		if !acceptDefaults {
+			return promptForLanguage(ls, in, out)
+		}
+
+		// Default to Rust
+		for i, l := range ls {
+			if l.Name == "rust" {
+				return ls[i], nil
+			}
+		}
 	}
 
 	for _, language := range ls {
@@ -472,7 +498,15 @@ func noProjectFiles(from string, language *Language, mf manifest.File) bool {
 // promptForStarterKit prompts the user for a package starter kit.
 //
 // It returns the path to the starter kit, and the corresponding branch/tag,
-func promptForStarterKit(kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
+//
+// NOTE: If the user passes the --accept-defaults flag, then we'll default to
+// selecting the Rust language with the Rust starter kit (which is always the
+// first starter kit in the list).
+func promptForStarterKit(acceptDefaults bool, kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
+	if acceptDefaults {
+		template := kits[0]
+		return template.Path, template.Branch, template.Tag, nil
+	}
 	text.Output(out, "%s", text.Bold("Starter kit:"))
 	for i, kit := range kits {
 		fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
