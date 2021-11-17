@@ -16,12 +16,16 @@ import (
 
 // JavaScript implements a Toolchain for the JavaScript language.
 type JavaScript struct {
-	timeout int
+	timeout   int
+	toolchain string
 }
 
 // NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int) *JavaScript {
-	return &JavaScript{timeout}
+func NewJavaScript(timeout int, toolchain string) *JavaScript {
+	return &JavaScript{
+		timeout:   timeout,
+		toolchain: toolchain,
+	}
 }
 
 // Initialize implements the Toolchain interface and initializes a newly cloned

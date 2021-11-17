@@ -215,6 +215,25 @@ type File struct {
 	readError error
 }
 
+// LocalServer represents a list of backends that should be mocked as per the
+// configuration values.
+type LocalServer struct {
+	Backends     map[string]LocalBackend    `toml:"backends"`
+	Dictionaries map[string]LocalDictionary `toml:"dictionaries,omitempty"`
+}
+
+// LocalBackend represents a backend to be mocked by the local testing server.
+type LocalBackend struct {
+	URL          string `toml:"url"`
+	OverrideHost string `toml:"override_host,omitempty"`
+}
+
+// LocalDictionary represents a dictionary to be mocked by the local testing server.
+type LocalDictionary struct {
+	File   string `toml:"file"`
+	Format string `toml:"format"`
+}
+
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
@@ -245,25 +264,6 @@ type SetupDictionaryItems struct {
 // SetupLogger represents a '[setup.log_endpoints.<T>]' instance.
 type SetupLogger struct {
 	Provider string `toml:"provider,omitempty"`
-}
-
-// LocalServer represents a list of backends that should be mocked as per the
-// configuration values.
-type LocalServer struct {
-	Backends     map[string]LocalBackend    `toml:"backends"`
-	Dictionaries map[string]LocalDictionary `toml:"dictionaries,omitempty"`
-}
-
-// LocalBackend represents a backend to be mocked by the local testing server.
-type LocalBackend struct {
-	URL          string `toml:"url"`
-	OverrideHost string `toml:"override_host,omitempty"`
-}
-
-// LocalDictionary represents a dictionary to be mocked by the local testing server.
-type LocalDictionary struct {
-	File   string `toml:"file"`
-	Format string `toml:"format"`
 }
 
 // Exists yields whether the manifest exists.

@@ -579,12 +579,13 @@ COMMANDS
   compute build [<flags>]
     Build a Compute@Edge package locally
 
-    --include-source     Include source code in built package
-    --js-toolchain=npm   Select which JavaScript toolchain to use
-    --language=LANGUAGE  Language type
-    --name=NAME          Package name
-    --skip-verification  Skip verification steps and force build
-    --timeout=TIMEOUT    Timeout, in seconds, for the build compilation step
+    --include-source             Include source code in built package
+    --toolchain-js=TOOLCHAIN-JS  Select which JavaScript toolchain to use
+    --language=LANGUAGE          Language type
+    --name=NAME                  Package name
+    --skip-verification          Skip verification steps and force build
+    --timeout=TIMEOUT            Timeout, in seconds, for the build compilation
+                                 step
 
   compute deploy [<flags>]
     Deploy a package to a Fastly Compute@Edge service
@@ -616,9 +617,10 @@ COMMANDS
     -f, --from=FROM                Git repository URL, or URL referencing a
                                    .zip/.tar.gz file, containing a package
                                    template
-        --js-toolchain=npm         Select which JavaScript toolchain to use
     -l, --language=LANGUAGE        Language of the package
     -n, --name=NAME                Name of package, falls back to --directory
+        --toolchain-js=TOOLCHAIN-JS
+                                   Select which JavaScript toolchain to use
 
   compute pack --wasm-binary=WASM-BINARY
     Package a pre-compiled Wasm binary for a Fastly Compute@Edge service
@@ -628,39 +630,42 @@ COMMANDS
   compute publish [<flags>]
     Build and deploy a Compute@Edge package to a Fastly service
 
-        --include-source         Include source code in built package
-        --js-toolchain=npm       Select which JavaScript toolchain to use
-        --language=LANGUAGE      Language type
-        --name=NAME              Package name
-        --skip-verification      Skip verification steps and force build
-        --timeout=TIMEOUT        Timeout, in seconds, for the build compilation
-                                 step
         --accept-defaults        Accept default values for all prompts and
                                  perform deploy non-interactively
         --comment=COMMENT        Human-readable comment
         --domain=DOMAIN          The name of the domain associated to the
                                  package
+        --include-source         Include source code in built package
+        --language=LANGUAGE      Language type
+        --name=NAME              Package name
     -p, --package=PACKAGE        Path to a package tar.gz
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --skip-verification      Skip verification steps and force build
+        --timeout=TIMEOUT        Timeout, in seconds, for the build compilation
+                                 step
+        --toolchain-js=TOOLCHAIN-JS
+                                 Select which JavaScript toolchain to use
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
   compute serve [<flags>]
     Build and run a Compute@Edge package locally
 
-    --addr="127.0.0.1:7676"  The IPv4 address and port to listen on
-    --env=ENV                The environment configuration to use (e.g. stage)
-    --file="bin/main.wasm"   The Wasm file to run
-    --include-source         Include source code in built package
-    --js-toolchain=npm       Select which JavaScript toolchain to use
-    --language=LANGUAGE      Language type
-    --name=NAME              Package name
-    --skip-build             Skip the build step
-    --skip-verification      Skip verification steps and force build
-    --timeout=TIMEOUT        Timeout, in seconds, for the build compilation step
-    --watch                  Watch for file changes, then rebuild project and
-                             restart local server
+    --addr="127.0.0.1:7676"      The IPv4 address and port to listen on
+    --env=ENV                    The environment configuration to use (e.g.
+                                 stage)
+    --file="bin/main.wasm"       The Wasm file to run
+    --include-source             Include source code in built package
+    --language=LANGUAGE          Language type
+    --name=NAME                  Package name
+    --skip-build                 Skip the build step
+    --skip-verification          Skip verification steps and force build
+    --timeout=TIMEOUT            Timeout, in seconds, for the build compilation
+                                 step
+    --toolchain-js=TOOLCHAIN-JS  Select which JavaScript toolchain to use
+    --watch                      Watch for file changes, then rebuild project
+                                 and restart local server
 
   compute update --version=VERSION --package=PACKAGE [<flags>]
     Update a package on a Fastly Compute@Edge service version

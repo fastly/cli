@@ -13,4 +13,7 @@ const (
 
 	// ServiceID is the env var we look in for the required Service ID.
 	ServiceID = "FASTLY_SERVICE_ID"
+
+	// ToolchainJS is the env var we look in for the JS toolchain.
+	ToolchainJS = "FASTLY_TOOLCHAIN_JS"
 )

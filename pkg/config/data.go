@@ -216,7 +216,8 @@ type User struct {
 
 // Language represents C@E language specific configuration.
 type Language struct {
-	Rust Rust `toml:"rust"`
+	Rust       Rust       `toml:"rust"`
+	JavaScript JavaScript `toml:"javascript"`
 }
 
 // Rust represents Rust C@E language specific configuration.
@@ -243,6 +244,11 @@ type Rust struct {
 	RustupConstraint string `toml:"rustup_constraint"`
 }
 
+// JavaScript represents JavaScript C@E language specific configuration.
+type JavaScript struct {
+	Toolchain string `toml:"toolchain"`
+}
+
 // StarterKitLanguages represents language specific starter kits.
 type StarterKitLanguages struct {
 	AssemblyScript []StarterKit `toml:"assemblyscript"`
@@ -257,6 +263,18 @@ type StarterKit struct {
 	Path        string `toml:"path"`
 	Tag         string `toml:"tag"`
 	Branch      string `toml:"branch"`
+}
+
+func (f *File) JsToolchain() string {
+	if sid := os.Getenv(env.ToolchainJS); sid != "" {
+		return sid
+	}
+
+	if f.Language.JavaScript.Toolchain != "" {
+		return f.Language.JavaScript.Toolchain
+	}
+
+	return "npm"
 }
 
 // SetStatic sets the embedded config into the File for backup purposes.
