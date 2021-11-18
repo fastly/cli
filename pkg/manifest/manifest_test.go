@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 	toml "github.com/pelletier/go-toml"
 )
@@ -56,7 +56,7 @@ func TestManifest(t *testing.T) {
 	// initial read of the data and then write it back to disk once the tests
 	// have completed.
 
-	prefix := filepath.Join("../", "testdata", "init")
+	prefix := filepath.Join("./", "testdata")
 
 	for _, fpath := range []string{
 		"fastly-valid-semver.toml",
@@ -132,7 +132,7 @@ func TestManifestPrepend(t *testing.T) {
 	// To ensure future test runs complete successfully we do an initial read of
 	// the data and then write it back out when the tests have completed.
 	{
-		path, err := filepath.Abs(filepath.Join("../", "testdata", "init", "fastly-missing-spec-url.toml"))
+		path, err := filepath.Abs(filepath.Join("./", "testdata", "fastly-missing-spec-url.toml"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -237,7 +237,7 @@ func TestDataServiceID(t *testing.T) {
 // syntax for Viceroy local testing, are not accidentally deleted after
 // decoding and encoding flows.
 func TestManifestPersistsLocalServerSection(t *testing.T) {
-	fpath := filepath.Join("../", "testdata", "init", "fastly-viceroy-update.toml")
+	fpath := filepath.Join("./", "testdata", "fastly-viceroy-update.toml")
 
 	b, err := os.ReadFile(fpath)
 	if err != nil {
