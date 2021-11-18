@@ -18,15 +18,21 @@ var errFormat = "To fix this error, run the following command:\n\n\t$ %s"
 
 // JavaScript implements a Toolchain for the JavaScript language.
 type JavaScript struct {
-	timeout   int
-	toolchain string
+	packageDependency   string
+	packageExecutable   string
+	timeout             int
+	toolchain           string
+	validateScriptBuild bool
 }
 
 // NewJavaScript constructs a new JavaScript.
 func NewJavaScript(timeout int, toolchain string) *JavaScript {
 	return &JavaScript{
-		timeout:   timeout,
-		toolchain: toolchain,
+		packageDependency:   "@fastly/js-compute",
+		packageExecutable:   "js-compute-runtime",
+		timeout:             timeout,
+		toolchain:           toolchain,
+		validateScriptBuild: true,
 	}
 }
 
@@ -158,17 +164,17 @@ func (j JavaScript) Verify(out io.Writer) error {
 	// js-compute-runtime is the JavaScript compiler. We first check if the
 	// required dependency exists in the package.json and then whether the
 	// js-compute-runtime binary exists in the toolchain bin directory.
-	fmt.Fprintf(out, "Checking if @fastly/js-compute is installed...\n")
-	if !checkJsPackageDependencyExists(j.toolchain, "@fastly/js-compute") {
+	fmt.Fprintf(out, "Checking if %s is installed...\n", j.packageDependency)
+	if !checkJsPackageDependencyExists(j.toolchain, j.packageDependency) {
 		var remediation string
 		switch j.toolchain {
 		case "npm":
-			remediation = "npm install --save-dev @fastly/js-compute"
+			remediation = fmt.Sprintf("npm install --save-dev %s", j.packageDependency)
 		case "yarn":
-			remediation = "yarn install --save-dev @fastly/js-compute"
+			remediation = fmt.Sprintf("yarn install --save-dev %s", j.packageDependency)
 		}
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("`@fastly/js-compute` not found in package.json"),
+			Inner:       fmt.Errorf("`%s` not found in package.json", j.packageDependency),
 			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
 		}
 	}
@@ -188,55 +194,57 @@ func (j JavaScript) Verify(out io.Writer) error {
 		}
 	}
 
-	path, err := exec.LookPath(filepath.Join(p, "js-compute-runtime"))
+	path, err := exec.LookPath(filepath.Join(p, j.packageExecutable))
 	if err != nil {
-		return fmt.Errorf("getting js-compute-runtime path: %w", err)
+		return fmt.Errorf("getting %s path: %w", j.packageExecutable, err)
 	}
 	if !filesystem.FileExists(path) {
 		var remediation string
 		switch j.toolchain {
 		case "npm":
-			remediation = "npm install --save-dev @fastly/js-compute"
+			remediation = fmt.Sprintf("npm install --save-dev %s", j.packageDependency)
 		case "yarn":
-			remediation = "yarn install --save-dev @fastly/js-compute"
+			remediation = fmt.Sprintf("yarn install --save-dev %s", j.packageDependency)
 		}
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("`js-compute-runtime` binary not found in %s", p),
+			Inner:       fmt.Errorf("`%s` binary not found in %s", j.packageExecutable, p),
 			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
 		}
 	}
 
-	fmt.Fprintf(out, "Found js-compute-runtime at %s\n", path)
+	fmt.Fprintf(out, "Found %s at %s\n", j.packageExecutable, path)
 
-	var remediation string
-	switch j.toolchain {
-	case "npm":
-		remediation = "npm run"
-	case "yarn":
-		remediation = "yarn run"
-	}
-
-	pkgErr := "package.json requires a `script` field with a `build` step defined that calls the `js-compute-runtime` binary"
-	remediation = fmt.Sprintf("Check your package.json has a `script` field with a `build` step defined:\n\n\t$ %s", text.Bold(remediation))
-
-	// gosec flagged this:
-	// G204 (CWE-78): Subprocess launched with variable
-	// Disabling as the variables come from trusted sources:
-	// The CLI parser enforces supported values via EnumVar.
-	/* #nosec */
-	cmd := exec.Command(j.toolchain, "run")
-	stdoutStderr, err := cmd.CombinedOutput()
-	if err != nil {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("%s: %w", pkgErr, err),
-			Remediation: remediation,
+	if j.validateScriptBuild {
+		var remediation string
+		switch j.toolchain {
+		case "npm":
+			remediation = "npm run"
+		case "yarn":
+			remediation = "yarn run"
 		}
-	}
 
-	if !strings.Contains(string(stdoutStderr), " build\n") {
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("%s:\n\n%s", pkgErr, stdoutStderr),
-			Remediation: remediation,
+		pkgErr := "package.json requires a `script` field with a `build` step defined that calls the `js-compute-runtime` binary"
+		remediation = fmt.Sprintf("Check your package.json has a `script` field with a `build` step defined:\n\n\t$ %s", text.Bold(remediation))
+
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with variable
+		// Disabling as the variables come from trusted sources:
+		// The CLI parser enforces supported values via EnumVar.
+		/* #nosec */
+		cmd := exec.Command(j.toolchain, "run")
+		stdoutStderr, err := cmd.CombinedOutput()
+		if err != nil {
+			return errors.RemediationError{
+				Inner:       fmt.Errorf("%s: %w", pkgErr, err),
+				Remediation: remediation,
+			}
+		}
+
+		if !strings.Contains(string(stdoutStderr), " build\n") {
+			return errors.RemediationError{
+				Inner:       fmt.Errorf("%s:\n\n%s", pkgErr, stdoutStderr),
+				Remediation: remediation,
+			}
 		}
 	}
 
