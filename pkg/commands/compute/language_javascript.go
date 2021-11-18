@@ -32,33 +32,33 @@ func NewJavaScript(timeout int, toolchain string) *JavaScript {
 
 // Initialize implements the Toolchain interface and initializes a newly cloned
 // package by installing required dependencies.
-func (a JavaScript) Initialize(out io.Writer) error {
+func (j JavaScript) Initialize(out io.Writer) error {
 	// 1) Check a.toolchain is on $PATH
 	//
 	// npm and yarn, two popular Node/JavaScript toolchain installers/managers,
 	// is needed to install the package dependencies on initialization. We only
 	// check whether the binary exists on the users $PATH and error with
 	// installation help text.
-	fmt.Fprintf(out, "Checking if %s is installed...\n", a.toolchain)
+	fmt.Fprintf(out, "Checking if %s is installed...\n", j.toolchain)
 
-	p, err := exec.LookPath(a.toolchain)
+	p, err := exec.LookPath(j.toolchain)
 	if err != nil {
 		nodejsURL := "https://nodejs.org/"
 		var remediation string
-		switch a.toolchain {
+		switch j.toolchain {
 		case "npm":
-			remediation = fmt.Sprintf("To fix this error, install Node.js and %s by visiting:\n\n\t$ %s", a.toolchain, text.Bold(nodejsURL))
+			remediation = fmt.Sprintf("To fix this error, install Node.js and %s by visiting:\n\n\t$ %s", j.toolchain, text.Bold(nodejsURL))
 		case "yarn":
-			remediation = fmt.Sprintf("To fix this error, install Node.js by visiting %s, and install %s by visiting:\n\n\t$ %s", text.Bold(nodejsURL), a.toolchain, text.Bold("https://yarnpkg.com/"))
+			remediation = fmt.Sprintf("To fix this error, install Node.js by visiting %s, and install %s by visiting:\n\n\t$ %s", text.Bold(nodejsURL), j.toolchain, text.Bold("https://yarnpkg.com/"))
 		}
 
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("`%s` not found in $PATH", a.toolchain),
+			Inner:       fmt.Errorf("`%s` not found in $PATH", j.toolchain),
 			Remediation: remediation,
 		}
 	}
 
-	fmt.Fprintf(out, "Found %s at %s\n", a.toolchain, p)
+	fmt.Fprintf(out, "Found %s at %s\n", j.toolchain, p)
 
 	// 2) Check package.json file exists in $PWD
 	//
@@ -71,7 +71,7 @@ func (a JavaScript) Initialize(out io.Writer) error {
 
 	if !filesystem.FileExists(fpath) {
 		var remediation string
-		switch a.toolchain {
+		switch j.toolchain {
 		case "npm":
 			remediation = "npm init"
 		case "yarn":
@@ -88,7 +88,7 @@ func (a JavaScript) Initialize(out io.Writer) error {
 	fmt.Fprintf(out, "Installing package dependencies...\n")
 
 	cmd := fstexec.Streaming{
-		Command: a.toolchain,
+		Command: j.toolchain,
 		Args:    []string{"install"},
 		Env:     []string{},
 		Output:  out,
@@ -98,7 +98,7 @@ func (a JavaScript) Initialize(out io.Writer) error {
 
 // Verify implements the Toolchain interface and verifies whether the
 // JavaScript language toolchain is correctly configured on the host.
-func (a JavaScript) Verify(out io.Writer) error {
+func (j JavaScript) Verify(out io.Writer) error {
 	// 1) Check a.toolchain is on $PATH
 	//
 	// npm and yarn, two popular Node/JavaScript toolchain installers/managers,
@@ -106,26 +106,26 @@ func (a JavaScript) Verify(out io.Writer) error {
 	// js-compute-runtime compiler and @fastly/js-compute package are installed.
 	// We only check whether the binary exists on the users $PATH and error with
 	// installation help text.
-	fmt.Fprintf(out, "Checking if %s is installed...\n", a.toolchain)
+	fmt.Fprintf(out, "Checking if %s is installed...\n", j.toolchain)
 
-	p, err := exec.LookPath(a.toolchain)
+	p, err := exec.LookPath(j.toolchain)
 	if err != nil {
 		nodejsURL := "https://nodejs.org/"
 		var remediation string
-		switch a.toolchain {
+		switch j.toolchain {
 		case "npm":
-			remediation = fmt.Sprintf("To fix this error, install Node.js and %s by visiting:\n\n\t$ %s", a.toolchain, text.Bold(nodejsURL))
+			remediation = fmt.Sprintf("To fix this error, install Node.js and %s by visiting:\n\n\t$ %s", j.toolchain, text.Bold(nodejsURL))
 		case "yarn":
-			remediation = fmt.Sprintf("To fix this error, install Node.js by visiting %s and %s by visiting:\n\n\t$ %s", text.Bold(nodejsURL), a.toolchain, text.Bold("https://yarnpkg.com/"))
+			remediation = fmt.Sprintf("To fix this error, install Node.js by visiting %s and %s by visiting:\n\n\t$ %s", text.Bold(nodejsURL), j.toolchain, text.Bold("https://yarnpkg.com/"))
 		}
 
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("`%s` not found in $PATH", a.toolchain),
+			Inner:       fmt.Errorf("`%s` not found in $PATH", j.toolchain),
 			Remediation: remediation,
 		}
 	}
 
-	fmt.Fprintf(out, "Found %s at %s\n", a.toolchain, p)
+	fmt.Fprintf(out, "Found %s at %s\n", j.toolchain, p)
 
 	// 2) Check package.json file exists in $PWD
 	//
@@ -139,7 +139,7 @@ func (a JavaScript) Verify(out io.Writer) error {
 
 	if !filesystem.FileExists(fpath) {
 		var remediation string
-		switch a.toolchain {
+		switch j.toolchain {
 		case "npm":
 			remediation = "npm init"
 		case "yarn":
@@ -159,9 +159,9 @@ func (a JavaScript) Verify(out io.Writer) error {
 	// required dependency exists in the package.json and then whether the
 	// js-compute-runtime binary exists in the toolchain bin directory.
 	fmt.Fprintf(out, "Checking if @fastly/js-compute is installed...\n")
-	if !checkJsPackageDependencyExists(a.toolchain, "@fastly/js-compute") {
+	if !checkJsPackageDependencyExists(j.toolchain, "@fastly/js-compute") {
 		var remediation string
-		switch a.toolchain {
+		switch j.toolchain {
 		case "npm":
 			remediation = "npm install --save-dev @fastly/js-compute"
 		case "yarn":
@@ -173,17 +173,17 @@ func (a JavaScript) Verify(out io.Writer) error {
 		}
 	}
 
-	p, err = getJsToolchainBinPath(a.toolchain)
+	p, err = getJsToolchainBinPath(j.toolchain)
 	if err != nil {
 		var remediation string
-		switch a.toolchain {
+		switch j.toolchain {
 		case "npm":
 			remediation = "npm install --global npm@latest"
 		case "yarn":
 			remediation = "yarn install --global yarn@latest"
 		}
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("could not determine %s bin path", a.toolchain),
+			Inner:       fmt.Errorf("could not determine %s bin path", j.toolchain),
 			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
 		}
 	}
@@ -194,7 +194,7 @@ func (a JavaScript) Verify(out io.Writer) error {
 	}
 	if !filesystem.FileExists(path) {
 		var remediation string
-		switch a.toolchain {
+		switch j.toolchain {
 		case "npm":
 			remediation = "npm install --save-dev @fastly/js-compute"
 		case "yarn":
@@ -209,7 +209,7 @@ func (a JavaScript) Verify(out io.Writer) error {
 	fmt.Fprintf(out, "Found js-compute-runtime at %s\n", path)
 
 	var remediation string
-	switch a.toolchain {
+	switch j.toolchain {
 	case "npm":
 		remediation = "npm run"
 	case "yarn":
@@ -224,7 +224,7 @@ func (a JavaScript) Verify(out io.Writer) error {
 	// Disabling as the variables come from trusted sources:
 	// The CLI parser enforces supported values via EnumVar.
 	/* #nosec */
-	cmd := exec.Command(a.toolchain, "run")
+	cmd := exec.Command(j.toolchain, "run")
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
 		return errors.RemediationError{
@@ -245,19 +245,25 @@ func (a JavaScript) Verify(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // JavaScript source to a Wasm binary.
-func (a JavaScript) Build(out io.Writer, verbose bool) error {
+func (j JavaScript) Build(out io.Writer, verbose bool) error {
 	cmd := fstexec.Streaming{
-		Command: a.toolchain,
+		Command: j.toolchain,
 		Args:    []string{"run", "build"},
 		Env:     []string{},
 		Output:  out,
 	}
-	if a.timeout > 0 {
-		cmd.Timeout = time.Duration(a.timeout) * time.Second
+	if j.timeout > 0 {
+		cmd.Timeout = time.Duration(j.timeout) * time.Second
 	}
 	if err := cmd.Exec(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// Toolchain updates the toolchain used at runtime based on a user's
+// prompt input.
+func (j *JavaScript) Toolchain(toolchain string) {
+	j.toolchain = toolchain
 }

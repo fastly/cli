@@ -252,3 +252,9 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 
 	return nil
 }
+
+// Toolchain updates the toolchain used at runtime based on a user's
+// prompt input.
+func (a *AssemblyScript) Toolchain(toolchain string) {
+	a.toolchain = toolchain
+}

@@ -29,6 +29,7 @@ type Toolchain interface {
 	Initialize(out io.Writer) error
 	Verify(out io.Writer) error
 	Build(out io.Writer, verbose bool) error
+	Toolchain(toolchain string)
 }
 
 // BuildCommand produces a deployable artifact from files on the local disk.
@@ -116,7 +117,21 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	toolchainJS := c.ToolchainJS
 	if toolchainJS == "" {
-		toolchainJS = c.Globals.File.JsToolchain()
+		var source config.Source
+		toolchainJS, source = c.Globals.File.JsToolchain()
+		if source == config.SourceEnvironment || source == config.SourceFile {
+			// Validate the environment variable (or config file) contains valid value.
+			var match bool
+			for _, t := range JsToolchains {
+				if toolchainJS == t {
+					match = true
+					break
+				}
+			}
+			if !match {
+				toolchainJS = config.ToolchainJsDefault
+			}
+		}
 	}
 
 	// Persist the toolchain back to the CLI's app configuration file so that the

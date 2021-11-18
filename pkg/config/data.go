@@ -85,6 +85,9 @@ var RemediationManualFix = "You'll need to manually fix any invalid configuratio
 // ensure there isn't a race condition with writing the config to disk.
 var writeMutex = &sync.Mutex{}
 
+// ToolchainJsDefault represents the default JS toolchain.
+var ToolchainJsDefault = "npm"
+
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
 // the components that need it, including the place the parameter came from,
@@ -266,16 +269,16 @@ type StarterKit struct {
 	Branch      string `toml:"branch"`
 }
 
-func (f *File) JsToolchain() string {
+func (f *File) JsToolchain() (string, Source) {
 	if sid := os.Getenv(env.ToolchainJS); sid != "" {
-		return sid
+		return sid, SourceEnvironment
 	}
 
 	if f.Language.JavaScript.Toolchain != "" {
-		return f.Language.JavaScript.Toolchain
+		return f.Language.JavaScript.Toolchain, SourceFile
 	}
 
-	return "npm"
+	return ToolchainJsDefault, SourceDefault
 }
 
 func (f *File) SetJsToolchain(toolchain, path string) {

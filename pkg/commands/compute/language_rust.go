@@ -587,3 +587,9 @@ func newCargoUpdateRemediationErr(err error, version string) errors.RemediationE
 		),
 	}
 }
+
+// Toolchain updates the toolchain used at runtime based on a user's
+// prompt input.
+func (r *Rust) Toolchain(toolchain string) {
+	// no-op
+}

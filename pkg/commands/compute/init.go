@@ -46,7 +46,10 @@ type InitCommand struct {
 }
 
 var (
-	Languages    = []string{"rust", "assemblyscript", "javascript", "other"}
+	Languages = []string{"rust", "assemblyscript", "javascript", "other"}
+
+	// JsToolchains represents the supported JS toolchains and npm should be first
+	// as it's considered the default.
 	JsToolchains = []string{"npm", "yarn"}
 )
 
@@ -143,22 +146,17 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	toolchainJS := c.toolchainJS
-	if toolchainJS == "" {
-		toolchainJS = c.Globals.File.JsToolchain()
-	}
-
-	// Persist the toolchain back to the CLI's app configuration file so that the
-	// user doesn't have to remember to use the flag on future command executions.
-	c.Globals.File.SetJsToolchain(toolchainJS, c.Globals.Path)
-
-	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals, toolchainJS)
+	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals)
 	language, err := selectLanguage(c.acceptDefaults, c.from, c.language, languages, mf, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Language": c.language,
 		})
 		return err
+	}
+
+	if language.Name == "javascript" || language.Name == "assemblyscript" {
+		configureJsToolchain(c.toolchainJS, c.Globals.Path, JsToolchains, c.Globals.File, c.acceptDefaults, in, out)
 	}
 
 	var from, branch, tag string
@@ -414,6 +412,92 @@ func packageAuthors(acceptDefaults bool, authors []string, manifestEmail string,
 	}
 
 	return authors, nil
+}
+
+// configureJsToolchain validates the JS toolchain has been configured
+// correctly and will take the following priority order:
+//
+// - Flag
+// - Environment
+// - File
+// - Default
+func configureJsToolchain(
+	toolchainFlag, configPath string,
+	toolchains []string,
+	f config.File,
+	acceptDefaults bool,
+	in io.Reader, out io.Writer,
+) string {
+
+	toolchain, source := f.JsToolchain()
+
+	if toolchainFlag != "" {
+		toolchain = toolchainFlag
+	}
+
+	defaultMessage := fmt.Sprintf("Toolchain option unrecognised. Defaulting to %s", config.ToolchainJsDefault)
+	validator := validateToolchainOption(toolchains)
+
+	switch source {
+	case config.SourceDefault:
+		// Before accepting default toolchain, prompt the user for their choice.
+		if !acceptDefaults {
+			text.Output(out, "%s", text.Bold("Toolchain:"))
+			for i, t := range toolchains {
+				text.Output(out, "[%d] %s", i+1, t)
+			}
+			option, err := text.Input(out, "Choose option: [1] ", in, validator)
+			if err != nil {
+				text.Info(out, defaultMessage)
+			} else {
+				if option == "" {
+					option = "1"
+				}
+				i, err := strconv.Atoi(option)
+				if err != nil {
+					text.Info(out, defaultMessage)
+				}
+				toolchain = toolchains[i-1]
+			}
+		}
+	default:
+		// Validate the environment variable (or config file) contains valid value.
+		var match bool
+		for _, t := range toolchains {
+			if toolchain == t {
+				match = true
+				break
+			}
+		}
+		if !match {
+			text.Info(out, defaultMessage)
+			toolchain = config.ToolchainJsDefault
+		}
+	}
+
+	// Persist the toolchain back to the CLI's app configuration file so that the
+	// user doesn't have to remember to use the flag on future command executions.
+	f.SetJsToolchain(toolchain, configPath)
+
+	return toolchain
+}
+
+// validateToolchainOption ensures the user selects an appropriate value from
+// the prompt options displayed.
+func validateToolchainOption(toolchains []string) func(string) error {
+	return func(input string) error {
+		errMsg := fmt.Errorf("must be a valid option")
+		if input == "" {
+			return nil
+		}
+		if option, err := strconv.Atoi(input); err == nil {
+			if option > len(toolchains) {
+				return errMsg
+			}
+			return nil
+		}
+		return errMsg
+	}
 }
 
 // selectLanguage decides whether to prompt the user for a language if none
