@@ -155,8 +155,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	if language.Name == "javascript" || language.Name == "assemblyscript" {
-		configureJsToolchain(c.toolchainJS, c.Globals.Path, JsToolchains, c.Globals.File, c.acceptDefaults, in, out)
+	if language != nil {
+		if language.Name == "javascript" || language.Name == "assemblyscript" {
+			configureJsToolchain(c.toolchainJS, c.Globals.Path, JsToolchains, c.Globals.File, c.acceptDefaults, in, out)
+		}
 	}
 
 	var from, branch, tag string
