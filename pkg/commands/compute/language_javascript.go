@@ -38,14 +38,14 @@ func NewJavaScript(timeout int, toolchain string) *JavaScript {
 
 // Initialize implements the Toolchain interface and initializes a newly cloned
 // package by installing required dependencies.
-func (j JavaScript) Initialize(out io.Writer) error {
+func (j JavaScript) Initialize(progress, out io.Writer) error {
 	// 1) Check a.toolchain is on $PATH
 	//
 	// npm and yarn, two popular Node/JavaScript toolchain installers/managers,
 	// is needed to install the package dependencies on initialization. We only
 	// check whether the binary exists on the users $PATH and error with
 	// installation help text.
-	fmt.Fprintf(out, "Checking if %s is installed...\n", j.toolchain)
+	fmt.Fprintf(progress, "Checking if %s is installed...\n", j.toolchain)
 
 	p, err := exec.LookPath(j.toolchain)
 	if err != nil {
@@ -64,7 +64,7 @@ func (j JavaScript) Initialize(out io.Writer) error {
 		}
 	}
 
-	fmt.Fprintf(out, "Found %s at %s\n", j.toolchain, p)
+	fmt.Fprintf(progress, "Found %s at %s\n", j.toolchain, p)
 
 	// 2) Check package.json file exists in $PWD
 	//
@@ -90,14 +90,15 @@ func (j JavaScript) Initialize(out io.Writer) error {
 		}
 	}
 
-	fmt.Fprintf(out, "Found package.json at %s\n", fpath)
-	fmt.Fprintf(out, "Installing package dependencies...\n")
+	fmt.Fprintf(progress, "Found package.json at %s\n", fpath)
+	fmt.Fprintf(progress, "Installing package dependencies...\n")
 
 	cmd := fstexec.Streaming{
-		Command: j.toolchain,
-		Args:    []string{"install"},
-		Env:     []string{},
-		Output:  out,
+		Command:  j.toolchain,
+		Args:     []string{"install"},
+		Env:      []string{},
+		Output:   out,
+		Progress: progress,
 	}
 	return cmd.Exec()
 }
@@ -253,12 +254,14 @@ func (j JavaScript) Verify(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // JavaScript source to a Wasm binary.
-func (j JavaScript) Build(out io.Writer, verbose bool) error {
+func (j JavaScript) Build(progress, out io.Writer, verbose bool) error {
 	cmd := fstexec.Streaming{
-		Command: j.toolchain,
-		Args:    []string{"run", "build"},
-		Env:     []string{},
-		Output:  out,
+		Command:  j.toolchain,
+		Args:     []string{"run", "build"},
+		Env:      []string{},
+		Output:   out,
+		Progress: progress,
+		Verbose:  verbose,
 	}
 	if j.timeout > 0 {
 		cmd.Timeout = time.Duration(j.timeout) * time.Second

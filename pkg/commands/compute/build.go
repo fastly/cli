@@ -26,9 +26,9 @@ const IgnoreFilePath = ".fastlyignore"
 
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
-	Initialize(out io.Writer) error
+	Initialize(progress, out io.Writer) error
 	Verify(out io.Writer) error
-	Build(out io.Writer, verbose bool) error
+	Build(progress, out io.Writer, verbose bool) error
 	Toolchain(toolchain string)
 }
 
@@ -184,7 +184,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Step(fmt.Sprintf("Building package using %s toolchain%s...", lang, selectedToolchain))
 
-	if err := language.Build(progress, c.Globals.Flag.Verbose); err != nil {
+	if err := language.Build(progress, out, c.Globals.Flag.Verbose); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Language": language.Name,
 		})

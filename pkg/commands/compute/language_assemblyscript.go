@@ -38,7 +38,7 @@ func NewAssemblyScript(timeout int, toolchain string) *AssemblyScript {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // AssemblyScript source to a Wasm binary.
-func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
+func (a AssemblyScript) Build(progress, out io.Writer, verbose bool) error {
 	// Check if bin directory exists and create if not.
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -66,10 +66,12 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	cmd := fstexec.Streaming{
-		Command: filepath.Join(toolchaindir, "asc"),
-		Args:    args,
-		Env:     []string{},
-		Output:  out,
+		Command:  filepath.Join(toolchaindir, "asc"),
+		Args:     args,
+		Env:      []string{},
+		Output:   out,
+		Progress: progress,
+		Verbose:  verbose,
 	}
 	if a.timeout > 0 {
 		cmd.Timeout = time.Duration(a.timeout) * time.Second

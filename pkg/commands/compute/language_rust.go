@@ -415,11 +415,11 @@ func validateFastlyCrate(metadata CargoMetadata, v *semver.Version, out io.Write
 
 // Initialize implements the Toolchain interface and initializes a newly cloned
 // package. It is a noop for Rust as the Cargo toolchain handles these steps.
-func (r Rust) Initialize(out io.Writer) error { return nil }
+func (r Rust) Initialize(progress, out io.Writer) error { return nil }
 
 // Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
-func (r *Rust) Build(out io.Writer, verbose bool) error {
+func (r *Rust) Build(progress, out io.Writer, verbose bool) error {
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
 	if err := m.Read("Cargo.toml"); err != nil {
@@ -444,10 +444,12 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
 	cmd := fstexec.Streaming{
-		Command: "cargo",
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  out,
+		Command:  "cargo",
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: progress,
+		Verbose:  verbose,
 	}
 	if r.timeout > 0 {
 		cmd.Timeout = time.Duration(r.timeout) * time.Second

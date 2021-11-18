@@ -205,7 +205,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	language, err = initializeLanguage(progress, language, languages, mf.Language, wd, c.dir)
+	language, err = initializeLanguage(progress, language, languages, mf.Language, wd, c.dir, out)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error initializing package: %w", err)
@@ -935,7 +935,7 @@ func updateManifest(
 }
 
 // initializeLanguage for newly cloned package.
-func initializeLanguage(progress text.Progress, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
+func initializeLanguage(progress text.Progress, language *Language, languages []*Language, name, wd, path string, out io.Writer) (*Language, error) {
 	progress.Step("Initializing package...")
 
 	if wd != path {
@@ -963,7 +963,7 @@ func initializeLanguage(progress text.Progress, language *Language, languages []
 	}
 
 	if language.Name != "other" {
-		if err := language.Initialize(progress); err != nil {
+		if err := language.Initialize(progress, out); err != nil {
 			return nil, err
 		}
 	}
