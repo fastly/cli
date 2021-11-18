@@ -17,12 +17,12 @@ import (
 	"github.com/bep/debounce"
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fsnotify/fsnotify"
 )

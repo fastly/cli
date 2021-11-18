@@ -3,7 +3,7 @@ package setup
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/commands/compute/manifest"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 

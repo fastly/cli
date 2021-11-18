@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"

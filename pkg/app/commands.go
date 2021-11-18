@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/commands/configure"
 	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryitem"
@@ -56,6 +55,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/commands/whoami"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/kingpin"
 )
 
