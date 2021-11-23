@@ -66,7 +66,7 @@
     "list": {
       "examples": [{
         "cmd": "fastly acl-entry list --acl-id SU1Z0isxPaozGVKXdv0eY",
-        "title": "List ACLs from the specified ACL"
+        "title": "List ACL entries from the specified ACL"
       }],
       "apis": ["https://developer.fastly.com/reference/api/acls/acl-entry/#list-acl-entries"]
     },
