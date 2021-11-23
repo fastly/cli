@@ -189,7 +189,7 @@
       },
       {
         "cmd": "fastly compute init --directory ./example",
-        "description": "It's recommended you change to the new project directory before executing further CLI commands.",
+        "description": "We recommend that you change to the new project directory after running this command, before executing further CLI commands.",
         "title": "Initialize a new Compute@Edge package locally in a different directory"
       }]
     },
