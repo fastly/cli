@@ -166,7 +166,7 @@
       },
       {
         "cmd": "fastly compute deploy --package ./pkg/example.tar.gz",
-        "description": "Use the `compute pack` command to package up a pre-compiled Wasm binary and then reference the generated archive file when deploying.",
+        "description": "Use the <kdb>fastly compute pack</kbd> command to package up a pre-compiled Wasm binary and then reference the generated archive file when deploying.",
         "title": "Deploy a custom package to a Fastly Compute@Edge service"
       }],
       "apis": [
@@ -196,14 +196,14 @@
     "pack": {
       "examples": [{
         "cmd": "fastly compute pack --wasm-binary ./bin/main.wasm",
-        "description": "Write Compute@Edge applications in [any WASI-supporting language](https://developer.fastly.com/learning/compute/custom/) and use `compute pack` to package the pre-compiled Wasm binary into a supported format.",
+        "description": "Write Compute@Edge applications in [any WASI-supporting language](https://developer.fastly.com/learning/compute/custom/) and use <kbd>fastly compute pack</kbd> to package the pre-compiled Wasm binary into a supported format.",
         "title": "Package a pre-compiled Wasm binary for a Fastly Compute@Edge service"
       }]
     },
     "publish": {
       "examples": [{
         "cmd": "fastly compute publish --skip-verification --accept-defaults",
-        "description": "The <kbd>fastly compute publish</kbd> command is a convenience wrapper around the existing build and deploy commands. All flags present on the `compute build` and `compute deploy` commands are available to use here.",
+        "description": "The <kbd>fastly compute publish</kbd> command is a convenience wrapper around the existing build and deploy commands. All flags present on the <kbd>fastly compute build</kbd> and <kbd>fastly compute deploy</kbd> commands are available to use here.",
         "title": "Build and deploy a Compute@Edge package to a Fastly service"
       }],
       "apis": [
@@ -216,7 +216,7 @@
     "serve": {
       "examples": [{
         "cmd": "fastly compute serve --skip-verification --watch",
-        "description": "The `compute serve` command wraps the existing build command. All flags present on the `compute build` command are available to use here. Additionally, the `--watch` command enables 'hot reloading' of your project code whenever changes are made to the source code.",
+        "description": "The `compute serve` command wraps the existing build command. All flags present on the <kbd>fastly compute build</kbd> command are available to use here. Additionally, the `--watch` command enables 'hot reloading' of your project code whenever changes are made to the source code.",
         "title": "Build and run a Compute@Edge package locally"
       }]
     },
