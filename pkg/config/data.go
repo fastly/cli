@@ -403,12 +403,12 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 	// Disabling as we need to load the config.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
-	bs, readErr := os.ReadFile(path)
+	data, readErr := os.ReadFile(path)
 	if readErr != nil {
-		bs = f.static
+		data = f.static
 	}
 
-	unmarshalErr := toml.Unmarshal(bs, f)
+	unmarshalErr := toml.Unmarshal(data, f)
 	if unmarshalErr != nil {
 		// The embedded config is unexpectedly invalid.
 		if readErr != nil {
@@ -426,8 +426,8 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 		}
 		contl := strings.ToLower(cont)
 		if contl == "y" || contl == "yes" {
-			bs = f.static
-			err = toml.Unmarshal(bs, f)
+			data = f.static
+			err = toml.Unmarshal(data, f)
 			if err != nil {
 				return invalidConfigErr(err)
 			}
@@ -457,7 +457,7 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 	// local config.toml file is using the legacy format. If we find that key,
 	// then we must delete the file and return an error so that the calling code
 	// can take the appropriate action of creating the file anew.
-	tree, err := toml.LoadBytes(bs)
+	tree, err := toml.LoadBytes(data)
 	if err != nil {
 		// NOTE: We do not expect this error block to ever be hit because if we've
 		// already successfully called toml.Unmarshal, then calling toml.LoadBytes
@@ -467,7 +467,7 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 
 	if endpoint := tree.Get("endpoint"); endpoint != nil {
 		var lf LegacyFile
-		err := toml.Unmarshal(bs, &lf)
+		err := toml.Unmarshal(data, &lf)
 		if err != nil {
 			return err
 		}
