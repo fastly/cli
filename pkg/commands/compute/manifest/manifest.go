@@ -206,6 +206,7 @@ type File struct {
 	LocalServer     LocalServer `toml:"local_server,omitempty"`
 	ManifestVersion Version     `toml:"manifest_version"`
 	Name            string      `toml:"name"`
+	Scripts         Scripts     `toml:"scripts,omitempty"`
 	ServiceID       string      `toml:"service_id"`
 	Setup           Setup       `toml:"setup,omitempty"`
 
@@ -213,6 +214,11 @@ type File struct {
 	exists    bool
 	output    io.Writer
 	readError error
+}
+
+// Scripts represents custom operations.
+type Scripts struct {
+	Build string `toml:"build,omitempty"`
 }
 
 // Setup represents a set of service configuration that works with the code in

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fastly/cli/pkg/errors"
@@ -16,12 +17,13 @@ import (
 
 // AssemblyScript implements a Toolchain for the AssemblyScript language.
 type AssemblyScript struct {
+	build   string
 	timeout int
 }
 
 // NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript(timeout int) *AssemblyScript {
-	return &AssemblyScript{timeout}
+func NewAssemblyScript(timeout int, build string) *AssemblyScript {
+	return &AssemblyScript{build, timeout}
 }
 
 // Verify implements the Toolchain interface and verifies whether the
@@ -166,6 +168,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 		return fmt.Errorf("getting npm path: %w", err)
 	}
 
+	cmd := filepath.Join(npmdir, "asc")
 	args := []string{
 		"assembly/index.ts",
 		"--binaryFile",
@@ -177,16 +180,22 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 		args = append(args, "--verbose")
 	}
 
-	cmd := fstexec.Streaming{
-		Command: filepath.Join(npmdir, "asc"),
+	if a.build != "" {
+		segs := strings.Split(a.build, " ")
+		cmd = segs[0]
+		args = segs[1:]
+	}
+
+	s := fstexec.Streaming{
+		Command: cmd,
 		Args:    args,
 		Env:     []string{},
 		Output:  out,
 	}
 	if a.timeout > 0 {
-		cmd.Timeout = time.Duration(a.timeout) * time.Second
+		s.Timeout = time.Duration(a.timeout) * time.Second
 	}
-	if err := cmd.Exec(); err != nil {
+	if err := s.Exec(); err != nil {
 		return err
 	}
 

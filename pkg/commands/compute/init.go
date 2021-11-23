@@ -132,7 +132,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals)
+	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals, mf.Scripts.Build)
 	language, err := selectLanguage(c.from, c.language, languages, mf, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -185,7 +185,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	language, err = initializeLanguage(progress, language, languages, mf.Language, wd, c.dir)
+	language, err = initializeLanguage(progress, language, languages, mf.Language, wd, c.dir, mf.Scripts.Build)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error initializing package: %w", err)
@@ -805,7 +805,7 @@ func updateManifest(
 }
 
 // initializeLanguage for newly cloned package.
-func initializeLanguage(progress text.Progress, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
+func initializeLanguage(progress text.Progress, language *Language, languages []*Language, name, wd, path, build string) (*Language, error) {
 	progress.Step("Initializing package...")
 
 	if wd != path {
@@ -832,7 +832,7 @@ func initializeLanguage(progress text.Progress, language *Language, languages []
 		}
 	}
 
-	if language.Name != "other" {
+	if language.Name != "other" && build == "" {
 		if err := language.Initialize(progress); err != nil {
 			return nil, err
 		}

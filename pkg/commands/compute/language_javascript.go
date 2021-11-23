@@ -16,12 +16,13 @@ import (
 
 // JavaScript implements a Toolchain for the JavaScript language.
 type JavaScript struct {
+	build   string
 	timeout int
 }
 
 // NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int) *JavaScript {
-	return &JavaScript{timeout}
+func NewJavaScript(timeout int, build string) *JavaScript {
+	return &JavaScript{build, timeout}
 }
 
 // Initialize implements the Toolchain interface and initializes a newly cloned
@@ -172,16 +173,25 @@ func (a JavaScript) Verify(out io.Writer) error {
 // Build implements the Toolchain interface and attempts to compile the package
 // JavaScript source to a Wasm binary.
 func (a JavaScript) Build(out io.Writer, verbose bool) error {
-	cmd := fstexec.Streaming{
-		Command: "npm",
-		Args:    []string{"run", "build"},
+	cmd := "npm"
+	args := []string{"run", "build"}
+
+	if a.build != "" {
+		segs := strings.Split(a.build, " ")
+		cmd = segs[0]
+		args = segs[1:]
+	}
+
+	s := fstexec.Streaming{
+		Command: cmd,
+		Args:    args,
 		Env:     []string{},
 		Output:  out,
 	}
 	if a.timeout > 0 {
-		cmd.Timeout = time.Duration(a.timeout) * time.Second
+		s.Timeout = time.Duration(a.timeout) * time.Second
 	}
-	if err := cmd.Exec(); err != nil {
+	if err := s.Exec(); err != nil {
 		return err
 	}
 

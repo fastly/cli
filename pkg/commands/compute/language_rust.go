@@ -81,14 +81,16 @@ func (m *CargoMetadata) Read() error {
 
 // Rust implements a Toolchain for the Rust language.
 type Rust struct {
+	build   string
 	client  api.HTTPClient
 	config  *config.Data
 	timeout int
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config *config.Data, timeout int) *Rust {
+func NewRust(client api.HTTPClient, config *config.Data, timeout int, build string) *Rust {
 	return &Rust{
+		build:   build,
 		client:  client,
 		config:  config,
 		timeout: timeout,
@@ -427,6 +429,7 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	}
 	binName := m.Package.Name
 
+	cmd := "cargo"
 	args := []string{
 		"build",
 		"--bin",
@@ -441,18 +444,24 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 		args = append(args, "--verbose")
 	}
 
+	if r.build != "" {
+		segs := strings.Split(r.build, " ")
+		cmd = segs[0]
+		args = segs[1:]
+	}
+
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
-	cmd := fstexec.Streaming{
-		Command: "cargo",
+	s := fstexec.Streaming{
+		Command: cmd,
 		Args:    args,
 		Env:     os.Environ(),
 		Output:  out,
 	}
 	if r.timeout > 0 {
-		cmd.Timeout = time.Duration(r.timeout) * time.Second
+		s.Timeout = time.Duration(r.timeout) * time.Second
 	}
-	if err := cmd.Exec(); err != nil {
+	if err := s.Exec(); err != nil {
 		return err
 	}
 
