@@ -117,7 +117,7 @@
       "examples": [{
         "cmd": "fastly backend create --name example --address example.com --version active --autoclone",
         "description": "Create a backend with a hostname assigned to the `--address` flag. The `--override-host`, `--ssl-cert-hostname` and `--ssl-sni-hostname` will default to the same hostname assigned to `--address`.",
-        "title": "Create a backend from the currently active service version"
+        "title": "Create a backend on the currently active service version"
       }],
       "apis": ["https://developer.fastly.com/reference/api/services/backend/#create-backend"]
     },
