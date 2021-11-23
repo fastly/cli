@@ -462,9 +462,14 @@ func TestBuildJavaScript(t *testing.T) {
 			{Src: filepath.Join("testdata", "build", "javascript", "webpack.config.js"), Dst: "webpack.config.js"},
 			{Src: filepath.Join("testdata", "build", "javascript", "src", "index.js"), Dst: filepath.Join("src", "index.js")},
 		},
+		Write: []testutil.FileIO{
+			{Src: "#", Dst: "config.toml"},
+		},
 		Exec: []string{"npm", "install"},
 	})
 	defer os.RemoveAll(rootdir)
+
+	configPath := filepath.Join(rootdir, "config.toml")
 
 	// Before running the test, chdir into the build environment.
 	// When we're done, chdir back to our original location.
@@ -523,11 +528,29 @@ func TestBuildJavaScript(t *testing.T) {
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.ConfigFile = config.File{
+				Language: config.Language{
+					JavaScript: config.JavaScript{
+						Toolchain: "foobar", // Expect to be overridden by valid default
+					},
+				},
+			}
+			opts.ConfigPath = configPath
 			err = app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
 				testutil.AssertStringContains(t, stdout.String(), testcase.wantOutputContains)
+			}
+
+			// Validate that the invalid toolchain value "foobar" is overridden by
+			// the default "npm"
+			if testcase.wantError == "" {
+				content, err := os.ReadFile(configPath)
+				if err != nil {
+					t.Fatal(err)
+				}
+				testutil.AssertStringContains(t, string(content), `toolchain = "npm"`)
 			}
 		})
 	}
