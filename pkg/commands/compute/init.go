@@ -43,6 +43,8 @@ type InitCommand struct {
 	tag              string
 }
 
+var Languages = []string{"rust", "assemblyscript", "javascript", "other"}
+
 // NewInitCommand returns a usable command registered under the parent.
 func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *InitCommand {
 	var c InitCommand
@@ -54,7 +56,7 @@ func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *confi
 	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
-	c.CmdClause.Flag("language", "Language of the package").Short('l').StringVar(&c.language)
+	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
 	c.CmdClause.Flag("from", "Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
@@ -76,7 +78,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Output(out, "Press ^C at any time to quit.")
 	text.Break(out)
 
-	cont, err := verifyDirectory(c.skipVerification, out, in)
+	cont, err := verifyDirectory(c.dir, c.skipVerification, out, in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -197,22 +199,25 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // verifyDirectory indicates if the user wants to continue with the execution
 // flow when presented with a prompt that suggests the current directory isn't
 // empty.
-func verifyDirectory(skipVerification bool, out io.Writer, in io.Reader) (bool, error) {
+func verifyDirectory(dir string, skipVerification bool, out io.Writer, in io.Reader) (bool, error) {
 	if skipVerification {
 		return true, nil
 	}
 
-	files, err := os.ReadDir(".")
+	if dir == "" {
+		dir = "."
+	}
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		return false, err
+	}
+
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return false, err
 	}
 
 	if len(files) > 0 {
-		dir, err := os.Getwd()
-		if err != nil {
-			return false, err
-		}
-
 		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
 		cont, err := text.Input(out, label, in)
 		if err != nil {

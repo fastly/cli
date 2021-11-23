@@ -11,6 +11,8 @@ import (
 	"github.com/fastly/go-fastly/v5/fastly"
 )
 
+var Locations = []string{"init", "recv", "hash", "hit", "miss", "pass", "fetch", "error", "deliver", "log", "none"}
+
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
 	var c CreateCommand
@@ -24,7 +26,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
-	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed (e.g. recv, miss, fetch etc)").Required().StringVar(&c.location)
+	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").Required().HintOptions(Locations...).EnumVar(&c.location, Locations...)
 
 	// Optional flags
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
@@ -82,7 +84,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, type: %s, priority: %d)", v.Name, v.ServiceID, v.ServiceVersion, c.dynamic.WasSet, c.location, v.Priority)
+	text.Success(out, "Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, snippet id: %s, type: %s, priority: %d)", v.Name, v.ServiceID, v.ServiceVersion, c.dynamic.WasSet, v.ID, c.location, v.Priority)
 	return nil
 }
 

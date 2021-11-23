@@ -208,15 +208,6 @@ func TestBackendUpdate(t *testing.T) {
 		{
 			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
 			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				GetBackendFn:   getBackendError,
-			},
-			WantError: errTest.Error(),
-		},
-		{
-			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
-			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,

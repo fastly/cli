@@ -36,7 +36,9 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).IntVar(&c.priority.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.CmdClause.Flag("snippet-id", "Alphanumeric string identifying a VCL Snippet").Short('i').StringVar(&c.snippetID)
-	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed (e.g. recv, miss, fetch etc)").Action(c.location.Set).StringVar(&c.location.Value)
+
+	// NOTE: Locations is defined in the same snippet package inside create.go
+	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").HintOptions(Locations...).Action(c.location.Set).EnumVar(&c.location.Value, Locations...)
 
 	return &c
 }
