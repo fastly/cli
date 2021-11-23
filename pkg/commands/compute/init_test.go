@@ -47,6 +47,7 @@ func TestInit(t *testing.T) {
 		args             []string
 		configFile       config.File
 		configIncludes   string
+		env              []string
 		manifest         string
 		manifestIncludes string
 		manifestPath     string
@@ -365,6 +366,23 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
+			name: "validate js toolchain env var override",
+			args: args("compute init --language javascript"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					JavaScript: skJS,
+				},
+			},
+			env:              []string{"FASTLY_TOOLCHAIN_JS=yarn"},
+			stdin:            "Y",
+			configIncludes:   `toolchain = "yarn"`,
+			manifestIncludes: `name = "fastly-temp`,
+			wantOutput: []string{
+				"Initialized package",
+				"SUCCESS: Initialized package",
+			},
+		},
+		{
 			name:             "with pre-compiled Wasm binary",
 			args:             args("compute init --language other"),
 			manifestIncludes: `language = "other"`,
@@ -381,6 +399,14 @@ func TestInit(t *testing.T) {
 			pwd, err := os.Getwd()
 			if err != nil {
 				t.Fatal(err)
+			}
+
+			for _, e := range testcase.env {
+				vs := strings.Split(e, "=")
+				if err := os.Setenv(vs[0], vs[1]); err != nil {
+					t.Fatal(err)
+				}
+				defer os.Unsetenv(vs[0])
 			}
 
 			manifestPath := filepath.Join(testcase.manifestPath, manifest.Filename)
