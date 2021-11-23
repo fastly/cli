@@ -203,7 +203,7 @@
     "publish": {
       "examples": [{
         "cmd": "fastly compute publish --skip-verification --accept-defaults",
-        "description": "The `compute publish` command is a convenience wrapper around the existing build and deploy commands. All flags present on the `compute build` and `compute deploy` commands are available to use here.",
+        "description": "The <kbd>fastly compute publish</kbd> command is a convenience wrapper around the existing build and deploy commands. All flags present on the `compute build` and `compute deploy` commands are available to use here.",
         "title": "Build and deploy a Compute@Edge package to a Fastly service"
       }],
       "apis": [
