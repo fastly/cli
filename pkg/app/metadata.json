@@ -78,7 +78,7 @@
       {
         "cmd": "fastly acl-entry update --acl-id SU1Z0isxPaozGVKXdv0eY --file ./batch.json",
         "description": "Update multiple ACL entries using a [JSON batch file](https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries).",
-        "title": "Update multiple ACL entries from the specified ACL using a local file"
+        "title": "Update multiple ACL entries in the specified ACL using a local file"
       },
       {
         "cmd": "fastly acl-entry update --acl-id SU1Z0isxPaozGVKXdv0eY --file \"$(< batch.json)\"",
