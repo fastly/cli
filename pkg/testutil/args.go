@@ -55,7 +55,7 @@ func Args(args string) []string {
 // commonly changed for testing purposes will need to be provided.
 func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 	return app.RunOpts{
-		ConfigPath: config.FilePath,
+		ConfigPath: "/dev/null",
 		Args:       args,
 		APIClient:  mock.APIClient(mock.API{}),
 		Env:        config.Environment{},

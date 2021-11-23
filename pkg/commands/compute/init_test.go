@@ -340,6 +340,7 @@ func TestInit(t *testing.T) {
 					JavaScript: skJS,
 				},
 			},
+			stdin:            "Y",
 			configIncludes:   `toolchain = "npm"`,
 			manifestIncludes: `name = "fastly-temp`,
 			wantOutput: []string{
@@ -355,6 +356,7 @@ func TestInit(t *testing.T) {
 					JavaScript: skJS,
 				},
 			},
+			stdin:            "Y",
 			configIncludes:   `toolchain = "yarn"`,
 			manifestIncludes: `name = "fastly-temp`,
 			wantOutput: []string{
@@ -383,14 +385,29 @@ func TestInit(t *testing.T) {
 
 			manifestPath := filepath.Join(testcase.manifestPath, manifest.Filename)
 
+			// Create a config.toml file if we expect the testcase to require one.
+			// The reason we don't just create it for every test is that it would
+			// require each test case to specify the same "Y" value for the stdin,
+			// which will be prompted because the current test environment directory
+			// is no longer empty (typically the config file doesn't exist in the
+			// same directory as the project files but it does for the purposes of
+			// the test suite).
+			configData := ""
+			if testcase.configIncludes != "" {
+				configData = "#" // Forces file to be created by .Write() below.
+			}
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Write: []testutil.FileIO{
 					{Src: testcase.manifest, Dst: manifestPath},
+					{Src: configData, Dst: "config.toml"},
 				},
 			})
 			defer os.RemoveAll(rootdir)
+
+			configPath := filepath.Join(rootdir, "config.toml")
 
 			// Before running the test, chdir into the init environment.
 			// When we're done, chdir back to our original location.
@@ -403,6 +420,7 @@ func TestInit(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.ConfigFile = testcase.configFile
+			opts.ConfigPath = configPath
 
 			// we need to define stdin as the init process prompts the user multiple
 			// times, but we don't need to provide any values as all our prompts will
@@ -435,7 +453,7 @@ func TestInit(t *testing.T) {
 				testutil.AssertStringContains(t, string(content), testcase.manifestIncludes)
 			}
 			if testcase.configIncludes != "" {
-				content, err := os.ReadFile(config.FilePath)
+				content, err := os.ReadFile(configPath)
 				if err != nil {
 					t.Fatal(err)
 				}
