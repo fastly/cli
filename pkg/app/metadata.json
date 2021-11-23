@@ -909,7 +909,7 @@
         "examples": [{
           "cmd": "fastly vcl snippet create --name example --content ./example.vcl --type recv --version latest",
           "description": "The `--type` flag additionally supports tab completion hints for valid location values.",
-          "title": "Create a snippet using a local file for the highest numbered existing service version"
+          "title": "Create a snippet on the highest numbered existing service version, using a local file"
         },
         {
           "cmd": "fastly vcl snippet create --name example --content \"$(< example.vcl)\" --type recv --version latest",
