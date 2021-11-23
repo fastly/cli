@@ -73,7 +73,7 @@
     "update": {
       "examples": [{
         "cmd": "fastly acl-entry update --acl-id SU1Z0isxPaozGVKXdv0eY --id x9KzsrACXZv8tPwlEDsKb6 --negated",
-        "title": "Update an ACL entry from the specified ACL"
+        "title": "Update an ACL entry in the specified ACL"
       },
       {
         "cmd": "fastly acl-entry update --acl-id SU1Z0isxPaozGVKXdv0eY --file ./batch.json",
