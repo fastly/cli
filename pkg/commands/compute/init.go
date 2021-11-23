@@ -429,11 +429,11 @@ func configureJsToolchain(
 	acceptDefaults bool,
 	in io.Reader, out io.Writer,
 ) string {
-
 	toolchain, source := f.JsToolchain()
 
 	if toolchainFlag != "" {
 		toolchain = toolchainFlag
+		source = config.SourceFlag
 	}
 
 	defaultMessage := fmt.Sprintf("Toolchain option unrecognised. Defaulting to %s", config.ToolchainJsDefault)

@@ -44,17 +44,18 @@ func TestInit(t *testing.T) {
 	}
 
 	for _, testcase := range []struct {
-		name             string
 		args             []string
 		configFile       config.File
+		configIncludes   string
 		manifest         string
-		wantFiles        []string
-		unwantedFiles    []string
-		wantError        string
-		wantOutput       []string
 		manifestIncludes string
 		manifestPath     string
+		name             string
 		stdin            string
+		unwantedFiles    []string
+		wantError        string
+		wantFiles        []string
+		wantOutput       []string
 	}{
 		{
 			name:      "broken endpoint",
@@ -312,6 +313,10 @@ func TestInit(t *testing.T) {
 				},
 			},
 			manifestIncludes: `name = "fastly-temp`,
+			wantOutput: []string{
+				"Initialized package",
+				"SUCCESS: Initialized package",
+			},
 		},
 		{
 			name: "with JavaScript language",
@@ -322,6 +327,40 @@ func TestInit(t *testing.T) {
 				},
 			},
 			manifestIncludes: `name = "fastly-temp`,
+			wantOutput: []string{
+				"Initialized package",
+				"SUCCESS: Initialized package",
+			},
+		},
+		{
+			name: "validate js toolchain default",
+			args: args("compute init --language javascript"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					JavaScript: skJS,
+				},
+			},
+			configIncludes:   `toolchain = "npm"`,
+			manifestIncludes: `name = "fastly-temp`,
+			wantOutput: []string{
+				"Initialized package",
+				"SUCCESS: Initialized package",
+			},
+		},
+		{
+			name: "validate js toolchain flag override",
+			args: args("compute init --language javascript --toolchain-js yarn"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					JavaScript: skJS,
+				},
+			},
+			configIncludes:   `toolchain = "yarn"`,
+			manifestIncludes: `name = "fastly-temp`,
+			wantOutput: []string{
+				"Initialized package",
+				"SUCCESS: Initialized package",
+			},
 		},
 		{
 			name:             "with pre-compiled Wasm binary",
@@ -394,6 +433,13 @@ func TestInit(t *testing.T) {
 					t.Fatal(err)
 				}
 				testutil.AssertStringContains(t, string(content), testcase.manifestIncludes)
+			}
+			if testcase.configIncludes != "" {
+				content, err := os.ReadFile(config.FilePath)
+				if err != nil {
+					t.Fatal(err)
+				}
+				testutil.AssertStringContains(t, string(content), testcase.configIncludes)
 			}
 		})
 	}

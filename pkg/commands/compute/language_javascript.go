@@ -172,7 +172,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 		case "npm":
 			remediation = fmt.Sprintf("npm install --save-dev %s", j.packageDependency)
 		case "yarn":
-			remediation = fmt.Sprintf("yarn install --save-dev %s", j.packageDependency)
+			remediation = fmt.Sprintf("yarn add --dev %s", j.packageDependency)
 		}
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`%s` not found in package.json", j.packageDependency),
@@ -187,7 +187,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 		case "npm":
 			remediation = "npm install --global npm@latest"
 		case "yarn":
-			remediation = "yarn install --global yarn@latest"
+			remediation = "yarn global add yarn@latest"
 		}
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("could not determine %s bin path", j.toolchain),
@@ -205,7 +205,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 		case "npm":
 			remediation = fmt.Sprintf("npm install --save-dev %s", j.packageDependency)
 		case "yarn":
-			remediation = fmt.Sprintf("yarn install --save-dev %s", j.packageDependency)
+			remediation = fmt.Sprintf("yarn add --dev %s", j.packageDependency)
 		}
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("`%s` binary not found in %s", j.packageExecutable, p),
