@@ -16,13 +16,19 @@ import (
 
 // JavaScript implements a Toolchain for the JavaScript language.
 type JavaScript struct {
+	Shell
+
 	build   string
 	timeout int
 }
 
 // NewJavaScript constructs a new JavaScript.
 func NewJavaScript(timeout int, build string) *JavaScript {
-	return &JavaScript{build, timeout}
+	return &JavaScript{
+		Shell:   Shell{},
+		build:   build,
+		timeout: timeout,
+	}
 }
 
 // Initialize implements the Toolchain interface and initializes a newly cloned
@@ -177,9 +183,7 @@ func (a JavaScript) Build(out io.Writer, verbose bool) error {
 	args := []string{"run", "build"}
 
 	if a.build != "" {
-		segs := strings.Split(a.build, " ")
-		cmd = segs[0]
-		args = segs[1:]
+		cmd, args = a.Shell.Build(a.build)
 	}
 
 	s := fstexec.Streaming{

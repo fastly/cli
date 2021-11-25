@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/fastly/cli/pkg/errors"
@@ -17,13 +16,19 @@ import (
 
 // AssemblyScript implements a Toolchain for the AssemblyScript language.
 type AssemblyScript struct {
+	Shell
+
 	build   string
 	timeout int
 }
 
 // NewAssemblyScript constructs a new AssemblyScript.
 func NewAssemblyScript(timeout int, build string) *AssemblyScript {
-	return &AssemblyScript{build, timeout}
+	return &AssemblyScript{
+		Shell:   Shell{},
+		build:   build,
+		timeout: timeout,
+	}
 }
 
 // Verify implements the Toolchain interface and verifies whether the
@@ -181,9 +186,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	if a.build != "" {
-		segs := strings.Split(a.build, " ")
-		cmd = segs[0]
-		args = segs[1:]
+		cmd, args = a.Shell.Build(a.build)
 	}
 
 	s := fstexec.Streaming{

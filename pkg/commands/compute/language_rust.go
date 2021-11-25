@@ -81,6 +81,8 @@ func (m *CargoMetadata) Read() error {
 
 // Rust implements a Toolchain for the Rust language.
 type Rust struct {
+	Shell
+
 	build   string
 	client  api.HTTPClient
 	config  *config.Data
@@ -90,6 +92,7 @@ type Rust struct {
 // NewRust constructs a new Rust.
 func NewRust(client api.HTTPClient, config *config.Data, timeout int, build string) *Rust {
 	return &Rust{
+		Shell:   Shell{},
 		build:   build,
 		client:  client,
 		config:  config,
@@ -445,9 +448,7 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	}
 
 	if r.build != "" {
-		segs := strings.Split(r.build, " ")
-		cmd = segs[0]
-		args = segs[1:]
+		cmd, args = r.Shell.Build(r.build)
 	}
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release

@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -90,4 +91,17 @@ func NewLanguage(options *LanguageOptions) *Language {
 		options.IncludeFiles,
 		options.Toolchain,
 	}
+}
+
+type Shell struct{}
+
+func (s Shell) Build(command string) (cmd string, args []string) {
+	cmd = "sh"
+	args = []string{"-c"}
+	if runtime.GOOS == "windows" {
+		cmd = "cmd.exe"
+		args = []string{"/C"}
+	}
+	args = append(args, command)
+	return
 }
