@@ -1,5 +1,14 @@
 # Changelog
 
+## [v1.2.0](https://github.com/fastly/cli/releases/tag/v1.2.0) (2021-11-25)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.1.1...v1.2.0)
+
+**Enhancements:**
+
+* Implement `SEE ALSO` section in help output [#472](https://github.com/fastly/cli/pull/472)
+* Add command 'API' metadata [#473](https://github.com/fastly/cli/pull/473)
+
 ## [v1.1.1](https://github.com/fastly/cli/releases/tag/v1.1.1) (2021-11-11)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.1.0...v1.1.1)
