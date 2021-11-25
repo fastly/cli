@@ -253,7 +253,7 @@ func TestBuildRust(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
-			wantOutputContains: "Built rust package test",
+			wantOutputContains: "Built package 'test'",
 		},
 		{
 			name: "Rust success",
@@ -291,7 +291,7 @@ func TestBuildRust(t *testing.T) {
 			client: versionClient{
 				fastlyVersions: []string{"0.6.0"},
 			},
-			wantOutputContains: "Built rust package test",
+			wantOutputContains: "Built package 'test'",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -395,7 +395,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			language = "assemblyscript"`,
-			wantOutputContains: "Built assemblyscript package test",
+			wantOutputContains: "Built package 'test'",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -511,7 +511,7 @@ func TestBuildJavaScript(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			language = "javascript"`,
-			wantOutputContains: "Built javascript package test",
+			wantOutputContains: "Built package 'test'",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {

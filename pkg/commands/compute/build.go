@@ -211,7 +211,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Done()
 
-	text.Success(out, "Built %s package %s (%s)", lang, name, dest)
+	text.Success(out, "Built package '%s' (%s)", name, dest)
 	return nil
 }
 
