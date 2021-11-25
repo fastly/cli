@@ -119,27 +119,27 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "assemblyscript",
 			SourceDirectory: "assembly",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(c.Timeout),
+			Toolchain:       NewAssemblyScript(c.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewJavaScript(c.Timeout),
+			Toolchain:       NewJavaScript(c.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client, c.Globals, c.Timeout),
+			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Timeout, c.Manifest.File.Scripts.Build),
 		})
 	default:
 		return fmt.Errorf("unsupported language %s", lang)
 	}
 
-	if !c.SkipVerification {
+	if c.Manifest.File.Scripts.Build == "" && !c.SkipVerification {
 		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", lang))
 
 		err = language.Verify(progress)
@@ -149,6 +149,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			})
 			return err
 		}
+	}
+
+	if c.Manifest.File.Scripts.Build != "" {
+		lang = "custom"
 	}
 
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", lang))
@@ -207,7 +211,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Done()
 
-	text.Success(out, "Built %s package %s (%s)", lang, name, dest)
+	text.Success(out, "Built package '%s' (%s)", name, dest)
 	return nil
 }
 

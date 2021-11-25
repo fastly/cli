@@ -17,7 +17,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
@@ -63,17 +63,19 @@ type CargoMetadata struct {
 }
 
 // Read the contents of the Cargo.lock file from filename.
-func (m *CargoMetadata) Read() error {
+func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 	cmd := exec.Command("cargo", "metadata", "--quiet", "--format-version", "1")
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
 		if len(stdoutStderr) > 0 {
-			return fmt.Errorf("%s", strings.TrimSpace(string(stdoutStderr)))
+			err = fmt.Errorf("%s", strings.TrimSpace(string(stdoutStderr)))
 		}
+		errlog.Add(err)
 		return err
 	}
 	r := bytes.NewReader(stdoutStderr)
 	if err := json.NewDecoder(r).Decode(&m); err != nil {
+		errlog.Add(err)
 		return err
 	}
 	return nil
@@ -81,16 +83,23 @@ func (m *CargoMetadata) Read() error {
 
 // Rust implements a Toolchain for the Rust language.
 type Rust struct {
+	Shell
+
+	build   string
 	client  api.HTTPClient
-	config  *config.Data
+	config  config.Rust
+	errlog  fsterr.LogInterface
 	timeout int
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config *config.Data, timeout int) *Rust {
+func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, build string) *Rust {
 	return &Rust{
+		Shell:   Shell{},
+		build:   build,
 		client:  client,
 		config:  config,
+		errlog:  errlog,
 		timeout: timeout,
 	}
 }
@@ -118,50 +127,50 @@ func (r Rust) IncludeFiles() []string { return []string{"Cargo.toml"} }
 func (r *Rust) Verify(out io.Writer) (err error) {
 	fmt.Fprintf(out, "Checking if `rustc` is installed...\n")
 
-	err = validateCompilerExists()
+	err = validateCompilerExists(r.errlog)
 	if err != nil {
 		return err
 	}
 
 	fmt.Fprintf(out, "Checking the `rustc` version...\n")
 
-	err = validateCompilerVersion(r.config.File.Language.Rust.ToolchainConstraint)
+	err = validateCompilerVersion(r.config.ToolchainConstraint, r.errlog)
 	if err != nil {
 		return err
 	}
 
 	fmt.Fprintf(out, "Checking the `wasm32-wasi` target is installed...\n")
 
-	err = validateWasmTarget(r.config.File.Language.Rust.WasmWasiTarget)
+	err = validateWasmTarget(r.config.WasmWasiTarget, r.errlog)
 	if err != nil {
 		return err
 	}
 
 	fmt.Fprintf(out, "Checking if `cargo` is installed...\n")
 
-	err = validateCargoExists()
+	err = validateCargoExists(r.errlog)
 	if err != nil {
 		return err
 	}
 
 	// Validate the fastly and fastly-sys crates...
 
-	latestFastlyCrate, err := GetLatestCrateVersion(r.client, "fastly")
+	latestFastlyCrate, err := GetLatestCrateVersion(r.client, "fastly", r.errlog)
 	if err != nil {
 		return fmt.Errorf("error fetching latest `fastly` crate version: %w", err)
 	}
 
 	var metadata CargoMetadata
-	if err := metadata.Read(); err != nil {
+	if err := metadata.Read(r.errlog); err != nil {
 		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
 
-	err = validateFastlySysCrate(metadata, r.config.File.Language.Rust.FastlySysConstraint, latestFastlyCrate.String())
+	err = validateFastlySysCrate(metadata, r.config.FastlySysConstraint, latestFastlyCrate.String(), r.errlog)
 	if err != nil {
 		return err
 	}
 
-	err = validateFastlyCrate(metadata, latestFastlyCrate, out)
+	err = validateFastlyCrate(metadata, latestFastlyCrate, out, r.errlog)
 	if err != nil {
 		return err
 	}
@@ -170,10 +179,11 @@ func (r *Rust) Verify(out io.Writer) (err error) {
 }
 
 // validateCompilerExists checks if `rustc` is installed.
-func validateCompilerExists() error {
+func validateCompilerExists(errlog fsterr.LogInterface) error {
 	_, err := exec.LookPath("rustc")
 	if err != nil {
-		return errors.RemediationError{
+		errlog.Add(err)
+		return fsterr.RemediationError{
 			Inner:       err,
 			Remediation: "Ensure the `rustc` compiler is installed:\n\n\thttps://www.rust-lang.org/tools/install",
 		}
@@ -182,38 +192,43 @@ func validateCompilerExists() error {
 }
 
 // validateCompilerVersion checks the `rustc` version meets our constraint.
-func validateCompilerVersion(constraint string) error {
-	version, err := rustcVersion()
+func validateCompilerVersion(constraint string, errlog fsterr.LogInterface) error {
+	version, err := rustcVersion(errlog)
 	if err != nil {
 		return err
 	}
 
 	rustcVersion, err := semver.NewVersion(version)
 	if err != nil {
+		errlog.Add(err)
 		return fmt.Errorf("error parsing `%s` output %q into a semver: %w", "rustc --version", version, err)
 	}
 
 	rustcConstraint, err := semver.NewConstraint(constraint)
 	if err != nil {
+		errlog.Add(err)
 		return fmt.Errorf("error parsing rustup constraint: %w", err)
 	}
 
 	if !rustcConstraint.Check(rustcVersion) {
-		return errors.RemediationError{
+		err := fsterr.RemediationError{
 			Inner:       fmt.Errorf("rustc constraint '%s' not met: %s", constraint, version),
 			Remediation: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`).",
 		}
+		errlog.Add(err)
+		return err
 	}
 
 	return nil
 }
 
 // rustcVersion returns the active rustc compiler version.
-func rustcVersion() (string, error) {
+func rustcVersion(errlog fsterr.LogInterface) (string, error) {
 	cmd := []string{"rustc", "--version"}
 	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
+		errlog.Add(err)
 		return "", fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
 	}
 
@@ -228,7 +243,9 @@ func rustcVersion() (string, error) {
 	}
 	err = scanner.Err()
 	if line == "" || err != nil {
-		return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
+		err = fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
+		errlog.Add(err)
+		return "", err
 	}
 	line = strings.TrimSpace(line)
 
@@ -237,15 +254,19 @@ func rustcVersion() (string, error) {
 	// rustc 1.56.0-nightly (2d2bc94c8 2021-08-15)
 	parts := strings.Split(line, " ")
 	if len(parts) < 2 {
-		return "", fmt.Errorf("error reading `%s` output", strings.Join(cmd, " "))
+		err := fmt.Errorf("error reading `%s` output", strings.Join(cmd, " "))
+		errlog.Add(err)
+		return "", err
 	}
 
 	version := strings.Split(parts[1], "-")
 	if len(version) > 1 {
-		return "", errors.RemediationError{
+		err := fsterr.RemediationError{
 			Inner:       fmt.Errorf("non-stable releases are not supported: %s", parts[1]),
 			Remediation: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`). Alternatively utilise the CLI's `--force` flag.",
 		}
+		errlog.Add(err)
+		return "", err
 	}
 
 	return version[0], nil
@@ -256,13 +277,14 @@ func rustcVersion() (string, error) {
 // If the user has `rustup` installed then we use it to identify if the target
 // is installed, otherwise we fallback to a low-level check of the target
 // directory using `rustc --print sysroot`.
-func validateWasmTarget(target string) error {
+func validateWasmTarget(target string, errlog fsterr.LogInterface) error {
 	_, err := exec.LookPath("rustup")
 	if err != nil {
-		return rustcSysroot(target)
+		errlog.Add(err)
+		return rustcSysroot(target, errlog)
 	}
 
-	toolchain, err := rustupToolchain()
+	toolchain, err := rustupToolchain(errlog)
 	if err != nil {
 		return err
 	}
@@ -271,6 +293,7 @@ func validateWasmTarget(target string) error {
 	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
+		errlog.Add(err)
 		return fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
 	}
 
@@ -285,27 +308,31 @@ func validateWasmTarget(target string) error {
 	}
 
 	if !found {
-		return errors.RemediationError{
+		err := fsterr.RemediationError{
 			Inner:       fmt.Errorf("rust target %s not found", target),
 			Remediation: fmt.Sprintf("Run the following command:\n\n\t$ %s\n", text.Bold(fmt.Sprintf("rustup target add %s --toolchain %s", target, toolchain))),
 		}
+		errlog.Add(err)
+		return err
 	}
 
 	return nil
 }
 
 // rustupToolchain returns the active rustup toolchain.
-func rustupToolchain() (string, error) {
+func rustupToolchain(errlog fsterr.LogInterface) (string, error) {
 	cmd := []string{"rustup", "show", "active-toolchain"}
 	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
+		errlog.Add(err)
 		return "", fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
 	}
 
 	reader := bufio.NewReader(bytes.NewReader(stdoutStderr))
 	line, err := reader.ReadString('\n')
 	if err != nil {
+		errlog.Add(err)
 		return "", fmt.Errorf("error reading `%s` output: %w", strings.Join(cmd, " "), err)
 	}
 
@@ -314,7 +341,9 @@ func rustupToolchain() (string, error) {
 	// 1.54.0-x86_64-apple-darwin (directory override for '/Users/integralist/Code/fastly/cli')
 	parts := strings.Split(line, "-")
 	if len(parts) < 2 {
-		return "", fmt.Errorf("error reading `%s` output", strings.Join(cmd, " "))
+		err := fmt.Errorf("error reading `%s` output", strings.Join(cmd, " "))
+		errlog.Add(err)
+		return "", err
 	}
 
 	return parts[0], nil
@@ -324,18 +353,20 @@ func rustupToolchain() (string, error) {
 // low-level rustc compiler `--print sysroot` flag.
 //
 // This is called only when the user doesn't have `rustup` installed.
-func rustcSysroot(target string) error {
+func rustcSysroot(target string, errlog fsterr.LogInterface) error {
 	cmd := []string{"rustc", "--print", "sysroot"}
 	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
+		errlog.Add(err)
 		return fmt.Errorf("error executing `%s`: %w", strings.Join(cmd, " "), err)
 	}
 
 	sysroot := strings.TrimSpace(string(stdoutStderr))
 	path := filepath.Join(sysroot, "lib", "rustlib", "wasm32-wasi")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return errors.RemediationError{
+		errlog.Add(err)
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("the Rust target directory `%s` doesn't exist", path),
 			Remediation: fmt.Sprintf("Ensure the following target is installed:\n\n\t%s", target),
 		}
@@ -345,10 +376,11 @@ func rustcSysroot(target string) error {
 }
 
 // validateCargoExists checks `cargo` is installed.
-func validateCargoExists() error {
+func validateCargoExists(errlog fsterr.LogInterface) error {
 	_, err := exec.LookPath("cargo")
 	if err != nil {
-		return errors.RemediationError{
+		errlog.Add(err)
+		return fsterr.RemediationError{
 			Inner:       err,
 			Remediation: "Ensure the `cargo` package manager is installed:\n\n\thttps://doc.rust-lang.org/cargo/getting-started/installation.html",
 		}
@@ -362,19 +394,23 @@ func validateCargoExists() error {
 // have to think about and so we don't indicate to the user that we're
 // validating the fastly-sys crate specifically (i.e. we make the messaging
 // generic towards the fastly crate).
-func validateFastlySysCrate(metadata CargoMetadata, constraint string, latestFastlyCrateVersion string) error {
+func validateFastlySysCrate(metadata CargoMetadata, constraint string, latestFastlyCrateVersion string, errlog fsterr.LogInterface) error {
 	fastlySysConstraint, err := semver.NewConstraint(constraint)
 	if err != nil {
+		errlog.Add(err)
 		return fmt.Errorf("error parsing crate constraint: %w", err)
 	}
 
 	fastlySysVersion, err := GetCrateVersionFromMetadata(metadata, "fastly-sys")
 	if err != nil {
+		errlog.Add(err)
 		return newCargoUpdateRemediationErr(err, latestFastlyCrateVersion)
 	}
 
 	if ok := fastlySysConstraint.Check(fastlySysVersion); !ok {
-		return newCargoUpdateRemediationErr(fmt.Errorf("fastly crate not up-to-date"), latestFastlyCrateVersion)
+		err := fmt.Errorf("fastly crate not up-to-date")
+		errlog.Add(err)
+		return newCargoUpdateRemediationErr(err, latestFastlyCrateVersion)
 	}
 
 	return nil
@@ -384,9 +420,10 @@ func validateFastlySysCrate(metadata CargoMetadata, constraint string, latestFas
 //
 // The folllowing logic is an optional upgrade suggestion and so we don't
 // display any up front message to say we're checking the fastly crate.
-func validateFastlyCrate(metadata CargoMetadata, v *semver.Version, out io.Writer) error {
+func validateFastlyCrate(metadata CargoMetadata, v *semver.Version, out io.Writer, errlog fsterr.LogInterface) error {
 	fastlyVersion, err := GetCrateVersionFromMetadata(metadata, "fastly")
 	if err != nil {
+		errlog.Add(err)
 		return newCargoUpdateRemediationErr(err, v.String())
 	}
 
@@ -423,17 +460,19 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
 	if err := m.Read("Cargo.toml"); err != nil {
+		r.errlog.Add(err)
 		return fmt.Errorf("error reading Cargo.toml manifest: %w", err)
 	}
 	binName := m.Package.Name
 
+	cmd := "cargo"
 	args := []string{
 		"build",
 		"--bin",
 		binName,
 		"--release",
 		"--target",
-		r.config.File.Language.Rust.WasmWasiTarget,
+		r.config.WasmWasiTarget,
 		"--color",
 		"always",
 	}
@@ -441,41 +480,50 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 		args = append(args, "--verbose")
 	}
 
+	if r.build != "" {
+		cmd, args = r.Shell.Build(r.build)
+	}
+
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
-	cmd := fstexec.Streaming{
-		Command: "cargo",
+	s := fstexec.Streaming{
+		Command: cmd,
 		Args:    args,
 		Env:     os.Environ(),
 		Output:  out,
 	}
 	if r.timeout > 0 {
-		cmd.Timeout = time.Duration(r.timeout) * time.Second
+		s.Timeout = time.Duration(r.timeout) * time.Second
 	}
-	if err := cmd.Exec(); err != nil {
+	if err := s.Exec(); err != nil {
+		r.errlog.Add(err)
 		return err
 	}
 
 	// Get working directory.
 	dir, err := os.Getwd()
 	if err != nil {
+		r.errlog.Add(err)
 		return fmt.Errorf("getting current working directory: %w", err)
 	}
 	var metadata CargoMetadata
-	if err := metadata.Read(); err != nil {
+	if err := metadata.Read(r.errlog); err != nil {
+		r.errlog.Add(err)
 		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
-	src := filepath.Join(metadata.TargetDirectory, r.config.File.Language.Rust.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", binName))
+	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", binName))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 
 	// Check if bin directory exists and create if not.
 	binDir := filepath.Join(dir, "bin")
 	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
+		r.errlog.Add(err)
 		return fmt.Errorf("creating bin directory: %w", err)
 	}
 
 	err = filesystem.CopyFile(src, dst)
 	if err != nil {
+		r.errlog.Add(err)
 		return fmt.Errorf("copying wasm binary: %w", err)
 	}
 
@@ -494,32 +542,37 @@ type CargoCrateVersions struct {
 
 // GetLatestCrateVersion fetches all versions of a given Rust crate from the
 // crates.io HTTP API and returns the latest valid semver version.
-func GetLatestCrateVersion(client api.HTTPClient, name string) (*semver.Version, error) {
+func GetLatestCrateVersion(client api.HTTPClient, name string, errlog fsterr.LogInterface) (*semver.Version, error) {
 	url := fmt.Sprintf("https://crates.io/api/v1/crates/%s/versions", name)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		errlog.Add(err)
 		return nil, err
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
+		errlog.Add(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		errlog.Add(err)
 		return nil, fmt.Errorf("error fetching latest crate version: %s", resp.Status)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		errlog.Add(err)
 		return nil, err
 	}
 
 	crate := CargoCrateVersions{}
 	err = json.Unmarshal(body, &crate)
 	if err != nil {
+		errlog.Add(err)
 		return nil, err
 	}
 
@@ -576,8 +629,8 @@ func GetCrateVersionFromMetadata(metadata CargoMetadata, crate string) (*semver.
 // newCargoUpdateRemediationErr constructs a new RemediationError which wraps a
 // cargo error and suggests to update the fastly crate to a specified version as
 // its remediation message.
-func newCargoUpdateRemediationErr(err error, version string) errors.RemediationError {
-	return errors.RemediationError{
+func newCargoUpdateRemediationErr(err error, version string) fsterr.RemediationError {
+	return fsterr.RemediationError{
 		Inner: err,
 		Remediation: fmt.Sprintf(
 			"To fix this error, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
