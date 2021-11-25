@@ -93,8 +93,18 @@ func NewLanguage(options *LanguageOptions) *Language {
 	}
 }
 
+// Shell represents a subprocess shell used by `compute` environment where
+// `[scripts.build]` has been defined within fastly.toml manifest.
 type Shell struct{}
 
+// Build expects a command that can be prefixed with an appropriate subprocess
+// shell.
+//
+// Example:
+// build = "yarn install && yarn build"
+//
+// Should be converted into a command such as (on unix):
+// sh -c "yarn install && yarn build"
 func (s Shell) Build(command string) (cmd string, args []string) {
 	cmd = "sh"
 	args = []string{"-c"}

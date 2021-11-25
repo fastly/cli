@@ -31,6 +31,13 @@ type LogInterface interface {
 	Persist(logPath string, args []string) error
 }
 
+// MockLog is a no-op Log type.
+type MockLog struct{}
+
+func (ml MockLog) Add(err error)                                        {}
+func (ml MockLog) AddWithContext(err error, ctx map[string]interface{}) {}
+func (ml MockLog) Persist(logPath string, args []string) error          { return nil }
+
 // Log is the primary interface for consumers.
 var Log = new(LogEntries)
 

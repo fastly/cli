@@ -16,6 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute/manifest"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/kingpin"
 	"github.com/mholt/archiver/v3"
@@ -393,7 +394,8 @@ func TestGetLatestCrateVersion(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			v, err := compute.GetLatestCrateVersion(testcase.inputClient, "fastly")
+			errlog := fsterr.MockLog{}
+			v, err := compute.GetLatestCrateVersion(testcase.inputClient, "fastly", errlog)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			if err == nil && !v.Equal(testcase.wantVersion) {
 				t.Errorf("wanted version %s, got %s", testcase.wantVersion, v)
