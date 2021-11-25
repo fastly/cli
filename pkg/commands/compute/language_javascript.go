@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/text"
@@ -19,14 +19,16 @@ type JavaScript struct {
 	Shell
 
 	build   string
+	errlog  fsterr.LogInterface
 	timeout int
 }
 
 // NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int, build string) *JavaScript {
+func NewJavaScript(timeout int, build string, errlog fsterr.LogInterface) *JavaScript {
 	return &JavaScript{
 		Shell:   Shell{},
 		build:   build,
+		errlog:  errlog,
 		timeout: timeout,
 	}
 }
@@ -43,7 +45,7 @@ func (a JavaScript) Initialize(out io.Writer) error {
 
 	p, err := exec.LookPath("npm")
 	if err != nil {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("`npm` not found in $PATH"),
 			Remediation: fmt.Sprintf("To fix this error, install Node.js and npm by visiting:\n\n\t$ %s", text.Bold("https://nodejs.org/")),
 		}
@@ -55,19 +57,19 @@ func (a JavaScript) Initialize(out io.Writer) error {
 	//
 	// A valid npm package manifest file is needed for the install command to
 	// work. Therefore, we first assert whether one exists in the current $PWD.
-	fpath, err := filepath.Abs("package.json")
+	pkg, err := filepath.Abs("package.json")
 	if err != nil {
 		return fmt.Errorf("getting package.json path: %w", err)
 	}
 
-	if !filesystem.FileExists(fpath) {
-		return errors.RemediationError{
+	if !filesystem.FileExists(pkg) {
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("package.json not found"),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm init")),
 		}
 	}
 
-	fmt.Fprintf(out, "Found package.json at %s\n", fpath)
+	fmt.Fprintf(out, "Found package.json at %s\n", pkg)
 	fmt.Fprintf(out, "Installing package dependencies...\n")
 
 	cmd := fstexec.Streaming{
@@ -93,7 +95,7 @@ func (a JavaScript) Verify(out io.Writer) error {
 
 	p, err := exec.LookPath("npm")
 	if err != nil {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("`npm` not found in $PATH"),
 			Remediation: fmt.Sprintf("To fix this error, install Node.js and npm by visiting:\n\n\t$ %s", text.Bold("https://nodejs.org/")),
 		}
@@ -106,19 +108,19 @@ func (a JavaScript) Verify(out io.Writer) error {
 	// A valid npm package is needed for compilation and to assert whether the
 	// required dependencies are installed locally. Therefore, we first assert
 	// whether one exists in the current $PWD.
-	fpath, err := filepath.Abs("package.json")
+	pkg, err := filepath.Abs("package.json")
 	if err != nil {
 		return fmt.Errorf("getting package.json path: %w", err)
 	}
 
-	if !filesystem.FileExists(fpath) {
-		return errors.RemediationError{
+	if !filesystem.FileExists(pkg) {
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("package.json not found"),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm init")),
 		}
 	}
 
-	fmt.Fprintf(out, "Found package.json at %s\n", fpath)
+	fmt.Fprintf(out, "Found package.json at %s\n", pkg)
 
 	// 3) Check if `js-compute-runtime` is installed.
 	//
@@ -127,7 +129,7 @@ func (a JavaScript) Verify(out io.Writer) error {
 	// js-compute-runtime binary exists in the npm bin directory.
 	fmt.Fprintf(out, "Checking if @fastly/js-compute is installed...\n")
 	if !checkPackageDependencyExists("@fastly/js-compute") {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("`@fastly/js-compute` not found in package.json"),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev @fastly/js-compute")),
 		}
@@ -135,7 +137,7 @@ func (a JavaScript) Verify(out io.Writer) error {
 
 	p, err = getNpmBinPath()
 	if err != nil {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("could not determine npm bin path"),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --global npm@latest")),
 		}
@@ -146,7 +148,7 @@ func (a JavaScript) Verify(out io.Writer) error {
 		return fmt.Errorf("getting js-compute-runtime path: %w", err)
 	}
 	if !filesystem.FileExists(path) {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("`js-compute-runtime` binary not found in %s", p),
 			Remediation: fmt.Sprintf("To fix this error, run the following command:\n\n\t$ %s", text.Bold("npm install --save-dev @fastly/js-compute")),
 		}
@@ -160,14 +162,14 @@ func (a JavaScript) Verify(out io.Writer) error {
 	cmd := exec.Command("npm", "run")
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("%s: %w", pkgErr, err),
 			Remediation: remediation,
 		}
 	}
 
 	if !strings.Contains(string(stdoutStderr), "  build\n") {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf(pkgErr),
 			Remediation: remediation,
 		}

@@ -21,19 +21,19 @@ func NewLanguages(kits config.StarterKitLanguages, c api.HTTPClient, d *config.D
 			Name:        "rust",
 			DisplayName: "Rust",
 			StarterKits: kits.Rust,
-			Toolchain:   NewRust(c, d, 0, customBuild),
+			Toolchain:   NewRust(c, d.File.Language.Rust, d.ErrLog, 0, customBuild),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
 			DisplayName: "AssemblyScript (beta)",
 			StarterKits: kits.AssemblyScript,
-			Toolchain:   NewAssemblyScript(0, customBuild),
+			Toolchain:   NewAssemblyScript(0, customBuild, d.ErrLog),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "javascript",
 			DisplayName: "JavaScript (beta)",
 			StarterKits: kits.JavaScript,
-			Toolchain:   NewJavaScript(0, customBuild),
+			Toolchain:   NewJavaScript(0, customBuild, d.ErrLog),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "other",

@@ -119,21 +119,21 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "assemblyscript",
 			SourceDirectory: "assembly",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(c.Timeout, c.Manifest.File.Scripts.Build),
+			Toolchain:       NewAssemblyScript(c.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewJavaScript(c.Timeout, c.Manifest.File.Scripts.Build),
+			Toolchain:       NewJavaScript(c.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client, c.Globals, c.Timeout, c.Manifest.File.Scripts.Build),
+			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Timeout, c.Manifest.File.Scripts.Build),
 		})
 	default:
 		return fmt.Errorf("unsupported language %s", lang)
