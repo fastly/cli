@@ -1,0 +1,5 @@
+manifest_version = "99.0.0" # latest supported manifest_version is less than 99
+name = "Default Rust template"
+description = "Default package template for Rust based edge compute projects."
+authors = ["phamann <patrick@fastly.com>"]
+language = "rust"

@@ -1,0 +1,4 @@
+name = "Default Rust template"
+description = "Default package template for Rust based edge compute projects."
+authors = ["phamann <patrick@fastly.com>"]
+language = "rust"
