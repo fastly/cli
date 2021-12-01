@@ -135,6 +135,11 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			IncludeFiles:    []string{"Cargo.toml"},
 			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Timeout, c.Manifest.File.Scripts.Build),
 		})
+	case "other":
+		language = NewLanguage(&LanguageOptions{
+			Name:      "other",
+			Toolchain: NewOther(c.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+		})
 	default:
 		return fmt.Errorf("unsupported language %s", lang)
 	}

@@ -124,3 +124,10 @@ var ComputeServeRemediation = strings.Join([]string{
 	"The --watch flag enables hot reloading of your project to support a faster feedback loop during local development, and subsequently conflicts with the --skip-build flag which avoids rebuilding your project altogether.",
 	"Remove one of the flags based on the outcome you require.",
 }, " ")
+
+// ComputeBuildRemediation suggests configuring a `[scripts.build]` setting in
+// the fastly.toml manifest.
+var ComputeBuildRemediation = strings.Join([]string{
+	"Add a [scripts.build] setting for your custom build process.",
+	"See more at https://developer.fastly.com/reference/fastly-toml/",
+}, " ")
