@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.3.0](https://github.com/fastly/cli/releases/tag/v1.3.0) (2021-12-01)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.2.0...v1.3.0)
+
+**Enhancements:**
+
+* Implement custom `[scripts.build]` operation [#480](https://github.com/fastly/cli/pull/480)
+* Move `manifest` package into top-level `pkg` directory [#478](https://github.com/fastly/cli/pull/478)
+* Refactor AssemblyScript logic to call out to the JavaScript implementation [#479](https://github.com/fastly/cli/pull/479)
+
 ## [v1.2.0](https://github.com/fastly/cli/releases/tag/v1.2.0) (2021-11-25)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.1.1...v1.2.0)
