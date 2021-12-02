@@ -153,6 +153,11 @@
   "compute": {
     "build": {
       "examples": [{
+        "cmd": "fastly compute build",
+        "description": "In the `fastly.toml` manifest define a new `[scripts]` table and within it define a `build` key with your Yarn instructions. For example, `build = \"yarn install && yarn build\"`.",
+        "title": "Build a JavaScript Compute@Edge package using Yarn instead of NPM"
+      },
+      {
         "cmd": "fastly compute build --skip-verification",
         "description": "The optional `--skip-verification` flag will prevent the CLI from validating your local environment has the required language toolchain installed to build your package.",
         "title": "Build a Compute@Edge package locally"
