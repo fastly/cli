@@ -33,11 +33,12 @@ type Toolchain interface {
 
 // Flags represents the flags defined for the command.
 type Flags struct {
-	IncludeSrc       bool
-	Lang             string
-	PackageName      string
-	SkipVerification bool
-	Timeout          int
+	AcceptCustomBuild bool
+	IncludeSrc        bool
+	Lang              string
+	PackageName       string
+	SkipVerification  bool
+	Timeout           int
 }
 
 // BuildCommand produces a deployable artifact from files on the local disk.
@@ -61,6 +62,7 @@ func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *conf
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
+	c.CmdClause.Flag("accept-custom-build", "Do not prompt when project manifest defines [scripts.build]").BoolVar(&c.Flags.AcceptCustomBuild)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.Flags.PackageName)
@@ -171,7 +173,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// language that wouldn't normally require one (e.g. Rust), and do evil
 	// things. So we should notify the user and confirm they would like to
 	// continue with the build.
-	if language.Name == "other" && toolchain == "custom" {
+	if !c.Flags.AcceptCustomBuild && language.Name == "other" && toolchain == "custom" {
 		label := fmt.Sprintf("This project has a custom build script defined (%s). Are you sure you want to continue with the build step? [y/N] ", c.Manifest.File.Scripts.Build)
 		cont, err := text.Input(out, label, in)
 		if err != nil {

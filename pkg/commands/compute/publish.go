@@ -17,11 +17,12 @@ type PublishCommand struct {
 	deploy   *DeployCommand
 
 	// Build fields
-	includeSrc       cmd.OptionalBool
-	lang             cmd.OptionalString
-	name             cmd.OptionalString
-	skipVerification cmd.OptionalBool
-	timeout          cmd.OptionalInt
+	acceptCustomBuild cmd.OptionalBool
+	includeSrc        cmd.OptionalBool
+	lang              cmd.OptionalString
+	name              cmd.OptionalString
+	skipVerification  cmd.OptionalBool
+	timeout           cmd.OptionalInt
 
 	// Deploy fields
 	acceptDefaults cmd.OptionalBool
@@ -40,17 +41,13 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.deploy = deploy
 	c.CmdClause = parent.Command("publish", "Build and deploy a Compute@Edge package to a Fastly service")
 
-	// Build flags
-	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
-	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
-	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
-	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
-
-	// Deploy flags
+	c.CmdClause.Flag("accept-custom-build", "Do not prompt when project manifest defines [scripts.build]").Action(c.acceptCustomBuild.Set).BoolVar(&c.acceptCustomBuild.Value)
 	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and perform deploy non-interactively").Action(c.acceptDefaults.Set).BoolVar(&c.acceptDefaults.Value)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
+	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
+	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
+	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
@@ -58,6 +55,8 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 		Dst:      &c.serviceVersion.Value,
 		Optional: true,
 	})
+	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
+	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 
 	return &c
 }
@@ -71,6 +70,9 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 // the progress indicator.
 func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Reset the fields on the BuildCommand based on PublishCommand values.
+	if c.acceptCustomBuild.WasSet {
+		c.build.Flags.AcceptCustomBuild = c.acceptCustomBuild.Value
+	}
 	if c.includeSrc.WasSet {
 		c.build.Flags.IncludeSrc = c.includeSrc.Value
 	}

@@ -579,11 +579,13 @@ COMMANDS
   compute build [<flags>]
     Build a Compute@Edge package locally
 
-    --include-source     Include source code in built package
-    --language=LANGUAGE  Language type
-    --name=NAME          Package name
-    --skip-verification  Skip verification steps and force build
-    --timeout=TIMEOUT    Timeout, in seconds, for the build compilation step
+    --accept-custom-build  Do not prompt when project manifest defines
+                           [scripts.build]
+    --include-source       Include source code in built package
+    --language=LANGUAGE    Language type
+    --name=NAME            Package name
+    --skip-verification    Skip verification steps and force build
+    --timeout=TIMEOUT      Timeout, in seconds, for the build compilation step
 
   compute deploy [<flags>]
     Deploy a package to a Fastly Compute@Edge service
@@ -623,26 +625,30 @@ COMMANDS
   compute publish [<flags>]
     Build and deploy a Compute@Edge package to a Fastly service
 
-        --name=NAME              Package name
-        --language=LANGUAGE      Language type
-        --include-source         Include source code in built package
-        --skip-verification      Skip verification steps and force build
-        --timeout=TIMEOUT        Timeout, in seconds, for the build compilation
-                                 step
+        --accept-custom-build    Do not prompt when project manifest defines
+                                 [scripts.build]
         --accept-defaults        Accept default values for all prompts and
                                  perform deploy non-interactively
         --comment=COMMENT        Human-readable comment
         --domain=DOMAIN          The name of the domain associated to the
                                  package
+        --include-source         Include source code in built package
+        --language=LANGUAGE      Language type
+        --name=NAME              Package name
     -p, --package=PACKAGE        Path to a package tar.gz
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+        --skip-verification      Skip verification steps and force build
+        --timeout=TIMEOUT        Timeout, in seconds, for the build compilation
+                                 step
 
   compute serve [<flags>]
     Build and run a Compute@Edge package locally
 
+    --accept-custom-build    Do not prompt when project manifest defines
+                             [scripts.build]
     --addr="127.0.0.1:7676"  The IPv4 address and port to listen on
     --env=ENV                The environment configuration to use (e.g. stage)
     --file="bin/main.wasm"   The Wasm file to run
