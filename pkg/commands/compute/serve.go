@@ -121,19 +121,19 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	// Reset the fields on the BuildCommand based on ServeCommand values.
 	if c.includeSrc.WasSet {
-		c.build.IncludeSrc = c.includeSrc.Value
+		c.build.Flags.IncludeSrc = c.includeSrc.Value
 	}
 	if c.lang.WasSet {
-		c.build.Lang = c.lang.Value
+		c.build.Flags.Lang = c.lang.Value
 	}
 	if c.name.WasSet {
-		c.build.PackageName = c.name.Value
+		c.build.Flags.PackageName = c.name.Value
 	}
 	if c.skipVerification.WasSet {
-		c.build.SkipVerification = c.skipVerification.Value
+		c.build.Flags.SkipVerification = c.skipVerification.Value
 	}
 	if c.timeout.WasSet {
-		c.build.Timeout = c.timeout.Value
+		c.build.Flags.Timeout = c.timeout.Value
 	}
 
 	err := c.build.Exec(in, out)

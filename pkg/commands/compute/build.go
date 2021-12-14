@@ -31,36 +31,41 @@ type Toolchain interface {
 	Build(out io.Writer, verbose bool) error
 }
 
-// BuildCommand produces a deployable artifact from files on the local disk.
-type BuildCommand struct {
-	cmd.Base
-	client api.HTTPClient
-
-	// NOTE: these are public so that the "publish" composite command can set the
-	// values appropriately before calling the Exec() function.
+// Flags represents the flags defined for the command.
+type Flags struct {
 	IncludeSrc       bool
 	Lang             string
-	Manifest         manifest.Data
 	PackageName      string
 	SkipVerification bool
 	Timeout          int
 }
 
+// BuildCommand produces a deployable artifact from files on the local disk.
+type BuildCommand struct {
+	cmd.Base
+	client api.HTTPClient
+
+	// NOTE: these are public so that the "serve" and "publish" composite
+	// commands can set the values appropriately before calling Exec().
+	Flags    Flags
+	Manifest manifest.Data
+}
+
 // NewBuildCommand returns a usable command registered under the parent.
 func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *BuildCommand {
 	var c BuildCommand
+	c.client = client
 	c.Globals = globals
 	c.Manifest = data
-	c.client = client
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
-	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.IncludeSrc)
-	c.CmdClause.Flag("language", "Language type").StringVar(&c.Lang)
-	c.CmdClause.Flag("name", "Package name").StringVar(&c.PackageName)
-	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.SkipVerification)
-	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Timeout)
+	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
+	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
+	c.CmdClause.Flag("name", "Package name").StringVar(&c.Flags.PackageName)
+	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.Flags.SkipVerification)
+	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
 	return &c
 }
@@ -89,22 +94,22 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// Language from flag takes priority, otherwise infer from manifest and
 	// error if neither are provided. Sanitize by trim and lowercase.
-	var lang string
-	if c.Lang != "" {
-		lang = c.Lang
+	var identLang string
+	if c.Flags.Lang != "" {
+		identLang = c.Flags.Lang
 	} else if c.Manifest.File.Language != "" {
-		lang = c.Manifest.File.Language
+		identLang = c.Manifest.File.Language
 	} else {
 		return fmt.Errorf("language cannot be empty, please provide a language")
 	}
-	lang = strings.ToLower(strings.TrimSpace(lang))
+	identLang = strings.ToLower(strings.TrimSpace(identLang))
 
 	// Name from flag takes priority, otherwise infer from manifest
 	// error if neither are provided. Sanitize value to ensure it is a safe
 	// filepath, replacing spaces with hyphens etc.
 	var name string
-	if c.PackageName != "" {
-		name = c.PackageName
+	if c.Flags.PackageName != "" {
+		name = c.Flags.PackageName
 	} else if c.Manifest.File.Name != "" {
 		name = c.Manifest.File.Name
 	} else {
@@ -113,39 +118,45 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	name = sanitize.BaseName(name)
 
 	var language *Language
-	switch lang {
+	switch identLang {
 	case "assemblyscript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
 			SourceDirectory: "assembly",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(c.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain:       NewAssemblyScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewJavaScript(c.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain:       NewJavaScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Timeout, c.Manifest.File.Scripts.Build),
+			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, c.Manifest.File.Scripts.Build),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{
 			Name:      "other",
-			Toolchain: NewOther(c.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain: NewOther(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	default:
-		return fmt.Errorf("unsupported language %s", lang)
+		return fmt.Errorf("unsupported language %s", identLang)
 	}
 
-	if c.Manifest.File.Scripts.Build == "" && !c.SkipVerification {
-		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", lang))
+	toolchain := identLang
+	if c.Manifest.File.Scripts.Build != "" {
+		toolchain = "custom"
+	}
+
+	// NOTE: We don't verify custom build scripts.
+	if c.Manifest.File.Scripts.Build == "" && !c.Flags.SkipVerification {
+		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", toolchain))
 
 		err = language.Verify(progress)
 		if err != nil {
@@ -156,11 +167,23 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if c.Manifest.File.Scripts.Build != "" {
-		lang = "custom"
+	// NOTE: A third-party could share a project with a build command for a
+	// language that wouldn't normally require one (e.g. Rust), and do evil
+	// things. So we should notify the user and confirm they would like to
+	// continue with the build.
+	if language.Name == "other" && toolchain == "custom" {
+		label := fmt.Sprintf("This project has a custom build script defined (%s). Are you sure you want to continue with the build step? [y/N] ", c.Manifest.File.Scripts.Build)
+		cont, err := text.Input(out, label, in)
+		if err != nil {
+			return fmt.Errorf("error reading input %w", err)
+		}
+		contl := strings.ToLower(cont)
+		if contl != "y" && contl != "yes" {
+			return nil
+		}
 	}
 
-	progress.Step(fmt.Sprintf("Building package using %s toolchain...", lang))
+	progress.Step(fmt.Sprintf("Building package using %s toolchain...", toolchain))
 
 	if err := language.Build(progress, c.Globals.Flag.Verbose); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -193,7 +216,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	files = append(files, binFiles...)
 
-	if c.IncludeSrc {
+	if c.Flags.IncludeSrc {
 		srcFiles, err := GetNonIgnoredFiles(language.SourceDirectory, ignoreFiles)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{

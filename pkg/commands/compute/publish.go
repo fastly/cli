@@ -72,19 +72,19 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Reset the fields on the BuildCommand based on PublishCommand values.
 	if c.includeSrc.WasSet {
-		c.build.IncludeSrc = c.includeSrc.Value
+		c.build.Flags.IncludeSrc = c.includeSrc.Value
 	}
 	if c.lang.WasSet {
-		c.build.Lang = c.lang.Value
+		c.build.Flags.Lang = c.lang.Value
 	}
 	if c.name.WasSet {
-		c.build.PackageName = c.name.Value
+		c.build.Flags.PackageName = c.name.Value
 	}
 	if c.skipVerification.WasSet {
-		c.build.SkipVerification = c.skipVerification.Value
+		c.build.Flags.SkipVerification = c.skipVerification.Value
 	}
 	if c.timeout.WasSet {
-		c.build.Timeout = c.timeout.Value
+		c.build.Flags.Timeout = c.timeout.Value
 	}
 	c.build.Manifest = c.manifest
 
