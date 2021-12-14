@@ -607,7 +607,7 @@ func TestBuildOther(t *testing.T) {
 			wantOutput: []string{
 				"This project has a custom build script defined in the fastly.toml manifest",
 				"Building package using custom toolchain",
-				"Built package 'test' (pkg/test.tar.gz)",
+				"Built package 'test'",
 			},
 		},
 		{
@@ -623,7 +623,7 @@ func TestBuildOther(t *testing.T) {
 			wantOutput: []string{
 				"This project has a custom build script defined in the fastly.toml manifest",
 				"Building package using custom toolchain",
-				"Built package 'test' (pkg/test.tar.gz)",
+				"Built package 'test'",
 			},
 		},
 		{
@@ -637,7 +637,7 @@ func TestBuildOther(t *testing.T) {
 			build = "echo custom build"`,
 			wantOutput: []string{
 				"Building package using custom toolchain",
-				"Built package 'test' (pkg/test.tar.gz)",
+				"Built package 'test'",
 			},
 			dontWantOutput: []string{
 				"This project has a custom build script defined in the fastly.toml manifest",
