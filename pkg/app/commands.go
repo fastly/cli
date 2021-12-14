@@ -322,7 +322,7 @@ func defineCommands(
 	vclSnippetDescribe := snippet.NewDescribeCommand(vclSnippetCmdRoot.CmdClause, globals, data)
 	vclSnippetList := snippet.NewListCommand(vclSnippetCmdRoot.CmdClause, globals, data)
 	vclSnippetUpdate := snippet.NewUpdateCommand(vclSnippetCmdRoot.CmdClause, globals, data)
-	versionCmdRoot := version.NewRootCommand(app)
+	versionCmdRoot := version.NewRootCommand(app, opts.Versioners.Viceroy)
 	whoamiCmdRoot := whoami.NewRootCommand(app, opts.HTTPClient, globals)
 
 	return []cmd.Command{
