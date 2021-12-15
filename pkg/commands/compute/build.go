@@ -174,7 +174,12 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// things. So we should notify the user and confirm they would like to
 	// continue with the build.
 	if !c.Flags.AcceptCustomBuild && toolchain == "custom" {
-		label := "This project has a custom build script defined in the fastly.toml manifest. Are you sure you want to continue with the build step? [y/N] "
+		customBuildMsg := "This project has a custom build script defined in the fastly.toml manifest. "
+		if c.Globals.Flag.Verbose {
+			text.Info(out, customBuildMsg)
+			customBuildMsg = ""
+		}
+		label := fmt.Sprintf("%sAre you sure you want to continue with the build step? [y/N] ", customBuildMsg)
 		cont, err := text.Input(out, label, in)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
