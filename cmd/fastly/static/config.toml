@@ -38,3 +38,6 @@ path = "https://github.com/fastly/compute-starter-kit-rust-default"
 name = "Static content"
 description = "Apply performance, security and usability upgrades to static bucket services such as Google Cloud Storage or AWS S3."
 path = "https://github.com/fastly/compute-starter-kit-rust-static-content"
+
+[viceroy]
+ttl = "24h"

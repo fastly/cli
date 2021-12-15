@@ -15,4 +15,7 @@ ttl = "5m"
   fastly_sys_constraint = ">= 0.3.3"
   rustup_constraint = ">= 1.23.0"
 
+[viceroy]
+ttl = "24h"
+
 # starter kits will be appended by devhub build process
