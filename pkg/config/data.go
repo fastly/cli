@@ -179,12 +179,12 @@ type LegacyFile struct {
 
 // File represents our dynamic application toml configuration.
 type File struct {
+	CLI           CLI                 `toml:"cli"`
 	ConfigVersion int                 `toml:"config_version"`
 	Fastly        Fastly              `toml:"fastly"`
-	CLI           CLI                 `toml:"cli"`
-	User          User                `toml:"user"`
 	Language      Language            `toml:"language"`
 	StarterKits   StarterKitLanguages `toml:"starter-kits"`
+	User          User                `toml:"user"`
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.
