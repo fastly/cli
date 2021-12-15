@@ -534,7 +534,7 @@ func TestBuildJavaScript(t *testing.T) {
 	}
 }
 
-func TestBuildOther(t *testing.T) {
+func TestCustomBuild(t *testing.T) {
 	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
@@ -604,6 +604,7 @@ func TestBuildOther(t *testing.T) {
 			stdin: "N",
 			wantOutput: []string{
 				"This project has a custom build script defined in the fastly.toml manifest",
+				"Are you sure you want to continue with the build step?",
 				"Stopping the build process",
 			},
 		},
@@ -619,6 +620,7 @@ func TestBuildOther(t *testing.T) {
 			stdin: "Y",
 			wantOutput: []string{
 				"This project has a custom build script defined in the fastly.toml manifest",
+				"Are you sure you want to continue with the build step?",
 				"Building package using custom toolchain",
 				"Built package 'test'",
 			},
@@ -635,9 +637,46 @@ func TestBuildOther(t *testing.T) {
 			stdin: "Y",
 			wantOutput: []string{
 				"This project has a custom build script defined in the fastly.toml manifest",
+				"Are you sure you want to continue with the build step?",
 				"Building package using custom toolchain",
 				"Built package 'test'",
 			},
+		},
+		{
+			name: "display the custom build when in verbose mode",
+			args: args("compute build --verbose"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"
+			[scripts]
+			build = "echo custom build"`,
+			stdin: "Y",
+			wantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+				"echo custom build",
+				"Are you sure you want to continue with the build step?",
+				"Building package using custom toolchain",
+				"Built package 'test'",
+			},
+		},
+		{
+			name: "display the custom build when in verbose mode and using a non-other language",
+			args: args("compute build --verbose"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "rust"
+			[scripts]
+			build = "echo custom build"`,
+			stdin: "Y",
+			wantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+				"echo custom build",
+				"Are you sure you want to continue with the build step?",
+				"Building package using custom toolchain",
+			},
+			wantError: "error reading Cargo.toml manifest", // we expect this to error as we don't actually setup the relevant files for a rust build
 		},
 		{
 			name: "avoid prompt confirmation",
@@ -654,6 +693,7 @@ func TestBuildOther(t *testing.T) {
 			},
 			dontWantOutput: []string{
 				"This project has a custom build script defined in the fastly.toml manifest",
+				"Are you sure you want to continue with the build step?",
 			},
 		},
 	} {

@@ -169,16 +169,18 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
+	customBuildMsg := "This project has a custom build script defined in the fastly.toml manifest. "
+
+	if toolchain == "custom" && c.Globals.Flag.Verbose {
+		text.Info(out, fmt.Sprintf("%s\n\n%s\n\n", customBuildMsg, c.Manifest.File.Scripts.Build))
+		customBuildMsg = ""
+	}
+
 	// NOTE: A third-party could share a project with a build command for a
 	// language that wouldn't normally require one (e.g. Rust), and do evil
 	// things. So we should notify the user and confirm they would like to
 	// continue with the build.
-	if !c.Flags.AcceptCustomBuild && toolchain == "custom" {
-		customBuildMsg := "This project has a custom build script defined in the fastly.toml manifest. "
-		if c.Globals.Flag.Verbose {
-			text.Info(out, customBuildMsg)
-			customBuildMsg = ""
-		}
+	if toolchain == "custom" && !c.Flags.AcceptCustomBuild {
 		label := fmt.Sprintf("%sAre you sure you want to continue with the build step? [y/N] ", customBuildMsg)
 		cont, err := text.Input(out, label, in)
 		if err != nil {
