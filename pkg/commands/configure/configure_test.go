@@ -83,6 +83,11 @@ func TestConfigure(t *testing.T) {
 [user]
   email = "test@example.com"
   token = "abcdef"
+
+[viceroy]
+  last_checked = ""
+  latest_version = ""
+  ttl = ""
 `,
 		},
 		{
@@ -131,6 +136,11 @@ func TestConfigure(t *testing.T) {
 [user]
   email = "test@example.com"
   token = "abcdef"
+
+[viceroy]
+  last_checked = ""
+  latest_version = ""
+  ttl = ""
 `,
 		},
 		{
@@ -176,6 +186,11 @@ func TestConfigure(t *testing.T) {
 [user]
   email = "test@example.com"
   token = "abcdef"
+
+[viceroy]
+  last_checked = ""
+  latest_version = ""
+  ttl = ""
 `,
 		},
 		{
@@ -224,6 +239,11 @@ func TestConfigure(t *testing.T) {
 [user]
   email = "test@example.com"
   token = "1234"
+
+[viceroy]
+  last_checked = ""
+  latest_version = ""
+  ttl = ""
 `,
 		},
 		{
@@ -270,6 +290,11 @@ func TestConfigure(t *testing.T) {
 [user]
   email = "test@example.com"
   token = "hello"
+
+[viceroy]
+  last_checked = ""
+  latest_version = ""
+  ttl = ""
 `,
 		},
 		{
@@ -319,6 +344,11 @@ func TestConfigure(t *testing.T) {
 [user]
   email = "test@example.com"
   token = "new_token"
+
+[viceroy]
+  last_checked = ""
+  latest_version = ""
+  ttl = ""
 `,
 		},
 		{
