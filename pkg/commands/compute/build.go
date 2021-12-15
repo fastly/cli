@@ -173,7 +173,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// language that wouldn't normally require one (e.g. Rust), and do evil
 	// things. So we should notify the user and confirm they would like to
 	// continue with the build.
-	if !c.Flags.AcceptCustomBuild && language.Name == "other" && toolchain == "custom" {
+	if !c.Flags.AcceptCustomBuild && toolchain == "custom" {
 		label := "This project has a custom build script defined in the fastly.toml manifest. Are you sure you want to continue with the build step? [y/N] "
 		cont, err := text.Input(out, label, in)
 		if err != nil {
