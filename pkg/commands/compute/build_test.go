@@ -580,7 +580,20 @@ func TestBuildOther(t *testing.T) {
 		wantRemediationError string
 	}{
 		{
-			name: "Stop build process",
+			name: "no custom build",
+			args: args("compute build --language other"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"`,
+			dontWantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+			},
+			wantError:            "error reading custom build instructions from fastly.toml manifest",
+			wantRemediationError: "Add a [scripts.build] setting for your custom build process",
+		},
+		{
+			name: "stop build process",
 			args: args("compute build --language other"),
 			fastlyManifest: `
 			manifest_version = 2
@@ -595,7 +608,7 @@ func TestBuildOther(t *testing.T) {
 			},
 		},
 		{
-			name: "Allow build process",
+			name: "allow build process",
 			args: args("compute build --language other"),
 			fastlyManifest: `
 			manifest_version = 2
@@ -611,7 +624,7 @@ func TestBuildOther(t *testing.T) {
 			},
 		},
 		{
-			name: "Language pulled from manifest",
+			name: "language pulled from manifest",
 			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 2
@@ -627,7 +640,7 @@ func TestBuildOther(t *testing.T) {
 			},
 		},
 		{
-			name: "Avoid prompt confirmation",
+			name: "avoid prompt confirmation",
 			args: args("compute build --accept-custom-build --language other"),
 			fastlyManifest: `
 			manifest_version = 2
