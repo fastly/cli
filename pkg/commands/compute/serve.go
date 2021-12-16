@@ -35,11 +35,12 @@ type ServeCommand struct {
 	viceroyVersioner update.Versioner
 
 	// Build fields
-	includeSrc       cmd.OptionalBool
-	lang             cmd.OptionalString
-	name             cmd.OptionalString
-	skipVerification cmd.OptionalBool
-	timeout          cmd.OptionalInt
+	acceptCustomBuild cmd.OptionalBool
+	includeSrc        cmd.OptionalBool
+	lang              cmd.OptionalString
+	name              cmd.OptionalString
+	skipVerification  cmd.OptionalBool
+	timeout           cmd.OptionalInt
 
 	// Serve fields
 	addr      string
@@ -60,6 +61,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause = parent.Command("serve", "Build and run a Compute@Edge package locally")
 	c.manifest = data
 
+	c.CmdClause.Flag("accept-custom-build", "Do not prompt when project manifest defines [scripts.build]").Action(c.acceptCustomBuild.Set).BoolVar(&c.acceptCustomBuild.Value)
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
@@ -87,7 +89,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	progress := text.NewProgress(out, c.Globals.Verbose())
+	progress := text.ResetProgress(out, c.Globals.Verbose())
 
 	bin, err := getViceroy(progress, out, c.viceroyVersioner)
 	if err != nil {
@@ -120,20 +122,23 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // Build constructs and executes the build logic.
 func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	// Reset the fields on the BuildCommand based on ServeCommand values.
+	if c.acceptCustomBuild.WasSet {
+		c.build.Flags.AcceptCustomBuild = c.acceptCustomBuild.Value
+	}
 	if c.includeSrc.WasSet {
-		c.build.IncludeSrc = c.includeSrc.Value
+		c.build.Flags.IncludeSrc = c.includeSrc.Value
 	}
 	if c.lang.WasSet {
-		c.build.Lang = c.lang.Value
+		c.build.Flags.Lang = c.lang.Value
 	}
 	if c.name.WasSet {
-		c.build.PackageName = c.name.Value
+		c.build.Flags.PackageName = c.name.Value
 	}
 	if c.skipVerification.WasSet {
-		c.build.SkipVerification = c.skipVerification.Value
+		c.build.Flags.SkipVerification = c.skipVerification.Value
 	}
 	if c.timeout.WasSet {
-		c.build.Timeout = c.timeout.Value
+		c.build.Flags.Timeout = c.timeout.Value
 	}
 
 	err := c.build.Exec(in, out)

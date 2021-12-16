@@ -12,7 +12,7 @@ require (
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
 	github.com/fastly/go-fastly/v5 v5.0.0
 	github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible
-	github.com/fatih/color v1.12.0
+	github.com/fatih/color v1.13.0
 	github.com/frankban/quicktest v1.13.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/google/go-cmp v0.5.6
@@ -43,7 +43,7 @@ require (
 	github.com/google/jsonapi v0.0.0-20201022225600-f822737867f6 // indirect
 	github.com/klauspost/compress v1.13.5 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
-	github.com/mattn/go-colorable v0.1.8 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/nwaples/rardecode v1.1.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.8 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect

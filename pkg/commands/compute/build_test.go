@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/api"
@@ -528,6 +529,197 @@ func TestBuildJavaScript(t *testing.T) {
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
 				testutil.AssertStringContains(t, stdout.String(), testcase.wantOutputContains)
+			}
+		})
+	}
+}
+
+func TestCustomBuild(t *testing.T) {
+	args := testutil.Args
+	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
+	}
+
+	// We're going to chdir to a build environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	//
+	// NOTE: Our only requirement is that there be a bin directory. The custom
+	// build script we're using in the test is not going to use any files in the
+	// directory (the script will just `echo` a message).
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Write: []testutil.FileIO{
+			{Src: "mock content", Dst: "bin/testfile"},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// Before running the test, chdir into the build environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
+
+	for _, testcase := range []struct {
+		args                 []string
+		dontWantOutput       []string
+		fastlyManifest       string
+		name                 string
+		stdin                string
+		wantError            string
+		wantOutput           []string
+		wantRemediationError string
+	}{
+		{
+			name: "no custom build",
+			args: args("compute build --language other"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"`,
+			dontWantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+			},
+			wantError:            "error reading custom build instructions from fastly.toml manifest",
+			wantRemediationError: "Add a [scripts.build] setting for your custom build process",
+		},
+		{
+			name: "stop build process",
+			args: args("compute build --language other"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"
+			[scripts]
+			build = "echo custom build"`,
+			stdin: "N",
+			wantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+				"Are you sure you want to continue with the build step?",
+				"Stopping the build process",
+			},
+			wantError:            "build process stopped by user",
+			wantRemediationError: "Remove or update the custom [scripts.build] in the fastly.toml manifest.",
+		},
+		{
+			name: "allow build process",
+			args: args("compute build --language other"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"
+			[scripts]
+			build = "echo custom build"`,
+			stdin: "Y",
+			wantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+				"Are you sure you want to continue with the build step?",
+				"Building package using custom toolchain",
+				"Built package 'test'",
+			},
+		},
+		{
+			name: "language pulled from manifest",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"
+			[scripts]
+			build = "echo custom build"`,
+			stdin: "Y",
+			wantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+				"Are you sure you want to continue with the build step?",
+				"Building package using custom toolchain",
+				"Built package 'test'",
+			},
+		},
+		{
+			name: "display the custom build when in verbose mode",
+			args: args("compute build --verbose"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"
+			[scripts]
+			build = "echo custom build"`,
+			stdin: "Y",
+			wantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+				"echo custom build",
+				"Are you sure you want to continue with the build step?",
+				"Building package using custom toolchain",
+				"Built package 'test'",
+			},
+		},
+		{
+			name: "display the custom build when in verbose mode and using a non-other language",
+			args: args("compute build --verbose"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "rust"
+			[scripts]
+			build = "echo custom build"`,
+			stdin: "Y",
+			wantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+				"echo custom build",
+				"Are you sure you want to continue with the build step?",
+				"Building package using custom toolchain",
+			},
+			wantError: "error reading Cargo.toml manifest", // we expect this to error as we don't actually setup the relevant files for a rust build
+		},
+		{
+			name: "avoid prompt confirmation",
+			args: args("compute build --accept-custom-build --language other"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"
+			[scripts]
+			build = "echo custom build"`,
+			wantOutput: []string{
+				"Building package using custom toolchain",
+				"Built package 'test'",
+			},
+			dontWantOutput: []string{
+				"This project has a custom build script defined in the fastly.toml manifest",
+				"Are you sure you want to continue with the build step?",
+			},
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.fastlyManifest != "" {
+				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0777); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
+			err = app.Run(opts)
+
+			t.Log(stdout.String())
+
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
+			for _, s := range testcase.wantOutput {
+				testutil.AssertStringContains(t, stdout.String(), s)
+			}
+			for _, s := range testcase.dontWantOutput {
+				testutil.AssertStringDoesntContain(t, stdout.String(), s)
 			}
 		})
 	}

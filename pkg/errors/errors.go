@@ -92,3 +92,10 @@ var ErrInvalidArchive = RemediationError{
 	Inner:       fmt.Errorf("invalid package archive structure"),
 	Remediation: "Ensure the archive contains all required package files (such as a 'fastly.toml' manifest, and a 'src' folder etc).",
 }
+
+// ErrBuildStopped means the user stopped the build because they were unhappy
+// with the custom build defined in the fastly.toml manifest file.
+var ErrBuildStopped = RemediationError{
+	Inner:       fmt.Errorf("build process stopped by user"),
+	Remediation: "Remove or update the custom [scripts.build] in the fastly.toml manifest.",
+}
