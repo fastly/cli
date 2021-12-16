@@ -175,7 +175,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if toolchain == "custom" {
 		if c.Globals.Flag.Verbose || !c.Flags.AcceptCustomBuild {
-			text.Info(out, "This project has a custom build script defined in the fastly.toml manifest.\n")
+			text.Info(out, "This project has a custom build script defined in the fastly.toml manifest:\n")
 			text.Break(out)
 			text.Indent(out, 4, "%s", c.Manifest.File.Scripts.Build)
 		}
