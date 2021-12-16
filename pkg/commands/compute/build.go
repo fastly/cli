@@ -173,21 +173,18 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// print doesn't get hidden by the progress status.
 	progress.Done()
 
-	customBuildMsg := "This project has a custom build script defined in the fastly.toml manifest.\n"
-
 	if toolchain == "custom" {
-		if c.Globals.Flag.Verbose {
-			text.Info(out, customBuildMsg)
+		if c.Globals.Flag.Verbose || !c.Flags.AcceptCustomBuild {
+			text.Info(out, "This project has a custom build script defined in the fastly.toml manifest.\n")
 			text.Break(out)
 			text.Indent(out, 4, "%s", c.Manifest.File.Scripts.Build)
-			customBuildMsg = ""
 		}
 		if !c.Flags.AcceptCustomBuild {
 			// NOTE: A third-party could share a project with a build command for a
 			// language that wouldn't normally require one (e.g. Rust), and do evil
 			// things. So we should notify the user and confirm they would like to
 			// continue with the build.
-			label := fmt.Sprintf("\n%sAre you sure you want to continue with the build step? [y/N] ", customBuildMsg)
+			label := "\nAre you sure you want to continue with the build step? [y/N] "
 			cont, err := text.Input(out, label, in)
 			if err != nil {
 				return fmt.Errorf("error reading input %w", err)
@@ -199,6 +196,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 			text.Break(out)
 		}
+	}
+
+	if c.Globals.Verbose() && c.Flags.AcceptCustomBuild {
+		text.Break(out)
 	}
 
 	progress = text.ResetProgress(out, c.Globals.Verbose())
