@@ -192,7 +192,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			contl := strings.ToLower(cont)
 			if contl != "y" && contl != "yes" {
 				text.Info(out, "Stopping the build process.")
-				return nil
+				text.Break(out)
+				return fsterr.ErrBuildStopped
 			}
 			text.Break(out)
 		}
