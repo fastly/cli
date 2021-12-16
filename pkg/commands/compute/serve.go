@@ -205,6 +205,8 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 		}
 	}
 
+	// The latest_version value 0.0.0 means the property either has not been set
+	// or is now stale and needs to be refreshed.
 	if latest.String() == "0.0.0" {
 		progress.Step("Checking latest Viceroy release...")
 
