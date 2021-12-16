@@ -3,6 +3,7 @@ package compute
 import (
 	"fmt"
 	"io"
+	"os"
 	"time"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -54,7 +55,7 @@ func (o Other) Build(out io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command: cmd,
 		Args:    args,
-		Env:     []string{},
+		Env:     os.Environ(),
 		Output:  out,
 	}
 	if o.timeout > 0 {

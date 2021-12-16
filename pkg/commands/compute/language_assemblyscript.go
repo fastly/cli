@@ -83,7 +83,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command: cmd,
 		Args:    args,
-		Env:     []string{},
+		Env:     os.Environ(),
 		Output:  out,
 	}
 	if a.timeout > 0 {

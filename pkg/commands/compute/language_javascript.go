@@ -3,6 +3,7 @@ package compute
 import (
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -239,7 +240,7 @@ func (j JavaScript) Build(out io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command: cmd,
 		Args:    args,
-		Env:     []string{},
+		Env:     os.Environ(),
 		Output:  out,
 	}
 	if j.timeout > 0 {
