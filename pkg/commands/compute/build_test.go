@@ -607,6 +607,8 @@ func TestCustomBuild(t *testing.T) {
 				"Are you sure you want to continue with the build step?",
 				"Stopping the build process",
 			},
+			wantError:            "build process stopped by user",
+			wantRemediationError: "Remove or update the custom [scripts.build] in the fastly.toml manifest.",
 		},
 		{
 			name: "allow build process",
