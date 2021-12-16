@@ -31,18 +31,41 @@ type Progress interface {
 	Fail()
 }
 
+type ProgressOptions struct {
+	reset bool // whether to display Initializing... step header
+}
+
+// Option represents optional configuration for a Progress type.
+type Option func(*ProgressOptions)
+
 // NewProgress returns a Progress based on the given verbosity level or whether
 // the current process is running in a terminal environment.
-func NewProgress(output io.Writer, verbose bool) Progress {
+func NewProgress(output io.Writer, verbose bool, options ...Option) Progress {
 	var progress Progress
 	if verbose {
 		progress = NewVerboseProgress(output)
 	} else if isTerminal() {
-		progress = NewInteractiveProgress(output)
+		progress = NewInteractiveProgress(output, options...)
 	} else {
 		progress = NewQuietProgress(output)
 	}
 	return progress
+}
+
+// ResetProgress wraps the NewProgress and passes through a restart option.
+//
+// NOTE: A Progress sometimes needs to be marked as Done() so that other output
+// can be printed to the terminal (otherwise the Progress will always overwrite
+// the output). If we just call NewProgress again then we'll see an
+// 'Initializing...' message which looks odd. Instead we can now reset the
+// progress instead which will simply tell the Progress type not to set that
+// step header.
+func ResetProgress(output io.Writer, verbose bool) Progress {
+	return NewProgress(output, verbose, WithReset())
+}
+
+func WithReset() Option {
+	return func(p *ProgressOptions) { p.reset = true }
 }
 
 // isTerminal indicates if the consumer is a modern terminal.
@@ -87,6 +110,7 @@ func Spin(ctx context.Context, frames []rune, interval time.Duration, target Tic
 type InteractiveProgress struct {
 	mtx    sync.Mutex
 	output io.Writer
+	reset  bool
 
 	stepHeader     string       // title of current step
 	writeBuffer    bytes.Buffer // receives Write calls
@@ -98,10 +122,17 @@ type InteractiveProgress struct {
 }
 
 // NewInteractiveProgress returns a InteractiveProgress outputting to the writer.
-func NewInteractiveProgress(output io.Writer) *InteractiveProgress {
+func NewInteractiveProgress(output io.Writer, options ...Option) *InteractiveProgress {
+	opts := &ProgressOptions{
+		reset: false,
+	}
+	for _, o := range options {
+		o(opts)
+	}
 	p := &InteractiveProgress{
 		output:     output,
 		stepHeader: "Initializing...",
+		reset:      opts.reset,
 	}
 
 	var (
@@ -170,9 +201,16 @@ func (p *InteractiveProgress) Step(msg string) {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
 
-	// Previous step complete.
-	p.replaceLine("%s %s", Bold("✓"), p.stepHeader)
-	fmt.Fprintln(p.output)
+	if !p.reset {
+		// Previous step complete.
+		p.replaceLine("%s %s", Bold("✓"), p.stepHeader)
+		fmt.Fprintln(p.output)
+	}
+
+	// Avoid printing Initializing...
+	if p.reset && p.stepHeader == "Initializing..." {
+		p.reset = false
+	}
 
 	// Reset all the stepwise state.
 	p.stepHeader = msg

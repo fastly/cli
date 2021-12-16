@@ -169,30 +169,39 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	customBuildMsg := "This project has a custom build script defined in the fastly.toml manifest. "
+	// NOTE: We set the progress indicator to Done() so that any output we now
+	// print doesn't get hidden by the progress status.
+	progress.Done()
 
-	if toolchain == "custom" && c.Globals.Flag.Verbose {
-		text.Info(out, fmt.Sprintf("%s\n\n%s\n\n", customBuildMsg, c.Manifest.File.Scripts.Build))
-		customBuildMsg = ""
+	customBuildMsg := "This project has a custom build script defined in the fastly.toml manifest.\n"
+
+	if toolchain == "custom" {
+		if c.Globals.Flag.Verbose {
+			text.Info(out, customBuildMsg)
+			text.Break(out)
+			text.Indent(out, 4, "%s", c.Manifest.File.Scripts.Build)
+			customBuildMsg = ""
+		}
+		if !c.Flags.AcceptCustomBuild {
+			// NOTE: A third-party could share a project with a build command for a
+			// language that wouldn't normally require one (e.g. Rust), and do evil
+			// things. So we should notify the user and confirm they would like to
+			// continue with the build.
+			label := fmt.Sprintf("\n%sAre you sure you want to continue with the build step? [y/N] ", customBuildMsg)
+			cont, err := text.Input(out, label, in)
+			if err != nil {
+				return fmt.Errorf("error reading input %w", err)
+			}
+			contl := strings.ToLower(cont)
+			if contl != "y" && contl != "yes" {
+				text.Info(out, "Stopping the build process.")
+				return nil
+			}
+			text.Break(out)
+		}
 	}
 
-	// NOTE: A third-party could share a project with a build command for a
-	// language that wouldn't normally require one (e.g. Rust), and do evil
-	// things. So we should notify the user and confirm they would like to
-	// continue with the build.
-	if toolchain == "custom" && !c.Flags.AcceptCustomBuild {
-		label := fmt.Sprintf("%sAre you sure you want to continue with the build step? [y/N] ", customBuildMsg)
-		cont, err := text.Input(out, label, in)
-		if err != nil {
-			return fmt.Errorf("error reading input %w", err)
-		}
-		contl := strings.ToLower(cont)
-		if contl != "y" && contl != "yes" {
-			text.Info(out, "Stopping the build process.")
-			return nil
-		}
-	}
-
+	progress = text.ResetProgress(out, c.Globals.Verbose())
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", toolchain))
 
 	if err := language.Build(progress, c.Globals.Flag.Verbose); err != nil {

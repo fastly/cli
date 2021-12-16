@@ -14,6 +14,9 @@ wasm_wasi_target = "wasm32-wasi"
 fastly_sys_constraint = ">= 0.3.3"
 rustup_constraint = ">= 1.23.0"
 
+[viceroy]
+ttl = "24h"
+
 [[starter-kits.assemblyscript]]
 name = "Default starter for AssemblyScript"
 description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
@@ -38,6 +41,3 @@ path = "https://github.com/fastly/compute-starter-kit-rust-default"
 name = "Static content"
 description = "Apply performance, security and usability upgrades to static bucket services such as Google Cloud Storage or AWS S3."
 path = "https://github.com/fastly/compute-starter-kit-rust-static-content"
-
-[viceroy]
-ttl = "24h"

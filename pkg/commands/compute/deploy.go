@@ -522,7 +522,7 @@ func manageNoServiceIDFlow(
 		text.Break(out)
 	}
 
-	progress := text.NewProgress(out, verbose)
+	progress := text.ResetProgress(out, verbose)
 
 	// There is no service and so we'll do a one time creation of the service
 	//
