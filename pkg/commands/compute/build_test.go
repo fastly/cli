@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 // TestBuildRust validates that the rust ecosystem is in place and accurate.
@@ -541,7 +542,7 @@ func TestBuildJavaScript(t *testing.T) {
 				}
 			}
 
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			err = app.Run(opts)
 

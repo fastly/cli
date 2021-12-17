@@ -1,7 +1,6 @@
 package exec
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 // Streaming models a generic command execution that consumers can use to
@@ -80,7 +80,7 @@ func (s *Streaming) Exec() error {
 	cmd.Env = append(os.Environ(), s.Env...)
 
 	// Pipe the child process stdout and stderr to our own output writer.
-	var stdoutBuf, stderrBuf bytes.Buffer
+	var stdoutBuf, stderrBuf threadsafe.Buffer
 
 	// NOTE: Historically this Exec() function would use a text.Progress as an
 	// io.Writer so that the command output could be constrained to a single
