@@ -10,7 +10,6 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/text"
 )
 
 // AssemblyScript implements a Toolchain for the AssemblyScript language.
@@ -29,14 +28,13 @@ type AssemblyScript struct {
 }
 
 // NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript(timeout int, build string, errlog fsterr.LogInterface, progress text.Progress) *AssemblyScript {
+func NewAssemblyScript(timeout int, build string, errlog fsterr.LogInterface) *AssemblyScript {
 	return &AssemblyScript{
 		JavaScript: JavaScript{
 			build:             build,
 			errlog:            errlog,
 			packageDependency: "assemblyscript",
 			packageExecutable: "asc",
-			progress:          progress,
 			timeout:           timeout,
 			toolchain:         JsToolchain,
 		},
@@ -47,7 +45,7 @@ func NewAssemblyScript(timeout int, build string, errlog fsterr.LogInterface, pr
 
 // Build implements the Toolchain interface and attempts to compile the package
 // AssemblyScript source to a Wasm binary.
-func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
+func (a AssemblyScript) Build(out, progress io.Writer, verbose bool) error {
 	// Check if bin directory exists and create if not.
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -87,7 +85,7 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 		Args:     args,
 		Env:      os.Environ(),
 		Output:   out,
-		Progress: a.progress,
+		Progress: progress,
 		Verbose:  verbose,
 	}
 	if a.timeout > 0 {

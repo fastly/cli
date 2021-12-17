@@ -85,24 +85,22 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 type Rust struct {
 	Shell
 
-	build    string
-	client   api.HTTPClient
-	config   config.Rust
-	errlog   fsterr.LogInterface
-	progress text.Progress
-	timeout  int
+	build   string
+	client  api.HTTPClient
+	config  config.Rust
+	errlog  fsterr.LogInterface
+	timeout int
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, build string, progress text.Progress) *Rust {
+func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, build string) *Rust {
 	return &Rust{
-		Shell:    Shell{},
-		build:    build,
-		client:   client,
-		config:   config,
-		errlog:   errlog,
-		progress: progress,
-		timeout:  timeout,
+		Shell:   Shell{},
+		build:   build,
+		client:  client,
+		config:  config,
+		errlog:  errlog,
+		timeout: timeout,
 	}
 }
 
@@ -458,7 +456,7 @@ func (r Rust) Initialize(out io.Writer) error { return nil }
 
 // Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
-func (r *Rust) Build(out io.Writer, verbose bool) error {
+func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
 	if err := m.Read("Cargo.toml"); err != nil {
@@ -493,7 +491,7 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 		Args:     args,
 		Env:      os.Environ(),
 		Output:   out,
-		Progress: r.progress,
+		Progress: progress,
 		Verbose:  verbose,
 	}
 	if r.timeout > 0 {

@@ -28,7 +28,7 @@ const IgnoreFilePath = ".fastlyignore"
 type Toolchain interface {
 	Initialize(out io.Writer) error
 	Verify(out io.Writer) error
-	Build(out io.Writer, verbose bool) error
+	Build(out, progress io.Writer, verbose bool) error
 }
 
 // Flags represents the flags defined for the command.
@@ -126,26 +126,26 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "assemblyscript",
 			SourceDirectory: "assembly",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog, progress),
+			Toolchain:       NewAssemblyScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewJavaScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog, progress),
+			Toolchain:       NewJavaScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, c.Manifest.File.Scripts.Build, progress),
+			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, c.Manifest.File.Scripts.Build),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{
 			Name:      "other",
-			Toolchain: NewOther(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog, progress),
+			Toolchain: NewOther(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	default:
 		return fmt.Errorf("unsupported language %s", identLang)
@@ -206,7 +206,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress = text.ResetProgress(out, c.Globals.Verbose())
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", toolchain))
 
-	if err := language.Build(progress, c.Globals.Flag.Verbose); err != nil {
+	if err := language.Build(out, progress, c.Globals.Flag.Verbose); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Language": language.Name,
 		})

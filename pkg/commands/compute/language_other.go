@@ -8,27 +8,24 @@ import (
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
-	"github.com/fastly/cli/pkg/text"
 )
 
 // Other implements a Toolchain for languages without official support.
 type Other struct {
 	Shell
 
-	build    string
-	errlog   fsterr.LogInterface
-	progress io.Writer
-	timeout  int
+	build   string
+	errlog  fsterr.LogInterface
+	timeout int
 }
 
 // NewOther constructs a new unsupported language instance.
-func NewOther(timeout int, build string, errlog fsterr.LogInterface, progress text.Progress) *Other {
+func NewOther(timeout int, build string, errlog fsterr.LogInterface) *Other {
 	return &Other{
-		Shell:    Shell{},
-		build:    build,
-		errlog:   errlog,
-		progress: progress,
-		timeout:  timeout,
+		Shell:   Shell{},
+		build:   build,
+		errlog:  errlog,
+		timeout: timeout,
 	}
 }
 
@@ -44,7 +41,7 @@ func (o Other) Verify(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // source to a Wasm binary.
-func (o Other) Build(out io.Writer, verbose bool) error {
+func (o Other) Build(out, progress io.Writer, verbose bool) error {
 	if o.build == "" {
 		err := fmt.Errorf("error reading custom build instructions from fastly.toml manifest")
 		o.errlog.Add(err)
@@ -60,7 +57,7 @@ func (o Other) Build(out io.Writer, verbose bool) error {
 		Args:     args,
 		Env:      os.Environ(),
 		Output:   out,
-		Progress: o.progress,
+		Progress: progress,
 		Verbose:  verbose,
 	}
 	if o.timeout > 0 {

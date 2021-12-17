@@ -28,21 +28,19 @@ type JavaScript struct {
 	errlog              fsterr.LogInterface
 	packageDependency   string
 	packageExecutable   string
-	progress            io.Writer
 	timeout             int
 	toolchain           string
 	validateScriptBuild bool
 }
 
 // NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int, build string, errlog fsterr.LogInterface, progress text.Progress) *JavaScript {
+func NewJavaScript(timeout int, build string, errlog fsterr.LogInterface) *JavaScript {
 	return &JavaScript{
 		Shell:               Shell{},
 		build:               build,
 		errlog:              errlog,
 		packageDependency:   "@fastly/js-compute",
 		packageExecutable:   "js-compute-runtime",
-		progress:            progress,
 		timeout:             timeout,
 		toolchain:           JsToolchain,
 		validateScriptBuild: true,
@@ -231,7 +229,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // JavaScript source to a Wasm binary.
-func (j JavaScript) Build(out io.Writer, verbose bool) error {
+func (j JavaScript) Build(out, progress io.Writer, verbose bool) error {
 	cmd := j.toolchain
 	args := []string{"run", "build"}
 
@@ -244,7 +242,7 @@ func (j JavaScript) Build(out io.Writer, verbose bool) error {
 		Args:     args,
 		Env:      os.Environ(),
 		Output:   out,
-		Progress: j.progress,
+		Progress: progress,
 		Verbose:  verbose,
 	}
 	if j.timeout > 0 {
