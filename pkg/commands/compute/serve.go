@@ -19,7 +19,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
@@ -79,7 +79,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 // Exec implements the command interface.
 func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.skipBuild && c.watch {
-		return errors.ErrIncompatibleServeFlags
+		return fsterr.ErrIncompatibleServeFlags
 	}
 
 	if !c.skipBuild {
@@ -91,7 +91,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress := text.ResetProgress(out, c.Globals.Verbose())
 
-	bin, err := getViceroy(progress, out, c.viceroyVersioner)
+	bin, err := getViceroy(progress, out, c.viceroyVersioner, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -99,11 +99,13 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Running local server...")
 	progress.Done()
 
+	srcDir := sourceDirectory(c.lang, c.manifest.File.Language, c.watch, out)
+
 	for {
-		err = local(bin, c.file, c.addr, c.env.Value, c.watch, c.Globals.Verbose(), progress, out)
+		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.watch, c.Globals.Verbose(), progress, out, c.Globals.ErrLog)
 		if err != nil {
-			if err != errors.ErrViceroyRestart {
-				if err == errors.ErrSignalInterrupt || err == errors.ErrSignalKilled {
+			if err != fsterr.ErrViceroyRestart {
+				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
 					text.Info(out, "Local server stopped")
 					return nil
 				}
@@ -159,7 +161,7 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner) (bin string, err error) {
+func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner, errLog fsterr.LogInterface) (bin string, err error) {
 	progress.Step("Checking latest Viceroy release...")
 
 	defer func(progress text.Progress) {
@@ -187,19 +189,23 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
+		errLog.Add(err)
+
 		// We presume an error means Viceroy needs to be installed.
 		install = true
 	}
 
 	latest, err := versioner.LatestVersion(context.Background())
 	if err != nil {
+		errLog.Add(err)
+
 		// When we have an error getting the latest version information for Viceroy
 		// and the user doesn't have a pre-existing install of Viceroy, then we're
 		// forced to return the error.
 		if install {
-			return bin, errors.RemediationError{
+			return bin, fsterr.RemediationError{
 				Inner:       fmt.Errorf("error fetching latest version: %w", err),
-				Remediation: errors.NetworkRemediation,
+				Remediation: fsterr.NetworkRemediation,
 			}
 		}
 		return bin, nil
@@ -212,18 +218,21 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	if install {
 		err := installViceroy(progress, versioner, latest, bin)
 		if err != nil {
+			errLog.Add(err)
 			return bin, err
 		}
 	} else {
 		version := strings.TrimSpace(string(stdoutStderr))
 		err := updateViceroy(progress, version, out, versioner, latest, bin)
 		if err != nil {
+			errLog.Add(err)
 			return bin, err
 		}
 	}
 
 	err = setBinPerms(bin)
 	if err != nil {
+		errLog.Add(err)
 		return bin, err
 	}
 	return bin, nil
@@ -273,9 +282,9 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 
 	var installedViceroyVersion string
 
-	viceroyError := errors.RemediationError{
+	viceroyError := fsterr.RemediationError{
 		Inner:       fmt.Errorf("a Viceroy version was not found"),
-		Remediation: errors.BugRemediation,
+		Remediation: fsterr.BugRemediation,
 	}
 
 	// version output has the expected format: `viceroy 0.1.0`
@@ -297,9 +306,9 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 	if err != nil {
 		progress.Fail()
 
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("error reading current version: %w", err),
-			Remediation: errors.BugRemediation,
+			Remediation: fsterr.BugRemediation,
 		}
 	}
 
@@ -345,14 +354,38 @@ func setBinPerms(bin string) error {
 	return nil
 }
 
+// sourceDirectory identifies the source code directory for the given language.
+func sourceDirectory(flag cmd.OptionalString, lang string, watch bool, out io.Writer) string {
+	if flag.WasSet {
+		lang = flag.Value
+	}
+	lang = strings.ToLower(strings.TrimSpace(lang))
+
+	defaultDir := "src"
+
+	switch lang {
+	case "assemblyscript":
+		return ASSourceDirectory
+	case "javascript":
+		return JSSourceDirectory
+	case "rust":
+		return RustSourceDirectory
+	}
+	if watch {
+		text.Info(out, "The --watch flag defaults to watching file modifications in a ./src directory.")
+	}
+	return defaultDir
+}
+
 // local spawns a subprocess that runs the compiled binary.
-func local(bin, file, addr, env string, watch, verbose bool, progress text.Progress, out io.Writer) error {
+func local(bin, srcDir, file, addr, env string, watch, verbose bool, progress text.Progress, out io.Writer, errLog fsterr.LogInterface) error {
 	if env != "" {
 		env = "." + env
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
+		errLog.Add(err)
 		return err
 	}
 
@@ -377,7 +410,7 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 
 	restart := make(chan bool)
 	if watch {
-		go watchFiles(cmd, out, restart)
+		go watchFiles(srcDir, cmd, out, restart)
 	}
 
 	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
@@ -401,17 +434,18 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 	// How big an issue this is depends on how many file modifications a user
 	// makes, because having lots of signal listeners could exhaust resources.
 	if err := cmd.Exec(); err != nil {
+		errLog.Add(err)
 		e := strings.TrimSpace(err.Error())
 		if strings.Contains(e, "interrupt") {
-			return errors.ErrSignalInterrupt
+			return fsterr.ErrSignalInterrupt
 		}
 		if strings.Contains(e, "killed") {
 			select {
 			case <-restart:
 				cmd.SignalCh <- syscall.SIGTERM
-				return errors.ErrViceroyRestart
+				return fsterr.ErrViceroyRestart
 			case <-time.After(1 * time.Second):
-				return errors.ErrSignalKilled
+				return fsterr.ErrSignalKilled
 			}
 		}
 		return err
@@ -420,9 +454,9 @@ func local(bin, file, addr, env string, watch, verbose bool, progress text.Progr
 	return nil
 }
 
-// watchFiles watches the 'src' directory and restarts the viceroy executable
-// when changes are detected.
-func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+// watchFiles watches the language source directory and restarts the viceroy
+// executable when changes are detected.
+func watchFiles(dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -502,9 +536,7 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 		}
 	}()
 
-	root := "src"
-
-	filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+	filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -517,7 +549,7 @@ func watchFiles(cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 		return nil
 	})
 
-	text.Info(out, "Watching ./%s for changes", root)
+	text.Info(out, "Watching ./%s for changes", dir)
 	text.Break(out)
 	<-done
 }

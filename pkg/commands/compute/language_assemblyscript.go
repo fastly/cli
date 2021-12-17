@@ -12,6 +12,9 @@ import (
 	"github.com/fastly/cli/pkg/filesystem"
 )
 
+// ASSourceDirectory represents the source code directory.
+const ASSourceDirectory = "assembly"
+
 // AssemblyScript implements a Toolchain for the AssemblyScript language.
 //
 // NOTE: We embed the JavaScript type as the behaviours across both languages

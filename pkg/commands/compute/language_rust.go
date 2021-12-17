@@ -24,6 +24,9 @@ import (
 	toml "github.com/pelletier/go-toml"
 )
 
+// RustSourceDirectory represents the source code directory.
+const RustSourceDirectory = "src"
+
 // CargoPackage models the package configuration properties of a Rust Cargo
 // package which we are interested in and is embedded within CargoManifest and
 // CargoLock.
@@ -103,10 +106,6 @@ func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterfa
 		timeout: timeout,
 	}
 }
-
-// SourceDirectory implements the Toolchain interface and returns the source
-// directory for Rust packages.
-func (r Rust) SourceDirectory() string { return "src" }
 
 // IncludeFiles implements the Toolchain interface and returns a list of
 // additional files to include in the package archive for Rust packages.

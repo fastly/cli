@@ -15,6 +15,9 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// JSSourceDirectory represents the source code directory.
+const JSSourceDirectory = "src"
+
 // JsToolchain represents the default JS toolchain.
 const JsToolchain = "npm"
 

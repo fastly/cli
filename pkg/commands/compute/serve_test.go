@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -42,7 +43,9 @@ func TestGetViceroy(t *testing.T) {
 		DownloadedFile: downloadedFile,
 	}
 
-	_, err := getViceroy(progress, &out, versioner)
+	errlog := fsterr.MockLog{}
+
+	_, err := getViceroy(progress, &out, versioner, errlog)
 	if err != nil {
 		t.Fatal(err)
 	}
