@@ -8,24 +8,27 @@ import (
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // Other implements a Toolchain for languages without official support.
 type Other struct {
 	Shell
 
-	build   string
-	errlog  fsterr.LogInterface
-	timeout int
+	build    string
+	errlog   fsterr.LogInterface
+	progress io.Writer
+	timeout  int
 }
 
 // NewOther constructs a new unsupported language instance.
-func NewOther(timeout int, build string, errlog fsterr.LogInterface) *Other {
+func NewOther(timeout int, build string, errlog fsterr.LogInterface, progress text.Progress) *Other {
 	return &Other{
-		Shell:   Shell{},
-		build:   build,
-		errlog:  errlog,
-		timeout: timeout,
+		Shell:    Shell{},
+		build:    build,
+		errlog:   errlog,
+		progress: progress,
+		timeout:  timeout,
 	}
 }
 
@@ -53,10 +56,12 @@ func (o Other) Build(out io.Writer, verbose bool) error {
 	cmd, args := o.Shell.Build(o.build)
 
 	s := fstexec.Streaming{
-		Command: cmd,
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  out,
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: o.progress,
+		Verbose:  verbose,
 	}
 	if o.timeout > 0 {
 		s.Timeout = time.Duration(o.timeout) * time.Second

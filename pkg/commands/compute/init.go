@@ -132,7 +132,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals, mf.Scripts.Build)
+	if !c.Globals.Verbose() {
+		progress = text.NewProgress(out, false)
+	}
+
+	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals, mf.Scripts.Build, progress)
 	language, err := selectLanguage(c.from, c.language, languages, mf, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -158,9 +162,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	text.Break(out)
-	if !c.Globals.Verbose() {
-		progress = text.NewProgress(out, false)
-	}
 
 	err = fetchPackageTemplate(language, c.from, branch, tag, c.dir, mf, file.Archives, progress, c.client, out, c.Globals.ErrLog)
 	if err != nil {

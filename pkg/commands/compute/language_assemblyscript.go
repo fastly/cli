@@ -10,6 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // AssemblyScript implements a Toolchain for the AssemblyScript language.
@@ -28,13 +29,14 @@ type AssemblyScript struct {
 }
 
 // NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript(timeout int, build string, errlog fsterr.LogInterface) *AssemblyScript {
+func NewAssemblyScript(timeout int, build string, errlog fsterr.LogInterface, progress text.Progress) *AssemblyScript {
 	return &AssemblyScript{
 		JavaScript: JavaScript{
 			build:             build,
 			errlog:            errlog,
 			packageDependency: "assemblyscript",
 			packageExecutable: "asc",
+			progress:          progress,
 			timeout:           timeout,
 			toolchain:         JsToolchain,
 		},
@@ -81,10 +83,12 @@ func (a AssemblyScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	s := fstexec.Streaming{
-		Command: cmd,
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  out,
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: a.progress,
+		Verbose:  verbose,
 	}
 	if a.timeout > 0 {
 		s.Timeout = time.Duration(a.timeout) * time.Second

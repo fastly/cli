@@ -85,22 +85,24 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 type Rust struct {
 	Shell
 
-	build   string
-	client  api.HTTPClient
-	config  config.Rust
-	errlog  fsterr.LogInterface
-	timeout int
+	build    string
+	client   api.HTTPClient
+	config   config.Rust
+	errlog   fsterr.LogInterface
+	progress text.Progress
+	timeout  int
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, build string) *Rust {
+func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, build string, progress text.Progress) *Rust {
 	return &Rust{
-		Shell:   Shell{},
-		build:   build,
-		client:  client,
-		config:  config,
-		errlog:  errlog,
-		timeout: timeout,
+		Shell:    Shell{},
+		build:    build,
+		client:   client,
+		config:   config,
+		errlog:   errlog,
+		progress: progress,
+		timeout:  timeout,
 	}
 }
 
@@ -487,10 +489,12 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
 	s := fstexec.Streaming{
-		Command: cmd,
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  out,
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: r.progress,
+		Verbose:  verbose,
 	}
 	if r.timeout > 0 {
 		s.Timeout = time.Duration(r.timeout) * time.Second

@@ -126,26 +126,26 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "assemblyscript",
 			SourceDirectory: "assembly",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain:       NewAssemblyScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog, progress),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewJavaScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain:       NewJavaScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog, progress),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: "src",
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, c.Manifest.File.Scripts.Build),
+			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, c.Manifest.File.Scripts.Build, progress),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{
 			Name:      "other",
-			Toolchain: NewOther(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain: NewOther(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog, progress),
 		})
 	default:
 		return fmt.Errorf("unsupported language %s", identLang)

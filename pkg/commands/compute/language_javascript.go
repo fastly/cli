@@ -28,19 +28,21 @@ type JavaScript struct {
 	errlog              fsterr.LogInterface
 	packageDependency   string
 	packageExecutable   string
+	progress            io.Writer
 	timeout             int
 	toolchain           string
 	validateScriptBuild bool
 }
 
 // NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int, build string, errlog fsterr.LogInterface) *JavaScript {
+func NewJavaScript(timeout int, build string, errlog fsterr.LogInterface, progress text.Progress) *JavaScript {
 	return &JavaScript{
 		Shell:               Shell{},
 		build:               build,
 		errlog:              errlog,
 		packageDependency:   "@fastly/js-compute",
 		packageExecutable:   "js-compute-runtime",
+		progress:            progress,
 		timeout:             timeout,
 		toolchain:           JsToolchain,
 		validateScriptBuild: true,
@@ -238,10 +240,12 @@ func (j JavaScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	s := fstexec.Streaming{
-		Command: cmd,
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  out,
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: j.progress,
+		Verbose:  verbose,
 	}
 	if j.timeout > 0 {
 		s.Timeout = time.Duration(j.timeout) * time.Second

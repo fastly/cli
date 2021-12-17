@@ -11,6 +11,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/fastly/cli/pkg/text"
 )
 
 // Streaming models a generic command execution that consumers can use to
@@ -23,8 +25,10 @@ type Streaming struct {
 	Env      []string
 	Output   io.Writer
 	Process  *os.Process
+	Progress io.Writer
 	SignalCh chan os.Signal
 	Timeout  time.Duration
+	Verbose  bool
 }
 
 // MonitorSignals spawns a goroutine that configures signal handling so that
@@ -76,9 +80,31 @@ func (s *Streaming) Exec() error {
 	cmd.Env = append(os.Environ(), s.Env...)
 
 	// Pipe the child process stdout and stderr to our own output writer.
-	var stderrBuf bytes.Buffer
-	cmd.Stdout = s.Output
-	cmd.Stderr = io.MultiWriter(s.Output, &stderrBuf)
+	var stdoutBuf, stderrBuf bytes.Buffer
+
+	// NOTE: Historically this Exec() function would use a text.Progress as an
+	// io.Writer so that the command output could be constrained to a single
+	// line. But now we have commands such as `compute serve` that want the full
+	// output to be displayed so the user can see things like compilation errors.
+	//
+	// The Streaming type now has both s.Out and s.Progress fields.
+	//
+	// We presume s.Output to always be set and s.Progress to sometimes be set.
+	//
+	// With that in mind, we default to setting `output` to be s.Output and will
+	// override it to be s.Progress if it has been set. We'll then have to
+	// override it back to s.Output if the user themselves have appended the
+	// --verbose flag.
+	output := s.Output
+	if s.Progress != nil {
+		output = s.Progress
+	}
+	if s.Verbose {
+		output = s.Output
+	}
+
+	cmd.Stdout = io.MultiWriter(output, &stdoutBuf)
+	cmd.Stderr = io.MultiWriter(output, &stderrBuf)
 
 	if err := cmd.Start(); err != nil {
 		return err
@@ -92,9 +118,24 @@ func (s *Streaming) Exec() error {
 	if err := cmd.Wait(); err != nil {
 		var ctx string
 		if stderrBuf.Len() > 0 {
-			ctx = fmt.Sprintf(":\n%s", strings.TrimSpace(stderrBuf.String()))
+			if !s.Verbose {
+				ctx = fmt.Sprintf(":\n\n%s", strings.TrimSpace(stderrBuf.String()))
+			}
 		} else {
-			ctx = fmt.Sprintf(":\n%s", err)
+			// NOTE: Viceroy doesn't send errors to stderr but to stdout.
+			//
+			// We want to ensure the compilation errors sent to stdout are displayed
+			// regardless of whether the user has --verbose set.
+			//
+			// If --verbose is set, then all errors will be seen anyway.
+			// If --verbose isn't set, then we use text.Progress to constrain output.
+			//
+			// Meaning: only display stdoutBuf if NOT in verbose mode already.
+			var cmdOutput string
+			if !s.Verbose {
+				cmdOutput = "\n" + text.WrapIndent(stdoutBuf.String(), text.DefaultTextWidth, 5)
+			}
+			ctx = fmt.Sprintf(":%s\n\n%s", cmdOutput, err)
 		}
 		return fmt.Errorf("error during execution process%s", ctx)
 	}
