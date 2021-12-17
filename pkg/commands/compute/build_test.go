@@ -479,6 +479,7 @@ func TestBuildJavaScript(t *testing.T) {
 		name                 string
 		args                 []string
 		fastlyManifest       string
+		sourceOverride       string
 		wantError            string
 		wantRemediationError string
 		wantOutputContains   string
@@ -514,6 +515,18 @@ func TestBuildJavaScript(t *testing.T) {
 			language = "javascript"`,
 			wantOutputContains: "Built package 'test'",
 		},
+		{
+			name: "JavaScript compilation error",
+			args: args("compute build --verbose"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "javascript"`,
+			sourceOverride: `D"F;
+			'GREGERgregeg '
+			ERG`,
+			wantError: "error during execution process",
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			if testcase.fastlyManifest != "" {
@@ -522,9 +535,18 @@ func TestBuildJavaScript(t *testing.T) {
 				}
 			}
 
+			if testcase.sourceOverride != "" {
+				if err := os.WriteFile(filepath.Join(rootdir, "src", "index.js"), []byte(testcase.sourceOverride), 0777); err != nil {
+					t.Fatal(err)
+				}
+			}
+
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			err = app.Run(opts)
+
+			t.Log(stdout.String())
+
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
