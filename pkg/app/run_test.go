@@ -446,6 +446,7 @@ COMMANDS
     List API tokens
 
     --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
+                               (falls back to FASTLY_CUSTOMER_ID)
 
   backend create --version=VERSION --name=NAME --address=ADDRESS [<flags>]
     Create a backend on a Fastly service version
@@ -4488,10 +4489,11 @@ COMMANDS
     --id=ID    Alphanumeric string identifying the user
     --current  Get the logged in user
 
-  user list --customer-id=CUSTOMER-ID
+  user list [<flags>]
     List all users from a specified customer id
 
     --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
+                               (falls back to FASTLY_CUSTOMER_ID)
 
   user update [<flags>]
     Update a user of the Fastly API and web interface
