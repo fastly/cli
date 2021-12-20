@@ -118,6 +118,7 @@ type ServiceDetailsOpts struct {
 	Client             api.Interface
 	Manifest           manifest.Data
 	Out                io.Writer
+	ServiceNameFlag    OptionalServiceNameID
 	ServiceVersionFlag OptionalServiceVersion
 	VerboseMode        bool
 }
@@ -126,12 +127,18 @@ type ServiceDetailsOpts struct {
 func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *fastly.Version, err error) {
 	serviceID, source := opts.Manifest.ServiceID()
 
-	if opts.VerboseMode {
-		DisplayServiceID(serviceID, source, opts.Out)
+	if source == manifest.SourceUndefined {
+		if !opts.ServiceNameFlag.WasSet {
+			return serviceID, serviceVersion, errors.ErrNoServiceID
+		}
+		serviceID, err = opts.ServiceNameFlag.Parse(opts.Client)
+		if err != nil {
+			return serviceID, serviceVersion, err
+		}
 	}
 
-	if source == manifest.SourceUndefined {
-		return serviceID, serviceVersion, errors.ErrNoServiceID
+	if opts.VerboseMode {
+		DisplayServiceID(serviceID, source, opts.Out)
 	}
 
 	v, err := opts.ServiceVersionFlag.Parse(serviceID, opts.Client)
