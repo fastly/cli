@@ -3,6 +3,7 @@ package authtoken_test
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
@@ -220,60 +221,97 @@ func TestDescribe(t *testing.T) {
 
 func TestList(t *testing.T) {
 	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	type ts struct {
+		testutil.TestScenario
+		SetEnv bool
+	}
+	scenarios := []ts{
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token list"),
-			WantError: errors.ErrNoToken.Inner.Error(),
+			TestScenario: testutil.TestScenario{
+				Name:      "validate missing --token flag",
+				Args:      args("auth-token list"),
+				WantError: errors.ErrNoToken.Inner.Error(),
+			},
 		},
 		{
-			Name: "validate ListTokens API error",
-			API: mock.API{
-				ListTokensFn: func() ([]*fastly.Token, error) {
-					return nil, testutil.Err
+			TestScenario: testutil.TestScenario{
+				Name: "validate ListTokens API error",
+				API: mock.API{
+					ListTokensFn: func() ([]*fastly.Token, error) {
+						return nil, testutil.Err
+					},
 				},
+				Args:      args("auth-token list --token 123"),
+				WantError: testutil.Err.Error(),
 			},
-			Args:      args("auth-token list --token 123"),
-			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate ListCustomerTokens API error",
-			API: mock.API{
-				ListCustomerTokensFn: func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
-					return nil, testutil.Err
+			TestScenario: testutil.TestScenario{
+				Name: "validate ListCustomerTokens API error",
+				API: mock.API{
+					ListCustomerTokensFn: func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
+						return nil, testutil.Err
+					},
 				},
+				Args:      args("auth-token list --customer-id 123 --token 123"),
+				WantError: testutil.Err.Error(),
 			},
-			Args:      args("auth-token list --customer-id 123 --token 123"),
-			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate ListTokens API success",
-			API: mock.API{
-				ListTokensFn: listTokens,
+			TestScenario: testutil.TestScenario{
+				Name: "validate ListTokens API success",
+				API: mock.API{
+					ListTokensFn: listTokens,
+				},
+				Args:       args("auth-token list --token 123"),
+				WantOutput: listTokenOutputSummary(false),
 			},
-			Args:       args("auth-token list --token 123"),
-			WantOutput: listTokenOutputSummary(),
 		},
 		{
-			Name: "validate ListCustomerTokens API success",
-			API: mock.API{
-				ListCustomerTokensFn: listCustomerTokens,
+			TestScenario: testutil.TestScenario{
+				Name: "validate ListCustomerTokens API success",
+				API: mock.API{
+					ListCustomerTokensFn: listCustomerTokens,
+				},
+				Args:       args("auth-token list --customer-id 123 --token 123"),
+				WantOutput: listTokenOutputSummary(false),
 			},
-			Args:       args("auth-token list --customer-id 123 --token 123"),
-			WantOutput: listTokenOutputSummary(),
 		},
 		{
-			Name: "validate --verbose flag",
-			API: mock.API{
-				ListTokensFn: listTokens,
+			TestScenario: testutil.TestScenario{
+				Name: "validate ListCustomerTokens API success with env var",
+				API: mock.API{
+					ListCustomerTokensFn: listCustomerTokens,
+				},
+				Args:       args("auth-token list --token 123"),
+				WantOutput: listTokenOutputSummary(true),
 			},
-			Args:       args("auth-token list --token 123 --verbose"),
-			WantOutput: listTokenOutputVerbose(),
+			SetEnv: true,
+		},
+		{
+			TestScenario: testutil.TestScenario{
+				Name: "validate --verbose flag",
+				API: mock.API{
+					ListTokensFn: listTokens,
+				},
+				Args:       args("auth-token list --token 123 --verbose"),
+				WantOutput: listTokenOutputVerbose(),
+			},
 		},
 	}
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
+			if testcase.SetEnv {
+				if err := os.Setenv("FASTLY_CUSTOMER_ID", "123"); err != nil {
+					t.Fatal(err)
+				}
+				defer func() {
+					if err := os.Unsetenv("FASTLY_CUSTOMER_ID"); err != nil {
+						t.Fatal(err)
+					}
+				}()
+			}
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
@@ -374,8 +412,12 @@ Last used at: 2021-06-15 23:00:00 +0000 UTC
 Expires at: 2021-06-15 23:00:00 +0000 UTC`
 }
 
-func listTokenOutputSummary() string {
-	return `NAME  TOKEN ID  USER ID  SCOPE                  SERVICES
+func listTokenOutputSummary(env bool) string {
+	var msg string
+	if env {
+		msg = "\nINFO: Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n"
+	}
+	return fmt.Sprintf(`%sNAME  TOKEN ID  USER ID  SCOPE                  SERVICES
 Foo   123       456      purge_all global:read  a, b
-Bar   456       789      global                 a, b`
+Bar   456       789      global                 a, b`, msg)
 }
