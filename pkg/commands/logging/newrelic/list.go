@@ -26,6 +26,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 
 	// Optional Flags
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 
 	return &c
 }
@@ -35,6 +36,7 @@ type ListCommand struct {
 	cmd.Base
 
 	manifest       manifest.Data
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
 
@@ -45,6 +47,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
 		Out:                out,
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

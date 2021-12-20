@@ -16,10 +16,11 @@ import (
 type UpdateCommand struct {
 	cmd.Base
 
-	comment  cmd.OptionalString
-	input    fastly.UpdateServiceInput
-	manifest manifest.Data
-	name     cmd.OptionalString
+	comment     cmd.OptionalString
+	input       fastly.UpdateServiceInput
+	manifest    manifest.Data
+	name        cmd.OptionalString
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -29,6 +30,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 	c.CmdClause = parent.Command("update", "Update a Fastly service")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	return &c
@@ -41,7 +43,17 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 	c.input.ServiceID = serviceID
 

@@ -16,6 +16,7 @@ type ActivateCommand struct {
 	cmd.Base
 	manifest       manifest.Data
 	Input          fastly.ActivateVersionInput
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 	autoClone      cmd.OptionalAutoClone
 }
@@ -27,6 +28,7 @@ func NewActivateCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.manifest = data
 	c.CmdClause = parent.Command("activate", "Activate a Fastly service version")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
@@ -44,6 +46,7 @@ func (c *ActivateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
 		Out:                out,
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

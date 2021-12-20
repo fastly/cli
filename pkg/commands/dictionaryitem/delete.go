@@ -14,8 +14,9 @@ import (
 // DeleteCommand calls the Fastly API to delete a service.
 type DeleteCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.DeleteDictionaryItemInput
+	manifest    manifest.Data
+	Input       fastly.DeleteDictionaryItemInput
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -25,6 +26,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 	c.CmdClause = parent.Command("delete", "Delete an item from a Fastly edge dictionary")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
 	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
 	return &c
@@ -37,7 +39,17 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 	c.Input.ServiceID = serviceID
 

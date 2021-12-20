@@ -16,6 +16,7 @@ type DeleteCommand struct {
 	cmd.Base
 	manifest       manifest.Data
 	Input          fastly.DeleteDomainInput
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 	autoClone      cmd.OptionalAutoClone
 }
@@ -28,6 +29,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause = parent.Command("delete", "Delete a domain on a Fastly service version").Alias("remove")
 	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.Input.Name)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
@@ -45,6 +47,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
 		Out:                out,
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

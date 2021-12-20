@@ -16,8 +16,9 @@ import (
 // ListCommand calls the Fastly API to list services.
 type ListCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.ListVersionsInput
+	manifest    manifest.Data
+	Input       fastly.ListVersionsInput
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -27,6 +28,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.manifest = data
 	c.CmdClause = parent.Command("list", "List Fastly service versions")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	return &c
 }
 
@@ -37,7 +39,17 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 	c.Input.ServiceID = serviceID
 

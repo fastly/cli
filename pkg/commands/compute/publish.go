@@ -29,6 +29,7 @@ type PublishCommand struct {
 	comment        cmd.OptionalString
 	domain         cmd.OptionalString
 	path           cmd.OptionalString
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
 
@@ -50,6 +51,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Action:   c.serviceVersion.Set,
 		Dst:      &c.serviceVersion.Value,
@@ -107,6 +109,9 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.path.WasSet {
 		c.deploy.Path = c.path.Value
+	}
+	if c.serviceName.WasSet {
+		c.deploy.ServiceName = c.serviceName // deploy's field is a cmd.OptionalServiceNameID
 	}
 	if c.serviceVersion.WasSet {
 		c.deploy.ServiceVersion = c.serviceVersion // deploy's field is a cmd.OptionalServiceVersion
