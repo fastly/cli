@@ -139,6 +139,21 @@ outer:
 	}
 }
 
+// AskYesNo is similar to Input, but the line read is coerced to
+// one of true (yes and its variants) or false (no, its variants and
+// anything else) on success.
+func AskYesNo(w io.Writer, prompt string, r io.Reader) (bool, error) {
+	answer, err := Input(w, prompt, r)
+	if err != nil {
+		return false, fmt.Errorf("error reading input %w", err)
+	}
+	answer = strings.ToLower(answer)
+	if answer == "y" || answer == "yes" {
+		return true, nil
+	}
+	return false, nil
+}
+
 // Break simply writes a newline to the writer. It's intended to be used between
 // blocks of text that would otherwise be adjacent, a sort of semantic markup.
 func Break(w io.Writer) {

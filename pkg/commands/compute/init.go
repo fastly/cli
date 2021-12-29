@@ -219,24 +219,7 @@ func verifyDirectory(dir string, skipVerification bool, out io.Writer, in io.Rea
 
 	if len(files) > 0 {
 		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
-		cont, err := text.Input(out, label, in)
-		if err != nil {
-			return false, fmt.Errorf("error reading input %w", err)
-		}
-
-		contl := strings.ToLower(cont)
-
-		if contl == "n" || contl == "no" {
-			return false, nil
-		}
-
-		if contl == "y" || contl == "yes" {
-			return true, nil
-		}
-
-		// NOTE: be defensive and default to short-circuiting the execution flow if
-		// the input is unrecognised.
-		return false, nil
+		return text.AskYesNo(out, label, in)
 	}
 
 	return true, nil
