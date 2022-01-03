@@ -91,7 +91,7 @@ func TestAskYesNo(t *testing.T) {
 			wantResult: true,
 		},
 		{
-			name:       "losercase y",
+			name:       "lowercase y",
 			in:         "y\n",
 			wantResult: true,
 		},
