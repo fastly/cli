@@ -119,7 +119,7 @@ type OptionalCustomerID struct {
 // Parse returns a customer ID either from a flag or from a user defined
 // environment variable (see pkg/env/env.go).
 //
-// NOTE: Will fallback to environment variable if no flag value set.
+// NOTE: Will fallback to FASTLY_CUSTOMER_ID environment variable if no flag value set.
 func (sv *OptionalCustomerID) Parse() error {
 	if sv.Value == "" {
 		if e := os.Getenv(env.CustomerID); e != "" {
