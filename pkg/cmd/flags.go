@@ -42,7 +42,8 @@ func (b Base) RegisterFlag(opts StringFlagOpts) {
 	}
 	if opts.Required {
 		clause = clause.Required()
-	} else {
+	}
+	if opts.Action != nil {
 		clause = clause.Action(opts.Action)
 	}
 	clause.StringVar(opts.Dst)
