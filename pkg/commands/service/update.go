@@ -29,8 +29,18 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("update", "Update a Fastly service")
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.serviceName.Value,
+	})
 	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	return &c

@@ -53,8 +53,18 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("url", "The URL to POST to").Required().StringVar(&c.URL)
-	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.Manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.ServiceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.ServiceName.Value,
+	})
 	c.CmdClause.Flag("tls-ca-cert", "A secure certificate to authenticate the server with. Must be in PEM format").Action(c.TLSCACert.Set).StringVar(&c.TLSCACert.Value)
 	c.CmdClause.Flag("tls-hostname", "The hostname used to verify the server's certificate. It can either be the Common Name or a Subject Alternative Name (SAN)").Action(c.TLSHostname.Set).StringVar(&c.TLSHostname.Value)
 	c.CmdClause.Flag("tls-client-cert", "The client certificate used to make authenticated requests. Must be in PEM format").Action(c.TLSClientCert.Set).StringVar(&c.TLSClientCert.Value)

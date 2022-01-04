@@ -37,8 +37,18 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the Sumologic logging object").Short('n').Required().StringVar(&c.Input.Name)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.serviceName.Value,
+	})
 	return &c
 }
 

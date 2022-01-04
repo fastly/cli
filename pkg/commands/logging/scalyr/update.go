@@ -48,8 +48,18 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the Scalyr logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.Manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.ServiceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.ServiceName.Value,
+	})
 	c.CmdClause.Flag("new-name", "New name of the Scalyr logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)

@@ -23,8 +23,18 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.CmdClause.Flag("id", "Alphanumeric string identifying an ACL Entry").Required().StringVar(&c.id)
 
 	// Optional Flags
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.serviceName.Value,
+	})
 
 	return &c
 }

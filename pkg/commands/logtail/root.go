@@ -48,8 +48,18 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("log-tail", "Tail Compute@Edge logs")
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.serviceName.Value,
+	})
 	c.CmdClause.Flag("from", "From time, in Unix seconds").Int64Var(&c.cfg.from)
 	c.CmdClause.Flag("to", "To time, in Unix seconds").Int64Var(&c.cfg.to)
 	c.CmdClause.Flag("sort-buffer", "Duration of sort buffer for received logs").Default("1s").DurationVar(&c.cfg.sortBuffer)

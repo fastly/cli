@@ -55,8 +55,18 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the GCS logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.Manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.ServiceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.ServiceName.Value,
+	})
 	c.CmdClause.Flag("new-name", "New name of the GCS logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("bucket", "The bucket of the GCS bucket").Action(c.Bucket.Set).StringVar(&c.Bucket.Value)
 	c.CmdClause.Flag("user", "Your GCS service account email address. The client_email field in your service account authentication JSON").Action(c.User.Set).StringVar(&c.User.Value)

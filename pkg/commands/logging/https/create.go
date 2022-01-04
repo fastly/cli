@@ -59,8 +59,18 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("url", "URL that log data will be sent to. Must use the https protocol").Required().StringVar(&c.URL)
-	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.Manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.ServiceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.ServiceName.Value,
+	})
 	c.CmdClause.Flag("content-type", "Content type of the header sent with the request").Action(c.ContentType.Set).StringVar(&c.ContentType.Value)
 	c.CmdClause.Flag("header-name", "Name of the custom header sent with the request").Action(c.HeaderName.Set).StringVar(&c.HeaderName.Value)
 	c.CmdClause.Flag("header-value", "Value of the custom header sent with the request").Action(c.HeaderValue.Set).StringVar(&c.HeaderValue.Value)

@@ -47,8 +47,18 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the Loggly logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.Manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.ServiceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.ServiceName.Value,
+	})
 	c.CmdClause.Flag("new-name", "New name of the Loggly logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://www.loggly.com/docs/customer-token-authentication-token/)").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)

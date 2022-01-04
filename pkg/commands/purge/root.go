@@ -27,8 +27,18 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause.Flag("all", "Purge everything from a service").BoolVar(&c.all)
 	c.CmdClause.Flag("file", "Purge a service of a newline delimited list of Surrogate Keys").StringVar(&c.file)
 	c.CmdClause.Flag("key", "Purge a service of objects tagged with a Surrogate Key").StringVar(&c.key)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.serviceName.Value,
+	})
 	c.CmdClause.Flag("soft", "A 'soft' purge marks affected objects as stale rather than making them inaccessible").BoolVar(&c.soft)
 	c.CmdClause.Flag("url", "Purge an individual URL").StringVar(&c.url)
 

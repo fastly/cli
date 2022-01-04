@@ -1,8 +1,12 @@
 package cmd
 
 var (
-	FlagVersionName    = "version"
-	FlagVersionDesc    = "'latest', 'active', or the number of a specific version"
 	FlagCustomerIDName = "customer-id"
 	FlagCustomerIDDesc = "Alphanumeric string identifying the customer (falls back to FASTLY_CUSTOMER_ID)"
+	FlagServiceIDName  = "service-id"
+	FlagServiceIDDesc  = "Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"
+	FlagServiceName    = "service-name"
+	FlagServiceDesc    = "The name of the service"
+	FlagVersionName    = "version"
+	FlagVersionDesc    = "'latest', 'active', or the number of a specific version"
 )
