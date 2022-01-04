@@ -51,6 +51,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
+		Required:    true,
 	})
 	c.CmdClause.Flag("stream-name", "The Amazon Kinesis stream to send logs to").Required().StringVar(&c.StreamName)
 	c.CmdClause.Flag("region", "The AWS region where the Kinesis stream exists").Required().StringVar(&c.Region)

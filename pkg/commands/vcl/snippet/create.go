@@ -27,6 +27,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
+		Required:    true,
 	})
 	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").Required().HintOptions(Locations...).EnumVar(&c.location, Locations...)
 

@@ -67,7 +67,6 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Action:      c.serviceVersion.Set,
-		Optional:    true,
 	})
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)

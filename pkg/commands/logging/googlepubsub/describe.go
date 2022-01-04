@@ -42,6 +42,7 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
+		Required:    true,
 	})
 	c.CmdClause.Flag("name", "The name of the Google Cloud Pub/Sub logging object").Short('n').Required().StringVar(&c.Input.Name)
 	return &c

@@ -25,17 +25,12 @@ var (
 )
 
 // StringFlagOpts enables easy configuration of a flag.
-//
-// NOTE: The reason we define an 'optional' field rather than a 'required'
-// field is because 99% of the use cases where --version is defined the flag
-// will be required, and so we cater for the common case. Meaning only those
-// subcommands that have --version as optional will need to set that field.
 type StringFlagOpts struct {
 	Action      kingpin.Action
 	Description string
 	Dst         *string
 	Name        string
-	Optional    bool
+	Required    bool
 	Short       rune
 }
 
@@ -45,7 +40,7 @@ func (b Base) RegisterFlag(opts StringFlagOpts) {
 	if opts.Short > 0 {
 		clause = clause.Short(opts.Short)
 	}
-	if !opts.Optional {
+	if opts.Required {
 		clause = clause.Required()
 	} else {
 		clause = clause.Action(opts.Action)

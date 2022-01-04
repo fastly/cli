@@ -57,6 +57,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
+		Required:    true,
 	})
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,

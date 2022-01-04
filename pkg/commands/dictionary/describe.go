@@ -42,6 +42,7 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
+		Required:    true,
 	})
 	c.CmdClause.Flag("name", "Name of Dictionary").Short('n').Required().StringVar(&c.Input.Name)
 	return &c

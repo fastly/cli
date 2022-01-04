@@ -42,6 +42,7 @@ func NewDeactivateCommand(parent cmd.Registerer, globals *config.Data, data mani
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
+		Required:    true,
 	})
 	return &c
 }

@@ -23,6 +23,7 @@ func NewValidateCommand(parent cmd.Registerer, globals *config.Data, data manife
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
+		Required:    true,
 	})
 
 	// Optional flags

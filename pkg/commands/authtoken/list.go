@@ -24,7 +24,6 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Description: cmd.FlagCustomerIDDesc,
 		Dst:         &c.customerID.Value,
 		Action:      c.customerID.Set,
-		Optional:    true,
 	})
 	return &c
 }

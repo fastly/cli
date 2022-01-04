@@ -72,7 +72,6 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Name:        cmd.FlagVersionName,
-		Optional:    true,
 	})
 	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and perform deploy non-interactively").BoolVar(&c.AcceptDefaults)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
