@@ -14,8 +14,9 @@ import (
 // DescribeCommand calls the Fastly API to describe a dictionary item.
 type DescribeCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.GetDictionaryItemInput
+	manifest    manifest.Data
+	Input       fastly.GetDictionaryItemInput
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -25,6 +26,7 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.manifest = data
 	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly edge dictionary item").Alias("get")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
 	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
 	return &c
@@ -37,7 +39,17 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 	c.Input.ServiceID = serviceID
 

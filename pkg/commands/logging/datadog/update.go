@@ -18,6 +18,7 @@ type UpdateCommand struct {
 
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
+	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
@@ -46,6 +47,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("name", "The name of the Datadog logging object").Short('n').Required().StringVar(&c.EndpointName)
 	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
 	c.CmdClause.Flag("new-name", "New name of the Datadog logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("auth-token", "The API key from your Datadog account").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
@@ -102,6 +104,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.Manifest,
 		Out:                out,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

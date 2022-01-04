@@ -31,14 +31,15 @@ import (
 type RootCommand struct {
 	cmd.Base
 
-	Input    fastly.CreateManagedLoggingInput
-	batchCh  chan Batch // send batches to output loop
-	cfg      cfg
-	dieCh    chan struct{} // channel to end output/printing
-	doneCh   chan struct{} // channel to signal we've reached the end of the run
-	hClient  *http.Client  // TODO: this will go away when GET is in go-fastly
-	manifest manifest.Data
-	token    string // TODO: this will go away when GET is in go-fastly
+	Input       fastly.CreateManagedLoggingInput
+	batchCh     chan Batch // send batches to output loop
+	cfg         cfg
+	dieCh       chan struct{} // channel to end output/printing
+	doneCh      chan struct{} // channel to signal we've reached the end of the run
+	hClient     *http.Client  // TODO: this will go away when GET is in go-fastly
+	manifest    manifest.Data
+	serviceName cmd.OptionalServiceNameID
+	token       string // TODO: this will go away when GET is in go-fastly
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -48,6 +49,7 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.manifest = data
 	c.CmdClause = parent.Command("log-tail", "Tail Compute@Edge logs")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.CmdClause.Flag("from", "From time, in Unix seconds").Int64Var(&c.cfg.from)
 	c.CmdClause.Flag("to", "To time, in Unix seconds").Int64Var(&c.cfg.to)
 	c.CmdClause.Flag("sort-buffer", "Duration of sort buffer for received logs").Default("1s").DurationVar(&c.cfg.sortBuffer)
@@ -63,7 +65,17 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 	c.Input.ServiceID = serviceID
 

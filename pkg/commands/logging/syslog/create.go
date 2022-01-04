@@ -19,6 +19,7 @@ type CreateCommand struct {
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
 	Address        string
+	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
@@ -53,6 +54,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("address", "A hostname or IPv4 address").Required().StringVar(&c.Address)
 	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
 	c.CmdClause.Flag("tls-ca-cert", "A secure certificate to authenticate the server with. Must be in PEM format").Action(c.TLSCACert.Set).StringVar(&c.TLSCACert.Value)
@@ -135,6 +137,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.Manifest,
 		Out:                out,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

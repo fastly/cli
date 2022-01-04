@@ -19,6 +19,7 @@ type CreateCommand struct {
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
 	URL            string
+	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
@@ -46,6 +47,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("url", "The URL to POST to").Required().StringVar(&c.URL)
 	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
 	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).IntVar(&c.FormatVersion.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
@@ -93,6 +95,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.Manifest,
 		Out:                out,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

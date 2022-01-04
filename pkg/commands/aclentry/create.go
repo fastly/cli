@@ -26,6 +26,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("comment", "A freeform descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("negated", "Whether to negate the match").Action(c.negated.Set).BoolVar(&c.negated.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.CmdClause.Flag("subnet", "Number of bits for the subnet mask applied to the IP address").Action(c.subnet.Set).IntVar(&c.subnet.Value)
 
 	return &c
@@ -35,12 +36,13 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 type CreateCommand struct {
 	cmd.Base
 
-	aclID    string
-	comment  cmd.OptionalString
-	ip       string
-	manifest manifest.Data
-	negated  cmd.OptionalBool
-	subnet   cmd.OptionalInt
+	aclID       string
+	comment     cmd.OptionalString
+	ip          string
+	manifest    manifest.Data
+	negated     cmd.OptionalBool
+	serviceName cmd.OptionalServiceNameID
+	subnet      cmd.OptionalInt
 }
 
 // Exec invokes the application logic for the command.
@@ -50,9 +52,17 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		err := errors.ErrNoServiceID
-		c.Globals.ErrLog.Add(err)
-		return err
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 
 	input := c.constructInput(serviceID)

@@ -243,6 +243,8 @@ SUBCOMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
     -f, --force                  Force deletion of an active service
 
   service describe [<flags>]
@@ -250,6 +252,8 @@ SUBCOMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   service list
     List Fastly services
@@ -265,6 +269,8 @@ SUBCOMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
     -n, --name=NAME              Service name
         --comment=COMMENT        Human-readable comment
 
@@ -302,6 +308,8 @@ COMMANDS
                                  editable, clone it and use the clone.
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   acl delete --name=NAME --version=VERSION [<flags>]
     Delete an ACL from the specified service version
@@ -313,6 +321,8 @@ COMMANDS
                                  editable, clone it and use the clone.
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   acl describe --name=NAME --version=VERSION [<flags>]
     Retrieve a single ACL by name for the version and service
@@ -322,6 +332,8 @@ COMMANDS
                                  version
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   acl list --version=VERSION [<flags>]
     List ACLs
@@ -330,6 +342,8 @@ COMMANDS
                                  version
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   acl update --name=NAME --new-name=NEW-NAME --version=VERSION [<flags>]
     Update an ACL for a particular service and version
@@ -342,6 +356,8 @@ COMMANDS
                                  editable, clone it and use the clone.
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   acl-entry create --acl-id=ACL-ID --ip=IP [<flags>]
     Add an ACL entry to an ACL
@@ -352,6 +368,8 @@ COMMANDS
         --negated                Whether to negate the match
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --subnet=SUBNET          Number of bits for the subnet mask applied to
                                  the IP address
 
@@ -362,6 +380,8 @@ COMMANDS
         --id=ID                  Alphanumeric string identifying an ACL Entry
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   acl-entry describe --acl-id=ACL-ID --id=ID [<flags>]
     Retrieve a single ACL entry
@@ -370,6 +390,8 @@ COMMANDS
         --id=ID                  Alphanumeric string identifying an ACL Entry
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   acl-entry list --acl-id=ACL-ID [<flags>]
     List ACLs
@@ -377,6 +399,8 @@ COMMANDS
         --acl-id=ACL-ID          Alphanumeric string identifying a ACL
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   acl-entry update --acl-id=ACL-ID [<flags>]
     Update an ACL entry for a specified ACL
@@ -390,6 +414,8 @@ COMMANDS
         --negated                Whether to negate the match
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --subnet=SUBNET          Number of bits for the subnet mask applied to
                                  the IP address
 
@@ -426,6 +452,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --version=VERSION          'latest', 'active', or the number of a
                                    specific version
         --autoclone                If the selected service version is not
@@ -489,6 +517,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -500,6 +530,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              Name of backend
@@ -509,6 +541,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -517,6 +551,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --version=VERSION          'latest', 'active', or the number of a
                                    specific version
         --autoclone                If the selected service version is not
@@ -592,6 +628,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --accept-defaults        Accept default values for all prompts and
@@ -638,6 +676,8 @@ COMMANDS
     -p, --package=PACKAGE        Path to a package tar.gz
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --skip-verification      Skip verification steps and force build
@@ -666,6 +706,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -688,6 +730,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -701,6 +745,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -712,6 +758,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              Name of Dictionary
@@ -721,6 +769,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -729,6 +779,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -743,6 +795,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
         --key=KEY                Dictionary item key
@@ -753,6 +807,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
         --key=KEY                Dictionary item key
@@ -762,6 +818,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
         --key=KEY                Dictionary item key
@@ -771,6 +829,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
 
@@ -783,6 +843,8 @@ COMMANDS
         --key=KEY                Dictionary item key
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --value=VALUE            Dictionary item value
 
   domain create --name=NAME --version=VERSION [<flags>]
@@ -792,6 +854,8 @@ COMMANDS
         --comment=COMMENT        A descriptive note
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -803,6 +867,8 @@ COMMANDS
     -n, --name=NAME              Domain name
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -813,6 +879,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              Name of domain
@@ -822,6 +890,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -830,6 +900,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -849,12 +921,16 @@ COMMANDS
                                  service
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   healthcheck create --version=VERSION --name=NAME [<flags>]
     Create a healthcheck on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -884,6 +960,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -895,6 +973,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              Name of healthcheck
@@ -904,6 +984,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -912,6 +994,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -946,6 +1030,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --from=FROM              From time, in Unix seconds
         --to=TO                  To time, in Unix seconds
         --sort-buffer=1s         Duration of sort buffer for received logs
@@ -972,6 +1058,8 @@ COMMANDS
                                  the logging functionality will not work
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --path=PATH              The path to upload logs to
         --period=PERIOD          How frequently log files are finalized so they
                                  can be available for reading (in seconds,
@@ -1022,6 +1110,8 @@ COMMANDS
                                  object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging azureblob describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an Azure Blob Storage logging endpoint on a
@@ -1029,6 +1119,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Azure Blob Storage logging
@@ -1039,6 +1131,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -1053,6 +1147,8 @@ COMMANDS
                                  object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Azure Blob Storage logging
                                  object
         --container=CONTAINER    The name of the Azure Blob Storage container in
@@ -1123,6 +1219,8 @@ COMMANDS
                                  authentication JSON.
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --template-suffix=TEMPLATE-SUFFIX
                                  BigQuery table name suffix template
         --format=FORMAT          Apache style log formatting. Must produce JSON
@@ -1154,6 +1252,8 @@ COMMANDS
     -n, --name=NAME              The name of the BigQuery logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging bigquery describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a BigQuery logging endpoint on a Fastly
@@ -1161,6 +1261,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the BigQuery logging object
@@ -1170,6 +1272,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -1183,6 +1287,8 @@ COMMANDS
     -n, --name=NAME              The name of the BigQuery logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the BigQuery logging object
         --project-id=PROJECT-ID  Your Google Cloud Platform project ID
         --dataset=DATASET        Your BigQuery dataset
@@ -1228,6 +1334,8 @@ COMMANDS
         --bucket=BUCKET          The name of your Cloudfiles container
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --path=PATH              The path to upload logs to
         --region=REGION          The region to stream logs to. One of:
                                  DFW-Dallas, ORD-Chicago, IAD-Northern Virginia,
@@ -1278,6 +1386,8 @@ COMMANDS
     -n, --name=NAME              The name of the Cloudfiles logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging cloudfiles describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Cloudfiles logging endpoint on a Fastly
@@ -1285,6 +1395,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Cloudfiles logging object
@@ -1294,6 +1406,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -1307,6 +1421,8 @@ COMMANDS
     -n, --name=NAME              The name of the Cloudfiles logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Cloudfiles logging object
         --user=USER              The username for your Cloudfile account
         --access-key=ACCESS-KEY  Your Cloudfile account access key
@@ -1363,6 +1479,8 @@ COMMANDS
         --auth-token=AUTH-TOKEN  The API key from your Datadog account
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --region=REGION          The region that log data will be sent to. One
                                  of US or EU. Defaults to US if undefined
         --format=FORMAT          Apache style log formatting. For details on the
@@ -1390,6 +1508,8 @@ COMMANDS
     -n, --name=NAME              The name of the Datadog logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging datadog describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Datadog logging endpoint on a Fastly
@@ -1397,6 +1517,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Datadog logging object
@@ -1406,6 +1528,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -1419,6 +1543,8 @@ COMMANDS
     -n, --name=NAME              The name of the Datadog logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Datadog logging object
         --auth-token=AUTH-TOKEN  The API key from your Datadog account
         --region=REGION          The region that log data will be sent to. One
@@ -1452,6 +1578,8 @@ COMMANDS
         --secret-key=SECRET-KEY  Your DigitalOcean Spaces account secret key
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --domain=DOMAIN          The domain of the DigitalOcean Spaces endpoint
                                  (default 'nyc3.digitaloceanspaces.com')
         --path=PATH              The path to upload logs to
@@ -1502,6 +1630,8 @@ COMMANDS
                                  object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging digitalocean describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a DigitalOcean Spaces logging endpoint on a
@@ -1509,6 +1639,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the DigitalOcean Spaces logging
@@ -1519,6 +1651,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -1533,6 +1667,8 @@ COMMANDS
                                  object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the DigitalOcean Spaces logging
                                  object
         --bucket=BUCKET          The name of the DigitalOcean Space
@@ -1598,6 +1734,8 @@ COMMANDS
         --url=URL                  The URL to stream logs to. Must use HTTPS.
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --pipeline=PIPELINE        The ID of the Elasticsearch ingest pipeline
                                    to apply pre-process transformations to
                                    before indexing. For example my_pipeline_id.
@@ -1648,6 +1786,8 @@ COMMANDS
     -n, --name=NAME              The name of the Elasticsearch logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging elasticsearch describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an Elasticsearch logging endpoint on a
@@ -1655,6 +1795,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Elasticsearch logging object
@@ -1664,6 +1806,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -1677,6 +1821,8 @@ COMMANDS
     -n, --name=NAME                The name of the Elasticsearch logging object
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --new-name=NEW-NAME        New name of the Elasticsearch logging object
         --index=INDEX              The name of the Elasticsearch index to send
                                    documents (logs) to. The index must follow
@@ -1743,6 +1889,8 @@ COMMANDS
                                  an email address)
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --port=PORT              The port number
         --path=PATH              The path to upload log files to. If the path
                                  ends in / then it is treated as a directory
@@ -1786,6 +1934,8 @@ COMMANDS
     -n, --name=NAME              The name of the FTP logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging ftp describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an FTP logging endpoint on a Fastly service
@@ -1793,6 +1943,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the FTP logging object
@@ -1802,6 +1954,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -1815,6 +1969,8 @@ COMMANDS
     -n, --name=NAME              The name of the FTP logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the FTP logging object
         --address=ADDRESS        An hostname or IPv4 address
         --port=PORT              The port number
@@ -1878,6 +2034,8 @@ COMMANDS
                                  JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --period=PERIOD          How frequently log files are finalized so they
                                  can be available for reading (in seconds,
                                  default 3600)
@@ -1926,6 +2084,8 @@ COMMANDS
     -n, --name=NAME              The name of the GCS logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging gcs describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a GCS logging endpoint on a Fastly service
@@ -1933,6 +2093,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the GCS logging object
@@ -1942,6 +2104,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -1955,6 +2119,8 @@ COMMANDS
     -n, --name=NAME              The name of the GCS logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the GCS logging object
         --bucket=BUCKET          The bucket of the GCS bucket
         --user=USER              Your GCS service account email address. The
@@ -2021,6 +2187,8 @@ COMMANDS
         --project-id=PROJECT-ID  The ID of your Google Cloud Platform project
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -2046,6 +2214,8 @@ COMMANDS
                                  object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging googlepubsub describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Google Cloud Pub/Sub logging endpoint on a
@@ -2053,6 +2223,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Google Cloud Pub/Sub logging
@@ -2063,6 +2235,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -2077,6 +2251,8 @@ COMMANDS
                                  object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Google Cloud Pub/Sub logging
                                  object
         --user=USER              Your Google Cloud Platform service account
@@ -2116,6 +2292,8 @@ COMMANDS
                                  (https://devcenter.heroku.com/articles/add-on-partner-log-integration)
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -2139,6 +2317,8 @@ COMMANDS
     -n, --name=NAME              The name of the Heroku logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging heroku describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Heroku logging endpoint on a Fastly
@@ -2146,6 +2326,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Heroku logging object
@@ -2155,6 +2337,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -2168,6 +2352,8 @@ COMMANDS
     -n, --name=NAME              The name of the Heroku logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Heroku logging object
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
@@ -2199,6 +2385,8 @@ COMMANDS
                                  Honeycomb account
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --format=FORMAT          Apache style log formatting. Your log must
                                  produce valid JSON that Honeycomb can ingest
         --format-version=FORMAT-VERSION
@@ -2223,6 +2411,8 @@ COMMANDS
     -n, --name=NAME              The name of the Honeycomb logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging honeycomb describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Honeycomb logging endpoint on a Fastly
@@ -2230,6 +2420,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Honeycomb logging object
@@ -2239,6 +2431,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -2252,6 +2446,8 @@ COMMANDS
     -n, --name=NAME              The name of the Honeycomb logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Honeycomb logging object
         --format=FORMAT          Apache style log formatting. Your log must
                                  produce valid JSON that Honeycomb can ingest
@@ -2283,6 +2479,8 @@ COMMANDS
                                    the https protocol
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --content-type=CONTENT-TYPE
                                    Content type of the header sent with the
                                    request
@@ -2344,6 +2542,8 @@ COMMANDS
     -n, --name=NAME              The name of the HTTPS logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging https describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an HTTPS logging endpoint on a Fastly
@@ -2351,6 +2551,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the HTTPS logging object
@@ -2360,6 +2562,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -2373,6 +2577,8 @@ COMMANDS
     -n, --name=NAME                The name of the HTTPS logging object
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --new-name=NEW-NAME        New name of the HTTPS logging object
         --url=URL                  URL that log data will be sent to. Must use
                                    the https protocol
@@ -2441,6 +2647,8 @@ COMMANDS
                                    hostnames of Kafka brokers
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --compression-codec=COMPRESSION-CODEC
                                    The codec used for compression of your logs.
                                    One of: gzip, snappy, lz4
@@ -2502,6 +2710,8 @@ COMMANDS
     -n, --name=NAME              The name of the Kafka logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging kafka describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Kafka logging endpoint on a Fastly service
@@ -2509,6 +2719,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Kafka logging object
@@ -2518,6 +2730,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -2531,6 +2745,8 @@ COMMANDS
     -n, --name=NAME                The name of the Kafka logging object
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --new-name=NEW-NAME        New name of the Kafka logging object
         --topic=TOPIC              The Kafka topic to send logs to
         --brokers=BROKERS          A comma-separated list of IP addresses or
@@ -2605,6 +2821,8 @@ COMMANDS
                                    editable, clone it and use the clone.
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --format=FORMAT            Apache style log formatting
         --format-version=FORMAT-VERSION
                                    The version of the custom logging format used
@@ -2629,6 +2847,8 @@ COMMANDS
     -n, --name=NAME              The name of the Kinesis logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging kinesis describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Kinesis logging endpoint on a Fastly
@@ -2636,6 +2856,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Kinesis logging object
@@ -2645,6 +2867,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -2658,6 +2882,8 @@ COMMANDS
     -n, --name=NAME                The name of the Kinesis logging object
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --new-name=NEW-NAME        New name of the Kinesis logging object
         --stream-name=STREAM-NAME  Your Kinesis stream name
         --access-key=ACCESS-KEY    Your Kinesis account access key
@@ -2686,6 +2912,8 @@ COMMANDS
                                  as a primary key for API access
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --port=PORT              The port number
         --use-tls                Whether to use TLS for secure logging. Can be
                                  either true or false
@@ -2724,6 +2952,8 @@ COMMANDS
     -n, --name=NAME              The name of the Logentries logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging logentries describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Logentries logging endpoint on a Fastly
@@ -2731,6 +2961,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Logentries logging object
@@ -2740,6 +2972,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -2753,6 +2987,8 @@ COMMANDS
     -n, --name=NAME              The name of the Logentries logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Logentries logging object
         --port=PORT              The port number
         --use-tls                Whether to use TLS for secure logging. Can be
@@ -2791,6 +3027,8 @@ COMMANDS
                                  (https://www.loggly.com/docs/customer-token-authentication-token/)
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -2814,6 +3052,8 @@ COMMANDS
     -n, --name=NAME              The name of the Loggly logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging loggly describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Loggly logging endpoint on a Fastly
@@ -2821,6 +3061,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Loggly logging object
@@ -2830,6 +3072,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -2843,6 +3087,8 @@ COMMANDS
     -n, --name=NAME              The name of the Loggly logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Loggly logging object
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://www.loggly.com/docs/customer-token-authentication-token/)
@@ -2873,6 +3119,8 @@ COMMANDS
                                  this endpoint
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -2896,6 +3144,8 @@ COMMANDS
     -n, --name=NAME              The name of the Logshuttle logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging logshuttle describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Logshuttle logging endpoint on a Fastly
@@ -2903,6 +3153,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Logshuttle logging object
@@ -2912,6 +3164,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -2925,6 +3179,8 @@ COMMANDS
     -n, --name=NAME              The name of the Logshuttle logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Logshuttle logging object
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
@@ -2967,6 +3223,8 @@ COMMANDS
                                  configured endpoint
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging newrelic delete --name=NAME --version=VERSION [<flags>]
     Delete the New Relic Logs logging object for a particular service and
@@ -2980,6 +3238,8 @@ COMMANDS
                                  editable, clone it and use the clone.
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging newrelic describe --name=NAME --version=VERSION [<flags>]
     Get the details of a New Relic Logs logging object for a particular service
@@ -2991,6 +3251,8 @@ COMMANDS
                                  version
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging newrelic list --version=VERSION [<flags>]
     List all of the New Relic Logs logging objects for a particular service and
@@ -3000,6 +3262,8 @@ COMMANDS
                                  version
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging newrelic update --name=NAME --version=VERSION [<flags>]
     Update a New Relic Logs logging object for a particular service and version
@@ -3027,6 +3291,8 @@ COMMANDS
                                  configured endpoint
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging openstack create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --user=USER --url=URL [<flags>]
     Create an OpenStack logging endpoint on a Fastly service version
@@ -3043,6 +3309,8 @@ COMMANDS
         --url=URL                Your OpenStack auth url
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --public-key=PUBLIC-KEY  A PGP public key that Fastly will use to
                                  encrypt your log files before writing them to
                                  disk
@@ -3090,6 +3358,8 @@ COMMANDS
     -n, --name=NAME              The name of the OpenStack logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging openstack describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an OpenStack logging endpoint on a Fastly
@@ -3097,6 +3367,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the OpenStack logging object
@@ -3106,6 +3378,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -3119,6 +3393,8 @@ COMMANDS
     -n, --name=NAME              The name of the OpenStack logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the OpenStack logging object
         --bucket=BUCKET          The name of the Openstack Space
         --access-key=ACCESS-KEY  Your OpenStack account access key
@@ -3173,6 +3449,8 @@ COMMANDS
         --address=ADDRESS        A hostname or IPv4 address
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --port=PORT              The port number
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -3202,6 +3480,8 @@ COMMANDS
     -n, --name=NAME              The name of the Papertrail logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging papertrail describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Papertrail logging endpoint on a Fastly
@@ -3209,6 +3489,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Papertrail logging object
@@ -3218,6 +3500,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -3231,6 +3515,8 @@ COMMANDS
     -n, --name=NAME              The name of the Papertrail logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Papertrail logging object
         --address=ADDRESS        A hostname or IPv4 address
         --port=PORT              The port number
@@ -3267,6 +3553,8 @@ COMMANDS
         --iam-role=IAM-ROLE      The IAM role ARN for logging
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --domain=DOMAIN          The domain of the S3 endpoint
         --path=PATH              The path to upload logs to
         --period=PERIOD          How frequently log files are finalized so they
@@ -3323,6 +3611,8 @@ COMMANDS
     -n, --name=NAME              The name of the S3 logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging s3 describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a S3 logging endpoint on a Fastly service
@@ -3330,6 +3620,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the S3 logging object
@@ -3339,6 +3631,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -3352,6 +3646,8 @@ COMMANDS
     -n, --name=NAME              The name of the S3 logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the S3 logging object
         --bucket=BUCKET          Your S3 bucket name
         --access-key=ACCESS-KEY  Your S3 account access key
@@ -3416,6 +3712,8 @@ COMMANDS
                                  (https://www.scalyr.com/keys)
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --region=REGION          The region that log data will be sent to. One
                                  of US or EU. Defaults to US if undefined
         --format=FORMAT          Apache style log formatting
@@ -3441,6 +3739,8 @@ COMMANDS
     -n, --name=NAME              The name of the Scalyr logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging scalyr describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Scalyr logging endpoint on a Fastly
@@ -3448,6 +3748,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Scalyr logging object
@@ -3457,6 +3759,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -3470,6 +3774,8 @@ COMMANDS
     -n, --name=NAME              The name of the Scalyr logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Scalyr logging object
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
@@ -3504,6 +3810,8 @@ COMMANDS
                                  connect to over SFTP
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --port=PORT              The port number
         --password=PASSWORD      The password for the server. If both password
                                  and secret_key are passed, secret_key will be
@@ -3560,6 +3868,8 @@ COMMANDS
     -n, --name=NAME              The name of the SFTP logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging sftp describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about an SFTP logging endpoint on a Fastly service
@@ -3567,6 +3877,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the SFTP logging object
@@ -3576,6 +3888,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -3589,6 +3903,8 @@ COMMANDS
     -n, --name=NAME              The name of the SFTP logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the SFTP logging object
         --address=ADDRESS        The hostname or IPv4 address
         --port=PORT              The port number
@@ -3653,6 +3969,8 @@ COMMANDS
         --url=URL                  The URL to POST to
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
         --tls-hostname=TLS-HOSTNAME
@@ -3691,6 +4009,8 @@ COMMANDS
     -n, --name=NAME              The name of the Splunk logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging splunk describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Splunk logging endpoint on a Fastly
@@ -3698,6 +4018,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Splunk logging object
@@ -3707,6 +4029,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -3720,6 +4044,8 @@ COMMANDS
     -n, --name=NAME                The name of the Splunk logging object
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --new-name=NEW-NAME        New name of the Splunk logging object
         --url=URL                  The URL to POST to.
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
@@ -3762,6 +4088,8 @@ COMMANDS
         --url=URL                The URL to POST to
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -3793,6 +4121,8 @@ COMMANDS
     -n, --name=NAME              The name of the Sumologic logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging sumologic describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Sumologic logging endpoint on a Fastly
@@ -3800,6 +4130,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Sumologic logging object
@@ -3809,6 +4141,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -3822,6 +4156,8 @@ COMMANDS
     -n, --name=NAME              The name of the Sumologic logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --new-name=NEW-NAME      New name of the Sumologic logging object
         --url=URL                The URL to POST to
         --format=FORMAT          Apache style log formatting
@@ -3857,6 +4193,8 @@ COMMANDS
         --address=ADDRESS          A hostname or IPv4 address
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --port=PORT                The port number
         --use-tls                  Whether to use TLS for secure logging. Can be
                                    either true or false
@@ -3900,6 +4238,8 @@ COMMANDS
     -n, --name=NAME              The name of the Syslog logging object
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   logging syslog describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Syslog logging endpoint on a Fastly
@@ -3907,6 +4247,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
     -n, --name=NAME              The name of the Syslog logging object
@@ -3916,6 +4258,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -3929,6 +4273,8 @@ COMMANDS
     -n, --name=NAME                The name of the Syslog logging object
     -s, --service-id=SERVICE-ID    Service ID (falls back to FASTLY_SERVICE_ID,
                                    then fastly.toml)
+        --service-name=SERVICE-NAME
+                                   The name of the service
         --new-name=NEW-NAME        New name of the Syslog logging object
         --address=ADDRESS          A hostname or IPv4 address
         --port=PORT                The port number
@@ -3978,6 +4324,8 @@ COMMANDS
                                  Surrogate Key
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --soft                   A 'soft' purge marks affected objects as stale
                                  rather than making them inaccessible
         --url=URL                Purge an individual URL
@@ -3995,6 +4343,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
     -f, --force                  Force deletion of an active service
 
   service describe [<flags>]
@@ -4002,6 +4352,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   service list
     List Fastly services
@@ -4017,6 +4369,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
     -n, --name=NAME              Service name
         --comment=COMMENT        Human-readable comment
 
@@ -4025,6 +4379,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -4035,6 +4391,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -4043,6 +4401,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -4051,12 +4411,16 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   service-version lock --version=VERSION [<flags>]
     Lock a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
 
@@ -4065,6 +4429,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -4076,6 +4442,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --from=FROM              From time, accepted formats at
                                  https://fastly.dev/reference/api/metrics-stats/historical-stats
         --to=TO                  To time
@@ -4088,6 +4456,8 @@ COMMANDS
 
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
         --format=FORMAT          Output format (json)
 
   stats regions
@@ -4147,6 +4517,8 @@ COMMANDS
         --main                   Whether the VCL is the 'main' entrypoint
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   vcl custom delete --name=NAME --version=VERSION [<flags>]
     Delete the uploaded VCL for a particular service and version
@@ -4158,6 +4530,8 @@ COMMANDS
                                  editable, clone it and use the clone.
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   vcl custom describe --name=NAME --version=VERSION [<flags>]
     Get the uploaded VCL for a particular service and version
@@ -4167,6 +4541,8 @@ COMMANDS
                                  version
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   vcl custom list --version=VERSION [<flags>]
     List the uploaded VCLs for a particular service and version
@@ -4175,6 +4551,8 @@ COMMANDS
                                  version
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   vcl custom update --name=NAME --version=VERSION [<flags>]
     Update the uploaded VCL for a particular service and version
@@ -4189,6 +4567,8 @@ COMMANDS
                                  main.vcl)
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   vcl snippet create --content=CONTENT --name=NAME --version=VERSION --type=TYPE [<flags>]
     Create a snippet for a particular service and version
@@ -4207,6 +4587,8 @@ COMMANDS
                                  numbers execute first
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   vcl snippet delete --name=NAME --version=VERSION [<flags>]
     Delete a specific snippet for a particular service and version
@@ -4218,6 +4600,8 @@ COMMANDS
                                  editable, clone it and use the clone.
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   vcl snippet describe --version=VERSION [<flags>]
     Get the uploaded VCL snippet for a particular service and version
@@ -4228,6 +4612,8 @@ COMMANDS
         --name=NAME              The name of the VCL snippet
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
     -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
 
   vcl snippet list --version=VERSION [<flags>]
@@ -4237,6 +4623,8 @@ COMMANDS
                                  version
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
 
   vcl snippet update --version=VERSION [<flags>]
     Update a VCL snippet for a particular service and version
@@ -4254,6 +4642,8 @@ COMMANDS
                                  numbers execute first
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
+        --service-name=SERVICE-NAME
+                                 The name of the service
     -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
         --type=TYPE              The location in generated VCL where the snippet
                                  should be placed
@@ -4273,6 +4663,4 @@ For help on a specific command, try e.g.
 
 	fastly help configure
 	fastly configure --help
-
-
 `) + "\n\n"

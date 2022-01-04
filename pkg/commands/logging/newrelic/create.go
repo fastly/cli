@@ -36,6 +36,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("region", "The region to which to stream logs").StringVar(&c.region)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 
 	return &c
 }
@@ -53,6 +54,7 @@ type CreateCommand struct {
 	placement         string
 	region            string
 	responseCondition cmd.OptionalString
+	serviceName       cmd.OptionalServiceNameID
 	serviceVersion    cmd.OptionalServiceVersion
 }
 
@@ -63,6 +65,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
 		Out:                out,
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

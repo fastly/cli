@@ -18,10 +18,11 @@ import (
 type UpdateCommand struct {
 	cmd.Base
 
-	Input      fastly.UpdateDictionaryItemInput
-	InputBatch fastly.BatchModifyDictionaryItemsInput
-	file       cmd.OptionalString
-	manifest   manifest.Data
+	Input       fastly.UpdateDictionaryItemInput
+	InputBatch  fastly.BatchModifyDictionaryItemsInput
+	file        cmd.OptionalString
+	manifest    manifest.Data
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -34,6 +35,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("file", "Batch update json file").Action(c.file.Set).StringVar(&c.file.Value)
 	c.CmdClause.Flag("key", "Dictionary item key").StringVar(&c.Input.ItemKey)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.CmdClause.Flag("value", "Dictionary item value").StringVar(&c.Input.ItemValue)
 	return &c
 }
@@ -45,7 +47,17 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 	c.Input.ServiceID = serviceID
 	c.InputBatch.ServiceID = serviceID

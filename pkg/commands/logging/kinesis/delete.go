@@ -16,6 +16,7 @@ type DeleteCommand struct {
 	cmd.Base
 	manifest       manifest.Data
 	Input          fastly.DeleteKinesisInput
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 	autoClone      cmd.OptionalAutoClone
 }
@@ -35,6 +36,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("name", "The name of the Kinesis logging object").Short('n').Required().StringVar(&c.Input.Name)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 
 	return &c
 }
@@ -46,6 +48,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
 		Out:                out,
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

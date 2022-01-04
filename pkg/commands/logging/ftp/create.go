@@ -22,6 +22,7 @@ type CreateCommand struct {
 	Address        string
 	Username       string
 	Password       string
+	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
@@ -56,6 +57,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("user", "The username for the server (can be anonymous)").Required().StringVar(&c.Username)
 	c.CmdClause.Flag("password", "The password for the server (for anonymous use an email address)").Required().StringVar(&c.Password)
 	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
 	c.CmdClause.Flag("path", "The path to upload log files to. If the path ends in / then it is treated as a directory").Action(c.Path.Set).StringVar(&c.Path.Value)
 	c.CmdClause.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Period.Set).UintVar(&c.Period.Value)
@@ -136,6 +138,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.Manifest,
 		Out:                out,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

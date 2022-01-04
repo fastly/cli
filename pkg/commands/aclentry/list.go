@@ -24,6 +24,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 
 	// Optional Flags
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 
 	return &c
 }
@@ -32,8 +33,9 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 type ListCommand struct {
 	cmd.Base
 
-	aclID    string
-	manifest manifest.Data
+	aclID       string
+	manifest    manifest.Data
+	serviceName cmd.OptionalServiceNameID
 }
 
 // Exec invokes the application logic for the command.
@@ -43,9 +45,17 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		err := errors.ErrNoServiceID
-		c.Globals.ErrLog.Add(err)
-		return err
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 
 	input := c.constructInput(serviceID)

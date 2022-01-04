@@ -18,6 +18,7 @@ type CreateCommand struct {
 
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
+	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
@@ -40,6 +41,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause = parent.Command("create", "Create a Logentries logging endpoint on a Fastly service version").Alias("add")
 	c.CmdClause.Flag("name", "The name of the Logentries logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
 	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
 	c.CmdClause.Flag("auth-token", "Use token based authentication (https://logentries.com/doc/input-token/)").Action(c.Token.Set).StringVar(&c.Token.Value)
@@ -108,6 +110,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.Manifest,
 		Out:                out,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

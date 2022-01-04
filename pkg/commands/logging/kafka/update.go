@@ -19,6 +19,7 @@ type UpdateCommand struct {
 
 	// required
 	EndpointName   string // Can't shadow cmd.Base method Name().
+	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
@@ -61,6 +62,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("name", "The name of the Kafka logging object").Short('n').Required().StringVar(&c.EndpointName)
 	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
 	c.CmdClause.Flag("new-name", "New name of the Kafka logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("topic", "The Kafka topic to send logs to").Action(c.Topic.Set).StringVar(&c.Topic.Value)
 	c.CmdClause.Flag("brokers", "A comma-separated list of IP addresses or hostnames of Kafka brokers").Action(c.Brokers.Set).StringVar(&c.Brokers.Value)
@@ -193,6 +195,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.Manifest,
 		Out:                out,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

@@ -14,8 +14,9 @@ import (
 // CreateCommand calls the Fastly API to create a dictionary item.
 type CreateCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.CreateDictionaryItemInput
+	manifest    manifest.Data
+	Input       fastly.CreateDictionaryItemInput
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -25,6 +26,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 	c.CmdClause = parent.Command("create", "Create a new item on a Fastly edge dictionary")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
 	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
 	c.CmdClause.Flag("value", "Dictionary item value").Required().StringVar(&c.Input.ItemValue)
@@ -38,7 +40,17 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 	c.Input.ServiceID = serviceID
 

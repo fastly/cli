@@ -18,7 +18,8 @@ type RealtimeCommand struct {
 	cmd.Base
 	manifest manifest.Data
 
-	formatFlag string
+	formatFlag  string
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewRealtimeCommand is the "stats realtime" subcommand.
@@ -29,6 +30,7 @@ func NewRealtimeCommand(parent cmd.Registerer, globals *config.Data, data manife
 
 	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 
 	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
 
@@ -42,7 +44,17 @@ func (c *RealtimeCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 
 	switch c.formatFlag {

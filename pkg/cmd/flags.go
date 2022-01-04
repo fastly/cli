@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
 	"github.com/fastly/kingpin"
@@ -28,6 +29,14 @@ var (
 // See: manifest.Data.ServiceID() for the sources.
 func (b Base) RegisterServiceIDFlag(dst *string) {
 	b.CmdClause.Flag("service-id", "Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)").Short('s').StringVar(dst)
+}
+
+// RegisterServiceNameFlag defines a --service-name flag that will attempt to
+// acquire the Service ID associated with the given service name.
+//
+// See: cmd.OptionalServiceNameID.Parse()
+func (b Base) RegisterServiceNameFlag(action kingpin.Action, dst *string) {
+	b.CmdClause.Flag("service-name", "The name of the service").Action(action).StringVar(dst)
 }
 
 // ServiceVersionFlagOpts enables easy configuration of the --version flag
@@ -94,6 +103,26 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 	return v, nil
 }
 
+// OptionalServiceNameID represents a mapping between a Fastly service name and
+// its ID.
+type OptionalServiceNameID struct {
+	OptionalString
+}
+
+// Parse returns a service ID based off the given service name.
+func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, err error) {
+	services, err := client.ListServices(&fastly.ListServicesInput{})
+	if err != nil {
+		return serviceID, fmt.Errorf("error listing services: %w", err)
+	}
+	for _, s := range services {
+		if s.Name == sv.Value {
+			return s.ID, nil
+		}
+	}
+	return serviceID, errors.New("error matching service name with available services")
+}
+
 // AutoCloneFlagOpts enables easy configuration of the --autoclone flag defined
 // via the RegisterAutoCloneFlag constructor.
 type AutoCloneFlagOpts struct {
@@ -120,9 +149,9 @@ type OptionalAutoClone struct {
 func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, out io.Writer, client api.Interface) (*fastly.Version, error) {
 	// if user didn't provide --autoclone flag
 	if !ac.Value && (v.Active || v.Locked) {
-		return nil, errors.RemediationError{
+		return nil, fsterr.RemediationError{
 			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
-			Remediation: errors.AutoCloneRemediation,
+			Remediation: fsterr.AutoCloneRemediation,
 		}
 	}
 	if ac.Value && (v.Active || v.Locked) {

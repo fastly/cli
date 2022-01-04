@@ -19,8 +19,9 @@ type HistoricalCommand struct {
 	cmd.Base
 	manifest manifest.Data
 
-	Input      fastly.GetStatsInput
-	formatFlag string
+	Input       fastly.GetStatsInput
+	formatFlag  string
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewHistoricalCommand is the "stats historical" subcommand.
@@ -31,6 +32,7 @@ func NewHistoricalCommand(parent cmd.Registerer, globals *config.Data, data mani
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 
 	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.Input.From)
 	c.CmdClause.Flag("to", "To time").StringVar(&c.Input.To)
@@ -49,7 +51,17 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 	c.Input.Service = serviceID
 

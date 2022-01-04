@@ -28,6 +28,7 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause.Flag("file", "Purge a service of a newline delimited list of Surrogate Keys").StringVar(&c.file)
 	c.CmdClause.Flag("key", "Purge a service of objects tagged with a Surrogate Key").StringVar(&c.key)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.CmdClause.Flag("soft", "A 'soft' purge marks affected objects as stale rather than making them inaccessible").BoolVar(&c.soft)
 	c.CmdClause.Flag("url", "Purge an individual URL").StringVar(&c.url)
 
@@ -39,25 +40,39 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 type RootCommand struct {
 	cmd.Base
 
-	all      bool
-	file     string
-	key      string
-	manifest manifest.Data
-	soft     bool
-	url      string
+	all         bool
+	file        string
+	key         string
+	manifest    manifest.Data
+	serviceName cmd.OptionalServiceNameID
+	soft        bool
+	url         string
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, source, out)
-	}
-
 	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return errors.ErrNoToken
+	}
+
+	serviceID, source := c.manifest.ServiceID()
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, source, out)
+	}
+	if source == manifest.SourceUndefined {
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 
 	// The URL purge API call doesn't require a Service ID.

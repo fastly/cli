@@ -16,6 +16,7 @@ type CloneCommand struct {
 	cmd.Base
 	manifest       manifest.Data
 	Input          fastly.CloneVersionInput
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
 
@@ -26,6 +27,7 @@ func NewCloneCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 	c.manifest = data
 	c.CmdClause = parent.Command("clone", "Clone a Fastly service version")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
@@ -39,6 +41,7 @@ func (c *CloneCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
 		Out:                out,
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

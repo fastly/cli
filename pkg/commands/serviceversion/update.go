@@ -17,6 +17,7 @@ type UpdateCommand struct {
 	cmd.Base
 	manifest       manifest.Data
 	input          fastly.UpdateVersionInput
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 	autoClone      cmd.OptionalAutoClone
 
@@ -30,6 +31,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 	c.CmdClause = parent.Command("update", "Update a Fastly service version")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Dst: &c.serviceVersion.Value,
 	})
@@ -54,6 +56,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
 		Out:                out,
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})

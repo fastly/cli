@@ -42,6 +42,7 @@ type DeployCommand struct {
 	Domain         string
 	Manifest       manifest.Data
 	Path           string
+	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 }
 
@@ -55,6 +56,7 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
 	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
 	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
 		Action:   c.ServiceVersion.Set,
 		Dst:      &c.ServiceVersion.Value,
@@ -73,6 +75,14 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	serviceID, sidSrc := c.Manifest.ServiceID()
 	if c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, sidSrc, out)
+	}
+	if sidSrc == manifest.SourceUndefined {
+		if c.ServiceName.WasSet {
+			serviceID, err = c.ServiceName.Parse(c.Globals.Client)
+			if err != nil {
+				c.Globals.ErrLog.Add(err)
+			}
+		}
 	}
 
 	// Exit early if no token configured.

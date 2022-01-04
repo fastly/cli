@@ -15,9 +15,10 @@ import (
 // DeleteCommand calls the Fastly API to delete services.
 type DeleteCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.DeleteServiceInput
-	force    bool
+	manifest    manifest.Data
+	Input       fastly.DeleteServiceInput
+	force       bool
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -27,6 +28,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 	c.CmdClause = parent.Command("delete", "Delete a Fastly service").Alias("remove")
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 	c.CmdClause.Flag("force", "Force deletion of an active service").Short('f').BoolVar(&c.force)
 	return &c
 }
@@ -38,7 +40,17 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		cmd.DisplayServiceID(serviceID, source, out)
 	}
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		var err error
+		if !c.serviceName.WasSet {
+			err = errors.ErrNoServiceID
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		serviceID, err = c.serviceName.Parse(c.Globals.Client)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 	}
 	c.Input.ID = serviceID
 

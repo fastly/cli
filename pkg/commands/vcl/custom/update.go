@@ -33,6 +33,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("new-name", "New name for the VCL").Action(c.newName.Set).StringVar(&c.newName.Value)
 	c.CmdClause.Flag("content", "VCL passed as file path or content, e.g. $(< main.vcl)").Action(c.content.Set).StringVar(&c.content.Value)
 	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
+	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
 
 	return &c
 }
@@ -46,6 +47,7 @@ type UpdateCommand struct {
 	manifest       manifest.Data
 	name           string
 	newName        cmd.OptionalString
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
 
@@ -56,6 +58,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
 		Out:                out,
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
