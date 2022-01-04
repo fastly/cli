@@ -185,12 +185,11 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// things. So we should notify the user and confirm they would like to
 			// continue with the build.
 			label := "\nAre you sure you want to continue with the build step? [y/N] "
-			cont, err := text.Input(out, label, in)
+			answer, err := text.AskYesNo(out, label, in)
 			if err != nil {
-				return fmt.Errorf("error reading input %w", err)
+				return err
 			}
-			contl := strings.ToLower(cont)
-			if contl != "y" && contl != "yes" {
+			if !answer {
 				text.Info(out, "Stopping the build process.")
 				text.Break(out)
 				return fsterr.ErrBuildStopped

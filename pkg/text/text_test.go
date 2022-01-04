@@ -74,6 +74,52 @@ func TestInput(t *testing.T) {
 	}
 }
 
+func TestAskYesNo(t *testing.T) {
+	for _, testcase := range []struct {
+		name       string
+		in         string
+		wantResult bool
+	}{
+		{
+			name:       "empty",
+			in:         "\n",
+			wantResult: false,
+		},
+		{
+			name:       "uppercase y",
+			in:         "Y\n",
+			wantResult: true,
+		},
+		{
+			name:       "lowercase y",
+			in:         "y\n",
+			wantResult: true,
+		},
+		{
+			name:       "mixed case yes",
+			in:         "yEs\n",
+			wantResult: true,
+		},
+		{
+			name:       "mixed case no",
+			in:         "nO\n",
+			wantResult: false,
+		},
+		{
+			name:       "anything else",
+			in:         "whatever\n",
+			wantResult: false,
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			result, err := text.AskYesNo(&buf, "", strings.NewReader(testcase.in))
+			testutil.AssertNoError(t, err)
+			testutil.AssertBool(t, testcase.wantResult, result)
+		})
+	}
+}
+
 func TestPrefixes(t *testing.T) {
 	for _, testcase := range []struct {
 		name   string
