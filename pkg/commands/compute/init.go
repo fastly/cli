@@ -553,11 +553,9 @@ func fetchPackageTemplate(
 		return fmt.Errorf("failed to create local %s archive: %w", filename, err)
 	}
 	defer func() {
-		if err := f.Close(); err != nil {
-			errLog.Add(err)
-		}
-	}()
-	defer func() {
+		// NOTE: Later on we rename the file to include an extension and the
+		// following call to os.Remove works still because the `filename` variable
+		// that is still in scope is also updated to include the extension.
 		err := os.Remove(filename)
 		if err != nil {
 			errLog.Add(err)
@@ -570,6 +568,13 @@ func fetchPackageTemplate(
 	if err != nil {
 		errLog.Add(err)
 		return fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
+	}
+
+	// NOTE: We used to `defer` the closing of the file after its creation but
+	// realised that this caused issues on Windows as it was unable to rename the
+	// file as we still have the descriptor `f` open.
+	if err := f.Close(); err != nil {
+		errLog.Add(err)
 	}
 
 	var archive file.Archive
