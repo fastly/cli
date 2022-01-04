@@ -81,6 +81,12 @@ var ServiceIDRemediation = strings.Join([]string{
 	"Please provide one via the --service-id flag, or by setting the FASTLY_SERVICE_ID environment variable, or within your package manifest",
 }, " ")
 
+// CustomerIDRemediation suggests provide a customer ID via --customer-id flag
+// or via environment variable.
+var CustomerIDRemediation = strings.Join([]string{
+	"Please provide one via the --customer-id flag, or by setting the FASTLY_CUSTOMER_ID environment variable",
+}, " ")
+
 // ExistingDirRemediation suggests moving to another directory and retrying.
 var ExistingDirRemediation = strings.Join([]string{
 	"Please create a new directory and initialize a new project using:",

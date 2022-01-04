@@ -37,6 +37,13 @@ var ErrNoServiceID = RemediationError{
 	Remediation: ServiceIDRemediation,
 }
 
+// ErrNoCustomerID means no --customer-id or FASTLY_CUSTOMER_ID environment
+// variable found.
+var ErrNoCustomerID = RemediationError{
+	Inner:       fmt.Errorf("error reading customer ID: no customer ID found"),
+	Remediation: CustomerIDRemediation,
+}
+
 // ErrMissingManifestVersion means an invalid manifest (fastly.toml) has been used.
 var ErrMissingManifestVersion = RemediationError{
 	Inner:       fmt.Errorf("no manifest_version found in the fastly.toml"),

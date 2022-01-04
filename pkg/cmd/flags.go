@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -108,6 +109,26 @@ func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, 
 		}
 	}
 	return serviceID, errors.New("error matching service name with available services")
+}
+
+// OptionalCustomerID represents a Fastly customer ID.
+type OptionalCustomerID struct {
+	OptionalString
+}
+
+// Parse returns a customer ID either from a flag or from a user defined
+// environment variable (see pkg/env/env.go).
+//
+// NOTE: Will fallback to environment variable if no flag value set.
+func (sv *OptionalCustomerID) Parse() error {
+	if sv.Value == "" {
+		if e := os.Getenv(env.CustomerID); e != "" {
+			sv.Value = e
+			return nil
+		}
+		return fsterr.ErrNoCustomerID
+	}
+	return nil
 }
 
 // AutoCloneFlagOpts enables easy configuration of the --autoclone flag defined
