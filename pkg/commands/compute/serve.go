@@ -16,6 +16,7 @@ import (
 
 	"github.com/bep/debounce"
 	"github.com/blang/semver"
+	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
@@ -91,7 +92,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress := text.ResetProgress(out, c.Globals.Verbose())
 
-	bin, err := getViceroy(progress, out, c.viceroyVersioner, c.Globals.ErrLog)
+	bin, err := getViceroy(progress, out, c.viceroyVersioner, c.Globals)
 	if err != nil {
 		return err
 	}
@@ -161,14 +162,12 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner, errLog fsterr.LogInterface) (bin string, err error) {
-	progress.Step("Checking latest Viceroy release...")
-
-	defer func(progress text.Progress) {
+func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner, cfg *config.Data) (bin string, err error) {
+	defer func() {
 		if err != nil {
 			progress.Fail()
 		}
-	}(progress)
+	}()
 
 	bin = filepath.Join(InstallDir, versioner.Binary())
 
@@ -185,30 +184,61 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	/* #nosec */
 	cmd := exec.Command(bin, "--version")
 
-	var install bool
+	var install, checkUpdate bool
 
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		errLog.Add(err)
+		cfg.ErrLog.Add(err)
 
 		// We presume an error means Viceroy needs to be installed.
 		install = true
 	}
 
-	latest, err := versioner.LatestVersion(context.Background())
-	if err != nil {
-		errLog.Add(err)
+	viceroy := cfg.File.Viceroy
+	var latest semver.Version
 
-		// When we have an error getting the latest version information for Viceroy
-		// and the user doesn't have a pre-existing install of Viceroy, then we're
-		// forced to return the error.
-		if install {
-			return bin, fsterr.RemediationError{
-				Inner:       fmt.Errorf("error fetching latest version: %w", err),
-				Remediation: fsterr.NetworkRemediation,
-			}
+	// Use latest_version from CLI app config if it's not stale.
+	if viceroy.LastChecked != "" && viceroy.LatestVersion != "" && !check.Stale(viceroy.LastChecked, viceroy.TTL) {
+		latest, err = semver.Parse(viceroy.LatestVersion)
+		if err != nil {
+			return bin, err
 		}
-		return bin, nil
+	}
+
+	// The latest_version value 0.0.0 means the property either has not been set
+	// or is now stale and needs to be refreshed.
+	if latest.String() == "0.0.0" {
+		progress.Step("Checking latest Viceroy release...")
+
+		latest, err = versioner.LatestVersion(context.Background())
+		if err != nil {
+			cfg.ErrLog.Add(err)
+
+			// When we have an error getting the latest version information for Viceroy
+			// and the user doesn't have a pre-existing install of Viceroy, then we're
+			// forced to return the error.
+			if install {
+				return bin, fsterr.RemediationError{
+					Inner:       fmt.Errorf("error fetching latest version: %w", err),
+					Remediation: fsterr.NetworkRemediation,
+				}
+			}
+			return bin, nil
+		}
+
+		viceroy.LatestVersion = latest.String()
+		viceroy.LastChecked = time.Now().Format(time.RFC3339)
+
+		// Before attempting to write the config data back to disk we need to
+		// ensure we reassign the modified struct which is a copy (not reference).
+		cfg.File.Viceroy = viceroy
+
+		err := cfg.File.Write(cfg.Path)
+		if err != nil {
+			return bin, err
+		}
+
+		checkUpdate = true
 	}
 
 	archiveFormat := ".tar.gz"
@@ -218,21 +248,21 @@ func getViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	if install {
 		err := installViceroy(progress, versioner, latest, bin)
 		if err != nil {
-			errLog.Add(err)
+			cfg.ErrLog.Add(err)
 			return bin, err
 		}
-	} else {
+	} else if checkUpdate {
 		version := strings.TrimSpace(string(stdoutStderr))
 		err := updateViceroy(progress, version, out, versioner, latest, bin)
 		if err != nil {
-			errLog.Add(err)
+			cfg.ErrLog.Add(err)
 			return bin, err
 		}
 	}
 
 	err = setBinPerms(bin)
 	if err != nil {
-		errLog.Add(err)
+		cfg.ErrLog.Add(err)
 		return bin, err
 	}
 	return bin, nil

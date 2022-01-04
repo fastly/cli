@@ -100,6 +100,7 @@ var writeMutex = &sync.Mutex{}
 // command structs, and parsed as flags.
 type Data struct {
 	File   File
+	Path   string
 	Env    Environment
 	Output io.Writer
 	Flag   Flag
@@ -179,12 +180,13 @@ type LegacyFile struct {
 
 // File represents our dynamic application toml configuration.
 type File struct {
+	CLI           CLI                 `toml:"cli"`
 	ConfigVersion int                 `toml:"config_version"`
 	Fastly        Fastly              `toml:"fastly"`
-	CLI           CLI                 `toml:"cli"`
-	User          User                `toml:"user"`
 	Language      Language            `toml:"language"`
 	StarterKits   StarterKitLanguages `toml:"starter-kits"`
+	User          User                `toml:"user"`
+	Viceroy       Viceroy             `toml:"viceroy"`
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.
@@ -212,6 +214,13 @@ type CLI struct {
 type User struct {
 	Token string `toml:"token"`
 	Email string `toml:"email"`
+}
+
+// Viceroy represents viceroy specific configuration.
+type Viceroy struct {
+	LastChecked   string `toml:"last_checked"`
+	LatestVersion string `toml:"latest_version"`
+	TTL           string `toml:"ttl"`
 }
 
 // Language represents C@E language specific configuration.
