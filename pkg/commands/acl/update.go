@@ -21,8 +21,10 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	// Required flags
 	c.CmdClause.Flag("name", "The name of the ACL to update").Required().StringVar(&c.name)
 	c.CmdClause.Flag("new-name", "The new name of the ACL").Required().StringVar(&c.newName)
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagVersionName,
+		Description: cmd.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
 	})
 
 	// Optional flags

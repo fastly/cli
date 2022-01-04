@@ -21,8 +21,10 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	// Required flags
 	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Required().StringVar(&c.key)
 	c.CmdClause.Flag("name", "The name for the real-time logging configuration").Required().StringVar(&c.name)
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagVersionName,
+		Description: cmd.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
 	})
 
 	// Optional flags

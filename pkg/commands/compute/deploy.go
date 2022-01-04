@@ -55,12 +55,24 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
-	c.RegisterServiceIDFlag(&c.Manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.ServiceName.Set, &c.ServiceName.Value)
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Action:   c.ServiceVersion.Set,
-		Dst:      &c.ServiceVersion.Value,
-		Optional: true,
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.Manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.ServiceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.ServiceName.Value,
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.ServiceVersion.Set,
+		Description: cmd.FlagVersionDesc,
+		Dst:         &c.ServiceVersion.Value,
+		Name:        cmd.FlagVersionName,
+		Optional:    true,
 	})
 	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and perform deploy non-interactively").BoolVar(&c.AcceptDefaults)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)

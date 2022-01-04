@@ -20,8 +20,10 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 
 	// Required flags
 	c.CmdClause.Flag("name", "The name of the VCL").Required().StringVar(&c.name)
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagVersionName,
+		Description: cmd.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
 	})
 
 	// Optional Flags

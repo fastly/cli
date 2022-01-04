@@ -19,8 +19,10 @@ func NewValidateCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.manifest = data
 
 	// Required flags
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagVersionName,
+		Description: cmd.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
 	})
 
 	// Optional flags
