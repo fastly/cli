@@ -58,7 +58,7 @@ build: config
 	go build ./cmd/fastly
 
 .PHONY: install
-install:
+install: config
 	go install ./cmd/fastly
 
 .PHONY: changelog
