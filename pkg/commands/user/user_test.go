@@ -181,14 +181,14 @@ func TestList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --customer-id flag",
-			Args:      args("user list"),
-			WantError: "error parsing arguments: required flag --customer-id not provided",
-		},
-		{
 			Name:      "validate missing --token flag",
 			Args:      args("user list --customer-id abc"),
 			WantError: errors.ErrNoToken.Inner.Error(),
+		},
+		{
+			Name:      "validate missing --customer-id flag",
+			Args:      args("user list --token 123"),
+			WantError: "error reading customer ID: no customer ID found",
 		},
 		{
 			Name: "validate ListUsers API error",

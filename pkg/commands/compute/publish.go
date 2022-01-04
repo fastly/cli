@@ -50,12 +50,23 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Action:   c.serviceVersion.Set,
-		Dst:      &c.serviceVersion.Value,
-		Optional: true,
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.serviceName.Value,
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagVersionName,
+		Description: cmd.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
+		Action:      c.serviceVersion.Set,
 	})
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)

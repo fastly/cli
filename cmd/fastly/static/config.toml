@@ -17,15 +17,15 @@ rustup_constraint = ">= 1.23.0"
 [viceroy]
 ttl = "24h"
 
-[[starter-kits.assemblyscript]]
-name = "Default starter for AssemblyScript"
-description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
-path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
-
 [[starter-kits.javascript]]
 name = "Default starter for JavaScript"
 description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
 path = "https://github.com/fastly/compute-starter-kit-javascript-default"
+
+[[starter-kits.assemblyscript]]
+name = "Default starter for AssemblyScript"
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
 
 [[starter-kits.rust]]
 name = "Beacon termination"

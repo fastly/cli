@@ -21,8 +21,11 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	// Required flags
 	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Required().StringVar(&c.key)
 	c.CmdClause.Flag("name", "The name for the real-time logging configuration").Required().StringVar(&c.name)
-	c.RegisterServiceVersionFlag(cmd.ServiceVersionFlagOpts{
-		Dst: &c.serviceVersion.Value,
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagVersionName,
+		Description: cmd.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
+		Required:    true,
 	})
 
 	// Optional flags
@@ -35,8 +38,18 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").StringVar(&c.placement)
 	c.CmdClause.Flag("region", "The region to which to stream logs").StringVar(&c.region)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
-	c.RegisterServiceIDFlag(&c.manifest.Flag.ServiceID)
-	c.RegisterServiceNameFlag(c.serviceName.Set, &c.serviceName.Value)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.manifest.Flag.ServiceID,
+		Short:       's',
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        cmd.FlagServiceName,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.serviceName.Value,
+	})
 
 	return &c
 }

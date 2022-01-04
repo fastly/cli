@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -23,43 +24,26 @@ var (
 	completionScriptRegExp = regexp.MustCompile("completion-script-(?:bash|zsh)$")
 )
 
-// RegisterServiceIDFlag defines a --service-id flag that will attempt to
-// acquire the Service ID from multiple sources.
-//
-// See: manifest.Data.ServiceID() for the sources.
-func (b Base) RegisterServiceIDFlag(dst *string) {
-	b.CmdClause.Flag("service-id", "Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)").Short('s').StringVar(dst)
+// StringFlagOpts enables easy configuration of a flag.
+type StringFlagOpts struct {
+	Action      kingpin.Action
+	Description string
+	Dst         *string
+	Name        string
+	Required    bool
+	Short       rune
 }
 
-// RegisterServiceNameFlag defines a --service-name flag that will attempt to
-// acquire the Service ID associated with the given service name.
-//
-// See: cmd.OptionalServiceNameID.Parse()
-func (b Base) RegisterServiceNameFlag(action kingpin.Action, dst *string) {
-	b.CmdClause.Flag("service-name", "The name of the service").Action(action).StringVar(dst)
-}
-
-// ServiceVersionFlagOpts enables easy configuration of the --version flag
-// defined via the RegisterServiceVersionFlag constructor.
-//
-// NOTE: The reason we define an 'optional' field rather than a 'required'
-// field is because 99% of the use cases where --version is defined the flag
-// will be required, and so we cater for the common case. Meaning only those
-// subcommands that have --version as optional will need to set that field.
-type ServiceVersionFlagOpts struct {
-	Dst      *string
-	Optional bool
-	Action   kingpin.Action
-}
-
-// RegisterServiceVersionFlag defines a --version flag that accepts multiple values
-// such as 'latest', 'active' and numerical values which are then converted
-// into the appropriate service version.
-func (b Base) RegisterServiceVersionFlag(opts ServiceVersionFlagOpts) {
-	clause := b.CmdClause.Flag("version", "'latest', 'active', or the number of a specific version")
-	if !opts.Optional {
+// RegisterFlag defines a flag.
+func (b Base) RegisterFlag(opts StringFlagOpts) {
+	clause := b.CmdClause.Flag(opts.Name, opts.Description)
+	if opts.Short > 0 {
+		clause = clause.Short(opts.Short)
+	}
+	if opts.Required {
 		clause = clause.Required()
-	} else {
+	}
+	if opts.Action != nil {
 		clause = clause.Action(opts.Action)
 	}
 	clause.StringVar(opts.Dst)
@@ -121,6 +105,26 @@ func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, 
 		}
 	}
 	return serviceID, errors.New("error matching service name with available services")
+}
+
+// OptionalCustomerID represents a Fastly customer ID.
+type OptionalCustomerID struct {
+	OptionalString
+}
+
+// Parse returns a customer ID either from a flag or from a user defined
+// environment variable (see pkg/env/env.go).
+//
+// NOTE: Will fallback to FASTLY_CUSTOMER_ID environment variable if no flag value set.
+func (sv *OptionalCustomerID) Parse() error {
+	if sv.Value == "" {
+		if e := os.Getenv(env.CustomerID); e != "" {
+			sv.Value = e
+			return nil
+		}
+		return fsterr.ErrNoCustomerID
+	}
+	return nil
 }
 
 // AutoCloneFlagOpts enables easy configuration of the --autoclone flag defined

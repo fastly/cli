@@ -18,7 +18,12 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause = parent.Command("list", "List all users from a specified customer id")
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause.Flag("customer-id", "Alphanumeric string identifying the customer").Required().StringVar(&c.customerID)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagCustomerIDName,
+		Description: cmd.FlagCustomerIDDesc,
+		Dst:         &c.customerID.Value,
+		Action:      c.customerID.Set,
+	})
 	return &c
 }
 
@@ -26,7 +31,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 type ListCommand struct {
 	cmd.Base
 
-	customerID string
+	customerID cmd.OptionalCustomerID
 	manifest   manifest.Data
 }
 
@@ -38,12 +43,16 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoToken
 	}
 
+	if err := c.customerID.Parse(); err != nil {
+		return err
+	}
+
 	input := c.constructInput()
 
 	rs, err := c.Globals.Client.ListCustomerUsers(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Customer ID": c.customerID,
+			"Customer ID": c.customerID.Value,
 		})
 		return err
 	}
@@ -60,7 +69,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListCustomerUsersInput {
 	var input fastly.ListCustomerUsersInput
 
-	input.CustomerID = c.customerID
+	input.CustomerID = c.customerID.Value
 
 	return &input
 }

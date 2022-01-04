@@ -19,7 +19,12 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause = parent.Command("list", "List API tokens")
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause.Flag("customer-id", "Alphanumeric string identifying the customer").StringVar(&c.customerID)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagCustomerIDName,
+		Description: cmd.FlagCustomerIDDesc,
+		Dst:         &c.customerID.Value,
+		Action:      c.customerID.Set,
+	})
 	return &c
 }
 
@@ -27,7 +32,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 type ListCommand struct {
 	cmd.Base
 
-	customerID string
+	customerID cmd.OptionalCustomerID
 	manifest   manifest.Data
 }
 
@@ -44,7 +49,12 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		rs  []*fastly.Token
 	)
 
-	if c.customerID != "" {
+	if err = c.customerID.Parse(); err == nil {
+		if !c.customerID.WasSet {
+			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable")
+			text.Break(out)
+		}
+
 		input := c.constructInput()
 
 		rs, err = c.Globals.Client.ListCustomerTokens(input)
@@ -72,7 +82,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListCustomerTokensInput {
 	var input fastly.ListCustomerTokensInput
 
-	input.CustomerID = c.customerID
+	input.CustomerID = c.customerID.Value
 
 	return &input
 }
