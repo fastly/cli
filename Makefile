@@ -5,6 +5,9 @@ SHELL := /bin/bash -o pipefail
 # the output is consistent across environments.
 VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
 
+# Enables support for tools such as https://github.com/rakyll/gotest
+TEST_COMMAND ?= go test
+
 TESTARGS ?= ./{cmd,pkg}/...
 
 LDFLAGS = -ldflags "\
@@ -51,7 +54,7 @@ staticcheck:
 
 .PHONY: test
 test: config
-	go test -race $(TESTARGS)
+	@$(TEST_COMMAND) -race $(TESTARGS)
 
 .PHONY: build
 build: config
