@@ -41,7 +41,7 @@ func (o Other) Verify(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // source to a Wasm binary.
-func (o Other) Build(out io.Writer, verbose bool) error {
+func (o Other) Build(out, progress io.Writer, verbose bool) error {
 	if o.build == "" {
 		err := fmt.Errorf("error reading custom build instructions from fastly.toml manifest")
 		o.errlog.Add(err)
@@ -53,10 +53,12 @@ func (o Other) Build(out io.Writer, verbose bool) error {
 	cmd, args := o.Shell.Build(o.build)
 
 	s := fstexec.Streaming{
-		Command: cmd,
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  out,
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: progress,
+		Verbose:  verbose,
 	}
 	if o.timeout > 0 {
 		s.Timeout = time.Duration(o.timeout) * time.Second

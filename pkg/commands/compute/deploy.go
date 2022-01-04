@@ -227,7 +227,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// RESOURCE CREATION...
 
-	progress := text.NewProgress(out, c.Globals.Verbose())
+	progress := text.ResetProgress(out, c.Globals.Verbose())
 	undoStack := undo.NewStack()
 
 	defer func(errLog fsterr.LogInterface, progress text.Progress) {
@@ -522,7 +522,7 @@ func manageNoServiceIDFlow(
 		text.Break(out)
 	}
 
-	progress := text.ResetProgress(out, verbose)
+	progress := text.NewProgress(out, verbose)
 
 	// There is no service and so we'll do a one time creation of the service
 	//

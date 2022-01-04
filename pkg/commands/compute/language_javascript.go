@@ -232,7 +232,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // JavaScript source to a Wasm binary.
-func (j JavaScript) Build(out io.Writer, verbose bool) error {
+func (j JavaScript) Build(out, progress io.Writer, verbose bool) error {
 	cmd := j.toolchain
 	args := []string{"run", "build"}
 
@@ -241,10 +241,12 @@ func (j JavaScript) Build(out io.Writer, verbose bool) error {
 	}
 
 	s := fstexec.Streaming{
-		Command: cmd,
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  out,
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: progress,
+		Verbose:  verbose,
 	}
 	if j.timeout > 0 {
 		s.Timeout = time.Duration(j.timeout) * time.Second

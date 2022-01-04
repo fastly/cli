@@ -90,6 +90,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
+	// NOTE: Will be a NullProgress unless --verbose is set.
+	//
+	// This is because we don't want any progress output until later.
 	progress := instantiateProgress(c.Globals.Verbose(), out)
 
 	defer func(errLog errors.LogInterface) {
@@ -158,9 +161,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	text.Break(out)
-	if !c.Globals.Verbose() {
-		progress = text.NewProgress(out, false)
-	}
+
+	// NOTE: From this point onwards we need a non-null progress regardless of
+	// whether --verbose was set or not.
+	progress = text.NewProgress(out, c.Globals.Verbose())
 
 	err = fetchPackageTemplate(language, c.from, branch, tag, c.dir, mf, file.Archives, progress, c.client, out, c.Globals.ErrLog)
 	if err != nil {
@@ -238,7 +242,7 @@ func instantiateProgress(verbose bool, out io.Writer) text.Progress {
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(path string, verbose io.Writer) (dst string, err error) {
+func verifyDestination(path string, progress text.Progress) (dst string, err error) {
 	dst, err = filepath.Abs(path)
 	if err != nil {
 		return dst, err
@@ -252,7 +256,7 @@ func verifyDestination(path string, verbose io.Writer) (dst string, err error) {
 		return dst, fmt.Errorf("package destination is not a directory") // specific problem
 	}
 	if err != nil && os.IsNotExist(err) { // normal-ish case
-		fmt.Fprintf(verbose, "Creating %s...\n", dst)
+		fmt.Fprintf(progress, "Creating %s...\n", dst)
 		if err := os.MkdirAll(dst, 0700); err != nil {
 			return dst, fmt.Errorf("error creating package destination: %w", err)
 		}

@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 // TestBuildRust validates that the rust ecosystem is in place and accurate.
@@ -479,6 +480,7 @@ func TestBuildJavaScript(t *testing.T) {
 		name                 string
 		args                 []string
 		fastlyManifest       string
+		sourceOverride       string
 		wantError            string
 		wantRemediationError string
 		wantOutputContains   string
@@ -514,6 +516,18 @@ func TestBuildJavaScript(t *testing.T) {
 			language = "javascript"`,
 			wantOutputContains: "Built package 'test'",
 		},
+		{
+			name: "JavaScript compilation error",
+			args: args("compute build --verbose"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "javascript"`,
+			sourceOverride: `D"F;
+			'GREGERgregeg '
+			ERG`,
+			wantError: "error during execution process",
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			if testcase.fastlyManifest != "" {
@@ -522,9 +536,18 @@ func TestBuildJavaScript(t *testing.T) {
 				}
 			}
 
-			var stdout bytes.Buffer
+			if testcase.sourceOverride != "" {
+				if err := os.WriteFile(filepath.Join(rootdir, "src", "index.js"), []byte(testcase.sourceOverride), 0777); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			err = app.Run(opts)
+
+			t.Log(stdout.String())
+
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {

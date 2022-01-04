@@ -455,7 +455,7 @@ func (r Rust) Initialize(out io.Writer) error { return nil }
 
 // Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
-func (r *Rust) Build(out io.Writer, verbose bool) error {
+func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
 	if err := m.Read("Cargo.toml"); err != nil {
@@ -486,10 +486,12 @@ func (r *Rust) Build(out io.Writer, verbose bool) error {
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
 	s := fstexec.Streaming{
-		Command: cmd,
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  out,
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: progress,
+		Verbose:  verbose,
 	}
 	if r.timeout > 0 {
 		s.Timeout = time.Duration(r.timeout) * time.Second

@@ -28,7 +28,7 @@ const IgnoreFilePath = ".fastlyignore"
 type Toolchain interface {
 	Initialize(out io.Writer) error
 	Verify(out io.Writer) error
-	Build(out io.Writer, verbose bool) error
+	Build(out, progress io.Writer, verbose bool) error
 }
 
 // Flags represents the flags defined for the command.
@@ -205,7 +205,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress = text.ResetProgress(out, c.Globals.Verbose())
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", toolchain))
 
-	if err := language.Build(progress, c.Globals.Flag.Verbose); err != nil {
+	if err := language.Build(out, progress, c.Globals.Flag.Verbose); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Language": language.Name,
 		})
