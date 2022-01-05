@@ -24,7 +24,7 @@ func TestApplication(t *testing.T) {
 		{
 			Name:      "help flag only",
 			Args:      args("--help"),
-			WantError: helpDefault,
+			WantError: helpDefault + "\nERROR: error parsing arguments: command not specified.\n",
 		},
 		{
 			Name:      "help argument only",

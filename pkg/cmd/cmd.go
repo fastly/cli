@@ -206,3 +206,11 @@ func IsHelpOnly(args []string) bool {
 func IsHelpFlagOnly(args []string) bool {
 	return args[0] == "--help"
 }
+
+// IsVerboseFlagOnly indicates if the user called `fastly -v`.
+func IsVerboseFlagOnly(args []string) bool {
+	if len(args) != 1 {
+		return false
+	}
+	return args[0] == "-v" || args[0] == "--verbose"
+}
