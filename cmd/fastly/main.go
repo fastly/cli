@@ -16,6 +16,7 @@ import (
 	fsterrors "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fatih/color"
 )
 
 //go:embed static/config.toml
@@ -37,7 +38,7 @@ func main() {
 		clientFactory           = app.FastlyAPIClient
 		httpClient              = http.DefaultClient
 		in            io.Reader = os.Stdin
-		out           io.Writer = sync.NewWriter(os.Stdout)
+		out           io.Writer = sync.NewWriter(color.Output)
 		versionerCLI            = update.NewGitHub(update.GitHubOpts{
 			Org:    "fastly",
 			Repo:   "cli",
@@ -78,7 +79,7 @@ func main() {
 		} else {
 			// We've hit a scenario where our fallback static config is invalid, and
 			// that is very much an unexpected situation.
-			fsterrors.Deduce(err).Print(os.Stderr)
+			fsterrors.Deduce(err).Print(color.Error)
 			os.Exit(1)
 		}
 	}
@@ -93,7 +94,7 @@ func main() {
 	if err == config.ErrLegacyConfig || !file.ValidConfig(verboseOutput, out) {
 		err = file.UseStatic(cfg, config.FilePath)
 		if err != nil {
-			fsterrors.Deduce(err).Print(os.Stderr)
+			fsterrors.Deduce(err).Print(color.Error)
 			os.Exit(1)
 		}
 	}
@@ -156,11 +157,11 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 	// unexpected we will have a record of any errors that happened along the way.
 	logErr := fsterrors.Log.Persist(fsterrors.LogPath, args)
 	if logErr != nil {
-		fsterrors.Deduce(logErr).Print(os.Stderr)
+		fsterrors.Deduce(logErr).Print(color.Error)
 	}
 
 	if err != nil {
-		fsterrors.Deduce(err).Print(os.Stderr)
+		fsterrors.Deduce(err).Print(color.Error)
 
 		// NOTE: if we have an error processing the command, then we should be sure
 		// to wait for the async file write to complete (otherwise we'll end up in
@@ -219,7 +220,7 @@ func afterWrite(verboseOutput bool, errLoadConfig error, out io.Writer) {
 		text.Info(out, config.UpdateSuccessful)
 	}
 	if errLoadConfig != nil {
-		errLoadConfig.(fsterrors.RemediationError).Print(os.Stderr)
+		errLoadConfig.(fsterrors.RemediationError).Print(color.Error)
 	}
 }
 
