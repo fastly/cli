@@ -529,6 +529,7 @@ COMMANDS
   backend describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a backend on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -540,6 +541,7 @@ COMMANDS
   backend list --version=VERSION [<flags>]
     List backends on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME

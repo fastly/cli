@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -113,6 +114,22 @@ func TestBackendList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
+			Args: args("backend list --service-id 123 --version 1 --json"),
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				ListBackendsFn: listBackendsOK,
+			},
+			WantOutput: `[{"ServiceID":"123","ServiceVersion":1,"Name":"test.com","Comment":"test","Address":"www.test.com","Port":80,"OverrideHost":"","ConnectTimeout":0,"MaxConn":0,"ErrorThreshold":0,"FirstByteTimeout":0,"BetweenBytesTimeout":0,"AutoLoadbalance":false,"Weight":0,"RequestCondition":"","HealthCheck":"","Hostname":"","Shield":"","UseSSL":false,"SSLCheckCert":false,"SSLCACert":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLCertHostname":"","SSLSNIHostname":"","MinTLSVersion":"","MaxTLSVersion":"","SSLCiphers":"","CreatedAt":null,"UpdatedAt":null,"DeletedAt":null},{"ServiceID":"123","ServiceVersion":1,"Name":"example.com","Comment":"example","Address":"www.example.com","Port":443,"OverrideHost":"","ConnectTimeout":0,"MaxConn":0,"ErrorThreshold":0,"FirstByteTimeout":0,"BetweenBytesTimeout":0,"AutoLoadbalance":false,"Weight":0,"RequestCondition":"","HealthCheck":"","Hostname":"","Shield":"","UseSSL":false,"SSLCheckCert":false,"SSLCACert":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLCertHostname":"","SSLSNIHostname":"","MinTLSVersion":"","MaxTLSVersion":"","SSLCiphers":"","CreatedAt":null,"UpdatedAt":null,"DeletedAt":null}]`,
+		},
+		{
+			Args: args("backend list --service-id 123 --version 1 --json --verbose"),
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				ListBackendsFn: listBackendsOK,
+			},
+			WantError: fsterr.ErrInvalidVerboseJSONCombo.Error(),
+		},
+		{
 			Args: args("backend list --service-id 123 --version 1"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
@@ -168,7 +185,9 @@ func TestBackendList(t *testing.T) {
 			opts.APIClient = mock.APIClient(testcase.API)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
+			if testcase.WantError == "" {
+				testutil.AssertString(t, testcase.WantOutput, stdout.String())
+			}
 		})
 	}
 }
@@ -405,8 +424,8 @@ func getBackendError(i *fastly.GetBackendInput) (*fastly.Backend, error) {
 }
 
 var describeBackendOutput = strings.Join([]string{
-	"Service ID: 123",
-	"Version: 1",
+	"\nService ID: 123",
+	"Service Version: 1\n",
 	"Name: test.com",
 	"Comment: test",
 	"Address: www.test.com",

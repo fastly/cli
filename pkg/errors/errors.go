@@ -106,3 +106,10 @@ var ErrBuildStopped = RemediationError{
 	Inner:       fmt.Errorf("build process stopped by user"),
 	Remediation: "Remove or update the custom [scripts.build] in the fastly.toml manifest.",
 }
+
+// ErrInvalidVerboseJSONCombo means the user provided both a --verbose and
+// --json flag which are mutally exclusive behaviours.
+var ErrInvalidVerboseJSONCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid flag combination, --verbose and --json"),
+	Remediation: "Use either --verbose or --json, not both.",
+}
