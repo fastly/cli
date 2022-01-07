@@ -91,7 +91,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	err = c.print(out, backend, c.json, c.Globals.Verbose())
+	err = c.print(out, backend)
 	if err != nil {
 		return err
 	}
@@ -99,8 +99,8 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 // print displays the information returned from the API.
-func (c *DescribeCommand) print(out io.Writer, b *fastly.Backend, renderJSON, verbose bool) error {
-	if renderJSON {
+func (c *DescribeCommand) print(out io.Writer, b *fastly.Backend) error {
+	if c.json {
 		data, err := json.Marshal(b)
 		if err != nil {
 			return err
@@ -109,7 +109,7 @@ func (c *DescribeCommand) print(out io.Writer, b *fastly.Backend, renderJSON, ve
 		return nil
 	}
 
-	if !verbose {
+	if !c.Globals.Verbose() {
 		fmt.Fprintf(out, "\nService ID: %s\n", b.ServiceID)
 	}
 	fmt.Fprintf(out, "Service Version: %d\n\n", b.ServiceVersion)

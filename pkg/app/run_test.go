@@ -442,15 +442,17 @@ COMMANDS
     --file=FILE  Revoke tokens in bulk from a newline delimited list of tokens
     --id=ID      Alphanumeric string identifying a token
 
-  auth-token describe
+  auth-token describe [<flags>]
     Get the current API token
 
+    -j, --json  Render output as JSON
 
   auth-token list [<flags>]
     List API tokens
 
-    --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
-                               (falls back to FASTLY_CUSTOMER_ID)
+        --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
+                                   (falls back to FASTLY_CUSTOMER_ID)
+    -j, --json                     Render output as JSON
 
   backend create --version=VERSION --name=NAME --address=ADDRESS [<flags>]
     Create a backend on a Fastly service version

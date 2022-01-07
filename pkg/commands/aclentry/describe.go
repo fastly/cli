@@ -91,7 +91,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	err = c.print(out, a, c.json, c.Globals.Verbose())
+	err = c.print(out, a)
 	if err != nil {
 		return err
 	}
@@ -110,8 +110,8 @@ func (c *DescribeCommand) constructInput(serviceID string) *fastly.GetACLEntryIn
 }
 
 // print displays the information returned from the API.
-func (c *DescribeCommand) print(out io.Writer, a *fastly.ACLEntry, renderJSON, verbose bool) error {
-	if renderJSON {
+func (c *DescribeCommand) print(out io.Writer, a *fastly.ACLEntry) error {
+	if c.json {
 		data, err := json.Marshal(a)
 		if err != nil {
 			return err
@@ -120,7 +120,7 @@ func (c *DescribeCommand) print(out io.Writer, a *fastly.ACLEntry, renderJSON, v
 		return nil
 	}
 
-	if !verbose {
+	if !c.Globals.Verbose() {
 		fmt.Fprintf(out, "\nService ID: %s\n", a.ServiceID)
 	}
 	fmt.Fprintf(out, "ACL ID: %s\n", a.ACLID)

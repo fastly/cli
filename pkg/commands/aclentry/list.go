@@ -93,7 +93,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() {
 		c.printVerbose(out, as)
 	} else {
-		err = c.printSummary(out, as, c.json)
+		err = c.printSummary(out, as)
 		if err != nil {
 			return err
 		}
@@ -138,8 +138,8 @@ func (c *ListCommand) printVerbose(out io.Writer, as []*fastly.ACLEntry) {
 
 // printSummary displays the information returned from the API in a summarised
 // format.
-func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry, renderJSON bool) error {
-	if renderJSON {
+func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry) error {
+	if c.json {
 		data, err := json.Marshal(as)
 		if err != nil {
 			return err

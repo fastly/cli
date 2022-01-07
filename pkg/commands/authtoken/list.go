@@ -1,13 +1,14 @@
 package authtoken
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -25,6 +26,12 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Dst:         &c.customerID.Value,
 		Action:      c.customerID.Set,
 	})
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	return &c
 }
 
@@ -33,6 +40,7 @@ type ListCommand struct {
 	cmd.Base
 
 	customerID cmd.OptionalCustomerID
+	json       bool
 	manifest   manifest.Data
 }
 
@@ -41,7 +49,10 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
-		return errors.ErrNoToken
+		return fsterr.ErrNoToken
+	}
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	var (
@@ -73,7 +84,10 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() {
 		c.printVerbose(out, rs)
 	} else {
-		c.printSummary(out, rs)
+		err = c.printSummary(out, rs)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -113,11 +127,21 @@ func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.Token) {
 
 // printSummary displays the information returned from the API in a summarised
 // format.
-func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.Token) {
+func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.Token) error {
+	if c.json {
+		data, err := json.Marshal(rs)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
+
 	t := text.NewTable(out)
 	t.AddHeader("NAME", "TOKEN ID", "USER ID", "SCOPE", "SERVICES")
 	for _, r := range rs {
 		t.AddLine(r.Name, r.ID, r.UserID, r.Scope, strings.Join(r.Services, ", "))
 	}
 	t.Print()
+	return nil
 }
