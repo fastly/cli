@@ -1,5 +1,29 @@
 # Changelog
 
+## [v1.4.0](https://github.com/fastly/cli/releases/tag/v1.4.0) (2022-01-07)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.3.0...v1.4.0)
+
+**Enhancements:**
+
+* Add `viceroy.ttl` to CLI app config [#489](https://github.com/fastly/cli/pull/489)
+* Display `viceroy --version` if installed [#487](https://github.com/fastly/cli/pull/487)
+* Support `compute build` for 'other' language option using `[scripts.build]` [#484](https://github.com/fastly/cli/pull/484)
+* Pass parent environment to subprocess [#491](https://github.com/fastly/cli/pull/491)
+* Implement a yes/no user prompt abstraction [#500](https://github.com/fastly/cli/pull/500)
+* Ensure build compilation errors are displayed [#492](https://github.com/fastly/cli/pull/492)
+* Implement `--service-name` as swap-in replacement for `--service-id` [#495](https://github.com/fastly/cli/pull/495)
+* Support `FASTLY_CUSTOMER_ID` environment variable [#494](https://github.com/fastly/cli/pull/494)
+* Support `gotest` [#501](https://github.com/fastly/cli/pull/501)
+
+**Bug fixes:**
+
+* Fix the `--watch` flag for AssemblyScript [#493](https://github.com/fastly/cli/pull/493)
+* Fix `compute init --from` for Windows [#490](https://github.com/fastly/cli/pull/490)
+* Avoid triggering GitHub API rate limit when running Viceroy in CI [#488](https://github.com/fastly/cli/pull/488)
+* Fix Windows ANSI escape code rendering [#503](https://github.com/fastly/cli/pull/503)
+* Prevent runtime panic when global flag set with no command [#502](https://github.com/fastly/cli/pull/502)
+
 ## [v1.3.0](https://github.com/fastly/cli/releases/tag/v1.3.0) (2021-12-01)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.2.0...v1.3.0)
