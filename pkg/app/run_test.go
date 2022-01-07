@@ -890,6 +890,7 @@ COMMANDS
   domain describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a domain on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -901,6 +902,7 @@ COMMANDS
   domain list --version=VERSION [<flags>]
     List domains on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
