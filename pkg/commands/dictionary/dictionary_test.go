@@ -509,7 +509,7 @@ Item 2/2:
 	Item Value: bear
 `) + "\n"
 
-var listDictionariesOutput = strings.TrimSpace(`
+var listDictionariesOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 ID: 456

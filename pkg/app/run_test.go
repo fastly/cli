@@ -765,6 +765,7 @@ COMMANDS
   dictionary describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Fastly edge dictionary
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -776,6 +777,7 @@ COMMANDS
   dictionary list --version=VERSION [<flags>]
     List all dictionaries on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
