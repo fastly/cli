@@ -390,6 +390,7 @@ COMMANDS
 
         --acl-id=ACL-ID          Alphanumeric string identifying a ACL
         --id=ID                  Alphanumeric string identifying an ACL Entry
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -399,6 +400,7 @@ COMMANDS
     List ACLs
 
         --acl-id=ACL-ID          Alphanumeric string identifying a ACL
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
