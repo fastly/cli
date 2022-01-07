@@ -257,10 +257,14 @@ func processCommandInput(
 	// fail if a 'required' flag is missing. But in reality, because we call
 	// ParseContext() first, it means the Parse() function should only really
 	// error on things not already caught by ParseContext().
+	//
+	// ctx.SelectedCommand will be nil if only a flag like --verbose or -v is
+	// provided but with no actual command set so we check with IsGlobalFlagsOnly.
 	noargs := len(opts.Args) == 0
+	globalFlagsOnly := cmd.IsGlobalFlagsOnly(opts.Args)
 	ctx, err := app.ParseContext(opts.Args)
-	if err != nil && !cmd.IsCompletion(opts.Args) || noargs {
-		if noargs {
+	if err != nil && !cmd.IsCompletion(opts.Args) || noargs || globalFlagsOnly {
+		if noargs || globalFlagsOnly {
 			err = fmt.Errorf("command not specified")
 		}
 		return command, cmdName, help(vars, err)
