@@ -78,7 +78,7 @@ var BugRemediation = strings.Join([]string{
 // ServiceIDRemediation suggests provide a service ID via --service-id flag or
 // package manifest.
 var ServiceIDRemediation = strings.Join([]string{
-	"Please provide one via the --service-id flag, or by setting the FASTLY_SERVICE_ID environment variable, or within your package manifest",
+	"Please provide one via the --service-id or --service-name flag, or by setting the FASTLY_SERVICE_ID environment variable, or within your package manifest",
 }, " ")
 
 // CustomerIDRemediation suggests provide a customer ID via --customer-id flag
