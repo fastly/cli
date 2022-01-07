@@ -1,11 +1,13 @@
 package dictionaryitem
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -16,6 +18,7 @@ type DescribeCommand struct {
 	cmd.Base
 	manifest    manifest.Data
 	Input       fastly.GetDictionaryItemInput
+	json        bool
 	serviceName cmd.OptionalServiceNameID
 }
 
@@ -25,6 +28,12 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly edge dictionary item").Alias("get")
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -44,6 +53,10 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
 	serviceID, source := c.manifest.ServiceID()
 	if c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, source, out)
@@ -51,7 +64,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		var err error
 		if !c.serviceName.WasSet {
-			err = errors.ErrNoServiceID
+			err = fsterr.ErrNoServiceID
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
@@ -63,7 +76,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	c.Input.ServiceID = serviceID
 
-	dictionary, err := c.Globals.Client.GetDictionaryItem(&c.Input)
+	item, err := c.Globals.Client.GetDictionaryItem(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID": serviceID,
@@ -71,7 +84,18 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Output(out, "Service ID: %s", c.Input.ServiceID)
-	text.PrintDictionaryItem(out, "", dictionary)
+	if c.json {
+		data, err := json.Marshal(item)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
+
+	if !c.Globals.Verbose() {
+		fmt.Fprintf(out, "\nService ID: %s\n", c.Input.ServiceID)
+	}
+	text.PrintDictionaryItem(out, "", item)
 	return nil
 }

@@ -827,6 +827,7 @@ COMMANDS
   dictionary-item describe --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
     Show detailed information about a Fastly edge dictionary item
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -838,6 +839,7 @@ COMMANDS
   dictionary-item list --dictionary-id=DICTIONARY-ID [<flags>]
     List items in a Fastly edge dictionary
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME

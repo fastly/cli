@@ -1,11 +1,13 @@
 package dictionaryitem
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -16,6 +18,7 @@ type ListCommand struct {
 	cmd.Base
 	manifest    manifest.Data
 	Input       fastly.ListDictionaryItemsInput
+	json        bool
 	serviceName cmd.OptionalServiceNameID
 }
 
@@ -25,6 +28,12 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("list", "List items in a Fastly edge dictionary")
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -43,6 +52,10 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
 	serviceID, source := c.manifest.ServiceID()
 	if c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, source, out)
@@ -50,7 +63,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if source == manifest.SourceUndefined {
 		var err error
 		if !c.serviceName.WasSet {
-			err = errors.ErrNoServiceID
+			err = fsterr.ErrNoServiceID
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
@@ -70,7 +83,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Output(out, "Service ID: %s\n", c.Input.ServiceID)
+	if c.json {
+		data, err := json.Marshal(dictionaries)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
+
+	if !c.Globals.Verbose() {
+		fmt.Fprintf(out, "\nService ID: %s\n", c.Input.ServiceID)
+	}
 	for i, dictionary := range dictionaries {
 		text.Output(out, "Item: %d/%d", i+1, len(dictionaries))
 		text.PrintDictionaryItem(out, "\t", dictionary)
