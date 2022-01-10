@@ -4636,6 +4636,7 @@ COMMANDS
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --dynamic                Whether the VCL snippet is dynamic or versioned
+    -j, --json                   Render output as JSON
         --name=NAME              The name of the VCL snippet
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
@@ -4648,6 +4649,7 @@ COMMANDS
 
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME

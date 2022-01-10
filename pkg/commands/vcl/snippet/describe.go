@@ -1,12 +1,13 @@
 package snippet
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/go-fastly/v5/fastly"
 )
@@ -28,6 +29,12 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 
 	// Optional Flags
 	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	c.CmdClause.Flag("name", "The name of the VCL snippet").StringVar(&c.name)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
@@ -51,6 +58,7 @@ type DescribeCommand struct {
 	cmd.Base
 
 	dynamic        cmd.OptionalBool
+	json           bool
 	manifest       manifest.Data
 	name           string
 	serviceName    cmd.OptionalServiceNameID
@@ -60,6 +68,10 @@ type DescribeCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		Client:             c.Globals.Client,
@@ -72,7 +84,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
+			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
@@ -94,7 +106,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 			})
 			return err
 		}
-		c.printDynamic(out, v)
+		err = c.printDynamic(out, v)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -114,7 +129,11 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		})
 		return err
 	}
-	c.print(out, v)
+
+	err = c.print(out, v)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -148,36 +167,58 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) (
 }
 
 // print displays the 'dynamic' information returned from the API.
-func (c *DescribeCommand) printDynamic(out io.Writer, v *fastly.DynamicSnippet) {
-	fmt.Fprintf(out, "\nService ID: %s\n", v.ServiceID)
-	fmt.Fprintf(out, "ID: %s\n", v.ID)
-	fmt.Fprintf(out, "Content: \n%s\n", v.Content)
-	if v.CreatedAt != nil {
-		fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
+func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet) error {
+	if c.json {
+		data, err := json.Marshal(ds)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
 	}
-	if v.UpdatedAt != nil {
-		fmt.Fprintf(out, "Updated at: %s\n", v.UpdatedAt)
+
+	fmt.Fprintf(out, "\nService ID: %s\n", ds.ServiceID)
+	fmt.Fprintf(out, "ID: %s\n", ds.ID)
+	fmt.Fprintf(out, "Content: \n%s\n", ds.Content)
+	if ds.CreatedAt != nil {
+		fmt.Fprintf(out, "Created at: %s\n", ds.CreatedAt)
 	}
+	if ds.UpdatedAt != nil {
+		fmt.Fprintf(out, "Updated at: %s\n", ds.UpdatedAt)
+	}
+	return nil
 }
 
 // print displays the information returned from the API.
-func (c *DescribeCommand) print(out io.Writer, v *fastly.Snippet) {
-	fmt.Fprintf(out, "\nService ID: %s\n", v.ServiceID)
-	fmt.Fprintf(out, "Service Version: %d\n", v.ServiceVersion)
+func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
+	if c.json {
+		data, err := json.Marshal(s)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
 
-	fmt.Fprintf(out, "\nName: %s\n", v.Name)
-	fmt.Fprintf(out, "ID: %s\n", v.ID)
-	fmt.Fprintf(out, "Priority: %d\n", v.Priority)
-	fmt.Fprintf(out, "Dynamic: %t\n", cmd.IntToBool(v.Dynamic))
-	fmt.Fprintf(out, "Type: %s\n", v.Type)
-	fmt.Fprintf(out, "Content: \n%s\n", v.Content)
-	if v.CreatedAt != nil {
-		fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
+	if !c.Globals.Verbose() {
+		fmt.Fprintf(out, "\nService ID: %s\n", s.ServiceID)
 	}
-	if v.UpdatedAt != nil {
-		fmt.Fprintf(out, "Updated at: %s\n", v.UpdatedAt)
+	fmt.Fprintf(out, "Service Version: %d\n", s.ServiceVersion)
+
+	fmt.Fprintf(out, "\nName: %s\n", s.Name)
+	fmt.Fprintf(out, "ID: %s\n", s.ID)
+	fmt.Fprintf(out, "Priority: %d\n", s.Priority)
+	fmt.Fprintf(out, "Dynamic: %t\n", cmd.IntToBool(s.Dynamic))
+	fmt.Fprintf(out, "Type: %s\n", s.Type)
+	fmt.Fprintf(out, "Content: \n%s\n", s.Content)
+	if s.CreatedAt != nil {
+		fmt.Fprintf(out, "Created at: %s\n", s.CreatedAt)
 	}
-	if v.DeletedAt != nil {
-		fmt.Fprintf(out, "Deleted at: %s\n", v.DeletedAt)
+	if s.UpdatedAt != nil {
+		fmt.Fprintf(out, "Updated at: %s\n", s.UpdatedAt)
 	}
+	if s.DeletedAt != nil {
+		fmt.Fprintf(out, "Deleted at: %s\n", s.DeletedAt)
+	}
+	return nil
 }
