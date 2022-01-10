@@ -4430,6 +4430,7 @@ COMMANDS
   service-version list [<flags>]
     List Fastly service versions
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4506,14 +4507,16 @@ COMMANDS
   user describe [<flags>]
     Get a specific user of the Fastly API and web interface
 
-    --id=ID    Alphanumeric string identifying the user
-    --current  Get the logged in user
+        --current  Get the logged in user
+        --id=ID    Alphanumeric string identifying the user
+    -j, --json     Render output as JSON
 
   user list [<flags>]
     List all users from a specified customer id
 
-    --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
-                               (falls back to FASTLY_CUSTOMER_ID)
+        --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
+                                   (falls back to FASTLY_CUSTOMER_ID)
+    -j, --json                     Render output as JSON
 
   user update [<flags>]
     Update a user of the Fastly API and web interface
