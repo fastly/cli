@@ -67,22 +67,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoToken
 	}
 
-	serviceID, source := c.manifest.ServiceID()
+	serviceID, source, flag := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, source, out)
-	}
-	if source == manifest.SourceUndefined {
-		var err error
-		if !c.serviceName.WasSet {
-			err = errors.ErrNoServiceID
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-		serviceID, err = c.serviceName.Parse(c.Globals.Client)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
+		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	// The URL purge API call doesn't require a Service ID.

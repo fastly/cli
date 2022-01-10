@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -121,24 +121,17 @@ type ServiceDetailsOpts struct {
 	ServiceNameFlag    OptionalServiceNameID
 	ServiceVersionFlag OptionalServiceVersion
 	VerboseMode        bool
+	ErrLog             fsterr.LogInterface
 }
 
 // ServiceDetails returns the Service ID and Service Version.
 func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *fastly.Version, err error) {
-	serviceID, source := opts.Manifest.ServiceID()
-
+	serviceID, source, flag := ServiceID(opts.ServiceNameFlag, opts.Manifest, opts.Client, opts.ErrLog)
 	if source == manifest.SourceUndefined {
-		if !opts.ServiceNameFlag.WasSet {
-			return serviceID, serviceVersion, errors.ErrNoServiceID
-		}
-		serviceID, err = opts.ServiceNameFlag.Parse(opts.Client)
-		if err != nil {
-			return serviceID, serviceVersion, err
-		}
+		return serviceID, serviceVersion, fsterr.ErrNoServiceID
 	}
-
 	if opts.VerboseMode {
-		DisplayServiceID(serviceID, source, opts.Out)
+		DisplayServiceID(serviceID, flag, source, opts.Out)
 	}
 
 	v, err := opts.ServiceVersionFlag.Parse(serviceID, opts.Client)
@@ -153,9 +146,9 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 			return serviceID, currentVersion, err
 		}
 	} else if !opts.AllowActiveLocked && (v.Active || v.Locked) {
-		err = errors.RemediationError{
+		err = fsterr.RemediationError{
 			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
-			Remediation: errors.AutoCloneRemediation,
+			Remediation: fsterr.AutoCloneRemediation,
 		}
 		return serviceID, v, err
 	}
@@ -163,13 +156,36 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 	return serviceID, v, nil
 }
 
+// ServiceID returns the Service ID and the source of that information.
+//
+// NOTE: If Service ID not provided then check if Service Name provided and use
+// that information to acquire the Service ID.
+func ServiceID(serviceName OptionalServiceNameID, data manifest.Data, client api.Interface, li fsterr.LogInterface) (serviceID string, source manifest.Source, flag string) {
+	flag = "--service-id"
+	serviceID, source = data.ServiceID()
+
+	if source == manifest.SourceUndefined {
+		if serviceName.WasSet {
+			var err error
+			serviceID, err = serviceName.Parse(client)
+			if err != nil && li != nil {
+				li.Add(err)
+			}
+			flag = "--service-name"
+			source = manifest.SourceFlag
+		}
+	}
+
+	return serviceID, source, flag
+}
+
 // DisplayServiceID acquires the Service ID (if provided) and displays both it
 // and its source location.
-func DisplayServiceID(sid string, s manifest.Source, out io.Writer) {
+func DisplayServiceID(sid, flag string, s manifest.Source, out io.Writer) {
 	var via string
 	switch s {
 	case manifest.SourceFlag:
-		via = " (via --service-id)"
+		via = fmt.Sprintf(" (via %s)", flag)
 	case manifest.SourceFile:
 		via = fmt.Sprintf(" (via %s)", manifest.Filename)
 	case manifest.SourceEnv:
