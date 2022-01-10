@@ -126,9 +126,9 @@ type ServiceDetailsOpts struct {
 
 // ServiceDetails returns the Service ID and Service Version.
 func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *fastly.Version, err error) {
-	serviceID, source, flag := ServiceID(opts.ServiceNameFlag, opts.Manifest, opts.Client, opts.ErrLog)
-	if source == manifest.SourceUndefined {
-		return serviceID, serviceVersion, fsterr.ErrNoServiceID
+	serviceID, source, flag, err := ServiceID(opts.ServiceNameFlag, opts.Manifest, opts.Client, opts.ErrLog)
+	if err != nil {
+		return serviceID, serviceVersion, err
 	}
 	if opts.VerboseMode {
 		DisplayServiceID(serviceID, flag, source, opts.Out)
@@ -160,23 +160,28 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 //
 // NOTE: If Service ID not provided then check if Service Name provided and use
 // that information to acquire the Service ID.
-func ServiceID(serviceName OptionalServiceNameID, data manifest.Data, client api.Interface, li fsterr.LogInterface) (serviceID string, source manifest.Source, flag string) {
+func ServiceID(serviceName OptionalServiceNameID, data manifest.Data, client api.Interface, li fsterr.LogInterface) (serviceID string, source manifest.Source, flag string, err error) {
 	flag = "--service-id"
 	serviceID, source = data.ServiceID()
 
 	if source == manifest.SourceUndefined {
-		if serviceName.WasSet {
-			var err error
-			serviceID, err = serviceName.Parse(client)
-			if err != nil && li != nil {
+		if !serviceName.WasSet {
+			err = fsterr.ErrNoServiceID
+			if li != nil {
 				li.Add(err)
 			}
-			flag = "--service-name"
-			source = manifest.SourceFlag
+			return serviceID, source, flag, err
 		}
+
+		serviceID, err = serviceName.Parse(client)
+		if err != nil && li != nil {
+			li.Add(err)
+		}
+		flag = "--service-name"
+		source = manifest.SourceFlag
 	}
 
-	return serviceID, source, flag
+	return serviceID, source, flag, err
 }
 
 // DisplayServiceID acquires the Service ID (if provided) and displays both it

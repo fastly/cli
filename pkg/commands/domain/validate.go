@@ -58,7 +58,6 @@ type ValidateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
-	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return errors.ErrNoToken

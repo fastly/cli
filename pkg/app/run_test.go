@@ -986,6 +986,7 @@ COMMANDS
   healthcheck describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a healthcheck on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -997,6 +998,7 @@ COMMANDS
   healthcheck list --version=VERSION [<flags>]
     List healthchecks on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME

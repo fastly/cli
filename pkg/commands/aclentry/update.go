@@ -63,7 +63,10 @@ type UpdateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source, flag := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	if err != nil {
+		return err
+	}
 	if c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}

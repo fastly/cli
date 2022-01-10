@@ -83,15 +83,14 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	serviceID, source, flag := cmd.ServiceID(c.ServiceName, c.Manifest, c.Globals.Client, c.Globals.ErrLog)
-	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
-	}
-
-	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return fsterr.ErrNoToken
+	}
+
+	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Manifest, c.Globals.Client, c.Globals.ErrLog)
+	if err == nil && c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	// Alias' for otherwise long definitions

@@ -43,14 +43,17 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source, flag := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	if err != nil {
+		return err
+	}
 	if c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	c.Input.ServiceID = serviceID
 
-	err := c.Globals.Client.DeleteDictionaryItem(&c.Input)
+	err = c.Globals.Client.DeleteDictionaryItem(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID": serviceID,
