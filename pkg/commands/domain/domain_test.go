@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	fsterrors "github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -248,7 +248,7 @@ func TestDomainValidate(t *testing.T) {
 		{
 			Name:      "validate missing --token flag",
 			Args:      args("domain validate --version 3"),
-			WantError: fsterrors.ErrNoToken.Inner.Error(),
+			WantError: fsterr.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name:      "validate missing --service-id flag",

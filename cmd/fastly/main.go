@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
-	fsterrors "github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fatih/color"
@@ -79,7 +79,7 @@ func main() {
 		} else {
 			// We've hit a scenario where our fallback static config is invalid, and
 			// that is very much an unexpected situation.
-			fsterrors.Deduce(err).Print(color.Error)
+			fsterr.Deduce(err).Print(color.Error)
 			os.Exit(1)
 		}
 	}
@@ -94,7 +94,7 @@ func main() {
 	if err == config.ErrLegacyConfig || !file.ValidConfig(verboseOutput, out) {
 		err = file.UseStatic(cfg, config.FilePath)
 		if err != nil {
-			fsterrors.Deduce(err).Print(color.Error)
+			fsterr.Deduce(err).Print(color.Error)
 			os.Exit(1)
 		}
 	}
@@ -122,9 +122,9 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 			// configuration file to determine where to load the config from.
 			err := file.Load(file.CLI.RemoteConfig, httpClient, config.ConfigRequestTimeout, config.FilePath)
 			if err != nil {
-				errLoadConfig = fsterrors.RemediationError{
+				errLoadConfig = fsterr.RemediationError{
 					Inner:       fmt.Errorf("there was a problem updating the versioning information for the Fastly CLI:\n\n%w", err),
-					Remediation: fsterrors.BugRemediation,
+					Remediation: fsterr.BugRemediation,
 				}
 			}
 
@@ -139,7 +139,7 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 		ConfigFile: file,
 		ConfigPath: config.FilePath,
 		Env:        env,
-		ErrLog:     fsterrors.Log,
+		ErrLog:     fsterr.Log,
 		HTTPClient: httpClient,
 		Stdin:      in,
 		Stdout:     out,
@@ -155,13 +155,13 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 	// during the execution flow but were otherwise handled without bubbling an
 	// error back the call stack, and so if the user still experiences something
 	// unexpected we will have a record of any errors that happened along the way.
-	logErr := fsterrors.Log.Persist(fsterrors.LogPath, args)
+	logErr := fsterr.Log.Persist(fsterr.LogPath, args)
 	if logErr != nil {
-		fsterrors.Deduce(logErr).Print(color.Error)
+		fsterr.Deduce(logErr).Print(color.Error)
 	}
 
 	if err != nil {
-		fsterrors.Deduce(err).Print(color.Error)
+		fsterr.Deduce(err).Print(color.Error)
 
 		// NOTE: if we have an error processing the command, then we should be sure
 		// to wait for the async file write to complete (otherwise we'll end up in
@@ -220,7 +220,7 @@ func afterWrite(verboseOutput bool, errLoadConfig error, out io.Writer) {
 		text.Info(out, config.UpdateSuccessful)
 	}
 	if errLoadConfig != nil {
-		errLoadConfig.(fsterrors.RemediationError).Print(color.Error)
+		errLoadConfig.(fsterr.RemediationError).Print(color.Error)
 	}
 }
 
