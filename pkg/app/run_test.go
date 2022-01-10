@@ -4564,6 +4564,7 @@ COMMANDS
         --name=NAME              The name of the VCL
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4574,6 +4575,7 @@ COMMANDS
 
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
