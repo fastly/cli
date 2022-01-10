@@ -39,49 +39,6 @@ func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 	}
 }
 
-// PrintServiceDetail pretty prints a fastly.ServiceDetail structure in verbose
-// format to a given io.Writer. Consumers can provide a prefix string which
-// will be used as a prefix to each line, useful for indentation.
-func PrintServiceDetail(out io.Writer, indent string, s *fastly.ServiceDetail) {
-	out = textio.NewPrefixWriter(out, indent)
-
-	// Initally services have no active version, however go-fastly still
-	// returns an empty Version struct with nil values. Which isn't useful for
-	// output rendering.
-	activeVersion := "none"
-	if s.ActiveVersion.Active {
-		activeVersion = fmt.Sprintf("%d", s.ActiveVersion.Number)
-	}
-
-	fmt.Fprintf(out, "ID: %s\n", s.ID)
-	fmt.Fprintf(out, "Name: %s\n", s.Name)
-	fmt.Fprintf(out, "Type: %s\n", s.Type)
-	if s.Comment != "" {
-		fmt.Fprintf(out, "Comment: %s\n", s.Comment)
-	}
-	fmt.Fprintf(out, "Customer ID: %s\n", s.CustomerID)
-	if s.CreatedAt != nil {
-		fmt.Fprintf(out, "Created (UTC): %s\n", s.CreatedAt.UTC().Format(time.Format))
-	}
-	if s.UpdatedAt != nil {
-		fmt.Fprintf(out, "Last edited (UTC): %s\n", s.UpdatedAt.UTC().Format(time.Format))
-	}
-	if s.DeletedAt != nil {
-		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
-	}
-	if s.ActiveVersion.Active {
-		fmt.Fprintf(out, "Active version:\n")
-		PrintVersion(out, "\t", &s.ActiveVersion)
-	} else {
-		fmt.Fprintf(out, "Active version: %s\n", activeVersion)
-	}
-	fmt.Fprintf(out, "Versions: %d\n", len(s.Versions))
-	for j, version := range s.Versions {
-		fmt.Fprintf(out, "\tVersion %d/%d\n", j+1, len(s.Versions))
-		PrintVersion(out, "\t\t", version)
-	}
-}
-
 // PrintVersion pretty prints a fastly.Version structure in verbose format to a
 // given io.Writer. Consumers can provide a prefix string which will be used
 // as a prefix to each line, useful for indentation.

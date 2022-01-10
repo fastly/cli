@@ -37,34 +37,6 @@ func TestPrintService(t *testing.T) {
 	}
 }
 
-func TestPrintServiceDetail(t *testing.T) {
-	for _, testcase := range []struct {
-		name       string
-		prefix     string
-		service    *fastly.ServiceDetail
-		wantOutput string
-	}{
-		{
-			name:       "without prefix",
-			prefix:     "",
-			service:    &fastly.ServiceDetail{},
-			wantOutput: "ID: \nName: \nType: \nCustomer ID: \nActive version: none\nVersions: 0\n",
-		},
-		{
-			name:       "with prefix",
-			prefix:     "\t",
-			service:    &fastly.ServiceDetail{},
-			wantOutput: "\tID: \n\tName: \n\tType: \n\tCustomer ID: \n\tActive version: none\n\tVersions: 0\n",
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
-			var buf bytes.Buffer
-			text.PrintServiceDetail(&buf, testcase.prefix, testcase.service)
-			testutil.AssertString(t, testcase.wantOutput, buf.String())
-		})
-	}
-}
-
 func TestPrintVersion(t *testing.T) {
 	for _, testcase := range []struct {
 		name       string

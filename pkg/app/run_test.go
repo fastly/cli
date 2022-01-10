@@ -250,14 +250,16 @@ SUBCOMMANDS
   service describe [<flags>]
     Show detailed information about a Fastly service
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
 
-  service list
+  service list [<flags>]
     List Fastly services
 
+    -j, --json  Render output as JSON
 
   service search [<flags>]
     Search for a Fastly service by name
@@ -4367,14 +4369,16 @@ COMMANDS
   service describe [<flags>]
     Show detailed information about a Fastly service
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
 
-  service list
+  service list [<flags>]
     List Fastly services
 
+    -j, --json  Render output as JSON
 
   service search [<flags>]
     Search for a Fastly service by name
