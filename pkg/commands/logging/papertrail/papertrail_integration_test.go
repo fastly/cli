@@ -347,7 +347,7 @@ func getPapertrailError(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error
 	return nil, errTest
 }
 
-var describePapertrailOutput = strings.TrimSpace(`
+var describePapertrailOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

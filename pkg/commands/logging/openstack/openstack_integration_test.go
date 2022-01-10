@@ -429,7 +429,7 @@ func getOpenstackError(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
-var describeOpenstackOutput = strings.TrimSpace(`
+var describeOpenstackOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

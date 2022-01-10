@@ -360,7 +360,7 @@ func getHoneycombError(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 	return nil, errTest
 }
 
-var describeHoneycombOutput = strings.TrimSpace(`
+var describeHoneycombOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

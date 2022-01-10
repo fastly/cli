@@ -360,7 +360,7 @@ func getLogshuttleError(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error
 	return nil, errTest
 }
 
-var describeLogshuttleOutput = strings.TrimSpace(`
+var describeLogshuttleOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

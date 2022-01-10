@@ -348,7 +348,7 @@ func getDatadogError(i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 	return nil, errTest
 }
 
-var describeDatadogOutput = strings.TrimSpace(`
+var describeDatadogOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

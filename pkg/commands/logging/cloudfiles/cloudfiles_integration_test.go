@@ -404,7 +404,7 @@ func getCloudfilesError(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error
 	return nil, errTest
 }
 
-var describeCloudfilesOutput = strings.TrimSpace(`
+var describeCloudfilesOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

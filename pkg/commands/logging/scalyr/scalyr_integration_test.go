@@ -391,7 +391,7 @@ func getScalyrError(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
-var describeScalyrOutput = strings.TrimSpace(`
+var describeScalyrOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

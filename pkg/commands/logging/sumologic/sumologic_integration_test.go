@@ -347,7 +347,7 @@ func getSumologicError(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	return nil, errTest
 }
 
-var describeSumologicOutput = strings.TrimSpace(`
+var describeSumologicOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

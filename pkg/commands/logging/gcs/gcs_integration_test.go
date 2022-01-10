@@ -406,7 +406,7 @@ func getGCSError(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
-var describeGCSOutput = strings.TrimSpace(`
+var describeGCSOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs
