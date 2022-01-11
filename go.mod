@@ -8,13 +8,13 @@ require (
 	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15 // indirect
 	github.com/bep/debounce v1.2.0
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
 	github.com/fastly/go-fastly/v5 v5.0.0
 	github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible
 	github.com/fatih/color v1.13.0
 	github.com/frankban/quicktest v1.13.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1
+	github.com/getsentry/sentry-go v0.12.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v38 v38.1.0
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -49,7 +49,7 @@ require (
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
+	golang.org/x/net v0.0.0-20211008194852-3b03d305991f // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

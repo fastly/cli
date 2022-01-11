@@ -2,6 +2,8 @@ package main
 
 import (
 	_ "embed"
+	"log"
+	"time"
 
 	"fmt"
 	"io"
@@ -17,12 +19,26 @@ import (
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fatih/color"
+	"github.com/getsentry/sentry-go"
 )
+
+const sentryTimeout = 2 * time.Second
 
 //go:embed static/config.toml
 var cfg []byte
 
 func main() {
+	err := sentry.Init(sentry.ClientOptions{
+		Debug:       false,
+		Dsn:         "https://fc6bb51e909b46d7b004aa0cce1470e6@o1025883.ingest.sentry.io/6143707",
+		Environment: "development",
+		Release:     "1.5.0",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer sentry.Flush(sentryTimeout)
+
 	// Some configuration options can come from env vars.
 	var env config.Environment
 	env.Read(parseEnv(os.Environ()))
@@ -65,7 +81,7 @@ func main() {
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
 	file.SetStatic(cfg)
-	err := file.Read(config.FilePath, in, out)
+	err = file.Read(config.FilePath, in, out)
 
 	if err != nil {
 		if err == config.ErrLegacyConfig {
@@ -198,6 +214,10 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 			afterWrite(verboseOutput, errLoadConfig, out)
 		}
 
+		// NOTE: os.Exit doesn't honour any deferred calls so we have to manually
+		// flush the Sentry buffer here (as well as the deferred call at the top of
+		// the main function).
+		sentry.Flush(sentryTimeout)
 		os.Exit(1)
 	}
 
