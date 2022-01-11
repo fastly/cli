@@ -16,6 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fatih/color"
@@ -31,8 +32,8 @@ func main() {
 	err := sentry.Init(sentry.ClientOptions{
 		Debug:       false,
 		Dsn:         "https://fc6bb51e909b46d7b004aa0cce1470e6@o1025883.ingest.sentry.io/6143707",
-		Environment: "development",
-		Release:     "1.5.0",
+		Environment: revision.Environment,
+		Release:     revision.AppVersion,
 	})
 	if err != nil {
 		log.Fatal(err)
