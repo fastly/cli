@@ -1,11 +1,13 @@
 package dictionary
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -16,6 +18,7 @@ type DescribeCommand struct {
 	cmd.Base
 	manifest       manifest.Data
 	Input          fastly.GetDictionaryInput
+	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -26,6 +29,12 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly edge dictionary").Alias("get")
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -50,6 +59,10 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		Client:             c.Globals.Client,
@@ -62,7 +75,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
+			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
@@ -79,6 +92,55 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
+	var (
+		info  *fastly.DictionaryInfo
+		items []*fastly.DictionaryItem
+	)
+	if c.Globals.Verbose() || c.json {
+		infoInput := fastly.GetDictionaryInfoInput{
+			ServiceID:      c.Input.ServiceID,
+			ServiceVersion: c.Input.ServiceVersion,
+			ID:             dictionary.ID,
+		}
+		info, err = c.Globals.Client.GetDictionaryInfo(&infoInput)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
+			return err
+		}
+		itemInput := fastly.ListDictionaryItemsInput{
+			ServiceID:    c.Input.ServiceID,
+			DictionaryID: dictionary.ID,
+		}
+		items, err = c.Globals.Client.ListDictionaryItems(&itemInput)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
+			return err
+		}
+	}
+
+	if c.json {
+		// NOTE: When not using JSON you have to provide the --verbose flag to get
+		// some extra information about the dictionary. When using --json we go
+		// ahead and acquire that info and combine it into the JSON output.
+		type container struct {
+			*fastly.Dictionary
+			*fastly.DictionaryInfo
+			Items []*fastly.DictionaryItem
+		}
+		data, err := json.Marshal(&container{Dictionary: dictionary, DictionaryInfo: info, Items: items})
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
+
 	if !c.Globals.Verbose() {
 		text.Output(out, "Service ID: %s", dictionary.ServiceID)
 	}
@@ -86,34 +148,9 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	text.PrintDictionary(out, "", dictionary)
 
 	if c.Globals.Verbose() {
-		infoInput := fastly.GetDictionaryInfoInput{
-			ServiceID:      c.Input.ServiceID,
-			ServiceVersion: c.Input.ServiceVersion,
-			ID:             dictionary.ID,
-		}
-		info, err := c.Globals.Client.GetDictionaryInfo(&infoInput)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
-			})
-			return err
-		}
 		text.Output(out, "Digest: %s", info.Digest)
 		text.Output(out, "Item Count: %d", info.ItemCount)
 
-		itemInput := fastly.ListDictionaryItemsInput{
-			ServiceID:    c.Input.ServiceID,
-			DictionaryID: dictionary.ID,
-		}
-		items, err := c.Globals.Client.ListDictionaryItems(&itemInput)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
-			})
-			return err
-		}
 		for i, item := range items {
 			text.Output(out, "Item %d/%d:", i+1, len(items))
 			text.PrintDictionaryItemKV(out, "	", item)

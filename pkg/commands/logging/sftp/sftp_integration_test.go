@@ -430,7 +430,7 @@ func getSFTPError(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
-var describeSFTPOutput = strings.TrimSpace(`
+var describeSFTPOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

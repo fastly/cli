@@ -392,7 +392,7 @@ func getSyslogError(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
-var describeSyslogOutput = strings.TrimSpace(`
+var describeSyslogOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

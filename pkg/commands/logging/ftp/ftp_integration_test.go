@@ -412,7 +412,7 @@ func getFTPError(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
-var describeFTPOutput = strings.TrimSpace(`
+var describeFTPOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

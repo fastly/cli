@@ -1,12 +1,13 @@
 package aclentry
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/go-fastly/v5/fastly"
 )
@@ -23,6 +24,12 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.CmdClause.Flag("id", "Alphanumeric string identifying an ACL Entry").Required().StringVar(&c.id)
 
 	// Optional Flags
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -45,28 +52,23 @@ type DescribeCommand struct {
 
 	aclID       string
 	id          string
+	json        bool
 	manifest    manifest.Data
 	serviceName cmd.OptionalServiceNameID
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, source, out)
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	if source == manifest.SourceUndefined {
-		var err error
-		if !c.serviceName.WasSet {
-			err = errors.ErrNoServiceID
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-		serviceID, err = c.serviceName.Parse(c.Globals.Client)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
+
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	if err != nil {
+		return err
+	}
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	input := c.constructInput(serviceID)
@@ -79,7 +81,10 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	c.print(out, a)
+	err = c.print(out, a)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -95,8 +100,19 @@ func (c *DescribeCommand) constructInput(serviceID string) *fastly.GetACLEntryIn
 }
 
 // print displays the information returned from the API.
-func (c *DescribeCommand) print(out io.Writer, a *fastly.ACLEntry) {
-	fmt.Fprintf(out, "\nService ID: %s\n", a.ServiceID)
+func (c *DescribeCommand) print(out io.Writer, a *fastly.ACLEntry) error {
+	if c.json {
+		data, err := json.Marshal(a)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
+
+	if !c.Globals.Verbose() {
+		fmt.Fprintf(out, "\nService ID: %s\n", a.ServiceID)
+	}
 	fmt.Fprintf(out, "ACL ID: %s\n", a.ACLID)
 	fmt.Fprintf(out, "ID: %s\n", a.ID)
 	fmt.Fprintf(out, "IP: %s\n", a.IP)
@@ -113,4 +129,5 @@ func (c *DescribeCommand) print(out io.Writer, a *fastly.ACLEntry) {
 	if a.DeletedAt != nil {
 		fmt.Fprintf(out, "Deleted at: %s\n", a.DeletedAt)
 	}
+	return nil
 }

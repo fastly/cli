@@ -49,6 +49,33 @@ func (b Base) RegisterFlag(opts StringFlagOpts) {
 	clause.StringVar(opts.Dst)
 }
 
+// BoolFlagOpts enables easy configuration of a flag.
+type BoolFlagOpts struct {
+	Action      kingpin.Action
+	Description string
+	Dst         *bool
+	Name        string
+	Required    bool
+	Short       rune
+}
+
+// RegisterFlagBool defines a boolean flag.
+//
+// TODO: Use generics support in go 1.18 to remove the need for two functions.
+func (b Base) RegisterFlagBool(opts BoolFlagOpts) {
+	clause := b.CmdClause.Flag(opts.Name, opts.Description)
+	if opts.Short > 0 {
+		clause = clause.Short(opts.Short)
+	}
+	if opts.Required {
+		clause = clause.Required()
+	}
+	if opts.Action != nil {
+		clause = clause.Action(opts.Action)
+	}
+	clause.BoolVar(opts.Dst)
+}
+
 // OptionalServiceVersion represents a Fastly service version.
 type OptionalServiceVersion struct {
 	OptionalString

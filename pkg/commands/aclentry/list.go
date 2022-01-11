@@ -1,12 +1,13 @@
 package aclentry
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -23,6 +24,12 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
 
 	// Optional Flags
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -44,28 +51,23 @@ type ListCommand struct {
 	cmd.Base
 
 	aclID       string
+	json        bool
 	manifest    manifest.Data
 	serviceName cmd.OptionalServiceNameID
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
-	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, source, out)
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	if source == manifest.SourceUndefined {
-		var err error
-		if !c.serviceName.WasSet {
-			err = errors.ErrNoServiceID
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-		serviceID, err = c.serviceName.Parse(c.Globals.Client)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
+
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	if err != nil {
+		return err
+	}
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	input := c.constructInput(serviceID)
@@ -81,7 +83,10 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() {
 		c.printVerbose(out, as)
 	} else {
-		c.printSummary(out, as)
+		err = c.printSummary(out, as)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -123,11 +128,21 @@ func (c *ListCommand) printVerbose(out io.Writer, as []*fastly.ACLEntry) {
 
 // printSummary displays the information returned from the API in a summarised
 // format.
-func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry) {
+func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry) error {
+	if c.json {
+		data, err := json.Marshal(as)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
+
 	t := text.NewTable(out)
 	t.AddHeader("SERVICE ID", "ID", "IP", "SUBNET", "NEGATED")
 	for _, a := range as {
 		t.AddLine(a.ServiceID, a.ID, a.IP, a.Subnet, a.Negated)
 	}
 	t.Print()
+	return nil
 }

@@ -416,7 +416,7 @@ func getDigitalOceanError(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean,
 	return nil, errTest
 }
 
-var describeDigitalOceanOutput = strings.TrimSpace(`
+var describeDigitalOceanOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

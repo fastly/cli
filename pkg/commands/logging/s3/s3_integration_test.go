@@ -479,7 +479,7 @@ func getS3Error(i *fastly.GetS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
-var describeS3Output = strings.TrimSpace(`
+var describeS3Output = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

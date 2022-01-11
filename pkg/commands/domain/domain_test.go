@@ -395,7 +395,7 @@ func getDomainError(i *fastly.GetDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
-var describeDomainOutput = strings.TrimSpace(`
+var describeDomainOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: www.test.com

@@ -419,7 +419,7 @@ func getHTTPSError(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
-var describeHTTPSOutput = strings.TrimSpace(`
+var describeHTTPSOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: log

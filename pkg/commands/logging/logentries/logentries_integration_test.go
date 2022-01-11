@@ -349,7 +349,7 @@ func getLogentriesError(i *fastly.GetLogentriesInput) (*fastly.Logentries, error
 	return nil, errTest
 }
 
-var describeLogentriesOutput = strings.TrimSpace(`
+var describeLogentriesOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

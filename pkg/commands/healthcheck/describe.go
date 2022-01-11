@@ -1,12 +1,13 @@
 package healthcheck
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -17,6 +18,7 @@ type DescribeCommand struct {
 	cmd.Base
 	manifest       manifest.Data
 	Input          fastly.GetHealthCheckInput
+	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -27,6 +29,12 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("describe", "Show detailed information about a healthcheck on a Fastly service version").Alias("get")
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -51,6 +59,10 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		Client:             c.Globals.Client,
@@ -63,7 +75,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
+			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
@@ -80,7 +92,18 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "Service ID: %s\n", healthCheck.ServiceID)
+	if c.json {
+		data, err := json.Marshal(healthCheck)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
+
+	if !c.Globals.Verbose() {
+		fmt.Fprintf(out, "\nService ID: %s\n", healthCheck.ServiceID)
+	}
 	fmt.Fprintf(out, "Version: %d\n", healthCheck.ServiceVersion)
 	text.PrintHealthCheck(out, "", healthCheck)
 

@@ -250,14 +250,16 @@ SUBCOMMANDS
   service describe [<flags>]
     Show detailed information about a Fastly service
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
 
-  service list
+  service list [<flags>]
     List Fastly services
 
+    -j, --json  Render output as JSON
 
   service search [<flags>]
     Search for a Fastly service by name
@@ -330,6 +332,7 @@ COMMANDS
         --name=NAME              The name of the ACL
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -340,6 +343,7 @@ COMMANDS
 
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -388,6 +392,7 @@ COMMANDS
 
         --acl-id=ACL-ID          Alphanumeric string identifying a ACL
         --id=ID                  Alphanumeric string identifying an ACL Entry
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -397,6 +402,7 @@ COMMANDS
     List ACLs
 
         --acl-id=ACL-ID          Alphanumeric string identifying a ACL
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -438,15 +444,17 @@ COMMANDS
     --file=FILE  Revoke tokens in bulk from a newline delimited list of tokens
     --id=ID      Alphanumeric string identifying a token
 
-  auth-token describe
+  auth-token describe [<flags>]
     Get the current API token
 
+    -j, --json  Render output as JSON
 
   auth-token list [<flags>]
     List API tokens
 
-    --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
-                               (falls back to FASTLY_CUSTOMER_ID)
+        --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
+                                   (falls back to FASTLY_CUSTOMER_ID)
+    -j, --json                     Render output as JSON
 
   backend create --version=VERSION --name=NAME --address=ADDRESS [<flags>]
     Create a backend on a Fastly service version
@@ -529,6 +537,7 @@ COMMANDS
   backend describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a backend on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -540,6 +549,7 @@ COMMANDS
   backend list --version=VERSION [<flags>]
     List backends on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -757,6 +767,7 @@ COMMANDS
   dictionary describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a Fastly edge dictionary
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -768,6 +779,7 @@ COMMANDS
   dictionary list --version=VERSION [<flags>]
     List all dictionaries on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -817,6 +829,7 @@ COMMANDS
   dictionary-item describe --dictionary-id=DICTIONARY-ID --key=KEY [<flags>]
     Show detailed information about a Fastly edge dictionary item
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -828,6 +841,7 @@ COMMANDS
   dictionary-item list --dictionary-id=DICTIONARY-ID [<flags>]
     List items in a Fastly edge dictionary
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -878,6 +892,7 @@ COMMANDS
   domain describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a domain on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -889,6 +904,7 @@ COMMANDS
   domain list --version=VERSION [<flags>]
     List domains on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -972,6 +988,7 @@ COMMANDS
   healthcheck describe --version=VERSION --name=NAME [<flags>]
     Show detailed information about a healthcheck on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -983,6 +1000,7 @@ COMMANDS
   healthcheck list --version=VERSION [<flags>]
     List healthchecks on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1118,6 +1136,7 @@ COMMANDS
     Show detailed information about an Azure Blob Storage logging endpoint on a
     Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1130,6 +1149,7 @@ COMMANDS
   logging azureblob list --version=VERSION [<flags>]
     List Azure Blob Storage logging endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1260,6 +1280,7 @@ COMMANDS
     Show detailed information about a BigQuery logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1271,6 +1292,7 @@ COMMANDS
   logging bigquery list --version=VERSION [<flags>]
     List BigQuery endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1394,6 +1416,7 @@ COMMANDS
     Show detailed information about a Cloudfiles logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1405,6 +1428,7 @@ COMMANDS
   logging cloudfiles list --version=VERSION [<flags>]
     List Cloudfiles endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1516,6 +1540,7 @@ COMMANDS
     Show detailed information about a Datadog logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1527,6 +1552,7 @@ COMMANDS
   logging datadog list --version=VERSION [<flags>]
     List Datadog endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1638,6 +1664,7 @@ COMMANDS
     Show detailed information about a DigitalOcean Spaces logging endpoint on a
     Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1650,6 +1677,7 @@ COMMANDS
   logging digitalocean list --version=VERSION [<flags>]
     List DigitalOcean Spaces logging endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1794,6 +1822,7 @@ COMMANDS
     Show detailed information about an Elasticsearch logging endpoint on a
     Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1805,6 +1834,7 @@ COMMANDS
   logging elasticsearch list --version=VERSION [<flags>]
     List Elasticsearch endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1942,6 +1972,7 @@ COMMANDS
     Show detailed information about an FTP logging endpoint on a Fastly service
     version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1953,6 +1984,7 @@ COMMANDS
   logging ftp list --version=VERSION [<flags>]
     List FTP endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2092,6 +2124,7 @@ COMMANDS
     Show detailed information about a GCS logging endpoint on a Fastly service
     version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2103,6 +2136,7 @@ COMMANDS
   logging gcs list --version=VERSION [<flags>]
     List GCS endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2222,6 +2256,7 @@ COMMANDS
     Show detailed information about a Google Cloud Pub/Sub logging endpoint on a
     Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2234,6 +2269,7 @@ COMMANDS
   logging googlepubsub list --version=VERSION [<flags>]
     List Google Cloud Pub/Sub endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2325,6 +2361,7 @@ COMMANDS
     Show detailed information about a Heroku logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2336,6 +2373,7 @@ COMMANDS
   logging heroku list --version=VERSION [<flags>]
     List Heroku endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2419,6 +2457,7 @@ COMMANDS
     Show detailed information about a Honeycomb logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2430,6 +2469,7 @@ COMMANDS
   logging honeycomb list --version=VERSION [<flags>]
     List Honeycomb endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2550,6 +2590,7 @@ COMMANDS
     Show detailed information about an HTTPS logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2561,6 +2602,7 @@ COMMANDS
   logging https list --version=VERSION [<flags>]
     List HTTPS endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2718,6 +2760,7 @@ COMMANDS
     Show detailed information about a Kafka logging endpoint on a Fastly service
     version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2729,6 +2772,7 @@ COMMANDS
   logging kafka list --version=VERSION [<flags>]
     List Kafka endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2855,6 +2899,7 @@ COMMANDS
     Show detailed information about a Kinesis logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2866,6 +2911,7 @@ COMMANDS
   logging kinesis list --version=VERSION [<flags>]
     List Kinesis endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2960,6 +3006,7 @@ COMMANDS
     Show detailed information about a Logentries logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -2971,6 +3018,7 @@ COMMANDS
   logging logentries list --version=VERSION [<flags>]
     List Logentries endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3060,6 +3108,7 @@ COMMANDS
     Show detailed information about a Loggly logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3071,6 +3120,7 @@ COMMANDS
   logging loggly list --version=VERSION [<flags>]
     List Loggly endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3152,6 +3202,7 @@ COMMANDS
     Show detailed information about a Logshuttle logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3163,6 +3214,7 @@ COMMANDS
   logging logshuttle list --version=VERSION [<flags>]
     List Logshuttle endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3250,6 +3302,7 @@ COMMANDS
                                  configuration
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3261,6 +3314,7 @@ COMMANDS
 
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3366,6 +3420,7 @@ COMMANDS
     Show detailed information about an OpenStack logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3377,6 +3432,7 @@ COMMANDS
   logging openstack list --version=VERSION [<flags>]
     List OpenStack logging endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3488,6 +3544,7 @@ COMMANDS
     Show detailed information about a Papertrail logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3499,6 +3556,7 @@ COMMANDS
   logging papertrail list --version=VERSION [<flags>]
     List Papertrail endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3619,6 +3677,7 @@ COMMANDS
     Show detailed information about a S3 logging endpoint on a Fastly service
     version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3630,6 +3689,7 @@ COMMANDS
   logging s3 list --version=VERSION [<flags>]
     List S3 endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3747,6 +3807,7 @@ COMMANDS
     Show detailed information about a Scalyr logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3758,6 +3819,7 @@ COMMANDS
   logging scalyr list --version=VERSION [<flags>]
     List Scalyr endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3876,6 +3938,7 @@ COMMANDS
     Show detailed information about an SFTP logging endpoint on a Fastly service
     version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3887,6 +3950,7 @@ COMMANDS
   logging sftp list --version=VERSION [<flags>]
     List SFTP endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4017,6 +4081,7 @@ COMMANDS
     Show detailed information about a Splunk logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4028,6 +4093,7 @@ COMMANDS
   logging splunk list --version=VERSION [<flags>]
     List Splunk endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4129,6 +4195,7 @@ COMMANDS
     Show detailed information about a Sumologic logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4140,6 +4207,7 @@ COMMANDS
   logging sumologic list --version=VERSION [<flags>]
     List Sumologic endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4246,6 +4314,7 @@ COMMANDS
     Show detailed information about a Syslog logging endpoint on a Fastly
     service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4257,6 +4326,7 @@ COMMANDS
   logging syslog list --version=VERSION [<flags>]
     List Syslog endpoints on a Fastly service version
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4351,14 +4421,16 @@ COMMANDS
   service describe [<flags>]
     Show detailed information about a Fastly service
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
 
-  service list
+  service list [<flags>]
     List Fastly services
 
+    -j, --json  Render output as JSON
 
   service search [<flags>]
     Search for a Fastly service by name
@@ -4410,6 +4482,7 @@ COMMANDS
   service-version list [<flags>]
     List Fastly service versions
 
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4486,14 +4559,16 @@ COMMANDS
   user describe [<flags>]
     Get a specific user of the Fastly API and web interface
 
-    --id=ID    Alphanumeric string identifying the user
-    --current  Get the logged in user
+        --current  Get the logged in user
+        --id=ID    Alphanumeric string identifying the user
+    -j, --json     Render output as JSON
 
   user list [<flags>]
     List all users from a specified customer id
 
-    --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
-                               (falls back to FASTLY_CUSTOMER_ID)
+        --customer-id=CUSTOMER-ID  Alphanumeric string identifying the customer
+                                   (falls back to FASTLY_CUSTOMER_ID)
+    -j, --json                     Render output as JSON
 
   user update [<flags>]
     Update a user of the Fastly API and web interface
@@ -4541,6 +4616,7 @@ COMMANDS
         --name=NAME              The name of the VCL
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4551,6 +4627,7 @@ COMMANDS
 
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -4611,6 +4688,7 @@ COMMANDS
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --dynamic                Whether the VCL snippet is dynamic or versioned
+    -j, --json                   Render output as JSON
         --name=NAME              The name of the VCL snippet
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
@@ -4623,6 +4701,7 @@ COMMANDS
 
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
+    -j, --json                   Render output as JSON
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME

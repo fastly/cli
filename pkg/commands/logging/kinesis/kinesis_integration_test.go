@@ -415,7 +415,7 @@ func getKinesisError(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
-var describeKinesisOutput = strings.TrimSpace(`
+var describeKinesisOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

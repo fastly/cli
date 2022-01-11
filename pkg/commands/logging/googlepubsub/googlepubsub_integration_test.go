@@ -389,7 +389,7 @@ func getGooglePubSubError(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
-var describeGooglePubSubOutput = strings.TrimSpace(`
+var describeGooglePubSubOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

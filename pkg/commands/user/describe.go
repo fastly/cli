@@ -17,8 +17,14 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.CmdClause = parent.Command("describe", "Get a specific user of the Fastly API and web interface").Alias("get")
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
 	c.CmdClause.Flag("current", "Get the logged in user").BoolVar(&c.current)
+	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	return &c
 }
 
@@ -28,12 +34,12 @@ type DescribeCommand struct {
 
 	current  bool
 	id       string
+	json     bool
 	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
-	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return errors.ErrNoToken

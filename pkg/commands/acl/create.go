@@ -64,6 +64,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		Client:             c.Globals.Client,
+		ErrLog:             c.Globals.ErrLog,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,

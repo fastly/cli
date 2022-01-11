@@ -360,7 +360,7 @@ func getHerokuError(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 	return nil, errTest
 }
 
-var describeHerokuOutput = strings.TrimSpace(`
+var describeHerokuOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

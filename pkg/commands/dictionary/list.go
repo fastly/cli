@@ -1,11 +1,13 @@
 package dictionary
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -14,6 +16,7 @@ import (
 // ListCommand calls the Fastly API to list dictionaries
 type ListCommand struct {
 	cmd.Base
+	json           bool
 	manifest       manifest.Data
 	Input          fastly.ListDictionariesInput
 	serviceName    cmd.OptionalServiceNameID
@@ -26,6 +29,12 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("list", "List all dictionaries on a Fastly service version")
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -49,6 +58,9 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		Client:             c.Globals.Client,
@@ -61,7 +73,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
+			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
@@ -78,7 +90,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Output(out, "Service ID: %s", serviceID)
+	if c.json {
+		data, err := json.Marshal(dictionaries)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
+
+	if !c.Globals.Verbose() {
+		fmt.Fprintf(out, "\nService ID: %s\n", serviceID)
+	}
 	text.Output(out, "Version: %d", c.Input.ServiceVersion)
 	for _, dictionary := range dictionaries {
 		text.PrintDictionary(out, "", dictionary)

@@ -354,7 +354,7 @@ func getHealthCheckError(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, er
 	return nil, errTest
 }
 
-var describeHealthCheckOutput = strings.Join([]string{
+var describeHealthCheckOutput = "\n" + strings.Join([]string{
 	"Service ID: 123",
 	"Version: 1",
 	"Name: test",

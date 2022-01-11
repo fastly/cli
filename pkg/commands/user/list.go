@@ -1,12 +1,13 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -24,6 +25,12 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Dst:         &c.customerID.Value,
 		Action:      c.customerID.Set,
 	})
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	return &c
 }
 
@@ -32,17 +39,19 @@ type ListCommand struct {
 	cmd.Base
 
 	customerID cmd.OptionalCustomerID
+	json       bool
 	manifest   manifest.Data
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
-	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
-		return errors.ErrNoToken
+		return fsterr.ErrNoToken
 	}
-
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
 	if err := c.customerID.Parse(); err != nil {
 		return err
 	}
@@ -60,7 +69,10 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() {
 		c.printVerbose(out, rs)
 	} else {
-		c.printSummary(out, rs)
+		err = c.printSummary(out, rs)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -76,39 +88,48 @@ func (c *ListCommand) constructInput() *fastly.ListCustomerUsersInput {
 
 // printVerbose displays the information returned from the API in a verbose
 // format.
-func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.User) {
-	for _, r := range rs {
-		fmt.Fprintf(out, "\nID: %s\n", r.ID)
-		fmt.Fprintf(out, "Login: %s\n", r.Login)
-		fmt.Fprintf(out, "Name: %s\n", r.Name)
-		fmt.Fprintf(out, "Role: %s\n", r.Role)
-		fmt.Fprintf(out, "Customer ID: %s\n", r.CustomerID)
-		fmt.Fprintf(out, "Email Hash: %s\n", r.EmailHash)
-		fmt.Fprintf(out, "Limit Services: %t\n", r.LimitServices)
-		fmt.Fprintf(out, "Locked: %t\n", r.Locked)
-		fmt.Fprintf(out, "Require New Password: %t\n", r.RequireNewPassword)
-		fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", r.TwoFactorAuthEnabled)
-		fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", r.TwoFactorSetupRequired)
+func (c *ListCommand) printVerbose(out io.Writer, us []*fastly.User) {
+	for _, u := range us {
+		fmt.Fprintf(out, "\nID: %s\n", u.ID)
+		fmt.Fprintf(out, "Login: %s\n", u.Login)
+		fmt.Fprintf(out, "Name: %s\n", u.Name)
+		fmt.Fprintf(out, "Role: %s\n", u.Role)
+		fmt.Fprintf(out, "Customer ID: %s\n", u.CustomerID)
+		fmt.Fprintf(out, "Email Hash: %s\n", u.EmailHash)
+		fmt.Fprintf(out, "Limit Services: %t\n", u.LimitServices)
+		fmt.Fprintf(out, "Locked: %t\n", u.Locked)
+		fmt.Fprintf(out, "Require New Password: %t\n", u.RequireNewPassword)
+		fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", u.TwoFactorAuthEnabled)
+		fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", u.TwoFactorSetupRequired)
 
-		if r.CreatedAt != nil {
-			fmt.Fprintf(out, "Created at: %s\n", r.CreatedAt)
+		if u.CreatedAt != nil {
+			fmt.Fprintf(out, "Created at: %s\n", u.CreatedAt)
 		}
-		if r.UpdatedAt != nil {
-			fmt.Fprintf(out, "Updated at: %s\n", r.UpdatedAt)
+		if u.UpdatedAt != nil {
+			fmt.Fprintf(out, "Updated at: %s\n", u.UpdatedAt)
 		}
-		if r.DeletedAt != nil {
-			fmt.Fprintf(out, "Deleted at: %s\n", r.DeletedAt)
+		if u.DeletedAt != nil {
+			fmt.Fprintf(out, "Deleted at: %s\n", u.DeletedAt)
 		}
 	}
 }
 
 // printSummary displays the information returned from the API in a summarised
 // format.
-func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.User) {
+func (c *ListCommand) printSummary(out io.Writer, us []*fastly.User) error {
+	if c.json {
+		data, err := json.Marshal(us)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
+	}
 	t := text.NewTable(out)
 	t.AddHeader("LOGIN", "NAME", "ROLE", "LOCKED", "ID")
-	for _, r := range rs {
-		t.AddLine(r.Login, r.Name, r.Role, r.Locked, r.ID)
+	for _, u := range us {
+		t.AddLine(u.Login, u.Name, u.Role, u.Locked, u.ID)
 	}
 	t.Print()
+	return nil
 }

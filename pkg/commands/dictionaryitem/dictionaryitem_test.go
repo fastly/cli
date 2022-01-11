@@ -238,7 +238,7 @@ func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.Diction
 	}, nil
 }
 
-var describeDictionaryItemOutput = `Service ID: 123
+var describeDictionaryItemOutput = "\n" + `Service ID: 123
 Dictionary ID: 456
 Item Key: foo
 Item Value: bar
@@ -268,7 +268,7 @@ func describeDictionaryItemOKDeleted(i *fastly.GetDictionaryItemInput) (*fastly.
 	}, nil
 }
 
-var describeDictionaryItemOutputDeleted = strings.TrimSpace(`
+var describeDictionaryItemOutputDeleted = "\n" + strings.TrimSpace(`
 Service ID: 123
 Dictionary ID: 456
 Item Key: foo-deleted
@@ -300,7 +300,7 @@ func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.Dictio
 	}, nil
 }
 
-var listDictionaryItemsOutput = strings.TrimSpace(`
+var listDictionaryItemsOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Item: 1/2
 	Dictionary ID: 456

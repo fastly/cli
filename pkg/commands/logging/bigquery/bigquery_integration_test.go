@@ -360,7 +360,7 @@ func getBigQueryError(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
-var describeBigQueryOutput = strings.TrimSpace(`
+var describeBigQueryOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

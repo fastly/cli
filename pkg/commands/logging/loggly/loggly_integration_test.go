@@ -347,7 +347,7 @@ func getLogglyError(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 	return nil, errTest
 }
 
-var describeLogglyOutput = strings.TrimSpace(`
+var describeLogglyOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

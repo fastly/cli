@@ -61,28 +61,17 @@ type RootCommand struct {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	// Exit early if no token configured.
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return errors.ErrNoToken
 	}
 
-	serviceID, source := c.manifest.ServiceID()
-	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, source, out)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	if err != nil {
+		return err
 	}
-	if source == manifest.SourceUndefined {
-		var err error
-		if !c.serviceName.WasSet {
-			err = errors.ErrNoServiceID
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-		serviceID, err = c.serviceName.Parse(c.Globals.Client)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
+	if c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	// The URL purge API call doesn't require a Service ID.

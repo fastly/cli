@@ -5,7 +5,6 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v5/fastly"
@@ -45,26 +44,17 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source := c.manifest.ServiceID()
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	if err != nil {
+		return err
+	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, source, out)
+		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
-	if source == manifest.SourceUndefined {
-		var err error
-		if !c.serviceName.WasSet {
-			err = errors.ErrNoServiceID
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-		serviceID, err = c.serviceName.Parse(c.Globals.Client)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-	}
+
 	c.Input.ServiceID = serviceID
 
-	_, err := c.Globals.Client.CreateDictionaryItem(&c.Input)
+	_, err = c.Globals.Client.CreateDictionaryItem(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID": serviceID,

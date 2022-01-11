@@ -411,7 +411,7 @@ func getElasticsearchError(i *fastly.GetElasticsearchInput) (*fastly.Elasticsear
 	return nil, errTest
 }
 
-var describeElasticsearchOutput = strings.TrimSpace(`
+var describeElasticsearchOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

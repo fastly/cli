@@ -367,7 +367,7 @@ func getSplunkError(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
-var describeSplunkOutput = strings.TrimSpace(`
+var describeSplunkOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs

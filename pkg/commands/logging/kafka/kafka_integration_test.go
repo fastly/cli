@@ -437,7 +437,7 @@ func getKafkaError(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
-var describeKafkaOutput = strings.TrimSpace(`
+var describeKafkaOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: log

@@ -420,7 +420,7 @@ func getBlobStorageError(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, er
 	return nil, errTest
 }
 
-var describeBlobStorageOutput = strings.TrimSpace(`
+var describeBlobStorageOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Version: 1
 Name: logs
