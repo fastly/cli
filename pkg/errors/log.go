@@ -109,7 +109,7 @@ ERROR:
 {{ $value }}
 {{ end }}
 {{ range $key, $value := .Context }}
-	{{ $key }}: {{ $value }}
+  {{ $key }}: {{ $value }}
 {{ end }}
 `
 	t := template.Must(template.New("record").Parse(record))
