@@ -18,8 +18,7 @@ var (
 	GoVersion string
 
 	// Environment is set to either "development" (when working locally) or
-	// "release" when the code being executed is from a published release or
-	// "testing" when the code is being executed within a PR's CI.
+	// "release" when the code being executed is from a published release.
 	Environment string
 )
 

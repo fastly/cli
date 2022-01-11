@@ -15,6 +15,7 @@ builds:
         - -s -w -X "github.com/fastly/cli/pkg/revision.AppVersion={{ .Version }}"
         - -X "github.com/fastly/cli/pkg/revision.GitCommit={{ .ShortCommit }}"
         - -X "github.com/fastly/cli/pkg/revision.GoVersion={{ .Env.GOVERSION }}"
+        - -X "github.com/fastly/cli/pkg/revision.Environment=release"
     id: macos
     goos: [darwin]
     goarch: [amd64, arm64]

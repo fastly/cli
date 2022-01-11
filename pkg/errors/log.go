@@ -138,12 +138,20 @@ func instrument(l LogEntries) {
 		if v, ok := entry.Caller["LINE"]; ok {
 			line, _ = v.(int)
 		}
-		sentry.AddBreadcrumb(&sentry.Breadcrumb{
+		// https://docs.sentry.io/product/issues/issue-details/breadcrumbs/
+		b := sentry.Breadcrumb{
+			Data:      entry.Context,
 			Message:   fmt.Sprintf("%s (file: %s, line: %d)", entry.Err, file, line),
 			Timestamp: entry.Time,
-			Data:      entry.Context,
-		})
+			Type:      "error",
+		}
+		if file != "" {
+			name := filepath.Base(file)
+			b.Category = strings.Split(name, ".go")[0]
+		}
+		sentry.AddBreadcrumb(&b)
 	}
+
 	sentry.CaptureException(l[len(l)-1].Err)
 }
 

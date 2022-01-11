@@ -60,6 +60,8 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
+		// TODO: Consider reporting Sentry breadcrumbs as this information is
+		// otherwise only stored locally on the user's machine.
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),

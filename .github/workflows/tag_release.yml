@@ -33,4 +33,3 @@ jobs:
       env:
         GOVERSION: ${{ env.GOVERSION }}
         GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
-        CLI_ENV: "release"
