@@ -34,6 +34,11 @@ func main() {
 		Dsn:         "https://fc6bb51e909b46d7b004aa0cce1470e6@o1025883.ingest.sentry.io/6143707",
 		Environment: revision.Environment,
 		Release:     revision.AppVersion,
+		IgnoreErrors: []string{
+			`required flag \-\-[^\s]+ not provided`,
+			`error reading service: no service ID found`,
+			`error matching service name with available services`,
+		},
 	})
 	if err != nil {
 		log.Fatal(err)
