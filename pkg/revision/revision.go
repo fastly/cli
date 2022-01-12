@@ -16,6 +16,10 @@ var (
 	// GoVersion is the output of `go version` associated with this build, or
 	// "go version unknown". Set by `make release`.
 	GoVersion string
+
+	// Environment is set to either "development" (when working locally) or
+	// "release" when the code being executed is from a published release.
+	Environment string
 )
 
 // None is the AppVersion string for local (unversioned) builds.
@@ -30,6 +34,9 @@ func init() {
 	}
 	if GoVersion == "" {
 		GoVersion = "go version unknown"
+	}
+	if Environment == "" {
+		Environment = "development"
 	}
 }
 

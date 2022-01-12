@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/getsentry/sentry-go"
 )
 
 // LogPath is the location of the fastly CLI error log.
@@ -66,6 +67,7 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 	if len(l) == 0 {
 		return nil
 	}
+	instrument(l)
 
 	errMsg := "error accessing audit log file: %w"
 
@@ -121,6 +123,36 @@ ERROR:
 	f.Write([]byte("------------------------------\n\n"))
 
 	return nil
+}
+
+// instrument reports errors to our error analysis platform.
+func instrument(l LogEntries) {
+	for _, entry := range l {
+		var (
+			file string
+			line int
+		)
+		if v, ok := entry.Caller["FILE"]; ok {
+			file, _ = v.(string)
+		}
+		if v, ok := entry.Caller["LINE"]; ok {
+			line, _ = v.(int)
+		}
+		// https://docs.sentry.io/product/issues/issue-details/breadcrumbs/
+		b := sentry.Breadcrumb{
+			Data:      entry.Context,
+			Message:   fmt.Sprintf("%s (file: %s, line: %d)", entry.Err, file, line),
+			Timestamp: entry.Time,
+			Type:      "error",
+		}
+		if file != "" {
+			name := filepath.Base(file)
+			b.Category = strings.Split(name, ".go")[0]
+		}
+		sentry.AddBreadcrumb(&b)
+	}
+
+	sentry.CaptureException(l[len(l)-1].Err)
 }
 
 // createLogEntry generates the boilerplate of a LogEntry.

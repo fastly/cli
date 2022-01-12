@@ -10,10 +10,15 @@ TEST_COMMAND ?= go test
 
 TESTARGS ?= ./{cmd,pkg}/...
 
+CLI_ENV ?= "development"
+
+# TODO: This is duplicated in .goreleaser and we should figure out how to clean
+# this up so we have one source of truth.
 LDFLAGS = -ldflags "\
  -X 'github.com/fastly/cli/pkg/revision.AppVersion=${VERSION}' \
  -X 'github.com/fastly/cli/pkg/revision.GitCommit=$(shell git rev-parse --short HEAD || echo unknown)' \
  -X 'github.com/fastly/cli/pkg/revision.GoVersion=$(shell go version)' \
+ -X 'github.com/fastly/cli/pkg/revision.Environment=${CLI_ENV}' \
  "
 
 fastly:
