@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 func TestPrintService(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
@@ -71,13 +71,20 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput(serviceID)
+	paginator := c.Globals.Client.NewListACLEntriesPaginator(input)
 
-	as, err := c.Globals.Client.ListACLEntries(input)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID": serviceID,
-		})
-		return err
+	var as []*fastly.ACLEntry
+	for paginator.HasNext() {
+		data, err := paginator.GetNext()
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"ACL ID":          c.aclID,
+				"Service ID":      serviceID,
+				"Remaining Pages": paginator.Remaining(),
+			})
+			return err
+		}
+		as = append(as, data...)
 	}
 
 	if c.Globals.Verbose() {

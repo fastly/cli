@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some
@@ -283,6 +283,8 @@ type Interface interface {
 	GetTokenSelf() (*fastly.Token, error)
 	ListCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error)
 	ListTokens() ([]*fastly.Token, error)
+
+	NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

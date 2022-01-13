@@ -18,7 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/undo"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 )

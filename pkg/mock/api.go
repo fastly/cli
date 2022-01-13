@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.
@@ -274,6 +274,8 @@ type API struct {
 	GetTokenSelfFn       func() (*fastly.Token, error)
 	ListCustomerTokensFn func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error)
 	ListTokensFn         func() ([]*fastly.Token, error)
+
+	NewListACLEntriesPaginatorFn func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
 }
 
 // AllDatacenters implements Interface.
@@ -1384,4 +1386,9 @@ func (m API) ListCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.To
 // ListTokens implements Interface.
 func (m API) ListTokens() ([]*fastly.Token, error) {
 	return m.ListTokensFn()
+}
+
+// NewListACLEntriesPaginator implements Interface.
+func (m API) NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
+	return m.NewListACLEntriesPaginatorFn(i)
 }

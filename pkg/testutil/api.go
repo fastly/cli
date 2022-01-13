@@ -3,7 +3,7 @@ package testutil
 import (
 	"errors"
 
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 // Err represents a generic error.

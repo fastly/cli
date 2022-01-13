@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 func TestACLEntryCreate(t *testing.T) {
@@ -185,6 +185,54 @@ func TestACLEntryDescribe(t *testing.T) {
 	}
 }
 
+type mockACLPaginator struct {
+	returnErr bool
+	hasNext   bool
+}
+
+func (p *mockACLPaginator) HasNext() bool {
+	if p.hasNext {
+		p.hasNext = false
+		return true
+	}
+	return false
+}
+
+func (p mockACLPaginator) Remaining() int {
+	return 1
+}
+
+func (p mockACLPaginator) GetNext() (as []*fastly.ACLEntry, err error) {
+	if p.returnErr {
+		err = testutil.Err
+	}
+	t := testutil.Date
+	as = []*fastly.ACLEntry{
+		{
+			ACLID:     "123",
+			Comment:   "foo",
+			CreatedAt: &t,
+			DeletedAt: &t,
+			ID:        "456",
+			IP:        "127.0.0.1",
+			ServiceID: "123",
+			UpdatedAt: &t,
+		},
+		{
+			ACLID:     "123",
+			Comment:   "bar",
+			CreatedAt: &t,
+			DeletedAt: &t,
+			ID:        "789",
+			IP:        "127.0.0.2",
+			Negated:   true,
+			ServiceID: "123",
+			UpdatedAt: &t,
+		},
+	}
+	return as, err
+}
+
 func TestACLEntryList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
@@ -199,10 +247,10 @@ func TestACLEntryList(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate ListACLEntries API error",
+			Name: "validate ListACLEntries API error (via GetNext() call)",
 			API: mock.API{
-				ListACLEntriesFn: func(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error) {
-					return nil, testutil.Err
+				NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
+					return &mockACLPaginator{returnErr: true, hasNext: true}
 				},
 			},
 			Args:      args("acl-entry list --acl-id 123 --service-id 123"),
@@ -211,7 +259,9 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate ListACLEntries API success",
 			API: mock.API{
-				ListACLEntriesFn: listACLEntries,
+				NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
+					return &mockACLPaginator{hasNext: true}
+				},
 			},
 			Args:       args("acl-entry list --acl-id 123 --service-id 123"),
 			WantOutput: "SERVICE ID  ID   IP         SUBNET  NEGATED\n123         456  127.0.0.1  0       false\n123         789  127.0.0.2  0       true\n",
@@ -219,7 +269,9 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate --verbose flag",
 			API: mock.API{
-				ListACLEntriesFn: listACLEntries,
+				NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
+					return &mockACLPaginator{hasNext: true}
+				},
 			},
 			Args:       args("acl-entry list --acl-id 123 --service-id 123 --verbose"),
 			WantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\nService ID (via --service-id): 123\n\nACL ID: 123\nID: 456\nIP: 127.0.0.1\nSubnet: 0\nNegated: false\nComment: foo\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nACL ID: 123\nID: 789\nIP: 127.0.0.2\nSubnet: 0\nNegated: true\nComment: bar\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
@@ -337,34 +389,4 @@ func getACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
 		DeletedAt: &t,
 		UpdatedAt: &t,
 	}, nil
-}
-
-func listACLEntries(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error) {
-	t := testutil.Date
-	vs := []*fastly.ACLEntry{
-		{
-			ACLID:     i.ACLID,
-			Comment:   "foo",
-			ID:        "456",
-			IP:        "127.0.0.1",
-			ServiceID: i.ServiceID,
-
-			CreatedAt: &t,
-			DeletedAt: &t,
-			UpdatedAt: &t,
-		},
-		{
-			ACLID:     i.ACLID,
-			Comment:   "bar",
-			ID:        "789",
-			IP:        "127.0.0.2",
-			Negated:   true,
-			ServiceID: i.ServiceID,
-
-			CreatedAt: &t,
-			DeletedAt: &t,
-			UpdatedAt: &t,
-		},
-	}
-	return vs, nil
 }
