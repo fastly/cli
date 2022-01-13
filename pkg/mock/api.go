@@ -275,7 +275,9 @@ type API struct {
 	ListCustomerTokensFn func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error)
 	ListTokensFn         func() ([]*fastly.Token, error)
 
-	NewListACLEntriesPaginatorFn func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
+	NewListACLEntriesPaginatorFn      func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
+	NewListDictionaryItemsPaginatorFn func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
+	NewListServicesPaginatorFn        func(i *fastly.ListServicesInput) fastly.PaginatorServices
 }
 
 // AllDatacenters implements Interface.
@@ -1391,4 +1393,14 @@ func (m API) ListTokens() ([]*fastly.Token, error) {
 // NewListACLEntriesPaginator implements Interface.
 func (m API) NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
 	return m.NewListACLEntriesPaginatorFn(i)
+}
+
+// NewListDictionaryItemsPaginator implements Interface.
+func (m API) NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
+	return m.NewListDictionaryItemsPaginatorFn(i)
+}
+
+// NewListServicesPaginator implements Interface.
+func (m API) NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices {
+	return m.NewListServicesPaginatorFn(i)
 }

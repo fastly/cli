@@ -285,6 +285,8 @@ type Interface interface {
 	ListTokens() ([]*fastly.Token, error)
 
 	NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
+	NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
+	NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
