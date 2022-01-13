@@ -118,7 +118,7 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.Dynamic = 1
 	}
 	if c.priority.WasSet {
-		input.Priority = c.priority.Value
+		input.Priority = fastly.Int(c.priority.Value)
 	}
 
 	return &input

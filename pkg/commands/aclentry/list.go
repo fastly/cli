@@ -141,7 +141,11 @@ func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry) error {
 	t := text.NewTable(out)
 	t.AddHeader("SERVICE ID", "ID", "IP", "SUBNET", "NEGATED")
 	for _, a := range as {
-		t.AddLine(a.ServiceID, a.ID, a.IP, a.Subnet, a.Negated)
+		var subnet int
+		if a.Subnet != nil {
+			subnet = *a.Subnet
+		}
+		t.AddLine(a.ServiceID, a.ID, a.IP, subnet, a.Negated)
 	}
 	t.Print()
 	return nil

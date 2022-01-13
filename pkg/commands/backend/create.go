@@ -64,14 +64,14 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("name", "Backend name").Short('n').Required().StringVar(&c.Input.Name)
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Required().StringVar(&c.Input.Address)
 	c.CmdClause.Flag("comment", "A descriptive note").StringVar(&c.Input.Comment)
-	c.CmdClause.Flag("port", "Port number of the address").UintVar(&c.Input.Port)
+	c.CmdClause.Flag("port", "Port number of the address").UintVar(c.Input.Port)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.overrideHost.Set).StringVar(&c.overrideHost.Value)
-	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").UintVar(&c.Input.ConnectTimeout)
-	c.CmdClause.Flag("max-conn", "Maximum number of connections").UintVar(&c.Input.MaxConn)
-	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").UintVar(&c.Input.FirstByteTimeout)
-	c.CmdClause.Flag("between-bytes-timeout", "How long to wait between bytes in milliseconds").UintVar(&c.Input.BetweenBytesTimeout)
+	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").UintVar(c.Input.ConnectTimeout)
+	c.CmdClause.Flag("max-conn", "Maximum number of connections").UintVar(c.Input.MaxConn)
+	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").UintVar(c.Input.FirstByteTimeout)
+	c.CmdClause.Flag("between-bytes-timeout", "How long to wait between bytes in milliseconds").UintVar(c.Input.BetweenBytesTimeout)
 	c.CmdClause.Flag("auto-loadbalance", "Whether or not this backend should be automatically load balanced").BoolVar(&c.AutoLoadbalance)
-	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").UintVar(&c.Input.Weight)
+	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").UintVar(c.Input.Weight)
 	c.CmdClause.Flag("request-condition", "Condition, which if met, will select this backend during a request").StringVar(&c.Input.RequestCondition)
 	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").StringVar(&c.Input.HealthCheck)
 	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").StringVar(&c.Input.Shield)
@@ -118,11 +118,11 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.UseSSL = fastly.Compatibool(c.UseSSL)
 	c.Input.SSLCheckCert = fastly.Compatibool(c.SSLCheckCert)
 
-	if c.UseSSL && c.Input.Port == 0 {
+	if c.UseSSL && c.Input.Port == nil {
 		if c.Globals.Flag.Verbose {
 			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443")
 		}
-		c.Input.Port = 443
+		c.Input.Port = fastly.Uint(443)
 	}
 
 	if !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {

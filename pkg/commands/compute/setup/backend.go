@@ -71,7 +71,7 @@ func (b *Backends) Create() error {
 			ServiceVersion:  b.ServiceVersion,
 			Name:            backend.Name,
 			Address:         backend.Address,
-			Port:            backend.Port,
+			Port:            fastly.Uint(backend.Port),
 			OverrideHost:    backend.OverrideHost,
 			SSLCertHostname: backend.SSLCertHostname,
 			SSLSNIHostname:  backend.SSLSNIHostname,
