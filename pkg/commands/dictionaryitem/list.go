@@ -65,17 +65,24 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
+	paginator := c.Globals.Client.NewListDictionaryItemsPaginator(&c.Input)
 
-	dictionaries, err := c.Globals.Client.ListDictionaryItems(&c.Input)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID": serviceID,
-		})
-		return err
+	var ds []*fastly.DictionaryItem
+	for paginator.HasNext() {
+		data, err := paginator.GetNext()
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Dictionary ID":   c.Input.DictionaryID,
+				"Service ID":      serviceID,
+				"Remaining Pages": paginator.Remaining(),
+			})
+			return err
+		}
+		ds = append(ds, data...)
 	}
 
 	if c.json {
-		data, err := json.Marshal(dictionaries)
+		data, err := json.Marshal(ds)
 		if err != nil {
 			return err
 		}
@@ -86,8 +93,8 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if !c.Globals.Verbose() {
 		fmt.Fprintf(out, "\nService ID: %s\n", c.Input.ServiceID)
 	}
-	for i, dictionary := range dictionaries {
-		text.Output(out, "Item: %d/%d", i+1, len(dictionaries))
+	for i, dictionary := range ds {
+		text.Output(out, "Item: %d/%d", i+1, len(ds))
 		text.PrintDictionaryItem(out, "\t", dictionary)
 		text.Break(out)
 	}

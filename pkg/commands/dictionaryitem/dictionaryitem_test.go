@@ -53,6 +53,49 @@ func TestDictionaryItemDescribe(t *testing.T) {
 	}
 }
 
+type mockDictionaryItemPaginator struct {
+	returnErr bool
+	hasNext   bool
+}
+
+func (p *mockDictionaryItemPaginator) HasNext() bool {
+	if p.hasNext {
+		p.hasNext = false
+		return true
+	}
+	return false
+}
+
+func (p mockDictionaryItemPaginator) Remaining() int {
+	return 1
+}
+
+func (p mockDictionaryItemPaginator) GetNext() (as []*fastly.DictionaryItem, err error) {
+	if p.returnErr {
+		err = testutil.Err
+	}
+	as = []*fastly.DictionaryItem{
+		{
+			ServiceID:    "123",
+			DictionaryID: "456",
+			ItemKey:      "foo",
+			ItemValue:    "bar",
+			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+		},
+		{
+			ServiceID:    "123",
+			DictionaryID: "456",
+			ItemKey:      "baz",
+			ItemValue:    "bear",
+			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
+			DeletedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:06:08Z"),
+		},
+	}
+	return as, err
+}
+
 func TestDictionaryItemsList(t *testing.T) {
 	args := testutil.Args
 	for _, testcase := range []struct {
@@ -63,12 +106,28 @@ func TestDictionaryItemsList(t *testing.T) {
 	}{
 		{
 			args:      args("dictionary-item list --service-id 123"),
-			api:       mock.API{ListDictionaryItemsFn: listDictionaryItemsOK},
 			wantError: "error parsing arguments: required flag --dictionary-id not provided",
 		},
 		{
+			args:      args("dictionary-item list --dictionary-id 456"),
+			wantError: "error reading service: no service ID found",
+		},
+		{
+			api: mock.API{
+				NewListDictionaryItemsPaginatorFn: func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
+					return &mockDictionaryItemPaginator{hasNext: true, returnErr: true}
+				},
+			},
+			args:      args("dictionary-item list --service-id 123 --dictionary-id 456"),
+			wantError: testutil.Err.Error(),
+		},
+		{
+			api: mock.API{
+				NewListDictionaryItemsPaginatorFn: func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
+					return &mockDictionaryItemPaginator{hasNext: true}
+				},
+			},
 			args:       args("dictionary-item list --service-id 123 --dictionary-id 456"),
-			api:        mock.API{ListDictionaryItemsFn: listDictionaryItemsOK},
 			wantOutput: listDictionaryItemsOutput,
 		},
 	} {

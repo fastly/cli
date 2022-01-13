@@ -185,6 +185,10 @@ func TestACLEntryDescribe(t *testing.T) {
 	}
 }
 
+// TODO: Use generics support in go 1.18 to remove the need for multiple types.
+//
+// e.g. replace mockACLPaginator, mockDictionaryItemPaginator, mockServicesPaginator
+
 type mockACLPaginator struct {
 	returnErr bool
 	hasNext   bool
