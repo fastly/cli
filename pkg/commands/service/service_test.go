@@ -71,6 +71,71 @@ func TestServiceCreate(t *testing.T) {
 	}
 }
 
+// type mockServicesPaginator struct {
+// 	count     int
+// 	returnErr bool
+// }
+
+// func (p *mockServicesPaginator) HasNext() bool {
+// 	if p.count == 2 {
+// 		return false
+// 	}
+// 	p.count++
+// 	return true
+// }
+
+// func (p mockServicesPaginator) Remaining() int {
+// 	return 1
+// }
+
+// func (p mockServicesPaginator) GetNext() (ss []*fastly.Service, err error) {
+// 	if p.returnErr {
+// 		err = testutil.Err
+// 	}
+// 	pageOne := fastly.Service{
+// 		ID:            "123",
+// 		Name:          "Foo",
+// 		Type:          "wasm",
+// 		CustomerID:    "mycustomerid",
+// 		ActiveVersion: 2,
+// 		UpdatedAt:     testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+// 		Versions: []*fastly.Version{
+// 			{
+// 				Number:    1,
+// 				Comment:   "a",
+// 				ServiceID: "b",
+// 				CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+// 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
+// 				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
+// 			},
+// 			{
+// 				Number:    2,
+// 				Comment:   "c",
+// 				ServiceID: "d",
+// 				Active:    true,
+// 				Deployed:  true,
+// 				CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
+// 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
+// 			},
+// 		},
+// 	}
+// 	pageTwo := fastly.Service{
+// 		ID:            "456",
+// 		Name:          "Bar",
+// 		Type:          "wasm",
+// 		CustomerID:    "mycustomerid",
+// 		ActiveVersion: 1,
+// 		UpdatedAt:     testutil.MustParseTimeRFC3339("2015-03-14T12:59:59Z"),
+// 	}
+// 	if p.count == 1 {
+// 		ss = append(ss, &pageOne)
+// 	}
+// 	if p.count == 2 {
+// 		ss = append(ss, &pageTwo)
+// 	}
+// 	return ss, err
+// }
+
 func TestServiceList(t *testing.T) {
 	args := testutil.Args
 	for _, testcase := range []struct {
@@ -437,7 +502,6 @@ func listServicesOK(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
 			Type:          "vcl",
 			CustomerID:    "mycustomerid",
 			ActiveVersion: 1,
-			// nil UpdatedAt
 		},
 	}, nil
 }

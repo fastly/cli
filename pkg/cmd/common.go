@@ -12,3 +12,5 @@ var (
 	FlagVersionName    = "version"
 	FlagVersionDesc    = "'latest', 'active', or the number of a specific version"
 )
+
+var PaginationDirection = []string{"ascend", "descend"}
