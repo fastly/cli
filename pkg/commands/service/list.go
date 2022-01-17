@@ -25,7 +25,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("list", "List Fastly services")
-	c.CmdClause.Flag("direction", "Direction in which to sort results").HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,

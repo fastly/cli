@@ -29,7 +29,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.manifest = data
 	c.CmdClause = parent.Command("list", "List items in a Fastly edge dictionary")
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.input.DictionaryID)
-	c.CmdClause.Flag("direction", "Direction in which to sort results").HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,

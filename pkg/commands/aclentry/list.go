@@ -24,7 +24,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
 
 	// Optional Flags
-	c.CmdClause.Flag("direction", "Direction in which to sort results").HintOptions(cmd.PaginationDirection...).EnumVar(&c.direction, cmd.PaginationDirection...)
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.direction, cmd.PaginationDirection...)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,

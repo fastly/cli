@@ -259,11 +259,11 @@ SUBCOMMANDS
   service list [<flags>]
     List Fastly services
 
-        --direction=DIRECTION  Direction in which to sort results
-    -j, --json                 Render output as JSON
-        --page=PAGE            The start page
-        --per-page=PER-PAGE    Number of records per page
-        --sort="created"       Field on which to sort
+        --direction=ascend   Direction in which to sort results
+    -j, --json               Render output as JSON
+        --page=PAGE          The start page
+        --per-page=PER-PAGE  Number of records per page
+        --sort="created"     Field on which to sort
 
   service search [<flags>]
     Search for a Fastly service by name
@@ -406,7 +406,7 @@ COMMANDS
     List ACLs
 
         --acl-id=ACL-ID          Alphanumeric string identifying a ACL
-        --direction=DIRECTION    Direction in which to sort results
+        --direction=ascend       Direction in which to sort results
     -j, --json                   Render output as JSON
         --page=PAGE              The start page
         --per-page=PER-PAGE      Number of records per page
@@ -851,7 +851,7 @@ COMMANDS
 
         --dictionary-id=DICTIONARY-ID
                                  Dictionary ID
-        --direction=DIRECTION    Direction in which to sort results
+        --direction=ascend       Direction in which to sort results
     -j, --json                   Render output as JSON
         --page=PAGE              The start page
         --per-page=PER-PAGE      Number of records per page
@@ -4442,11 +4442,11 @@ COMMANDS
   service list [<flags>]
     List Fastly services
 
-        --direction=DIRECTION  Direction in which to sort results
-    -j, --json                 Render output as JSON
-        --page=PAGE            The start page
-        --per-page=PER-PAGE    Number of records per page
-        --sort="created"       Field on which to sort
+        --direction=ascend   Direction in which to sort results
+    -j, --json               Render output as JSON
+        --page=PAGE          The start page
+        --per-page=PER-PAGE  Number of records per page
+        --sort="created"     Field on which to sort
 
   service search [<flags>]
     Search for a Fastly service by name
