@@ -81,6 +81,8 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	input := c.constructInput(serviceID)
 	paginator := c.Globals.Client.NewListACLEntriesPaginator(input)
 
+	// TODO: Use generics support in go 1.18 to replace this almost identical
+	// logic inside of 'dictionary-item list' and 'service list'.
 	var as []*fastly.ACLEntry
 	for paginator.HasNext() {
 		data, err := paginator.GetNext()
