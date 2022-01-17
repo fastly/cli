@@ -54,12 +54,15 @@ func TestDictionaryItemDescribe(t *testing.T) {
 }
 
 type mockDictionaryItemPaginator struct {
-	count     int
-	returnErr bool
+	count         int
+	maxPages      int
+	numOfPages    int
+	requestedPage int
+	returnErr     bool
 }
 
 func (p *mockDictionaryItemPaginator) HasNext() bool {
-	if p.count == 2 {
+	if p.count > p.maxPages {
 		return false
 	}
 	p.count++
@@ -70,7 +73,7 @@ func (p mockDictionaryItemPaginator) Remaining() int {
 	return 1
 }
 
-func (p mockDictionaryItemPaginator) GetNext() (di []*fastly.DictionaryItem, err error) {
+func (p *mockDictionaryItemPaginator) GetNext() (di []*fastly.DictionaryItem, err error) {
 	if p.returnErr {
 		err = testutil.Err
 	}
@@ -96,6 +99,9 @@ func (p mockDictionaryItemPaginator) GetNext() (di []*fastly.DictionaryItem, err
 	}
 	if p.count == 2 {
 		di = append(di, &pageTwo)
+	}
+	if p.requestedPage > 0 && p.numOfPages == 1 {
+		p.count = p.maxPages + 1 // forces only one result to be displayed
 	}
 	return di, err
 }
@@ -130,29 +136,29 @@ func TestDictionaryItemsList(t *testing.T) {
 		{
 			api: mock.API{
 				NewListDictionaryItemsPaginatorFn: func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
-					return &mockDictionaryItemPaginator{}
+					return &mockDictionaryItemPaginator{numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
 			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --per-page 1"),
 			wantOutput: listDictionaryItemsOutput,
 		},
-		// In the following test, although we set --page 1 we still expect the two
-		// records to be displayed.
+		// In the following test, we set --page 1 and as there's only one record
+		// displayed per page we expect only the first record to be displayed.
 		{
 			api: mock.API{
 				NewListDictionaryItemsPaginatorFn: func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
-					return &mockDictionaryItemPaginator{count: i.Page - 1}
+					return &mockDictionaryItemPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
 			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --page 1 --per-page 1"),
-			wantOutput: listDictionaryItemsOutput,
+			wantOutput: listDictionaryItemsPageOneOutput,
 		},
 		// In the following test, we set --page 2 and as there's only one record
 		// displayed per page we expect only the second record to be displayed.
 		{
 			api: mock.API{
 				NewListDictionaryItemsPaginatorFn: func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
-					return &mockDictionaryItemPaginator{count: i.Page - 1}
+					return &mockDictionaryItemPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
 			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --page 2 --per-page 1"),
@@ -364,6 +370,16 @@ Created (UTC): 2001-02-03 04:05
 Last edited (UTC): 2001-02-03 04:05
 Deleted (UTC): 2001-02-03 04:06
 `) + "\n"
+
+var listDictionaryItemsPageOneOutput = "\n" + strings.TrimSpace(`
+Service ID: 123
+Item: 1/1
+	Dictionary ID: 456
+	Item Key: foo
+	Item Value: bar
+	Created (UTC): 2001-02-03 04:05
+	Last edited (UTC): 2001-02-03 04:05
+`) + "\n\n"
 
 var listDictionaryItemsPageTwoOutput = "\n" + strings.TrimSpace(`
 Service ID: 123

@@ -259,7 +259,11 @@ SUBCOMMANDS
   service list [<flags>]
     List Fastly services
 
-    -j, --json  Render output as JSON
+        --direction=DIRECTION  Direction in which to sort results
+    -j, --json                 Render output as JSON
+        --page=PAGE            The start page
+        --per-page=PER-PAGE    Number of records per page
+        --sort="created"       Field on which to sort
 
   service search [<flags>]
     Search for a Fastly service by name
@@ -4438,7 +4442,11 @@ COMMANDS
   service list [<flags>]
     List Fastly services
 
-    -j, --json  Render output as JSON
+        --direction=DIRECTION  Direction in which to sort results
+    -j, --json                 Render output as JSON
+        --page=PAGE            The start page
+        --per-page=PER-PAGE    Number of records per page
+        --sort="created"       Field on which to sort
 
   service search [<flags>]
     Search for a Fastly service by name

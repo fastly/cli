@@ -16,7 +16,7 @@ import (
 // ListCommand calls the Fastly API to list services.
 type ListCommand struct {
 	cmd.Base
-	Input fastly.ListServicesInput
+	input fastly.ListServicesInput
 	json  bool
 }
 
@@ -25,12 +25,16 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("list", "List Fastly services")
+	c.CmdClause.Flag("direction", "Direction in which to sort results").HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
 		Dst:         &c.json,
 		Short:       'j',
 	})
+	c.CmdClause.Flag("page", "The start page").IntVar(&c.input.Page)
+	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.input.PerPage)
+	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.input.Sort)
 	return &c
 }
 
@@ -40,15 +44,23 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	services, err := c.Globals.Client.ListServices(&c.Input)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
+	paginator := c.Globals.Client.NewListServicesPaginator(&c.input)
+
+	var ss []*fastly.Service
+	for paginator.HasNext() {
+		data, err := paginator.GetNext()
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"Remaining Pages": paginator.Remaining(),
+			})
+			return err
+		}
+		ss = append(ss, data...)
 	}
 
 	if !c.Globals.Verbose() {
 		if c.json {
-			data, err := json.Marshal(services)
+			data, err := json.Marshal(ss)
 			if err != nil {
 				return err
 			}
@@ -58,7 +70,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 		tw := text.NewTable(out)
 		tw.AddHeader("NAME", "ID", "TYPE", "ACTIVE VERSION", "LAST EDITED (UTC)")
-		for _, service := range services {
+		for _, service := range ss {
 			updatedAt := "n/a"
 			if service.UpdatedAt != nil {
 				updatedAt = service.UpdatedAt.UTC().Format(time.Format)
@@ -77,8 +89,8 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	for i, service := range services {
-		fmt.Fprintf(out, "Service %d/%d\n", i+1, len(services))
+	for i, service := range ss {
+		fmt.Fprintf(out, "Service %d/%d\n", i+1, len(ss))
 		text.PrintService(out, "\t", service)
 		fmt.Fprintln(out)
 	}

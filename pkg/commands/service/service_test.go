@@ -71,70 +71,86 @@ func TestServiceCreate(t *testing.T) {
 	}
 }
 
-// type mockServicesPaginator struct {
-// 	count     int
-// 	returnErr bool
-// }
+type mockServicesPaginator struct {
+	count         int
+	maxPages      int
+	numOfPages    int
+	requestedPage int
+	returnErr     bool
+}
 
-// func (p *mockServicesPaginator) HasNext() bool {
-// 	if p.count == 2 {
-// 		return false
-// 	}
-// 	p.count++
-// 	return true
-// }
+func (p *mockServicesPaginator) HasNext() bool {
+	if p.count > p.maxPages {
+		return false
+	}
+	p.count++
+	return true
+}
 
-// func (p mockServicesPaginator) Remaining() int {
-// 	return 1
-// }
+func (p mockServicesPaginator) Remaining() int {
+	return 1
+}
 
-// func (p mockServicesPaginator) GetNext() (ss []*fastly.Service, err error) {
-// 	if p.returnErr {
-// 		err = testutil.Err
-// 	}
-// 	pageOne := fastly.Service{
-// 		ID:            "123",
-// 		Name:          "Foo",
-// 		Type:          "wasm",
-// 		CustomerID:    "mycustomerid",
-// 		ActiveVersion: 2,
-// 		UpdatedAt:     testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
-// 		Versions: []*fastly.Version{
-// 			{
-// 				Number:    1,
-// 				Comment:   "a",
-// 				ServiceID: "b",
-// 				CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-// 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
-// 				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
-// 			},
-// 			{
-// 				Number:    2,
-// 				Comment:   "c",
-// 				ServiceID: "d",
-// 				Active:    true,
-// 				Deployed:  true,
-// 				CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
-// 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
-// 			},
-// 		},
-// 	}
-// 	pageTwo := fastly.Service{
-// 		ID:            "456",
-// 		Name:          "Bar",
-// 		Type:          "wasm",
-// 		CustomerID:    "mycustomerid",
-// 		ActiveVersion: 1,
-// 		UpdatedAt:     testutil.MustParseTimeRFC3339("2015-03-14T12:59:59Z"),
-// 	}
-// 	if p.count == 1 {
-// 		ss = append(ss, &pageOne)
-// 	}
-// 	if p.count == 2 {
-// 		ss = append(ss, &pageTwo)
-// 	}
-// 	return ss, err
-// }
+func (p *mockServicesPaginator) GetNext() (ss []*fastly.Service, err error) {
+	if p.returnErr {
+		err = testutil.Err
+	}
+	pageOne := fastly.Service{
+		ID:            "123",
+		Name:          "Foo",
+		Type:          "wasm",
+		CustomerID:    "mycustomerid",
+		ActiveVersion: 2,
+		UpdatedAt:     testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+		Versions: []*fastly.Version{
+			{
+				Number:    1,
+				Comment:   "a",
+				ServiceID: "b",
+				CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
+				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
+				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
+			},
+			{
+				Number:    2,
+				Comment:   "c",
+				ServiceID: "d",
+				Active:    true,
+				Deployed:  true,
+				CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
+				UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
+			},
+		},
+	}
+	pageTwo := fastly.Service{
+		ID:            "456",
+		Name:          "Bar",
+		Type:          "wasm",
+		CustomerID:    "mycustomerid",
+		ActiveVersion: 1,
+		UpdatedAt:     testutil.MustParseTimeRFC3339("2015-03-14T12:59:59Z"),
+	}
+	pageThree := fastly.Service{
+		ID:            "789",
+		Name:          "Baz",
+		Type:          "vcl",
+		CustomerID:    "mycustomerid",
+		ActiveVersion: 1,
+	}
+	if p.count == 1 {
+		ss = append(ss, &pageOne)
+	}
+	if p.count == 2 {
+		ss = append(ss, &pageTwo)
+	}
+	if p.count == 3 {
+		ss = append(ss, &pageThree)
+	}
+	if p.requestedPage > 0 && p.numOfPages == 1 {
+		p.count = p.maxPages + 1 // forces only one result to be displayed
+	}
+	return ss, err
+}
 
 func TestServiceList(t *testing.T) {
 	args := testutil.Args
@@ -145,34 +161,55 @@ func TestServiceList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       args("service list"),
-			api:        mock.API{ListServicesFn: listServicesOK},
+			api: mock.API{
+				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
+					return &mockServicesPaginator{returnErr: true}
+				},
+			},
+			args:      args("service list"),
+			wantError: testutil.Err.Error(),
+		},
+		// NOTE: Our mock paginator defines three services, and so even when setting
+		// --per-page 1 we expect the final output to display both items.
+		{
+			api: mock.API{
+				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
+					return &mockServicesPaginator{numOfPages: i.PerPage, maxPages: 3}
+				},
+			},
+			args:       args("service list --per-page 1"),
 			wantOutput: listServicesShortOutput,
 		},
+		// In the following test, we set --page 1 and as there's only one record
+		// displayed per page we expect only the first record to be displayed.
 		{
+			api: mock.API{
+				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
+					return &mockServicesPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 3}
+				},
+			},
+			args:       args("service list --page 1 --per-page 1"),
+			wantOutput: listServicesShortOutputPageOne,
+		},
+		// In the following test, we set --page 2 and as there's only one record
+		// displayed per page we expect only the second record to be displayed.
+		{
+			api: mock.API{
+				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
+					return &mockServicesPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 3}
+				},
+			},
+			args:       args("service list --page 2 --per-page 1"),
+			wantOutput: listServicesShortOutputPageTwo,
+		},
+		{
+			api: mock.API{
+				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
+					return &mockServicesPaginator{maxPages: 3}
+				},
+			},
 			args:       args("service list --verbose"),
-			api:        mock.API{ListServicesFn: listServicesOK},
 			wantOutput: listServicesVerboseOutput,
-		},
-		{
-			args:       args("service list -v"),
-			api:        mock.API{ListServicesFn: listServicesOK},
-			wantOutput: listServicesVerboseOutput,
-		},
-		{
-			args:       args("service --verbose list"),
-			api:        mock.API{ListServicesFn: listServicesOK},
-			wantOutput: listServicesVerboseOutput,
-		},
-		{
-			args:       args("-v service list"),
-			api:        mock.API{ListServicesFn: listServicesOK},
-			wantOutput: listServicesVerboseOutput,
-		},
-		{
-			args:      args("service list"),
-			api:       mock.API{ListServicesFn: listServicesError},
-			wantError: errTest.Error(),
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -459,62 +496,21 @@ func createServiceError(*fastly.CreateServiceInput) (*fastly.Service, error) {
 	return nil, errTest
 }
 
-func listServicesOK(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
-	return []*fastly.Service{
-		{
-			ID:            "123",
-			Name:          "Foo",
-			Type:          "wasm",
-			CustomerID:    "mycustomerid",
-			ActiveVersion: 2,
-			UpdatedAt:     testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
-			Versions: []*fastly.Version{
-				{
-					Number:    1,
-					Comment:   "a",
-					ServiceID: "b",
-					CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-					UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
-					DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
-				},
-				{
-					Number:    2,
-					Comment:   "c",
-					ServiceID: "d",
-					Active:    true,
-					Deployed:  true,
-					CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
-					UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
-				},
-			},
-		},
-		{
-			ID:            "456",
-			Name:          "Bar",
-			Type:          "wasm",
-			CustomerID:    "mycustomerid",
-			ActiveVersion: 1,
-			UpdatedAt:     testutil.MustParseTimeRFC3339("2015-03-14T12:59:59Z"),
-		},
-		{
-			ID:            "789",
-			Name:          "Baz",
-			Type:          "vcl",
-			CustomerID:    "mycustomerid",
-			ActiveVersion: 1,
-		},
-	}, nil
-}
-
-func listServicesError(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
-	return nil, errTest
-}
-
 var listServicesShortOutput = strings.TrimSpace(`
 NAME  ID   TYPE  ACTIVE VERSION  LAST EDITED (UTC)
 Foo   123  wasm  2               2010-11-15 19:01
 Bar   456  wasm  1               2015-03-14 12:59
 Baz   789  vcl   1               n/a
+`) + "\n"
+
+var listServicesShortOutputPageOne = strings.TrimSpace(`
+NAME  ID   TYPE  ACTIVE VERSION  LAST EDITED (UTC)
+Foo   123  wasm  2               2010-11-15 19:01
+`) + "\n"
+
+var listServicesShortOutputPageTwo = strings.TrimSpace(`
+NAME  ID   TYPE  ACTIVE VERSION  LAST EDITED (UTC)
+Bar   456  wasm  1               2015-03-14 12:59
 `) + "\n"
 
 var listServicesVerboseOutput = strings.TrimSpace(`
