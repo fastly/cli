@@ -31,7 +31,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Dst:         &c.json,
 		Short:       'j',
 	})
-	c.CmdClause.Flag("page", "The start page").IntVar(&c.page)
+	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
 	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,

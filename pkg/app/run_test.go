@@ -261,7 +261,7 @@ SUBCOMMANDS
 
         --direction=ascend   Direction in which to sort results
     -j, --json               Render output as JSON
-        --page=PAGE          The start page
+        --page=PAGE          Page number of data set to fetch
         --per-page=PER-PAGE  Number of records per page
         --sort="created"     Field on which to sort
 
@@ -408,7 +408,7 @@ COMMANDS
         --acl-id=ACL-ID          Alphanumeric string identifying a ACL
         --direction=ascend       Direction in which to sort results
     -j, --json                   Render output as JSON
-        --page=PAGE              The start page
+        --page=PAGE              Page number of data set to fetch
         --per-page=PER-PAGE      Number of records per page
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
@@ -853,7 +853,7 @@ COMMANDS
                                  Dictionary ID
         --direction=ascend       Direction in which to sort results
     -j, --json                   Render output as JSON
-        --page=PAGE              The start page
+        --page=PAGE              Page number of data set to fetch
         --per-page=PER-PAGE      Number of records per page
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
@@ -4444,7 +4444,7 @@ COMMANDS
 
         --direction=ascend   Direction in which to sort results
     -j, --json               Render output as JSON
-        --page=PAGE          The start page
+        --page=PAGE          Page number of data set to fetch
         --per-page=PER-PAGE  Number of records per page
         --sort="created"     Field on which to sort
 
