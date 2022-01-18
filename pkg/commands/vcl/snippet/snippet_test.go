@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 func TestVCLSnippetCreate(t *testing.T) {
@@ -70,7 +70,6 @@ func TestVCLSnippetCreate(t *testing.T) {
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
-						Priority:       i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -92,7 +91,6 @@ func TestVCLSnippetCreate(t *testing.T) {
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
-						Priority:       i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -114,7 +112,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
-						Priority:       i.Priority,
+						Priority:       *i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -137,7 +135,6 @@ func TestVCLSnippetCreate(t *testing.T) {
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
-						Priority:       i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -159,7 +156,6 @@ func TestVCLSnippetCreate(t *testing.T) {
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
-						Priority:       i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",

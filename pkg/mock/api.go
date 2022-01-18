@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.
@@ -274,6 +274,10 @@ type API struct {
 	GetTokenSelfFn       func() (*fastly.Token, error)
 	ListCustomerTokensFn func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error)
 	ListTokensFn         func() ([]*fastly.Token, error)
+
+	NewListACLEntriesPaginatorFn      func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
+	NewListDictionaryItemsPaginatorFn func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
+	NewListServicesPaginatorFn        func(i *fastly.ListServicesInput) fastly.PaginatorServices
 }
 
 // AllDatacenters implements Interface.
@@ -1384,4 +1388,19 @@ func (m API) ListCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.To
 // ListTokens implements Interface.
 func (m API) ListTokens() ([]*fastly.Token, error) {
 	return m.ListTokensFn()
+}
+
+// NewListACLEntriesPaginator implements Interface.
+func (m API) NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
+	return m.NewListACLEntriesPaginatorFn(i)
+}
+
+// NewListDictionaryItemsPaginator implements Interface.
+func (m API) NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
+	return m.NewListDictionaryItemsPaginatorFn(i)
+}
+
+// NewListServicesPaginator implements Interface.
+func (m API) NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices {
+	return m.NewListServicesPaginatorFn(i)
 }

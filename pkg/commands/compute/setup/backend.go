@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 // Backends represents the service state related to backends defined within the
@@ -71,7 +71,7 @@ func (b *Backends) Create() error {
 			ServiceVersion:  b.ServiceVersion,
 			Name:            backend.Name,
 			Address:         backend.Address,
-			Port:            backend.Port,
+			Port:            fastly.Uint(backend.Port),
 			OverrideHost:    backend.OverrideHost,
 			SSLCertHostname: backend.SSLCertHostname,
 			SSLSNIHostname:  backend.SSLSNIHostname,

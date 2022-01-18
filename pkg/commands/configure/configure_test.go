@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 func TestConfigure(t *testing.T) {

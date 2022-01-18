@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 // CreateCommand calls the Fastly API to create healthchecks.
@@ -55,12 +55,12 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("host", "Which host to check").StringVar(&c.Input.Host)
 	c.CmdClause.Flag("path", "The path to check").StringVar(&c.Input.Path)
 	c.CmdClause.Flag("http-version", "Whether to use version 1.0 or 1.1 HTTP").StringVar(&c.Input.HTTPVersion)
-	c.CmdClause.Flag("timeout", "Timeout in milliseconds").UintVar(&c.Input.Timeout)
-	c.CmdClause.Flag("check-interval", "How often to run the healthcheck in milliseconds").UintVar(&c.Input.CheckInterval)
-	c.CmdClause.Flag("expected-response", "The status code expected from the host").UintVar(&c.Input.ExpectedResponse)
-	c.CmdClause.Flag("window", "The number of most recent healthcheck queries to keep for this healthcheck").UintVar(&c.Input.Window)
-	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").UintVar(&c.Input.Threshold)
-	c.CmdClause.Flag("initial", "When loading a config, the initial number of probes to be seen as OK").UintVar(&c.Input.Initial)
+	c.CmdClause.Flag("timeout", "Timeout in milliseconds").UintVar(c.Input.Timeout)
+	c.CmdClause.Flag("check-interval", "How often to run the healthcheck in milliseconds").UintVar(c.Input.CheckInterval)
+	c.CmdClause.Flag("expected-response", "The status code expected from the host").UintVar(c.Input.ExpectedResponse)
+	c.CmdClause.Flag("window", "The number of most recent healthcheck queries to keep for this healthcheck").UintVar(c.Input.Window)
+	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").UintVar(c.Input.Threshold)
+	c.CmdClause.Flag("initial", "When loading a config, the initial number of probes to be seen as OK").UintVar(c.Input.Initial)
 	return &c
 }
 

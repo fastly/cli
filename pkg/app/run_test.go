@@ -259,7 +259,11 @@ SUBCOMMANDS
   service list [<flags>]
     List Fastly services
 
-    -j, --json  Render output as JSON
+        --direction=ascend   Direction in which to sort results
+    -j, --json               Render output as JSON
+        --page=PAGE          Page number of data set to fetch
+        --per-page=PER-PAGE  Number of records per page
+        --sort="created"     Field on which to sort
 
   service search [<flags>]
     Search for a Fastly service by name
@@ -402,11 +406,15 @@ COMMANDS
     List ACLs
 
         --acl-id=ACL-ID          Alphanumeric string identifying a ACL
+        --direction=ascend       Direction in which to sort results
     -j, --json                   Render output as JSON
+        --page=PAGE              Page number of data set to fetch
+        --per-page=PER-PAGE      Number of records per page
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
+        --sort="created"         Field on which to sort
 
   acl-entry update --acl-id=ACL-ID [<flags>]
     Update an ACL entry for a specified ACL
@@ -841,13 +849,17 @@ COMMANDS
   dictionary-item list --dictionary-id=DICTIONARY-ID [<flags>]
     List items in a Fastly edge dictionary
 
+        --dictionary-id=DICTIONARY-ID
+                                 Dictionary ID
+        --direction=ascend       Direction in which to sort results
     -j, --json                   Render output as JSON
+        --page=PAGE              Page number of data set to fetch
+        --per-page=PER-PAGE      Number of records per page
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
-        --dictionary-id=DICTIONARY-ID
-                                 Dictionary ID
+        --sort="created"         Field on which to sort
 
   dictionary-item update --dictionary-id=DICTIONARY-ID [<flags>]
     Update or insert an item on a Fastly edge dictionary
@@ -4430,7 +4442,11 @@ COMMANDS
   service list [<flags>]
     List Fastly services
 
-    -j, --json  Render output as JSON
+        --direction=ascend   Direction in which to sort results
+    -j, --json               Render output as JSON
+        --page=PAGE          Page number of data set to fetch
+        --per-page=PER-PAGE  Number of records per page
+        --sort="created"     Field on which to sort
 
   service search [<flags>]
     Search for a Fastly service by name

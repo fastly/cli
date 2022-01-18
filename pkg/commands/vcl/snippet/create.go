@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 var Locations = []string{"init", "recv", "hash", "hit", "miss", "pass", "fetch", "error", "deliver", "log", "none"}
@@ -118,7 +118,7 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.Dynamic = 1
 	}
 	if c.priority.WasSet {
-		input.Priority = c.priority.Value
+		input.Priority = fastly.Int(c.priority.Value)
 	}
 
 	return &input

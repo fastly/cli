@@ -10,7 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v5/fastly"
+	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
@@ -24,12 +24,15 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
 
 	// Optional Flags
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.direction, cmd.PaginationDirection...)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
 		Dst:         &c.json,
 		Short:       'j',
 	})
+	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
+	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -42,6 +45,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
+	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.sort)
 
 	return &c
 }
@@ -51,9 +55,13 @@ type ListCommand struct {
 	cmd.Base
 
 	aclID       string
+	direction   string
 	json        bool
 	manifest    manifest.Data
+	page        int
+	perPage     int
 	serviceName cmd.OptionalServiceNameID
+	sort        string
 }
 
 // Exec invokes the application logic for the command.
@@ -71,13 +79,22 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput(serviceID)
+	paginator := c.Globals.Client.NewListACLEntriesPaginator(input)
 
-	as, err := c.Globals.Client.ListACLEntries(input)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID": serviceID,
-		})
-		return err
+	// TODO: Use generics support in go 1.18 to replace this almost identical
+	// logic inside of 'dictionary-item list' and 'service list'.
+	var as []*fastly.ACLEntry
+	for paginator.HasNext() {
+		data, err := paginator.GetNext()
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				"ACL ID":          c.aclID,
+				"Service ID":      serviceID,
+				"Remaining Pages": paginator.Remaining(),
+			})
+			return err
+		}
+		as = append(as, data...)
 	}
 
 	if c.Globals.Verbose() {
@@ -96,7 +113,11 @@ func (c *ListCommand) constructInput(serviceID string) *fastly.ListACLEntriesInp
 	var input fastly.ListACLEntriesInput
 
 	input.ACLID = c.aclID
+	input.Direction = c.direction
+	input.Page = c.page
+	input.PerPage = c.perPage
 	input.ServiceID = serviceID
+	input.Sort = c.sort
 
 	return &input
 }
@@ -141,7 +162,11 @@ func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry) error {
 	t := text.NewTable(out)
 	t.AddHeader("SERVICE ID", "ID", "IP", "SUBNET", "NEGATED")
 	for _, a := range as {
-		t.AddLine(a.ServiceID, a.ID, a.IP, a.Subnet, a.Negated)
+		var subnet int
+		if a.Subnet != nil {
+			subnet = *a.Subnet
+		}
+		t.AddLine(a.ServiceID, a.ID, a.IP, subnet, a.Negated)
 	}
 	t.Print()
 	return nil
