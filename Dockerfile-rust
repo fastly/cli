@@ -20,4 +20,4 @@ ENTRYPOINT ["/usr/bin/fastly"]
 CMD ["--help"]
 
 # docker build -t fastly/cli/rust . -f ./Dockerfile-rust
-# docker run -v $PWD:/app -it fastly/cli/rust
+# docker run -v $PWD:/app -it -p 7676:7676 fastly/cli/rust compute serve --addr="0.0.0.0:7676"
