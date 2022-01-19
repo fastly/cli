@@ -1,4 +1,4 @@
-FROM node:17
+FROM node:latest
 LABEL maintainer="Fastly OSS <oss@fastly.com>"
 
 RUN apt-get update && apt-get install -y curl jq
@@ -15,5 +15,5 @@ WORKDIR /app
 ENTRYPOINT ["/usr/bin/fastly"]
 CMD ["--help"]
 
-# docker build -t fastly/cli/assemblyscript . -f ./Dockerfile-assemblyscript
-# docker run -v $PWD:/app -it fastly/cli/assemblyscript
+# docker build -t fastly/cli/node . -f ./Dockerfile-node
+# docker run -v $PWD:/app -it -p 7676:7676 fastly/cli/node compute serve --addr="0.0.0.0:7676"
