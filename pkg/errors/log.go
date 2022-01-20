@@ -67,7 +67,8 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 	if len(l) == 0 {
 		return nil
 	}
-	instrument(l)
+	cmd := "fastly " + strings.Join(args, " ")
+	instrument(l, cmd)
 
 	errMsg := "error accessing audit log file: %w"
 
@@ -94,7 +95,7 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 	/* #nosec */
 	defer f.Close()
 
-	cmd := "\nCOMMAND:\nfastly " + strings.Join(args, " ") + "\n\n"
+	cmd = "\nCOMMAND:\n" + cmd + "\n\n"
 	if _, err := f.Write([]byte(cmd)); err != nil {
 		return err
 	}
@@ -126,7 +127,11 @@ ERROR:
 }
 
 // instrument reports errors to our error analysis platform.
-func instrument(l LogEntries) {
+func instrument(l LogEntries, cmd string) {
+	sentry.AddBreadcrumb(&sentry.Breadcrumb{
+		Message: cmd,
+		Type:    "info",
+	})
 	for _, entry := range l {
 		var (
 			file string
