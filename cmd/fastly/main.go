@@ -38,6 +38,7 @@ func main() {
 			`required flag \-\-[^\s]+ not provided`,
 			`error reading service: no service ID found`,
 			`error matching service name with available services`,
+			`open fastly.toml: no such file or directory`,
 		},
 	})
 	if err != nil {
