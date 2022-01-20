@@ -129,8 +129,9 @@ ERROR:
 // instrument reports errors to our error analysis platform.
 func instrument(l LogEntries, cmd string) {
 	sentry.AddBreadcrumb(&sentry.Breadcrumb{
-		Message: cmd,
-		Type:    "info",
+		Category: "input",
+		Message:  cmd,
+		Type:     "info",
 	})
 	for _, entry := range l {
 		var (
