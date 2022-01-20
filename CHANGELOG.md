@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.5.0](https://github.com/fastly/cli/releases/tag/v1.5.0) (2022-01-20)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.4.0...v1.5.0)
+
+**Enhancements:**
+
+* Implement `--json` output for describe/list operations [#505](https://github.com/fastly/cli/pull/505)
+* Omit unix file permissions from error message [#507](https://github.com/fastly/cli/pull/507)
+* Implement new go-fastly pagination types [#511](https://github.com/fastly/cli/pull/511)
+
 ## [v1.4.0](https://github.com/fastly/cli/releases/tag/v1.4.0) (2022-01-07)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.3.0...v1.4.0)
