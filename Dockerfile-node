@@ -11,6 +11,9 @@ RUN export FASTLY_CLI_VERSION=$(curl --silent https://api.github.com/repos/fastl
 
 RUN tar -xzf fastly.tar.gz --directory /usr/bin && rm fastly.tar.gz
 
+RUN adduser fastly
+USER fastly
+
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/fastly"]
 CMD ["--help"]
