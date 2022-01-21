@@ -1,5 +1,13 @@
 # Changelog
 
+## [v1.6.0](https://github.com/fastly/cli/releases/tag/v1.6.0) (2022-01-20)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.5.0...v1.6.0)
+
+**Enhancements:**
+
+* Display the requested command in Sentry breadcrumb [#519](https://github.com/fastly/cli/pull/519)
+
 ## [v1.5.0](https://github.com/fastly/cli/releases/tag/v1.5.0) (2022-01-20)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.4.0...v1.5.0)
