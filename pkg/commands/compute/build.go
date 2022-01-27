@@ -140,7 +140,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, c.Manifest.File.Scripts.Build),
+			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, name, c.Manifest.File.Scripts.Build),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{

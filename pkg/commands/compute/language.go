@@ -15,13 +15,13 @@ import (
 // NOTE: The 'timeout' value zero is passed into each New<Language> call as it's
 // only useful during the `compute build` phase and is expected to be
 // provided by the user via a flag on the build command.
-func NewLanguages(kits config.StarterKitLanguages, c api.HTTPClient, d *config.Data, customBuild string) []*Language {
+func NewLanguages(kits config.StarterKitLanguages, c api.HTTPClient, d *config.Data, bin, customBuild string) []*Language {
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
 			DisplayName: "Rust",
 			StarterKits: kits.Rust,
-			Toolchain:   NewRust(c, d.File.Language.Rust, d.ErrLog, 0, customBuild),
+			Toolchain:   NewRust(c, d.File.Language.Rust, d.ErrLog, 0, bin, customBuild),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
