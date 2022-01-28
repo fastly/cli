@@ -33,3 +33,12 @@ jobs:
       env:
         GOVERSION: ${{ env.GOVERSION }}
         GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+    - name: "Generate release commits"
+      id: generate-commits
+      run: ./scripts/release-commits.sh
+    - name: Create Sentry release
+      run: |
+        curl https://sentry.io/api/0/organizations/${{ secrets.SENTRY_ORG }}/releases/ \
+         -H 'Authorization: Bearer ${{ secrets.SENTRY_TOKEN }}' \
+         -H 'Content-Type: application/json' \
+         -d '{"version":"${{ github.ref_name }}","ref":"${{ github.sha }}","commits":${{ steps.generate-commits.outputs.commits }},"url":"https://github.com/fastly/cli/releases/tag/v${{ github.ref_name }}","projects":["${{ secrets.SENTRY_PROJECT }}"]}'
