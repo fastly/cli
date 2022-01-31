@@ -57,13 +57,13 @@ func (m *CargoManifest) Read(path string) error {
 	return err
 }
 
-// SetName into Cargo.toml manifest.
+// SetPackageName into Cargo.toml manifest.
 //
 // NOTE: We can't presume to know the structure of the Cargo manifest, and so
 // we use the toml library's tree API to load the file into a tree structure
 // before using the tree API to update the name field and marshalling it back
 // to toml afterwards.
-func (m *CargoManifest) SetName(name, path string) error {
+func (m *CargoManifest) SetPackageName(name, path string) error {
 	tree, err := toml.LoadFile(path)
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 type Rust struct {
 	Shell
 
-	bin     string
+	pkgName string
 	build   string
 	client  api.HTTPClient
 	config  config.Rust
@@ -128,10 +128,10 @@ type Rust struct {
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, bin, build string) *Rust {
+func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, pkgName, build string) *Rust {
 	return &Rust{
 		Shell:   Shell{},
-		bin:     bin,
+		pkgName: pkgName,
 		build:   build,
 		client:  client,
 		config:  config,
@@ -486,7 +486,7 @@ func validateFastlyCrate(metadata CargoMetadata, v *semver.Version, out io.Write
 // package. It is a noop for Rust as the Cargo toolchain handles these steps.
 func (r Rust) Initialize(out io.Writer) error {
 	var m CargoManifest
-	if err := m.SetName(r.bin, "Cargo.toml"); err != nil {
+	if err := m.SetPackageName(r.pkgName, "Cargo.toml"); err != nil {
 		r.errlog.Add(err)
 		return fmt.Errorf("error updating Cargo.toml manifest: %w", err)
 	}

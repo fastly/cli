@@ -65,7 +65,7 @@ func SetPackageName(name, path string) (err error) {
 type JavaScript struct {
 	Shell
 
-	bin                 string
+	pkgName             string
 	build               string
 	errlog              fsterr.LogInterface
 	packageDependency   string
@@ -76,10 +76,10 @@ type JavaScript struct {
 }
 
 // NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int, bin, build string, errlog fsterr.LogInterface) *JavaScript {
+func NewJavaScript(timeout int, pkgName, build string, errlog fsterr.LogInterface) *JavaScript {
 	return &JavaScript{
 		Shell:               Shell{},
-		bin:                 bin,
+		pkgName:             pkgName,
 		build:               build,
 		errlog:              errlog,
 		packageDependency:   "@fastly/js-compute",
@@ -139,7 +139,7 @@ func (j JavaScript) Initialize(out io.Writer) error {
 		j.errlog.Add(err)
 		return err
 	}
-	if err := SetPackageName(j.bin, path); err != nil {
+	if err := SetPackageName(j.pkgName, path); err != nil {
 		j.errlog.Add(err)
 		return fmt.Errorf("error updating package.json manifest: %w", err)
 	}

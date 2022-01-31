@@ -31,10 +31,10 @@ type AssemblyScript struct {
 }
 
 // NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript(timeout int, bin, build string, errlog fsterr.LogInterface) *AssemblyScript {
+func NewAssemblyScript(timeout int, pkgName, build string, errlog fsterr.LogInterface) *AssemblyScript {
 	return &AssemblyScript{
 		JavaScript: JavaScript{
-			bin:               bin,
+			pkgName:           pkgName,
 			build:             build,
 			errlog:            errlog,
 			packageDependency: "assemblyscript",
