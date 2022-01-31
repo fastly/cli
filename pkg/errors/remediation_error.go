@@ -75,6 +75,13 @@ var BugRemediation = strings.Join([]string{
 	"https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md",
 }, " ")
 
+// ConfigRemediation informs the user that an error with loading the config
+// isn't a breaking error and the CLI can still be used.
+var ConfigRemediation = strings.Join([]string{
+	"There is a fallback version of the configuration provided with the CLI install",
+	"(see `fastly configure --display`) which enables the CLI to continue to be usable even though the config couldn't be updated.",
+}, " ")
+
 // ServiceIDRemediation suggests provide a service ID via --service-id flag or
 // package manifest.
 var ServiceIDRemediation = strings.Join([]string{

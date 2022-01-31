@@ -285,7 +285,7 @@ func (f *File) Static() []byte {
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
-func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, fpath string) error {
+func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, path string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), d)
 	defer cancel()
 
@@ -321,12 +321,12 @@ func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, fp
 
 	migrateLegacyData(f)
 
-	err = createConfigDir(fpath)
+	err = createConfigDir(path)
 	if err != nil {
 		return err
 	}
 
-	return f.Write(fpath)
+	return f.Write(path)
 }
 
 // migrateLegacyData ensures legacy data is transitioned to config new format.
