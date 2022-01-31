@@ -59,9 +59,10 @@ func (m *CargoManifest) Read(path string) error {
 
 // SetName into Cargo.toml manifest.
 //
-// NOTE: We have to generate a tree from the source file because otherwise
-// encoding only the fields defined within CargoManifest will cause any other
-// fields to be deleted when marshalling.
+// NOTE: We can't presume to know the structure of the Cargo manifest, and so
+// we use the toml library's tree API to load the file into a tree structure
+// before using the tree API to update the name field and marshalling it back
+// to toml afterwards.
 func (m *CargoManifest) SetName(name, path string) error {
 	tree, err := toml.LoadFile(path)
 	if err != nil {

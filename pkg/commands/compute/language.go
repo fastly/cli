@@ -27,13 +27,13 @@ func NewLanguages(kits config.StarterKitLanguages, c api.HTTPClient, d *config.D
 			Name:        "assemblyscript",
 			DisplayName: "AssemblyScript (beta)",
 			StarterKits: kits.AssemblyScript,
-			Toolchain:   NewAssemblyScript(0, customBuild, d.ErrLog),
+			Toolchain:   NewAssemblyScript(0, bin, customBuild, d.ErrLog),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "javascript",
 			DisplayName: "JavaScript (beta)",
 			StarterKits: kits.JavaScript,
-			Toolchain:   NewJavaScript(0, customBuild, d.ErrLog),
+			Toolchain:   NewJavaScript(0, bin, customBuild, d.ErrLog),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "other",

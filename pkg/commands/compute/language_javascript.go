@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -21,12 +22,50 @@ const JSSourceDirectory = "src"
 // JsToolchain represents the default JS toolchain.
 const JsToolchain = "npm"
 
+// errFormat represents a generic error message prefix.
 var errFormat = "To fix this error, run the following command:\n\n\t$ %s"
+
+// SetPackageName into package.json manifest.
+//
+// NOTE: We can't presume to know the structure of the package.json manifest,
+// and so we use the json package to unmarshal the entire file into a generic
+// map data structure before updating the name field and marshalling it back to
+// json afterwards.
+func SetPackageName(name, path string) (err error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	var i interface{}
+	if err = json.Unmarshal(data, &i); err != nil {
+		return err
+	}
+
+	m, ok := i.(map[string]interface{})
+	if !ok {
+		return err
+	}
+	if _, ok := m["name"]; ok {
+		m["name"] = name
+	}
+
+	data, err = json.MarshalIndent(m, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		return fmt.Errorf("error updating package.json manifest file: %w", err)
+	}
+	return nil
+}
 
 // JavaScript implements a Toolchain for the JavaScript language.
 type JavaScript struct {
 	Shell
 
+	bin                 string
 	build               string
 	errlog              fsterr.LogInterface
 	packageDependency   string
@@ -37,9 +76,10 @@ type JavaScript struct {
 }
 
 // NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int, build string, errlog fsterr.LogInterface) *JavaScript {
+func NewJavaScript(timeout int, bin, build string, errlog fsterr.LogInterface) *JavaScript {
 	return &JavaScript{
 		Shell:               Shell{},
+		bin:                 bin,
 		build:               build,
 		errlog:              errlog,
 		packageDependency:   "@fastly/js-compute",
@@ -92,6 +132,16 @@ func (j JavaScript) Initialize(out io.Writer) error {
 		}
 		j.errlog.Add(err)
 		return err
+	}
+
+	path, err := filepath.Abs("package.json")
+	if err != nil {
+		j.errlog.Add(err)
+		return err
+	}
+	if err := SetPackageName(j.bin, path); err != nil {
+		j.errlog.Add(err)
+		return fmt.Errorf("error updating package.json manifest: %w", err)
 	}
 
 	fmt.Fprintf(out, "Found package.json at %s\n", pkg)
