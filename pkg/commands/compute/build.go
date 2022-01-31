@@ -126,21 +126,21 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "assemblyscript",
 			SourceDirectory: ASSourceDirectory,
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain:       NewAssemblyScript(c.Flags.Timeout, name, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: JSSourceDirectory,
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewJavaScript(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain:       NewJavaScript(c.Flags.Timeout, name, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, c.Manifest.File.Scripts.Build),
+			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, name, c.Manifest.File.Scripts.Build),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{

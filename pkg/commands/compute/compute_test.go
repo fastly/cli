@@ -421,7 +421,7 @@ func TestGetCrateVersionFromMetadata(t *testing.T) {
 		{
 			name: "parsing error",
 			inputLock: compute.CargoMetadata{
-				Package: []compute.CargoPackage{
+				Package: []compute.CargoMetadataPackage{
 					{
 						Name:    "foo",
 						Version: "1.2.3",
@@ -438,7 +438,7 @@ func TestGetCrateVersionFromMetadata(t *testing.T) {
 		{
 			name: "success",
 			inputLock: compute.CargoMetadata{
-				Package: []compute.CargoPackage{
+				Package: []compute.CargoMetadataPackage{
 					{
 						Name:    "foo",
 						Version: "1.2.3",
@@ -459,7 +459,7 @@ func TestGetCrateVersionFromMetadata(t *testing.T) {
 		{
 			name: "success nested",
 			inputLock: compute.CargoMetadata{
-				Package: []compute.CargoPackage{
+				Package: []compute.CargoMetadataPackage{
 					{
 						Name:    "foo",
 						Version: "1.2.3",
@@ -467,7 +467,7 @@ func TestGetCrateVersionFromMetadata(t *testing.T) {
 					{
 						Name:    "fastly",
 						Version: "3.0.0",
-						Dependencies: []compute.CargoPackage{
+						Dependencies: []compute.CargoMetadataPackage{
 							{
 								Name:    "fastly-sys",
 								Version: "0.3.0",

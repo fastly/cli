@@ -304,7 +304,7 @@ func (f *File) SetOutput(output io.Writer) {
 }
 
 // Read loads the manifest file content from disk.
-func (f *File) Read(fpath string) (err error) {
+func (f *File) Read(path string) (err error) {
 	defer func() {
 		if err != nil {
 			f.readError = err
@@ -316,7 +316,7 @@ func (f *File) Read(fpath string) (err error) {
 	// Disabling as we need to load the fastly.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
-	bs, err := os.ReadFile(fpath)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		f.errLog.Add(err)
 		return err
@@ -331,31 +331,31 @@ func (f *File) Read(fpath string) (err error) {
 	//
 	// We do this before trying to unmarshal the toml data into a go data
 	// structure otherwise we'll see errors from the toml library.
-	manifestSection, err := containsManifestSection(bs)
+	manifestSection, err := containsManifestSection(data)
 	if err != nil {
 		f.errLog.Add(err)
 		return fmt.Errorf("failed to parse the fastly.toml manifest: %w", err)
 	}
 
 	if manifestSection {
-		buf, err := stripManifestSection(bytes.NewReader(bs), fpath)
+		buf, err := stripManifestSection(bytes.NewReader(data), path)
 		if err != nil {
 			f.errLog.Add(err)
 			return fsterr.ErrInvalidManifestVersion
 		}
-		bs = buf.Bytes()
+		data = buf.Bytes()
 	}
 
 	// The AutoMigrateVersion() method will either return the []byte unmodified or
 	// it will have updated the manifest_version field to reflect the latest
 	// version supported by the Fastly CLI.
-	bs, err = f.AutoMigrateVersion(bs, fpath)
+	data, err = f.AutoMigrateVersion(data, path)
 	if err != nil {
 		f.errLog.Add(err)
 		return err
 	}
 
-	err = toml.Unmarshal(bs, f)
+	err = toml.Unmarshal(data, f)
 	if err != nil {
 		f.errLog.Add(err)
 		return fsterr.ErrParsingManifest
@@ -370,7 +370,7 @@ func (f *File) Read(fpath string) (err error) {
 		text.Break(f.output)
 		text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
 		text.Break(f.output)
-		f.Write(fpath)
+		f.Write(path)
 	}
 
 	return nil
@@ -383,10 +383,10 @@ func (f *File) Read(fpath string) (err error) {
 // NOTE: It contains similar conversions to the custom Version.UnmarshalText().
 // Specifically, it type switches the interface{} into various types before
 // attempting to convert the underlying value into an integer.
-func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
-	tree, err := toml.LoadBytes(bs)
+func (f *File) AutoMigrateVersion(data []byte, path string) ([]byte, error) {
+	tree, err := toml.LoadBytes(data)
 	if err != nil {
-		return bs, err
+		return data, err
 	}
 
 	// If there is no manifest_version set then we return the fastly.toml content
@@ -397,7 +397,7 @@ func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
 	// the ManifestLatestVersion value.
 	i := tree.GetArray("manifest_version")
 	if i == nil {
-		return bs, nil
+		return data, nil
 	}
 
 	setup := tree.GetArray("setup")
@@ -418,60 +418,60 @@ func (f *File) AutoMigrateVersion(bs []byte, fpath string) ([]byte, error) {
 		}
 		version, err = strconv.Atoi(v)
 		if err != nil {
-			return bs, fmt.Errorf("error parsing manifest_version: %w", err)
+			return data, fmt.Errorf("error parsing manifest_version: %w", err)
 		}
 	default:
-		return bs, fmt.Errorf("error parsing manifest_version: unrecognised type")
+		return data, fmt.Errorf("error parsing manifest_version: unrecognised type")
 	}
 
 	// User is on the latest version supported by the CLI, so we'll return the
 	// []byte with the manifest_version field unmodified.
 	if version == ManifestLatestVersion {
-		return bs, nil
+		return data, nil
 	}
 
 	// User has an unrecognised manifest_version specified.
 	if version > ManifestLatestVersion {
-		return bs, fsterr.ErrUnrecognisedManifestVersion
+		return data, fsterr.ErrUnrecognisedManifestVersion
 	}
 
 	// User has manifest_version less than latest supported by CLI, but as they
 	// don't have a [setup] configuration block defined, it means we can
 	// automatically update their fastly.toml file's manifest_version field.
 	//
-	// NOTE: Inside this block we also update the bs variable so it contains the
+	// NOTE: Inside this block we also update the data variable so it contains the
 	// updated manifest_version field too, and that is returned at the end of
 	// the function block.
 	if setup == nil {
 		tree.Set("manifest_version", int64(ManifestLatestVersion))
 
-		bs, err = tree.Marshal()
+		data, err = tree.Marshal()
 		if err != nil {
-			return bs, fmt.Errorf("error marshalling modified manifest_version fastly.toml: %w", err)
+			return data, fmt.Errorf("error marshalling modified manifest_version fastly.toml: %w", err)
 		}
 
 		// NOTE: The scenario will end up triggering two calls to toml.Unmarshal().
 		// The first call here, then a second call inside of the File.Read() caller.
 		// This only happens once. All future file reads result in one Unmarshal.
-		err = toml.Unmarshal(bs, f)
+		err = toml.Unmarshal(data, f)
 		if err != nil {
-			return bs, fmt.Errorf("error unmarshalling fastly.toml: %w", err)
+			return data, fmt.Errorf("error unmarshalling fastly.toml: %w", err)
 		}
 
-		if err = f.Write(fpath); err != nil {
-			return bs, fsterr.ErrIncompatibleManifestVersion
+		if err = f.Write(path); err != nil {
+			return data, fsterr.ErrIncompatibleManifestVersion
 		}
 
-		return bs, nil
+		return data, nil
 	}
 
-	return bs, fsterr.ErrIncompatibleManifestVersion
+	return data, fsterr.ErrIncompatibleManifestVersion
 }
 
 // containsManifestSection loads the slice of bytes into a toml tree structure
 // before checking if the manifest_version is defined as a toml section block.
-func containsManifestSection(bs []byte) (bool, error) {
-	tree, err := toml.LoadBytes(bs)
+func containsManifestSection(data []byte) (bool, error) {
+	tree, err := toml.LoadBytes(data)
 	if err != nil {
 		return false, err
 	}
@@ -492,9 +492,9 @@ func containsManifestSection(bs []byte) (bool, error) {
 // was in the middle of the manifest with other keys below it, deleting the
 // manifest_version would cause all keys below it to be deleted as they would
 // all be considered part of that section block.
-func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
-	var bs []byte
-	buf := bytes.NewBuffer(bs)
+func stripManifestSection(r io.Reader, path string) (*bytes.Buffer, error) {
+	var data []byte
+	buf := bytes.NewBuffer(data)
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -513,7 +513,7 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 		return buf, err
 	}
 
-	err := os.WriteFile(fpath, buf.Bytes(), FilePermissions)
+	err := os.WriteFile(path, buf.Bytes(), FilePermissions)
 	if err != nil {
 		return buf, err
 	}
@@ -522,8 +522,8 @@ func stripManifestSection(r io.Reader, fpath string) (*bytes.Buffer, error) {
 }
 
 // Write persists the manifest content to disk.
-func (f *File) Write(fpath string) error {
-	fp, err := os.Create(fpath)
+func (f *File) Write(path string) error {
+	fp, err := os.Create(path)
 	if err != nil {
 		return err
 	}

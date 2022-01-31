@@ -31,38 +31,69 @@ const RustSourceDirectory = "src"
 // package which we are interested in and is embedded within CargoManifest and
 // CargoLock.
 type CargoPackage struct {
-	Name         string         `toml:"name" json:"name"`
-	Version      string         `toml:"version" json:"version"`
-	Dependencies []CargoPackage `toml:"-" json:"dependencies"`
+	Name    string `toml:"name" json:"name"`
+	Version string `toml:"version" json:"version"`
 }
 
 // CargoManifest models the package configuration properties of a Rust Cargo
 // manifest which we are interested in and are read from the Cargo.toml manifest
 // file within the $PWD of the package.
 type CargoManifest struct {
-	Package CargoPackage
+	Package CargoPackage `toml:"package"`
 }
 
 // Read the contents of the Cargo.toml manifest from filename.
-func (m *CargoManifest) Read(fpath string) error {
+func (m *CargoManifest) Read(path string) error {
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// Disabling as we need to load the Cargo.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
-	bs, err := os.ReadFile(fpath)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	err = toml.Unmarshal(bs, m)
+	err = toml.Unmarshal(data, m)
 	return err
+}
+
+// SetPackageName into Cargo.toml manifest.
+//
+// NOTE: We can't presume to know the structure of the Cargo manifest, and so
+// we use the toml library's tree API to load the file into a tree structure
+// before using the tree API to update the name field and marshalling it back
+// to toml afterwards.
+func (m *CargoManifest) SetPackageName(name, path string) error {
+	tree, err := toml.LoadFile(path)
+	if err != nil {
+		return err
+	}
+	tree.Set("package.name", name)
+
+	data, err := tree.Marshal()
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		return fmt.Errorf("error updating Cargo manifest file: %w", err)
+	}
+	return nil
+}
+
+// CargoMetadataPackage models the package structure returned when executing
+// the command `cargo metadata`.
+type CargoMetadataPackage struct {
+	Name         string                 `toml:"name" json:"name"`
+	Version      string                 `toml:"version" json:"version"`
+	Dependencies []CargoMetadataPackage `toml:"dependencies" json:"dependencies"`
 }
 
 // CargoMetadata models information about the workspace members and resolved
 // dependencies of the current package via `cargo metadata` command output.
 type CargoMetadata struct {
-	Package         []CargoPackage `json:"packages"`
-	TargetDirectory string         `json:"target_directory"`
+	Package         []CargoMetadataPackage `json:"packages"`
+	TargetDirectory string                 `json:"target_directory"`
 }
 
 // Read the contents of the Cargo.lock file from filename.
@@ -88,6 +119,7 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 type Rust struct {
 	Shell
 
+	pkgName string
 	build   string
 	client  api.HTTPClient
 	config  config.Rust
@@ -96,9 +128,10 @@ type Rust struct {
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, build string) *Rust {
+func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, pkgName, build string) *Rust {
 	return &Rust{
 		Shell:   Shell{},
+		pkgName: pkgName,
 		build:   build,
 		client:  client,
 		config:  config,
@@ -451,7 +484,14 @@ func validateFastlyCrate(metadata CargoMetadata, v *semver.Version, out io.Write
 
 // Initialize implements the Toolchain interface and initializes a newly cloned
 // package. It is a noop for Rust as the Cargo toolchain handles these steps.
-func (r Rust) Initialize(out io.Writer) error { return nil }
+func (r Rust) Initialize(out io.Writer) error {
+	var m CargoManifest
+	if err := m.SetPackageName(r.pkgName, "Cargo.toml"); err != nil {
+		r.errlog.Add(err)
+		return fmt.Errorf("error updating Cargo.toml manifest: %w", err)
+	}
+	return nil
+}
 
 // Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
@@ -600,7 +640,7 @@ func GetLatestCrateVersion(client api.HTTPClient, name string, errlog fsterr.Log
 // and returns the crates version as a semver.Version.
 func GetCrateVersionFromMetadata(metadata CargoMetadata, crate string) (*semver.Version, error) {
 	// Search for crate in metadata tree.
-	var c CargoPackage
+	var c CargoMetadataPackage
 	for _, p := range metadata.Package {
 		if p.Name == crate {
 			c = p
