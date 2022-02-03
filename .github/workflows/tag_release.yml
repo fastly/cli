@@ -28,7 +28,7 @@ jobs:
     - name: "Run GoReleaser"
       uses: goreleaser/goreleaser-action@v2
       with:
-        version: v0.183.0 # goreleaser version (NOT goreleaser-action version)
+        version: v1.4.1 # goreleaser version (NOT goreleaser-action version)
         args: release --rm-dist
       env:
         GOVERSION: ${{ env.GOVERSION }}
