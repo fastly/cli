@@ -265,7 +265,7 @@ SUBCOMMANDS
         --per-page=PER-PAGE  Number of records per page
         --sort="created"     Field on which to sort
 
-  service search [<flags>]
+  service search --name=NAME
     Search for a Fastly service by name
 
     -n, --name=NAME  Service name
@@ -4448,7 +4448,7 @@ COMMANDS
         --per-page=PER-PAGE  Number of records per page
         --sort="created"     Field on which to sort
 
-  service search [<flags>]
+  service search --name=NAME
     Search for a Fastly service by name
 
     -n, --name=NAME  Service name

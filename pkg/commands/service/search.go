@@ -23,7 +23,7 @@ func NewSearchCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("search", "Search for a Fastly service by name")
-	c.CmdClause.Flag("name", "Service name").Short('n').StringVar(&c.Input.Name)
+	c.CmdClause.Flag("name", "Service name").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
 
