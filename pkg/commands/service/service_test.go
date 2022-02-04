@@ -287,6 +287,10 @@ func TestServiceSearch(t *testing.T) {
 		wantOutput string
 	}{
 		{
+			args:      args("service search"),
+			wantError: "error parsing arguments: required flag --name not provided",
+		},
+		{
 			args:       args("service search --name Foo"),
 			api:        mock.API{SearchServiceFn: searchServiceOK},
 			wantOutput: searchServiceShortOutput,
