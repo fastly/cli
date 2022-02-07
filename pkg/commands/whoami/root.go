@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -19,14 +18,12 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	client api.HTTPClient
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.client = client
 	c.CmdClause = parent.Command("whoami", "Get information about the currently authenticated account")
 	return &c
 }
@@ -51,7 +48,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	req.Header.Set("Fastly-Key", token)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", useragent.Name)
-	resp, err := c.client.Do(req)
+	resp, err := c.Globals.HTTPClient.Do(req)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error executing API request: %w", err)

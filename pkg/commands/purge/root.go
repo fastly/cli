@@ -66,7 +66,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoToken
 	}
 
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
-	p, err := c.Globals.Client.PurgeAll(&fastly.PurgeAllInput{
+	p, err := c.Globals.APIClient.PurgeAll(&fastly.PurgeAllInput{
 		ServiceID: serviceID,
 	})
 	if err != nil {
@@ -160,7 +160,7 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 		return err
 	}
 
-	m, err := c.Globals.Client.PurgeKeys(&fastly.PurgeKeysInput{
+	m, err := c.Globals.APIClient.PurgeKeys(&fastly.PurgeKeysInput{
 		ServiceID: serviceID,
 		Keys:      keys,
 		Soft:      c.soft,
@@ -191,7 +191,7 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 }
 
 func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
-	p, err := c.Globals.Client.PurgeKey(&fastly.PurgeKeyInput{
+	p, err := c.Globals.APIClient.PurgeKey(&fastly.PurgeKeyInput{
 		ServiceID: serviceID,
 		Key:       c.key,
 		Soft:      c.soft,
@@ -209,7 +209,7 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 }
 
 func (c *RootCommand) purgeURL(out io.Writer) error {
-	p, err := c.Globals.Client.Purge(&fastly.PurgeInput{
+	p, err := c.Globals.APIClient.Purge(&fastly.PurgeInput{
 		URL:  c.url,
 		Soft: c.soft,
 	})

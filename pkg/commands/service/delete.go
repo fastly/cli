@@ -45,7 +45,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ID = serviceID
 
 	if c.force {
-		s, err := c.Globals.Client.GetServiceDetails(&fastly.GetServiceInput{
+		s, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{
 			ID: serviceID,
 		})
 		if err != nil {
@@ -67,7 +67,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 
 		if s.ActiveVersion.Number != 0 {
-			_, err := c.Globals.Client.DeactivateVersion(&fastly.DeactivateVersionInput{
+			_, err := c.Globals.APIClient.DeactivateVersion(&fastly.DeactivateVersionInput{
 				ServiceID:      serviceID,
 				ServiceVersion: s.ActiveVersion.Number,
 			})
@@ -81,7 +81,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	if err := c.Globals.Client.DeleteService(&c.Input); err != nil {
+	if err := c.Globals.APIClient.DeleteService(&c.Input); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID": serviceID,
 		})

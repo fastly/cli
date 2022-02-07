@@ -47,7 +47,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput()
 
-	r, err := c.Globals.Client.CreateUser(input)
+	r, err := c.Globals.APIClient.CreateUser(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"User Login": c.login,

@@ -1,11 +1,11 @@
 package config
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -58,10 +58,6 @@ const (
 	// UpdateSuccessful represents the message shown to a user when their
 	// application configuration has been updated successfully.
 	UpdateSuccessful = "Successfully updated platform compatibility and versioning information."
-
-	// ConfigRequestTimeout is how long we'll wait for the CLI API endpoint to
-	// return a response before timing out the request.
-	ConfigRequestTimeout = 5 * time.Second
 )
 
 // ErrLegacyConfig indicates that the local configuration file is using the
@@ -106,8 +102,9 @@ type Data struct {
 	Flag   Flag
 	ErrLog fsterr.LogInterface
 
-	Client    api.Interface
-	RTSClient api.RealtimeStatsInterface
+	APIClient  api.Interface
+	HTTPClient api.HTTPClient
+	RTSClient  api.RealtimeStatsInterface
 }
 
 // Token yields the Fastly API token.
@@ -285,11 +282,8 @@ func (f *File) Static() []byte {
 
 // Load gets the configuration file from the CLI API endpoint and encodes it
 // from memory into config.File.
-func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, path string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), d)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, configEndpoint, nil)
+func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
+	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return err
 	}
@@ -297,7 +291,7 @@ func (f *File) Load(configEndpoint string, c api.HTTPClient, d time.Duration, pa
 	req.Header.Set("User-Agent", useragent.Name)
 	resp, err := c.Do(req)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
+		if urlErr, ok := err.(*url.Error); ok && urlErr.Timeout() {
 			return fsterr.RemediationError{
 				Inner:       err,
 				Remediation: fsterr.NetworkRemediation,

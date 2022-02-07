@@ -65,7 +65,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -83,7 +83,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	dictionary, err := c.Globals.Client.GetDictionary(&c.Input)
+	dictionary, err := c.Globals.APIClient.GetDictionary(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
@@ -102,7 +102,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 			ServiceVersion: c.Input.ServiceVersion,
 			ID:             dictionary.ID,
 		}
-		info, err = c.Globals.Client.GetDictionaryInfo(&infoInput)
+		info, err = c.Globals.APIClient.GetDictionaryInfo(&infoInput)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Service ID":      serviceID,
@@ -114,7 +114,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 			ServiceID:    c.Input.ServiceID,
 			DictionaryID: dictionary.ID,
 		}
-		items, err = c.Globals.Client.ListDictionaryItems(&itemInput)
+		items, err = c.Globals.APIClient.ListDictionaryItems(&itemInput)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Service ID":      serviceID,

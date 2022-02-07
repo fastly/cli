@@ -137,3 +137,7 @@ var ComputeBuildRemediation = strings.Join([]string{
 	"Add a [scripts.build] setting for your custom build process.",
 	"See more at https://developer.fastly.com/reference/fastly-toml/",
 }, " ")
+
+// ComputeTrialRemediation suggests contacting customer manager to enable the
+// free trial feature flag.
+var ComputeTrialRemediation = "For more help with this error see fastly.help/cli/ecp-feature"

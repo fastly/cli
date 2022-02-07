@@ -126,7 +126,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.ServiceName,
@@ -147,7 +147,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	googlepubsub, err := c.Globals.Client.UpdatePubsub(input)
+	googlepubsub, err := c.Globals.APIClient.UpdatePubsub(input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

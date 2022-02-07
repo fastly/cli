@@ -51,7 +51,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("an empty value is not allowed for either the '--key' or '--value' flags")
 	}
 
-	d, err := c.Globals.Client.UpdateDictionaryItem(&c.Input)
+	d, err := c.Globals.APIClient.UpdateDictionaryItem(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -111,7 +111,7 @@ func (c *UpdateCommand) batchModify(out io.Writer) error {
 		return fmt.Errorf("item key not found in file %s", c.file.Value)
 	}
 
-	err = c.Globals.Client.BatchModifyDictionaryItems(&c.InputBatch)
+	err = c.Globals.APIClient.BatchModifyDictionaryItems(&c.InputBatch)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

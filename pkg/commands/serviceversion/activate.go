@@ -56,7 +56,7 @@ func NewActivateCommand(parent cmd.Registerer, globals *config.Data, data manife
 func (c *ActivateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -74,7 +74,7 @@ func (c *ActivateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	ver, err := c.Globals.Client.ActivateVersion(&c.Input)
+	ver, err := c.Globals.APIClient.ActivateVersion(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

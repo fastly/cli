@@ -61,7 +61,7 @@ func TestCreateHerokuInput(t *testing.T) {
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
-				Client:             testcase.cmd.Base.Globals.Client,
+				APIClient:          testcase.cmd.Base.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
 				ServiceVersionFlag: testcase.cmd.ServiceVersion,
@@ -138,7 +138,7 @@ func TestUpdateHerokuInput(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			testcase.cmd.Base.Globals.Client = testcase.api
+			testcase.cmd.Base.Globals.APIClient = testcase.api
 
 			var bs []byte
 			out := bytes.NewBuffer(bs)
@@ -146,7 +146,7 @@ func TestUpdateHerokuInput(t *testing.T) {
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
-				Client:             testcase.api,
+				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
 				ServiceVersionFlag: testcase.cmd.ServiceVersion,
@@ -180,7 +180,7 @@ func createCommandRequired() *heroku.CreateCommand {
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.Client, _ = mock.APIClient(mock.API{
+	globals.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
@@ -219,7 +219,7 @@ func createCommandAll() *heroku.CreateCommand {
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.Client, _ = mock.APIClient(mock.API{
+	globals.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")

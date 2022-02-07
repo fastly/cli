@@ -46,7 +46,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.current {
-		r, err := c.Globals.Client.GetCurrentUser()
+		r, err := c.Globals.APIClient.GetCurrentUser()
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -61,7 +61,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	r, err := c.Globals.Client.GetUser(input)
+	r, err := c.Globals.APIClient.GetUser(input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
 )
 
@@ -15,13 +14,13 @@ import (
 // NOTE: The 'timeout' value zero is passed into each New<Language> call as it's
 // only useful during the `compute build` phase and is expected to be
 // provided by the user via a flag on the build command.
-func NewLanguages(kits config.StarterKitLanguages, c api.HTTPClient, d *config.Data, pkgName, customBuild string) []*Language {
+func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName, customBuild string) []*Language {
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
 			DisplayName: "Rust",
 			StarterKits: kits.Rust,
-			Toolchain:   NewRust(c, d.File.Language.Rust, d.ErrLog, 0, pkgName, customBuild),
+			Toolchain:   NewRust(d.HTTPClient, d.File.Language.Rust, d.ErrLog, 0, pkgName, customBuild),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",

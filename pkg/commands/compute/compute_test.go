@@ -33,8 +33,8 @@ func TestPublishFlagDivergence(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, client{}, &cfg, data)
-	dcmd := compute.NewDeployCommand(rcmd.CmdClause, client{}, &cfg, data)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, data)
+	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &cfg, data)
 	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &cfg, bcmd, dcmd, data)
 
 	buildFlags := getFlags(bcmd.CmdClause)
@@ -81,7 +81,7 @@ func TestServeFlagDivergence(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, client{}, &cfg, data)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, data)
 	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd, versioner, data)
 
 	buildFlags := getFlags(bcmd.CmdClause)
@@ -128,13 +128,6 @@ func ignoreFlag(ignore []string, flag string) bool {
 		}
 	}
 	return false
-}
-
-type client struct{}
-
-func (c client) Do(*http.Request) (*http.Response, error) {
-	var resp http.Response
-	return &resp, nil
 }
 
 func getFlags(cmd *kingpin.CmdClause) reflect.Value {

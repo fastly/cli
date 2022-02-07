@@ -63,7 +63,7 @@ type DeleteCommand struct {
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -80,7 +80,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID, serviceVersion.Number)
 
-	err = c.Globals.Client.DeleteACL(input)
+	err = c.Globals.APIClient.DeleteACL(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

@@ -205,7 +205,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.ServiceName,
@@ -226,7 +226,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	kafka, err := c.Globals.Client.UpdateKafka(input)
+	kafka, err := c.Globals.APIClient.UpdateKafka(input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

@@ -63,7 +63,7 @@ type CreateCommand struct {
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		ErrLog:             c.Globals.ErrLog,
 		Manifest:           c.manifest,
 		Out:                out,
@@ -81,7 +81,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID, serviceVersion.Number)
 
-	a, err := c.Globals.Client.CreateACL(input)
+	a, err := c.Globals.APIClient.CreateACL(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

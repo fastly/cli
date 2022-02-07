@@ -57,7 +57,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -75,7 +75,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	if err := c.Globals.Client.DeleteCloudfiles(&c.Input); err != nil {
+	if err := c.Globals.APIClient.DeleteCloudfiles(&c.Input); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,

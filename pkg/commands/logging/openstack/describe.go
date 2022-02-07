@@ -64,7 +64,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -82,7 +82,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	openstack, err := c.Globals.Client.GetOpenstack(&c.Input)
+	openstack, err := c.Globals.APIClient.GetOpenstack(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

@@ -24,7 +24,7 @@ func NewRegionsCommand(parent cmd.Registerer, globals *config.Data) *RegionsComm
 
 // Exec implements the command interface.
 func (c *RegionsCommand) Exec(in io.Reader, out io.Writer) error {
-	resp, err := c.Globals.Client.GetRegions()
+	resp, err := c.Globals.APIClient.GetRegions()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("fetching regions: %w", err)

@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -22,17 +21,15 @@ import (
 type RootCommand struct {
 	cmd.Base
 	cliVersioner   Versioner
-	client         api.HTTPClient
 	configFilePath string
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner Versioner, client api.HTTPClient, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner Versioner, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")
 	c.cliVersioner = cliVersioner
-	c.client = client
 	c.configFilePath = configFilePath
 	return &c
 }
@@ -55,7 +52,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	progress := text.NewProgress(out, c.Globals.Verbose())
 	progress.Step("Updating versioning information...")
 
-	err = c.Globals.File.Load(c.Globals.File.CLI.RemoteConfig, c.client, config.ConfigRequestTimeout, config.FilePath)
+	err = c.Globals.File.Load(c.Globals.File.CLI.RemoteConfig, config.FilePath, c.Globals.HTTPClient)
 	if err != nil {
 		progress.Fail()
 		return errors.RemediationError{

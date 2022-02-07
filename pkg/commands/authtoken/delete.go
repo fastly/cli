@@ -49,7 +49,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.current {
-		err := c.Globals.Client.DeleteTokenSelf()
+		err := c.Globals.APIClient.DeleteTokenSelf()
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -66,7 +66,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 			return err
 		}
 
-		err = c.Globals.Client.BatchDeleteTokens(input)
+		err = c.Globals.APIClient.BatchDeleteTokens(input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -82,7 +82,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.id != "" {
 		input := c.constructInput()
 
-		err := c.Globals.Client.DeleteToken(input)
+		err := c.Globals.APIClient.DeleteToken(input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err

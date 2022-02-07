@@ -44,7 +44,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	paginator := c.Globals.Client.NewListServicesPaginator(&c.input)
+	paginator := c.Globals.APIClient.NewListServicesPaginator(&c.input)
 
 	var ss []*fastly.Service
 	for paginator.HasNext() {

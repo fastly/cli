@@ -58,7 +58,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput()
 
-	rs, err := c.Globals.Client.ListCustomerUsers(input)
+	rs, err := c.Globals.APIClient.ListCustomerUsers(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Customer ID": c.customerID.Value,

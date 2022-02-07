@@ -70,7 +70,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput(serviceID)
-	paginator := c.Globals.Client.NewListACLEntriesPaginator(input)
+	paginator := c.Globals.APIClient.NewListACLEntriesPaginator(input)
 
 	// TODO: Use generics support in go 1.18 to replace this almost identical
 	// logic inside of 'dictionary-item list' and 'service list'.

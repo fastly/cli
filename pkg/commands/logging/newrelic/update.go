@@ -78,7 +78,7 @@ type UpdateCommand struct {
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -95,7 +95,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID, serviceVersion.Number)
 
-	l, err := c.Globals.Client.UpdateNewRelic(input)
+	l, err := c.Globals.APIClient.UpdateNewRelic(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

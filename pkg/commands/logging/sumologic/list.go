@@ -64,7 +64,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -82,7 +82,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	sumologics, err := c.Globals.Client.ListSumologics(&c.Input)
+	sumologics, err := c.Globals.APIClient.ListSumologics(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

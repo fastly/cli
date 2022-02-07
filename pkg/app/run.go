@@ -54,11 +54,12 @@ func Run(opts RunOpts) error {
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	globals := config.Data{
-		File:   opts.ConfigFile,
-		Path:   opts.ConfigPath,
-		Env:    opts.Env,
-		Output: opts.Stdout,
-		ErrLog: opts.ErrLog,
+		File:       opts.ConfigFile,
+		Path:       opts.ConfigPath,
+		Env:        opts.Env,
+		Output:     opts.Stdout,
+		ErrLog:     opts.ErrLog,
+		HTTPClient: opts.HTTPClient,
 	}
 
 	// Set up the main application root, including global flags, and then each
@@ -148,7 +149,7 @@ func Run(opts RunOpts) error {
 		}
 	}
 
-	globals.Client, err = opts.APIClient(token, endpoint)
+	globals.APIClient, err = opts.APIClient(token, endpoint)
 	if err != nil {
 		globals.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly API client: %w", err)

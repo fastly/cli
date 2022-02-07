@@ -63,7 +63,7 @@ type UpdateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 			return err
 		}
 
-		err = c.Globals.Client.BatchModifyACLEntries(input)
+		err = c.Globals.APIClient.BatchModifyACLEntries(input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Service ID": serviceID,
@@ -94,7 +94,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	a, err := c.Globals.Client.UpdateACLEntry(input)
+	a, err := c.Globals.APIClient.UpdateACLEntry(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID": serviceID,
