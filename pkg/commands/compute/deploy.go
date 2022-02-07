@@ -574,7 +574,7 @@ func manageNoServiceIDFlow(
 	// There is no service and so we'll do a one time creation of the service
 	//
 	// NOTE: we're shadowing the `serviceVersion` and `serviceID` variables.
-	serviceID, serviceVersion, err = createService(pkgName, apiClient, activateTrial, progress)
+	serviceID, serviceVersion, err = createService(pkgName, apiClient, activateTrial, progress, errLog)
 	if err != nil {
 		progress.Fail()
 		errLog.AddWithContext(err, map[string]interface{}{
@@ -601,7 +601,7 @@ func manageNoServiceIDFlow(
 //
 // NOTE: If the creation of the service fails because the user has not
 // activated a free trial, then we'll trigger the trial for their account.
-func createService(name string, apiClient api.Interface, activateTrial activator, progress text.Progress) (serviceID string, serviceVersion *fastly.Version, err error) {
+func createService(name string, apiClient api.Interface, activateTrial activator, progress text.Progress, errLog fsterr.LogInterface) (serviceID string, serviceVersion *fastly.Version, err error) {
 	progress.Step("Creating service...")
 
 	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
@@ -626,8 +626,17 @@ func createService(name string, apiClient api.Interface, activateTrial activator
 				}
 			}
 
-			return createService(name, apiClient, activateTrial, progress)
+			errLog.AddWithContext(err, map[string]interface{}{
+				"Name":        name,
+				"User":        user.Name,
+				"Customer ID": user.CustomerID,
+			})
+			return createService(name, apiClient, activateTrial, progress, errLog)
 		}
+
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Name": name,
+		})
 		return serviceID, serviceVersion, fmt.Errorf("error creating service: %w", err)
 	}
 
@@ -676,9 +685,18 @@ func manageExistingServiceFlow(
 	// VCL service, for which we cannot upload a wasm package format to.
 	serviceDetails, err := apiClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
 	if err != nil {
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
 		return serviceVersion, err
 	}
 	if serviceDetails.Type != "wasm" {
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+			"Service Type":    serviceDetails.Type,
+		})
 		return serviceVersion, fsterr.RemediationError{
 			Inner:       fmt.Errorf("invalid service type: %s", serviceDetails.Type),
 			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeTrialRemediation,
