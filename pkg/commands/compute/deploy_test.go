@@ -312,7 +312,7 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: &http.Response{
-				Body:       io.NopCloser(strings.NewReader(testutil.Err.Error())),
+				Body:       io.NopCloser(strings.NewReader("success")),
 				Status:     http.StatusText(http.StatusOK),
 				StatusCode: http.StatusOK,
 			},
