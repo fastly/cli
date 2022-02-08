@@ -527,14 +527,17 @@ type activator func(customerID string) error
 func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) activator {
 	return func(customerID string) error {
 		path := fmt.Sprintf(undocumented.EdgeComputeTrial, customerID)
-		_, statusCode, err := undocumented.Get(endpoint, path, token, httpClient)
+		_, err := undocumented.Get(endpoint, path, token, httpClient)
 		if err != nil {
-			// 409 Conflict == The Compute@Edge trial has already been created.
-			if statusCode != http.StatusConflict {
+			apiErr, ok := err.(undocumented.APIError)
+			if !ok {
 				return err
 			}
+			// 409 Conflict == The Compute@Edge trial has already been created.
+			if apiErr.StatusCode != http.StatusConflict {
+				return fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
+			}
 		}
-
 		return nil
 	}
 }
