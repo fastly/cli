@@ -2,8 +2,11 @@ package compute_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,6 +83,8 @@ func TestDeploy(t *testing.T) {
 		api                  mock.API
 		args                 []string
 		dontWantOutput       []string
+		httpClientRes        *http.Response
+		httpClientErr        error
 		manifest             string
 		name                 string
 		noManifest           bool
@@ -227,6 +232,98 @@ func TestDeploy(t *testing.T) {
 				"Creating service...",
 			},
 		},
+		// The following test mocks the service creation to fail with a specific
+		// error value that will result in the code trying to activate a free trial
+		// for the customer's account.
+		//
+		// Specifically this test will fail the initial API call to get the
+		// customer's details and so we expect it to return that error (as we can't
+		// activate a free trial without knowing the customer ID).
+		{
+			name: "service create error due to no trial activated and error getting user",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				CreateServiceFn:  createServiceErrorNoTrial,
+				GetCurrentUserFn: getCurrentUserError,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantError: fmt.Sprintf("unable to identify user associated with the given token: %s", testutil.Err.Error()),
+			wantOutput: []string{
+				"Creating service...",
+			},
+		},
+		// The following test mocks the HTTP client to return a 400 Bad Request,
+		// which is then coerced into a generic 'no free trial' error.
+		{
+			name: "service create error due to no trial activated and error activating trial",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				CreateServiceFn:  createServiceErrorNoTrial,
+				GetCurrentUserFn: getCurrentUser,
+			},
+			httpClientRes: &http.Response{
+				Body:       io.NopCloser(strings.NewReader(testutil.Err.Error())),
+				Status:     http.StatusText(http.StatusBadRequest),
+				StatusCode: http.StatusBadRequest,
+			},
+			httpClientErr: nil,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantError:            "error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account",
+			wantRemediationError: errors.ComputeTrialRemediation,
+			wantOutput: []string{
+				"Creating service...",
+			},
+		},
+		// The following test mocks the HTTP client to return a timeout error,
+		// which is then coerced into a generic 'no free trial' error.
+		{
+			name: "service create error due to no trial activated and activating trial timeout",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				CreateServiceFn:  createServiceErrorNoTrial,
+				GetCurrentUserFn: getCurrentUser,
+			},
+			httpClientRes: nil,
+			httpClientErr: &url.Error{Err: context.DeadlineExceeded},
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantError:            "error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account",
+			wantRemediationError: errors.ComputeTrialRemediation,
+			wantOutput: []string{
+				"Creating service...",
+			},
+		},
+		// The following test mocks the HTTP client to return successfully when
+		// trying to activate the free trial.
+		{
+			name: "service create success",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				ListDomainsFn:     listDomainsOk,
+				UpdatePackageFn:   updatePackageOk,
+			},
+			httpClientRes: &http.Response{
+				Body:       io.NopCloser(strings.NewReader(testutil.Err.Error())),
+				Status:     http.StatusText(http.StatusOK),
+				StatusCode: http.StatusOK,
+			},
+			httpClientErr: nil,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Creating service...",
+			},
+		},
 		// The following test doesn't provide a Service ID by either a flag nor the
 		// manifest, so this will result in the deploy script attempting to create
 		// a new service. We mock the service creation to be successful while we
@@ -302,6 +399,8 @@ func TestDeploy(t *testing.T) {
 				"Activating version...",
 			},
 		},
+		// The following test validates that if a package contains code that has
+		// not changed since the last deploy, then the deployment is skipped.
 		{
 			name: "identical package",
 			args: args("compute deploy --service-id 123 --token 123"),
@@ -317,7 +416,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success",
+			name: "success with existing service",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
@@ -1194,6 +1293,10 @@ func TestDeploy(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
 
+			if testcase.httpClientRes != nil || testcase.httpClientErr != nil {
+				opts.HTTPClient = mock.HTMLClient(testcase.httpClientRes, testcase.httpClientErr)
+			}
+
 			if testcase.reduceSizeLimit {
 				compute.PackageSizeLimit = 1000000 // 1mb (our test package should above this)
 			} else {
@@ -1274,6 +1377,22 @@ func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 }
 
 func createServiceError(*fastly.CreateServiceInput) (*fastly.Service, error) {
+	return nil, testutil.Err
+}
+
+// NOTE: We don't return testutil.Err but a very specific error message so that
+// the Deploy logic will drop into a nested logic block.
+func createServiceErrorNoTrial(*fastly.CreateServiceInput) (*fastly.Service, error) {
+	return nil, fmt.Errorf("Valid values for 'type' are: 'vcl'")
+}
+
+func getCurrentUser() (*fastly.User, error) {
+	return &fastly.User{
+		CustomerID: "abc",
+	}, nil
+}
+
+func getCurrentUserError() (*fastly.User, error) {
 	return nil, testutil.Err
 }
 
