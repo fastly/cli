@@ -58,6 +58,10 @@ aurs:
       - 'oss@fastly.com'
     license: "Apache license 2.0"
     skip_upload: auto
+    provides:
+      - fastly-bin
+    conflicts:
+      - fastly-bin
 
     # The SSH private key that should be used to commit to the Git repository.
     # This can either be a path or the key contents.
@@ -67,7 +71,7 @@ aurs:
 
     # The AUR Git URL for this package.
     # Defaults to empty.
-    git_url: 'ssh://aur@aur.archlinux.org/cli-bin.git'
+    git_url: 'ssh://aur@aur.archlinux.org/fastly-bin.git'
 
     # List of packages that are not needed for the software to function,
     # but provide additional features.
@@ -77,31 +81,6 @@ aurs:
     # Defaults to empty.
     optdepends:
       - 'viceroy: for running service locally'
-        #
-    # Custom package instructions.
-    #
-    # Defaults to `install -Dm755 "./PROJECT_NAME" "${pkgdir}/usr/bin/PROJECT_NAME",
-    # which is not always correct.
-    #
-    # We recommend you override this, installing the binary, license and
-    # everything else your package needs.
-    package: |-
-      # bin
-      install -Dm755 "./mybin" "${pkgdir}/usr/bin/mybin"
-
-      # license
-      install -Dm644 "./LICENSE.md" "${pkgdir}/usr/share/licenses/mybin/LICENSE"
-
-      # completions
-      mkdir -p "${pkgdir}/usr/share/bash-completion/completions/"
-      mkdir -p "${pkgdir}/usr/share/zsh/site-functions/"
-      mkdir -p "${pkgdir}/usr/share/fish/vendor_completions.d/"
-      install -Dm644 "./completions/mybin.bash" "${pkgdir}/usr/share/bash-completion/completions/mybin"
-      install -Dm644 "./completions/mybin.zsh" "${pkgdir}/usr/share/zsh/site-functions/_mybin"
-      install -Dm644 "./completions/mybin.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/mybin.fish"
-
-      # man pages
-      install -Dm644 "./manpages/mybin.1.gz" "${pkgdir}/usr/share/man/man1/mybin.1.gz"
 brews:
   - name: fastly
     ids: [nix]
