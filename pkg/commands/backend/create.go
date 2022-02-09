@@ -93,7 +93,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -142,7 +142,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	b, err := c.Globals.Client.CreateBackend(&c.Input)
+	b, err := c.Globals.APIClient.CreateBackend(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

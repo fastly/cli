@@ -60,7 +60,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	c.input.ServiceID = serviceID
-	paginator := c.Globals.Client.NewListDictionaryItemsPaginator(&c.input)
+	paginator := c.Globals.APIClient.NewListDictionaryItemsPaginator(&c.input)
 
 	var ds []*fastly.DictionaryItem
 	for paginator.HasNext() {

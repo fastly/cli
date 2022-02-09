@@ -80,6 +80,12 @@ func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	}, nil
 }
 
+func getServiceDetailsWasm(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+	return &fastly.ServiceDetail{
+		Type: "wasm",
+	}, nil
+}
+
 type versionClient struct {
 	fastlyVersions    []string
 	fastlySysVersions []string

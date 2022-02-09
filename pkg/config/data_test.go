@@ -2,16 +2,16 @@ package config_test
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"strings"
 
-	"context"
 	"errors"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -22,7 +22,9 @@ import (
 type mockHTTPClient struct{}
 
 func (c mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
-	return &http.Response{}, context.DeadlineExceeded
+	return &http.Response{}, &url.Error{
+		Err: context.DeadlineExceeded,
+	}
 }
 
 // TestConfigLoad validates that when a context.DeadlineExceeded error is
@@ -31,10 +33,9 @@ func (c mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 func TestConfigLoad(t *testing.T) {
 	var (
 		c mockHTTPClient
-		d time.Duration
 		f *config.File
 	)
-	if err := f.Load("foo", c, d, "/path/to/config.toml"); err != nil {
+	if err := f.Load("foo", "/path/to/config.toml", c); err != nil {
 		if !errors.As(err, &fsterr.RemediationError{}) {
 			t.Errorf("expected RemediationError got: %T", err)
 		}

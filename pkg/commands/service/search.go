@@ -29,7 +29,7 @@ func NewSearchCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // Exec invokes the application logic for the command.
 func (c *SearchCommand) Exec(in io.Reader, out io.Writer) error {
-	service, err := c.Globals.Client.SearchService(&c.Input)
+	service, err := c.Globals.APIClient.SearchService(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Name": c.Input.Name,

@@ -67,7 +67,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput()
 
-	r, err := c.Globals.Client.CreateToken(input)
+	r, err := c.Globals.APIClient.CreateToken(input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

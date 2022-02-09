@@ -69,7 +69,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -86,7 +86,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID, serviceVersion.Number)
 
-	vs, err := c.Globals.Client.ListVCLs(input)
+	vs, err := c.Globals.APIClient.ListVCLs(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

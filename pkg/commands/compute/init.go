@@ -34,7 +34,6 @@ type InitCommand struct {
 	cmd.Base
 
 	branch           string
-	client           api.HTTPClient
 	dir              string
 	from             string
 	language         string
@@ -46,10 +45,9 @@ type InitCommand struct {
 var Languages = []string{"rust", "assemblyscript", "javascript", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *InitCommand {
+func NewInitCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *InitCommand {
 	var c InitCommand
 	c.Globals = globals
-	c.client = client
 	c.manifest = data
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
 	c.CmdClause.Flag("name", "Name of package, falls back to --directory").Short('n').StringVar(&c.manifest.File.Name)
@@ -135,7 +133,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	languages := NewLanguages(c.Globals.File.StarterKits, c.client, c.Globals, name, mf.Scripts.Build)
+	languages := NewLanguages(c.Globals.File.StarterKits, c.Globals, name, mf.Scripts.Build)
 	language, err := selectLanguage(c.from, c.language, languages, mf, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
@@ -166,7 +164,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// whether --verbose was set or not.
 	progress = text.NewProgress(out, c.Globals.Verbose())
 
-	err = fetchPackageTemplate(language, c.from, branch, tag, c.dir, mf, file.Archives, progress, c.client, out, c.Globals.ErrLog)
+	err = fetchPackageTemplate(language, c.from, branch, tag, c.dir, mf, file.Archives, progress, c.Globals.HTTPClient, out, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"From":      from,

@@ -107,7 +107,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -224,7 +224,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		input.SSLCiphers = c.SSLCiphers.Value
 	}
 
-	b, err := c.Globals.Client.UpdateBackend(input)
+	b, err := c.Globals.APIClient.UpdateBackend(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

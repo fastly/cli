@@ -31,7 +31,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoToken
 	}
 
-	ipv4, ipv6, err := c.Globals.Client.AllIPs()
+	ipv4, ipv6, err := c.Globals.APIClient.AllIPs()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

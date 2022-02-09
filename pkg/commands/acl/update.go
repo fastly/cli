@@ -65,7 +65,7 @@ type UpdateCommand struct {
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -82,7 +82,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID, serviceVersion.Number)
 
-	a, err := c.Globals.Client.UpdateACL(input)
+	a, err := c.Globals.APIClient.UpdateACL(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

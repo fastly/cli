@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -44,7 +43,6 @@ type Flags struct {
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	cmd.Base
-	client api.HTTPClient
 
 	// NOTE: these are public so that the "serve" and "publish" composite
 	// commands can set the values appropriately before calling Exec().
@@ -53,9 +51,8 @@ type BuildCommand struct {
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *BuildCommand {
+func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *BuildCommand {
 	var c BuildCommand
-	c.client = client
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
@@ -140,7 +137,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.client, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, name, c.Manifest.File.Scripts.Build),
+			Toolchain:       NewRust(c.Globals.HTTPClient, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, name, c.Manifest.File.Scripts.Build),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{

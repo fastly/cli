@@ -38,7 +38,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput()
 
-	err := c.Globals.Client.DeleteUser(input)
+	err := c.Globals.APIClient.DeleteUser(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"User ID": c.id,

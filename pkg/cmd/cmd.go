@@ -115,7 +115,7 @@ type OptionalInt struct {
 type ServiceDetailsOpts struct {
 	AllowActiveLocked  bool
 	AutoCloneFlag      OptionalAutoClone
-	Client             api.Interface
+	APIClient          api.Interface
 	Manifest           manifest.Data
 	Out                io.Writer
 	ServiceNameFlag    OptionalServiceNameID
@@ -126,7 +126,7 @@ type ServiceDetailsOpts struct {
 
 // ServiceDetails returns the Service ID and Service Version.
 func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *fastly.Version, err error) {
-	serviceID, source, flag, err := ServiceID(opts.ServiceNameFlag, opts.Manifest, opts.Client, opts.ErrLog)
+	serviceID, source, flag, err := ServiceID(opts.ServiceNameFlag, opts.Manifest, opts.APIClient, opts.ErrLog)
 	if err != nil {
 		return serviceID, serviceVersion, err
 	}
@@ -134,14 +134,14 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 		DisplayServiceID(serviceID, flag, source, opts.Out)
 	}
 
-	v, err := opts.ServiceVersionFlag.Parse(serviceID, opts.Client)
+	v, err := opts.ServiceVersionFlag.Parse(serviceID, opts.APIClient)
 	if err != nil {
 		return serviceID, serviceVersion, err
 	}
 
 	if opts.AutoCloneFlag.WasSet {
 		currentVersion := v
-		v, err = opts.AutoCloneFlag.Parse(currentVersion, serviceID, opts.VerboseMode, opts.Out, opts.Client)
+		v, err = opts.AutoCloneFlag.Parse(currentVersion, serviceID, opts.VerboseMode, opts.Out, opts.APIClient)
 		if err != nil {
 			return serviceID, currentVersion, err
 		}

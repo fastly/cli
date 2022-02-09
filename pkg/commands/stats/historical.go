@@ -55,7 +55,7 @@ func NewHistoricalCommand(parent cmd.Registerer, globals *config.Data, data mani
 
 // Exec implements the command interface.
 func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.Service = serviceID
 
 	var envelope statsResponse
-	err = c.Globals.Client.GetStatsJSON(&c.Input, &envelope)
+	err = c.Globals.APIClient.GetStatsJSON(&c.Input, &envelope)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID": serviceID,

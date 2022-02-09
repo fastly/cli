@@ -66,7 +66,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -92,7 +92,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		c.input.Comment = fastly.String(c.comment.Value)
 	}
 
-	ver, err := c.Globals.Client.UpdateVersion(&c.input)
+	ver, err := c.Globals.APIClient.UpdateVersion(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -24,7 +23,7 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = globals
 	c.manifest = data
@@ -64,7 +63,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -91,7 +90,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}()
 
 	progress.Step("Uploading package...")
-	_, err = c.Globals.Client.UpdatePackage(&fastly.UpdatePackageInput{
+	_, err = c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
 		PackagePath:    c.path,

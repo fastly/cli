@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute/setup"
 	"github.com/fastly/cli/pkg/config"
@@ -25,6 +27,7 @@ import (
 
 const (
 	manageServiceBaseURL = "https://manage.fastly.com/configure/services/"
+	trialNotActivated    = "Valid values for 'type' are: 'vcl'"
 )
 
 // PackageSizeLimit describes the package size limit in bytes (currently 50mb)
@@ -47,7 +50,7 @@ type DeployCommand struct {
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
-func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *config.Data, data manifest.Data) *DeployCommand {
+func NewDeployCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeployCommand {
 	var c DeployCommand
 	c.Globals = globals
 	c.Manifest = data
@@ -83,12 +86,12 @@ func NewDeployCommand(parent cmd.Registerer, client api.HTTPClient, globals *con
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	_, s := c.Globals.Token()
+	token, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return fsterr.ErrNoToken
 	}
 
-	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err == nil && c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
@@ -96,7 +99,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Alias' for otherwise long definitions
 	errLog := c.Globals.ErrLog
 	verbose := c.Globals.Verbose()
-	apiClient := c.Globals.Client
+	apiClient := c.Globals.APIClient
 
 	// VALIDATE PACKAGE...
 
@@ -104,6 +107,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
+
+	// FREE TRIAL ACTIVATION
+
+	endpoint, _ := c.Globals.Endpoint()
+	activateTrial := preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
 
 	// SERVICE MANAGEMENT...
 
@@ -114,7 +122,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if source == manifest.SourceUndefined {
 		newService = true
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.AcceptDefaults, in, out, verbose, apiClient, pkgName, errLog, &c.Manifest.File)
+		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.AcceptDefaults, in, out, verbose, apiClient, pkgName, errLog, &c.Manifest.File, activateTrial)
 		if err != nil {
 			return err
 		}
@@ -505,6 +513,35 @@ func packageSize(path string) (size int64, err error) {
 	return fi.Size(), nil
 }
 
+// activator represents a function that calls an undocumented API endpoint for
+// activating a Compute@Edge free trial on the given customer account.
+//
+// It is preconfigured with the Fastly API endpoint, a user token and a simple
+// HTTP Client.
+//
+// This design allows us to pass an activator rather than passing multiple
+// unrelated arguments through several nested functions.
+type activator func(customerID string) error
+
+// preconfigureActivateTrial forms a closure around an activator.
+func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) activator {
+	return func(customerID string) error {
+		path := fmt.Sprintf(undocumented.EdgeComputeTrial, customerID)
+		_, err := undocumented.Get(endpoint, path, token, httpClient)
+		if err != nil {
+			apiErr, ok := err.(undocumented.APIError)
+			if !ok {
+				return err
+			}
+			// 409 Conflict == The Compute@Edge trial has already been created.
+			if apiErr.StatusCode != http.StatusConflict {
+				return fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
+			}
+		}
+		return nil
+	}
+}
+
 // manageNoServiceIDFlow handles creating a new service when no Service ID is found.
 func manageNoServiceIDFlow(
 	acceptDefaults bool,
@@ -514,7 +551,8 @@ func manageNoServiceIDFlow(
 	apiClient api.Interface,
 	pkgName string,
 	errLog fsterr.LogInterface,
-	manifestFile *manifest.File) (serviceID string, serviceVersion *fastly.Version, err error) {
+	manifestFile *manifest.File,
+	activateTrial activator) (serviceID string, serviceVersion *fastly.Version, err error) {
 
 	if !acceptDefaults {
 		text.Break(out)
@@ -539,7 +577,7 @@ func manageNoServiceIDFlow(
 	// There is no service and so we'll do a one time creation of the service
 	//
 	// NOTE: we're shadowing the `serviceVersion` and `serviceID` variables.
-	serviceID, serviceVersion, err = createService(apiClient, pkgName, progress)
+	serviceID, serviceVersion, err = createService(pkgName, apiClient, activateTrial, progress, errLog)
 	if err != nil {
 		progress.Fail()
 		errLog.AddWithContext(err, map[string]interface{}{
@@ -563,27 +601,49 @@ func manageNoServiceIDFlow(
 }
 
 // createService creates a service to associate with the compute package.
-func createService(client api.Interface, name string, progress text.Progress) (string, *fastly.Version, error) {
+//
+// NOTE: If the creation of the service fails because the user has not
+// activated a free trial, then we'll trigger the trial for their account.
+func createService(name string, apiClient api.Interface, activateTrial activator, progress text.Progress, errLog fsterr.LogInterface) (serviceID string, serviceVersion *fastly.Version, err error) {
 	progress.Step("Creating service...")
 
-	service, err := client.CreateService(&fastly.CreateServiceInput{
+	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
 		Name: name,
 		Type: "wasm",
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), "Valid values for 'type' are: 'vcl'") {
-			return "", nil, fsterr.RemediationError{
-				Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge feature flag enabled on your Fastly account"),
-				Remediation: "For more help with this error see fastly.help/cli/ecp-feature",
+		if strings.Contains(err.Error(), trialNotActivated) {
+			user, err := apiClient.GetCurrentUser()
+			if err != nil {
+				return serviceID, serviceVersion, fsterr.RemediationError{
+					Inner:       fmt.Errorf("unable to identify user associated with the given token: %w", err),
+					Remediation: "To ensure you have access to the Compute@Edge platform we need your Customer ID. " + fsterr.AuthRemediation,
+				}
 			}
+
+			err = activateTrial(user.CustomerID)
+			if err != nil {
+				return serviceID, serviceVersion, fsterr.RemediationError{
+					Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account"),
+					Remediation: fsterr.ComputeTrialRemediation,
+				}
+			}
+
+			errLog.AddWithContext(err, map[string]interface{}{
+				"Name":        name,
+				"User":        user.Name,
+				"Customer ID": user.CustomerID,
+			})
+			return createService(name, apiClient, activateTrial, progress, errLog)
 		}
-		return "", nil, fmt.Errorf("error creating service: %w", err)
+
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Name": name,
+		})
+		return serviceID, serviceVersion, fmt.Errorf("error creating service: %w", err)
 	}
 
-	serviceID := service.ID
-	serviceVersion := &fastly.Version{Number: 1}
-
-	return serviceID, serviceVersion, nil
+	return service.ID, &fastly.Version{Number: 1}, nil
 }
 
 // updateManifestServiceID updates the Service ID in the manifest.
@@ -622,6 +682,28 @@ func manageExistingServiceFlow(
 			"Service ID": serviceID,
 		})
 		return serviceVersion, err
+	}
+
+	// Validate that we're dealing with a Compute@Edge 'wasm' service and not a
+	// VCL service, for which we cannot upload a wasm package format to.
+	serviceDetails, err := apiClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
+	if err != nil {
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return serviceVersion, err
+	}
+	if serviceDetails.Type != "wasm" {
+		errLog.AddWithContext(err, map[string]interface{}{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+			"Service Type":    serviceDetails.Type,
+		})
+		return serviceVersion, fsterr.RemediationError{
+			Inner:       fmt.Errorf("invalid service type: %s", serviceDetails.Type),
+			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeTrialRemediation,
+		}
 	}
 
 	// Unlike other CLI commands that are a direct mapping to an API endpoint,

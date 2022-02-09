@@ -69,7 +69,7 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -274,7 +274,7 @@ func (c *RootCommand) adjustTimes() {
 
 // enableManagedLogging enables managed logging in our API.
 func (c *RootCommand) enableManagedLogging(out io.Writer) error {
-	_, err := c.Globals.Client.CreateManagedLogging(&c.Input)
+	_, err := c.Globals.APIClient.CreateManagedLogging(&c.Input)
 	if err != nil && err != fastly.ErrManagedLoggingEnabled {
 		c.Globals.ErrLog.Add(err)
 		return err

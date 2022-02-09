@@ -65,7 +65,7 @@ func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -83,7 +83,7 @@ func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.all {
 		input := c.constructInputAll(serviceID, serviceVersion.Number)
 
-		r, err := c.Globals.Client.ValidateAllDomains(input)
+		r, err := c.Globals.APIClient.ValidateAllDomains(input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Service ID":      serviceID,
@@ -101,7 +101,7 @@ func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	r, err := c.Globals.Client.ValidateDomain(input)
+	r, err := c.Globals.APIClient.ValidateDomain(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

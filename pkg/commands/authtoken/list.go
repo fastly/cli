@@ -67,13 +67,13 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 		input := c.constructInput()
 
-		rs, err = c.Globals.Client.ListCustomerTokens(input)
+		rs, err = c.Globals.APIClient.ListCustomerTokens(input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 	} else {
-		rs, err = c.Globals.Client.ListTokens()
+		rs, err = c.Globals.APIClient.ListTokens()
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err

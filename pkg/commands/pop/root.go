@@ -31,7 +31,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		return errors.ErrNoToken
 	}
 
-	dcs, err := c.Globals.Client.AllDatacenters()
+	dcs, err := c.Globals.APIClient.AllDatacenters()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

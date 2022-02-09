@@ -46,7 +46,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	r, err := c.Globals.Client.GetTokenSelf()
+	r, err := c.Globals.APIClient.GetTokenSelf()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

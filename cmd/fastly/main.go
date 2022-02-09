@@ -59,7 +59,7 @@ func main() {
 	var (
 		args                    = os.Args[1:]
 		clientFactory           = app.FastlyAPIClient
-		httpClient              = http.DefaultClient
+		httpClient              = &http.Client{Timeout: time.Second * 5}
 		in            io.Reader = os.Stdin
 		out           io.Writer = sync.NewWriter(color.Output)
 		versionerCLI            = update.NewGitHub(update.GitHubOpts{
@@ -143,7 +143,7 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 			// NOTE: we no longer use the hardcoded config.RemoteEndpoint constant.
 			// Instead we rely on the values inside of the application
 			// configuration file to determine where to load the config from.
-			err := file.Load(file.CLI.RemoteConfig, httpClient, config.ConfigRequestTimeout, config.FilePath)
+			err := file.Load(file.CLI.RemoteConfig, config.FilePath, httpClient)
 			if err != nil {
 				// If there is an error loading the configuration, then there is no
 				// point trying to retry the operation on the next CLI invocation as we

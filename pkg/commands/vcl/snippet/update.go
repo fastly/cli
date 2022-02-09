@@ -78,7 +78,7 @@ type UpdateCommand struct {
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -102,7 +102,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 			})
 			return err
 		}
-		v, err := c.Globals.Client.UpdateDynamicSnippet(input)
+		v, err := c.Globals.APIClient.UpdateDynamicSnippet(input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Service ID":      serviceID,
@@ -122,7 +122,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		})
 		return err
 	}
-	v, err := c.Globals.Client.UpdateSnippet(input)
+	v, err := c.Globals.APIClient.UpdateSnippet(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,

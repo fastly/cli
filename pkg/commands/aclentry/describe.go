@@ -63,7 +63,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.Client, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID)
 
-	a, err := c.Globals.Client.GetACLEntry(input)
+	a, err := c.Globals.APIClient.GetACLEntry(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID": serviceID,

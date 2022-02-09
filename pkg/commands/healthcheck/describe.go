@@ -65,7 +65,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
-		Client:             c.Globals.Client,
+		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
@@ -83,7 +83,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	healthCheck, err := c.Globals.Client.GetHealthCheck(&c.Input)
+	healthCheck, err := c.Globals.APIClient.GetHealthCheck(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Service ID":      serviceID,
