@@ -9,8 +9,8 @@ ttl = "5m"
 
 [language]
   [language.rust]
-  toolchain_version = "1.54.0"
-  toolchain_constraint = ">= 1.54.0"
+  toolchain_version = "1.56.1"
+  toolchain_constraint = ">= 1.56.1"
   wasm_wasi_target = "wasm32-wasi"
   fastly_sys_constraint = ">= 0.3.3"
   rustup_constraint = ">= 1.23.0"
