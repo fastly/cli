@@ -28,9 +28,10 @@ jobs:
     - name: "Run GoReleaser"
       uses: goreleaser/goreleaser-action@v2
       with:
-        version: v0.183.0 # goreleaser version (NOT goreleaser-action version)
+        version: v1.4.1 # goreleaser version (NOT goreleaser-action version)
         args: release --rm-dist
       env:
+        AUR_KEY: ${{ secrets.AUR_KEY }}
         GOVERSION: ${{ env.GOVERSION }}
         GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
     - name: "Generate release commits"

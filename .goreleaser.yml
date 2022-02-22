@@ -50,6 +50,37 @@ archives:
     <<: *archive_defaults
     wrap_in_directory: false
     format: zip
+aurs:
+  -
+    homepage: "https://github.com/fastly/cli"
+    description: "A CLI for interacting with the Fastly platform"
+    maintainers:
+      - 'oss@fastly.com'
+    license: "Apache license 2.0"
+    skip_upload: auto
+    provides:
+      - fastly
+    conflicts:
+      - fastly
+
+    # The SSH private key that should be used to commit to the Git repository.
+    # This can either be a path or the key contents.
+    #
+    # WARNING: do not expose your private key in the config file!
+    private_key: '{{ .Env.AUR_KEY }}'
+
+    # The AUR Git URL for this package.
+    # Defaults to empty.
+    git_url: 'ssh://aur@aur.archlinux.org/fastly-bin.git'
+
+    # List of packages that are not needed for the software to function,
+    # but provide additional features.
+    #
+    # Must be in the format `package: short description of the extra functionality`.
+    #
+    # Defaults to empty.
+    optdepends:
+      - 'viceroy: for running service locally'
 brews:
   - name: fastly
     ids: [nix]
@@ -57,7 +88,7 @@ brews:
       owner: fastly
       name: homebrew-tap
     skip_upload: auto
-    description: Fastly CLI
+    description: A CLI for interacting with the Fastly platform
     homepage: https://github.com/fastly/cli
     folder: Formula
     custom_block: |
