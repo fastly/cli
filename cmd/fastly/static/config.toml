@@ -8,8 +8,8 @@ remote_config = "https://developer.fastly.com/api/internal/cli-config"
 ttl = "5m"
 
 [language.rust]
-toolchain_version = "1.54.0"
-toolchain_constraint = ">= 1.54.0"
+toolchain_version = "1.56.1"
+toolchain_constraint = ">= 1.56.1"
 wasm_wasi_target = "wasm32-wasi"
 fastly_sys_constraint = ">= 0.3.3"
 rustup_constraint = ">= 1.23.0"
@@ -36,6 +36,11 @@ path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination"
 name = "Default starter for Rust"
 description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
 path = "https://github.com/fastly/compute-starter-kit-rust-default"
+
+[[starter-kits.rust]]
+name = "Empty starter for Rust"
+description = "An empty starter kit project template."
+path = "https://github.com/fastly/compute-starter-kit-rust-empty"
 
 [[starter-kits.rust]]
 name = "Static content"
