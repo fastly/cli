@@ -1,5 +1,20 @@
 # Changelog
 
+## [v1.7.0](https://github.com/fastly/cli/releases/tag/v1.7.0) (2022-02-22)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.6.0...v1.7.0)
+
+**Enhancements:**
+
+* Add `fastly` user to Dockerfiles [#521](https://github.com/fastly/cli/pull/521)
+* Support Sentry 'suspect commit' feature [#508](https://github.com/fastly/cli/pull/508)
+* Populate language manifest `name` field with project name [#527](https://github.com/fastly/cli/pull/527)
+* Make `--name` flag for `service search` command a required flag [#529](https://github.com/fastly/cli/pull/529)
+* Update config `last_checked` field even on config load error [#528](https://github.com/fastly/cli/pull/528)
+* Implement Compute@Edge Free Trial Activation [#531](https://github.com/fastly/cli/pull/531)
+* Bump Rust toolchain constraint to `1.56.1` for 2021 edition [#533](https://github.com/fastly/cli/pull/533533533533533)
+* Support Arch User Repositories [#530](https://github.com/fastly/cli/pull/530)
+
 ## [v1.6.0](https://github.com/fastly/cli/releases/tag/v1.6.0) (2022-01-20)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.5.0...v1.6.0)
