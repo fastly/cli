@@ -59,9 +59,9 @@ aurs:
     license: "Apache license 2.0"
     skip_upload: auto
     provides:
-      - fastly-bin
+      - fastly
     conflicts:
-      - fastly-bin
+      - fastly
 
     # The SSH private key that should be used to commit to the Git repository.
     # This can either be a path or the key contents.
