@@ -149,6 +149,11 @@ func Run(opts RunOpts) error {
 		}
 	}
 
+	// NOTE: The globals variable is passed as a reference earlier in this
+	// function flow, but doesn't get utilised until after command.Exec (below)
+	// has identified the relevant command to execute. This provides us the
+	// opportunity to assign a working API client instance that depends on data
+	// not available earlier in the flow.
 	globals.APIClient, err = opts.APIClient(token, endpoint)
 	if err != nil {
 		globals.ErrLog.Add(err)
