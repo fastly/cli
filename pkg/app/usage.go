@@ -204,7 +204,7 @@ func processCommandInput(
 	globals *config.Data,
 	commands []cmd.Command) (command cmd.Command, cmdName string, err error) {
 	// As the `help` command model gets privately added as a side-effect of
-	// kingping.Parse, we cannot add the `--format json` flag to the model.
+	// kingpin.Parse, we cannot add the `--format json` flag to the model.
 	// Therefore, we have to manually parse the args slice here to check for the
 	// existence of `help --format json`, if present we print usage JSON and
 	// exit early.

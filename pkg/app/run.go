@@ -78,7 +78,7 @@ func Run(opts RunOpts) error {
 	// error states and output control flow.
 	app.Terminate(nil)
 
-	// WARNING: kingping has no way of decorating flags as being "global"
+	// WARNING: kingpin has no way of decorating flags as being "global"
 	// therefore if you add/remove a global flag you will also need to update
 	// the globalFlag map in pkg/app/usage.go which is used for usage rendering.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
