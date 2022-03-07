@@ -1052,9 +1052,10 @@ COMMANDS
         --initial=INITIAL        When loading a config, the initial number of
                                  probes to be seen as OK
 
-  ip-list
+  ip-list [<flags>]
     List Fastly's public IPs
 
+    -j, --json  Render output as JSON
 
   log-tail [<flags>]
     Tail Compute@Edge logs
