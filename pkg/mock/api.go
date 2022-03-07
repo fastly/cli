@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"net/http"
+
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -8,6 +10,8 @@ import (
 // The zero value is useful, but will panic on all methods. Provide function
 // implementations for the method(s) your test will call.
 type API struct {
+	GetFn func(p string, ro *fastly.RequestOptions) (*http.Response, error)
+
 	AllDatacentersFn func() (datacenters []fastly.Datacenter, err error)
 	AllIPsFn         func() (v4, v6 fastly.IPAddrs, err error)
 
@@ -278,6 +282,11 @@ type API struct {
 	NewListACLEntriesPaginatorFn      func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
 	NewListDictionaryItemsPaginatorFn func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
 	NewListServicesPaginatorFn        func(i *fastly.ListServicesInput) fastly.PaginatorServices
+}
+
+// Get implements Interface.
+func (m API) Get(p string, ro *fastly.RequestOptions) (*http.Response, error) {
+	return m.GetFn(p, ro)
 }
 
 // AllDatacenters implements Interface.
