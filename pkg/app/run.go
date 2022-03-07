@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/config"
@@ -134,6 +135,13 @@ func Run(opts RunOpts) error {
 				fmt.Fprintf(opts.Stdout, "It is recommended that your configuration file is NOT accessible by others.\n")
 				fmt.Fprintln(opts.Stdout)
 			}
+		}
+	}
+
+	if auth.Required(name, token, source, opts.Stdout) {
+		err = auth.Init(opts.Stdout)
+		if err != nil {
+			return err
 		}
 	}
 
