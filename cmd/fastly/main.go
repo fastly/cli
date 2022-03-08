@@ -166,8 +166,8 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 
 	// Main is basically just a shim to call Run, so we do that here.
 	opts := app.RunOpts{
-		ClientFactory: clientFactory,
 		Args:          args,
+		ClientFactory: clientFactory,
 		ConfigFile:    file,
 		ConfigPath:    config.FilePath,
 		Env:           env,

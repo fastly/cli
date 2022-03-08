@@ -29,8 +29,8 @@ type Versioners struct {
 
 // RunOpts represent arguments to Run()
 type RunOpts struct {
-	ClientFactory api.ClientFactory
 	Args          []string
+	ClientFactory api.ClientFactory
 	ConfigFile    config.File
 	ConfigPath    string
 	Env           config.Environment
