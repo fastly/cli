@@ -110,9 +110,9 @@ func Run(opts RunOpts) error {
 		return nil
 	}
 
-	token, source := globals.Token()
+	token, tSource := globals.Token()
 	if globals.Verbose() {
-		switch source {
+		switch tSource {
 		case config.SourceFlag:
 			fmt.Fprintf(opts.Stdout, "Fastly API token provided via --token\n")
 		case config.SourceEnvironment:
@@ -127,7 +127,7 @@ func Run(opts RunOpts) error {
 	// If we are using the token from config file, check the files permissions
 	// to assert if they are not too open or have been altered outside of the
 	// application and warn if so.
-	if source == config.SourceFile && name != "configure" {
+	if tSource == config.SourceFile && name != "configure" {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
 				text.Warning(opts.Stdout, "Unprotected configuration file.")
@@ -138,22 +138,26 @@ func Run(opts RunOpts) error {
 		}
 	}
 
-	if auth.Required(name, token, source, opts.Stdout) {
-		err = auth.Init(opts.Stdout)
-		if err != nil {
-			return err
-		}
-	}
-
-	endpoint, source := globals.Endpoint()
+	endpoint, eSource := globals.Endpoint()
 	if globals.Verbose() {
-		switch source {
+		switch eSource {
 		case config.SourceEnvironment:
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via %s): %s\n", env.Endpoint, endpoint)
 		case config.SourceFile:
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via config file): %s\n", endpoint)
 		default:
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint: %s\n", endpoint)
+		}
+	}
+
+	if auth.Required(name, token, tSource, opts.Stdout) {
+		token, err = auth.Init(opts.Stdout)
+		if err != nil {
+			return err
+		}
+		err = auth.PersistToken(token, globals.Path, endpoint, &globals.File, opts.APIClient)
+		if err != nil {
+			return err
 		}
 	}
 

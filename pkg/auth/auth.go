@@ -54,11 +54,11 @@ func Required(cmd, token string, s config.Source, stdout io.Writer) (required bo
 	return required
 }
 
-// Init starts the OAuth flow.
+// Init starts the OAuth flow and returns a new access token.
 //
 // NOTE: This function blocks the command execution until a token has been
 // pulled from the relevant channel.
-func Init(stdout io.Writer) error {
+func Init(stdout io.Writer) (string, error) {
 	text.Info(stdout, "We are about to initialise a new OAuth flow.")
 
 	token := make(chan string)
@@ -71,13 +71,13 @@ func Init(stdout io.Writer) error {
 	url := fmt.Sprintf("%s?redirect_uri=%s", App, callback)
 	err := browser.OpenURL(url)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	t := <-token
 	if t == "" {
-		return errors.New("no token received from authentication service")
+		return t, errors.New("no token received from authentication service")
 	}
-	fmt.Printf("token received: %s\n", t)
-	return nil
+
+	return t, nil
 }
