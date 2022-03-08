@@ -29,7 +29,7 @@ type Versioners struct {
 
 // RunOpts represent arguments to Run()
 type RunOpts struct {
-	APIClient  api.APIClientFactory
+	APIClient  api.ClientFactory
 	Args       []string
 	ConfigFile config.File
 	ConfigPath string

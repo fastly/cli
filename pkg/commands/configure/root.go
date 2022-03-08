@@ -21,14 +21,14 @@ import (
 type RootCommand struct {
 	cmd.Base
 
-	clientFactory  api.APIClientFactory
+	clientFactory  api.ClientFactory
 	configFilePath string
 	display        bool
 	location       bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, configFilePath string, cf api.APIClientFactory, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, configFilePath string, cf api.ClientFactory, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("configure", "Configure the Fastly CLI")

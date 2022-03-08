@@ -6,14 +6,12 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
-// APIClientFactory creates a Fastly API client (modeled as an api.Interface)
+// ClientFactory creates a Fastly API client (modeled as an api.Interface)
 // from a user-provided API token. It exists as a type in order to parameterize
 // the Run helper with it: in the real CLI, we can use NewClient from the Fastly
 // API client library via RealClient; in tests, we can provide a mock API
 // interface via MockClient.
-//
-// TODO: Rename to ClientFactory.
-type APIClientFactory func(token, endpoint string) (Interface, error)
+type ClientFactory func(token, endpoint string) (Interface, error)
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some
 // commands which need to make direct HTTP requests to the API, because the
