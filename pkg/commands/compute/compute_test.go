@@ -22,10 +22,10 @@ import (
 	"github.com/mholt/archiver/v3"
 )
 
-// TestPublishFlagDivergence validates that the manually curated list of flags
-// within the `compute publish` command doesn't fall out of sync with the
+// TestComputePublishFlagDivergence validates that the manually curated list of
+// flags within the `compute publish` command doesn't fall out of sync with the
 // `compute build` and `compute deploy` commands from which publish is composed.
-func TestPublishFlagDivergence(t *testing.T) {
+func TestComputePublishFlagDivergence(t *testing.T) {
 	var (
 		cfg  config.Data
 		data manifest.Data
@@ -65,10 +65,10 @@ func TestPublishFlagDivergence(t *testing.T) {
 	}
 }
 
-// TestServeFlagDivergence validates that the manually curated list of flags
-// within the `compute serve` command doesn't fall out of sync with the
+// TestComputeServeFlagDivergence validates that the manually curated list of
+// flags within the `compute serve` command doesn't fall out of sync with the
 // `compute build` command as `compute serve` delegates to build.
-func TestServeFlagDivergence(t *testing.T) {
+func TestComputeServeFlagDivergence(t *testing.T) {
 	var (
 		cfg  config.Data
 		data manifest.Data
@@ -134,7 +134,7 @@ func getFlags(cmd *kingpin.CmdClause) reflect.Value {
 	return reflect.ValueOf(cmd).Elem().FieldByName("cmdMixin").FieldByName("flagGroup").Elem().FieldByName("long")
 }
 
-func TestCreatePackageArchive(t *testing.T) {
+func TestComputeCreatePackageArchive(t *testing.T) {
 	// we're going to chdir to a build environment,
 	// so save the pwd to return to, afterwards.
 	pwd, err := os.Getwd()
@@ -185,7 +185,7 @@ func TestCreatePackageArchive(t *testing.T) {
 	testutil.AssertEqual(t, wantFiles, files)
 }
 
-func TestFileNameWithoutExtension(t *testing.T) {
+func TestComputeFileNameWithoutExtension(t *testing.T) {
 	for _, testcase := range []struct {
 		input      string
 		wantOutput string
@@ -210,7 +210,7 @@ func TestFileNameWithoutExtension(t *testing.T) {
 	}
 }
 
-func TestGetIgnoredFiles(t *testing.T) {
+func TestComputeGetIgnoredFiles(t *testing.T) {
 	// we're going to chdir to a build environment,
 	// so save the pwd to return to, afterwards.
 	pwd, err := os.Getwd()
@@ -279,7 +279,7 @@ func TestGetIgnoredFiles(t *testing.T) {
 	}
 }
 
-func TestGetNonIgnoredFiles(t *testing.T) {
+func TestComputeGetNonIgnoredFiles(t *testing.T) {
 	// We're going to chdir to a build environment,
 	// so save the PWD to return to, afterwards.
 	pwd, err := os.Getwd()
@@ -353,7 +353,7 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 	}
 }
 
-func TestGetLatestCrateVersion(t *testing.T) {
+func TestComputeGetLatestCrateVersion(t *testing.T) {
 	for _, testcase := range []struct {
 		name        string
 		inputClient api.HTTPClient
@@ -397,7 +397,7 @@ func TestGetLatestCrateVersion(t *testing.T) {
 	}
 }
 
-func TestGetCrateVersionFromMetadata(t *testing.T) {
+func TestComputeGetCrateVersionFromMetadata(t *testing.T) {
 	for _, testcase := range []struct {
 		name        string
 		inputLock   compute.CargoMetadata
