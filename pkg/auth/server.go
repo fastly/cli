@@ -45,4 +45,6 @@ func (s Server) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "unable to parse an authentication token")
 	}
 	s.token <- t
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "Authentication complete. You may close this browser tab and return to your terminal.")
 }
