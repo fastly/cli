@@ -63,7 +63,7 @@ func TestServiceCreate(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -215,7 +215,7 @@ func TestServiceList(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -270,7 +270,7 @@ func TestServiceDescribe(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -309,7 +309,7 @@ func TestServiceSearch(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -372,7 +372,7 @@ func TestServiceUpdate(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -456,7 +456,7 @@ func TestServiceDelete(t *testing.T) {
 
 			var stdout bytes.Buffer
 			runOpts := testutil.NewRunOpts(testcase.args, &stdout)
-			runOpts.ClientFactory = mock.APIClient(testcase.api)
+			runOpts.ClientFactory = mock.ClientFactory(testcase.api)
 			runErr := app.Run(runOpts)
 			testutil.AssertErrorContains(t, runErr, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)

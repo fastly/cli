@@ -48,7 +48,7 @@ func TestHealthCheckCreate(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -116,7 +116,7 @@ func TestHealthCheckList(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -156,7 +156,7 @@ func TestHealthCheckDescribe(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -206,7 +206,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -248,7 +248,7 @@ func TestHealthCheckDelete(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)

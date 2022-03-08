@@ -75,7 +75,7 @@ func TestUpdate(t *testing.T) {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.API)
+			opts.ClientFactory = mock.ClientFactory(testcase.API)
 			err = app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			for _, s := range testcase.WantOutputs {

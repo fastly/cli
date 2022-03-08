@@ -371,7 +371,7 @@ func TestConfigure(t *testing.T) {
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			opts.ConfigFile = testcase.file
 			opts.ConfigPath = configFilePath
 			opts.Env = testcase.env

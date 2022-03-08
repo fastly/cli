@@ -187,7 +187,7 @@ func createCommandRequired() *splunk.CreateCommand {
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	globals.APIClient, _ = mock.ClientFactory(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
@@ -225,7 +225,7 @@ func createCommandAll() *splunk.CreateCommand {
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	globals.APIClient, _ = mock.ClientFactory(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")

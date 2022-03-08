@@ -199,7 +199,7 @@ func createCommandRequired() *azureblob.CreateCommand {
 	}
 	// TODO: make consistent (in all other logging files) with syslog_test which
 	// uses a testcase.api field to assign the mock API to the global client.
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	globals.APIClient, _ = mock.ClientFactory(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
@@ -239,7 +239,7 @@ func createCommandAll() *azureblob.CreateCommand {
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	globals.APIClient, _ = mock.ClientFactory(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")

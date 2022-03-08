@@ -1291,7 +1291,7 @@ func TestDeploy(t *testing.T) {
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 
 			if testcase.httpClientRes != nil || testcase.httpClientErr != nil {
 				opts.HTTPClient = mock.HTMLClient(testcase.httpClientRes, testcase.httpClientErr)

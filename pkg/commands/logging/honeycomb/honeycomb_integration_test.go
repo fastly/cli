@@ -58,7 +58,7 @@ func TestHoneycombCreate(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -126,7 +126,7 @@ func TestHoneycombList(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -166,7 +166,7 @@ func TestHoneycombDescribe(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -208,7 +208,7 @@ func TestHoneycombUpdate(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -250,7 +250,7 @@ func TestHoneycombDelete(t *testing.T) {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ClientFactory = mock.APIClient(testcase.api)
+			opts.ClientFactory = mock.ClientFactory(testcase.api)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
