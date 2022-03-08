@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
@@ -98,7 +97,7 @@ func defineCommands(
 	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, globals, computeBuild, opts.Versioners.Viceroy, data)
 	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, globals, data)
 	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, globals)
-	configureCmdRoot := configure.NewRootCommand(app, opts.ConfigPath, api.ClientFactory(opts.ClientFactory), globals)
+	configureCmdRoot := configure.NewRootCommand(app, opts.ConfigPath, opts.ClientFactory, globals)
 	dictionaryCmdRoot := dictionary.NewRootCommand(app, globals)
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, globals, data)
 	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, globals, data)
