@@ -29,16 +29,16 @@ type Versioners struct {
 
 // RunOpts represent arguments to Run()
 type RunOpts struct {
-	APIClient  api.ClientFactory
-	Args       []string
-	ConfigFile config.File
-	ConfigPath string
-	Env        config.Environment
-	ErrLog     errors.LogInterface
-	HTTPClient api.HTTPClient
-	Stdin      io.Reader
-	Stdout     io.Writer
-	Versioners Versioners
+	ClientFactory api.ClientFactory
+	Args          []string
+	ConfigFile    config.File
+	ConfigPath    string
+	Env           config.Environment
+	ErrLog        errors.LogInterface
+	HTTPClient    api.HTTPClient
+	Stdin         io.Reader
+	Stdout        io.Writer
+	Versioners    Versioners
 }
 
 // Run constructs the application including all of the subcommands, parses the
@@ -155,7 +155,7 @@ func Run(opts RunOpts) error {
 		if err != nil {
 			return err
 		}
-		err = auth.PersistToken(token, globals.Path, endpoint, &globals.File, opts.APIClient)
+		err = auth.PersistToken(token, globals.Path, endpoint, &globals.File, opts.ClientFactory)
 		if err != nil {
 			return err
 		}
@@ -166,7 +166,7 @@ func Run(opts RunOpts) error {
 	// has identified the relevant command to execute. This provides us the
 	// opportunity to assign a working API client instance that depends on data
 	// not available earlier in the flow.
-	globals.APIClient, err = opts.APIClient(token, endpoint)
+	globals.APIClient, err = opts.ClientFactory(token, endpoint)
 	if err != nil {
 		globals.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly API client: %w", err)

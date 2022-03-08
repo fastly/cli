@@ -86,7 +86,7 @@ func TestACLCreate(t *testing.T) {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.ClientFactory = mock.APIClient(testcase.API)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -160,7 +160,7 @@ func TestACLDelete(t *testing.T) {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.ClientFactory = mock.APIClient(testcase.API)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -221,7 +221,7 @@ func TestACLDescribe(t *testing.T) {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.ClientFactory = mock.APIClient(testcase.API)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -286,7 +286,7 @@ func TestACLList(t *testing.T) {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.ClientFactory = mock.APIClient(testcase.API)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -375,7 +375,7 @@ func TestACLUpdate(t *testing.T) {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.ClientFactory = mock.APIClient(testcase.API)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)

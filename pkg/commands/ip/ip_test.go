@@ -23,7 +23,7 @@ func TestAllIPs(t *testing.T) {
 		},
 	}
 	opts := testutil.NewRunOpts(args, &stdout)
-	opts.APIClient = mock.APIClient(api)
+	opts.ClientFactory = mock.APIClient(api)
 	err := app.Run(opts)
 	testutil.AssertNoError(t, err)
 	testutil.AssertString(t, "\nIPv4\n\t00.123.45.6/78\n\nIPv6\n\t0a12:3b45::/67\n", stdout.String())

@@ -166,15 +166,15 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 
 	// Main is basically just a shim to call Run, so we do that here.
 	opts := app.RunOpts{
-		APIClient:  clientFactory,
-		Args:       args,
-		ConfigFile: file,
-		ConfigPath: config.FilePath,
-		Env:        env,
-		ErrLog:     fsterr.Log,
-		HTTPClient: httpClient,
-		Stdin:      in,
-		Stdout:     out,
+		ClientFactory: clientFactory,
+		Args:          args,
+		ConfigFile:    file,
+		ConfigPath:    config.FilePath,
+		Env:           env,
+		ErrLog:        fsterr.Log,
+		HTTPClient:    httpClient,
+		Stdin:         in,
+		Stdout:        out,
 		Versioners: app.Versioners{
 			CLI:     versionerCLI,
 			Viceroy: versionerViceroy,
