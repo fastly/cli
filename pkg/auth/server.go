@@ -13,7 +13,7 @@ import (
 // NOTE: This function is expected to be called asynchronously, hence channels
 // are provided for synchronised communication.
 func ListenAndServe(port chan int, token chan string) {
-	l, err := net.Listen("tcp", ":0")
+	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		log.Fatal(err)
 	}
