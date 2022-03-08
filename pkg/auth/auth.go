@@ -29,6 +29,7 @@ func Required(cmd, token string, s config.Source, stdout io.Writer) (required bo
 
 	// No token is defined so yes we require the OAuth flow.
 	if s == config.SourceUndefined {
+		text.Info(stdout, "An access token is required but has not been provided.")
 		return true
 	}
 
@@ -58,8 +59,19 @@ func Required(cmd, token string, s config.Source, stdout io.Writer) (required bo
 //
 // NOTE: This function blocks the command execution until a token has been
 // pulled from the relevant channel.
-func Init(stdout io.Writer) (string, error) {
-	text.Info(stdout, "We are about to initialise a new OAuth flow.")
+func Init(stdin io.Reader, stdout io.Writer) (string, error) {
+	text.Break(stdout)
+	text.Output(stdout, "We are about to initialise a new authentication flow, which requires the CLI to open your web browser for you.")
+	text.Break(stdout)
+
+	label := "Would you like to continue? [y/N] "
+	cont, err := text.AskYesNo(stdout, label, stdin)
+	if err != nil {
+		return "", err
+	}
+	if !cont {
+		return "", errors.New("a token is required but the authentication process was cancelled")
+	}
 
 	token := make(chan string)
 	port := make(chan int)
@@ -69,7 +81,7 @@ func Init(stdout io.Writer) (string, error) {
 	p := <-port
 	callback := fmt.Sprintf("http://127.0.0.1:%d/auth-callback", p)
 	url := fmt.Sprintf("%s?redirect_uri=%s", App, callback)
-	err := browser.OpenURL(url)
+	err = browser.OpenURL(url)
 	if err != nil {
 		return "", err
 	}

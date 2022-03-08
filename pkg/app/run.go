@@ -151,7 +151,7 @@ func Run(opts RunOpts) error {
 	}
 
 	if auth.Required(name, token, tSource, opts.Stdout) {
-		token, err = auth.Init(opts.Stdout)
+		token, err = auth.Init(opts.Stdin, opts.Stdout)
 		if err != nil {
 			return err
 		}
