@@ -4394,9 +4394,10 @@ COMMANDS
                                    format_version default. Can be none or
                                    waf_debug
 
-  pops
+  pops [<flags>]
     List Fastly datacenters
 
+    -j, --json  Render output as JSON
 
   purge [<flags>]
     Invalidate objects in the Fastly cache

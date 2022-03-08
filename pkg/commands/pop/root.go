@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -14,6 +15,7 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
+	json bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -21,6 +23,12 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("pops", "List Fastly datacenters")
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	return &c
 }
 
@@ -35,6 +43,15 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
+	}
+
+	if c.json {
+		data, err := json.Marshal(&dcs)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(data))
+		return nil
 	}
 
 	text.Break(out)
