@@ -29,7 +29,7 @@ type Versioners struct {
 
 // RunOpts represent arguments to Run()
 type RunOpts struct {
-	APIClient  APIClientFactory
+	APIClient  api.APIClientFactory
 	Args       []string
 	ConfigFile config.File
 	ConfigPath string
@@ -183,13 +183,6 @@ func Run(opts RunOpts) error {
 
 	return command.Exec(opts.Stdin, opts.Stdout)
 }
-
-// APIClientFactory creates a Fastly API client (modeled as an api.Interface)
-// from a user-provided API token. It exists as a type in order to parameterize
-// the Run helper with it: in the real CLI, we can use NewClient from the Fastly
-// API client library via RealClient; in tests, we can provide a mock API
-// interface via MockClient.
-type APIClientFactory func(token, endpoint string) (api.Interface, error)
 
 // FastlyAPIClient is a ClientFactory that returns a real Fastly API client
 // using the provided token and endpoint.

@@ -16,24 +16,19 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
-// APIClientFactory allows the configure command to regenerate the global Fastly
-// API client when a new token is provided, in order to validate that token.
-// It's a redeclaration of the app.APIClientFactory to avoid an import loop.
-type APIClientFactory func(token, endpoint string) (api.Interface, error)
-
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
 
-	clientFactory  APIClientFactory
+	clientFactory  api.APIClientFactory
 	configFilePath string
 	display        bool
 	location       bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, configFilePath string, cf APIClientFactory, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, configFilePath string, cf api.APIClientFactory, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("configure", "Configure the Fastly CLI")
