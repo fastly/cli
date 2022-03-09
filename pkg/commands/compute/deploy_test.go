@@ -1258,16 +1258,6 @@ func TestDeploy(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			switch testcase.name {
-			case "service domain error":
-				fallthrough
-			case "service create success":
-				fallthrough
-			case "service create error due to no trial activated and error activating trial":
-				fallthrough
-			default:
-				t.Skip()
-			}
 			// Because the manifest can be mutated on each test scenario, we recreate
 			// the file each time.
 			manifestContent := `manifest_version = 2
