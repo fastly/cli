@@ -39,7 +39,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // NOTE: authCallbackHandler is expected to be provided with a token query.
 func (s Server) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
-	t := r.URL.Query().Get("token")
+	t := r.URL.Query().Get("access_token")
 	if t == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "unable to parse an authentication token")
