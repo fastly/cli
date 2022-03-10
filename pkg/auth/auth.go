@@ -17,7 +17,7 @@ var ignoreCommands = []string{"configure", "ip-list", "update", "version"}
 
 // App is the authentication service responsible for authenticating the user
 // and returning a short-lived access token.
-var App = "https://developer-auth.edgecompute.app"
+var App = "https://developer.fastly.com"
 
 // Required determines if the OAuth flow is required.
 func Required(cmd, token string, s config.Source, stdout io.Writer) (required bool) {
