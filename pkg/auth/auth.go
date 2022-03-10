@@ -79,8 +79,9 @@ func Init(stdin io.Reader, stdout io.Writer) (string, error) {
 	go ListenAndServe(port, token)
 
 	p := <-port
+	path := "/auth/login"
 	callback := fmt.Sprintf("http://127.0.0.1:%d/auth-callback", p)
-	url := fmt.Sprintf("%s?redirect_uri=%s", App, callback)
+	url := fmt.Sprintf("%s%s?redirect_uri=%s", App, path, callback)
 	err = browser.OpenURL(url)
 	if err != nil {
 		return "", err
