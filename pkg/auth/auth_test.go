@@ -33,7 +33,9 @@ func TestAuthSuccess(t *testing.T) {
 	opts.ClientFactory = mock.ClientFactory(mockAPI)
 	opts.Stdin = strings.NewReader("y") // Authorise opening of web browser.
 
-	auth.Browser = mockBrowser()
+	endpoint := make(chan string)
+	auth.Browser = mockBrowser(endpoint)
+	opts.AuthService = <-endpoint
 
 	err := app.Run(opts)
 	if err != nil {
@@ -103,8 +105,8 @@ var mockAPI = mock.API{
 // server, along with a callback query param. The function will make a request
 // to the URL for which the local server will 302 to the CLI local server's
 // /auth-callback endpoint (passing along a mock token).
-func mockBrowser() auth.Opener {
-	go listenAndServe()
+func mockBrowser(endpoint chan string) auth.Opener {
+	go listenAndServe(endpoint)
 
 	return func(url string) error {
 		go http.Get(url)
@@ -114,14 +116,17 @@ func mockBrowser() auth.Opener {
 
 // listenAndServe listens on a random TCP network port and then calls Serve with
 // custom handler type to handle requests on incoming connections.
-func listenAndServe() {
+//
+// NOTE: This function is expected to be called asynchronously, hence a channel
+// is provided for synchronised communication.
+func listenAndServe(endpoint chan string) {
 	local := "127.0.0.1"
 	l, err := net.Listen("tcp", local+":0")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	auth.App = fmt.Sprintf("http://%s:%d", local, l.Addr().(*net.TCPAddr).Port)
+	endpoint <- fmt.Sprintf("http://%s:%d/auth/login", local, l.Addr().(*net.TCPAddr).Port)
 
 	defer l.Close()
 	http.Serve(l, authServer{})

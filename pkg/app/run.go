@@ -30,6 +30,7 @@ type Versioners struct {
 // RunOpts represent arguments to Run()
 type RunOpts struct {
 	Args          []string
+	AuthService   string
 	ClientFactory api.ClientFactory
 	ConfigFile    config.File
 	ConfigPath    string
@@ -151,7 +152,7 @@ func Run(opts RunOpts) error {
 	}
 
 	if auth.Required(name, token, tSource, opts.Stdout) {
-		token, err = auth.Init(opts.Stdin, opts.Stdout, auth.Browser)
+		token, err = auth.Init(opts.Stdin, opts.Stdout, auth.Browser, opts.AuthService)
 		if err != nil {
 			return err
 		}

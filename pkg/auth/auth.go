@@ -14,10 +14,6 @@ import (
 // ignoreCommands represents commands that do not require a token.
 var ignoreCommands = []string{"configure", "ip-list", "update", "version"}
 
-// App is the authentication service responsible for authenticating the user
-// and returning a short-lived access token.
-var App = "https://developer.fastly.com"
-
 // Required determines if the OAuth flow is required.
 func Required(cmd, token string, s config.Source, stdout io.Writer) (required bool) {
 	for _, name := range ignoreCommands {
@@ -58,7 +54,7 @@ func Required(cmd, token string, s config.Source, stdout io.Writer) (required bo
 //
 // NOTE: This function blocks the command execution until a token has been
 // pulled from the relevant channel.
-func Init(stdin io.Reader, stdout io.Writer, o Opener) (string, error) {
+func Init(stdin io.Reader, stdout io.Writer, o Opener, authService string) (string, error) {
 	text.Break(stdout)
 	text.Output(stdout, "We are about to initialise a new authentication flow, which requires the CLI to open your web browser for you.")
 	text.Break(stdout)
@@ -78,9 +74,8 @@ func Init(stdin io.Reader, stdout io.Writer, o Opener) (string, error) {
 	go ListenAndServe(port, token)
 
 	p := <-port
-	path := "/auth/login"
 	callback := fmt.Sprintf("http://127.0.0.1:%d/auth-callback", p)
-	url := fmt.Sprintf("%s%s?redirect_uri=%s", App, path, callback)
+	url := fmt.Sprintf("%s?redirect_uri=%s", authService, callback)
 	err = o(url)
 	if err != nil {
 		return "", err
