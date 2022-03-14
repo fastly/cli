@@ -55,8 +55,11 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// The following test is the same as above but mocks a successful backend
 		// creation so we can validate the correct service version was utilised.
+		//
+		// NOTE: Added --port flag to validate that a nil pointer dereference is
+		// not triggered at runtime when parsing the arguments.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
+			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
