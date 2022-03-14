@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package stats_test
 
 import (
@@ -21,17 +24,17 @@ func TestHistorical(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       args("stats historical --service-id=123"),
+			args:       args("stats historical --service-id=123 --token 123"),
 			api:        mock.API{GetStatsJSONFn: getStatsJSONOK},
 			wantOutput: historicalOK,
 		},
 		{
-			args:      args("stats historical --service-id=123"),
+			args:      args("stats historical --service-id=123 --token 123"),
 			api:       mock.API{GetStatsJSONFn: getStatsJSONError},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       args("stats historical --service-id=123 --format=json"),
+			args:       args("stats historical --service-id=123 --format=json --token 123"),
 			api:        mock.API{GetStatsJSONFn: getStatsJSONOK},
 			wantOutput: historicalJSONOK,
 		},

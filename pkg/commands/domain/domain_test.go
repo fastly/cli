@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package domain_test
 
 import (
@@ -8,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v6/fastly"
@@ -18,11 +20,11 @@ func TestDomainCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("domain create --version 1 --service-id 123"),
+			Args:      args("domain create --version 1 --service-id 123 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -31,7 +33,7 @@ func TestDomainCreate(t *testing.T) {
 			WantOutput: "Created domain www.test.com (service 123 version 4)",
 		},
 		{
-			Args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -56,7 +58,7 @@ func TestDomainList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args: args("domain list --service-id 123 --version 1"),
+			Args: args("domain list --service-id 123 --version 1 --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -64,7 +66,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsShortOutput,
 		},
 		{
-			Args: args("domain list --service-id 123 --version 1 --verbose"),
+			Args: args("domain list --service-id 123 --version 1 --verbose --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -72,7 +74,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			Args: args("domain list --service-id 123 --version 1 -v"),
+			Args: args("domain list --service-id 123 --version 1 -v --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -80,7 +82,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			Args: args("domain --verbose list --service-id 123 --version 1"),
+			Args: args("domain --verbose list --service-id 123 --version 1 --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -88,7 +90,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			Args: args("-v domain list --service-id 123 --version 1"),
+			Args: args("-v domain list --service-id 123 --version 1 --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -96,7 +98,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			Args: args("domain list --service-id 123 --version 1"),
+			Args: args("domain list --service-id 123 --version 1 --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsError,
@@ -120,11 +122,11 @@ func TestDomainDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("domain describe --service-id 123 --version 1"),
+			Args:      args("domain describe --service-id 123 --version 1 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
+			Args: args("domain describe --service-id 123 --version 1 --name www.test.com --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainError,
@@ -132,7 +134,7 @@ func TestDomainDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
+			Args: args("domain describe --service-id 123 --version 1 --name www.test.com --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainOK,
@@ -156,11 +158,11 @@ func TestDomainUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("domain update --service-id 123 --version 1 --new-name www.test.com --comment "),
+			Args:      args("domain update --service-id 123 --version 1 --new-name www.test.com --comment  --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("domain update --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: args("domain update --service-id 123 --version 1 --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -169,7 +171,7 @@ func TestDomainUpdate(t *testing.T) {
 			WantError: "error parsing arguments: must provide either --new-name or --comment to update domain",
 		},
 		{
-			Args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
+			Args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -178,7 +180,7 @@ func TestDomainUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
+			Args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -203,11 +205,11 @@ func TestDomainDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("domain delete --service-id 123 --version 1"),
+			Args:      args("domain delete --service-id 123 --version 1 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -216,7 +218,7 @@ func TestDomainDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -242,13 +244,8 @@ func TestDomainValidate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("domain validate"),
+			Args:      args("domain validate --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
-		},
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("domain validate --version 3"),
-			WantError: fsterr.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name:      "validate missing --service-id flag",
@@ -369,7 +366,7 @@ SERVICE  VERSION  NAME             COMMENT
 `) + "\n"
 
 var listDomainsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

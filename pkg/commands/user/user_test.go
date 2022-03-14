@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package user_test
 
 import (
@@ -6,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v6/fastly"
@@ -17,18 +19,13 @@ func TestCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --login flag",
-			Args:      args("user create --name foobar"),
+			Args:      args("user create --name foobar --token 123"),
 			WantError: "error parsing arguments: required flag --login not provided",
 		},
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("user create --login foo@example.com"),
+			Args:      args("user create --login foo@example.com --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("user create --login foo@example.com --name foobar"),
-			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name: "validate CreateUser API error",
@@ -72,13 +69,8 @@ func TestDelete(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --id flag",
-			Args:      args("user delete"),
+			Args:      args("user delete --token 123"),
 			WantError: "error parsing arguments: required flag --id not provided",
-		},
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("user delete --id foo123"),
-			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name: "validate DeleteUser API error",
@@ -117,11 +109,6 @@ func TestDelete(t *testing.T) {
 func TestDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("user describe"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
 		{
 			Name:      "validate missing --id flag",
 			Args:      args("user describe --token 123"),
@@ -181,11 +168,6 @@ func TestList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("user list --customer-id abc"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name:      "validate missing --customer-id flag",
 			Args:      args("user list --token 123"),
 			WantError: "error reading customer ID: no customer ID found",
@@ -233,11 +215,6 @@ func TestList(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("user update --id 123"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
 		{
 			Name:      "validate missing --id flag",
 			Args:      args("user update --token 123"),

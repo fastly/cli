@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package backend_test
 
 import (
@@ -17,7 +20,7 @@ func TestBackendCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend create --version 1 --service-id 123 --address example.com"),
+			Args:      args("backend create --version 1 --service-id 123 --address example.com --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		// The following test specifies a service version that's 'active', and
@@ -25,7 +28,7 @@ func TestBackendCreate(t *testing.T) {
 		// --autoclone flag and trying to add a backend to an activated service
 		// should cause an error.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com"),
+			Args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
@@ -34,7 +37,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as the above but it appends --autoclone
 		// so we can be sure the backend creation error still occurs.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com --autoclone"),
+			Args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -45,7 +48,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as above but with an IP address for the
 		// --address flag instead of a hostname.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
+			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -59,7 +62,7 @@ func TestBackendCreate(t *testing.T) {
 		// NOTE: Added --port flag to validate that a nil pointer dereference is
 		// not triggered at runtime when parsing the arguments.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080"),
+			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --token 123 --port 8080"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -69,7 +72,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// The following test validates that --service-name can replace --service-id
 		{
-			Args: args("backend create --service-name Foo --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
+			Args: args("backend create --service-name Foo --version 1 --address 127.0.0.1 --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				ListServicesFn:  listServicesOK,
@@ -82,7 +85,7 @@ func TestBackendCreate(t *testing.T) {
 		// --verbose so we may validate the expected output message regarding a
 		// missing port is displayed.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose"),
+			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -93,7 +96,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test specifies a service version that's 'inactive', and
 		// subsequently we expect it to be the same editable version.
 		{
-			Args: args("backend create --service-id 123 --version 3 --address 127.0.0.1 --name www.test.com"),
+			Args: args("backend create --service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
@@ -117,7 +120,7 @@ func TestBackendList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args: args("backend list --service-id 123 --version 1 --json"),
+			Args: args("backend list --service-id 123 --version 1 --json --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -125,7 +128,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: `[{"ServiceID":"123","ServiceVersion":1,"Name":"test.com","Comment":"test","Address":"www.test.com","Port":80,"OverrideHost":"","ConnectTimeout":0,"MaxConn":0,"ErrorThreshold":0,"FirstByteTimeout":0,"BetweenBytesTimeout":0,"AutoLoadbalance":false,"Weight":0,"RequestCondition":"","HealthCheck":"","Hostname":"","Shield":"","UseSSL":false,"SSLCheckCert":false,"SSLCACert":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLCertHostname":"","SSLSNIHostname":"","MinTLSVersion":"","MaxTLSVersion":"","SSLCiphers":"","CreatedAt":null,"UpdatedAt":null,"DeletedAt":null},{"ServiceID":"123","ServiceVersion":1,"Name":"example.com","Comment":"example","Address":"www.example.com","Port":443,"OverrideHost":"","ConnectTimeout":0,"MaxConn":0,"ErrorThreshold":0,"FirstByteTimeout":0,"BetweenBytesTimeout":0,"AutoLoadbalance":false,"Weight":0,"RequestCondition":"","HealthCheck":"","Hostname":"","Shield":"","UseSSL":false,"SSLCheckCert":false,"SSLCACert":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLCertHostname":"","SSLSNIHostname":"","MinTLSVersion":"","MaxTLSVersion":"","SSLCiphers":"","CreatedAt":null,"UpdatedAt":null,"DeletedAt":null}]`,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1 --json --verbose"),
+			Args: args("backend list --service-id 123 --version 1 --json --verbose --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -133,7 +136,7 @@ func TestBackendList(t *testing.T) {
 			WantError: fsterr.ErrInvalidVerboseJSONCombo.Error(),
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1"),
+			Args: args("backend list --service-id 123 --version 1 --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -141,7 +144,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsShortOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1 --verbose"),
+			Args: args("backend list --service-id 123 --version 1 --verbose --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -149,7 +152,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1 -v"),
+			Args: args("backend list --service-id 123 --version 1 -v --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -157,7 +160,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("backend --verbose list --service-id 123 --version 1"),
+			Args: args("backend --verbose list --service-id 123 --version 1 --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -165,7 +168,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("-v backend list --service-id 123 --version 1"),
+			Args: args("-v backend list --service-id 123 --version 1 --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -173,7 +176,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1"),
+			Args: args("backend list --service-id 123 --version 1 --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsError,
@@ -199,11 +202,11 @@ func TestBackendDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend describe --service-id 123 --version 1"),
+			Args:      args("backend describe --service-id 123 --version 1 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("backend describe --service-id 123 --version 1 --name www.test.com"),
+			Args: args("backend describe --service-id 123 --version 1 --name www.test.com --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendError,
@@ -211,7 +214,7 @@ func TestBackendDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("backend describe --service-id 123 --version 1 --name www.test.com"),
+			Args: args("backend describe --service-id 123 --version 1 --name www.test.com --token 123"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendOK,
@@ -235,11 +238,11 @@ func TestBackendUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend update --service-id 123 --version 2 --new-name www.test.com --comment "),
+			Args:      args("backend update --service-id 123 --version 2 --new-name www.test.com --comment  --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
+			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -249,7 +252,7 @@ func TestBackendUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone"),
+			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -275,11 +278,11 @@ func TestBackendDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend delete --service-id 123 --version 1"),
+			Args:      args("backend delete --service-id 123 --version 1 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -288,7 +291,7 @@ func TestBackendDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -356,7 +359,7 @@ SERVICE  VERSION  NAME         ADDRESS          PORT  COMMENT
 `) + "\n"
 
 var listBackendsVerboseOutput = strings.Join([]string{
-	"Fastly API token not provided",
+	"Fastly API token provided via --token",
 	"Fastly API endpoint: https://api.fastly.com",
 	"Service ID (via --service-id): 123",
 	"",

@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package dictionaryitem_test
 
 import (
@@ -22,22 +25,22 @@ func TestDictionaryItemDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("dictionary-item describe --service-id 123 --key foo"),
+			args:      args("dictionary-item describe --service-id 123 --key foo --token 123"),
 			api:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantError: "error parsing arguments: required flag --dictionary-id not provided",
 		},
 		{
-			args:      args("dictionary-item describe --service-id 123 --dictionary-id 456"),
+			args:      args("dictionary-item describe --service-id 123 --dictionary-id 456 --token 123"),
 			api:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantError: "error parsing arguments: required flag --key not provided",
 		},
 		{
-			args:       args("dictionary-item describe --service-id 123 --dictionary-id 456 --key foo"),
+			args:       args("dictionary-item describe --service-id 123 --dictionary-id 456 --key foo --token 123"),
 			api:        mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			wantOutput: describeDictionaryItemOutput,
 		},
 		{
-			args:       args("dictionary-item describe --service-id 123 --dictionary-id 456 --key foo-deleted"),
+			args:       args("dictionary-item describe --service-id 123 --dictionary-id 456 --key foo-deleted --token 123"),
 			api:        mock.API{GetDictionaryItemFn: describeDictionaryItemOKDeleted},
 			wantOutput: describeDictionaryItemOutputDeleted,
 		},
@@ -115,11 +118,11 @@ func TestDictionaryItemsList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("dictionary-item list --service-id 123"),
+			args:      args("dictionary-item list --service-id 123 --token 123"),
 			wantError: "error parsing arguments: required flag --dictionary-id not provided",
 		},
 		{
-			args:      args("dictionary-item list --dictionary-id 456"),
+			args:      args("dictionary-item list --dictionary-id 456 --token 123"),
 			wantError: "error reading service: no service ID found",
 		},
 		{
@@ -128,7 +131,7 @@ func TestDictionaryItemsList(t *testing.T) {
 					return &mockDictionaryItemPaginator{returnErr: true}
 				},
 			},
-			args:      args("dictionary-item list --service-id 123 --dictionary-id 456"),
+			args:      args("dictionary-item list --service-id 123 --dictionary-id 456 --token 123"),
 			wantError: testutil.Err.Error(),
 		},
 		// NOTE: Our mock paginator defines two dictionary items, and so even when
@@ -139,7 +142,7 @@ func TestDictionaryItemsList(t *testing.T) {
 					return &mockDictionaryItemPaginator{numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
-			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --per-page 1"),
+			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --per-page 1 --token 123"),
 			wantOutput: listDictionaryItemsOutput,
 		},
 		// In the following test, we set --page 1 and as there's only one record
@@ -150,7 +153,7 @@ func TestDictionaryItemsList(t *testing.T) {
 					return &mockDictionaryItemPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
-			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --page 1 --per-page 1"),
+			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --page 1 --per-page 1 --token 123"),
 			wantOutput: listDictionaryItemsPageOneOutput,
 		},
 		// In the following test, we set --page 2 and as there's only one record
@@ -161,7 +164,7 @@ func TestDictionaryItemsList(t *testing.T) {
 					return &mockDictionaryItemPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
-			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --page 2 --per-page 1"),
+			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --page 2 --per-page 1 --token 123"),
 			wantOutput: listDictionaryItemsPageTwoOutput,
 		},
 	} {
@@ -185,17 +188,17 @@ func TestDictionaryItemCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("dictionary-item create --service-id 123"),
+			args:      args("dictionary-item create --service-id 123 --token 123"),
 			api:       mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:      args("dictionary-item create --service-id 123 --dictionary-id 456"),
+			args:      args("dictionary-item create --service-id 123 --dictionary-id 456 --token 123"),
 			api:       mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:       args("dictionary-item create --service-id 123 --dictionary-id 456 --key foo --value bar"),
+			args:       args("dictionary-item create --service-id 123 --dictionary-id 456 --key foo --value bar --token 123"),
 			api:        mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			wantOutput: "\nSUCCESS: Created dictionary item foo (service 123, dictionary 456)\n",
 		},
@@ -221,22 +224,22 @@ func TestDictionaryItemUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("dictionary-item update --service-id 123"),
+			args:      args("dictionary-item update --service-id 123 --token 123"),
 			api:       mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			wantError: "error parsing arguments: required flag --dictionary-id not provided",
 		},
 		{
-			args:      args("dictionary-item update --service-id 123 --dictionary-id 456"),
+			args:      args("dictionary-item update --service-id 123 --dictionary-id 456 --token 123"),
 			api:       mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			wantError: "an empty value is not allowed for either the '--key' or '--value' flags",
 		},
 		{
-			args:       args("dictionary-item update --service-id 123 --dictionary-id 456 --key foo --value bar"),
+			args:       args("dictionary-item update --service-id 123 --dictionary-id 456 --key foo --value bar --token 123"),
 			api:        mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			wantOutput: updateDictionaryItemOutput,
 		},
 		{
-			args:      args("dictionary-item update --service-id 123 --dictionary-id 456 --file filePath"),
+			args:      args("dictionary-item update --service-id 123 --dictionary-id 456 --file filePath --token 123"),
 			fileData:  `{invalid": "json"}`,
 			wantError: "invalid character 'i' looking for beginning of object key string",
 		},
@@ -245,17 +248,17 @@ func TestDictionaryItemUpdate(t *testing.T) {
 		// systems report 'no such file or directory', while Windows will report
 		// 'The system cannot find the file specified'.
 		{
-			args:      args("dictionary-item update --service-id 123 --dictionary-id 456 --file missingPath"),
+			args:      args("dictionary-item update --service-id 123 --dictionary-id 456 --file missingPath --token 123"),
 			wantError: "open missingPath:",
 		},
 		{
-			args:      args("dictionary-item update --service-id 123 --dictionary-id 456 --file filePath"),
+			args:      args("dictionary-item update --service-id 123 --dictionary-id 456 --file filePath --token 123"),
 			fileData:  dictionaryItemBatchModifyInputOK,
 			api:       mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsError},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       args("dictionary-item update --service-id 123 --dictionary-id 456 --file filePath"),
+			args:       args("dictionary-item update --service-id 123 --dictionary-id 456 --file filePath --token 123"),
 			fileData:   dictionaryItemBatchModifyInputOK,
 			api:        mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsOK},
 			wantOutput: "\nSUCCESS: Made 4 modifications of Dictionary 456 on service 123\n",
@@ -294,17 +297,17 @@ func TestDictionaryItemDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("dictionary-item delete --service-id 123"),
+			args:      args("dictionary-item delete --service-id 123 --token 123"),
 			api:       mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:      args("dictionary-item delete --service-id 123 --dictionary-id 456"),
+			args:      args("dictionary-item delete --service-id 123 --dictionary-id 456 --token 123"),
 			api:       mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			wantError: "error parsing arguments: required flag ",
 		},
 		{
-			args:       args("dictionary-item delete --service-id 123 --dictionary-id 456 --key foo"),
+			args:       args("dictionary-item delete --service-id 123 --dictionary-id 456 --key foo --token 123"),
 			api:        mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			wantOutput: "\nSUCCESS: Deleted dictionary item foo (service 123, dicitonary 456)\n",
 		},

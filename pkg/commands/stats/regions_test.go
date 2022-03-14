@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package stats_test
 
 import (
@@ -21,12 +24,12 @@ func TestRegions(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       args("stats regions"),
+			args:       args("stats regions --token 123"),
 			api:        mock.API{GetRegionsFn: getRegionsOK},
 			wantOutput: "foo\nbar\nbaz\n",
 		},
 		{
-			args:      args("stats regions"),
+			args:      args("stats regions --token 123"),
 			api:       mock.API{GetRegionsFn: getRegionsError},
 			wantError: errTest.Error(),
 		},

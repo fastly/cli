@@ -40,11 +40,6 @@ type DescribeCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	if c.current {
 		r, err := c.Globals.APIClient.GetCurrentUser()
 		if err != nil {

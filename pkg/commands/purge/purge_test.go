@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package purge_test
 
 import (
@@ -14,11 +17,6 @@ import (
 func TestPurgeAll(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing token",
-			Args:      args("purge --all"),
-			WantError: "no token provided",
-		},
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      args("purge --all --token 123"),
@@ -69,11 +67,6 @@ func TestPurgeKeys(t *testing.T) {
 	var keys []string
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing token",
-			Args:      args("purge --file ./testdata/keys"),
-			WantError: "no token provided",
-		},
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      args("purge --file ./testdata/keys --token 123"),
@@ -142,11 +135,6 @@ func TestPurgeKey(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing token",
-			Args:      args("purge --key foobar"),
-			WantError: "no token provided",
-		},
-		{
 			Name:      "validate missing --service-id flag",
 			Args:      args("purge --key foobar --token 123"),
 			WantError: "error reading service: no service ID found",
@@ -204,11 +192,6 @@ func TestPurgeKey(t *testing.T) {
 func TestPurgeURL(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing token",
-			Args:      args("purge --url https://example.com"),
-			WantError: "no token provided",
-		},
 		{
 			Name: "validate Purge API error",
 			API: mock.API{

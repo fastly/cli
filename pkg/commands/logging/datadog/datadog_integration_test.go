@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package datadog_test
 
 import (
@@ -21,11 +24,11 @@ func TestDatadogCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging datadog create --service-id 123 --version 1 --name log"),
+			args:      args("logging datadog create --service-id 123 --version 1 --name log --token 123"),
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: args("logging datadog create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
+			args: args("logging datadog create --service-id 123 --version 1 --name log --auth-token abc --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -34,7 +37,7 @@ func TestDatadogCreate(t *testing.T) {
 			wantOutput: "Created Datadog logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("logging datadog create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
+			args: args("logging datadog create --service-id 123 --version 1 --name log --auth-token abc --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -63,7 +66,7 @@ func TestDatadogList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging datadog list --service-id 123 --version 1"),
+			args: args("logging datadog list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsOK,
@@ -71,7 +74,7 @@ func TestDatadogList(t *testing.T) {
 			wantOutput: listDatadogsShortOutput,
 		},
 		{
-			args: args("logging datadog list --service-id 123 --version 1 --verbose"),
+			args: args("logging datadog list --service-id 123 --version 1 --verbose --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsOK,
@@ -79,7 +82,7 @@ func TestDatadogList(t *testing.T) {
 			wantOutput: listDatadogsVerboseOutput,
 		},
 		{
-			args: args("logging datadog list --service-id 123 --version 1 -v"),
+			args: args("logging datadog list --service-id 123 --version 1 -v --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsOK,
@@ -87,7 +90,7 @@ func TestDatadogList(t *testing.T) {
 			wantOutput: listDatadogsVerboseOutput,
 		},
 		{
-			args: args("logging datadog --verbose list --service-id 123 --version 1"),
+			args: args("logging datadog --verbose list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsOK,
@@ -95,7 +98,7 @@ func TestDatadogList(t *testing.T) {
 			wantOutput: listDatadogsVerboseOutput,
 		},
 		{
-			args: args("logging -v datadog list --service-id 123 --version 1"),
+			args: args("logging -v datadog list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsOK,
@@ -103,7 +106,7 @@ func TestDatadogList(t *testing.T) {
 			wantOutput: listDatadogsVerboseOutput,
 		},
 		{
-			args: args("logging datadog list --service-id 123 --version 1"),
+			args: args("logging datadog list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsError,
@@ -131,11 +134,11 @@ func TestDatadogDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging datadog describe --service-id 123 --version 1"),
+			args:      args("logging datadog describe --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging datadog describe --service-id 123 --version 1 --name logs"),
+			args: args("logging datadog describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDatadogFn:   getDatadogError,
@@ -143,7 +146,7 @@ func TestDatadogDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging datadog describe --service-id 123 --version 1 --name logs"),
+			args: args("logging datadog describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDatadogFn:   getDatadogOK,
@@ -171,11 +174,11 @@ func TestDatadogUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging datadog update --service-id 123 --version 1 --new-name log"),
+			args:      args("logging datadog update --service-id 123 --version 1 --new-name log --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging datadog update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging datadog update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -184,7 +187,7 @@ func TestDatadogUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging datadog update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging datadog update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -213,11 +216,11 @@ func TestDatadogDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging datadog delete --service-id 123 --version 1"),
+			args:      args("logging datadog delete --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging datadog delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging datadog delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -226,7 +229,7 @@ func TestDatadogDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging datadog delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging datadog delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -303,7 +306,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listDatadogsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

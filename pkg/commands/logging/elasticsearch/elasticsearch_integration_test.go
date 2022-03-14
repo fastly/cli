@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package elasticsearch_test
 
 import (
@@ -21,7 +24,7 @@ func TestElasticsearchCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --index logs --autoclone"),
+			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --index logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -29,7 +32,7 @@ func TestElasticsearchCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --url example.com --autoclone"),
+			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --url example.com --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -37,7 +40,7 @@ func TestElasticsearchCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --index not provided",
 		},
 		{
-			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --index logs --url example.com --autoclone"),
+			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --index logs --url example.com --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
@@ -46,7 +49,7 @@ func TestElasticsearchCreate(t *testing.T) {
 			wantOutput: "Created Elasticsearch logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --index logs --url example.com --autoclone"),
+			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --index logs --url example.com --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
@@ -75,7 +78,7 @@ func TestElasticsearchList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging elasticsearch list --service-id 123 --version 1"),
+			args: args("logging elasticsearch list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
@@ -83,7 +86,7 @@ func TestElasticsearchList(t *testing.T) {
 			wantOutput: listElasticsearchsShortOutput,
 		},
 		{
-			args: args("logging elasticsearch list --service-id 123 --version 1 --verbose"),
+			args: args("logging elasticsearch list --service-id 123 --version 1 --verbose --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
@@ -91,7 +94,7 @@ func TestElasticsearchList(t *testing.T) {
 			wantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args: args("logging elasticsearch list --service-id 123 --version 1 -v"),
+			args: args("logging elasticsearch list --service-id 123 --version 1 -v --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
@@ -99,7 +102,7 @@ func TestElasticsearchList(t *testing.T) {
 			wantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args: args("logging elasticsearch --verbose list --service-id 123 --version 1"),
+			args: args("logging elasticsearch --verbose list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
@@ -107,7 +110,7 @@ func TestElasticsearchList(t *testing.T) {
 			wantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args: args("logging -v elasticsearch list --service-id 123 --version 1"),
+			args: args("logging -v elasticsearch list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
@@ -115,7 +118,7 @@ func TestElasticsearchList(t *testing.T) {
 			wantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args: args("logging elasticsearch list --service-id 123 --version 1"),
+			args: args("logging elasticsearch list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsError,
@@ -143,11 +146,11 @@ func TestElasticsearchDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging elasticsearch describe --service-id 123 --version 1"),
+			args:      args("logging elasticsearch describe --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging elasticsearch describe --service-id 123 --version 1 --name logs"),
+			args: args("logging elasticsearch describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				GetElasticsearchFn: getElasticsearchError,
@@ -155,7 +158,7 @@ func TestElasticsearchDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging elasticsearch describe --service-id 123 --version 1 --name logs"),
+			args: args("logging elasticsearch describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				GetElasticsearchFn: getElasticsearchOK,
@@ -183,11 +186,11 @@ func TestElasticsearchUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging elasticsearch update --service-id 123 --version 1 --new-name log"),
+			args:      args("logging elasticsearch update --service-id 123 --version 1 --new-name log --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging elasticsearch update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging elasticsearch update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
@@ -196,7 +199,7 @@ func TestElasticsearchUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging elasticsearch update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging elasticsearch update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
@@ -225,11 +228,11 @@ func TestElasticsearchDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging elasticsearch delete --service-id 123 --version 1"),
+			args:      args("logging elasticsearch delete --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging elasticsearch delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging elasticsearch delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
@@ -238,7 +241,7 @@ func TestElasticsearchDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging elasticsearch delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging elasticsearch delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
@@ -343,7 +346,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listElasticsearchsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package compute_test
 
 import (
@@ -51,14 +54,14 @@ func TestBuildRust(t *testing.T) {
 	}{
 		{
 			name:                 "no fastly.toml manifest",
-			args:                 args("compute build"),
+			args:                 args("compute build --token 123"),
 			client:               versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError:            "error reading package manifest",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
 		{
 			name: "empty language",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"`,
@@ -67,7 +70,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "empty name",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			language = "rust"`,
@@ -76,7 +79,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "unknown language",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -86,7 +89,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "error reading cargo metadata",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -110,7 +113,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "fastly-sys crate not found",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -149,7 +152,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "fastly-sys crate out-of-date",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -184,7 +187,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "rust toolchain does not match the constraint",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -221,7 +224,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "fastly crate prerelease",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -259,7 +262,7 @@ func TestBuildRust(t *testing.T) {
 		},
 		{
 			name: "Rust success",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -361,13 +364,13 @@ func TestBuildAssemblyScript(t *testing.T) {
 	}{
 		{
 			name:                 "no fastly.toml manifest",
-			args:                 args("compute build"),
+			args:                 args("compute build --token 123"),
 			wantError:            "error reading package manifest",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
 		{
 			name: "empty language",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"`,
@@ -375,7 +378,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 		},
 		{
 			name: "empty name",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			language = "assemblyscript"`,
@@ -383,7 +386,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 		},
 		{
 			name: "unknown language",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -392,7 +395,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 		},
 		{
 			name: "AssemblyScript success",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -487,13 +490,13 @@ func TestBuildJavaScript(t *testing.T) {
 	}{
 		{
 			name:                 "no fastly.toml manifest",
-			args:                 args("compute build"),
+			args:                 args("compute build --token 123"),
 			wantError:            "error reading package manifest",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
 		{
 			name: "empty language",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"`,
@@ -501,7 +504,7 @@ func TestBuildJavaScript(t *testing.T) {
 		},
 		{
 			name: "empty name",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			language = "javascript"`,
@@ -509,7 +512,7 @@ func TestBuildJavaScript(t *testing.T) {
 		},
 		{
 			name: "JavaScript success",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -518,7 +521,7 @@ func TestBuildJavaScript(t *testing.T) {
 		},
 		{
 			name: "JavaScript compilation error",
-			args: args("compute build --verbose"),
+			args: args("compute build --verbose --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -604,7 +607,7 @@ func TestCustomBuild(t *testing.T) {
 	}{
 		{
 			name: "no custom build",
-			args: args("compute build --language other"),
+			args: args("compute build --language other --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -617,7 +620,7 @@ func TestCustomBuild(t *testing.T) {
 		},
 		{
 			name: "stop build process",
-			args: args("compute build --language other"),
+			args: args("compute build --language other --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -635,7 +638,7 @@ func TestCustomBuild(t *testing.T) {
 		},
 		{
 			name: "allow build process",
-			args: args("compute build --language other"),
+			args: args("compute build --language other --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -652,7 +655,7 @@ func TestCustomBuild(t *testing.T) {
 		},
 		{
 			name: "language pulled from manifest",
-			args: args("compute build"),
+			args: args("compute build --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -669,7 +672,7 @@ func TestCustomBuild(t *testing.T) {
 		},
 		{
 			name: "display the custom build when in verbose mode",
-			args: args("compute build --verbose"),
+			args: args("compute build --verbose --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -687,7 +690,7 @@ func TestCustomBuild(t *testing.T) {
 		},
 		{
 			name: "display the custom build when in verbose mode and using a non-other language",
-			args: args("compute build --verbose"),
+			args: args("compute build --verbose --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -705,7 +708,7 @@ func TestCustomBuild(t *testing.T) {
 		},
 		{
 			name: "avoid prompt confirmation",
-			args: args("compute build --accept-custom-build --language other"),
+			args: args("compute build --accept-custom-build --language other --token 123"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"

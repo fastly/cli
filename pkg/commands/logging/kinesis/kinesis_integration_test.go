@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package kinesis_test
 
 import (
@@ -21,7 +24,7 @@ func TestKinesisCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --access-key foo --region us-east-1 --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --access-key foo --region us-east-1 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -29,7 +32,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -37,7 +40,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -45,7 +48,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -53,7 +56,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -61,7 +64,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -69,7 +72,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
 		},
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --access-key foo --secret-key bar --region us-east-1 --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --access-key foo --secret-key bar --region us-east-1 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -78,7 +81,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantOutput: "Created Kinesis logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --access-key foo --secret-key bar --region us-east-1 --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --access-key foo --secret-key bar --region us-east-1 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -87,7 +90,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log2 --stream-name log --region us-east-1 --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log2 --stream-name log --region us-east-1 --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -96,7 +99,7 @@ func TestKinesisCreate(t *testing.T) {
 			wantOutput: "Created Kinesis logging endpoint log2 (service 123 version 4)",
 		},
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log2 --stream-name log --region us-east-1 --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone"),
+			args: args("logging kinesis create --service-id 123 --version 1 --name log2 --stream-name log --region us-east-1 --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -125,7 +128,7 @@ func TestKinesisList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging kinesis list --service-id 123 --version 1"),
+			args: args("logging kinesis list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesOK,
@@ -133,7 +136,7 @@ func TestKinesisList(t *testing.T) {
 			wantOutput: listKinesesShortOutput,
 		},
 		{
-			args: args("logging kinesis list --service-id 123 --version 1 --verbose"),
+			args: args("logging kinesis list --service-id 123 --version 1 --verbose --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesOK,
@@ -141,7 +144,7 @@ func TestKinesisList(t *testing.T) {
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
-			args: args("logging kinesis list --service-id 123 --version 1 -v"),
+			args: args("logging kinesis list --service-id 123 --version 1 -v --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesOK,
@@ -149,7 +152,7 @@ func TestKinesisList(t *testing.T) {
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
-			args: args("logging kinesis --verbose list --service-id 123 --version 1"),
+			args: args("logging kinesis --verbose list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesOK,
@@ -157,7 +160,7 @@ func TestKinesisList(t *testing.T) {
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
-			args: args("logging -v kinesis list --service-id 123 --version 1"),
+			args: args("logging -v kinesis list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesOK,
@@ -165,7 +168,7 @@ func TestKinesisList(t *testing.T) {
 			wantOutput: listKinesesVerboseOutput,
 		},
 		{
-			args: args("logging kinesis list --service-id 123 --version 1"),
+			args: args("logging kinesis list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesError,
@@ -193,11 +196,11 @@ func TestKinesisDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging kinesis describe --service-id 123 --version 1"),
+			args:      args("logging kinesis describe --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging kinesis describe --service-id 123 --version 1 --name logs"),
+			args: args("logging kinesis describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetKinesisFn:   getKinesisError,
@@ -205,7 +208,7 @@ func TestKinesisDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging kinesis describe --service-id 123 --version 1 --name logs"),
+			args: args("logging kinesis describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetKinesisFn:   getKinesisOK,
@@ -233,11 +236,11 @@ func TestKinesisUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging kinesis update --service-id 123 --version 1 --new-name log"),
+			args:      args("logging kinesis update --service-id 123 --version 1 --new-name log --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging kinesis update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging kinesis update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -246,7 +249,7 @@ func TestKinesisUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging kinesis update --service-id 123 --version 1 --name logs --new-name log --region us-west-1 --autoclone"),
+			args: args("logging kinesis update --service-id 123 --version 1 --name logs --new-name log --region us-west-1 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -275,11 +278,11 @@ func TestKinesisDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging kinesis delete --service-id 123 --version 1"),
+			args:      args("logging kinesis delete --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging kinesis delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging kinesis delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -288,7 +291,7 @@ func TestKinesisDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging kinesis delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging kinesis delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -364,7 +367,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listKinesesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package compute_test
 
 import (
@@ -44,7 +47,7 @@ func TestUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "package API error",
-			Args: args("compute update -s 123 --version 1 --package pkg/package.tar.gz -t 123 --autoclone"),
+			Args: args("compute update -s 123 --version 1 --package pkg/package.tar.gz --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -58,7 +61,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "success",
-			Args: args("compute update -s 123 --version 2 --package pkg/package.tar.gz -t 123 --autoclone"),
+			Args: args("compute update -s 123 --version 2 --package pkg/package.tar.gz --autoclone --token 123"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),

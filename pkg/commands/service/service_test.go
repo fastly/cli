@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package service_test
 
 import (
@@ -25,37 +28,37 @@ func TestServiceCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service create"),
+			args:      args("service create --token 123"),
 			api:       mock.API{CreateServiceFn: createServiceOK},
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:       args("service create --name Foo"),
+			args:       args("service create --name Foo --token 123"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:       args("service create -n=Foo"),
+			args:       args("service create -n=Foo --token 123"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:       args("service create --name Foo --type wasm"),
+			args:       args("service create --name Foo --type wasm --token 123"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:       args("service create --name Foo --type wasm --comment Hello"),
+			args:       args("service create --name Foo --type wasm --comment Hello --token 123"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:       args("service create -n Foo --comment Hello"),
+			args:       args("service create -n Foo --comment Hello --token 123"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",
 		},
 		{
-			args:      args("service create -n Foo"),
+			args:      args("service create -n Foo --token 123"),
 			api:       mock.API{CreateServiceFn: createServiceError},
 			wantError: errTest.Error(),
 		},
@@ -166,7 +169,7 @@ func TestServiceList(t *testing.T) {
 					return &mockServicesPaginator{returnErr: true}
 				},
 			},
-			args:      args("service list"),
+			args:      args("service list --token 123"),
 			wantError: testutil.Err.Error(),
 		},
 		// NOTE: Our mock paginator defines three services, and so even when setting
@@ -177,7 +180,7 @@ func TestServiceList(t *testing.T) {
 					return &mockServicesPaginator{numOfPages: i.PerPage, maxPages: 3}
 				},
 			},
-			args:       args("service list --per-page 1"),
+			args:       args("service list --per-page 1 --token 123"),
 			wantOutput: listServicesShortOutput,
 		},
 		// In the following test, we set --page 1 and as there's only one record
@@ -188,7 +191,7 @@ func TestServiceList(t *testing.T) {
 					return &mockServicesPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 3}
 				},
 			},
-			args:       args("service list --page 1 --per-page 1"),
+			args:       args("service list --page 1 --per-page 1 --token 123"),
 			wantOutput: listServicesShortOutputPageOne,
 		},
 		// In the following test, we set --page 2 and as there's only one record
@@ -199,7 +202,7 @@ func TestServiceList(t *testing.T) {
 					return &mockServicesPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 3}
 				},
 			},
-			args:       args("service list --page 2 --per-page 1"),
+			args:       args("service list --page 2 --per-page 1 --token 123"),
 			wantOutput: listServicesShortOutputPageTwo,
 		},
 		{
@@ -208,7 +211,7 @@ func TestServiceList(t *testing.T) {
 					return &mockServicesPaginator{maxPages: 3}
 				},
 			},
-			args:       args("service list --verbose"),
+			args:       args("service list --verbose --token 123"),
 			wantOutput: listServicesVerboseOutput,
 		},
 	} {
@@ -232,37 +235,37 @@ func TestServiceDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service describe"),
+			args:      args("service describe --token 123"),
 			api:       mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args:       args("service describe --service-id 123"),
+			args:       args("service describe --service-id 123 --token 123"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceShortOutput,
 		},
 		{
-			args:       args("service describe --service-id 123 --verbose"),
+			args:       args("service describe --service-id 123 --verbose --token 123"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:       args("service describe --service-id 123 -v"),
+			args:       args("service describe --service-id 123 -v --token 123"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:       args("service --verbose describe --service-id 123"),
+			args:       args("service --verbose describe --service-id 123 --token 123"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:       args("-v service describe --service-id 123"),
+			args:       args("-v service describe --service-id 123 --token 123"),
 			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			wantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:      args("service describe --service-id 123"),
+			args:      args("service describe --service-id 123 --token 123"),
 			api:       mock.API{GetServiceDetailsFn: describeServiceError},
 			wantError: errTest.Error(),
 		},
@@ -287,21 +290,21 @@ func TestServiceSearch(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service search"),
+			args:      args("service search --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:       args("service search --name Foo"),
+			args:       args("service search --name Foo --token 123"),
 			api:        mock.API{SearchServiceFn: searchServiceOK},
 			wantOutput: searchServiceShortOutput,
 		},
 		{
-			args:       args("service search --name Foo -v"),
+			args:       args("service search --name Foo -v --token 123"),
 			api:        mock.API{SearchServiceFn: searchServiceOK},
 			wantOutput: searchServiceVerboseOutput,
 		},
 		{
-			args:      args("service search --name"),
+			args:      args("service search --name --token 123"),
 			api:       mock.API{SearchServiceFn: searchServiceOK},
 			wantError: "error parsing arguments: expected argument for flag '--name'",
 		},
@@ -326,7 +329,7 @@ func TestServiceUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("service update"),
+			args: args("service update --token 123"),
 			api: mock.API{
 				GetServiceFn:    getServiceOK,
 				UpdateServiceFn: updateServiceOK,
@@ -334,37 +337,37 @@ func TestServiceUpdate(t *testing.T) {
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args:      args("service update --service-id 12345"),
+			args:      args("service update --service-id 12345 --token 123"),
 			api:       mock.API{UpdateServiceFn: updateServiceOK},
 			wantError: "error parsing arguments: must provide either --name or --comment to update service",
 		},
 		{
-			args:       args("service update --service-id 12345 --name Foo"),
+			args:       args("service update --service-id 12345 --name Foo --token 123"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:       args("service update --service-id 12345 -n=Foo"),
+			args:       args("service update --service-id 12345 -n=Foo --token 123"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:       args("service update --service-id 12345 --name Foo"),
+			args:       args("service update --service-id 12345 --name Foo --token 123"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:       args("service update --service-id 12345 --name Foo --comment Hello"),
+			args:       args("service update --service-id 12345 --name Foo --comment Hello --token 123"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:       args("service update --service-id 12345 -n Foo --comment Hello"),
+			args:       args("service update --service-id 12345 -n Foo --comment Hello --token 123"),
 			api:        mock.API{UpdateServiceFn: updateServiceOK},
 			wantOutput: "Updated service 12345",
 		},
 		{
-			args:      args("service update --service-id 12345 -n Foo"),
+			args:      args("service update --service-id 12345 -n Foo --token 123"),
 			api:       mock.API{UpdateServiceFn: updateServiceError},
 			wantError: errTest.Error(),
 		},
@@ -393,32 +396,32 @@ func TestServiceDelete(t *testing.T) {
 		expectEmptyServiceID bool
 	}{
 		{
-			args:      args("service delete"),
+			args:      args("service delete --token 123"),
 			api:       mock.API{DeleteServiceFn: deleteServiceOK},
 			manifest:  "fastly-no-serviceid.toml",
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args:                 args("service delete"),
+			args:                 args("service delete --token 123"),
 			api:                  mock.API{DeleteServiceFn: deleteServiceOK},
 			manifest:             "fastly-valid.toml",
 			wantOutput:           "Deleted service ID 123",
 			expectEmptyServiceID: true,
 		},
 		{
-			args:       args("service delete --service-id 001"),
+			args:       args("service delete --service-id 001 --token 123"),
 			api:        mock.API{DeleteServiceFn: deleteServiceOK},
 			wantOutput: "Deleted service ID 001",
 		},
 		{
-			args:                 args("service delete --service-id 001"),
+			args:                 args("service delete --service-id 001 --token 123"),
 			api:                  mock.API{DeleteServiceFn: deleteServiceOK},
 			manifest:             "fastly-valid.toml",
 			wantOutput:           "Deleted service ID 001",
 			expectEmptyServiceID: false,
 		},
 		{
-			args:      args("service delete --service-id 001"),
+			args:      args("service delete --service-id 001 --token 123"),
 			api:       mock.API{DeleteServiceFn: deleteServiceError},
 			manifest:  "fastly-valid.toml",
 			wantError: errTest.Error(),
@@ -518,7 +521,7 @@ Bar   456  wasm  1               2015-03-14 12:59
 `) + "\n"
 
 var listServicesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service 1/3
 	ID: 123
@@ -664,7 +667,7 @@ Versions: 2
 `) + "\n"
 
 var describeServiceVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 
@@ -773,7 +776,7 @@ Versions: 2
 `) + "\n"
 
 var searchServiceVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 ID: 123
 Name: Foo

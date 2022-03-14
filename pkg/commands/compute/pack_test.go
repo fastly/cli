@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package compute_test
 
 import (
@@ -25,7 +28,7 @@ func TestPack(t *testing.T) {
 		// created successfully.
 		{
 			name: "success for directory structure",
-			args: args("compute pack --wasm-binary ./main.wasm"),
+			args: args("compute pack --wasm-binary ./main.wasm --token 123"),
 			manifest: `
 			manifest_version = 2
 			name = "mypackagename"`,
@@ -45,7 +48,7 @@ func TestPack(t *testing.T) {
 		// created successfully when `name` contains whitespace.
 		{
 			name: "success with name containing whitespace",
-			args: args("compute pack --wasm-binary ./main.wasm"),
+			args: args("compute pack --wasm-binary ./main.wasm --token 123"),
 			manifest: `
 			manifest_version = 2
 			name = "another name"`,
@@ -65,13 +68,13 @@ func TestPack(t *testing.T) {
 		// provided.
 		{
 			name:      "error no path flag",
-			args:      args("compute pack"),
+			args:      args("compute pack --token 123"),
 			manifest:  `name = "precompiled"`,
 			wantError: "error parsing arguments: required flag --wasm-binary not provided",
 		},
 		{
 			name: "error no path flag value provided",
-			args: args("compute pack --wasm-binary "),
+			args: args("compute pack --wasm-binary  --token 123"),
 			manifest: `
 			manifest_version = 2
 			name = "precompiled"`,

@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package whoami_test
 
 import (
@@ -28,12 +31,6 @@ func TestWhoami(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			name:      "no token",
-			args:      args("whoami"),
-			client:    verifyClient(basicResponse),
-			wantError: "no token provided",
-		},
 		{
 			name:       "basic response",
 			args:       args("--token=x whoami"),

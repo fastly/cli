@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package logentries_test
 
 import (
@@ -21,7 +24,7 @@ func TestLogentriesCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging logentries create --service-id 123 --version 1 --name log --port 20000 --autoclone"),
+			args: args("logging logentries create --service-id 123 --version 1 --name log --port 20000 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -30,7 +33,7 @@ func TestLogentriesCreate(t *testing.T) {
 			wantOutput: "Created Logentries logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("logging logentries create --service-id 123 --version 1 --name log --port 20000 --autoclone"),
+			args: args("logging logentries create --service-id 123 --version 1 --name log --port 20000 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -59,7 +62,7 @@ func TestLogentriesList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging logentries list --service-id 123 --version 1"),
+			args: args("logging logentries list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -67,7 +70,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesShortOutput,
 		},
 		{
-			args: args("logging logentries list --service-id 123 --version 1 --verbose"),
+			args: args("logging logentries list --service-id 123 --version 1 --verbose --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -75,7 +78,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args: args("logging logentries list --service-id 123 --version 1 -v"),
+			args: args("logging logentries list --service-id 123 --version 1 -v --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -83,7 +86,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args: args("logging logentries --verbose list --service-id 123 --version 1"),
+			args: args("logging logentries --verbose list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -91,7 +94,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args: args("logging -v logentries list --service-id 123 --version 1"),
+			args: args("logging -v logentries list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesOK,
@@ -99,7 +102,7 @@ func TestLogentriesList(t *testing.T) {
 			wantOutput: listLogentriesVerboseOutput,
 		},
 		{
-			args: args("logging logentries list --service-id 123 --version 1"),
+			args: args("logging logentries list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListLogentriesFn: listLogentriesError,
@@ -127,11 +130,11 @@ func TestLogentriesDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging logentries describe --service-id 123 --version 1"),
+			args:      args("logging logentries describe --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging logentries describe --service-id 123 --version 1 --name logs"),
+			args: args("logging logentries describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetLogentriesFn: getLogentriesError,
@@ -139,7 +142,7 @@ func TestLogentriesDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging logentries describe --service-id 123 --version 1 --name logs"),
+			args: args("logging logentries describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetLogentriesFn: getLogentriesOK,
@@ -167,11 +170,11 @@ func TestLogentriesUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging logentries update --service-id 123 --version 1 --new-name log"),
+			args:      args("logging logentries update --service-id 123 --version 1 --new-name log --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging logentries update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging logentries update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -180,7 +183,7 @@ func TestLogentriesUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging logentries update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging logentries update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -209,11 +212,11 @@ func TestLogentriesDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging logentries delete --service-id 123 --version 1"),
+			args:      args("logging logentries delete --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging logentries delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging logentries delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -222,7 +225,7 @@ func TestLogentriesDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging logentries delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging logentries delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -298,7 +301,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listLogentriesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

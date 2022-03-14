@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package aclentry_test
 
 import (
@@ -15,17 +18,17 @@ func TestACLEntryCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --acl-id flag",
-			Args:      args("acl-entry create --ip 127.0.0.1"),
+			Args:      args("acl-entry create --ip 127.0.0.1 --token 123"),
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --ip flag",
-			Args:      args("acl-entry create --acl-id 123"),
+			Args:      args("acl-entry create --acl-id 123 --token 123"),
 			WantError: "error parsing arguments: required flag --ip not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl-entry create --acl-id 123 --ip 127.0.0.1"),
+			Args:      args("acl-entry create --acl-id 123 --ip 127.0.0.1 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -35,7 +38,7 @@ func TestACLEntryCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl-entry create --acl-id 123 --ip 127.0.0.1 --service-id 123"),
+			Args:      args("acl-entry create --acl-id 123 --ip 127.0.0.1 --service-id 123 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -50,7 +53,7 @@ func TestACLEntryCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl-entry create --acl-id 123 --ip 127.0.0.1 --service-id 123"),
+			Args:       args("acl-entry create --acl-id 123 --ip 127.0.0.1 --service-id 123 --token 123"),
 			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, negated: false, service: 123)",
 		},
 		{
@@ -66,7 +69,7 @@ func TestACLEntryCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl-entry create --acl-id 123 --ip 127.0.0.1 --negated --service-id 123"),
+			Args:       args("acl-entry create --acl-id 123 --ip 127.0.0.1 --negated --service-id 123 --token 123"),
 			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, negated: true, service: 123)",
 		},
 	}
@@ -88,17 +91,17 @@ func TestACLEntryDelete(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --acl-id flag",
-			Args:      args("acl-entry delete --id 456"),
+			Args:      args("acl-entry delete --id 456 --token 123"),
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --id flag",
-			Args:      args("acl-entry delete --acl-id 123"),
+			Args:      args("acl-entry delete --acl-id 123 --token 123"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl-entry delete --acl-id 123 --id 456"),
+			Args:      args("acl-entry delete --acl-id 123 --id 456 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -108,7 +111,7 @@ func TestACLEntryDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("acl-entry delete --acl-id 123 --id 456 --service-id 123"),
+			Args:      args("acl-entry delete --acl-id 123 --id 456 --service-id 123 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -118,7 +121,7 @@ func TestACLEntryDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("acl-entry delete --acl-id 123 --id 456 --service-id 123"),
+			Args:       args("acl-entry delete --acl-id 123 --id 456 --service-id 123 --token 123"),
 			WantOutput: "Deleted ACL entry '456' (service: 123)",
 		},
 	}
@@ -140,17 +143,17 @@ func TestACLEntryDescribe(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --acl-id flag",
-			Args:      args("acl-entry describe --id 456"),
+			Args:      args("acl-entry describe --id 456 --token 123"),
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --id flag",
-			Args:      args("acl-entry describe --acl-id 123"),
+			Args:      args("acl-entry describe --acl-id 123 --token 123"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl-entry describe --acl-id 123 --id 456"),
+			Args:      args("acl-entry describe --acl-id 123 --id 456 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -160,7 +163,7 @@ func TestACLEntryDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl-entry describe --acl-id 123 --id 456 --service-id 123"),
+			Args:      args("acl-entry describe --acl-id 123 --id 456 --service-id 123 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -168,7 +171,7 @@ func TestACLEntryDescribe(t *testing.T) {
 			API: mock.API{
 				GetACLEntryFn: getACLEntry,
 			},
-			Args:       args("acl-entry describe --acl-id 123 --id 456 --service-id 123"),
+			Args:       args("acl-entry describe --acl-id 123 --id 456 --service-id 123 --token 123"),
 			WantOutput: "\nService ID: 123\nACL ID: 123\nID: 456\nIP: 127.0.0.1\nSubnet: 0\nNegated: false\nComment: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
@@ -252,12 +255,12 @@ func TestACLEntryList(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --acl-id flag",
-			Args:      args("acl-entry list"),
+			Args:      args("acl-entry list --token 123"),
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl-entry list --acl-id 123"),
+			Args:      args("acl-entry list --acl-id 123 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -267,7 +270,7 @@ func TestACLEntryList(t *testing.T) {
 					return &mockACLPaginator{returnErr: true}
 				},
 			},
-			Args:      args("acl-entry list --acl-id 123 --service-id 123"),
+			Args:      args("acl-entry list --acl-id 123 --service-id 123 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		// NOTE: Our mock paginator defines two ACL entries, and so even when
@@ -279,7 +282,7 @@ func TestACLEntryList(t *testing.T) {
 					return &mockACLPaginator{numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
-			Args:       args("acl-entry list --acl-id 123 --per-page 1 --service-id 123"),
+			Args:       args("acl-entry list --acl-id 123 --per-page 1 --service-id 123 --token 123"),
 			WantOutput: listACLEntriesOutput,
 		},
 		// In the following test, we set --page 1 and as there's only one record
@@ -291,7 +294,7 @@ func TestACLEntryList(t *testing.T) {
 					return &mockACLPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
-			Args:       args("acl-entry list --acl-id 123 --page 1 --per-page 1 --service-id 123"),
+			Args:       args("acl-entry list --acl-id 123 --page 1 --per-page 1 --service-id 123 --token 123"),
 			WantOutput: listACLEntriesOutputPageOne,
 		},
 		// In the following test, we set --page 2 and as there's only one record
@@ -303,7 +306,7 @@ func TestACLEntryList(t *testing.T) {
 					return &mockACLPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
-			Args:       args("acl-entry list --acl-id 123 --page 2 --per-page 1 --service-id 123"),
+			Args:       args("acl-entry list --acl-id 123 --page 2 --per-page 1 --service-id 123 --token 123"),
 			WantOutput: listACLEntriesOutputPageTwo,
 		},
 		{
@@ -313,7 +316,7 @@ func TestACLEntryList(t *testing.T) {
 					return &mockACLPaginator{numOfPages: i.PerPage, maxPages: 2}
 				},
 			},
-			Args:       args("acl-entry list --acl-id 123 --per-page 1 --service-id 123 --verbose"),
+			Args:       args("acl-entry list --acl-id 123 --per-page 1 --service-id 123 --verbose --token 123"),
 			WantOutput: listACLEntriesOutputVerbose,
 		},
 	}
@@ -343,7 +346,7 @@ var listACLEntriesOutputPageTwo = `SERVICE ID  ID   IP         SUBNET  NEGATED
 123         789  127.0.0.2  0       true
 `
 
-var listACLEntriesOutputVerbose = `Fastly API token not provided
+var listACLEntriesOutputVerbose = `Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 
@@ -375,17 +378,17 @@ func TestACLEntryUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --acl-id flag",
-			Args:      args("acl-entry update"),
+			Args:      args("acl-entry update --token 123"),
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl-entry update --acl-id 123"),
+			Args:      args("acl-entry update --acl-id 123 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --id flag for single entry update",
-			Args:      args("acl-entry update --acl-id 123 --service-id 123"),
+			Args:      args("acl-entry update --acl-id 123 --service-id 123 --token 123"),
 			WantError: "no ID found",
 		},
 		{
@@ -395,7 +398,7 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl-entry update --acl-id 123 --id 456 --service-id 123"),
+			Args:      args("acl-entry update --acl-id 123 --id 456 --service-id 123 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -405,7 +408,7 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Args:      args(`acl-entry update --acl-id 123 --file {"foo":"bar"} --id 456 --service-id 123`),
+			Args:      args(`acl-entry update --acl-id 123 --file {"foo":"bar"} --id 456 --service-id 123 --token 123`),
 			WantError: "missing 'entries'",
 		},
 		{
@@ -415,7 +418,7 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Args:      args(`acl-entry update --acl-id 123 --file {"entries":[]} --id 456 --service-id 123`),
+			Args:      args(`acl-entry update --acl-id 123 --file {"entries":[]} --id 456 --service-id 123 --token 123`),
 			WantError: "missing 'entries'",
 		},
 		{
@@ -425,7 +428,7 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("acl-entry update --acl-id 123 --file testdata/batch.json --id 456 --service-id 123"),
+			Args:       args("acl-entry update --acl-id 123 --file testdata/batch.json --id 456 --service-id 123 --token 123"),
 			WantOutput: "Updated 3 ACL entries (service: 123)",
 		},
 		// NOTE: When specifying JSON inline be sure not to have any spaces, and don't
@@ -439,7 +442,7 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args(`acl-entry update --acl-id 123 --file {"entries":[{"op":"create","ip":"127.0.0.1","subnet":8},{"op":"update"},{"op":"upsert"}]} --id 456 --service-id 123`),
+			Args:       args(`acl-entry update --acl-id 123 --file {"entries":[{"op":"create","ip":"127.0.0.1","subnet":8},{"op":"update"},{"op":"upsert"}]} --id 456 --service-id 123 --token 123`),
 			WantOutput: "Updated 3 ACL entries (service: 123)",
 		},
 	}

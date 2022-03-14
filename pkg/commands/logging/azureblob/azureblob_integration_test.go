@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package azureblob_test
 
 import (
@@ -21,15 +24,15 @@ func TestBlobStorageCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --sas-token abc"),
+			args:      args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --sas-token abc --token 123"),
 			wantError: "error parsing arguments: required flag --container not provided",
 		},
 		{
-			args:      args("logging azureblob create --service-id 123 --version 1 --name log --container log --sas-token abc"),
+			args:      args("logging azureblob create --service-id 123 --version 1 --name log --container log --sas-token abc --token 123"),
 			wantError: "error parsing arguments: required flag --account-name not provided",
 		},
 		{
-			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --autoclone"),
+			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -38,7 +41,7 @@ func TestBlobStorageCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --sas-token not provided",
 		},
 		{
-			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --autoclone"),
+			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -47,7 +50,7 @@ func TestBlobStorageCreate(t *testing.T) {
 			wantOutput: "Created Azure Blob Storage logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --autoclone"),
+			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -56,7 +59,7 @@ func TestBlobStorageCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --compression-codec zstd --gzip-level 9 --autoclone"),
+			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --compression-codec zstd --gzip-level 9 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -85,7 +88,7 @@ func TestBlobStorageList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging azureblob list --service-id 123 --version 1"),
+			args: args("logging azureblob list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -93,7 +96,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesShortOutput,
 		},
 		{
-			args: args("logging azureblob list --service-id 123 --version 1 --verbose"),
+			args: args("logging azureblob list --service-id 123 --version 1 --verbose --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -101,7 +104,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesVerboseOutput,
 		},
 		{
-			args: args("logging azureblob list --service-id 123 --version 1 -v"),
+			args: args("logging azureblob list --service-id 123 --version 1 -v --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -109,7 +112,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesVerboseOutput,
 		},
 		{
-			args: args("logging azureblob --verbose list --service-id 123 --version 1"),
+			args: args("logging azureblob --verbose list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -117,7 +120,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesVerboseOutput,
 		},
 		{
-			args: args("logging -v azureblob list --service-id 123 --version 1"),
+			args: args("logging -v azureblob list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesOK,
@@ -125,7 +128,7 @@ func TestBlobStorageList(t *testing.T) {
 			wantOutput: listBlobStoragesVerboseOutput,
 		},
 		{
-			args: args("logging azureblob list --service-id 123 --version 1"),
+			args: args("logging azureblob list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListBlobStoragesFn: listBlobStoragesError,
@@ -153,11 +156,11 @@ func TestBlobStorageDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging azureblob describe --service-id 123 --version 1"),
+			args:      args("logging azureblob describe --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging azureblob describe --service-id 123 --version 1 --name logs"),
+			args: args("logging azureblob describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				GetBlobStorageFn: getBlobStorageError,
@@ -165,7 +168,7 @@ func TestBlobStorageDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging azureblob describe --service-id 123 --version 1 --name logs"),
+			args: args("logging azureblob describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				GetBlobStorageFn: getBlobStorageOK,
@@ -193,11 +196,11 @@ func TestBlobStorageUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging azureblob update --service-id 123 --version 1 --new-name log"),
+			args:      args("logging azureblob update --service-id 123 --version 1 --new-name log --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging azureblob update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging azureblob update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -206,7 +209,7 @@ func TestBlobStorageUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging azureblob update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging azureblob update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -235,11 +238,11 @@ func TestBlobStorageDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging azureblob delete --service-id 123 --version 1"),
+			args:      args("logging azureblob delete --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging azureblob delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging azureblob delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -248,7 +251,7 @@ func TestBlobStorageDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging azureblob delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging azureblob delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -349,7 +352,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listBlobStoragesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

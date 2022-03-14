@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package compute_test
 
 import (
@@ -15,7 +18,7 @@ func TestValidate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:       "success",
-			Args:       args("compute validate --package pkg/package.tar.gz"),
+			Args:       args("compute validate --package pkg/package.tar.gz --token 123"),
 			WantError:  "",
 			WantOutput: "Validated package",
 		},

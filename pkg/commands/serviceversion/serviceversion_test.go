@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package serviceversion_test
 
 import (
@@ -20,15 +23,15 @@ func TestVersionClone(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service-version clone --version 1"),
+			args:      args("service-version clone --version 1 --token 123"),
 			wantError: "error reading service: no service ID found",
 		},
 		{
-			args:      args("service-version clone --service-id 123"),
+			args:      args("service-version clone --service-id 123 --token 123"),
 			wantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("service-version clone --service-id 123 --version 1"),
+			args: args("service-version clone --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -36,7 +39,7 @@ func TestVersionClone(t *testing.T) {
 			wantOutput: "Cloned service 123 version 1 to version 4",
 		},
 		{
-			args: args("service-version clone --service-id 456 --version 1"),
+			args: args("service-version clone --service-id 456 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionError,
@@ -64,32 +67,32 @@ func TestVersionList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:       args("service-version list --service-id 123"),
+			args:       args("service-version list --service-id 123 --token 123"),
 			api:        mock.API{ListVersionsFn: testutil.ListVersions},
 			wantOutput: listVersionsShortOutput,
 		},
 		{
-			args:       args("service-version list --service-id 123 --verbose"),
+			args:       args("service-version list --service-id 123 --verbose --token 123"),
 			api:        mock.API{ListVersionsFn: testutil.ListVersions},
 			wantOutput: listVersionsVerboseOutput,
 		},
 		{
-			args:       args("service-version list --service-id 123 -v"),
+			args:       args("service-version list --service-id 123 -v --token 123"),
 			api:        mock.API{ListVersionsFn: testutil.ListVersions},
 			wantOutput: listVersionsVerboseOutput,
 		},
 		{
-			args:       args("service-version --verbose list --service-id 123"),
+			args:       args("service-version --verbose list --service-id 123 --token 123"),
 			api:        mock.API{ListVersionsFn: testutil.ListVersions},
 			wantOutput: listVersionsVerboseOutput,
 		},
 		{
-			args:       args("-v service-version list --service-id 123"),
+			args:       args("-v service-version list --service-id 123 --token 123"),
 			api:        mock.API{ListVersionsFn: testutil.ListVersions},
 			wantOutput: listVersionsVerboseOutput,
 		},
 		{
-			args:      args("service-version list --service-id 123"),
+			args:      args("service-version list --service-id 123 --token 123"),
 			api:       mock.API{ListVersionsFn: testutil.ListVersionsError},
 			wantError: testutil.Err.Error(),
 		},
@@ -114,7 +117,7 @@ func TestVersionUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("service-version update --service-id 123 --version 1 --comment foo --autoclone"),
+			args: args("service-version update --service-id 123 --version 1 --comment foo --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -123,7 +126,7 @@ func TestVersionUpdate(t *testing.T) {
 			wantOutput: "Updated service 123 version 4",
 		},
 		{
-			args: args("service-version update --service-id 123 --version 1 --autoclone"),
+			args: args("service-version update --service-id 123 --version 1 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -131,7 +134,7 @@ func TestVersionUpdate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --comment not provided",
 		},
 		{
-			args: args("service-version update --service-id 123 --version 1 --comment foo --autoclone"),
+			args: args("service-version update --service-id 123 --version 1 --comment foo --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -160,11 +163,11 @@ func TestVersionActivate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service-version activate --service-id 123"),
+			args:      args("service-version activate --service-id 123 --token 123"),
 			wantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("service-version activate --service-id 123 --version 1 --autoclone"),
+			args: args("service-version activate --service-id 123 --version 1 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -173,7 +176,7 @@ func TestVersionActivate(t *testing.T) {
 			wantError: testutil.Err.Error(),
 		},
 		{
-			args: args("service-version activate --service-id 123 --version 1 --autoclone"),
+			args: args("service-version activate --service-id 123 --version 1 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -182,7 +185,7 @@ func TestVersionActivate(t *testing.T) {
 			wantOutput: "Activated service 123 version 4",
 		},
 		{
-			args: args("service-version activate --service-id 123 --version 3 --autoclone"),
+			args: args("service-version activate --service-id 123 --version 3 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: activateVersionOK,
@@ -210,11 +213,11 @@ func TestVersionDeactivate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service-version deactivate --service-id 123"),
+			args:      args("service-version deactivate --service-id 123 --token 123"),
 			wantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("service-version deactivate --service-id 123 --version 1"),
+			args: args("service-version deactivate --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionOK,
@@ -222,7 +225,7 @@ func TestVersionDeactivate(t *testing.T) {
 			wantOutput: "Deactivated service 123 version 1",
 		},
 		{
-			args: args("service-version deactivate --service-id 123 --version 3"),
+			args: args("service-version deactivate --service-id 123 --version 3 --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionOK,
@@ -230,7 +233,7 @@ func TestVersionDeactivate(t *testing.T) {
 			wantOutput: "Deactivated service 123 version 3",
 		},
 		{
-			args: args("service-version deactivate --service-id 123 --version 3"),
+			args: args("service-version deactivate --service-id 123 --version 3 --token 123"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionError,
@@ -258,11 +261,11 @@ func TestVersionLock(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service-version lock --service-id 123"),
+			args:      args("service-version lock --service-id 123 --token 123"),
 			wantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("service-version lock --service-id 123 --version 1"),
+			args: args("service-version lock --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				LockVersionFn:  lockVersionOK,
@@ -270,7 +273,7 @@ func TestVersionLock(t *testing.T) {
 			wantOutput: "Locked service 123 version 1",
 		},
 		{
-			args: args("service-version lock --service-id 123 --version 1"),
+			args: args("service-version lock --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				LockVersionFn:  lockVersionError,
@@ -297,7 +300,7 @@ NUMBER  ACTIVE  LAST EDITED (UTC)
 `) + "\n"
 
 var listVersionsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

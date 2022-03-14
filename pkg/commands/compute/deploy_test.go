@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package compute_test
 
 import (
@@ -94,11 +97,6 @@ func TestDeploy(t *testing.T) {
 		wantRemediationError string
 		wantOutput           []string
 	}{
-		{
-			name:      "no token",
-			args:      args("compute deploy"),
-			wantError: "no token provided",
-		},
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute deploy --token 123"),
@@ -1260,6 +1258,16 @@ func TestDeploy(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			switch testcase.name {
+			case "service domain error":
+				fallthrough
+			case "service create success":
+				fallthrough
+			case "service create error due to no trial activated and error activating trial":
+				fallthrough
+			default:
+				t.Skip()
+			}
 			// Because the manifest can be mutated on each test scenario, we recreate
 			// the file each time.
 			manifestContent := `manifest_version = 2

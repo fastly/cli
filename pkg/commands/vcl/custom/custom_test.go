@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package custom_test
 
 import (
@@ -16,22 +19,22 @@ func TestVCLCustomCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --content flag",
-			Args:      args("vcl custom create --name foo --version 3"),
+			Args:      args("vcl custom create --name foo --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --content not provided",
 		},
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("vcl custom create --content /path/to/example.vcl --version 3"),
+			Args:      args("vcl custom create --content /path/to/example.vcl --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl custom create --content /path/to/example.vcl --name foo"),
+			Args:      args("vcl custom create --content /path/to/example.vcl --name foo --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl custom create --content /path/to/example.vcl --name foo --version 3"),
+			Args:      args("vcl custom create --content /path/to/example.vcl --name foo --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -39,7 +42,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl custom create --content ./testdata/example.vcl --name foo --service-id 123 --version 1"),
+			Args:      args("vcl custom create --content ./testdata/example.vcl --name foo --service-id 123 --version 1 --token 123"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -50,7 +53,7 @@ func TestVCLCustomCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("vcl custom create --content ./testdata/example.vcl --name foo --service-id 123 --version 3"),
+			Args:      args("vcl custom create --content ./testdata/example.vcl --name foo --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -70,7 +73,7 @@ func TestVCLCustomCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom create --content ./testdata/example.vcl --name foo --service-id 123 --version 3"),
+			Args:       args("vcl custom create --content ./testdata/example.vcl --name foo --service-id 123 --version 3 --token 123"),
 			WantOutput: "Created custom VCL 'foo' (service: 123, version: 3, main: false)",
 		},
 		{
@@ -90,7 +93,7 @@ func TestVCLCustomCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom create --content ./testdata/example.vcl --main --name foo --service-id 123 --version 3"),
+			Args:       args("vcl custom create --content ./testdata/example.vcl --main --name foo --service-id 123 --version 3 --token 123"),
 			WantOutput: "Created custom VCL 'foo' (service: 123, version: 3, main: true)",
 		},
 		{
@@ -111,7 +114,7 @@ func TestVCLCustomCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom create --autoclone --content ./testdata/example.vcl --name foo --service-id 123 --version 1"),
+			Args:       args("vcl custom create --autoclone --content ./testdata/example.vcl --name foo --service-id 123 --version 1 --token 123"),
 			WantOutput: "Created custom VCL 'foo' (service: 123, version: 4, main: false)",
 		},
 		{
@@ -131,7 +134,7 @@ func TestVCLCustomCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom create --content inline_vcl --name foo --service-id 123 --version 3"),
+			Args:       args("vcl custom create --content inline_vcl --name foo --service-id 123 --version 3 --token 123"),
 			WantOutput: "Created custom VCL 'foo' (service: 123, version: 3, main: false)",
 		},
 	}
@@ -154,17 +157,17 @@ func TestVCLCustomDelete(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("vcl custom delete --version 3"),
+			Args:      args("vcl custom delete --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl custom delete --name foobar"),
+			Args:      args("vcl custom delete --name foobar --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl custom delete --name foobar --version 3"),
+			Args:      args("vcl custom delete --name foobar --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -172,7 +175,7 @@ func TestVCLCustomDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl custom delete --name foobar --service-id 123 --version 1"),
+			Args:      args("vcl custom delete --name foobar --service-id 123 --version 1 --token 123"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -183,7 +186,7 @@ func TestVCLCustomDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("vcl custom delete --name foobar --service-id 123 --version 3"),
+			Args:      args("vcl custom delete --name foobar --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -194,7 +197,7 @@ func TestVCLCustomDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("vcl custom delete --name foobar --service-id 123 --version 3"),
+			Args:       args("vcl custom delete --name foobar --service-id 123 --version 3 --token 123"),
 			WantOutput: "Deleted custom VCL 'foobar' (service: 123, version: 3)",
 		},
 		{
@@ -206,7 +209,7 @@ func TestVCLCustomDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("vcl custom delete --autoclone --name foo --service-id 123 --version 1"),
+			Args:       args("vcl custom delete --autoclone --name foo --service-id 123 --version 1 --token 123"),
 			WantOutput: "Deleted custom VCL 'foo' (service: 123, version: 4)",
 		},
 	}
@@ -228,17 +231,17 @@ func TestVCLCustomDescribe(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("vcl custom describe --version 3"),
+			Args:      args("vcl custom describe --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl custom describe --name foobar"),
+			Args:      args("vcl custom describe --name foobar --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl custom describe --name foobar --version 3"),
+			Args:      args("vcl custom describe --name foobar --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -249,7 +252,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("vcl custom describe --name foobar --service-id 123 --version 3"),
+			Args:      args("vcl custom describe --name foobar --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -258,7 +261,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetVCLFn:       getVCL,
 			},
-			Args:       args("vcl custom describe --name foobar --service-id 123 --version 3"),
+			Args:       args("vcl custom describe --name foobar --service-id 123 --version 3 --token 123"),
 			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -267,7 +270,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetVCLFn:       getVCL,
 			},
-			Args:       args("vcl custom describe --name foobar --service-id 123 --version 1"),
+			Args:       args("vcl custom describe --name foobar --service-id 123 --version 1 --token 123"),
 			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
@@ -289,12 +292,12 @@ func TestVCLCustomList(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl custom list"),
+			Args:      args("vcl custom list --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl custom list --version 3"),
+			Args:      args("vcl custom list --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -305,7 +308,7 @@ func TestVCLCustomList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("vcl custom list --service-id 123 --version 3"),
+			Args:      args("vcl custom list --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -314,7 +317,7 @@ func TestVCLCustomList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListVCLsFn:     listVCLs,
 			},
-			Args:       args("vcl custom list --service-id 123 --version 3"),
+			Args:       args("vcl custom list --service-id 123 --version 3 --token 123"),
 			WantOutput: "SERVICE ID  VERSION  NAME  MAIN\n123         3        foo   true\n123         3        bar   false\n",
 		},
 		{
@@ -323,7 +326,7 @@ func TestVCLCustomList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListVCLsFn:     listVCLs,
 			},
-			Args:       args("vcl custom list --service-id 123 --version 1"),
+			Args:       args("vcl custom list --service-id 123 --version 1 --token 123"),
 			WantOutput: "SERVICE ID  VERSION  NAME  MAIN\n123         1        foo   true\n123         1        bar   false\n",
 		},
 		{
@@ -332,8 +335,8 @@ func TestVCLCustomList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListVCLsFn:     listVCLs,
 			},
-			Args:       args("vcl custom list --service-id 123 --verbose --version 1"),
-			WantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nMain: false\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			Args:       args("vcl custom list --service-id 123 --verbose --version 1 --token 123"),
+			WantOutput: "Fastly API token provided via --token\nFastly API endpoint: https://api.fastly.com\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nMain: false\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
@@ -355,17 +358,17 @@ func TestVCLCustomUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("vcl custom update --version 3"),
+			Args:      args("vcl custom update --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl custom update --name foobar"),
+			Args:      args("vcl custom update --name foobar --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl custom update --name foobar --version 3"),
+			Args:      args("vcl custom update --name foobar --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -373,7 +376,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl custom update --name foobar --service-id 123 --version 1"),
+			Args:      args("vcl custom update --name foobar --service-id 123 --version 1 --token 123"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -384,7 +387,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("vcl custom update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Args:      args("vcl custom update --name foobar --new-name beepboop --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -401,7 +404,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Args:       args("vcl custom update --name foobar --new-name beepboop --service-id 123 --version 3 --token 123"),
 			WantOutput: "Updated custom VCL 'beepboop' (previously: 'foobar', service: 123, version: 3)",
 		},
 		{
@@ -421,7 +424,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom update --content updated --name foobar --service-id 123 --version 3"),
+			Args:       args("vcl custom update --content updated --name foobar --service-id 123 --version 3 --token 123"),
 			WantOutput: "Updated custom VCL 'foobar' (service: 123, version: 3)",
 		},
 		{
@@ -442,7 +445,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("vcl custom update --autoclone --content ./testdata/example.vcl --name foo --service-id 123 --version 1"),
+			Args:       args("vcl custom update --autoclone --content ./testdata/example.vcl --name foo --service-id 123 --version 1 --token 123"),
 			WantOutput: "Updated custom VCL 'foo' (service: 123, version: 4)",
 		},
 	}

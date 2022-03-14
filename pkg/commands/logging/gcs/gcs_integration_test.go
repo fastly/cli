@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package gcs_test
 
 import (
@@ -21,7 +24,7 @@ func TestGCSCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --user foo@example.com --secret-key foo --autoclone"),
+			args: args("logging gcs create --service-id 123 --version 1 --name log --user foo@example.com --secret-key foo --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -29,7 +32,7 @@ func TestGCSCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --bucket not provided",
 		},
 		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --secret-key foo --autoclone"),
+			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --secret-key foo --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -37,7 +40,7 @@ func TestGCSCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --autoclone"),
+			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -45,7 +48,7 @@ func TestGCSCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone"),
+			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -54,7 +57,7 @@ func TestGCSCreate(t *testing.T) {
 			wantOutput: "Created GCS logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone"),
+			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -63,7 +66,7 @@ func TestGCSCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --compression-codec zstd --gzip-level 9 --autoclone"),
+			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --compression-codec zstd --gzip-level 9 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -91,7 +94,7 @@ func TestGCSList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging gcs list --service-id 123 --version 1"),
+			args: args("logging gcs list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsOK,
@@ -99,7 +102,7 @@ func TestGCSList(t *testing.T) {
 			wantOutput: listGCSsShortOutput,
 		},
 		{
-			args: args("logging gcs list --service-id 123 --version 1 --verbose"),
+			args: args("logging gcs list --service-id 123 --version 1 --verbose --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsOK,
@@ -107,7 +110,7 @@ func TestGCSList(t *testing.T) {
 			wantOutput: listGCSsVerboseOutput,
 		},
 		{
-			args: args("logging gcs list --service-id 123 --version 1 -v"),
+			args: args("logging gcs list --service-id 123 --version 1 -v --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsOK,
@@ -115,7 +118,7 @@ func TestGCSList(t *testing.T) {
 			wantOutput: listGCSsVerboseOutput,
 		},
 		{
-			args: args("logging gcs --verbose list --service-id 123 --version 1"),
+			args: args("logging gcs --verbose list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsOK,
@@ -123,7 +126,7 @@ func TestGCSList(t *testing.T) {
 			wantOutput: listGCSsVerboseOutput,
 		},
 		{
-			args: args("logging -v gcs list --service-id 123 --version 1"),
+			args: args("logging -v gcs list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsOK,
@@ -131,7 +134,7 @@ func TestGCSList(t *testing.T) {
 			wantOutput: listGCSsVerboseOutput,
 		},
 		{
-			args: args("logging gcs list --service-id 123 --version 1"),
+			args: args("logging gcs list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsError,
@@ -159,11 +162,11 @@ func TestGCSDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging gcs describe --service-id 123 --version 1"),
+			args:      args("logging gcs describe --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging gcs describe --service-id 123 --version 1 --name logs"),
+			args: args("logging gcs describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetGCSFn:       getGCSError,
@@ -171,7 +174,7 @@ func TestGCSDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging gcs describe --service-id 123 --version 1 --name logs"),
+			args: args("logging gcs describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetGCSFn:       getGCSOK,
@@ -199,11 +202,11 @@ func TestGCSUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging gcs update --service-id 123 --version 1 --new-name log"),
+			args:      args("logging gcs update --service-id 123 --version 1 --new-name log --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging gcs update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging gcs update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -212,7 +215,7 @@ func TestGCSUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging gcs update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging gcs update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -241,11 +244,11 @@ func TestGCSDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging gcs delete --service-id 123 --version 1"),
+			args:      args("logging gcs delete --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging gcs delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging gcs delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -254,7 +257,7 @@ func TestGCSDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging gcs delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging gcs delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -340,7 +343,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listGCSsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

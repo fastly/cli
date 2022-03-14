@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package bigquery_test
 
 import (
@@ -21,11 +24,11 @@ func TestBigQueryCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com"),
+			args:      args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com --token 123"),
 			wantError: "error parsing arguments: required flag --secret-key not provided",
 		},
 		{
-			args: args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"` --autoclone"),
+			args: args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"` --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
@@ -34,7 +37,7 @@ func TestBigQueryCreate(t *testing.T) {
 			wantOutput: "Created BigQuery logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"` --autoclone"),
+			args: args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"` --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
@@ -63,7 +66,7 @@ func TestBigQueryList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging bigquery list --service-id 123 --version 1"),
+			args: args("logging bigquery list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListBigQueriesFn: listBigQueriesOK,
@@ -71,7 +74,7 @@ func TestBigQueryList(t *testing.T) {
 			wantOutput: listBigQueriesShortOutput,
 		},
 		{
-			args: args("logging bigquery list --service-id 123 --version 1 --verbose"),
+			args: args("logging bigquery list --service-id 123 --version 1 --verbose --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListBigQueriesFn: listBigQueriesOK,
@@ -79,7 +82,7 @@ func TestBigQueryList(t *testing.T) {
 			wantOutput: listBigQueriesVerboseOutput,
 		},
 		{
-			args: args("logging bigquery list --service-id 123 --version 1 -v"),
+			args: args("logging bigquery list --service-id 123 --version 1 -v --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListBigQueriesFn: listBigQueriesOK,
@@ -87,7 +90,7 @@ func TestBigQueryList(t *testing.T) {
 			wantOutput: listBigQueriesVerboseOutput,
 		},
 		{
-			args: args("logging bigquery --verbose list --service-id 123 --version 1"),
+			args: args("logging bigquery --verbose list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListBigQueriesFn: listBigQueriesOK,
@@ -95,7 +98,7 @@ func TestBigQueryList(t *testing.T) {
 			wantOutput: listBigQueriesVerboseOutput,
 		},
 		{
-			args: args("logging -v bigquery list --service-id 123 --version 1"),
+			args: args("logging -v bigquery list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListBigQueriesFn: listBigQueriesOK,
@@ -103,7 +106,7 @@ func TestBigQueryList(t *testing.T) {
 			wantOutput: listBigQueriesVerboseOutput,
 		},
 		{
-			args: args("logging bigquery list --service-id 123 --version 1"),
+			args: args("logging bigquery list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListBigQueriesFn: listBigQueriesError,
@@ -131,11 +134,11 @@ func TestBigQueryDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging bigquery describe --service-id 123 --version 1"),
+			args:      args("logging bigquery describe --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging bigquery describe --service-id 123 --version 1 --name logs"),
+			args: args("logging bigquery describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBigQueryFn:  getBigQueryError,
@@ -143,7 +146,7 @@ func TestBigQueryDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging bigquery describe --service-id 123 --version 1 --name logs"),
+			args: args("logging bigquery describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBigQueryFn:  getBigQueryOK,
@@ -171,11 +174,11 @@ func TestBigQueryUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging bigquery update --service-id 123 --version 1 --new-name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"`"),
+			args:      args("logging bigquery update --service-id 123 --version 1 --new-name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"` --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging bigquery update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging bigquery update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
@@ -184,7 +187,7 @@ func TestBigQueryUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging bigquery update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging bigquery update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
@@ -213,11 +216,11 @@ func TestBigQueryDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging bigquery delete --service-id 123 --version 1"),
+			args:      args("logging bigquery delete --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging bigquery delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging bigquery delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
@@ -226,7 +229,7 @@ func TestBigQueryDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging bigquery delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging bigquery delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
@@ -304,7 +307,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listBigQueriesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package authtoken_test
 
 import (
@@ -7,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v6/fastly"
@@ -18,13 +20,8 @@ func TestCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --password flag",
-			Args:      args("auth-token create"),
+			Args:      args("auth-token create --token 123"),
 			WantError: "error parsing arguments: required flag --password not provided",
-		},
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token create --password secure"),
-			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name: "validate CreateToken API error",
@@ -85,11 +82,6 @@ func TestCreate(t *testing.T) {
 func TestDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token delete"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
 		{
 			Name:      "validate missing optional flags",
 			Args:      args("auth-token delete --token 123"),
@@ -183,11 +175,6 @@ func TestDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token describe"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name: "validate GetTokenSelf API error",
 			API: mock.API{
 				GetTokenSelfFn: func() (*fastly.Token, error) {
@@ -226,13 +213,6 @@ func TestList(t *testing.T) {
 		SetEnv bool
 	}
 	scenarios := []ts{
-		{
-			TestScenario: testutil.TestScenario{
-				Name:      "validate missing --token flag",
-				Args:      args("auth-token list"),
-				WantError: errors.ErrNoToken.Inner.Error(),
-			},
-		},
 		{
 			TestScenario: testutil.TestScenario{
 				Name: "validate ListTokens API error",

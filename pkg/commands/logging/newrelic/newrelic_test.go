@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package newrelic_test
 
 import (
@@ -15,22 +18,22 @@ func TestNewRelicCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("logging newrelic create --key abc --version 3"),
+			Args:      args("logging newrelic create --key abc --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --key flag",
-			Args:      args("logging newrelic create --name foo --version 3"),
+			Args:      args("logging newrelic create --name foo --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --key not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("logging newrelic create --key abc --name foo"),
+			Args:      args("logging newrelic create --key abc --name foo --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelic create --key abc --name foo --version 3"),
+			Args:      args("logging newrelic create --key abc --name foo --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -38,7 +41,7 @@ func TestNewRelicCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("logging newrelic create --key abc --name foo --service-id 123 --version 1"),
+			Args:      args("logging newrelic create --key abc --name foo --service-id 123 --version 1 --token 123"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -49,7 +52,7 @@ func TestNewRelicCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("logging newrelic create --key abc --name foo --service-id 123 --version 3"),
+			Args:      args("logging newrelic create --key abc --name foo --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -64,7 +67,7 @@ func TestNewRelicCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("logging newrelic create --key abc --name foo --service-id 123 --version 3"),
+			Args:       args("logging newrelic create --key abc --name foo --service-id 123 --version 3 --token 123"),
 			WantOutput: "Created New Relic logging endpoint 'foo' (service: 123, version: 3)",
 		},
 		{
@@ -80,7 +83,7 @@ func TestNewRelicCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("logging newrelic create --autoclone --key abc --name foo --service-id 123 --version 1"),
+			Args:       args("logging newrelic create --autoclone --key abc --name foo --service-id 123 --version 1 --token 123"),
 			WantOutput: "Created New Relic logging endpoint 'foo' (service: 123, version: 4)",
 		},
 	}
@@ -102,17 +105,17 @@ func TestNewRelicDelete(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("logging newrelic delete --version 3"),
+			Args:      args("logging newrelic delete --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("logging newrelic delete --name foobar"),
+			Args:      args("logging newrelic delete --name foobar --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelic delete --name foobar --version 3"),
+			Args:      args("logging newrelic delete --name foobar --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -120,7 +123,7 @@ func TestNewRelicDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("logging newrelic delete --name foobar --service-id 123 --version 1"),
+			Args:      args("logging newrelic delete --name foobar --service-id 123 --version 1 --token 123"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -131,7 +134,7 @@ func TestNewRelicDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("logging newrelic delete --name foobar --service-id 123 --version 3"),
+			Args:      args("logging newrelic delete --name foobar --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -142,7 +145,7 @@ func TestNewRelicDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("logging newrelic delete --name foobar --service-id 123 --version 3"),
+			Args:       args("logging newrelic delete --name foobar --service-id 123 --version 3 --token 123"),
 			WantOutput: "Deleted New Relic logging endpoint 'foobar' (service: 123, version: 3)",
 		},
 		{
@@ -154,7 +157,7 @@ func TestNewRelicDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("logging newrelic delete --autoclone --name foo --service-id 123 --version 1"),
+			Args:       args("logging newrelic delete --autoclone --name foo --service-id 123 --version 1 --token 123"),
 			WantOutput: "Deleted New Relic logging endpoint 'foo' (service: 123, version: 4)",
 		},
 	}
@@ -176,17 +179,17 @@ func TestNewRelicDescribe(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("logging newrelic describe --version 3"),
+			Args:      args("logging newrelic describe --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("logging newrelic describe --name foobar"),
+			Args:      args("logging newrelic describe --name foobar --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelic describe --name foobar --version 3"),
+			Args:      args("logging newrelic describe --name foobar --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -197,7 +200,7 @@ func TestNewRelicDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("logging newrelic describe --name foobar --service-id 123 --version 3"),
+			Args:      args("logging newrelic describe --name foobar --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -206,7 +209,7 @@ func TestNewRelicDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetNewRelicFn:  getNewRelic,
 			},
-			Args:       args("logging newrelic describe --name foobar --service-id 123 --version 3"),
+			Args:       args("logging newrelic describe --name foobar --service-id 123 --version 3 --token 123"),
 			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nToken: abc\nFormat: \nFormat Version: 0\nPlacement: \nRegion: \nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -215,7 +218,7 @@ func TestNewRelicDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetNewRelicFn:  getNewRelic,
 			},
-			Args:       args("logging newrelic describe --name foobar --service-id 123 --version 1"),
+			Args:       args("logging newrelic describe --name foobar --service-id 123 --version 1 --token 123"),
 			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nToken: abc\nFormat: \nFormat Version: 0\nPlacement: \nRegion: \nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
@@ -237,12 +240,12 @@ func TestNewRelicList(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("logging newrelic list"),
+			Args:      args("logging newrelic list --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelic list --version 3"),
+			Args:      args("logging newrelic list --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -253,7 +256,7 @@ func TestNewRelicList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("logging newrelic list --service-id 123 --version 3"),
+			Args:      args("logging newrelic list --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -262,7 +265,7 @@ func TestNewRelicList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListNewRelicFn: listNewRelic,
 			},
-			Args:       args("logging newrelic list --service-id 123 --version 3"),
+			Args:       args("logging newrelic list --service-id 123 --version 3 --token 123"),
 			WantOutput: "SERVICE ID  VERSION  NAME\n123         3        foo\n123         3        bar\n",
 		},
 		{
@@ -271,7 +274,7 @@ func TestNewRelicList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListNewRelicFn: listNewRelic,
 			},
-			Args:       args("logging newrelic list --service-id 123 --version 1"),
+			Args:       args("logging newrelic list --service-id 123 --version 1 --token 123"),
 			WantOutput: "SERVICE ID  VERSION  NAME\n123         1        foo\n123         1        bar\n",
 		},
 		{
@@ -280,8 +283,8 @@ func TestNewRelicList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListNewRelicFn: listNewRelic,
 			},
-			Args:       args("logging newrelic list --service-id 123 --verbose --version 1"),
-			WantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			Args:       args("logging newrelic list --service-id 123 --verbose --version 1 --token 123"),
+			WantOutput: "Fastly API token provided via --token\nFastly API endpoint: https://api.fastly.com\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
@@ -302,17 +305,17 @@ func TestNewRelicUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("logging newrelic update --service-id 123 --version 3"),
+			Args:      args("logging newrelic update --service-id 123 --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("logging newrelic update --name foobar --service-id 123"),
+			Args:      args("logging newrelic update --name foobar --service-id 123 --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelic update --name foobar --version 3"),
+			Args:      args("logging newrelic update --name foobar --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -320,7 +323,7 @@ func TestNewRelicUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("logging newrelic update --name foobar --service-id 123 --version 1"),
+			Args:      args("logging newrelic update --name foobar --service-id 123 --version 1 --token 123"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -331,7 +334,7 @@ func TestNewRelicUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("logging newrelic update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Args:      args("logging newrelic update --name foobar --new-name beepboop --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -346,7 +349,7 @@ func TestNewRelicUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("logging newrelic update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Args:       args("logging newrelic update --name foobar --new-name beepboop --service-id 123 --version 3 --token 123"),
 			WantOutput: "Updated New Relic logging endpoint 'beepboop' (previously: foobar, service: 123, version: 3)",
 		},
 		{
@@ -362,7 +365,7 @@ func TestNewRelicUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("logging newrelic update --autoclone --name foobar --new-name beepboop --service-id 123 --version 1"),
+			Args:       args("logging newrelic update --autoclone --name foobar --new-name beepboop --service-id 123 --version 1 --token 123"),
 			WantOutput: "Updated New Relic logging endpoint 'beepboop' (previously: foobar, service: 123, version: 4)",
 		},
 	}

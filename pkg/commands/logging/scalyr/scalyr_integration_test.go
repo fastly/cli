@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package scalyr_test
 
 import (
@@ -22,7 +25,7 @@ func TestScalyrCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging scalyr create --service-id 123 --version 1 --auth-token abc --autoclone"),
+			args: args("logging scalyr create --service-id 123 --version 1 --auth-token abc --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -30,7 +33,7 @@ func TestScalyrCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging scalyr create --service-id 123 --version 1 --name log --autoclone"),
+			args: args("logging scalyr create --service-id 123 --version 1 --name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -38,7 +41,7 @@ func TestScalyrCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --auth-token not provided",
 		},
 		{
-			args: args("logging scalyr create --name log --service-id  --version 1 --auth-token abc --autoclone"),
+			args: args("logging scalyr create --name log --service-id  --version 1 --auth-token abc --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -46,7 +49,7 @@ func TestScalyrCreate(t *testing.T) {
 			wantError: fsterrs.ErrNoServiceID.Error(),
 		},
 		{
-			args: args("logging scalyr create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
+			args: args("logging scalyr create --service-id 123 --version 1 --name log --auth-token abc --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -55,7 +58,7 @@ func TestScalyrCreate(t *testing.T) {
 			wantOutput: "Created Scalyr logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("logging scalyr create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
+			args: args("logging scalyr create --service-id 123 --version 1 --name log --auth-token abc --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -84,7 +87,7 @@ func TestScalyrList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging scalyr list --service-id 123 --version 1"),
+			args: args("logging scalyr list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsOK,
@@ -92,7 +95,7 @@ func TestScalyrList(t *testing.T) {
 			wantOutput: listScalyrsShortOutput,
 		},
 		{
-			args: args("logging scalyr list --service-id 123 --version 1 --verbose"),
+			args: args("logging scalyr list --service-id 123 --version 1 --verbose --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsOK,
@@ -100,7 +103,7 @@ func TestScalyrList(t *testing.T) {
 			wantOutput: listScalyrsVerboseOutput,
 		},
 		{
-			args: args("logging scalyr list --service-id 123 --version 1 -v"),
+			args: args("logging scalyr list --service-id 123 --version 1 -v --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsOK,
@@ -108,7 +111,7 @@ func TestScalyrList(t *testing.T) {
 			wantOutput: listScalyrsVerboseOutput,
 		},
 		{
-			args: args("logging scalyr --verbose list --service-id 123 --version 1"),
+			args: args("logging scalyr --verbose list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsOK,
@@ -116,7 +119,7 @@ func TestScalyrList(t *testing.T) {
 			wantOutput: listScalyrsVerboseOutput,
 		},
 		{
-			args: args("logging -v scalyr list --service-id 123 --version 1"),
+			args: args("logging -v scalyr list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsOK,
@@ -124,7 +127,7 @@ func TestScalyrList(t *testing.T) {
 			wantOutput: listScalyrsVerboseOutput,
 		},
 		{
-			args: args("logging scalyr list --service-id 123 --version 1"),
+			args: args("logging scalyr list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsError,
@@ -152,11 +155,11 @@ func TestScalyrDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging scalyr describe --service-id 123 --version 1"),
+			args:      args("logging scalyr describe --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging scalyr describe --service-id 123 --version 1 --name logs"),
+			args: args("logging scalyr describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetScalyrFn:    getScalyrError,
@@ -164,7 +167,7 @@ func TestScalyrDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging scalyr describe --service-id 123 --version 1 --name logs"),
+			args: args("logging scalyr describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetScalyrFn:    getScalyrOK,
@@ -192,11 +195,11 @@ func TestScalyrUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging scalyr update --service-id 123 --version 1 --new-name log"),
+			args:      args("logging scalyr update --service-id 123 --version 1 --new-name log --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging scalyr update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging scalyr update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -205,7 +208,7 @@ func TestScalyrUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging scalyr update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging scalyr update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -234,11 +237,11 @@ func TestScalyrDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging scalyr delete --service-id 123 --version 1"),
+			args:      args("logging scalyr delete --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging scalyr delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging scalyr delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -247,7 +250,7 @@ func TestScalyrDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging scalyr delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging scalyr delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -346,7 +349,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listScalyrsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

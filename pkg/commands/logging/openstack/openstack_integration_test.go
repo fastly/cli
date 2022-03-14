@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package openstack_test
 
 import (
@@ -21,7 +24,7 @@ func TestOpenstackCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --access-key foo --user user --url https://example.com --autoclone"),
+			args: args("logging openstack create --service-id 123 --version 1 --name log --access-key foo --user user --url https://example.com --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -29,7 +32,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --bucket not provided",
 		},
 		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --user user --url https://example.com --autoclone"),
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --user user --url https://example.com --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -37,7 +40,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
 		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --url https://example.com --autoclone"),
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --url https://example.com --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -45,7 +48,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --user not provided",
 		},
 		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --autoclone"),
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -53,7 +56,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --url not provided",
 		},
 		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone"),
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -62,7 +65,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantOutput: "Created OpenStack logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone"),
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -71,7 +74,7 @@ func TestOpenstackCreate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --compression-codec zstd --gzip-level 9 --autoclone"),
+			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --compression-codec zstd --gzip-level 9 --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -99,7 +102,7 @@ func TestOpenstackList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging openstack list --service-id 123 --version 1"),
+			args: args("logging openstack list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -107,7 +110,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksShortOutput,
 		},
 		{
-			args: args("logging openstack list --service-id 123 --version 1 --verbose"),
+			args: args("logging openstack list --service-id 123 --version 1 --verbose --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -115,7 +118,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: args("logging openstack list --service-id 123 --version 1 -v"),
+			args: args("logging openstack list --service-id 123 --version 1 -v --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -123,7 +126,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: args("logging openstack --verbose list --service-id 123 --version 1"),
+			args: args("logging openstack --verbose list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -131,7 +134,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: args("logging -v openstack list --service-id 123 --version 1"),
+			args: args("logging -v openstack list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
@@ -139,7 +142,7 @@ func TestOpenstackList(t *testing.T) {
 			wantOutput: listOpenstacksVerboseOutput,
 		},
 		{
-			args: args("logging openstack list --service-id 123 --version 1"),
+			args: args("logging openstack list --service-id 123 --version 1 --token 123"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksError,
@@ -167,11 +170,11 @@ func TestOpenstackDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging openstack describe --service-id 123 --version 1"),
+			args:      args("logging openstack describe --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging openstack describe --service-id 123 --version 1 --name logs"),
+			args: args("logging openstack describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetOpenstackFn: getOpenstackError,
@@ -179,7 +182,7 @@ func TestOpenstackDescribe(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging openstack describe --service-id 123 --version 1 --name logs"),
+			args: args("logging openstack describe --service-id 123 --version 1 --name logs --token 123"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetOpenstackFn: getOpenstackOK,
@@ -207,11 +210,11 @@ func TestOpenstackUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging openstack update --service-id 123 --version 1 --new-name log"),
+			args:      args("logging openstack update --service-id 123 --version 1 --new-name log --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging openstack update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging openstack update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -220,7 +223,7 @@ func TestOpenstackUpdate(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging openstack update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
+			args: args("logging openstack update --service-id 123 --version 1 --name logs --new-name log --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -249,11 +252,11 @@ func TestOpenstackDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging openstack delete --service-id 123 --version 1"),
+			args:      args("logging openstack delete --service-id 123 --version 1 --token 123"),
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("logging openstack delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging openstack delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -262,7 +265,7 @@ func TestOpenstackDelete(t *testing.T) {
 			wantError: errTest.Error(),
 		},
 		{
-			args: args("logging openstack delete --service-id 123 --version 1 --name logs --autoclone"),
+			args: args("logging openstack delete --service-id 123 --version 1 --name logs --autoclone --token 123"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -357,7 +360,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listOpenstacksVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 Service ID (via --service-id): 123
 

@@ -1,3 +1,6 @@
+// NOTE: We always pass the --token flag as this allows us to side-step the
+// browser based authentication flow. This is because if a token is explicitly
+// provided, then we respect the user knows what they're doing.
 package acl_test
 
 import (
@@ -15,17 +18,17 @@ func TestACLCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("acl create --version 3"),
+			Args:      args("acl create --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl create --name foo"),
+			Args:      args("acl create --name foo --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl create --name foo --version 3"),
+			Args:      args("acl create --name foo --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -33,7 +36,7 @@ func TestACLCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("acl create --name foo --service-id 123 --version 1"),
+			Args:      args("acl create --name foo --service-id 123 --version 1 --token 123"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -44,7 +47,7 @@ func TestACLCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl create --name foo --service-id 123 --version 3"),
+			Args:      args("acl create --name foo --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -60,7 +63,7 @@ func TestACLCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl create --name foo --service-id 123 --version 3"),
+			Args:       args("acl create --name foo --service-id 123 --version 3 --token 123"),
 			WantOutput: "Created ACL 'foo' (id: 456, service: 123, version: 3)",
 		},
 		{
@@ -77,7 +80,7 @@ func TestACLCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl create --autoclone --name foo --service-id 123 --version 1"),
+			Args:       args("acl create --autoclone --name foo --service-id 123 --version 1 --token 123"),
 			WantOutput: "Created ACL 'foo' (id: 456, service: 123, version: 4)",
 		},
 	}
@@ -99,17 +102,17 @@ func TestACLDelete(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("acl delete --version 3"),
+			Args:      args("acl delete --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl delete --name foobar"),
+			Args:      args("acl delete --name foobar --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl delete --name foobar --version 3"),
+			Args:      args("acl delete --name foobar --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -117,7 +120,7 @@ func TestACLDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("acl delete --name foobar --service-id 123 --version 1"),
+			Args:      args("acl delete --name foobar --service-id 123 --version 1 --token 123"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -128,7 +131,7 @@ func TestACLDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("acl delete --name foobar --service-id 123 --version 3"),
+			Args:      args("acl delete --name foobar --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -139,7 +142,7 @@ func TestACLDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("acl delete --name foobar --service-id 123 --version 3"),
+			Args:       args("acl delete --name foobar --service-id 123 --version 3 --token 123"),
 			WantOutput: "Deleted ACL 'foobar' (service: 123, version: 3)",
 		},
 		{
@@ -151,7 +154,7 @@ func TestACLDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("acl delete --autoclone --name foo --service-id 123 --version 1"),
+			Args:       args("acl delete --autoclone --name foo --service-id 123 --version 1 --token 123"),
 			WantOutput: "Deleted ACL 'foo' (service: 123, version: 4)",
 		},
 	}
@@ -173,17 +176,17 @@ func TestACLDescribe(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("acl describe --version 3"),
+			Args:      args("acl describe --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl describe --name foobar"),
+			Args:      args("acl describe --name foobar --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl describe --name foobar --version 3"),
+			Args:      args("acl describe --name foobar --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -194,7 +197,7 @@ func TestACLDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl describe --name foobar --service-id 123 --version 3"),
+			Args:      args("acl describe --name foobar --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -203,7 +206,7 @@ func TestACLDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetACLFn:       getACL,
 			},
-			Args:       args("acl describe --name foobar --service-id 123 --version 3"),
+			Args:       args("acl describe --name foobar --service-id 123 --version 3 --token 123"),
 			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nID: 456\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -212,7 +215,7 @@ func TestACLDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetACLFn:       getACL,
 			},
-			Args:       args("acl describe --name foobar --service-id 123 --version 1"),
+			Args:       args("acl describe --name foobar --service-id 123 --version 1 --token 123"),
 			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nID: 456\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
@@ -234,12 +237,12 @@ func TestACLList(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl list"),
+			Args:      args("acl list --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl list --version 3"),
+			Args:      args("acl list --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -250,7 +253,7 @@ func TestACLList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl list --service-id 123 --version 3"),
+			Args:      args("acl list --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -259,7 +262,7 @@ func TestACLList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,
 			},
-			Args:       args("acl list --service-id 123 --version 3"),
+			Args:       args("acl list --service-id 123 --version 3 --token 123"),
 			WantOutput: "SERVICE ID  VERSION  NAME  ID\n123         3        foo   456\n123         3        bar   789\n",
 		},
 		{
@@ -268,7 +271,7 @@ func TestACLList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,
 			},
-			Args:       args("acl list --service-id 123 --version 1"),
+			Args:       args("acl list --service-id 123 --version 1 --token 123"),
 			WantOutput: "SERVICE ID  VERSION  NAME  ID\n123         1        foo   456\n123         1        bar   789\n",
 		},
 		{
@@ -277,8 +280,8 @@ func TestACLList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,
 			},
-			Args:       args("acl list --service-id 123 --verbose --version 1"),
-			WantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nID: 456\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nID: 789\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			Args:       args("acl list --service-id 123 --verbose --version 1 --token 123"),
+			WantOutput: "Fastly API token provided via --token\nFastly API endpoint: https://api.fastly.com\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nID: 456\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nID: 789\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
@@ -299,22 +302,22 @@ func TestACLUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("acl update --new-name beepboop --version 3"),
+			Args:      args("acl update --new-name beepboop --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --new-name flag",
-			Args:      args("acl update --name foobar --version 3"),
+			Args:      args("acl update --name foobar --version 3 --token 123"),
 			WantError: "error parsing arguments: required flag --new-name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl update --name foobar --new-name beepboop"),
+			Args:      args("acl update --name foobar --new-name beepboop --token 123"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl update --name foobar --new-name beepboop --version 3"),
+			Args:      args("acl update --name foobar --new-name beepboop --version 3 --token 123"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -322,7 +325,7 @@ func TestACLUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("acl update --name foobar --new-name beepboop --service-id 123 --version 1"),
+			Args:      args("acl update --name foobar --new-name beepboop --service-id 123 --version 1 --token 123"),
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -333,7 +336,7 @@ func TestACLUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Args:      args("acl update --name foobar --new-name beepboop --service-id 123 --version 3 --token 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -349,7 +352,7 @@ func TestACLUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Args:       args("acl update --name foobar --new-name beepboop --service-id 123 --version 3 --token 123"),
 			WantOutput: "Updated ACL 'beepboop' (previously: 'foobar', service: 123, version: 3)",
 		},
 		{
@@ -366,7 +369,7 @@ func TestACLUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl update --autoclone --name foobar --new-name beepboop --service-id 123 --version 1"),
+			Args:       args("acl update --autoclone --name foobar --new-name beepboop --service-id 123 --version 1 --token 123"),
 			WantOutput: "Updated ACL 'beepboop' (previously: 'foobar', service: 123, version: 4)",
 		},
 	}
