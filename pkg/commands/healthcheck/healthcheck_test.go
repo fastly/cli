@@ -33,8 +33,10 @@ func TestHealthCheckCreate(t *testing.T) {
 			},
 			wantError: errTest.Error(),
 		},
+		// NOTE: Added --timeout flag to validate that a nil pointer dereference is
+		// not triggered at runtime when parsing the arguments.
 		{
-			args: args("healthcheck create --service-id 123 --version 1 --name www.test.com --autoclone"),
+			args: args("healthcheck create --service-id 123 --version 1 --name www.test.com --autoclone --timeout 10"),
 			api: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
