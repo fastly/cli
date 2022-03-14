@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
-	"github.com/pkg/browser"
 )
 
 // ignoreCommands represents commands that do not require a token.
@@ -59,7 +58,7 @@ func Required(cmd, token string, s config.Source, stdout io.Writer) (required bo
 //
 // NOTE: This function blocks the command execution until a token has been
 // pulled from the relevant channel.
-func Init(stdin io.Reader, stdout io.Writer) (string, error) {
+func Init(stdin io.Reader, stdout io.Writer, o Opener) (string, error) {
 	text.Break(stdout)
 	text.Output(stdout, "We are about to initialise a new authentication flow, which requires the CLI to open your web browser for you.")
 	text.Break(stdout)
@@ -82,7 +81,7 @@ func Init(stdin io.Reader, stdout io.Writer) (string, error) {
 	path := "/auth/login"
 	callback := fmt.Sprintf("http://127.0.0.1:%d/auth-callback", p)
 	url := fmt.Sprintf("%s%s?redirect_uri=%s", App, path, callback)
-	err = browser.OpenURL(url)
+	err = o(url)
 	if err != nil {
 		return "", err
 	}

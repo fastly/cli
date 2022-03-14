@@ -5,7 +5,15 @@ import (
 	"log"
 	"net"
 	"net/http"
+
+	"github.com/pkg/browser"
 )
+
+// Opener represents something that can open a URL.
+type Opener func(string) error
+
+// Browser is the default implementation of an Opener.
+var Browser Opener = browser.OpenURL
 
 // ListenAndServe listens on a random TCP network port and then calls Serve with
 // custom handler type to handle requests on incoming connections.
@@ -43,7 +51,7 @@ func (s Server) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	if t == "" {
 		// TODO: Handle `auth_error` query param!
 		// TODO: Check --token doesn't get persisted to disk!
-		// TODO: Invalidate old token by checking its expiry is set to never expire.
+		// TODO: Invalidate old token by checking its expiry is set to never expire (migration scenario for someone with long lived token in their config).
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "unable to parse an authentication token")
 	}
