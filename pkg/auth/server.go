@@ -41,6 +41,9 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s Server) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	t := r.URL.Query().Get("access_token")
 	if t == "" {
+		// TODO: Handle `auth_error` query param!
+		// TODO: Check --token doesn't get persisted to disk!
+		// TODO: Invalidate old token by checking its expiry is set to never expire.
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "unable to parse an authentication token")
 	}
