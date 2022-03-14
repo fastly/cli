@@ -1,5 +1,13 @@
 # Changelog
 
+## [v1.7.1](https://github.com/fastly/cli/releases/tag/v1.7.1) (2022-03-14)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.7.0...v1.7.1)
+
+**Bug fixes:**
+
+* Fix runtime panic in arg parser [#542](https://github.com/fastly/cli/pull/542)
+
 ## [v1.7.0](https://github.com/fastly/cli/releases/tag/v1.7.0) (2022-02-22)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.6.0...v1.7.0)

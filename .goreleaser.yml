@@ -81,6 +81,12 @@ aurs:
     # Defaults to empty.
     optdepends:
       - 'viceroy: for running service locally'
+
+    # The value to be passed to `GIT_SSH_COMMAND`.
+    #
+    #
+    # Defaults to `ssh -i {{ .KeyPath }} -o StrictHostKeyChecking=accept-new -F /dev/null`.
+    git_ssh_command: 'ssh -i {{ .KeyPath }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -F /dev/null'
 brews:
   - name: fastly
     ids: [nix]
