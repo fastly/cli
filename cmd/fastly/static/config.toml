@@ -17,15 +17,10 @@ rustup_constraint = ">= 1.23.0"
 [viceroy]
 ttl = "24h"
 
-[[starter-kits.assemblyscript]]
-name = "Default starter for AssemblyScript"
-description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
-path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
-
-[[starter-kits.javascript]]
-name = "Default starter for JavaScript"
-description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
-path = "https://github.com/fastly/compute-starter-kit-javascript-default"
+[[starter-kits.rust]]
+name = "Authenticate at edge with OAuth"
+description = "Connect to an identity provider such as Auth0 using OAuth 2.0 and validate authentication status at the Edge, to authorize access to your edge or origin hosted applications."
+path = "https://github.com/fastly/compute-rust-auth"
 
 [[starter-kits.rust]]
 name = "Beacon termination"
@@ -46,3 +41,18 @@ path = "https://github.com/fastly/compute-starter-kit-rust-empty"
 name = "Static content"
 description = "Apply performance, security and usability upgrades to static bucket services such as Google Cloud Storage or AWS S3."
 path = "https://github.com/fastly/compute-starter-kit-rust-static-content"
+
+[[starter-kits.assemblyscript]]
+name = "Default starter for AssemblyScript"
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
+
+[[starter-kits.javascript]]
+name = "Default starter for JavaScript"
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+path = "https://github.com/fastly/compute-starter-kit-javascript-default"
+
+[[starter-kits.javascript]]
+name = "Empty starter for JavaScript"
+description = "An empty application template for the Fastly Compute@Edge environment which simply returns a 200 OK response."
+path = "https://github.com/fastly/compute-starter-kit-javascript-empty"
