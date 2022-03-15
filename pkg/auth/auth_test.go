@@ -23,7 +23,7 @@ import (
 // TestAuthSuccess validates we're able to initialise the authentication flow
 // and to get a new access token returned and persisted to disk.
 func TestAuthSuccess(t *testing.T) {
-	wd, root := createTestEnvironment(t)
+	wd, root := createTestEnvironment(ConfigDefault, t)
 	defer os.RemoveAll(root)
 	defer os.Chdir(wd)
 
@@ -31,7 +31,7 @@ func TestAuthSuccess(t *testing.T) {
 	args := testutil.Args("pops")
 	opts := testutil.NewRunOpts(args, &stdout)
 	opts.ConfigPath = filepath.Join(root, manifest.Filename)
-	opts.ClientFactory = mock.ClientFactory(mockAPI)
+	opts.ClientFactory = mock.ClientFactory(mockAPISuccess)
 	opts.Stdin = strings.NewReader("y") // Authorise opening of web browser.
 
 	endpoint := make(chan string)
@@ -62,10 +62,16 @@ func TestAuthSuccess(t *testing.T) {
 
 // createTestEnvironment creates a temp directory to run our integration tests
 // within, along with a simple fastly.toml manifest.
-func createTestEnvironment(t *testing.T) (wd, root string) {
+func createTestEnvironment(c Config, t *testing.T) (wd, root string) {
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	m := mDefault
+	switch c {
+	case ConfigUser:
+		m = fmt.Sprintf("%s%s", mDefault, mUser)
 	}
 
 	root = testutil.NewEnv(testutil.EnvOpts{
@@ -82,12 +88,28 @@ func createTestEnvironment(t *testing.T) (wd, root string) {
 	return wd, root
 }
 
-// m represents a basic fastly.toml manifest.
-const m = `name = "authentication"
+// Config is a base for the different environment configuration variants.
+//
+// NOTE: We're using an enum to allow for future flexibility.
+type Config int64
+
+const (
+	ConfigDefault Config = iota
+	ConfigUser
+)
+
+// mDefault represents a basic fastly.toml manifest.
+const mDefault = `name = "authentication"
 manifest_version = 2`
 
-// mockAPI represents the expected API calls to be made.
-var mockAPI = mock.API{
+// mUser represents a user extension to the fastly.toml manifest.
+const mUser = `
+[user]
+  email = "test@example.com"
+  token = "123"`
+
+// mockAPISuccess represents the expected API calls to be made.
+var mockAPISuccess = mock.API{
 	GetTokenSelfFn: func() (*fastly.Token, error) {
 		return &fastly.Token{UserID: "123"}, nil
 	},
