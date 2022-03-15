@@ -47,6 +47,7 @@ func Required(cmd, token string, s config.Source, stdout io.Writer) (required bo
 		}
 	}
 
+	// False (no authentication flow required).
 	return required
 }
 

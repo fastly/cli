@@ -57,7 +57,41 @@ func TestAuthSuccess(t *testing.T) {
 	}
 }
 
-// TODO: Validate --token isn't persisted.
+// TestAuthTokenFlag validates the use of --token will result in no
+// authentication flow being initialised, as well as the token not being
+// persisted to disk.
+func TestAuthTokenFlag(t *testing.T) {
+	wd, root := createTestEnvironment(ConfigDefault, t)
+	defer os.RemoveAll(root)
+	defer os.Chdir(wd)
+
+	var stdout bytes.Buffer
+	args := testutil.Args("pops --token 123")
+	opts := testutil.NewRunOpts(args, &stdout)
+	opts.ConfigPath = filepath.Join(root, manifest.Filename)
+	opts.ClientFactory = mock.ClientFactory(mockAPISuccess)
+
+	endpoint := make(chan string)
+	auth.Browser = mockBrowser(endpoint)
+	opts.AuthService = <-endpoint
+
+	err := app.Run(opts)
+	if err != nil {
+		t.Log(stdout.String())
+		t.Fatal(err)
+	}
+
+	var f config.File
+	err = f.Read(opts.ConfigPath, opts.Stdin, opts.Stdout)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if f.User.Token != "" || f.User.Email != "" {
+		t.Errorf("want no token, have '%s' | want no email, have '%s'", f.User.Token, f.User.Email)
+	}
+}
+
 // TODO: Validate migration scenario (e.g. invalidate an old long-lived token by checking its expiry)
 
 // createTestEnvironment creates a temp directory to run our integration tests
