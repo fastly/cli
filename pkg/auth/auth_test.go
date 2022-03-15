@@ -212,6 +212,33 @@ func TestAuthTokenExpired(t *testing.T) {
 	}
 }
 
+// TestAuthError validates that we produce an appropriate error to the user if
+// their authentication flow fails.
+func TestAuthError(t *testing.T) {
+	wd, root := createTestEnvironment(t)
+	defer os.RemoveAll(root)
+	defer os.Chdir(wd)
+
+	var stdout bytes.Buffer
+	args := testutil.Args("pops")
+	opts := testutil.NewRunOpts(args, &stdout)
+	opts.ConfigPath = filepath.Join(root, manifest.Filename)
+	opts.Stdin = strings.NewReader("y") // Authorise opening of web browser.
+
+	endpoint := make(chan string)
+	noToken := "" // i.e. we expect an error to be returned
+	auth.Browser = mockBrowser(endpoint, noToken)
+	opts.AuthService = <-endpoint
+
+	err := app.Run(opts)
+	if err == nil {
+		t.Log(stdout.String())
+		t.Error("expected error, got nil")
+	}
+
+	testutil.AssertErrorContains(t, err, "no token received from authentication service")
+}
+
 // createTestEnvironment creates a temp directory to run our integration tests.
 func createTestEnvironment(t *testing.T) (wd, root string) {
 	wd, err := os.Getwd()
@@ -343,6 +370,9 @@ func listenAndServe(endpoint chan string, token string) {
 //
 // NOTE: The handler will redirect to the CLI local server, which will cause
 // the CLI flow to unblock as a token will be passed through via a query param.
+//
+// NOTE: When testing the failure scenario, we replace the access_token query
+// parameter with auth_error.
 type authServer struct {
 	token string
 }
@@ -352,6 +382,9 @@ func (s authServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/auth/login":
 		uri := r.URL.Query().Get("redirect_uri")
 		url := fmt.Sprintf("%s?access_token=%s", uri, s.token)
+		if s.token == "" {
+			url = fmt.Sprintf("%s?auth_error=whoops", uri)
+		}
 		http.Redirect(w, r, url, http.StatusFound)
 	}
 }

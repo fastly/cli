@@ -45,15 +45,23 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// NOTE: authCallbackHandler is expected to be provided with a token query.
+// NOTE: The authentication service will call this handler passing either an
+// access_token or an auth_error query parameter.
 func (s Server) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	t := r.URL.Query().Get("access_token")
-	if t == "" {
-		// TODO: Handle `auth_error` query param!
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "unable to parse an authentication token")
-	}
 	s.token <- t
+
+	if t == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		label := "failed to authenticate: %s"
+		msg := "no authentication token generated"
+		if err := r.URL.Query().Get("auth_error"); err == "" {
+			msg = err
+		}
+		fmt.Fprintf(w, label, msg)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, "Authentication complete. You may close this browser tab and return to your terminal.")
 }
