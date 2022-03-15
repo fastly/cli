@@ -13,6 +13,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/auth"
+	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -43,11 +44,17 @@ func TestAuthSuccess(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(opts.ConfigPath)
+	var f config.File
+	err = f.Read(opts.ConfigPath, opts.Stdin, opts.Stdout)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("data: %+v\n", string(data))
+
+	wantToken := "123"
+	wantEmail := "test@example.com"
+	if f.User.Token != wantToken || f.User.Email != wantEmail {
+		t.Errorf("want token '%s', have '%s' | want email '%s', have '%s'", wantToken, f.User.Token, wantEmail, f.User.Email)
+	}
 }
 
 // TODO: Validate --token isn't persisted.
