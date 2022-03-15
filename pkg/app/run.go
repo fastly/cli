@@ -151,7 +151,7 @@ func Run(opts RunOpts) error {
 		}
 	}
 
-	if auth.Required(name, token, tSource, opts.Stdout) {
+	if auth.Required(name, token, endpoint, tSource, opts.Stdout, opts.ClientFactory) {
 		token, err = auth.Init(opts.Stdin, opts.Stdout, auth.Browser, opts.AuthService)
 		if err != nil {
 			return err
@@ -192,6 +192,5 @@ func Run(opts RunOpts) error {
 // FastlyAPIClient is a ClientFactory that returns a real Fastly API client
 // using the provided token and endpoint.
 func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
-	client, err := fastly.NewClientForEndpoint(token, endpoint)
-	return client, err
+	return fastly.NewClientForEndpoint(token, endpoint)
 }

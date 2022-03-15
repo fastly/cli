@@ -4,18 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
 )
 
 // ignoreCommands represents commands that do not require a token.
 var ignoreCommands = []string{"configure", "ip-list", "update", "version"}
 
 // Required determines if the OAuth flow is required.
-func Required(cmd, token string, s config.Source, stdout io.Writer) (required bool) {
+func Required(cmd, token, apiEndpoint string, s config.Source, stdout io.Writer, cf api.ClientFactory) (required bool) {
 	for _, name := range ignoreCommands {
 		if cmd == name {
 			return false
@@ -29,21 +28,12 @@ func Required(cmd, token string, s config.Source, stdout io.Writer) (required bo
 	}
 
 	if s == config.SourceFile {
-		apiClient, _ := fastly.NewClient(token)
-		if status, err := ValidateToken(token, apiClient); err != nil {
-			text.Info(stdout, "We were not able to validate your access token.")
+		c, err := cf(token, apiEndpoint)
+		if err != nil {
+			return true
+		}
+		if ok := ValidateToken(c, stdout); !ok {
 			required = true
-		} else {
-			switch status {
-			case http.StatusUnauthorized:
-				text.Info(stdout, "Your access token has expired.")
-				required = true
-			case http.StatusForbidden:
-				text.Warning(stdout, "Your access token is invalid.")
-				required = true
-			case http.StatusOK:
-				// The token was validated successfully so no OAuth flow required.
-			}
 		}
 	}
 

@@ -2,23 +2,35 @@ package auth
 
 import (
 	"fmt"
-	"net/http"
+	"io"
+	"time"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
-// ValidateToken retrieves the given token data and returns.
-//
-// NOTE: We don't use the SDK GetTokenSelf method because it returns data and
-// not the response, meaning we can't inspect the status code returned.
-func ValidateToken(token string, apiClient api.Interface) (status int, err error) {
-	if resp, err := apiClient.Get("/tokens/self", nil); err != nil {
-		return http.StatusInternalServerError, err
-	} else {
-		return resp.StatusCode, nil
+// ValidateToken retrieves the given token data and validates if it's OK to
+// continue using.
+func ValidateToken(apiClient api.Interface, stdout io.Writer) (ok bool) {
+	t, err := apiClient.GetTokenSelf()
+	if err != nil {
+		text.Info(stdout, "We were not able to validate your access token.")
+		return false
 	}
+
+	if t.ExpiresAt == nil {
+		text.Info(stdout, "Your current access token has no expiration and will be replaced with a short-lived token.")
+		return false
+	}
+
+	if (*t.ExpiresAt).Before(time.Now()) {
+		text.Info(stdout, "Your access token has expired.")
+		return false
+	}
+
+	return true
 }
 
 // PersistToken stores the access token and user email in the local config.
