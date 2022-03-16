@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
@@ -16,17 +16,17 @@ import (
 func ValidateToken(apiClient api.Interface, stdout io.Writer) (ok bool) {
 	t, err := apiClient.GetTokenSelf()
 	if err != nil {
-		text.Info(stdout, "We were not able to validate your access token.")
+		var he *fastly.HTTPError
+		if errors.As(err, &he) && he.StatusCode == 401 {
+			text.Warning(stdout, "Your access token has expired.")
+		} else {
+			text.Warning(stdout, "We were not able to validate your access token.")
+		}
 		return false
 	}
 
 	if t.ExpiresAt == nil {
-		text.Info(stdout, "Your current access token has no expiration and will be replaced with a short-lived token.")
-		return false
-	}
-
-	if (*t.ExpiresAt).Before(time.Now()) {
-		text.Info(stdout, "Your access token has expired.")
+		text.Warning(stdout, "Your current access token has no expiration and will be replaced with a short-lived token.")
 		return false
 	}
 
