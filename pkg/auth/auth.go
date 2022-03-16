@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/config"
@@ -14,9 +15,12 @@ import (
 var ignoreCommands = []string{"configure", "ip-list", "update", "version"}
 
 // Required determines if the OAuth flow is required.
+//
+// NOTE: There are extra complexity involved when it comes to the `compute`
+// command as most of the subcommands don't require the use of a token.
 func Required(cmd, token, apiEndpoint string, s config.Source, stdout io.Writer, cf api.ClientFactory) (required bool) {
 	for _, name := range ignoreCommands {
-		if cmd == name {
+		if strings.HasPrefix(cmd, name) || computeSkipAuth(cmd) {
 			return false
 		}
 	}
@@ -39,6 +43,30 @@ func Required(cmd, token, apiEndpoint string, s config.Source, stdout io.Writer,
 
 	// False (no authentication flow required).
 	return required
+}
+
+// computeSkipAuth determines if the compute subcommand should skip OAuth.
+func computeSkipAuth(cmd string) bool {
+	// NOTE: As of writing the expectation is that the `compute` command only has
+	// one level of subcommand. For example, `compute init`.
+	segs := strings.Split(cmd, " ")
+	if len(segs) != 2 {
+		return false
+	}
+
+	if segs[0] == "compute" {
+		switch segs[1] {
+		case "deploy":
+			return false
+		case "publish":
+			return false
+		case "update":
+			return false
+		}
+		return true
+	}
+
+	return false
 }
 
 // Init starts the OAuth flow and returns a new access token.

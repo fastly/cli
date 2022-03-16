@@ -30,7 +30,7 @@ func TestAuthSuccess(t *testing.T) {
 	var stdout bytes.Buffer
 	args := testutil.Args("pops")
 	opts := testutil.NewRunOpts(args, &stdout)
-	opts.ConfigPath = filepath.Join(root, manifest.Filename)
+	opts.ConfigPath = filepath.Join(root, "config.toml")
 	opts.ClientFactory = mock.ClientFactory(mockAPISuccess)
 	opts.Stdin = strings.NewReader("y") // Authorise opening of web browser.
 
@@ -75,7 +75,7 @@ func TestAuthTokenFlag(t *testing.T) {
 	var stdout bytes.Buffer
 	args := testutil.Args("pops --token 123")
 	opts := testutil.NewRunOpts(args, &stdout)
-	opts.ConfigPath = filepath.Join(root, manifest.Filename)
+	opts.ConfigPath = filepath.Join(root, "config.toml")
 	opts.ClientFactory = mock.ClientFactory(mockAPISuccess)
 
 	endpoint := make(chan string)
@@ -122,7 +122,7 @@ func TestAuthMigration(t *testing.T) {
 			Token: "123",
 		},
 	}
-	opts.ConfigPath = filepath.Join(root, manifest.Filename)
+	opts.ConfigPath = filepath.Join(root, "config.toml")
 	opts.ClientFactory = mock.ClientFactory(mockAPIMigration)
 	opts.Stdin = strings.NewReader("y") // Authorise opening of web browser.
 
@@ -175,7 +175,7 @@ func TestAuthTokenExpired(t *testing.T) {
 			Token: "123",
 		},
 	}
-	opts.ConfigPath = filepath.Join(root, manifest.Filename)
+	opts.ConfigPath = filepath.Join(root, "config.toml")
 	opts.ClientFactory = mock.ClientFactory(mockAPITokenExpired)
 	opts.Stdin = strings.NewReader("y") // Authorise opening of web browser.
 
@@ -222,7 +222,7 @@ func TestAuthError(t *testing.T) {
 	var stdout bytes.Buffer
 	args := testutil.Args("pops")
 	opts := testutil.NewRunOpts(args, &stdout)
-	opts.ConfigPath = filepath.Join(root, manifest.Filename)
+	opts.ConfigPath = filepath.Join(root, "config.toml")
 	opts.Stdin = strings.NewReader("y") // Authorise opening of web browser.
 
 	endpoint := make(chan string)
@@ -237,6 +237,108 @@ func TestAuthError(t *testing.T) {
 	}
 
 	testutil.AssertErrorContains(t, err, "no token received from authentication service")
+}
+
+// TestAuthSkipAuthCommands validates that some commands don't require
+// authentication because they don't use a token. This means skipping the OAuth
+// flow entirely.
+func TestAuthSkipAuthCommands(t *testing.T) {
+	wd, root := createTestEnvironment(t)
+	defer os.RemoveAll(root)
+	defer os.Chdir(wd)
+
+	tests := []struct {
+		args    string
+		skip    bool
+		persist bool
+	}{
+		{args: "configure --token 123", skip: true, persist: true},
+		{args: "ip-list", skip: true},
+		{args: "update", skip: true},
+		{args: "version", skip: true},
+		{args: "compute build", skip: true},
+		{args: "compute deploy"},
+		{args: "compute init", skip: true},
+		{args: "compute pack --wasm-binary ./foo.wasm", skip: true},
+		{args: "compute publish"},
+		{args: "compute serve", skip: true},
+		{args: "compute update --version latest --package ./foo.tar.gz"},
+		{args: "compute validate --package ./foo.tar.gz", skip: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.args, func(t *testing.T) {
+			var stdout bytes.Buffer
+			args := testutil.Args(tc.args)
+			opts := testutil.NewRunOpts(args, &stdout)
+			opts.ConfigFile = config.File{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name:   "Default",
+							Path:   "https://github.com/fastly/compute-starter-kit-rust-default",
+							Branch: "main",
+						},
+					},
+				},
+			}
+			opts.ConfigPath = filepath.Join(root, "config.toml")
+			opts.ClientFactory = mock.ClientFactory(mockAPISkipCommandsSuccess)
+
+			// Clean-up the fastly.toml after each test case.
+			os.Remove(filepath.Join(root, "config.toml"))
+			os.Remove(filepath.Join(root, manifest.Filename))
+
+			// Required for the `version` command.
+			opts.Versioners = app.Versioners{
+				Viceroy: mock.Versioner{Version: "0.0.0"},
+				CLI:     mock.Versioner{Version: "0.0.0"},
+			}
+
+			endpoint := make(chan string)
+			generatedToken := "123"
+			auth.Browser = mockBrowser(endpoint, generatedToken)
+			opts.AuthService = <-endpoint
+
+			opts.Stdin = strings.NewReader("") // Some commands like `init` might try to read a prompt.
+			if !tc.skip {
+				opts.Stdin = strings.NewReader("y") // Authorise opening of web browser.
+			}
+
+			app.Run(opts)
+
+			output := "We are about to initialise a new authentication flow"
+			if tc.skip {
+				testutil.AssertStringDoesntContain(t, stdout.String(), output)
+			} else {
+				testutil.AssertStringContains(t, stdout.String(), output)
+			}
+
+			var f config.File
+			err := f.Read(opts.ConfigPath, opts.Stdin, opts.Stdout)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !tc.persist && tc.skip {
+				if f.User.Token != "" {
+					t.Errorf("want no token, have '%s'", f.User.Token)
+				}
+				if f.User.Email != "" {
+					t.Errorf("want no email, have '%s'", f.User.Email)
+				}
+			} else {
+				wantToken := "123"
+				if f.User.Token != wantToken {
+					t.Errorf("want token '%s', have '%s'", wantToken, f.User.Token)
+				}
+				wantEmail := "test@example.com"
+				if f.User.Email != wantEmail {
+					t.Errorf("want email '%s', have '%s'", wantEmail, f.User.Email)
+				}
+			}
+		})
+	}
 }
 
 // createTestEnvironment creates a temp directory to run our integration tests.
@@ -319,6 +421,29 @@ var mockAPITokenExpired = mock.API{
 	},
 	AllDatacentersFn: func() ([]fastly.Datacenter, error) {
 		return []fastly.Datacenter{}, nil
+	},
+}
+
+// mockAPISkipCommandsSuccess represents the expected API calls to be made for a
+// successful token generation using the new CLI OAuth flow.
+var mockAPISkipCommandsSuccess = mock.API{
+	GetTokenSelfFn: func() (*fastly.Token, error) {
+		return &fastly.Token{UserID: "123"}, nil
+	},
+	GetUserFn: func(*fastly.GetUserInput) (*fastly.User, error) {
+		return &fastly.User{
+			Login: "test@example.com",
+		}, nil
+	},
+	AllDatacentersFn: func() ([]fastly.Datacenter, error) {
+		return []fastly.Datacenter{}, nil
+	},
+	AllIPsFn: func() (v4, v6 fastly.IPAddrs, err error) {
+		return []string{
+				"00.123.45.6/78",
+			}, []string{
+				"0a12:3b45::/67",
+			}, nil
 	},
 }
 
