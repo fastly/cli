@@ -304,20 +304,14 @@ var mockAPIMigration = mock.API{
 //
 // NOTE: GetTokenSelf is effectively called twice, once at the start of the
 // command execution to validate if the current token is valid and again before
-// persisting the generated short-lived token to disk. We'll use the same token
-// data for both calls but this isn't a problem.
+// persisting the generated short-lived token to disk. We mock the response to
+// change depending on the order it's called so we can see a successful output.
 //
-// NOTE: For the sake of the 'expiry' scenario, we'll not set an Expiry,
-// which means the test output will show an appropriate messaging.
+// NOTE: For the sake of the 'expiry' scenario, we'll return a fastly.HTTPError
+// with the appropriate status code, which means the test output will show an
+// appropriate messaging.
 var mockAPITokenExpired = mock.API{
-	GetTokenSelfFn: func() (*fastly.Token, error) {
-		t := testutil.Date
-
-		return &fastly.Token{
-			UserID:    "456",
-			ExpiresAt: &t,
-		}, nil
-	},
+	GetTokenSelfFn: statefulTokenSelf(),
 	GetUserFn: func(*fastly.GetUserInput) (*fastly.User, error) {
 		return &fastly.User{
 			Login: "test@example.com",
@@ -326,6 +320,26 @@ var mockAPITokenExpired = mock.API{
 	AllDatacentersFn: func() ([]fastly.Datacenter, error) {
 		return []fastly.Datacenter{}, nil
 	},
+}
+
+var statefulTokenSelf = func() func() (*fastly.Token, error) {
+	count := 0
+	return func() (*fastly.Token, error) {
+		count += 1
+		switch count {
+		case 1:
+			return nil, &fastly.HTTPError{
+				StatusCode: http.StatusUnauthorized,
+			}
+		case 2:
+			t := testutil.Date
+			return &fastly.Token{
+				UserID:    "456",
+				ExpiresAt: &t,
+			}, nil
+		}
+		return nil, nil
+	}
 }
 
 // mockBrowser mocks the behaviour for opening a web browser.
