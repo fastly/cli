@@ -26,7 +26,7 @@ fastly:
 
 # useful for attaching a debugger such as https://github.com/go-delve/delve
 debug:
-	@go build -gcflags="all=-N -l" -o "fastly" ./cmd/fastly
+	@go build -gcflags="all=-N -l" $(LDFLAGS) -o "fastly" ./cmd/fastly
 
 .PHONY: all
 all: config tidy fmt vet staticcheck gosec test build install
@@ -63,11 +63,11 @@ test: config
 
 .PHONY: build
 build: config
-	go build ./cmd/fastly
+	go build $(LDFLAGS) ./cmd/fastly
 
 .PHONY: install
 install: config
-	go install ./cmd/fastly
+	go install $(LDFLAGS) ./cmd/fastly
 
 .PHONY: changelog
 changelog:
