@@ -1812,10 +1812,10 @@ COMMANDS
                                    execute
         --request-max-entries=REQUEST-MAX-ENTRIES
                                    Maximum number of logs to append to a batch,
-                                   if non-zero. Defaults to 0 for unbounded
+                                   if non-zero. Defaults to 10k
         --request-max-bytes=REQUEST-MAX-BYTES
                                    Maximum size of log batch, if non-zero.
-                                   Defaults to 0 for unbounded
+                                   Defaults to 100MB
 
   logging elasticsearch delete --version=VERSION --name=NAME [<flags>]
     Delete an Elasticsearch logging endpoint on a Fastly service version
@@ -1912,10 +1912,10 @@ COMMANDS
                                    execute
         --request-max-entries=REQUEST-MAX-ENTRIES
                                    Maximum number of logs to append to a batch,
-                                   if non-zero. Defaults to 0 for unbounded
+                                   if non-zero. Defaults to 10k
         --request-max-bytes=REQUEST-MAX-BYTES
                                    Maximum size of log batch, if non-zero.
-                                   Defaults to 0 for unbounded
+                                   Defaults to 100MB
 
   logging ftp create --name=NAME --version=VERSION --address=ADDRESS --user=USER --password=PASSWORD [<flags>]
     Create an FTP logging endpoint on a Fastly service version
