@@ -45,11 +45,11 @@ type ServeCommand struct {
 
 	// Serve fields
 	addr      string
+	debug     bool
 	env       cmd.OptionalString
 	file      string
 	skipBuild bool
 	watch     bool
-	debug     bool
 }
 
 // NewServeCommand returns a usable command registered under the parent.
@@ -65,6 +65,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 
 	c.CmdClause.Flag("accept-custom-build", "Do not prompt when project manifest defines [scripts.build]").Action(c.acceptCustomBuild.Set).BoolVar(&c.acceptCustomBuild.Value)
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
+	c.CmdClause.Flag("debug", "Run the server in Debug Adapter mode").Hidden().BoolVar(&c.debug)
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
@@ -74,7 +75,6 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
-	c.CmdClause.Flag("debug", "Run the server in Debug Adapter mode").Hidden().BoolVar(&c.debug)
 
 	return &c
 }
@@ -105,7 +105,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	srcDir := sourceDirectory(c.lang, c.manifest.File.Language, c.watch, out)
 
 	for {
-		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.watch, c.debug, c.Globals.Verbose(), progress, out, c.Globals.ErrLog)
+		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.debug, c.watch, c.Globals.Verbose(), progress, out, c.Globals.ErrLog)
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
 				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
@@ -410,7 +410,7 @@ func sourceDirectory(flag cmd.OptionalString, lang string, watch bool, out io.Wr
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin, srcDir, file, addr, env string, watch, debug, verbose bool, progress text.Progress, out io.Writer, errLog fsterr.LogInterface) error {
+func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, progress text.Progress, out io.Writer, errLog fsterr.LogInterface) error {
 	if env != "" {
 		env = "." + env
 	}
