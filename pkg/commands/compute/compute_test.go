@@ -101,6 +101,7 @@ func TestServeFlagDivergence(t *testing.T) {
 	// We only want to be sure serve contains all build flags.
 	ignoreServeFlags := []string{
 		"addr",
+		"debug",
 		"env",
 		"file",
 		"skip-build",
