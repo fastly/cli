@@ -49,6 +49,7 @@ type ServeCommand struct {
 	file      string
 	skipBuild bool
 	watch     bool
+	debug     bool
 }
 
 // NewServeCommand returns a usable command registered under the parent.
@@ -73,6 +74,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
+	c.CmdClause.Flag("debug", "Run the server in Debug Adapter mode").Hidden().BoolVar(&c.debug)
 
 	return &c
 }
@@ -103,7 +105,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	srcDir := sourceDirectory(c.lang, c.manifest.File.Language, c.watch, out)
 
 	for {
-		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.watch, c.Globals.Verbose(), progress, out, c.Globals.ErrLog)
+		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.watch, c.debug, c.Globals.Verbose(), progress, out, c.Globals.ErrLog)
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
 				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
@@ -408,7 +410,7 @@ func sourceDirectory(flag cmd.OptionalString, lang string, watch bool, out io.Wr
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin, srcDir, file, addr, env string, watch, verbose bool, progress text.Progress, out io.Writer, errLog fsterr.LogInterface) error {
+func local(bin, srcDir, file, addr, env string, watch, debug, verbose bool, progress text.Progress, out io.Writer, errLog fsterr.LogInterface) error {
 	if env != "" {
 		env = "." + env
 	}
@@ -421,6 +423,10 @@ func local(bin, srcDir, file, addr, env string, watch, verbose bool, progress te
 
 	manifest := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
 	args := []string{"-C", manifest, "--addr", addr, file}
+
+	if debug {
+		args = append(args, "--debug")
+	}
 
 	if verbose {
 		text.Output(out, "Wasm file: %s", file)
