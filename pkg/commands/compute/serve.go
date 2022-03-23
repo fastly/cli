@@ -45,6 +45,7 @@ type ServeCommand struct {
 
 	// Serve fields
 	addr      string
+	debug     bool
 	env       cmd.OptionalString
 	file      string
 	skipBuild bool
@@ -64,6 +65,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 
 	c.CmdClause.Flag("accept-custom-build", "Do not prompt when project manifest defines [scripts.build]").Action(c.acceptCustomBuild.Set).BoolVar(&c.acceptCustomBuild.Value)
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
+	c.CmdClause.Flag("debug", "Run the server in Debug Adapter mode").Hidden().BoolVar(&c.debug)
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
@@ -103,7 +105,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	srcDir := sourceDirectory(c.lang, c.manifest.File.Language, c.watch, out)
 
 	for {
-		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.watch, c.Globals.Verbose(), progress, out, c.Globals.ErrLog)
+		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.debug, c.watch, c.Globals.Verbose(), progress, out, c.Globals.ErrLog)
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
 				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
@@ -408,7 +410,7 @@ func sourceDirectory(flag cmd.OptionalString, lang string, watch bool, out io.Wr
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin, srcDir, file, addr, env string, watch, verbose bool, progress text.Progress, out io.Writer, errLog fsterr.LogInterface) error {
+func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, progress text.Progress, out io.Writer, errLog fsterr.LogInterface) error {
 	if env != "" {
 		env = "." + env
 	}
@@ -421,6 +423,10 @@ func local(bin, srcDir, file, addr, env string, watch, verbose bool, progress te
 
 	manifest := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
 	args := []string{"-C", manifest, "--addr", addr, file}
+
+	if debug {
+		args = append(args, "--debug")
+	}
 
 	if verbose {
 		text.Output(out, "Wasm file: %s", file)
