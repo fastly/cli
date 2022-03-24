@@ -245,9 +245,9 @@ func TestInit(t *testing.T) {
 			name: "default",
 			args: args("compute init"),
 			configFile: config.File{
-				User: config.User{
+				Profiles: config.Profiles{"user": config.Profile{
 					Email: "test@example.com",
-				},
+				}},
 				StarterKits: config.StarterKitLanguages{
 					Rust: skRust,
 				},

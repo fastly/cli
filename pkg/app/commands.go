@@ -97,7 +97,7 @@ func defineCommands(
 	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, globals, computeBuild, opts.Versioners.Viceroy, data)
 	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, globals, data)
 	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, globals)
-	configureCmdRoot := configure.NewRootCommand(app, opts.ConfigPath, configure.APIClientFactory(opts.APIClient), globals)
+	configureCmdRoot := configure.NewRootCommand(app, configure.APIClientFactory(opts.APIClient), globals)
 	dictionaryCmdRoot := dictionary.NewRootCommand(app, globals)
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, globals, data)
 	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, globals, data)

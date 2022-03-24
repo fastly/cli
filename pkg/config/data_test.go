@@ -206,7 +206,7 @@ func TestUseStatic(t *testing.T) {
 		// be migrated to the static config embedded in the CLI (because the
 		// user config's CLI.Version field didn't align with the currently running
 		// CLI binary version), then it should still be transitioned safely without
-		// losing the user's token/email within the 'User' section.
+		// losing the user's token/email within the [profile] section.
 		{
 			name:               "config with 'legacy' section should be safe to migrate to static",
 			userConfigFilename: "config-with-old-legacy-section.toml",
@@ -262,10 +262,10 @@ func TestUseStatic(t *testing.T) {
 			if f.CLI.LastChecked == "" || f.CLI.Version == "" {
 				t.Fatalf("expected LastChecked/Version to be set: %+v", f)
 			}
-			if f.User.Token != "foobar" {
+			if f.Profiles["user"].Token != "foobar" {
 				t.Fatalf("wanted token: %s, got: %s", "foobar", f.User.Token)
 			}
-			if f.User.Email != "testing@fastly.com" {
+			if f.Profiles["user"].Email != "testing@fastly.com" {
 				t.Fatalf("wanted email: %s, got: %s", "testing@fastly.com", f.User.Email)
 			}
 		})

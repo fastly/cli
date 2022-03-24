@@ -14,9 +14,15 @@
     toolchain_version = "1.49.0"
     wasm_wasi_target = "wasm32-wasi"
 
-[legacy]
+[user]
   email = ""
   token = ""
+
+[profile]
+  [profile.user]
+    default = true
+    email = "testing@fastly.com"
+    token = "foobar"
 
 [starter-kits]
   [[starter-kits.assemblyscript]]
@@ -39,7 +45,3 @@
     name = "Static"
     path = "https://github.com/fastly/compute-starter-kit-rust-static-content.git"
     tag = ""
-
-[user]
-  email = "testing@fastly.com"
-  token = "foobar"

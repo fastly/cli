@@ -148,3 +148,6 @@ var ComputeBuildRemediation = strings.Join([]string{
 // ComputeTrialRemediation suggests contacting customer manager to enable the
 // free trial feature flag.
 var ComputeTrialRemediation = "For more help with this error see fastly.help/cli/ecp-feature"
+
+// ProfileRemediation suggests no profiles exist, so run `fastly configure`.
+var ProfileRemediation = "Run `fastly configure` to create a profile"

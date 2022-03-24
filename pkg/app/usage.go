@@ -144,6 +144,7 @@ var UsageTemplateFuncs = template.FuncMap{
 // pkg/app/app.go.
 var globalFlags = map[string]bool{
 	"help":    true,
+	"profile": true,
 	"token":   true,
 	"verbose": true,
 }

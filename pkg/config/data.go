@@ -117,8 +117,10 @@ func (d *Data) Token() (string, Source) {
 		return d.Env.Token, SourceEnvironment
 	}
 
-	if d.File.User.Token != "" {
-		return d.File.User.Token, SourceFile
+	for _, v := range d.File.Profiles {
+		if v.Default {
+			return v.Token, SourceFile
+		}
 	}
 
 	return "", SourceUndefined
@@ -160,19 +162,19 @@ var FilePath = func() string {
 // DefaultEndpoint is the default Fastly API endpoint.
 const DefaultEndpoint = "https://api.fastly.com"
 
-// LegacyFile represents the old toml configuration format.
+// LegacyUser represents the old toml configuration format.
 //
 // NOTE: this exists to catch situations where an existing CLI user upgrades
 // their version of the CLI and ends up trying to use the latest iteration of
 // the toml configuration. We don't want them to have to re-enter their email
-// or token, so we'll decode the existing config file into the LegacyFile type
+// or token, so we'll decode the existing config file into the LegacyUser type
 // and then extract those details later when constructing the proper File type.
 //
 // I had tried to make this an unexported type but it seemed the toml decoder
 // would fail to unmarshal the configuration unless it was an exported type.
-type LegacyFile struct {
-	Token string `toml:"token"`
+type LegacyUser struct {
 	Email string `toml:"email"`
+	Token string `toml:"token"`
 }
 
 // File represents our dynamic application toml configuration.
@@ -181,13 +183,14 @@ type File struct {
 	ConfigVersion int                 `toml:"config_version"`
 	Fastly        Fastly              `toml:"fastly"`
 	Language      Language            `toml:"language"`
+	Profiles      Profiles            `toml:"profile"`
 	StarterKits   StarterKitLanguages `toml:"starter-kits"`
 	User          User                `toml:"user"`
 	Viceroy       Viceroy             `toml:"viceroy"`
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.
-	Legacy LegacyFile `toml:"legacy"`
+	LegacyUser LegacyUser `toml:"user"`
 
 	// Store off copy of the static application configuration that has been
 	// embedded into the compiled CLI binary.
@@ -247,6 +250,16 @@ type Rust struct {
 	// RustupConstraint is a free-form semver constraint for the rustup version
 	// that should be installed.
 	RustupConstraint string `toml:"rustup_constraint"`
+}
+
+// Profiles represents multiple profile accounts.
+type Profiles map[string]*Profile
+
+// Profiles represents a specific profile account.
+type Profile struct {
+	Default bool   `toml:"default"`
+	Email   string `toml:"email"`
+	Token   string `toml:"token"`
 }
 
 // StarterKitLanguages represents language specific starter kits.
@@ -325,11 +338,18 @@ func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 
 // migrateLegacyData ensures legacy data is transitioned to config new format.
 func migrateLegacyData(f *File) {
-	if f.Legacy.Token != "" && f.User.Token == "" {
-		f.User.Token = f.Legacy.Token
-	}
-	if f.Legacy.Email != "" && f.User.Email == "" {
-		f.User.Email = f.Legacy.Email
+	if f.LegacyUser.Email != "" || f.LegacyUser.Token != "" {
+		if f.Profiles == nil {
+			f.Profiles = make(Profiles)
+		}
+		// NOTE: We keep the assignment separate just in case the user somehow has
+		// a config.toml with BOTH a populated [user] + [profile] section.
+		f.Profiles["user"] = &Profile{
+			Default: true,
+			Email:   f.LegacyUser.Email,
+			Token:   f.LegacyUser.Token,
+		}
+		f.LegacyUser = LegacyUser{}
 	}
 }
 
@@ -395,6 +415,7 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 		// ask the user if they would like us to replace their config with the
 		// version embedded into the CLI binary.
 
+		text.Break(out)
 		label := fmt.Sprintf("Your configuration file (%s) is invalid. Replace it with a valid version? (any existing email/token data will be lost) [y/N] ", path)
 		cont, err := text.Input(out, label, in)
 		if err != nil {
@@ -427,12 +448,16 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 	if err != nil {
 		return err
 	}
+
+	// The reason we're writing data back to disk, although we've only just read
+	// data from the same file, is because we've already potentially mutated some
+	// fields like [cli.last_checked] and [cli.version].
 	f.Write(path)
 
-	// The top-level 'endpoint' key is what we're using to identify whether the
-	// local config.toml file is using the legacy format. If we find that key,
-	// then we must delete the file and return an error so that the calling code
-	// can take the appropriate action of creating the file anew.
+	// The top-level 'user' section is what we're using to identify whether the
+	// local config.toml file is using a legacy format. If we find that key, then
+	// we must delete the file and return an error so that the calling code can
+	// take the appropriate action of creating the file anew.
 	tree, err := toml.LoadBytes(data)
 	if err != nil {
 		// NOTE: We do not expect this error block to ever be hit because if we've
@@ -440,14 +465,7 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 		// should equally be successful, but we'll code defensively nonetheless.
 		return invalidConfigErr(err)
 	}
-
-	if endpoint := tree.Get("endpoint"); endpoint != nil {
-		var lf LegacyFile
-		err := toml.Unmarshal(data, &lf)
-		if err != nil {
-			return err
-		}
-		f.Legacy = lf
+	if user := tree.Get("user"); user != nil {
 		return ErrLegacyConfig
 	}
 
@@ -513,6 +531,7 @@ func (e *Environment) Read(state map[string]string) {
 // explicit flags. Consumers should bind their flag values to these fields
 // directly.
 type Flag struct {
+	Profile  string
 	Token    string
 	Verbose  bool
 	Endpoint string

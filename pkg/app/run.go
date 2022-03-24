@@ -12,8 +12,9 @@ import (
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
@@ -33,7 +34,7 @@ type RunOpts struct {
 	ConfigFile config.File
 	ConfigPath string
 	Env        config.Environment
-	ErrLog     errors.LogInterface
+	ErrLog     fsterr.LogInterface
 	HTTPClient api.HTTPClient
 	Stdin      io.Reader
 	Stdout     io.Writer
@@ -80,9 +81,14 @@ func Run(opts RunOpts) error {
 
 	// WARNING: kingpin has no way of decorating flags as being "global"
 	// therefore if you add/remove a global flag you will also need to update
-	// the globalFlag map in pkg/app/usage.go which is used for usage rendering.
+	// the globalFlags map in pkg/app/usage.go which is used for usage rendering.
+	//
+	// NOTE: Global flags, unlike command flags, must be unique. For example, if
+	// you try to use a letter that is already taken by any other command, then
+	// kingpin will trigger a runtime panic 🎉
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
 	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
+	app.Flag("profile", "Account profile").Short('o').StringVar(&globals.Flag.Profile)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 
@@ -120,6 +126,26 @@ func Run(opts RunOpts) error {
 			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file\n")
 		default:
 			fmt.Fprintf(opts.Stdout, "Fastly API token not provided\n")
+		}
+	}
+
+	if globals.Flag.Profile != "" && command.Name() != "configure" {
+		if exist := profile.Exist(globals.Flag.Profile, globals.File.Profiles); !exist {
+			msg := profile.DoesNotExist
+
+			name, p := profile.Default(globals.File.Profiles)
+			if name == "" {
+				msg = fmt.Sprintf("%s There are no other profiles detected", msg)
+				return fsterr.RemediationError{
+					Inner:       fmt.Errorf(msg),
+					Remediation: fsterr.ProfileRemediation,
+				}
+			}
+
+			msg = fmt.Sprintf("%s The default profile '%s' (%s) will be used.", msg, name, p.Email)
+			text.Warning(opts.Stdout, msg)
+
+			// TODO: prompt user to confirm if using this profile is OK.
 		}
 	}
 

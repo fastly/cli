@@ -1,3 +1,6 @@
-token = "foobar"
-email = "testing@fastly.com"
-endpoint = "https://api.fastly.com"
+[fastly]
+api_endpoint = "https://api.fastly.com"
+
+[user]
+  email = "testing@fastly.com"
+  token = "foobar"
