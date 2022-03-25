@@ -30,6 +30,7 @@ type RootCommand struct {
 	clientFactory APIClientFactory
 	display       bool
 	location      bool
+	profiles      bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -37,14 +38,18 @@ func NewRootCommand(parent cmd.Registerer, cf APIClientFactory, globals *config.
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("configure", "Configure the Fastly CLI")
-	c.CmdClause.Flag("location", "Print the location of the CLI configuration file").Short('l').BoolVar(&c.location)
 	c.CmdClause.Flag("display", "Print the CLI configuration file").Short('d').BoolVar(&c.display)
+	c.CmdClause.Flag("location", "Print the location of the CLI configuration file").Short('l').BoolVar(&c.location)
+	c.CmdClause.Flag("profiles", "Print the available profiles").Short('p').BoolVar(&c.profiles)
 	c.clientFactory = cf
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	if c.profiles {
+		return c.displayProfiles(out)
+	}
 	if c.location || c.display {
 		return c.cfg()
 	}
@@ -71,6 +76,26 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	displayCfgPath(c.Globals.Path, out)
 	text.Success(out, "Profile '%s' created", name)
+	return nil
+}
+
+func (c *RootCommand) displayProfiles(out io.Writer) error {
+	if c.Globals.File.Profiles == nil {
+		msg := fmt.Sprintf("no profiles available")
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf(msg),
+			Remediation: fsterr.ProfileRemediation,
+		}
+	}
+
+	for k, v := range c.Globals.File.Profiles {
+		text.Break(out)
+		text.Output(out, text.Bold(k))
+		text.Break(out)
+		text.Output(out, "%s: %t", text.Bold("Default"), v.Default)
+		text.Output(out, "%s: %s", text.Bold("Email"), v.Email)
+		text.Output(out, "%s: %s", text.Bold("Token"), v.Token)
+	}
 	return nil
 }
 
@@ -208,18 +233,25 @@ func (c *RootCommand) validateToken(token, endpoint string, progress text.Progre
 	return user, nil
 }
 
-func (c *RootCommand) updateInMemCfg(profile, email, token, endpoint string, progress text.Progress) {
+func (c *RootCommand) updateInMemCfg(profileName, email, token, endpoint string, progress text.Progress) {
 	progress.Step("Persisting configuration...")
+
+	c.Globals.File.Fastly.APIEndpoint = endpoint
 
 	if c.Globals.File.Profiles == nil {
 		c.Globals.File.Profiles = make(config.Profiles)
 	}
-	c.Globals.File.Profiles[profile] = &config.Profile{
+	c.Globals.File.Profiles[profileName] = &config.Profile{
 		Default: true,
 		Email:   email,
 		Token:   token,
 	}
-	c.Globals.File.Fastly.APIEndpoint = endpoint
+
+	// We call Set for its side effect of resetting all other profiles to have
+	// their Default field set to false.
+	if p, ok := profile.Set(profileName, c.Globals.File.Profiles); ok {
+		c.Globals.File.Profiles = p
+	}
 }
 
 func (c *RootCommand) persistCfg() error {
@@ -255,9 +287,11 @@ func displayCfgPath(path string, out io.Writer) {
 func (c *RootCommand) promptForName(in io.Reader, out io.Writer) (string, error) {
 	text.Break(out)
 
-	msg := "A default profile already exists. A new profile will be configured and set to default."
+	var msg string
 	if profile, _ := profile.Default(c.Globals.File.Profiles); profile == "" {
 		msg = "No existing profiles exist. A new profile will be created."
+	} else {
+		msg = fmt.Sprintf("A default profile already exists (%s).\nA new default profile will now be configured.", profile)
 	}
 
 	text.Output(out, msg)

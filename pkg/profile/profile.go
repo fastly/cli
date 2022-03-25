@@ -28,6 +28,9 @@ func Default(p config.Profiles) (string, *config.Profile) {
 }
 
 // Set configures the named profile to be the default.
+//
+// NOTE: The type assigned to the config.Profiles map key value is a struct.
+// Structs are passed by value and so we must return the mutated type.
 func Set(name string, p config.Profiles) (config.Profiles, bool) {
 	var ok bool
 	for k, v := range p {
