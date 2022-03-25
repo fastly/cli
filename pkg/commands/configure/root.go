@@ -58,7 +58,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	name, err := promptForName(in, out, c.Globals.ErrLog)
+	name, err := c.promptForName(in, out)
 	if err != nil {
 		return err
 	}
@@ -252,13 +252,19 @@ func displayCfgPath(path string, out io.Writer) {
 	text.Description(out, "You can find your configuration file at", filePath)
 }
 
-func promptForName(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {
+func (c *RootCommand) promptForName(in io.Reader, out io.Writer) (string, error) {
 	text.Break(out)
-	text.Output(out, "A new profile needs to be configured.")
+
+	msg := "A default profile already exists. A new profile will be configured and set to default."
+	if profile, _ := profile.Default(c.Globals.File.Profiles); profile == "" {
+		msg = "No existing profiles exist. A new profile will be created."
+	}
+
+	text.Output(out, msg)
 	text.Break(out)
 	name, err := text.Input(out, "Profile name [user]: ", in)
 	if err != nil {
-		errLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return "", err
 	}
 	if name == "" {

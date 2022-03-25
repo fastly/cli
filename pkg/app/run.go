@@ -145,7 +145,14 @@ func Run(opts RunOpts) error {
 			msg = fmt.Sprintf("%s The default profile '%s' (%s) will be used.", msg, name, p.Email)
 			text.Warning(opts.Stdout, msg)
 
-			// TODO: prompt user to confirm if using this profile is OK.
+			label := "\nWould you like to continue? [y/N] "
+			answer, err := text.AskYesNo(opts.Stdout, label, opts.Stdin)
+			if err != nil {
+				return err
+			}
+			if !answer {
+				return nil
+			}
 		}
 	}
 
