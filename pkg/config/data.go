@@ -123,6 +123,14 @@ func (d *Data) Token() (string, Source) {
 		}
 	}
 
+	if d.Flag.Profile != "" {
+		for k, v := range d.File.Profiles {
+			if k == d.Flag.Profile {
+				return v.Token, SourceFile
+			}
+		}
+	}
+
 	return "", SourceUndefined
 }
 

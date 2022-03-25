@@ -28,6 +28,7 @@ type RootCommand struct {
 	cmd.Base
 
 	clientFactory APIClientFactory
+	delete        bool
 	display       bool
 	location      bool
 	profiles      bool
@@ -38,6 +39,7 @@ func NewRootCommand(parent cmd.Registerer, cf APIClientFactory, globals *config.
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("configure", "Configure the Fastly CLI")
+	c.CmdClause.Flag("delete", "Delete the specified --profile").Short('x').BoolVar(&c.delete)
 	c.CmdClause.Flag("display", "Print the CLI configuration file").Short('d').BoolVar(&c.display)
 	c.CmdClause.Flag("location", "Print the location of the CLI configuration file").Short('l').BoolVar(&c.location)
 	c.CmdClause.Flag("profiles", "Print the available profiles").Short('p').BoolVar(&c.profiles)
@@ -49,6 +51,16 @@ func NewRootCommand(parent cmd.Registerer, cf APIClientFactory, globals *config.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.profiles {
 		return c.displayProfiles(out)
+	}
+	if c.Globals.Flag.Profile == "" && c.delete {
+		msg := fmt.Sprintf("--profile flag not provided")
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf(msg),
+			Remediation: "Provide both the --profile and --delete flags.",
+		}
+	}
+	if c.Globals.Flag.Profile != "" && c.delete {
+		return c.deleteProfile(out)
 	}
 	if c.location || c.display {
 		return c.cfg()
@@ -97,6 +109,21 @@ func (c *RootCommand) displayProfiles(out io.Writer) error {
 		text.Output(out, "%s: %s", text.Bold("Token"), v.Token)
 	}
 	return nil
+}
+
+func (c *RootCommand) deleteProfile(out io.Writer) error {
+	if ok := profile.Delete(c.Globals.Flag.Profile, c.Globals.File.Profiles); ok {
+		if err := c.Globals.File.Write(c.Globals.Path); err != nil {
+			return err
+		}
+		text.Success(out, "The profile '%s' was deleted.", c.Globals.Flag.Profile)
+
+		if len(c.Globals.File.Profiles) > 0 {
+			text.Warning(out, "At least one account profile should be set as the 'default'. Run `fastly configure --profile <NAME>`.")
+		}
+		return nil
+	}
+	return fmt.Errorf("the specified profile does not exist")
 }
 
 // cfg handles displaying the config data and file location.

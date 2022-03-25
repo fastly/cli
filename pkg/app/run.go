@@ -84,11 +84,13 @@ func Run(opts RunOpts) error {
 	// the globalFlags map in pkg/app/usage.go which is used for usage rendering.
 	//
 	// NOTE: Global flags, unlike command flags, must be unique. For example, if
-	// you try to use a letter that is already taken by any other command, then
-	// kingpin will trigger a runtime panic 🎉
+	// you try to use a letter that is already taken by any other command flag,
+	// then kingpin will trigger a runtime panic 🎉
+	//
+	// NOTE: Short flags CAN be safely reused across commands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
 	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
-	app.Flag("profile", "Account profile").Short('o').StringVar(&globals.Flag.Profile)
+	app.Flag("profile", "Switch account profile").Short('o').StringVar(&globals.Flag.Profile)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 
@@ -135,7 +137,7 @@ func Run(opts RunOpts) error {
 
 			name, p := profile.Default(globals.File.Profiles)
 			if name == "" {
-				msg = fmt.Sprintf("%s There are no other profiles detected", msg)
+				msg = fmt.Sprintf("%s no account profiles configured", msg)
 				return fsterr.RemediationError{
 					Inner:       fmt.Errorf(msg),
 					Remediation: fsterr.ProfileRemediation,
@@ -152,6 +154,14 @@ func Run(opts RunOpts) error {
 			}
 			if !answer {
 				return nil
+			}
+		}
+
+		// Persist the permanent switch of profiles.
+		var ok bool
+		if globals.File.Profiles, ok = profile.Set(globals.Flag.Profile, globals.File.Profiles); ok {
+			if err := globals.File.Write(globals.Path); err != nil {
+				return err
 			}
 		}
 	}

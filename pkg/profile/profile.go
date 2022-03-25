@@ -42,3 +42,15 @@ func Set(name string, p config.Profiles) (config.Profiles, bool) {
 	}
 	return p, ok
 }
+
+// Delete removes the named profile from the profile configuration.
+func Delete(name string, p config.Profiles) bool {
+	var ok bool
+	for k := range p {
+		if k == name {
+			delete(p, k)
+			ok = true
+		}
+	}
+	return ok
+}

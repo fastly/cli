@@ -150,4 +150,4 @@ var ComputeBuildRemediation = strings.Join([]string{
 var ComputeTrialRemediation = "For more help with this error see fastly.help/cli/ecp-feature"
 
 // ProfileRemediation suggests no profiles exist, so run `fastly configure`.
-var ProfileRemediation = "Run `fastly configure` to create a profile"
+var ProfileRemediation = "Run `fastly configure` to create a profile, or `fastly configure --profiles` to view available profiles (at least one profile should be set as 'default')."
