@@ -131,6 +131,12 @@ func Run(opts RunOpts) error {
 		}
 	}
 
+	if data.File.Profile != "" {
+		if name, p := profile.Get(data.File.Profile, globals.File.Profiles); name != "" {
+			token = p.Token
+		}
+	}
+
 	if globals.Flag.Profile != "" && command.Name() != "configure" {
 		if exist := profile.Exist(globals.Flag.Profile, globals.File.Profiles); !exist {
 			msg := profile.DoesNotExist

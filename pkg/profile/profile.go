@@ -27,6 +27,16 @@ func Default(p config.Profiles) (string, *config.Profile) {
 	return "", new(config.Profile)
 }
 
+// Get returns the specified profile.
+func Get(name string, p config.Profiles) (string, *config.Profile) {
+	for k, v := range p {
+		if k == name {
+			return k, v
+		}
+	}
+	return "", new(config.Profile)
+}
+
 // Set configures the named profile to be the default.
 //
 // NOTE: The type assigned to the config.Profiles map key value is a struct.

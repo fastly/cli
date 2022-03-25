@@ -203,6 +203,7 @@ type File struct {
 	Authors         []string    `toml:"authors"`
 	Description     string      `toml:"description"`
 	Language        string      `toml:"language"`
+	Profile         string      `toml:"profile,omitempty"`
 	LocalServer     LocalServer `toml:"local_server,omitempty"`
 	ManifestVersion Version     `toml:"manifest_version"`
 	Name            string      `toml:"name"`
