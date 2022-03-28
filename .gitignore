@@ -1,10 +1,8 @@
-# Ignore all
-*
-# Unignore all with extensions
-!*.*
-# Unignore all dirs
-!*/
-### Above combination will ignore all files without extension ###
+# ignore fastly binary
+#
+# NOTE: This can cause fuzzy finders to fail to locate cmd/fastly/main.go
+# because gitignore cannot negate files inside an ignore directory.
+fastly
 
 RELEASE_CHANGELOG.md
 
