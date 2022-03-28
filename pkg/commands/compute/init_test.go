@@ -245,7 +245,7 @@ func TestInit(t *testing.T) {
 			name: "default",
 			args: args("compute init"),
 			configFile: config.File{
-				Profiles: config.Profiles{"user": config.Profile{
+				Profiles: config.Profiles{"user": &config.Profile{
 					Email: "test@example.com",
 				}},
 				StarterKits: config.StarterKitLanguages{
