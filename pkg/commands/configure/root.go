@@ -175,20 +175,26 @@ func (c *RootCommand) switchProfile(in io.Reader, out io.Writer) error {
 
 // tokenFlow initialises the token flow.
 func (c *RootCommand) tokenFlow(profile string, in io.Reader, out io.Writer) error {
-	token, err := promptForToken(in, out, c.Globals.ErrLog)
-	if err != nil {
-		return err
-	}
-	text.Break(out)
-	text.Break(out)
+	var err error
 
 	progress := text.NewProgress(out, c.Globals.Verbose())
-	defer func(err error) {
+	defer func() {
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			progress.Fail() // progress.Done is handled inline
 		}
-	}(err)
+	}()
+
+	// If user provides --token flag, then don't prompt them for input.
+	token, source := c.Globals.Token()
+	if source == config.SourceFile || source == config.SourceUndefined {
+		token, err = promptForToken(in, out, c.Globals.ErrLog)
+		if err != nil {
+			return err
+		}
+		text.Break(out)
+		text.Break(out)
+	}
 
 	endpoint, _ := c.Globals.Endpoint()
 

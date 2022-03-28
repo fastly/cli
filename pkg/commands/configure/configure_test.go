@@ -3,9 +3,12 @@ package configure_test
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
@@ -34,77 +37,24 @@ func TestConfigure(t *testing.T) {
 		file           config.File
 		api            mock.API
 		configFileData string
-		stdin          string
+		stdin          []string
 		wantError      string
 		wantOutput     []string
 		wantFile       string
 	}{
 		{
-			name: "endpoint from flag",
-			args: args("configure --endpoint http://local.dev --token abcdef"),
+			name: "endpoint already in file should be replaced by flag",
+			args: args("configure --endpoint=http://staging.dev"),
+			configFileData: `[fastly]
+	api_endpoint = "https://api.fastly.com"`,
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
 			},
+			stdin: []string{"", "123456"}, // expect 'user' default profile to be created, + token to be persisted
 			wantOutput: []string{
-				"Fastly API endpoint (via --endpoint): http://local.dev",
-				"Fastly API token provided via --token",
 				"Validating token...",
 				"Persisting configuration...",
-				"Configured the Fastly CLI",
-				"You can find your configuration file at",
-			},
-			wantFile: `config_version = 0
-
-[cli]
-  last_checked = ""
-  remote_config = ""
-  ttl = ""
-  version = ""
-
-[fastly]
-  api_endpoint = "http://local.dev"
-
-[language]
-
-  [language.rust]
-    fastly_sys_constraint = ""
-    rustup_constraint = ""
-    toolchain_constraint = ""
-    toolchain_version = ""
-    wasm_wasi_target = ""
-
-[legacy]
-  email = ""
-  token = ""
-
-[starter-kits]
-
-[user]
-  email = "test@example.com"
-  token = "abcdef"
-
-[viceroy]
-  last_checked = ""
-  latest_version = ""
-  ttl = ""
-`,
-		},
-		{
-			name:           "endpoint already in file should be replaced by flag",
-			args:           args("configure --endpoint=http://staging.dev --token=abcdef"),
-			configFileData: "endpoint = \"https://api.fastly.com\"",
-			stdin:          "new_token\n",
-			api: mock.API{
-				GetTokenSelfFn: goodToken,
-				GetUserFn:      goodUser,
-			},
-			wantOutput: []string{
-				"Fastly API endpoint (via --endpoint): http://staging.dev",
-				"Fastly API token provided via --token",
-				"Validating token...",
-				"Persisting configuration...",
-				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
 			wantFile: `config_version = 0
@@ -127,15 +77,18 @@ func TestConfigure(t *testing.T) {
     toolchain_version = ""
     wasm_wasi_target = ""
 
-[legacy]
-  email = ""
-  token = ""
+[profile]
+
+  [profile.user]
+    default = true
+    email = "test@example.com"
+    token = "123456"
 
 [starter-kits]
 
 [user]
-  email = "test@example.com"
-  token = "abcdef"
+  email = ""
+  token = ""
 
 [viceroy]
   last_checked = ""
@@ -144,17 +97,15 @@ func TestConfigure(t *testing.T) {
 `,
 		},
 		{
-			name: "token from flag",
+			name: "token from flag should be persisted and no token prompt",
 			args: args("configure --token=abcdef"),
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
 			},
 			wantOutput: []string{
-				"Fastly API token provided via --token",
 				"Validating token...",
 				"Persisting configuration...",
-				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
 			wantFile: `config_version = 0
@@ -177,15 +128,18 @@ func TestConfigure(t *testing.T) {
     toolchain_version = ""
     wasm_wasi_target = ""
 
-[legacy]
-  email = ""
-  token = ""
+[profile]
+
+  [profile.user]
+    default = true
+    email = "test@example.com"
+    token = "abcdef"
 
 [starter-kits]
 
 [user]
-  email = "test@example.com"
-  token = "abcdef"
+  email = ""
+  token = ""
 
 [viceroy]
   last_checked = ""
@@ -196,7 +150,7 @@ func TestConfigure(t *testing.T) {
 		{
 			name:  "token from interactive input",
 			args:  args("configure"),
-			stdin: "1234\n",
+			stdin: []string{"foo", "1234"},
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
@@ -207,7 +161,6 @@ func TestConfigure(t *testing.T) {
 				"Fastly API token: ",
 				"Validating token...",
 				"Persisting configuration...",
-				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
 			wantFile: `config_version = 0
@@ -230,15 +183,18 @@ func TestConfigure(t *testing.T) {
     toolchain_version = ""
     wasm_wasi_target = ""
 
-[legacy]
-  email = ""
-  token = ""
+[profile]
+
+  [profile.foo]
+    default = true
+    email = "test@example.com"
+    token = "1234"
 
 [starter-kits]
 
 [user]
-  email = "test@example.com"
-  token = "1234"
+  email = ""
+  token = ""
 
 [viceroy]
   last_checked = ""
@@ -255,10 +211,8 @@ func TestConfigure(t *testing.T) {
 				GetUserFn:      goodUser,
 			},
 			wantOutput: []string{
-				"Fastly API token provided via FASTLY_API_TOKEN",
 				"Validating token...",
 				"Persisting configuration...",
-				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
 			wantFile: `config_version = 0
@@ -281,15 +235,18 @@ func TestConfigure(t *testing.T) {
     toolchain_version = ""
     wasm_wasi_target = ""
 
-[legacy]
-  email = ""
-  token = ""
+[profile]
+
+  [profile.user]
+    default = true
+    email = "test@example.com"
+    token = "hello"
 
 [starter-kits]
 
 [user]
-  email = "test@example.com"
-  token = "hello"
+  email = ""
+  token = ""
 
 [viceroy]
   last_checked = ""
@@ -298,10 +255,21 @@ func TestConfigure(t *testing.T) {
 `,
 		},
 		{
-			name:           "token already in file should trigger interactive input",
-			args:           args("configure"),
-			configFileData: "token = \"old_token\"",
-			stdin:          "new_token\n",
+			name: "new profile created even if another profile already exists",
+			args: args("configure"),
+			file: config.File{
+				// Due to how the test environment skips the main function, it means we
+				// don't actually read a configuration file into memory, so we have to
+				// manually construct one to be passed through.
+				Profiles: map[string]*config.Profile{
+					"foo": {
+						Default: true,
+						Email:   "foo@example.com",
+						Token:   "something",
+					},
+				},
+			},
+			stdin: []string{"", "user_token_given"}, // expect 'user' default profile to be created
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
@@ -312,7 +280,6 @@ func TestConfigure(t *testing.T) {
 				"Fastly API token: ",
 				"Validating token...",
 				"Persisting configuration...",
-				"Configured the Fastly CLI",
 				"You can find your configuration file at",
 			},
 			wantFile: `config_version = 0
@@ -335,15 +302,23 @@ func TestConfigure(t *testing.T) {
     toolchain_version = ""
     wasm_wasi_target = ""
 
-[legacy]
-  email = ""
-  token = ""
+[profile]
+
+  [profile.foo]
+    default = false
+    email = "foo@example.com"
+    token = "something"
+
+  [profile.user]
+    default = true
+    email = "test@example.com"
+    token = "user_token_given"
 
 [starter-kits]
 
 [user]
-  email = "test@example.com"
-  token = "new_token"
+  email = ""
+  token = ""
 
 [viceroy]
   last_checked = ""
@@ -359,7 +334,6 @@ func TestConfigure(t *testing.T) {
 				GetUserFn:      badUser,
 			},
 			wantOutput: []string{
-				"Fastly API token provided via --token",
 				"Validating token...",
 			},
 			wantError: "error validating token: bad token",
@@ -375,8 +349,56 @@ func TestConfigure(t *testing.T) {
 			opts.ConfigFile = testcase.file
 			opts.ConfigPath = configFilePath
 			opts.Env = testcase.env
-			opts.Stdin = strings.NewReader(testcase.stdin)
-			err := app.Run(opts)
+
+			var err error
+			if len(testcase.stdin) > 1 {
+				// To handle multiple prompt input from the user we need to do some
+				// coordination around io pipes to mimic the required user behaviour.
+				stdin, prompt := io.Pipe()
+				opts.Stdin = stdin
+
+				// Wait for user input and write it to the prompt
+				inputc := make(chan string)
+				go func() {
+					for input := range inputc {
+						fmt.Fprintln(prompt, input)
+					}
+				}()
+
+				// We need a channel so we wait for `run()` to complete
+				done := make(chan bool)
+
+				// Call `app.Run()` and wait for response
+				go func() {
+					err = app.Run(opts)
+					done <- true
+				}()
+
+				// User provides input
+				//
+				// NOTE: Must provide as much input as is expected to be waited on by `run()`.
+				//       For example, if `run()` calls `input()` twice, then provide two messages.
+				//       Otherwise the select statement will trigger the timeout error.
+				for _, input := range testcase.stdin {
+					inputc <- input
+				}
+
+				select {
+				case <-done:
+					// Wait for app.Run() to finish
+				case <-time.After(time.Second):
+					t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
+				}
+			} else {
+				stdin := ""
+				if len(testcase.stdin) > 0 {
+					stdin = testcase.stdin[0]
+				}
+				opts.Stdin = strings.NewReader(stdin)
+				err = app.Run(opts)
+			}
+
+			t.Log(stdout.String())
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			for _, s := range testcase.wantOutput {

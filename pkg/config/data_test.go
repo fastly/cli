@@ -263,10 +263,10 @@ func TestUseStatic(t *testing.T) {
 				t.Fatalf("expected LastChecked/Version to be set: %+v", f)
 			}
 			if f.Profiles["user"].Token != "foobar" {
-				t.Fatalf("wanted token: %s, got: %s", "foobar", f.User.Token)
+				t.Fatalf("wanted token: %s, got: %s", "foobar", f.LegacyUser.Token)
 			}
 			if f.Profiles["user"].Email != "testing@fastly.com" {
-				t.Fatalf("wanted email: %s, got: %s", "testing@fastly.com", f.User.Email)
+				t.Fatalf("wanted email: %s, got: %s", "testing@fastly.com", f.LegacyUser.Email)
 			}
 		})
 	}
