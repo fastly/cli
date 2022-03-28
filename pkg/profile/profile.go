@@ -20,7 +20,7 @@ func Exist(name string, p config.Profiles) bool {
 // Default returns the default profile.
 func Default(p config.Profiles) (string, *config.Profile) {
 	for k, v := range p {
-		if v.Default == true {
+		if v.Default {
 			return k, v
 		}
 	}

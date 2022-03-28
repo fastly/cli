@@ -53,7 +53,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return c.displayProfiles(out)
 	}
 	if c.Globals.Flag.Profile == "" && c.delete {
-		msg := fmt.Sprintf("--profile flag not provided")
+		msg := "--profile flag not provided"
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf(msg),
 			Remediation: "Provide both the --profile and --delete flags.",
@@ -67,7 +67,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if c.Globals.Flag.Profile != "" {
-		if err := c.switchProfile(in, out); err != nil {
+		if err = c.switchProfile(in, out); err != nil {
 			return err
 		}
 		displayCfgPath(c.Globals.Path, out)
@@ -93,7 +93,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 func (c *RootCommand) displayProfiles(out io.Writer) error {
 	if c.Globals.File.Profiles == nil {
-		msg := fmt.Sprintf("no profiles available")
+		msg := "no profiles available"
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf(msg),
 			Remediation: fsterr.ProfileRemediation,
