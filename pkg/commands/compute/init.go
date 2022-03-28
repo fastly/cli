@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/file"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -121,13 +122,20 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	c.dir = dst
 
-	name, desc, authors, err := promptOrReturn(c.manifest, c.dir, c.Globals.File.User.Email, in, out)
+	// Assign the default profile email if available.
+	email := ""
+	profileName, p := profile.Default(c.Globals.File.Profiles)
+	if profileName != "" {
+		email = p.Email
+	}
+
+	name, desc, authors, err := promptOrReturn(c.manifest, c.dir, email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Authors":     authors,
 			"Description": desc,
 			"Directory":   c.dir,
-			"Email":       c.Globals.File.User.Email,
+			"Email":       email,
 			"Name":        name,
 		})
 		return err

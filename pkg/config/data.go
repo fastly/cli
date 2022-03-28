@@ -193,7 +193,6 @@ type File struct {
 	Language      Language            `toml:"language"`
 	Profiles      Profiles            `toml:"profile"`
 	StarterKits   StarterKitLanguages `toml:"starter-kits"`
-	User          User                `toml:"user"`
 	Viceroy       Viceroy             `toml:"viceroy"`
 
 	// We store off a possible legacy configuration so that we can later extract
