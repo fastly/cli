@@ -185,9 +185,10 @@ USAGE
 A tool to interact with the Fastly API
 
 GLOBAL FLAGS
-      --help         Show context-sensitive help.
-  -t, --token=TOKEN  Fastly API token (or via FASTLY_API_TOKEN)
-  -v, --verbose      Verbose logging
+      --help             Show context-sensitive help.
+  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
+  -o, --profile=PROFILE  Switch account profile
+  -v, --verbose          Verbose logging
 
 COMMANDS
   help             Show help.
@@ -224,9 +225,10 @@ USAGE
   fastly [<flags>] service
 
 GLOBAL FLAGS
-      --help         Show context-sensitive help.
-  -t, --token=TOKEN  Fastly API token (or via FASTLY_API_TOKEN)
-  -v, --verbose      Verbose logging
+      --help             Show context-sensitive help.
+  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
+  -o, --profile=PROFILE  Switch account profile
+  -v, --verbose          Verbose logging
 
 SUBCOMMANDS
 
@@ -292,9 +294,10 @@ USAGE
 A tool to interact with the Fastly API
 
 GLOBAL FLAGS
-      --help         Show context-sensitive help.
-  -t, --token=TOKEN  Fastly API token (or via FASTLY_API_TOKEN)
-  -v, --verbose      Verbose logging
+      --help             Show context-sensitive help.
+  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
+  -o, --profile=PROFILE  Switch account profile
+  -v, --verbose          Verbose logging
 
 COMMANDS
   help [<command> ...]
@@ -741,8 +744,10 @@ COMMANDS
   configure [<flags>]
     Configure the Fastly CLI
 
-    -l, --location  Print the location of the CLI configuration file
+    -x, --delete    Delete the specified --profile
     -d, --display   Print the CLI configuration file
+    -l, --location  Print the location of the CLI configuration file
+    -p, --profiles  Print the available profiles
 
   dictionary create --version=VERSION --name=NAME [<flags>]
     Create a Fastly edge dictionary on a Fastly service version
