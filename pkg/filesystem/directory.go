@@ -63,6 +63,12 @@ func CopyFile(src, dst string) (err error) {
 	}
 
 	// Create destination file for writing.
+	//
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as we require a user to configure their own environment.
+	/* #nosec */
 	out, err := os.Create(dst)
 	if err != nil {
 		return fmt.Errorf("error creating destination file: %w", err)

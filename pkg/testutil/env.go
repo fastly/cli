@@ -54,6 +54,11 @@ func NewEnv(opts EnvOpts) (rootdir string) {
 			opts.T.Fatal(err)
 		}
 
+		// gosec flagged this:
+		// G304 (CWE-22): Potential file inclusion via variable
+		//
+		// Disabling as this is part of our test suite.
+		/* #nosec */
 		if err := os.WriteFile(dst, []byte(src), 0777); err != nil {
 			opts.T.Fatal(err)
 		}

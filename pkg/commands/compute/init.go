@@ -277,6 +277,11 @@ func verifyDestination(path string, progress text.Progress) (dst string, err err
 		return dst, fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
 	}
 
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as the input is determined by our own package.
+	/* #nosec */
 	f, err := os.Create(filepath.Join(dst, fmt.Sprintf("tmp_%x", tmpname)))
 	if err != nil {
 		return dst, fmt.Errorf("error creating file in package destination: %w", err)
@@ -553,6 +558,11 @@ func fetchPackageTemplate(
 	filename := filepath.Base(from)
 	ext := filepath.Ext(filename)
 
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as we require a user to configure their own environment.
+	/* #nosec */
 	f, err := os.Create(filename)
 	if err != nil {
 		errLog.Add(err)

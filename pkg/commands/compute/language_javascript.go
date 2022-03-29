@@ -32,6 +32,11 @@ var errFormat = "To fix this error, run the following command:\n\n\t$ %s"
 // map data structure before updating the name field and marshalling it back to
 // json afterwards.
 func SetPackageName(name, path string) (err error) {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as we require a user to configure their own environment.
+	/* #nosec */
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err

@@ -507,6 +507,12 @@ func (f *File) Write(path string) error {
 	writeMutex.Lock()
 	defer writeMutex.Unlock()
 
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as in most cases the input is determined by our own package.
+	// In other cases we want to control the input for testing purposes.
+	/* #nosec */
 	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
 	if err != nil {
 		return fmt.Errorf("error creating config file: %w", err)

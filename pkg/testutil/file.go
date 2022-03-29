@@ -44,6 +44,10 @@ func CopyFile(t *testing.T, fromFilename, toFilename string) {
 		t.Fatal(err)
 	}
 
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	// Disabling as we trust the source of the variable.
+	/* #nosec */
 	dst, err := os.Create(toFilename)
 	if err != nil {
 		t.Fatal(err)
