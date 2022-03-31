@@ -194,81 +194,73 @@ type testUseStaticScenario struct {
 	userConfigFilename string
 }
 
-// TestUseStatic validates all logic flows within config.File.UseStatic()
+// TestUseStatic validates legacy user data is migrated successfully.
 func TestUseStatic(t *testing.T) {
-	scenarios := []testUseStaticScenario{
-		{
-			name:               "legacy config should be safe to migrate to static",
-			userConfigFilename: "config-legacy.toml",
-		},
-		// The following scenario is specifically validating that if a recent
-		// config (which still had a 'Legacy' section) was identified as needing to
-		// be migrated to the static config embedded in the CLI (because the
-		// user config's CLI.Version field didn't align with the currently running
-		// CLI binary version), then it should still be transitioned safely without
-		// losing the user's token/email within the [profile] section.
-		{
-			name:               "config with 'legacy' section should be safe to migrate to static",
-			userConfigFilename: "config-with-old-legacy-section.toml",
-		},
+	// We're going to chdir to an temp environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	for _, testcase := range scenarios {
-		t.Run(testcase.name, func(t *testing.T) {
-			// We're going to chdir to an temp environment,
-			// so save the PWD to return to, afterwards.
-			pwd, err := os.Getwd()
-			if err != nil {
-				t.Fatal(err)
-			}
+	// Create test environment
+	b, err := os.ReadFile(filepath.Join("testdata", "config-legacy.toml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Write: []testutil.FileIO{
+			{Src: string(b), Dst: "config.toml"},
+		},
+	})
+	configPath := filepath.Join(rootdir, "config.toml")
+	defer os.RemoveAll(rootdir)
 
-			// Create test environment
-			b, err := os.ReadFile(filepath.Join("testdata", testcase.userConfigFilename))
-			if err != nil {
-				t.Fatal(err)
-			}
-			rootdir := testutil.NewEnv(testutil.EnvOpts{
-				T: t,
-				Write: []testutil.FileIO{
-					{Src: string(b), Dst: "config.toml"},
-				},
-			})
-			configPath := filepath.Join(rootdir, "config.toml")
-			defer os.RemoveAll(rootdir)
+	// Before running the test, chdir into the temp environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably assert file structure.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
 
-			// Before running the test, chdir into the temp environment.
-			// When we're done, chdir back to our original location.
-			// This is so we can reliably assert file structure.
-			if err := os.Chdir(rootdir); err != nil {
-				t.Fatal(err)
-			}
-			defer os.Chdir(pwd)
+	// Validate that invalid static configuration returns a specific error.
+	f := config.File{}
+	err = f.UseStatic(staticConfigInvalid, configPath)
+	if err == nil {
+		t.Fatal("expected an error, but got nil")
+	} else {
+		testutil.AssertErrorContains(t, err, config.ErrInvalidConfig.Error())
+	}
 
-			// Validate that invalid static configuration returns a specific error.
-			f := config.File{}
-			err = f.UseStatic(staticConfigInvalid, configPath)
-			if err == nil {
-				t.Fatal("expected an error, but got nil")
-			} else {
-				testutil.AssertErrorContains(t, err, config.ErrInvalidConfig.Error())
-			}
+	// Validate that legacy configuration can be migrated to the static one
+	// embedded in the CLI binary.
+	f = config.File{}
+	var out bytes.Buffer
+	f.Read(configPath, strings.NewReader(""), &out)
+	f.UseStatic(staticConfig, configPath)
 
-			// Validate that legacy configuration can be migrated to the static one
-			// embedded in the CLI binary.
-			f = config.File{}
-			var out bytes.Buffer
-			f.Read(configPath, strings.NewReader(""), &out)
-			f.UseStatic(staticConfig, configPath)
-			if f.CLI.LastChecked == "" || f.CLI.Version == "" {
-				t.Fatalf("expected LastChecked/Version to be set: %+v", f)
-			}
-			if f.Profiles["user"].Token != "foobar" {
-				t.Fatalf("wanted token: %s, got: %s", "foobar", f.LegacyUser.Token)
-			}
-			if f.Profiles["user"].Email != "testing@fastly.com" {
-				t.Fatalf("wanted email: %s, got: %s", "testing@fastly.com", f.LegacyUser.Email)
-			}
-		})
+	if f.CLI.LastChecked == "" || f.CLI.Version == "" {
+		t.Fatalf("expected LastChecked/Version to be set: %+v", f)
+	}
+	if f.Profiles["user"].Token != "foobar" {
+		t.Fatalf("wanted token: %s, got: %s", "foobar", f.LegacyUser.Token)
+	}
+	if f.Profiles["user"].Email != "testing@fastly.com" {
+		t.Fatalf("wanted email: %s, got: %s", "testing@fastly.com", f.LegacyUser.Email)
+	}
+
+	// We validate both the in-memory data structure (above) AND the file on disk (below).
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Error(err)
+	}
+	if !strings.Contains(string(data), "[user]\n  email = \"\"\n  token = \"\"") {
+		t.Error("expected empty legacy [user] section")
+	}
+	if !strings.Contains(string(data), "  [profile.user]\n    default = true\n    email = \"testing@fastly.com\"\n    token = \"foobar\"") {
+		t.Error("expected legacy [user] section to be migrated to [profile.user]")
 	}
 }
 
