@@ -189,11 +189,6 @@ func TestConfigRead(t *testing.T) {
 	}
 }
 
-type testUseStaticScenario struct {
-	name               string
-	userConfigFilename string
-}
-
 // TestUseStatic validates legacy user data is migrated successfully.
 func TestUseStatic(t *testing.T) {
 	// We're going to chdir to an temp environment,
