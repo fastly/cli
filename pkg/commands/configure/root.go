@@ -79,6 +79,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
+	if n, _ := profile.Get(name, c.Globals.File.Profiles); n != "" {
+		return fmt.Errorf("profile '%s' already exists", n)
+	}
 	if err := c.tokenFlow(name, in, out); err != nil {
 		return err
 	}
@@ -329,13 +332,13 @@ func (c *RootCommand) promptForName(in io.Reader, out io.Writer) (string, error)
 
 	text.Output(out, msg)
 	text.Break(out)
-	name, err := text.Input(out, "Profile name [user]: ", in)
+	name, err := text.Input(out, "Profile name: ", in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return "", err
 	}
 	if name == "" {
-		name = "user"
+		return "", fsterr.ErrNoProfileInput
 	}
 	text.Break(out)
 	return name, nil

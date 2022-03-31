@@ -51,7 +51,7 @@ func TestConfigure(t *testing.T) {
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
 			},
-			stdin: []string{"", "123456"}, // expect 'user' default profile to be created, + token to be persisted
+			stdin: []string{"foo", "123456"}, // expect token to be persisted
 			wantOutput: []string{
 				"Validating token...",
 				"Persisting configuration...",
@@ -79,7 +79,7 @@ func TestConfigure(t *testing.T) {
 
 [profile]
 
-  [profile.user]
+  [profile.foo]
     default = true
     email = "test@example.com"
     token = "123456"
@@ -103,6 +103,7 @@ func TestConfigure(t *testing.T) {
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
 			},
+			stdin: []string{"foo"},
 			wantOutput: []string{
 				"Validating token...",
 				"Persisting configuration...",
@@ -130,7 +131,7 @@ func TestConfigure(t *testing.T) {
 
 [profile]
 
-  [profile.user]
+  [profile.foo]
     default = true
     email = "test@example.com"
     token = "abcdef"
@@ -203,9 +204,10 @@ func TestConfigure(t *testing.T) {
 `,
 		},
 		{
-			name: "token from environment",
-			args: args("configure"),
-			env:  config.Environment{Token: "hello"},
+			name:  "token from environment",
+			args:  args("configure"),
+			env:   config.Environment{Token: "hello"},
+			stdin: []string{"foo"},
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
@@ -237,7 +239,7 @@ func TestConfigure(t *testing.T) {
 
 [profile]
 
-  [profile.user]
+  [profile.foo]
     default = true
     email = "test@example.com"
     token = "hello"
@@ -269,7 +271,7 @@ func TestConfigure(t *testing.T) {
 					},
 				},
 			},
-			stdin: []string{"", "user_token_given"}, // expect 'user' default profile to be created
+			stdin: []string{"bar", "user_token_given"},
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
@@ -304,15 +306,15 @@ func TestConfigure(t *testing.T) {
 
 [profile]
 
+  [profile.bar]
+    default = true
+    email = "test@example.com"
+    token = "user_token_given"
+
   [profile.foo]
     default = false
     email = "foo@example.com"
     token = "something"
-
-  [profile.user]
-    default = true
-    email = "test@example.com"
-    token = "user_token_given"
 
 [starter-kits]
 
@@ -327,12 +329,40 @@ func TestConfigure(t *testing.T) {
 `,
 		},
 		{
+			name: "validate same user can't be created multiple times",
+			args: args("configure"),
+			file: config.File{
+				// Due to how the test environment skips the main function, it means we
+				// don't actually read a configuration file into memory, so we have to
+				// manually construct one to be passed through.
+				Profiles: map[string]*config.Profile{
+					"foo": {
+						Default: true,
+						Email:   "foo@example.com",
+						Token:   "something",
+					},
+				},
+			},
+			stdin: []string{"foo", "user_token_given"},
+			api: mock.API{
+				GetTokenSelfFn: goodToken,
+				GetUserFn:      goodUser,
+			},
+			wantError: "profile 'foo' already exists",
+		},
+		{
+			name:      "profile name is required",
+			args:      args("configure"),
+			wantError: "required profile name missing",
+		},
+		{
 			name: "invalid token",
 			args: args("configure --token=abcdef"),
 			api: mock.API{
 				GetTokenSelfFn: badToken,
 				GetUserFn:      badUser,
 			},
+			stdin: []string{"foo", "user_token_given"},
 			wantOutput: []string{
 				"Validating token...",
 			},

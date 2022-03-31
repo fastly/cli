@@ -113,3 +113,9 @@ var ErrInvalidVerboseJSONCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination, --verbose and --json"),
 	Remediation: "Use either --verbose or --json, not both.",
 }
+
+// ErrNoProfileInput means the user omitted a required profile name.
+var ErrNoProfileInput = RemediationError{
+	Inner:       fmt.Errorf("required profile name missing"),
+	Remediation: "Run `fastly configure` and enter a profile name when prompted.",
+}
