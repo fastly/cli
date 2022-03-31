@@ -138,12 +138,20 @@ func Run(opts RunOpts) error {
 	}
 
 	if globals.Flag.Profile != "" && command.Name() != "configure" {
-		if exist := profile.Exist(globals.Flag.Profile, globals.File.Profiles); !exist {
+		if exist := profile.Exist(globals.Flag.Profile, globals.File.Profiles); exist {
+			// Persist the permanent switch of profiles.
+			var ok bool
+			if globals.File.Profiles, ok = profile.Set(globals.Flag.Profile, globals.File.Profiles); ok {
+				if err := globals.File.Write(globals.Path); err != nil {
+					return err
+				}
+			}
+		} else {
 			msg := profile.DoesNotExist
 
 			name, p := profile.Default(globals.File.Profiles)
 			if name == "" {
-				msg = fmt.Sprintf("%s no account profiles configured", msg)
+				msg = fmt.Sprintf("%s (no account profiles configured)", msg)
 				return fsterr.RemediationError{
 					Inner:       fmt.Errorf(msg),
 					Remediation: fsterr.ProfileRemediation,
@@ -154,21 +162,14 @@ func Run(opts RunOpts) error {
 			text.Warning(opts.Stdout, msg)
 
 			label := "\nWould you like to continue? [y/N] "
-			answer, err := text.AskYesNo(opts.Stdout, label, opts.Stdin)
+			cont, err := text.AskYesNo(opts.Stdout, label, opts.Stdin)
 			if err != nil {
 				return err
 			}
-			if !answer {
+			if !cont {
 				return nil
 			}
-		}
-
-		// Persist the permanent switch of profiles.
-		var ok bool
-		if globals.File.Profiles, ok = profile.Set(globals.Flag.Profile, globals.File.Profiles); ok {
-			if err := globals.File.Write(globals.Path); err != nil {
-				return err
-			}
+			token = p.Token
 		}
 	}
 

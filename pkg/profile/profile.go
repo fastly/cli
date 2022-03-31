@@ -4,8 +4,8 @@ import (
 	"github.com/fastly/cli/pkg/config"
 )
 
-// DoesNotExist describes an output warning message.
-const DoesNotExist = "The specified profile does not exist."
+// DoesNotExist describes an output error/warning message.
+const DoesNotExist = "the specified profile does not exist"
 
 // Exist reports whether the given profile exists.
 func Exist(name string, p config.Profiles) bool {
@@ -63,4 +63,23 @@ func Delete(name string, p config.Profiles) bool {
 		}
 	}
 	return ok
+}
+
+type EditOption func(*config.Profile)
+
+// Edit modifies the named profile.
+//
+// NOTE: The type assigned to the config.Profiles map key value is a struct.
+// Structs are passed by value and so we must return the mutated type.
+func Edit(name string, p config.Profiles, opts ...EditOption) (config.Profiles, bool) {
+	var ok bool
+	for k, v := range p {
+		if k == name {
+			for _, opt := range opts {
+				opt(v)
+			}
+			ok = true
+		}
+	}
+	return p, ok
 }

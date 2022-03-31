@@ -1,6 +1,7 @@
 package configure
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -30,6 +31,7 @@ type RootCommand struct {
 	clientFactory APIClientFactory
 	delete        bool
 	display       bool
+	edit          bool
 	location      bool
 	profiles      bool
 }
@@ -41,6 +43,7 @@ func NewRootCommand(parent cmd.Registerer, cf APIClientFactory, globals *config.
 	c.CmdClause = parent.Command("configure", "Configure the Fastly CLI")
 	c.CmdClause.Flag("delete", "Delete the specified --profile").Short('x').BoolVar(&c.delete)
 	c.CmdClause.Flag("display", "Print the CLI configuration file").Short('d').BoolVar(&c.display)
+	c.CmdClause.Flag("edit", "Edit the specified --profile").Short('e').BoolVar(&c.edit)
 	c.CmdClause.Flag("location", "Print the location of the CLI configuration file").Short('l').BoolVar(&c.location)
 	c.CmdClause.Flag("profiles", "Print the available profiles").Short('p').BoolVar(&c.profiles)
 	c.clientFactory = cf
@@ -53,14 +56,16 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return c.displayProfiles(out)
 	}
 	if c.Globals.Flag.Profile == "" && c.delete {
-		msg := "--profile flag not provided"
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf(msg),
-			Remediation: "Provide both the --profile and --delete flags.",
-		}
+		return conflictingFlags("delete")
+	}
+	if c.Globals.Flag.Profile == "" && c.edit {
+		return conflictingFlags("edit")
 	}
 	if c.Globals.Flag.Profile != "" && c.delete {
 		return c.deleteProfile(out)
+	}
+	if c.Globals.Flag.Profile != "" && c.edit {
+		return c.editProfile(in, out)
 	}
 	if c.location || c.display {
 		return c.cfg()
@@ -79,10 +84,23 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
+
+	// The Default status of a new profile should always be true unless there are
+	// other profiles and one of them is already the default. In the latter
+	// scenario we should prompt the user to see if the new profile they're
+	// creating is needed to become the new default.
+	def := true
+	if profile, _ := profile.Default(c.Globals.File.Profiles); profile != "" {
+		def, err = c.promptForDefault(in, out)
+		if err != nil {
+			return err
+		}
+	}
+
 	if n, _ := profile.Get(name, c.Globals.File.Profiles); n != "" {
 		return fmt.Errorf("profile '%s' already exists", n)
 	}
-	if err := c.tokenFlow(name, in, out); err != nil {
+	if err := c.tokenFlow(name, def, in, out); err != nil {
 		return err
 	}
 	if err := c.persistCfg(); err != nil {
@@ -92,6 +110,14 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	displayCfgPath(c.Globals.Path, out)
 	text.Success(out, "Profile '%s' created", name)
 	return nil
+}
+
+func conflictingFlags(flag string) error {
+	msg := "--profile flag not provided"
+	return fsterr.RemediationError{
+		Inner:       fmt.Errorf(msg),
+		Remediation: fmt.Sprintf("Provide both the --profile and --%s flags.", flag),
+	}
 }
 
 func (c *RootCommand) displayProfiles(out io.Writer) error {
@@ -121,12 +147,60 @@ func (c *RootCommand) deleteProfile(out io.Writer) error {
 		}
 		text.Success(out, "The profile '%s' was deleted.", c.Globals.Flag.Profile)
 
-		if len(c.Globals.File.Profiles) > 0 {
+		if profile, _ := profile.Default(c.Globals.File.Profiles); profile == "" && len(c.Globals.File.Profiles) > 0 {
 			text.Warning(out, "At least one account profile should be set as the 'default'. Run `fastly configure --profile <NAME>`.")
 		}
 		return nil
 	}
 	return fmt.Errorf("the specified profile does not exist")
+}
+
+func (c *RootCommand) editProfile(in io.Reader, out io.Writer) error {
+	if exist := profile.Exist(c.Globals.Flag.Profile, c.Globals.File.Profiles); !exist {
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf(profile.DoesNotExist),
+			Remediation: fsterr.ProfileRemediation,
+		}
+	}
+
+	opts := []profile.EditOption{}
+
+	text.Break(out)
+
+	email, err := text.Input(out, text.BoldYellow("Profile email: (leave blank to skip): "), in)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+	if email != "" {
+		opts = append(opts, func(p *config.Profile) {
+			p.Email = email
+		})
+	}
+
+	token, err := text.InputSecure(out, text.BoldYellow("Profile token: (leave blank to skip): "), in)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+	if token != "" {
+		opts = append(opts, func(p *config.Profile) {
+			p.Token = token
+		})
+	}
+
+	text.Break(out)
+
+	var ok bool
+
+	if c.Globals.File.Profiles, ok = profile.Edit(c.Globals.Flag.Profile, c.Globals.File.Profiles, opts...); !ok {
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf(profile.DoesNotExist),
+			Remediation: fsterr.ProfileRemediation,
+		}
+	}
+
+	return c.persistCfg()
 }
 
 // cfg handles displaying the config data and file location.
@@ -166,9 +240,11 @@ func (c *RootCommand) switchProfile(in io.Reader, out io.Writer) error {
 
 	if c.Globals.File.Profiles, ok = profile.Set(c.Globals.Flag.Profile, c.Globals.File.Profiles); !ok {
 		msg := fmt.Sprintf("A new profile '%s' will now be generated.", c.Globals.Flag.Profile)
-		text.Warning(out, fmt.Sprintf("%s %s", profile.DoesNotExist, msg))
+		ctx := fmt.Sprintf("%s%s", bytes.ToUpper([]byte{profile.DoesNotExist[0]}), profile.DoesNotExist[1:])
+		text.Warning(out, fmt.Sprintf("%s. %s", ctx, msg))
 
-		if err := c.tokenFlow(c.Globals.Flag.Profile, in, out); err != nil {
+		makeDefault := true
+		if err := c.tokenFlow(c.Globals.Flag.Profile, makeDefault, in, out); err != nil {
 			return err
 		}
 	}
@@ -177,16 +253,8 @@ func (c *RootCommand) switchProfile(in io.Reader, out io.Writer) error {
 }
 
 // tokenFlow initialises the token flow.
-func (c *RootCommand) tokenFlow(profile string, in io.Reader, out io.Writer) error {
+func (c *RootCommand) tokenFlow(profile string, def bool, in io.Reader, out io.Writer) error {
 	var err error
-
-	progress := text.NewProgress(out, c.Globals.Verbose())
-	defer func() {
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			progress.Fail() // progress.Done is handled inline
-		}
-	}()
 
 	// If user provides --token flag, then don't prompt them for input.
 	token, source := c.Globals.Token()
@@ -199,6 +267,14 @@ func (c *RootCommand) tokenFlow(profile string, in io.Reader, out io.Writer) err
 		text.Break(out)
 	}
 
+	progress := text.NewProgress(out, c.Globals.Verbose())
+	defer func() {
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			progress.Fail() // progress.Done is handled inline
+		}
+	}()
+
 	endpoint, _ := c.Globals.Endpoint()
 
 	user, err := c.validateToken(token, endpoint, progress)
@@ -206,7 +282,7 @@ func (c *RootCommand) tokenFlow(profile string, in io.Reader, out io.Writer) err
 		return err
 	}
 
-	c.updateInMemCfg(profile, user.Login, token, endpoint, progress)
+	c.updateInMemCfg(profile, user.Login, token, endpoint, def, progress)
 
 	progress.Done()
 	return nil
@@ -269,7 +345,7 @@ func (c *RootCommand) validateToken(token, endpoint string, progress text.Progre
 	return user, nil
 }
 
-func (c *RootCommand) updateInMemCfg(profileName, email, token, endpoint string, progress text.Progress) {
+func (c *RootCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, progress text.Progress) {
 	progress.Step("Persisting configuration...")
 
 	c.Globals.File.Fastly.APIEndpoint = endpoint
@@ -278,15 +354,18 @@ func (c *RootCommand) updateInMemCfg(profileName, email, token, endpoint string,
 		c.Globals.File.Profiles = make(config.Profiles)
 	}
 	c.Globals.File.Profiles[profileName] = &config.Profile{
-		Default: true,
+		Default: def,
 		Email:   email,
 		Token:   token,
 	}
 
-	// We call Set for its side effect of resetting all other profiles to have
+	// If the user wants the newly created profile to be their new default, then
+	// we'll call Set for its side effect of resetting all other profiles to have
 	// their Default field set to false.
-	if p, ok := profile.Set(profileName, c.Globals.File.Profiles); ok {
-		c.Globals.File.Profiles = p
+	if def {
+		if p, ok := profile.Set(profileName, c.Globals.File.Profiles); ok {
+			c.Globals.File.Profiles = p
+		}
 	}
 }
 
@@ -323,15 +402,16 @@ func displayCfgPath(path string, out io.Writer) {
 func (c *RootCommand) promptForName(in io.Reader, out io.Writer) (string, error) {
 	text.Break(out)
 
-	var msg string
+	msg := "A new profile will now be configured."
 	if profile, _ := profile.Default(c.Globals.File.Profiles); profile == "" {
-		msg = "No existing profiles exist. A new profile will be created."
+		msg = fmt.Sprintf("No existing profiles exist.\n%s", msg)
 	} else {
-		msg = fmt.Sprintf("A default profile already exists (%s).\nA new default profile will now be configured.", profile)
+		msg = fmt.Sprintf("A default profile already exists (%s).\n%s", profile, msg)
 	}
 
 	text.Output(out, msg)
 	text.Break(out)
+
 	name, err := text.Input(out, "Profile name: ", in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -340,6 +420,17 @@ func (c *RootCommand) promptForName(in io.Reader, out io.Writer) (string, error)
 	if name == "" {
 		return "", fsterr.ErrNoProfileInput
 	}
+
 	text.Break(out)
 	return name, nil
+}
+
+func (c *RootCommand) promptForDefault(in io.Reader, out io.Writer) (bool, error) {
+	cont, err := text.AskYesNo(out, "Set this profile to be your default? [y/N] ", in)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return false, err
+	}
+	text.Break(out)
+	return cont, nil
 }

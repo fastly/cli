@@ -746,6 +746,7 @@ COMMANDS
 
     -x, --delete    Delete the specified --profile
     -d, --display   Print the CLI configuration file
+    -e, --edit      Edit the specified --profile
     -l, --location  Print the location of the CLI configuration file
     -p, --profiles  Print the available profiles
 

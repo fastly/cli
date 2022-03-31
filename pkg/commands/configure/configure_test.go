@@ -257,7 +257,7 @@ func TestConfigure(t *testing.T) {
 `,
 		},
 		{
-			name: "new profile created even if another profile already exists",
+			name: "new default profile created even if another profile already exists",
 			args: args("configure"),
 			file: config.File{
 				// Due to how the test environment skips the main function, it means we
@@ -271,7 +271,7 @@ func TestConfigure(t *testing.T) {
 					},
 				},
 			},
-			stdin: []string{"bar", "user_token_given"},
+			stdin: []string{"bar", "y", "user_token_given"}, // y == we want the new profile to become default
 			api: mock.API{
 				GetTokenSelfFn: goodToken,
 				GetUserFn:      goodUser,
@@ -313,6 +313,78 @@ func TestConfigure(t *testing.T) {
 
   [profile.foo]
     default = false
+    email = "foo@example.com"
+    token = "something"
+
+[starter-kits]
+
+[user]
+  email = ""
+  token = ""
+
+[viceroy]
+  last_checked = ""
+  latest_version = ""
+  ttl = ""
+`,
+		},
+		{
+			name: "new non-default profile created even if another profile already exists",
+			args: args("configure"),
+			file: config.File{
+				// Due to how the test environment skips the main function, it means we
+				// don't actually read a configuration file into memory, so we have to
+				// manually construct one to be passed through.
+				Profiles: map[string]*config.Profile{
+					"foo": {
+						Default: true,
+						Email:   "foo@example.com",
+						Token:   "something",
+					},
+				},
+			},
+			stdin: []string{"bar", "N", "user_token_given"}, // N == we don't want the new profile to become default
+			api: mock.API{
+				GetTokenSelfFn: goodToken,
+				GetUserFn:      goodUser,
+			},
+			wantOutput: []string{
+				"An API token is used to authenticate requests to the Fastly API. To create a token, visit",
+				"https://manage.fastly.com/account/personal/tokens",
+				"Fastly API token: ",
+				"Validating token...",
+				"Persisting configuration...",
+				"You can find your configuration file at",
+			},
+			wantFile: `config_version = 0
+
+[cli]
+  last_checked = ""
+  remote_config = ""
+  ttl = ""
+  version = ""
+
+[fastly]
+  api_endpoint = "https://api.fastly.com"
+
+[language]
+
+  [language.rust]
+    fastly_sys_constraint = ""
+    rustup_constraint = ""
+    toolchain_constraint = ""
+    toolchain_version = ""
+    wasm_wasi_target = ""
+
+[profile]
+
+  [profile.bar]
+    default = false
+    email = "test@example.com"
+    token = "user_token_given"
+
+  [profile.foo]
+    default = true
     email = "foo@example.com"
     token = "something"
 
