@@ -1,10 +1,11 @@
 package profile
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
@@ -93,48 +94,60 @@ func Edit(name string, p config.Profiles, opts ...EditOption) (config.Profiles, 
 }
 
 // Init checks if a profile flag is provided and potentially mutates token.
-func Init(token string, data *manifest.Data, globals *config.Data, command cmd.Command, in io.Reader, out io.Writer) (string, error) {
-	if data.File.Profile != "" {
-		if name, p := Get(data.File.Profile, globals.File.Profiles); name != "" {
-			token = p.Token
+//
+// NOTE: If the specified profile doesn't exist, then we'll let the user decide
+// if the default profile (if available) is acceptable to use instead.
+func Init(token string, data *manifest.Data, globals *config.Data, in io.Reader, out io.Writer) (string, error) {
+	// First check the fastly.toml manifest 'profile' field.
+	profile := data.File.Profile
+
+	// Otherwise check the --profile global flag.
+	if profile == "" {
+		profile = globals.Flag.Profile
+	}
+
+	// If the user has specified no profile override, via flag nor manifest, then
+	// we'll just return the token that has potentially been found within the
+	// CLI's application configuration file.
+	if profile == "" {
+		return token, nil
+	}
+
+	name, p := Get(profile, globals.File.Profiles)
+	if name != "" {
+		return p.Token, nil
+	}
+
+	msg := DoesNotExist
+
+	name, p = Default(globals.File.Profiles)
+	if name == "" {
+		msg = fmt.Sprintf("%s (no account profiles configured)", msg)
+		return token, fsterr.RemediationError{
+			Inner:       fmt.Errorf(msg),
+			Remediation: fsterr.ProfileRemediation,
 		}
 	}
 
-	if globals.Flag.Profile != "" && command.Name() != "configure" {
-		if exist := Exist(globals.Flag.Profile, globals.File.Profiles); exist {
-			// Persist the permanent switch of profiles.
-			var ok bool
-			if globals.File.Profiles, ok = Set(globals.Flag.Profile, globals.File.Profiles); ok {
-				if err := globals.File.Write(globals.Path); err != nil {
-					return token, err
-				}
-			}
-		} else {
-			msg := DoesNotExist
+	// DoesNotExist is reused across errors and warning messages. Mostly errors
+	// and so when used here for a warning message, we need to uppercase the
+	// first letter so the warning reads like a proper sentence (where as golang
+	// errors should always be lowercase).
+	msg = fmt.Sprintf("%s%s. ", bytes.ToUpper([]byte(msg[:1])), msg[1:])
 
-			name, p := Default(globals.File.Profiles)
-			if name == "" {
-				msg = fmt.Sprintf("%s (no account profiles configured)", msg)
-				return token, fsterr.RemediationError{
-					Inner:       fmt.Errorf(msg),
-					Remediation: fsterr.ProfileRemediation,
-				}
-			}
+	msg = fmt.Sprintf("%sThe default profile '%s' (%s) will be used.", msg, name, p.Email)
+	text.Warning(out, msg)
 
-			msg = fmt.Sprintf("%s The default profile '%s' (%s) will be used.", msg, name, p.Email)
-			text.Warning(out, msg)
-
-			label := "\nWould you like to continue? [y/N] "
-			cont, err := text.AskYesNo(out, label, in)
-			if err != nil {
-				return token, err
-			}
-			if !cont {
-				return token, nil
-			}
-			token = p.Token
-		}
+	label := "\nWould you like to continue? [y/N] "
+	cont, err := text.AskYesNo(out, label, in)
+	if err != nil {
+		return token, err
+	}
+	if !cont {
+		return token, errors.New("command execution cancelled")
 	}
 
-	return token, nil
+	text.Break(out)
+
+	return p.Token, nil
 }

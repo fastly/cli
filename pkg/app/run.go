@@ -90,7 +90,7 @@ func Run(opts RunOpts) error {
 	// NOTE: Short flags CAN be safely reused across commands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
 	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
-	app.Flag("profile", "Switch account profile").Short('o').StringVar(&globals.Flag.Profile)
+	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 
@@ -118,6 +118,12 @@ func Run(opts RunOpts) error {
 	}
 
 	token, source := globals.Token()
+
+	token, err = profile.Init(token, &data, &globals, opts.Stdin, opts.Stdout)
+	if err != nil {
+		return err
+	}
+
 	if globals.Verbose() {
 		switch source {
 		case config.SourceFlag:
@@ -125,15 +131,10 @@ func Run(opts RunOpts) error {
 		case config.SourceEnvironment:
 			fmt.Fprintf(opts.Stdout, "Fastly API token provided via %s\n", env.Token)
 		case config.SourceFile:
-			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file\n")
+			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file (profile: %s)\n", determineProfile(globals.Flag.Profile, globals.File.Profiles))
 		default:
 			fmt.Fprintf(opts.Stdout, "Fastly API token not provided\n")
 		}
-	}
-
-	token, err = profile.Init(token, &data, &globals, command, opts.Stdin, opts.Stdout)
-	if err != nil {
-		return err
 	}
 
 	// If we are using the token from config file, check the files permissions
@@ -196,4 +197,14 @@ type APIClientFactory func(token, endpoint string) (api.Interface, error)
 func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
 	client, err := fastly.NewClientForEndpoint(token, endpoint)
 	return client, err
+}
+
+// determineProfile determines if the provided token was acquired via the
+// --profile flag or was a default profile from within the configuration.
+func determineProfile(flagValue string, profiles config.Profiles) string {
+	if flagValue == "" {
+		name, _ := profile.Default(profiles)
+		return name
+	}
+	return flagValue
 }

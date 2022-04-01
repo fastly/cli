@@ -117,17 +117,17 @@ func (d *Data) Token() (string, Source) {
 		return d.Env.Token, SourceEnvironment
 	}
 
-	for _, v := range d.File.Profiles {
-		if v.Default {
-			return v.Token, SourceFile
-		}
-	}
-
 	if d.Flag.Profile != "" {
 		for k, v := range d.File.Profiles {
 			if k == d.Flag.Profile {
 				return v.Token, SourceFile
 			}
+		}
+	}
+
+	for _, v := range d.File.Profiles {
+		if v.Default {
+			return v.Token, SourceFile
 		}
 	}
 

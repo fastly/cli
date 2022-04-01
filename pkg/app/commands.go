@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/commands/configure"
+	"github.com/fastly/cli/pkg/commands/config"
 	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryitem"
 	"github.com/fastly/cli/pkg/commands/domain"
@@ -42,6 +42,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/pop"
+	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
 	"github.com/fastly/cli/pkg/commands/service"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
@@ -54,16 +55,17 @@ import (
 	"github.com/fastly/cli/pkg/commands/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/commands/whoami"
-	"github.com/fastly/cli/pkg/config"
+	cfg "github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/kingpin"
 )
 
 func defineCommands(
 	app *kingpin.Application,
-	globals *config.Data,
+	globals *cfg.Data,
 	data manifest.Data,
-	opts RunOpts) []cmd.Command {
+	opts RunOpts,
+) []cmd.Command {
 	shellcompleteCmdRoot := shellcomplete.NewRootCommand(app, globals)
 	aclCmdRoot := acl.NewRootCommand(app, globals)
 	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, globals, data)
@@ -97,7 +99,7 @@ func defineCommands(
 	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, globals, computeBuild, opts.Versioners.Viceroy, data)
 	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, globals, data)
 	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, globals)
-	configureCmdRoot := configure.NewRootCommand(app, configure.APIClientFactory(opts.APIClient), globals)
+	configCmdRoot := config.NewRootCommand(app, globals)
 	dictionaryCmdRoot := dictionary.NewRootCommand(app, globals)
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, globals, data)
 	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, globals, data)
@@ -283,6 +285,12 @@ func defineCommands(
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
 	popCmdRoot := pop.NewRootCommand(app, globals)
+	profileCmdRoot := profile.NewRootCommand(app, globals)
+	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
+	profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, globals)
+	profileEdit := profile.NewEditCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
+	profileList := profile.NewListCommand(profileCmdRoot.CmdClause, globals)
+	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, globals)
 	purgeCmdRoot := purge.NewRootCommand(app, globals, data)
 	serviceCmdRoot := service.NewRootCommand(app, globals)
 	serviceCreate := service.NewCreateCommand(serviceCmdRoot.CmdClause, globals)
@@ -359,7 +367,7 @@ func defineCommands(
 		computeServe,
 		computeUpdate,
 		computeValidate,
-		configureCmdRoot,
+		configCmdRoot,
 		dictionaryCmdRoot,
 		dictionaryCreate,
 		dictionaryDelete,
@@ -545,6 +553,12 @@ func defineCommands(
 		loggingSyslogList,
 		loggingSyslogUpdate,
 		popCmdRoot,
+		profileCmdRoot,
+		profileCreate,
+		profileDelete,
+		profileEdit,
+		profileList,
+		profileSwitch,
 		purgeCmdRoot,
 		serviceCmdRoot,
 		serviceCreate,
