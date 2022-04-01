@@ -15,7 +15,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/go/bin
-        key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-bin-${{ hashFiles('~/go/bin') }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-bin-
     - name: "Restore golang mod cache"
