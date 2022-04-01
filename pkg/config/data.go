@@ -262,7 +262,7 @@ type Rust struct {
 // Profiles represents multiple profile accounts.
 type Profiles map[string]*Profile
 
-// Profiles represents a specific profile account.
+// Profile represents a specific profile account.
 type Profile struct {
 	Default bool   `toml:"default"`
 	Email   string `toml:"email"`

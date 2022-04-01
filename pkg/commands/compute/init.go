@@ -43,6 +43,7 @@ type InitCommand struct {
 	tag              string
 }
 
+// Languages is a list of supported language options.
 var Languages = []string{"rust", "assemblyscript", "javascript", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
@@ -518,8 +519,8 @@ func fetchPackageTemplate(
 	progress text.Progress,
 	client api.HTTPClient,
 	out io.Writer,
-	errLog errors.LogInterface) error {
-
+	errLog errors.LogInterface,
+) error {
 	// We don't try to fetch a package template if the user is bringing their own
 	// compiled Wasm binary (or if the directory currently already contains a
 	// fastly.toml manifest file).
@@ -762,8 +763,8 @@ func updateManifest(
 	progress text.Progress,
 	path, name, desc string,
 	authors []string,
-	language *Language) (manifest.File, error) {
-
+	language *Language,
+) (manifest.File, error) {
 	progress.Step("Updating package manifest...")
 
 	mp := filepath.Join(path, manifest.Filename)

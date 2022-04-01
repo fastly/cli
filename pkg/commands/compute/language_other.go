@@ -29,12 +29,12 @@ func NewOther(timeout int, build string, errlog fsterr.LogInterface) *Other {
 	}
 }
 
-// No-op
+// Initialize is a no-op.
 func (o Other) Initialize(out io.Writer) error {
 	return nil
 }
 
-// No-op
+// Verify is a no-op
 func (o Other) Verify(out io.Writer) error {
 	return nil
 }

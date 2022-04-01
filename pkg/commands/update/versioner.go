@@ -197,6 +197,7 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 	return bin.Name(), nil
 }
 
+// GetReleaseID returns the release ID.
 func (g GitHub) GetReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
 	var (
 		page        int
@@ -224,6 +225,7 @@ func (g GitHub) GetReleaseID(ctx context.Context, version semver.Version) (id in
 	return id, fmt.Errorf("no matching release found")
 }
 
+// GetAssetID returns the asset ID.
 func (g GitHub) GetAssetID(assets []*github.ReleaseAsset) (id int64, err error) {
 	if g.releaseAsset == "" {
 		return id, fmt.Errorf("no release asset specified")

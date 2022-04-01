@@ -11,6 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
+// Locations is a list of VCL subroutines.
 var Locations = []string{"init", "recv", "hash", "hit", "miss", "pass", "fetch", "error", "deliver", "log", "none"}
 
 // NewCreateCommand returns a usable command registered under the parent.

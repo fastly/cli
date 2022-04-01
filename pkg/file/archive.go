@@ -61,7 +61,7 @@ type ArchiveBase struct {
 	Name  string
 }
 
-// Extension returns the accepted file extensions.
+// Extensions returns the accepted file extensions.
 func (a ArchiveBase) Extensions() []string {
 	return a.Exts
 }

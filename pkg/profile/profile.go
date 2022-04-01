@@ -65,6 +65,7 @@ func Delete(name string, p config.Profiles) bool {
 	return ok
 }
 
+// EditOption lets callers of Edit specify profile fields to update.
 type EditOption func(*config.Profile)
 
 // Edit modifies the named profile.

@@ -39,7 +39,7 @@ type Dictionary struct {
 	Items []DictionaryItem
 }
 
-// Dictionary represents the configuration parameters for creating dictionary
+// DictionaryItem represents the configuration parameters for creating dictionary
 // items via the API client.
 type DictionaryItem struct {
 	Key   string
