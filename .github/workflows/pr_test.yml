@@ -41,6 +41,9 @@ jobs:
     - name: "Run go vet"
       run: make vet
       shell: bash
+    - name: "Run revive"
+      run: make revive
+      shell: bash
     - name: "Static analysis check"
       run: make staticcheck
       shell: bash
