@@ -1,7 +1,14 @@
 package profile
 
 import (
+	"fmt"
+	"io"
+
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
+	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // DoesNotExist describes an output error/warning message.
@@ -83,4 +90,51 @@ func Edit(name string, p config.Profiles, opts ...EditOption) (config.Profiles, 
 		}
 	}
 	return p, ok
+}
+
+// Init checks if a profile flag is provided and potentially mutates token.
+func Init(token string, data *manifest.Data, globals *config.Data, command cmd.Command, in io.Reader, out io.Writer) (string, error) {
+	if data.File.Profile != "" {
+		if name, p := Get(data.File.Profile, globals.File.Profiles); name != "" {
+			token = p.Token
+		}
+	}
+
+	if globals.Flag.Profile != "" && command.Name() != "configure" {
+		if exist := Exist(globals.Flag.Profile, globals.File.Profiles); exist {
+			// Persist the permanent switch of profiles.
+			var ok bool
+			if globals.File.Profiles, ok = Set(globals.Flag.Profile, globals.File.Profiles); ok {
+				if err := globals.File.Write(globals.Path); err != nil {
+					return token, err
+				}
+			}
+		} else {
+			msg := DoesNotExist
+
+			name, p := Default(globals.File.Profiles)
+			if name == "" {
+				msg = fmt.Sprintf("%s (no account profiles configured)", msg)
+				return token, fsterr.RemediationError{
+					Inner:       fmt.Errorf(msg),
+					Remediation: fsterr.ProfileRemediation,
+				}
+			}
+
+			msg = fmt.Sprintf("%s The default profile '%s' (%s) will be used.", msg, name, p.Email)
+			text.Warning(out, msg)
+
+			label := "\nWould you like to continue? [y/N] "
+			cont, err := text.AskYesNo(out, label, in)
+			if err != nil {
+				return token, err
+			}
+			if !cont {
+				return token, nil
+			}
+			token = p.Token
+		}
+	}
+
+	return token, nil
 }
