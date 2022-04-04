@@ -22,7 +22,7 @@ type SwitchCommand struct {
 func NewSwitchCommand(parent cmd.Registerer, globals *config.Data) *SwitchCommand {
 	var c SwitchCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("switch", "Switch user profiles")
+	c.CmdClause = parent.Command("switch", "Switch user profile")
 	c.CmdClause.Arg("profile", "Profile to switch to").Short('p').Required().StringVar(&c.profile)
 	return &c
 }

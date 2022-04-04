@@ -4417,7 +4417,7 @@ COMMANDS
 
 
   profile switch <profile>
-    Switch user profiles
+    Switch user profile
 
 
   profile update <profile>
