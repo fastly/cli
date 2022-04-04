@@ -1,0 +1,4 @@
+config_version = 2
+
+[fastly]
+  api_endpoint = "https://api.fastly.com"

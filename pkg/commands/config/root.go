@@ -14,6 +14,7 @@ import (
 type RootCommand struct {
 	cmd.Base
 
+	filePath string
 	location bool
 }
 
@@ -23,21 +24,22 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	c.Globals = globals
 	c.CmdClause = parent.Command("config", "Display the Fastly CLI configuration")
 	c.CmdClause.Flag("location", "Print the location of the CLI configuration file").Short('l').BoolVar(&c.location)
+	c.filePath = globals.Path
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.location {
-		fmt.Println(config.FilePath)
+		fmt.Fprintln(out, c.filePath)
 		return nil
 	}
 
-	data, err := os.ReadFile(config.FilePath)
+	data, err := os.ReadFile(c.filePath)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
-	fmt.Println(string(data))
+	fmt.Fprintln(out, string(data))
 	return nil
 }
