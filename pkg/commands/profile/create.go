@@ -69,7 +69,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 func (c *CreateCommand) tokenFlow(profile string, def bool, in io.Reader, out io.Writer) error {
 	var err error
 
-	// If user provides --token flag, then don't prompt them for input.
+	// If user provides a --token flag, then don't prompt them for input.
 	token, source := c.Globals.Token()
 	if source == config.SourceFile || source == config.SourceUndefined {
 		token, err = promptForToken(in, out, c.Globals.ErrLog)
