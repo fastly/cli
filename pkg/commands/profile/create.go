@@ -43,8 +43,8 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// The Default status of a new profile should always be true unless there is
 	// an existing profile already set to be the default. In the latter scenario
-	// we should prompt the user to see if the new profile they're creating is
-	// needed to become the new default.
+	// we should prompt the user to see if the new profile they're creating needs
+	// to become the new default.
 	def := true
 	if profile, _ := profile.Default(c.Globals.File.Profiles); profile != "" {
 		def, err = c.promptForDefault(in, out)

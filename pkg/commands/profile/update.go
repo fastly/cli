@@ -52,17 +52,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	text.Break(out)
 
-	email, err := text.Input(out, text.BoldYellow("Profile email: (leave blank to skip): "), in)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
-	}
-	if email != "" {
-		opts = append(opts, func(p *config.Profile) {
-			p.Email = email
-		})
-	}
-
 	token, err := text.InputSecure(out, text.BoldYellow("Profile token: (leave blank to skip): "), in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -103,10 +92,13 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	endpoint, _ := c.Globals.Endpoint()
 
-	_, err = c.validateToken(token, endpoint, progress)
+	u, err := c.validateToken(token, endpoint, progress)
 	if err != nil {
 		return err
 	}
+	opts = append(opts, func(p *config.Profile) {
+		p.Email = u.Login
+	})
 
 	var ok bool
 
