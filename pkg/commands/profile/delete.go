@@ -32,7 +32,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		if err := c.Globals.File.Write(c.Globals.Path); err != nil {
 			return err
 		}
-		text.Success(out, "The profile '%s' was deleted.", c.profile)
+		text.Success(out, "Profile '%s' deleted", c.profile)
 
 		if p, _ := profile.Default(c.Globals.File.Profiles); p == "" && len(c.Globals.File.Profiles) > 0 {
 			text.Warning(out, profile.NoDefaults)

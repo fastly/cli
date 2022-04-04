@@ -114,6 +114,8 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	progress.Done()
+
+	text.Success(out, "Profile '%s' updated", c.profile)
 	return nil
 }
 

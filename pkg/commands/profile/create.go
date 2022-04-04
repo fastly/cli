@@ -184,6 +184,10 @@ func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint strin
 }
 
 func (c *CreateCommand) persistCfg() error {
+	// TODO: The following directory checks should be encapsulated by the
+	// File.Write() method as this chunk of code is duplicated in various places.
+	// Consider consolidating with pkg/filesystem/directory.go
+	// This function is itself duplicated in pkg/commands/profile/update.go
 	dir := filepath.Dir(c.Globals.Path)
 	fi, err := os.Stat(dir)
 	switch {
