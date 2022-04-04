@@ -1,9 +1,8 @@
 package app
 
 import (
-	_ "embed"
-
 	"bytes"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -203,7 +202,8 @@ func processCommandInput(
 	opts RunOpts,
 	app *kingpin.Application,
 	globals *config.Data,
-	commands []cmd.Command) (command cmd.Command, cmdName string, err error) {
+	commands []cmd.Command,
+) (command cmd.Command, cmdName string, err error) {
 	// As the `help` command model gets privately added as a side-effect of
 	// kingpin.Parse, we cannot add the `--format json` flag to the model.
 	// Therefore, we have to manually parse the args slice here to check for the
@@ -344,13 +344,12 @@ func processCommandInput(
 
 		// The full-fat output of `fastly help` should have a hint at the bottom
 		// for more specific help. Unfortunately I don't know of a better way to
-		// distinguish `fastly help` from e.g. `fastly help configure` than this
-		// check.
+		// distinguish `fastly help` from e.g. `fastly help pops` than this check.
 		if len(opts.Args) > 0 && opts.Args[len(opts.Args)-1] == "help" {
 			fmt.Fprintln(&buf, "\nFor help on a specific command, try e.g.")
 			fmt.Fprintln(&buf, "")
-			fmt.Fprintln(&buf, "\tfastly help configure")
-			fmt.Fprintln(&buf, "\tfastly configure --help")
+			fmt.Fprintln(&buf, "\tfastly help profile")
+			fmt.Fprintln(&buf, "\tfastly profile --help")
 			fmt.Fprintln(&buf, "")
 		}
 
@@ -547,8 +546,8 @@ func displayHelp(
 	errLog fsterr.LogInterface,
 	args []string,
 	app *kingpin.Application,
-	stdout, stderr io.Writer) func(vars map[string]interface{}, err error) error {
-
+	stdout, stderr io.Writer,
+) func(vars map[string]interface{}, err error) error {
 	return func(vars map[string]interface{}, err error) error {
 		usage := Usage(args, app, stdout, stderr, vars)
 		remediation := fsterr.RemediationError{Prefix: usage}

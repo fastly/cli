@@ -15,32 +15,33 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
-// APIClientFactory allows the configure command to regenerate the global Fastly
+// APIClientFactory allows the profile command to regenerate the global Fastly
 // API client when a new token is provided, in order to validate that token.
 // It's a redeclaration of the app.APIClientFactory to avoid an import loop.
 type APIClientFactory func(token, endpoint string) (api.Interface, error)
 
-// EditCommand represents a Kingpin command.
-type EditCommand struct {
+// UpdateCommand represents a Kingpin command.
+type UpdateCommand struct {
 	cmd.Base
 
 	clientFactory APIClientFactory
 	profile       string
 }
 
-// NewEditCommand returns a usable command registered under the parent.
-func NewEditCommand(parent cmd.Registerer, cf APIClientFactory, globals *config.Data) *EditCommand {
-	var c EditCommand
+// NewUpdateCommand returns a usable command registered under the parent.
+func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, globals *config.Data) *UpdateCommand {
+	var c UpdateCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("edit", "Edit user profile")
-	c.CmdClause.Arg("profile", "Profile to edit").Short('p').Required().StringVar(&c.profile)
+	c.CmdClause = parent.Command("update", "Update user profile")
+	c.CmdClause.Arg("profile", "Profile to update").Short('p').Required().StringVar(&c.profile)
 	c.clientFactory = cf
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *EditCommand) Exec(in io.Reader, out io.Writer) error {
-	if exist := profile.Exist(c.profile, c.Globals.File.Profiles); !exist {
+func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	name, p := profile.Get(c.profile, c.Globals.File.Profiles)
+	if name == "" {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf(profile.DoesNotExist),
 			Remediation: fsterr.ProfileRemediation,
@@ -71,6 +72,22 @@ func (c *EditCommand) Exec(in io.Reader, out io.Writer) error {
 		opts = append(opts, func(p *config.Profile) {
 			p.Token = token
 		})
+	}
+
+	text.Break(out)
+	text.Break(out)
+
+	def, err := text.AskYesNo(out, "Make profile the default? [y/N] ", in)
+	if err != nil {
+		return err
+	}
+	opts = append(opts, func(p *config.Profile) {
+		p.Default = def
+	})
+
+	// User didn't want to change their token value so reassign original.
+	if token == "" {
+		token = p.Token
 	}
 
 	text.Break(out)
@@ -109,7 +126,7 @@ func (c *EditCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 // validateToken ensures the token can be used to acquire user data.
-func (c *EditCommand) validateToken(token, endpoint string, progress text.Progress) (*fastly.User, error) {
+func (c *UpdateCommand) validateToken(token, endpoint string, progress text.Progress) (*fastly.User, error) {
 	progress.Step("Validating token...")
 
 	client, err := c.clientFactory(token, endpoint)
@@ -140,7 +157,7 @@ func (c *EditCommand) validateToken(token, endpoint string, progress text.Progre
 }
 
 // persistCfg writes the updated configuration data to disk.
-func (c *EditCommand) persistCfg() error {
+func (c *UpdateCommand) persistCfg() error {
 	dir := filepath.Dir(c.Globals.Path)
 	fi, err := os.Stat(dir)
 	switch {

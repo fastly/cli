@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
-	"strings"
-
 	"errors"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/config"
@@ -244,6 +243,9 @@ func TestUseStatic(t *testing.T) {
 	}
 	if f.Profiles["user"].Email != "testing@fastly.com" {
 		t.Fatalf("wanted email: %s, got: %s", "testing@fastly.com", f.LegacyUser.Email)
+	}
+	if !f.Profiles["user"].Default {
+		t.Fatal("expected the migrated user to become the default")
 	}
 
 	// We validate both the in-memory data structure (above) AND the file on disk (below).

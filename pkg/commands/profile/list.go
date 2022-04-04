@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -33,7 +34,16 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	text.Info(out, "Default profile highlighted in red.")
+	if len(c.Globals.File.Profiles) == 0 {
+		text.Break(out)
+		text.Description(out, "No profiles defined. To create a profile, run", "fastly profile create <name>")
+		return nil
+	}
+	if name, _ := profile.Default(c.Globals.File.Profiles); name == "" {
+		text.Warning(out, profile.NoDefaults)
+	} else {
+		text.Info(out, "Default profile highlighted in red.")
+	}
 
 	for k, v := range c.Globals.File.Profiles {
 		style := text.Bold

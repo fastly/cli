@@ -68,7 +68,7 @@ func CheckAsync(ctx context.Context, file config.File, configFilePath string, cu
 	return func(w io.Writer) {
 		result := <-results
 		if result.err == nil {
-			// If the user ran `fastly configure`, then the expectation is for the
+			// If the user ran `fastly profile ...`, then the expectation is for the
 			// application configuration to have been updated. In that case we want
 			// to reread the config so we can update the LastChecked field.
 			if err := file.Read(configFilePath, in, out); err == nil {

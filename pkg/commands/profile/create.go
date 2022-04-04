@@ -29,8 +29,8 @@ type CreateCommand struct {
 func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, globals *config.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("create", "Create a user profile")
-	c.CmdClause.Arg("profile", "Profile to configure").Short('p').Required().StringVar(&c.profile)
+	c.CmdClause = parent.Command("create", "Create user profile")
+	c.CmdClause.Arg("profile", "Profile to create").Short('p').Required().StringVar(&c.profile)
 	c.clientFactory = cf
 	return &c
 }
@@ -124,7 +124,7 @@ func validateTokenNotEmpty(s string) error {
 }
 
 // ErrEmptyToken is returned when a user tries to supply an emtpy string as a
-// token in the configure command.
+// token in the terminal prompt.
 var ErrEmptyToken = errors.New("token cannot be empty")
 
 // validateToken ensures the token can be used to acquire user data.

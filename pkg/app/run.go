@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
@@ -140,7 +141,8 @@ func Run(opts RunOpts) error {
 	// If we are using the token from config file, check the files permissions
 	// to assert if they are not too open or have been altered outside of the
 	// application and warn if so.
-	if source == config.SourceFile && name != "configure" {
+	segs := strings.Split(name, " ")
+	if source == config.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
 				text.Warning(opts.Stdout, "Unprotected configuration file.")

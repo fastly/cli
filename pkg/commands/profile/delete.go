@@ -34,8 +34,8 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		text.Success(out, "The profile '%s' was deleted.", c.profile)
 
-		if profile, _ := profile.Default(c.Globals.File.Profiles); profile == "" && len(c.Globals.File.Profiles) > 0 {
-			text.Warning(out, "At least one account profile should be set as the 'default'. Run `fastly configure --profile <NAME>`.")
+		if p, _ := profile.Default(c.Globals.File.Profiles); p == "" && len(c.Globals.File.Profiles) > 0 {
+			text.Warning(out, profile.NoDefaults)
 		}
 		return nil
 	}

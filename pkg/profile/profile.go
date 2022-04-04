@@ -15,6 +15,9 @@ import (
 // DoesNotExist describes an output error/warning message.
 const DoesNotExist = "the specified profile does not exist"
 
+// NoDefaults describes an output warning message.
+const NoDefaults = "At least one account profile should be set as the 'default'. Run `fastly profile update <NAME>`."
+
 // Exist reports whether the given profile exists.
 func Exist(name string, p config.Profiles) bool {
 	for k := range p {

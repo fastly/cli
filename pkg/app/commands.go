@@ -288,9 +288,9 @@ func defineCommands(
 	profileCmdRoot := profile.NewRootCommand(app, globals)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
 	profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, globals)
-	profileEdit := profile.NewEditCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
 	profileList := profile.NewListCommand(profileCmdRoot.CmdClause, globals)
 	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, globals)
+	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
 	purgeCmdRoot := purge.NewRootCommand(app, globals, data)
 	serviceCmdRoot := service.NewRootCommand(app, globals)
 	serviceCreate := service.NewCreateCommand(serviceCmdRoot.CmdClause, globals)
@@ -556,9 +556,9 @@ func defineCommands(
 		profileCmdRoot,
 		profileCreate,
 		profileDelete,
-		profileEdit,
 		profileList,
 		profileSwitch,
+		profileUpdate,
 		purgeCmdRoot,
 		serviceCmdRoot,
 		serviceCreate,

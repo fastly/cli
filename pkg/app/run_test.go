@@ -4405,15 +4405,11 @@ COMMANDS
 
 
   profile create <profile>
-    Create a user profile
+    Create user profile
 
 
   profile delete <profile>
     Delete user profile
-
-
-  profile edit <profile>
-    Edit user profile
 
 
   profile list
@@ -4422,6 +4418,10 @@ COMMANDS
 
   profile switch <profile>
     Switch user profiles
+
+
+  profile update <profile>
+    Update user profile
 
 
   purge [<flags>]
@@ -4785,6 +4785,6 @@ SEE ALSO
 
 For help on a specific command, try e.g.
 
-	fastly help configure
-	fastly configure --help
+	fastly help profile
+	fastly profile --help
 `) + "\n\n"
