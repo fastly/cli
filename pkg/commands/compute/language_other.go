@@ -34,7 +34,7 @@ func (o Other) Initialize(out io.Writer) error {
 	return nil
 }
 
-// Verify is a no-op
+// Verify is a no-op.
 func (o Other) Verify(out io.Writer) error {
 	return nil
 }
