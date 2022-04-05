@@ -16,6 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/useragent"
@@ -95,13 +96,15 @@ var writeMutex = &sync.Mutex{}
 // (e.g. an email address). Otherwise, parameters should be defined in specific
 // command structs, and parsed as flags.
 type Data struct {
-	File   File
-	Path   string
-	Env    Environment
-	Output io.Writer
-	Flag   Flag
-	ErrLog fsterr.LogInterface
+	Env      Environment
+	File     File
+	Flag     Flag
+	Manifest manifest.Data
+	Output   io.Writer
+	Path     string
 
+	// Custom interfaces
+	ErrLog     fsterr.LogInterface
 	APIClient  api.Interface
 	HTTPClient api.HTTPClient
 	RTSClient  api.RealtimeStatsInterface
@@ -115,6 +118,14 @@ func (d *Data) Token() (string, Source) {
 
 	if d.Env.Token != "" {
 		return d.Env.Token, SourceEnvironment
+	}
+
+	if d.Manifest.File.Profile != "" {
+		for k, v := range d.File.Profiles {
+			if k == d.Manifest.File.Profile {
+				return v.Token, SourceFile
+			}
+		}
 	}
 
 	if d.Flag.Profile != "" {

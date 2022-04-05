@@ -53,15 +53,21 @@ type RunOpts struct {
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
 func Run(opts RunOpts) error {
+	var md manifest.Data
+	md.File.SetErrLog(opts.ErrLog)
+	md.File.SetOutput(opts.Stdout)
+	md.File.Read(manifest.Filename)
+
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	globals := config.Data{
-		File:       opts.ConfigFile,
-		Path:       opts.ConfigPath,
 		Env:        opts.Env,
-		Output:     opts.Stdout,
 		ErrLog:     opts.ErrLog,
+		File:       opts.ConfigFile,
 		HTTPClient: opts.HTTPClient,
+		Manifest:   md,
+		Output:     opts.Stdout,
+		Path:       opts.ConfigPath,
 	}
 
 	// Set up the main application root, including global flags, and then each
@@ -95,12 +101,7 @@ func Run(opts RunOpts) error {
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 
-	var data manifest.Data
-	data.File.SetErrLog(opts.ErrLog)
-	data.File.SetOutput(globals.Output)
-	data.File.Read(manifest.Filename)
-
-	commands := defineCommands(app, &globals, data, opts)
+	commands := defineCommands(app, &globals, md, opts)
 	command, name, err := processCommandInput(opts, app, &globals, commands)
 	if err != nil {
 		return err
@@ -120,7 +121,7 @@ func Run(opts RunOpts) error {
 
 	token, source := globals.Token()
 
-	token, err = profile.Init(token, &data, &globals, opts.Stdin, opts.Stdout)
+	token, err = profile.Init(token, &md, &globals, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return err
 	}
@@ -132,7 +133,7 @@ func Run(opts RunOpts) error {
 		case config.SourceEnvironment:
 			fmt.Fprintf(opts.Stdout, "Fastly API token provided via %s\n", env.Token)
 		case config.SourceFile:
-			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file (profile: %s)\n", determineProfile(data.File.Profile, globals.Flag.Profile, globals.File.Profiles))
+			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file (profile: %s)\n", determineProfile(md.File.Profile, globals.Flag.Profile, globals.File.Profiles))
 		default:
 			fmt.Fprintf(opts.Stdout, "Fastly API token not provided\n")
 		}
