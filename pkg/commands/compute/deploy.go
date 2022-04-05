@@ -141,7 +141,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// We only check the Service ID is valid when handling an existing service.
 	if !newService {
-		err = checkServiceID(serviceID, apiClient, serviceVersion)
+		err = checkServiceID(serviceID, apiClient)
 		if err != nil {
 			errLogService(errLog, err, serviceID, serviceVersion.Number)
 			return err
@@ -740,7 +740,7 @@ func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 }
 
 // checkServiceID validates the given Service ID maps to a real service.
-func checkServiceID(serviceID string, client api.Interface, version *fastly.Version) error {
+func checkServiceID(serviceID string, client api.Interface) error {
 	_, err := client.GetService(&fastly.GetServiceInput{
 		ID: serviceID,
 	})
