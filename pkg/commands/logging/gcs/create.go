@@ -26,6 +26,7 @@ type CreateCommand struct {
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
 	Path              cmd.OptionalString
 	Period            cmd.OptionalUint
@@ -81,6 +82,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("timestamp-format", `strftime specified timestamp formatting (default "%Y-%m-%dT%H:%M:%S.000")`).Action(c.TimestampFormat.Set).StringVar(&c.TimestampFormat.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 	c.CmdClause.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
+	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials (default none)").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
 	return &c
 }
 
@@ -139,6 +141,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = c.CompressionCodec.Value
+	}
+
+	if c.AccountName.WasSet {
+		input.AccountName = c.AccountName.Value
 	}
 
 	return &input, nil

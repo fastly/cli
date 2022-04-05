@@ -109,6 +109,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Bucket: %s\n", gcs.Bucket)
 	fmt.Fprintf(out, "User: %s\n", gcs.User)
 	fmt.Fprintf(out, "Secret key: %s\n", gcs.SecretKey)
+	fmt.Fprintf(out, "Account name: %s\n", gcs.AccountName)
 	fmt.Fprintf(out, "Path: %s\n", gcs.Path)
 	fmt.Fprintf(out, "Period: %d\n", gcs.Period)
 	fmt.Fprintf(out, "GZip level: %d\n", gcs.GzipLevel)
