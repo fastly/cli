@@ -30,7 +30,7 @@ func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, globals *confi
 	var c CreateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("create", "Create user profile")
-	c.CmdClause.Arg("profile", "Profile to create").Short('p').Required().StringVar(&c.profile)
+	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default("user").Short('p').StringVar(&c.profile)
 	c.clientFactory = cf
 	return &c
 }

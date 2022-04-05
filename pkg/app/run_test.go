@@ -4404,7 +4404,7 @@ COMMANDS
     List Fastly datacenters
 
 
-  profile create <profile>
+  profile create [<profile>]
     Create user profile
 
 
@@ -4420,7 +4420,7 @@ COMMANDS
     Switch user profile
 
 
-  profile update <profile>
+  profile update [<profile>]
     Update user profile
 
 

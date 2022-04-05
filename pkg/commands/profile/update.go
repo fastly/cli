@@ -33,7 +33,7 @@ func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, globals *confi
 	var c UpdateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update user profile")
-	c.CmdClause.Arg("profile", "Profile to update").Short('p').Required().StringVar(&c.profile)
+	c.CmdClause.Arg("profile", "Profile to update (default 'user')").Default("user").Short('p').StringVar(&c.profile)
 	c.clientFactory = cf
 	return &c
 }
