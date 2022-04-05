@@ -42,8 +42,9 @@ func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, globals *confi
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	name, p := profile.Get(c.profile, c.Globals.File.Profiles)
 	if name == "" {
+		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 		return fsterr.RemediationError{
-			Inner:       fmt.Errorf(profile.DoesNotExist),
+			Inner:       fmt.Errorf(msg),
 			Remediation: fsterr.ProfileRemediation,
 		}
 	}
@@ -103,8 +104,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	var ok bool
 
 	if c.Globals.File.Profiles, ok = profile.Edit(c.profile, c.Globals.File.Profiles, opts...); !ok {
+		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 		return fsterr.RemediationError{
-			Inner:       fmt.Errorf(profile.DoesNotExist),
+			Inner:       fmt.Errorf(msg),
 			Remediation: fsterr.ProfileRemediation,
 		}
 	}

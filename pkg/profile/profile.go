@@ -13,7 +13,7 @@ import (
 )
 
 // DoesNotExist describes an output error/warning message.
-const DoesNotExist = "the specified profile does not exist"
+const DoesNotExist = "the profile '%s' does not exist"
 
 // NoDefaults describes an output warning message.
 const NoDefaults = "At least one account profile should be set as the 'default'. Run `fastly profile update <NAME>`."
@@ -121,7 +121,7 @@ func Init(token string, data *manifest.Data, globals *config.Data, in io.Reader,
 		return p.Token, nil
 	}
 
-	msg := DoesNotExist
+	msg := fmt.Sprintf(DoesNotExist, profile)
 
 	name, p = Default(globals.File.Profiles)
 	if name == "" {

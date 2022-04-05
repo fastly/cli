@@ -32,7 +32,8 @@ func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
 	var ok bool
 
 	if c.Globals.File.Profiles, ok = profile.Set(c.profile, c.Globals.File.Profiles); !ok {
-		err := errors.New(profile.DoesNotExist)
+		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
+		err := errors.New(msg)
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
