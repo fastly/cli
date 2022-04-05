@@ -29,7 +29,7 @@ debug:
 	@go build -gcflags="all=-N -l" $(LDFLAGS) -o "fastly" ./cmd/fastly
 
 .PHONY: all
-all: config tidy fmt vet staticcheck gosec test build install
+all: dependencies config tidy fmt vet staticcheck gosec test build install
 
 .PHONY: dependencies
 dependencies:
