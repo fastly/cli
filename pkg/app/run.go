@@ -132,7 +132,7 @@ func Run(opts RunOpts) error {
 		case config.SourceEnvironment:
 			fmt.Fprintf(opts.Stdout, "Fastly API token provided via %s\n", env.Token)
 		case config.SourceFile:
-			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file (profile: %s)\n", determineProfile(globals.Flag.Profile, globals.File.Profiles))
+			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file (profile: %s)\n", determineProfile(data.File.Profile, globals.Flag.Profile, globals.File.Profiles))
 		default:
 			fmt.Fprintf(opts.Stdout, "Fastly API token not provided\n")
 		}
@@ -202,11 +202,15 @@ func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
 }
 
 // determineProfile determines if the provided token was acquired via the
-// --profile flag or was a default profile from within the configuration.
-func determineProfile(flagValue string, profiles config.Profiles) string {
-	if flagValue == "" {
-		name, _ := profile.Default(profiles)
-		return name
+// fastly.toml manifest, the --profile flag, or was a default profile from
+// within the config.toml application configuration.
+func determineProfile(manifestValue, flagValue string, profiles config.Profiles) string {
+	if manifestValue != "" {
+		return manifestValue + " -- via fastly.toml"
 	}
-	return flagValue
+	if flagValue != "" {
+		return flagValue
+	}
+	name, _ := profile.Default(profiles)
+	return name
 }
