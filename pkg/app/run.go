@@ -121,22 +121,18 @@ func Run(opts RunOpts) error {
 
 	token, source := globals.Token()
 
+	if globals.Verbose() {
+		displayTokenSource(
+			source,
+			opts.Stdout,
+			env.Token,
+			determineProfile(md.File.Profile, globals.Flag.Profile, globals.File.Profiles),
+		)
+	}
+
 	token, err = profile.Init(token, &md, &globals, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return err
-	}
-
-	if globals.Verbose() {
-		switch source {
-		case config.SourceFlag:
-			fmt.Fprintf(opts.Stdout, "Fastly API token provided via --token\n")
-		case config.SourceEnvironment:
-			fmt.Fprintf(opts.Stdout, "Fastly API token provided via %s\n", env.Token)
-		case config.SourceFile:
-			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file (profile: %s)\n", determineProfile(md.File.Profile, globals.Flag.Profile, globals.File.Profiles))
-		default:
-			fmt.Fprintf(opts.Stdout, "Fastly API token not provided\n")
-		}
 	}
 
 	// If we are using the token from config file, check the files permissions
@@ -200,6 +196,20 @@ type APIClientFactory func(token, endpoint string) (api.Interface, error)
 func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
 	client, err := fastly.NewClientForEndpoint(token, endpoint)
 	return client, err
+}
+
+// displayTokenSource prints the token source.
+func displayTokenSource(source config.Source, out io.Writer, token, profileSource string) {
+	switch source {
+	case config.SourceFlag:
+		fmt.Fprintf(out, "Fastly API token provided via --token\n")
+	case config.SourceEnvironment:
+		fmt.Fprintf(out, "Fastly API token provided via %s\n", token)
+	case config.SourceFile:
+		fmt.Fprintf(out, "Fastly API token provided via config file (profile: %s)\n", profileSource)
+	default:
+		fmt.Fprintf(out, "Fastly API token not provided\n")
+	}
 }
 
 // determineProfile determines if the provided token was acquired via the

@@ -464,7 +464,7 @@ func TestSwitch(t *testing.T) {
 			TestScenario: testutil.TestScenario{
 				Name:      "validate switching to unknown profile returns an error",
 				Args:      args("profile switch unknown"),
-				WantError: "the specified profile does not exist",
+				WantError: "the profile 'unknown' does not exist",
 			},
 		},
 		{
@@ -564,7 +564,7 @@ func TestUpdate(t *testing.T) {
 			TestScenario: testutil.TestScenario{
 				Name:      "validate updating unknown profile returns an error",
 				Args:      args("profile update unknown"),
-				WantError: "the specified profile does not exist",
+				WantError: "the profile 'unknown' does not exist",
 			},
 		},
 		{
