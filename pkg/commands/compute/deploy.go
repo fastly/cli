@@ -141,7 +141,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// We only check the Service ID is valid when handling an existing service.
 	if !newService {
-		err = checkServiceID(serviceID, apiClient, serviceVersion)
+		err = checkServiceID(serviceID, apiClient)
 		if err != nil {
 			errLogService(errLog, err, serviceID, serviceVersion.Number)
 			return err
@@ -378,13 +378,13 @@ func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInter
 				err = fsterr.ErrReadingManifest
 			}
 			return pkgName, pkgPath, err
-		} else {
-			// NOTE: Before returning the manifest read error, we'll attempt to read
-			// the manifest from within the given package archive.
-			err := readManifestFromPackageArchive(&data, pathFlag, out)
-			if err != nil {
-				return pkgName, pkgPath, err
-			}
+		}
+
+		// NOTE: Before returning the manifest read error, we'll attempt to read
+		// the manifest from within the given package archive.
+		err := readManifestFromPackageArchive(&data, pathFlag, out)
+		if err != nil {
+			return pkgName, pkgPath, err
 		}
 	}
 
@@ -552,8 +552,8 @@ func manageNoServiceIDFlow(
 	pkgName string,
 	errLog fsterr.LogInterface,
 	manifestFile *manifest.File,
-	activateTrial activator) (serviceID string, serviceVersion *fastly.Version, err error) {
-
+	activateTrial activator,
+) (serviceID string, serviceVersion *fastly.Version, err error) {
 	if !acceptDefaults {
 		text.Break(out)
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
@@ -674,8 +674,8 @@ func manageExistingServiceFlow(
 	apiClient api.Interface,
 	verbose bool,
 	out io.Writer,
-	errLog fsterr.LogInterface) (serviceVersion *fastly.Version, err error) {
-
+	errLog fsterr.LogInterface,
+) (serviceVersion *fastly.Version, err error) {
 	serviceVersion, err = serviceVersionFlag.Parse(serviceID, apiClient)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]interface{}{
@@ -740,7 +740,7 @@ func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 }
 
 // checkServiceID validates the given Service ID maps to a real service.
-func checkServiceID(serviceID string, client api.Interface, version *fastly.Version) error {
+func checkServiceID(serviceID string, client api.Interface) error {
 	_, err := client.GetService(&fastly.GetServiceInput{
 		ID: serviceID,
 	})
@@ -808,7 +808,6 @@ func pkgUpload(progress text.Progress, client api.Interface, serviceID string, v
 		ServiceVersion: version,
 		PackagePath:    path,
 	})
-
 	if err != nil {
 		return fmt.Errorf("error uploading package: %w", err)
 	}

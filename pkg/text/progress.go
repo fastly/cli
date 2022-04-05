@@ -31,8 +31,10 @@ type Progress interface {
 	Fail()
 }
 
+// ProgressOptions determines if the initialization message is displayed.
+// e.g. "Initializing..." step header.
 type ProgressOptions struct {
-	reset bool // whether to display Initializing... step header
+	reset bool
 }
 
 // Option represents optional configuration for a Progress type.
@@ -64,6 +66,7 @@ func ResetProgress(output io.Writer, verbose bool) Progress {
 	return NewProgress(output, verbose, WithReset())
 }
 
+// WithReset resets the ProgressOptions.
 func WithReset() Option {
 	return func(p *ProgressOptions) { p.reset = true }
 }

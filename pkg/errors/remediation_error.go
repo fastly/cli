@@ -52,7 +52,7 @@ func (re RemediationError) Print(w io.Writer) {
 var AuthRemediation = fmt.Sprintf(strings.Join([]string{
 	"This error may be caused by a missing, incorrect, or expired Fastly API token.",
 	"Check that you're supplying a valid token, either via --token,",
-	"through the environment variable %s, or through the config file via `fastly configure`.",
+	"through the environment variable %s, or through the config file via `fastly profile`.",
 	"Verify that the token is still valid via `fastly whoami`.",
 }, " "), env.Token)
 
@@ -79,7 +79,7 @@ var BugRemediation = strings.Join([]string{
 // isn't a breaking error and the CLI can still be used.
 var ConfigRemediation = strings.Join([]string{
 	"There is a fallback version of the configuration provided with the CLI install",
-	"(see `fastly configure --display`) which enables the CLI to continue to be usable even though the config couldn't be updated.",
+	"(run `fastly config` to view the config) which enables the CLI to continue to be usable even though the config couldn't be updated.",
 }, " ")
 
 // ServiceIDRemediation suggests provide a service ID via --service-id flag or
@@ -148,3 +148,6 @@ var ComputeBuildRemediation = strings.Join([]string{
 // ComputeTrialRemediation suggests contacting customer manager to enable the
 // free trial feature flag.
 var ComputeTrialRemediation = "For more help with this error see fastly.help/cli/ecp-feature"
+
+// ProfileRemediation suggests no profiles exist.
+var ProfileRemediation = "Run `fastly profile create <NAME>` to create a profile, or `fastly profile list` to view available profiles (at least one profile should be set as 'default')."

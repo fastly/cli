@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/file"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -42,6 +43,7 @@ type InitCommand struct {
 	tag              string
 }
 
+// Languages is a list of supported language options.
 var Languages = []string{"rust", "assemblyscript", "javascript", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
@@ -121,13 +123,20 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	c.dir = dst
 
-	name, desc, authors, err := promptOrReturn(c.manifest, c.dir, c.Globals.File.User.Email, in, out)
+	// Assign the default profile email if available.
+	email := ""
+	profileName, p := profile.Default(c.Globals.File.Profiles)
+	if profileName != "" {
+		email = p.Email
+	}
+
+	name, desc, authors, err := promptOrReturn(c.manifest, c.dir, email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Authors":     authors,
 			"Description": desc,
 			"Directory":   c.dir,
-			"Email":       c.Globals.File.User.Email,
+			"Email":       email,
 			"Name":        name,
 		})
 		return err
@@ -269,6 +278,11 @@ func verifyDestination(path string, progress text.Progress) (dst string, err err
 		return dst, fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
 	}
 
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as the input is determined by our own package.
+	/* #nosec */
 	f, err := os.Create(filepath.Join(dst, fmt.Sprintf("tmp_%x", tmpname)))
 	if err != nil {
 		return dst, fmt.Errorf("error creating file in package destination: %w", err)
@@ -505,8 +519,8 @@ func fetchPackageTemplate(
 	progress text.Progress,
 	client api.HTTPClient,
 	out io.Writer,
-	errLog errors.LogInterface) error {
-
+	errLog errors.LogInterface,
+) error {
 	// We don't try to fetch a package template if the user is bringing their own
 	// compiled Wasm binary (or if the directory currently already contains a
 	// fastly.toml manifest file).
@@ -545,6 +559,11 @@ func fetchPackageTemplate(
 	filename := filepath.Base(from)
 	ext := filepath.Ext(filename)
 
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as we require a user to configure their own environment.
+	/* #nosec */
 	f, err := os.Create(filename)
 	if err != nil {
 		errLog.Add(err)
@@ -744,8 +763,8 @@ func updateManifest(
 	progress text.Progress,
 	path, name, desc string,
 	authors []string,
-	language *Language) (manifest.File, error) {
-
+	language *Language,
+) (manifest.File, error) {
 	progress.Step("Updating package manifest...")
 
 	mp := filepath.Join(path, manifest.Filename)

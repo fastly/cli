@@ -9,13 +9,13 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17.x
+        go-version: 1.18.x
     - name: "Restore golang bin cache"
       id: go-bin-cache
       uses: actions/cache@v2
       with:
         path: ~/go/bin
-        key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-bin-${{ hashFiles('~/go/bin') }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-bin-
     - name: "Restore golang mod cache"
@@ -41,6 +41,9 @@ jobs:
     - name: "Run go vet"
       run: make vet
       shell: bash
+    - name: "Run revive"
+      run: make revive
+      shell: bash
     - name: "Static analysis check"
       run: make staticcheck
       shell: bash
@@ -50,7 +53,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.18.x]
         node-version: [12]
         rust-toolchain: [stable]
         platform: [ubuntu-latest, macos-latest, windows-latest]

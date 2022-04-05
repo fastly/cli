@@ -37,6 +37,7 @@ func (s *Streaming) MonitorSignals() {
 	go s.MonitorSignalsAsync()
 }
 
+// MonitorSignalsAsync configures the signal notifications.
 func (s *Streaming) MonitorSignalsAsync() {
 	signals := []os.Signal{
 		syscall.SIGINT,

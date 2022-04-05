@@ -240,12 +240,6 @@
       }]
     }
   },
-  "configure": {
-    "apis": [
-      "https://developer.fastly.com/reference/api/auth/#get-token-current",
-      "https://developer.fastly.com/reference/api/account/user/#get-user"
-    ]
-  },
   "dictionary": {
     "create": {
       "apis": ["https://developer.fastly.com/reference/api/dictionaries/dictionary/#get-dictionary"]
@@ -804,6 +798,12 @@
   },
   "pops": {
     "apis": ["https://developer.fastly.com/reference/api/utils/pops/#list-pops"]
+  },
+  "profile": {
+    "apis": [
+      "https://developer.fastly.com/reference/api/auth/#get-token-current",
+      "https://developer.fastly.com/reference/api/account/user/#get-user"
+    ]
   },
   "purge": {
     "apis": [

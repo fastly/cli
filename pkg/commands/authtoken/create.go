@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/kingpin"
 )
 
+// Scopes is a list of purging scope options.
 // https://developer.fastly.com/reference/api/auth/#scopes
 var Scopes = []string{"global", "purge_select", "purge_all", "global:read"}
 

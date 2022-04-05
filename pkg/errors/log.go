@@ -35,9 +35,14 @@ type LogInterface interface {
 // MockLog is a no-op Log type.
 type MockLog struct{}
 
-func (ml MockLog) Add(err error)                                        {}
+// Add adds an error to the mock log.
+func (ml MockLog) Add(err error) {}
+
+// AddWithContext adds an error and context to the mock log.
 func (ml MockLog) AddWithContext(err error, ctx map[string]interface{}) {}
-func (ml MockLog) Persist(logPath string, args []string) error          { return nil }
+
+// Persist writes the error data to logPath.
+func (ml MockLog) Persist(logPath string, args []string) error { return nil }
 
 // Log is the primary interface for consumers.
 var Log = new(LogEntries)
@@ -72,6 +77,11 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 
 	errMsg := "error accessing audit log file: %w"
 
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as the input is determined from our own package.
+	/* #nosec */
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf(errMsg, err)
@@ -81,6 +91,11 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 		if fi.Size() >= FileRotationSize {
 			f.Close()
 
+			// gosec flagged this:
+			// G304 (CWE-22): Potential file inclusion via variable
+			//
+			// Disabling as the input is determined from our own package.
+			/* #nosec */
 			f, err = os.Create(logPath)
 			if err != nil {
 				return fmt.Errorf(errMsg, err)

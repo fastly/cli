@@ -203,6 +203,7 @@ type File struct {
 	Authors         []string    `toml:"authors"`
 	Description     string      `toml:"description"`
 	Language        string      `toml:"language"`
+	Profile         string      `toml:"profile,omitempty"`
 	LocalServer     LocalServer `toml:"local_server,omitempty"`
 	ManifestVersion Version     `toml:"manifest_version"`
 	Name            string      `toml:"name"`
@@ -523,6 +524,13 @@ func stripManifestSection(r io.Reader, path string) (*bytes.Buffer, error) {
 
 // Write persists the manifest content to disk.
 func (f *File) Write(path string) error {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as in most cases this is provided by a static constant embedded
+	// from the 'manifest' package, and in other cases we want the user to be
+	// able to provide a custom path to their fastly.toml manifest.
+	/* #nosec */
 	fp, err := os.Create(path)
 	if err != nil {
 		return err

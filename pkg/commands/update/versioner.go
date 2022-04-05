@@ -141,6 +141,11 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 	}
 	defer os.RemoveAll(dir)
 
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as the inputs need to be dynamically determined.
+	/* #nosec */
 	archive, err := os.Create(filepath.Join(dir, g.releaseAsset))
 	if err != nil {
 		return "", fmt.Errorf("error creating release asset file: %w", err)
@@ -192,6 +197,7 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 	return bin.Name(), nil
 }
 
+// GetReleaseID returns the release ID.
 func (g GitHub) GetReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
 	var (
 		page        int
@@ -219,6 +225,7 @@ func (g GitHub) GetReleaseID(ctx context.Context, version semver.Version) (id in
 	return id, fmt.Errorf("no matching release found")
 }
 
+// GetAssetID returns the asset ID.
 func (g GitHub) GetAssetID(assets []*github.ReleaseAsset) (id int64, err error) {
 	if g.releaseAsset == "" {
 		return id, fmt.Errorf("no release asset specified")

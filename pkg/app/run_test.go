@@ -108,7 +108,7 @@ acl-entry
 auth-token
 backend
 compute
-configure
+config
 dictionary
 dictionary-item
 domain
@@ -117,6 +117,7 @@ ip-list
 log-tail
 logging
 pops
+profile
 purge
 service
 service-version
@@ -185,9 +186,11 @@ USAGE
 A tool to interact with the Fastly API
 
 GLOBAL FLAGS
-      --help         Show context-sensitive help.
-  -t, --token=TOKEN  Fastly API token (or via FASTLY_API_TOKEN)
-  -v, --verbose      Verbose logging
+      --help             Show context-sensitive help.
+  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
+  -o, --profile=PROFILE  Switch account profile for single command execution
+                         (see also: 'fastly profile switch')
+  -v, --verbose          Verbose logging
 
 COMMANDS
   help             Show help.
@@ -196,7 +199,7 @@ COMMANDS
   auth-token       Manage API tokens for Fastly service users
   backend          Manipulate Fastly service version backends
   compute          Manage Compute@Edge packages
-  configure        Configure the Fastly CLI
+  config           Display the Fastly CLI configuration
   dictionary       Manipulate Fastly edge dictionaries
   dictionary-item  Manipulate Fastly edge dictionary items
   domain           Manipulate Fastly service version domains
@@ -205,6 +208,7 @@ COMMANDS
   log-tail         Tail Compute@Edge logs
   logging          Manipulate Fastly service version logging endpoints
   pops             List Fastly datacenters
+  profile          Manage user profiles
   purge            Invalidate objects in the Fastly cache
   service          Manipulate Fastly services
   service-version  Manipulate Fastly service versions
@@ -224,9 +228,11 @@ USAGE
   fastly [<flags>] service
 
 GLOBAL FLAGS
-      --help         Show context-sensitive help.
-  -t, --token=TOKEN  Fastly API token (or via FASTLY_API_TOKEN)
-  -v, --verbose      Verbose logging
+      --help             Show context-sensitive help.
+  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
+  -o, --profile=PROFILE  Switch account profile for single command execution
+                         (see also: 'fastly profile switch')
+  -v, --verbose          Verbose logging
 
 SUBCOMMANDS
 
@@ -292,9 +298,11 @@ USAGE
 A tool to interact with the Fastly API
 
 GLOBAL FLAGS
-      --help         Show context-sensitive help.
-  -t, --token=TOKEN  Fastly API token (or via FASTLY_API_TOKEN)
-  -v, --verbose      Verbose logging
+      --help             Show context-sensitive help.
+  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
+  -o, --profile=PROFILE  Switch account profile for single command execution
+                         (see also: 'fastly profile switch')
+  -v, --verbose          Verbose logging
 
 COMMANDS
   help [<command> ...]
@@ -738,11 +746,10 @@ COMMANDS
 
     -p, --package=PACKAGE  Path to a package tar.gz
 
-  configure [<flags>]
-    Configure the Fastly CLI
+  config [<flags>]
+    Display the Fastly CLI configuration
 
     -l, --location  Print the location of the CLI configuration file
-    -d, --display   Print the CLI configuration file
 
   dictionary create --version=VERSION --name=NAME [<flags>]
     Create a Fastly edge dictionary on a Fastly service version
@@ -4397,6 +4404,26 @@ COMMANDS
     List Fastly datacenters
 
 
+  profile create [<profile>]
+    Create user profile
+
+
+  profile delete <profile>
+    Delete user profile
+
+
+  profile list
+    List user profiles
+
+
+  profile switch <profile>
+    Switch user profile
+
+
+  profile update [<profile>]
+    Update user profile
+
+
   purge [<flags>]
     Invalidate objects in the Fastly cache
 
@@ -4758,6 +4785,6 @@ SEE ALSO
 
 For help on a specific command, try e.g.
 
-	fastly help configure
-	fastly configure --help
+	fastly help profile
+	fastly profile --help
 `) + "\n\n"

@@ -242,11 +242,40 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
-			name: "default",
+			name: "no args and no user profiles means no email set for author field",
 			args: args("compute init"),
 			configFile: config.File{
-				User: config.User{
-					Email: "test@example.com",
+				StarterKits: config.StarterKitLanguages{
+					Rust: skRust,
+				},
+			},
+			wantFiles: []string{
+				"Cargo.toml",
+				"fastly.toml",
+				"src/main.rs",
+			},
+			unwantedFiles: []string{
+				"SECURITY.md",
+			},
+			wantOutput: []string{
+				"Author: Language:",
+				"Initializing...",
+				"Fetching package template...",
+				"Updating package manifest...",
+			},
+		},
+		{
+			name: "no args but email defaults to config.toml value in author field",
+			args: args("compute init"),
+			configFile: config.File{
+				Profiles: config.Profiles{
+					"user": &config.Profile{
+						Email:   "test@example.com",
+						Default: true,
+					},
+					"non_default": &config.Profile{
+						Email: "no-default@example.com",
+					},
 				},
 				StarterKits: config.StarterKitLanguages{
 					Rust: skRust,

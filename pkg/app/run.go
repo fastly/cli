@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
@@ -12,8 +13,9 @@ import (
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
@@ -33,7 +35,7 @@ type RunOpts struct {
 	ConfigFile config.File
 	ConfigPath string
 	Env        config.Environment
-	ErrLog     errors.LogInterface
+	ErrLog     fsterr.LogInterface
 	HTTPClient api.HTTPClient
 	Stdin      io.Reader
 	Stdout     io.Writer
@@ -51,15 +53,21 @@ type RunOpts struct {
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
 func Run(opts RunOpts) error {
+	var md manifest.Data
+	md.File.SetErrLog(opts.ErrLog)
+	md.File.SetOutput(opts.Stdout)
+	md.File.Read(manifest.Filename)
+
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	globals := config.Data{
-		File:       opts.ConfigFile,
-		Path:       opts.ConfigPath,
 		Env:        opts.Env,
-		Output:     opts.Stdout,
 		ErrLog:     opts.ErrLog,
+		File:       opts.ConfigFile,
 		HTTPClient: opts.HTTPClient,
+		Manifest:   md,
+		Output:     opts.Stdout,
+		Path:       opts.ConfigPath,
 	}
 
 	// Set up the main application root, including global flags, and then each
@@ -78,20 +86,22 @@ func Run(opts RunOpts) error {
 	// error states and output control flow.
 	app.Terminate(nil)
 
-	// WARNING: kingping has no way of decorating flags as being "global"
+	// WARNING: kingpin has no way of decorating flags as being "global"
 	// therefore if you add/remove a global flag you will also need to update
-	// the globalFlag map in pkg/app/usage.go which is used for usage rendering.
+	// the globalFlags map in pkg/app/usage.go which is used for usage rendering.
+	//
+	// NOTE: Global flags, unlike command flags, must be unique. For example, if
+	// you try to use a letter that is already taken by any other command flag,
+	// then kingpin will trigger a runtime panic 🎉
+	//
+	// NOTE: Short flags CAN be safely reused across commands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
 	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
+	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 
-	var data manifest.Data
-	data.File.SetErrLog(opts.ErrLog)
-	data.File.SetOutput(globals.Output)
-	data.File.Read(manifest.Filename)
-
-	commands := defineCommands(app, &globals, data, opts)
+	commands := defineCommands(app, &globals, md, opts)
 	command, name, err := processCommandInput(opts, app, &globals, commands)
 	if err != nil {
 		return err
@@ -110,23 +120,26 @@ func Run(opts RunOpts) error {
 	}
 
 	token, source := globals.Token()
+
 	if globals.Verbose() {
-		switch source {
-		case config.SourceFlag:
-			fmt.Fprintf(opts.Stdout, "Fastly API token provided via --token\n")
-		case config.SourceEnvironment:
-			fmt.Fprintf(opts.Stdout, "Fastly API token provided via %s\n", env.Token)
-		case config.SourceFile:
-			fmt.Fprintf(opts.Stdout, "Fastly API token provided via config file\n")
-		default:
-			fmt.Fprintf(opts.Stdout, "Fastly API token not provided\n")
-		}
+		displayTokenSource(
+			source,
+			opts.Stdout,
+			env.Token,
+			determineProfile(md.File.Profile, globals.Flag.Profile, globals.File.Profiles),
+		)
+	}
+
+	token, err = profile.Init(token, &md, &globals, opts.Stdin, opts.Stdout)
+	if err != nil {
+		return err
 	}
 
 	// If we are using the token from config file, check the files permissions
 	// to assert if they are not too open or have been altered outside of the
 	// application and warn if so.
-	if source == config.SourceFile && name != "configure" {
+	segs := strings.Split(name, " ")
+	if source == config.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
 				text.Warning(opts.Stdout, "Unprotected configuration file.")
@@ -183,4 +196,32 @@ type APIClientFactory func(token, endpoint string) (api.Interface, error)
 func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
 	client, err := fastly.NewClientForEndpoint(token, endpoint)
 	return client, err
+}
+
+// displayTokenSource prints the token source.
+func displayTokenSource(source config.Source, out io.Writer, token, profileSource string) {
+	switch source {
+	case config.SourceFlag:
+		fmt.Fprintf(out, "Fastly API token provided via --token\n")
+	case config.SourceEnvironment:
+		fmt.Fprintf(out, "Fastly API token provided via %s\n", token)
+	case config.SourceFile:
+		fmt.Fprintf(out, "Fastly API token provided via config file (profile: %s)\n", profileSource)
+	default:
+		fmt.Fprintf(out, "Fastly API token not provided\n")
+	}
+}
+
+// determineProfile determines if the provided token was acquired via the
+// fastly.toml manifest, the --profile flag, or was a default profile from
+// within the config.toml application configuration.
+func determineProfile(manifestValue, flagValue string, profiles config.Profiles) string {
+	if manifestValue != "" {
+		return manifestValue + " -- via fastly.toml"
+	}
+	if flagValue != "" {
+		return flagValue
+	}
+	name, _ := profile.Default(profiles)
+	return name
 }

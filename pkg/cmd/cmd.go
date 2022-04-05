@@ -259,7 +259,7 @@ func IsGlobalFlagsOnly(args []string) bool {
 	for _, a := range args {
 		for k := range globals {
 			if a == k {
-				total += 1
+				total++
 				total += globals[k]
 			}
 		}
