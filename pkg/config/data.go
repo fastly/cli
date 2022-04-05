@@ -208,7 +208,13 @@ type File struct {
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.
-	LegacyUser LegacyUser `toml:"user"`
+	//
+	// NOTE: We set omitempty so when we write the in-memory data back to disk
+	// we'll cause the [user] block to be removed. If we didn't do this, then
+	// every time we run a command with --verbose we would see a message telling
+	// us our config.toml was in a legacy format, even though we would have
+	// already migrated the user data to the [profile] section.
+	LegacyUser LegacyUser `toml:"user,omitempty"`
 
 	// Store off copy of the static application configuration that has been
 	// embedded into the compiled CLI binary.

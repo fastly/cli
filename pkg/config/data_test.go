@@ -253,8 +253,8 @@ func TestUseStatic(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if !strings.Contains(string(data), "[user]\n  email = \"\"\n  token = \"\"") {
-		t.Error("expected empty legacy [user] section")
+	if strings.Contains(string(data), "[user]") {
+		t.Error("expected legacy [user] section to be removed")
 	}
 	if !strings.Contains(string(data), "  [profile.user]\n    default = true\n    email = \"testing@fastly.com\"\n    token = \"foobar\"") {
 		t.Error("expected legacy [user] section to be migrated to [profile.user]")

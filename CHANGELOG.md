@@ -1,5 +1,19 @@
 # Changelog
 
+## [v2.0.0](https://github.com/fastly/cli/releases/tag/v2.0.0) (2022-04-05)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v1.7.1...v2.0.0)
+
+**Bug fixes:**
+
+* Update `--request-max-entries`/`--request-max-bytes` description defaults [#541](https://github.com/fastly/cli/pull/541)
+
+**Enhancements:**
+
+* Add `--debug` flag to `compute serve` [#545](https://github.com/fastly/cli/pull/545)
+* Support multiple profiles via `[profiles]` configuration [#546](https://github.com/fastly/cli/pull/546)
+* Reorder C@E languages and make JS 'Limited Availability' [#548](https://github.com/fastly/cli/pull/548)
+
 ## [v1.7.1](https://github.com/fastly/cli/releases/tag/v1.7.1) (2022-03-14)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.7.0...v1.7.1)
