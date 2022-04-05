@@ -23,16 +23,16 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName, cust
 			Toolchain:   NewRust(d.HTTPClient, d.File.Language.Rust, d.ErrLog, 0, pkgName, customBuild),
 		}),
 		NewLanguage(&LanguageOptions{
+			Name:        "javascript",
+			DisplayName: "JavaScript",
+			StarterKits: kits.JavaScript,
+			Toolchain:   NewJavaScript(0, pkgName, customBuild, d.ErrLog),
+		}),
+		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
 			DisplayName: "AssemblyScript (beta)",
 			StarterKits: kits.AssemblyScript,
 			Toolchain:   NewAssemblyScript(0, pkgName, customBuild, d.ErrLog),
-		}),
-		NewLanguage(&LanguageOptions{
-			Name:        "javascript",
-			DisplayName: "JavaScript (beta)",
-			StarterKits: kits.JavaScript,
-			Toolchain:   NewJavaScript(0, pkgName, customBuild, d.ErrLog),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "other",
