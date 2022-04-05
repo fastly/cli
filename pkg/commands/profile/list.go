@@ -39,24 +39,28 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		text.Description(out, "No profiles defined. To create a profile, run", "fastly profile create <name>")
 		return nil
 	}
-	if name, _ := profile.Default(c.Globals.File.Profiles); name == "" {
+
+	name, p := profile.Default(c.Globals.File.Profiles)
+	if name == "" {
 		text.Warning(out, profile.NoDefaults)
 	} else {
 		text.Info(out, "Default profile highlighted in red.")
+		display(name, p, out, text.BoldRed)
 	}
 
 	for k, v := range c.Globals.File.Profiles {
-		style := text.Bold
-		if v.Default {
-			style = text.BoldRed
+		if !v.Default {
+			display(k, v, out, text.Bold)
 		}
-
-		text.Break(out)
-		text.Output(out, style(k))
-		text.Break(out)
-		text.Output(out, "%s: %t", style("Default"), v.Default)
-		text.Output(out, "%s: %s", style("Email"), v.Email)
-		text.Output(out, "%s: %s", style("Token"), v.Token)
 	}
 	return nil
+}
+
+func display(k string, v *config.Profile, out io.Writer, style func(a ...interface{}) string) {
+	text.Break(out)
+	text.Output(out, style(k))
+	text.Break(out)
+	text.Output(out, "%s: %t", style("Default"), v.Default)
+	text.Output(out, "%s: %s", style("Email"), v.Email)
+	text.Output(out, "%s: %s", style("Token"), v.Token)
 }
