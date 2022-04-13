@@ -122,7 +122,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if source == manifest.SourceUndefined {
 		newService = true
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.AcceptDefaults, in, out, verbose, apiClient, pkgName, errLog, &c.Manifest.File, activateTrial)
+		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.AcceptDefaults, in, out, verbose, apiClient, pkgName, c.Package, errLog, &c.Manifest.File, activateTrial)
 		if err != nil {
 			return err
 		}
@@ -549,7 +549,7 @@ func manageNoServiceIDFlow(
 	out io.Writer,
 	verbose bool,
 	apiClient api.Interface,
-	pkgName string,
+	pkgName, packageFlag string,
 	errLog fsterr.LogInterface,
 	manifestFile *manifest.File,
 	activateTrial activator,
@@ -588,12 +588,18 @@ func manageNoServiceIDFlow(
 
 	progress.Done()
 
-	err = updateManifestServiceID(manifestFile, manifest.Filename, serviceID)
-	if err != nil {
-		errLog.AddWithContext(err, map[string]interface{}{
-			"Service ID": serviceID,
-		})
-		return serviceID, serviceVersion, err
+	// NOTE: Only attempt to update the manifest if the user has not specified
+	// the --package flag, as this suggests that are not inside a project
+	// directory and subsequently we're reading the manifest content from within
+	// a given .tar.gz package archive file.
+	if packageFlag == "" {
+		err = updateManifestServiceID(manifestFile, manifest.Filename, serviceID)
+		if err != nil {
+			errLog.AddWithContext(err, map[string]interface{}{
+				"Service ID": serviceID,
+			})
+			return serviceID, serviceVersion, err
+		}
 	}
 
 	text.Break(out)
