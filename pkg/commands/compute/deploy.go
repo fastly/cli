@@ -44,7 +44,7 @@ type DeployCommand struct {
 	Comment        cmd.OptionalString
 	Domain         string
 	Manifest       manifest.Data
-	Path           string
+	Package        string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 }
@@ -80,7 +80,7 @@ func NewDeployCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.Manifest.Flag.Name)
-	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Path)
+	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
 	return &c
 }
 
@@ -103,7 +103,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// VALIDATE PACKAGE...
 
-	pkgName, pkgPath, err := validatePackage(c.Manifest, c.Path, errLog, out)
+	pkgName, pkgPath, err := validatePackage(c.Manifest, c.Package, errLog, out)
 	if err != nil {
 		return err
 	}
@@ -370,10 +370,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 //
 // NOTE: It also validates if the package size exceeds limit:
 // https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInterface, out io.Writer) (pkgName, pkgPath string, err error) {
+func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogInterface, out io.Writer) (pkgName, pkgPath string, err error) {
 	err = data.File.ReadError()
 	if err != nil {
-		if pathFlag == "" {
+		if packageFlag == "" {
 			if errors.Is(err, os.ErrNotExist) {
 				err = fsterr.ErrReadingManifest
 			}
@@ -382,17 +382,17 @@ func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInter
 
 		// NOTE: Before returning the manifest read error, we'll attempt to read
 		// the manifest from within the given package archive.
-		err := readManifestFromPackageArchive(&data, pathFlag, out)
+		err := readManifestFromPackageArchive(&data, packageFlag, out)
 		if err != nil {
 			return pkgName, pkgPath, err
 		}
 	}
 
 	pkgName, source := data.Name()
-	pkgPath, err = packagePath(pathFlag, pkgName, source)
+	pkgPath, err = packagePath(packageFlag, pkgName, source)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]interface{}{
-			"Package path": pathFlag,
+			"Package path": packageFlag,
 			"Package name": pkgName,
 			"Source":       source,
 		})
@@ -423,15 +423,15 @@ func validatePackage(data manifest.Data, pathFlag string, errLog fsterr.LogInter
 
 // readManifestFromPackageArchive extracts the manifest file from the given
 // package archive file and reads it into memory.
-func readManifestFromPackageArchive(data *manifest.Data, pathFlag string, out io.Writer) error {
+func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, out io.Writer) error {
 	dst, err := os.MkdirTemp("", fmt.Sprintf("%s-*", manifest.Filename))
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(dst)
 
-	if err = archiver.Unarchive(pathFlag, dst); err != nil {
-		return fmt.Errorf("error extracting package '%s': %w", pathFlag, err)
+	if err = archiver.Unarchive(packageFlag, dst); err != nil {
+		return fmt.Errorf("error extracting package '%s': %w", packageFlag, err)
 	}
 
 	files, err := os.ReadDir(dst)
@@ -450,7 +450,7 @@ func readManifestFromPackageArchive(data *manifest.Data, pathFlag string, out io
 		return err
 	}
 
-	text.Info(out, "Using fastly.toml within --package archive:\n\t%s", pathFlag)
+	text.Info(out, "Using fastly.toml within --package archive:\n\t%s", packageFlag)
 
 	return nil
 }
