@@ -25,6 +25,7 @@ import (
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -118,7 +119,10 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// Before restarting Viceroy we should rebuild.
 			err = c.Build(in, out)
 			if err != nil {
-				return err
+				// NOTE: build errors at this point are going to be user related, so we
+				// should display the error but keep watching the files so we can
+				// rebuild successfully once the user has fixed the issues.
+				fsterr.Deduce(err).Print(color.Error)
 			}
 		}
 	}
