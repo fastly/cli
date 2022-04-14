@@ -589,7 +589,7 @@ func manageNoServiceIDFlow(
 	progress.Done()
 
 	// NOTE: Only attempt to update the manifest if the user has not specified
-	// the --package flag, as this suggests that are not inside a project
+	// the --package flag, as this suggests they are not inside a project
 	// directory and subsequently we're reading the manifest content from within
 	// a given .tar.gz package archive file.
 	if packageFlag == "" {
