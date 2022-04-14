@@ -676,7 +676,8 @@ COMMANDS
                                    defaulting to the current directory
     -a, --author=AUTHOR ...        Author(s) of the package
     -l, --language=LANGUAGE        Language of the package
-    -f, --from=FROM                Git repository URL, or URL referencing a
+    -f, --from=FROM                Local template project directory, or Git
+                                   repository URL, or URL referencing a
                                    .zip/.tar.gz file, containing a package
                                    template
         --force                    Skip non-empty directory verification step
