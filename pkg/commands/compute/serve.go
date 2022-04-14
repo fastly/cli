@@ -25,6 +25,7 @@ import (
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -105,7 +106,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	srcDir := sourceDirectory(c.lang, c.manifest.File.Language, c.watch, out)
 
 	for {
-		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.debug, c.watch, c.Globals.Verbose(), progress, out, c.Globals.ErrLog)
+		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.debug, c.watch, c.Globals.Verbose(), out, c.Globals.ErrLog)
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
 				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
@@ -118,7 +119,10 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// Before restarting Viceroy we should rebuild.
 			err = c.Build(in, out)
 			if err != nil {
-				return err
+				// NOTE: build errors at this point are going to be user related, so we
+				// should display the error but keep watching the files so we can
+				// rebuild successfully once the user has fixed the issues.
+				fsterr.Deduce(err).Print(color.Error)
 			}
 		}
 	}
@@ -410,7 +414,7 @@ func sourceDirectory(flag cmd.OptionalString, lang string, watch bool, out io.Wr
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, progress text.Progress, out io.Writer, errLog fsterr.LogInterface) error {
+func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out io.Writer, errLog fsterr.LogInterface) error {
 	if env != "" {
 		env = "." + env
 	}
