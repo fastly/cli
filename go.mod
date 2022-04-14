@@ -32,6 +32,8 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
+require github.com/otiai10/copy v1.7.0
+
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/dsnet/compress v0.0.1 // indirect

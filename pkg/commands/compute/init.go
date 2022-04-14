@@ -22,6 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
+	cp "github.com/otiai10/copy"
 )
 
 var (
@@ -57,7 +58,7 @@ func NewInitCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
-	c.CmdClause.Flag("from", "Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
+	c.CmdClause.Flag("from", "Local template project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.skipVerification)
@@ -264,7 +265,7 @@ func verifyDestination(path string, progress text.Progress) (dst string, err err
 	}
 	if err != nil && os.IsNotExist(err) { // normal-ish case
 		fmt.Fprintf(progress, "Creating %s...\n", dst)
-		if err := os.MkdirAll(dst, 0700); err != nil {
+		if err := os.MkdirAll(dst, 0o700); err != nil {
 			return dst, fmt.Errorf("error creating package destination: %w", err)
 		}
 	}
@@ -529,6 +530,17 @@ func fetchPackageTemplate(
 	}
 	progress.Step("Fetching package template...")
 
+	// If the user has provided a local file path, we'll recursively copy the
+	// directory to dst.
+	fi, err := os.Stat(from)
+	if err != nil {
+		errLog.Add(err)
+		return err
+	}
+	if fi.IsDir() {
+		return cp.Copy(from, dst)
+	}
+
 	req, err := http.NewRequest("GET", from, nil)
 	if err != nil {
 		errLog.Add(err)
@@ -720,7 +732,7 @@ func clonePackageFromEndpoint(from string, branch string, tag string, dst string
 		}
 
 		dst := filepath.Join(dst, rel)
-		if err := os.MkdirAll(filepath.Dir(dst), 0750); err != nil {
+		if err := os.MkdirAll(filepath.Dir(dst), 0o750); err != nil {
 			return err
 		}
 
@@ -747,7 +759,7 @@ func tempDir(prefix string) (abspath string, err error) {
 		return "", err
 	}
 
-	if err = os.MkdirAll(abspath, 0750); err != nil {
+	if err = os.MkdirAll(abspath, 0o750); err != nil {
 		return "", err
 	}
 
