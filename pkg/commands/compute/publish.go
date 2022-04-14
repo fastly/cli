@@ -28,7 +28,7 @@ type PublishCommand struct {
 	acceptDefaults cmd.OptionalBool
 	comment        cmd.OptionalString
 	domain         cmd.OptionalString
-	path           cmd.OptionalString
+	pkg            cmd.OptionalString
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -49,7 +49,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.path.Set).StringVar(&c.path.Value)
+	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.pkg.Set).StringVar(&c.pkg.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -118,8 +118,8 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.acceptDefaults.WasSet {
 		c.deploy.AcceptDefaults = c.acceptDefaults.Value
 	}
-	if c.path.WasSet {
-		c.deploy.Path = c.path.Value
+	if c.pkg.WasSet {
+		c.deploy.Package = c.pkg.Value
 	}
 	if c.serviceName.WasSet {
 		c.deploy.ServiceName = c.serviceName // deploy's field is a cmd.OptionalServiceNameID
