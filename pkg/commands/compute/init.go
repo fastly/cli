@@ -535,9 +535,7 @@ func fetchPackageTemplate(
 	fi, err := os.Stat(from)
 	if err != nil {
 		errLog.Add(err)
-		return err
-	}
-	if fi.IsDir() {
+	} else if fi.IsDir() {
 		return cp.Copy(from, dst)
 	}
 
