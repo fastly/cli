@@ -609,6 +609,7 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 	<-done
 }
 
+// gitIgnore returns the specific ignore file/rules being respected.
 func gitIgnore(out io.Writer) (string, *ignore.GitIgnore) {
 	var (
 		err error
