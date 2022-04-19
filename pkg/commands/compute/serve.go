@@ -602,16 +602,13 @@ func watchFiles(verbose bool, dir, ignoreFile string, gi *ignore.GitIgnore, cmd 
 		//
 		// NOTE: Watching a directory implies watching all files within the root of
 		// the directory. This means we don't need to call Add(path) for each file.
-		if gi == nil {
-			if entry.IsDir() {
-				watchFile(path, watcher, verbose)
-			}
-		} else {
+		if gi == nil && entry.IsDir() {
+			watchFile(path, watcher, verbose)
+		}
+		if gi != nil && !entry.IsDir() && !gi.MatchesPath(path) {
 			// If there is an ignore file, we avoid watching directories and instead
 			// will only add files that don't match the exclusion patterns defined.
-			if !gi.MatchesPath(path) && !entry.IsDir() {
-				watchFile(path, watcher, verbose)
-			}
+			watchFile(path, watcher, verbose)
 		}
 		return nil
 	})
@@ -621,7 +618,7 @@ func watchFiles(verbose bool, dir, ignoreFile string, gi *ignore.GitIgnore, cmd 
 		respect = fmt.Sprintf(" (respecting %s)", ignoreFile)
 	}
 
-	text.Info(out, "Watching ./%s/* for changes%s", dir, respect)
+	text.Info(out, "Watching ./%s/**/* for changes%s", dir, respect)
 	text.Break(out)
 	<-done
 }
