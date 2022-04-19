@@ -32,7 +32,10 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
-require github.com/otiai10/copy v1.7.0
+require (
+	github.com/otiai10/copy v1.7.0
+	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
+)
 
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
@@ -48,7 +51,6 @@ require (
 	github.com/peterhellberg/link v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.8 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
-	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
