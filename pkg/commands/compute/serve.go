@@ -28,6 +28,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 	ignore "github.com/sabhiram/go-gitignore"
+	"github.com/tcnksm/go-gitconfig"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -451,24 +452,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 	restart := make(chan bool)
 	if watch {
-		var gi *ignore.GitIgnore
-
-		ignoreFile := ".ignore"
-		if _, err := os.Stat(ignoreFile); err != nil {
-			ignoreFile = ".gitignore"
-			if _, err := os.Stat(ignoreFile); err != nil {
-				ignoreFile = ""
-			}
-		}
-
-		if ignoreFile != "" {
-			gi, err = ignore.CompileIgnoreFile(ignoreFile)
-			if err != nil {
-				text.Info(out, "unable to parse %s", ignoreFile)
-			}
-		}
-
-		go watchFiles(verbose, srcDir, ignoreFile, gi, cmd, out, restart)
+		go watchFiles(verbose, srcDir, cmd, out, restart)
 	}
 
 	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
@@ -514,7 +498,9 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
-func watchFiles(verbose bool, dir, ignoreFile string, gi *ignore.GitIgnore, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+	ignoreFile, gi := gitIgnore(out)
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -621,6 +607,34 @@ func watchFiles(verbose bool, dir, ignoreFile string, gi *ignore.GitIgnore, cmd 
 	text.Info(out, "Watching ./%s/**/* for changes%s", dir, respect)
 	text.Break(out)
 	<-done
+}
+
+func gitIgnore(out io.Writer) (string, *ignore.GitIgnore) {
+	var (
+		err error
+		gi  *ignore.GitIgnore
+	)
+
+	ignoreFile := ".ignore"
+	if _, err := os.Stat(ignoreFile); err != nil {
+		ignoreFile = ".gitignore"
+		if _, err := os.Stat(ignoreFile); err != nil {
+			if f, err := gitconfig.Global("core.excludesfile"); err != nil {
+				ignoreFile = ""
+			} else {
+				ignoreFile = filesystem.ResolveAbs(f)
+			}
+		}
+	}
+
+	if ignoreFile != "" {
+		gi, err = ignore.CompileIgnoreFile(ignoreFile)
+		if err != nil {
+			text.Info(out, "unable to parse %s", ignoreFile)
+		}
+	}
+
+	return ignoreFile, gi
 }
 
 func watchFile(path string, watcher *fsnotify.Watcher, verbose bool) {
