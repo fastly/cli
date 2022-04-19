@@ -27,6 +27,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
+	ignore "github.com/sabhiram/go-gitignore"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -383,7 +384,7 @@ func setBinPerms(bin string) error {
 	// Disabling as the file was not executable without it and we need all users
 	// to be able to execute the binary.
 	/* #nosec */
-	err := os.Chmod(bin, 0777)
+	err := os.Chmod(bin, 0o777)
 	if err != nil {
 		return fmt.Errorf("error setting executable permissions on Viceroy binary: %w", err)
 	}
@@ -450,7 +451,24 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 	restart := make(chan bool)
 	if watch {
-		go watchFiles(srcDir, cmd, out, restart)
+		var gi *ignore.GitIgnore
+
+		ignoreFile := ".ignore"
+		if _, err := os.Stat(ignoreFile); err != nil {
+			ignoreFile = ".gitignore"
+			if _, err := os.Stat(ignoreFile); err != nil {
+				ignoreFile = ""
+			}
+		}
+
+		if ignoreFile != "" {
+			gi, err = ignore.CompileIgnoreFile(ignoreFile)
+			if err != nil {
+				text.Info(out, "unable to parse %s", ignoreFile)
+			}
+		}
+
+		go watchFiles(verbose, srcDir, ignoreFile, gi, cmd, out, restart)
 	}
 
 	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
@@ -496,7 +514,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
-func watchFiles(dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+func watchFiles(verbose bool, dir, ignoreFile string, gi *ignore.GitIgnore, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -506,17 +524,16 @@ func watchFiles(dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<
 	done := make(chan bool)
 	debounced := debounce.New(1 * time.Second)
 	eventHandler := func(modifiedFile string, op fsnotify.Op) {
-		action := "modified"
-		switch op {
-		case fsnotify.Create:
-			action = "created"
-		case fsnotify.Remove:
-			action = "removed"
-		case fsnotify.Rename:
-			action = "renamed"
-		}
-
-		text.Info(out, "Restarting: %s has been %s", modifiedFile, action)
+		// NOTE: We avoid describing the file operation (e.g. created, modified,
+		// deleted, renamed etc) rather than checking the fsnotify.Op iota/enum type
+		// because the output can be confusing depending on the application used to
+		// edit a file.
+		//
+		// For example, modifying a file in Vim might cause the file to be
+		// temporarily copied/renamed and this can cause the watcher to report an
+		// existing file has been 'created' or 'renamed' when from a user's
+		// perspective the file already exists and was only modified.
+		text.Info(out, "Restarting local server (%s)", modifiedFile)
 		text.Break(out)
 
 		// NOTE: We force closing the watcher by pushing true into a done channel.
@@ -580,16 +597,41 @@ func watchFiles(dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<
 		if err != nil {
 			log.Fatal(err)
 		}
-		if entry.IsDir() {
-			err = watcher.Add(path)
-			if err != nil {
-				log.Fatal(err)
+		// If there's no ignore file, we'll default to watching all directories
+		// within the specified top-level directory.
+		//
+		// NOTE: Watching a directory implies watching all files within the root of
+		// the directory. This means we don't need to call Add(path) for each file.
+		if gi == nil {
+			if entry.IsDir() {
+				watchFile(path, watcher, verbose)
+			}
+		} else {
+			// If there is an ignore file, we avoid watching directories and instead
+			// will only add files that don't match the exclusion patterns defined.
+			if !gi.MatchesPath(path) && !entry.IsDir() {
+				watchFile(path, watcher, verbose)
 			}
 		}
 		return nil
 	})
 
-	text.Info(out, "Watching ./%s for changes", dir)
+	var respect string
+	if gi != nil {
+		respect = fmt.Sprintf(" (respecting %s)", ignoreFile)
+	}
+
+	text.Info(out, "Watching ./%s/* for changes%s", dir, respect)
 	text.Break(out)
 	<-done
+}
+
+func watchFile(path string, watcher *fsnotify.Watcher, verbose bool) {
+	if verbose {
+		fmt.Printf("watching: %+v\n", path)
+	}
+	err := watcher.Add(path)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
