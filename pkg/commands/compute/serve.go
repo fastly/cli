@@ -589,12 +589,12 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 		// NOTE: Watching a directory implies watching all files within the root of
 		// the directory. This means we don't need to call Add(path) for each file.
 		if gi == nil && entry.IsDir() {
-			watchFile(path, watcher, verbose)
+			watchFile(path, watcher, verbose, out)
 		}
 		if gi != nil && !entry.IsDir() && !gi.MatchesPath(path) {
 			// If there is an ignore file, we avoid watching directories and instead
 			// will only add files that don't match the exclusion patterns defined.
-			watchFile(path, watcher, verbose)
+			watchFile(path, watcher, verbose, out)
 		}
 		return nil
 	})
@@ -640,12 +640,11 @@ func readIgnoreFile(path string) (lines []string) {
 	return strings.Split(string(bs), "\n")
 }
 
-func watchFile(path string, watcher *fsnotify.Watcher, verbose bool) {
-	if verbose {
-		fmt.Printf("watching: %+v\n", path)
-	}
+func watchFile(path string, watcher *fsnotify.Watcher, verbose bool, out io.Writer) {
 	err := watcher.Add(path)
 	if err != nil {
-		log.Fatal(err)
+		text.Output(out, "%s: %s", text.BoldRed("failed to watch"), path)
+	} else if verbose {
+		text.Output(out, "%s: %s", text.BoldYellow("watching"), path)
 	}
 }
