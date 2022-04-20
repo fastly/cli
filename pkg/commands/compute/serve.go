@@ -499,7 +499,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
 func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
-	ignoreFile, gi := gitIgnore(out)
+	gi := gitIgnore(out)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -599,43 +599,45 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 		return nil
 	})
 
-	var respect string
-	if gi != nil {
-		respect = fmt.Sprintf(" (respecting %s)", ignoreFile)
-	}
-
-	text.Info(out, "Watching ./%s/**/* for changes%s", dir, respect)
+	text.Info(out, "Watching ./%s/**/* for changes.", dir)
 	text.Break(out)
 	<-done
 }
 
-// gitIgnore returns the specific ignore file/rules being respected.
-func gitIgnore(out io.Writer) (string, *ignore.GitIgnore) {
+// gitIgnore returns the specific ignore rules being respected.
+//
+// NOTE: ignore files will be inherited in the following order:
+//
+// - .ignore (local)
+// - .gitignore (local)
+// - core.excludesfile (global)
+func gitIgnore(out io.Writer) *ignore.GitIgnore {
 	var (
-		err error
-		gi  *ignore.GitIgnore
+		globalIgnore string
+		patterns     []string
 	)
 
-	ignoreFile := ".ignore"
-	if _, err := os.Stat(ignoreFile); err != nil {
-		ignoreFile = ".gitignore"
-		if _, err := os.Stat(ignoreFile); err != nil {
-			if f, err := gitconfig.Global("core.excludesfile"); err != nil {
-				ignoreFile = ""
-			} else {
-				ignoreFile = filesystem.ResolveAbs(f)
-			}
-		}
+	if f, err := gitconfig.Global("core.excludesfile"); err == nil {
+		globalIgnore = filesystem.ResolveAbs(f)
 	}
 
-	if ignoreFile != "" {
-		gi, err = ignore.CompileIgnoreFile(ignoreFile)
-		if err != nil {
-			text.Info(out, "unable to parse %s", ignoreFile)
-		}
+	for _, file := range []string{".ignore", ".gitignore", globalIgnore} {
+		patterns = append(patterns, readIgnoreFile(file)...)
 	}
 
-	return ignoreFile, gi
+	return ignore.CompileIgnoreLines(patterns...)
+}
+
+// readIgnoreFile reads path and splits content into lines.
+//
+// NOTE: If there's an error reading the given path, then we'll return an empty
+// string slice so that the caller can continue to function as expected.
+func readIgnoreFile(path string) (lines []string) {
+	bs, err := os.ReadFile(path)
+	if err != nil {
+		return lines
+	}
+	return strings.Split(string(bs), "\n")
 }
 
 func watchFile(path string, watcher *fsnotify.Watcher, verbose bool) {
