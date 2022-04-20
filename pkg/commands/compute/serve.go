@@ -499,7 +499,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
 func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
-	gi := gitIgnore(out)
+	gi := gitIgnore()
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -611,7 +611,7 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 // - .ignore (local)
 // - .gitignore (local)
 // - core.excludesfile (global)
-func gitIgnore(out io.Writer) *ignore.GitIgnore {
+func gitIgnore() *ignore.GitIgnore {
 	var (
 		globalIgnore string
 		patterns     []string
