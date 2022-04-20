@@ -633,6 +633,13 @@ func gitIgnore() *ignore.GitIgnore {
 // NOTE: If there's an error reading the given path, then we'll return an empty
 // string slice so that the caller can continue to function as expected.
 func readIgnoreFile(path string) (lines []string) {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as the input is either provided by our own package or in the
+	// case of identifying the user's global git ignore we need to read it from
+	// their global git configuration.
+	/* #nosec */
 	bs, err := os.ReadFile(path)
 	if err != nil {
 		return lines
