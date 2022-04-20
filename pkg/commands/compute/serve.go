@@ -509,7 +509,7 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 
 	done := make(chan bool)
 	debounced := debounce.New(1 * time.Second)
-	eventHandler := func(modifiedFile string, op fsnotify.Op) {
+	eventHandler := func(modifiedFile string, _ fsnotify.Op) {
 		// NOTE: We avoid describing the file operation (e.g. created, modified,
 		// deleted, renamed etc) rather than checking the fsnotify.Op iota/enum type
 		// because the output can be confusing depending on the application used to
