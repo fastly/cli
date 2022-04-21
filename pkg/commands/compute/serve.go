@@ -27,6 +27,8 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
+	ignore "github.com/sabhiram/go-gitignore"
+	"github.com/tcnksm/go-gitconfig"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -383,7 +385,7 @@ func setBinPerms(bin string) error {
 	// Disabling as the file was not executable without it and we need all users
 	// to be able to execute the binary.
 	/* #nosec */
-	err := os.Chmod(bin, 0777)
+	err := os.Chmod(bin, 0o777)
 	if err != nil {
 		return fmt.Errorf("error setting executable permissions on Viceroy binary: %w", err)
 	}
@@ -450,7 +452,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 	restart := make(chan bool)
 	if watch {
-		go watchFiles(srcDir, cmd, out, restart)
+		go watchFiles(verbose, srcDir, cmd, out, restart)
 	}
 
 	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
@@ -496,7 +498,9 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
-func watchFiles(dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+	gi := gitIgnore()
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -505,18 +509,17 @@ func watchFiles(dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<
 
 	done := make(chan bool)
 	debounced := debounce.New(1 * time.Second)
-	eventHandler := func(modifiedFile string, op fsnotify.Op) {
-		action := "modified"
-		switch op {
-		case fsnotify.Create:
-			action = "created"
-		case fsnotify.Remove:
-			action = "removed"
-		case fsnotify.Rename:
-			action = "renamed"
-		}
-
-		text.Info(out, "Restarting: %s has been %s", modifiedFile, action)
+	eventHandler := func(modifiedFile string, _ fsnotify.Op) {
+		// NOTE: We avoid describing the file operation (e.g. created, modified,
+		// deleted, renamed etc) rather than checking the fsnotify.Op iota/enum type
+		// because the output can be confusing depending on the application used to
+		// edit a file.
+		//
+		// For example, modifying a file in Vim might cause the file to be
+		// temporarily copied/renamed and this can cause the watcher to report an
+		// existing file has been 'created' or 'renamed' when from a user's
+		// perspective the file already exists and was only modified.
+		text.Info(out, "Restarting local server (%s)", modifiedFile)
 		text.Break(out)
 
 		// NOTE: We force closing the watcher by pushing true into a done channel.
@@ -580,16 +583,75 @@ func watchFiles(dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<
 		if err != nil {
 			log.Fatal(err)
 		}
-		if entry.IsDir() {
-			err = watcher.Add(path)
-			if err != nil {
-				log.Fatal(err)
-			}
+		// If there's no ignore file, we'll default to watching all directories
+		// within the specified top-level directory.
+		//
+		// NOTE: Watching a directory implies watching all files within the root of
+		// the directory. This means we don't need to call Add(path) for each file.
+		if gi == nil && entry.IsDir() {
+			watchFile(path, watcher, verbose, out)
+		}
+		if gi != nil && !entry.IsDir() && !gi.MatchesPath(path) {
+			// If there is an ignore file, we avoid watching directories and instead
+			// will only add files that don't match the exclusion patterns defined.
+			watchFile(path, watcher, verbose, out)
 		}
 		return nil
 	})
 
-	text.Info(out, "Watching ./%s for changes", dir)
+	text.Info(out, "Watching ./%s/**/* for changes.", dir)
 	text.Break(out)
 	<-done
+}
+
+// gitIgnore returns the specific ignore rules being respected.
+//
+// NOTE: ignore files will be inherited in the following order:
+//
+// - .ignore (local)
+// - .gitignore (local)
+// - core.excludesfile (global)
+func gitIgnore() *ignore.GitIgnore {
+	var (
+		globalIgnore string
+		patterns     []string
+	)
+
+	if f, err := gitconfig.Global("core.excludesfile"); err == nil {
+		globalIgnore = filesystem.ResolveAbs(f)
+	}
+
+	for _, file := range []string{".ignore", ".gitignore", globalIgnore} {
+		patterns = append(patterns, readIgnoreFile(file)...)
+	}
+
+	return ignore.CompileIgnoreLines(patterns...)
+}
+
+// readIgnoreFile reads path and splits content into lines.
+//
+// NOTE: If there's an error reading the given path, then we'll return an empty
+// string slice so that the caller can continue to function as expected.
+func readIgnoreFile(path string) (lines []string) {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as the input is either provided by our own package or in the
+	// case of identifying the user's global git ignore we need to read it from
+	// their global git configuration.
+	/* #nosec */
+	bs, err := os.ReadFile(path)
+	if err != nil {
+		return lines
+	}
+	return strings.Split(string(bs), "\n")
+}
+
+func watchFile(path string, watcher *fsnotify.Watcher, verbose bool, out io.Writer) {
+	err := watcher.Add(path)
+	if err != nil {
+		text.Output(out, "%s: %s", text.BoldRed("failed to watch"), path)
+	} else if verbose {
+		text.Output(out, "%s: %s", text.BoldYellow("watching"), path)
+	}
 }
