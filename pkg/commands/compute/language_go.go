@@ -43,6 +43,11 @@ func NewGo(pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface,
 }
 
 // Go implements a Toolchain for the TinyGo language.
+//
+// NOTE: Two separate tools are required to support golang development.
+//
+// 1. Go: for defining required packages in a go.mod project module.
+// 2. TinyGo: used to compile the go project.
 type Go struct {
 	Shell
 
