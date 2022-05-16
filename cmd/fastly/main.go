@@ -2,14 +2,13 @@ package main
 
 import (
 	_ "embed"
-	"log"
-	"time"
-
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/check"
@@ -88,7 +87,7 @@ func main() {
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
 	file.SetStatic(cfg)
-	err = file.Read(config.FilePath, in, out)
+	err = file.Read(config.FilePath, in, out, fsterr.Log)
 
 	if err != nil {
 		if err == config.ErrLegacyConfig {

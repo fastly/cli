@@ -177,7 +177,16 @@ func Run(opts RunOpts) error {
 	if opts.Versioners.CLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel() // push cancel on the defer stack first...
-		f := update.CheckAsync(ctx, opts.ConfigFile, opts.ConfigPath, revision.AppVersion, opts.Versioners.CLI, opts.Stdin, opts.Stdout)
+		f := update.CheckAsync(
+			ctx,
+			opts.ConfigFile,
+			opts.ConfigPath,
+			revision.AppVersion,
+			opts.Versioners.CLI,
+			opts.Stdin,
+			opts.Stdout,
+			opts.ErrLog,
+		)
 		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}
 

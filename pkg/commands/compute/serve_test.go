@@ -53,7 +53,7 @@ func TestGetViceroy(t *testing.T) {
 	// but the function call should fallback to using the stubbed static config
 	// defined above. We also don't pass stdin, stdout arguments as that
 	// particular user flow isn't executed in this test case.
-	err := file.Read("/example", nil, nil)
+	err := file.Read("/example", nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +107,7 @@ func makeEnvironment(downloadedFilename string, t *testing.T) (string, string, s
 	}
 
 	binPath := filepath.Join(downloadDir, downloadedFilename)
-	if err := os.WriteFile(binPath, []byte("..."), 0777); err != nil {
+	if err := os.WriteFile(binPath, []byte("..."), 0o777); err != nil {
 		t.Fatal(err)
 	}
 
@@ -116,7 +116,7 @@ func makeEnvironment(downloadedFilename string, t *testing.T) (string, string, s
 	// the contents being written, we don't want the write to fail because no
 	// such file existed.
 	configPath := filepath.Join(downloadDir, "config.toml")
-	if err := os.WriteFile(configPath, []byte("..."), 0777); err != nil {
+	if err := os.WriteFile(configPath, []byte("..."), 0o777); err != nil {
 		t.Fatal(err)
 	}
 
