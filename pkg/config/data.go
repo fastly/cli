@@ -167,13 +167,16 @@ func (d *Data) Endpoint() (string, Source) {
 	return DefaultEndpoint, SourceDefault // this method should not fail
 }
 
+// FileName is the name of the application configuration file.
+const FileName = "config.toml"
+
 // FilePath is the location of the fastly CLI application config file.
 var FilePath = func() string {
 	if dir, err := os.UserConfigDir(); err == nil {
-		return filepath.Join(dir, "fastly", "config.toml")
+		return filepath.Join(dir, "fastly", FileName)
 	}
 	if dir, err := os.UserHomeDir(); err == nil {
-		return filepath.Join(dir, ".fastly", "config.toml")
+		return filepath.Join(dir, ".fastly", FileName)
 	}
 	panic("unable to deduce user config dir or user home dir")
 }()
