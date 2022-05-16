@@ -97,7 +97,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress := text.ResetProgress(out, c.Globals.Verbose())
 
-	bin, err := getViceroy(progress, out, c.viceroyVersioner, c.Globals)
+	bin, err := GetViceroy(progress, out, c.viceroyVersioner, c.Globals)
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-// getViceroy returns the path to the installed binary.
+// GetViceroy returns the path to the installed binary.
 //
 // NOTE: if Viceroy is installed then it is updated, otherwise download the
 // latest version and install it in the same directory as the application
@@ -170,7 +170,7 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func getViceroy(progress text.Progress, out io.Writer, versioner update.Versioner, cfg *config.Data) (bin string, err error) {
+func GetViceroy(progress text.Progress, out io.Writer, versioner update.Versioner, cfg *config.Data) (bin string, err error) {
 	defer func() {
 		if err != nil {
 			progress.Fail()

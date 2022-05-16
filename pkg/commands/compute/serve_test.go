@@ -1,4 +1,4 @@
-package compute
+package compute_test
 
 import (
 	"bytes"
@@ -7,9 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
+	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -24,22 +26,50 @@ import (
 // release as we have instructed the mock to provide that behaviour.
 //
 // Subsequently the `os.Rename()` will move the downloaded Viceroy binary,
-// which is just a dummy file created by `makeEnvironment()`, into the intended
+// which is just a dummy file created by `testutil.NewEnv`, into the intended
 // destination directory.
 func TestGetViceroy(t *testing.T) {
-	binary := "foo"
-	downloadDir, installDir, binPath, configPath := makeEnvironment(binary, t)
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	defer os.RemoveAll(downloadDir) // clean up
+	viceroyBinName := "foo"
+	installDirName := "install"
 
-	InstallDir = installDir
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Dirs: []string{
+			installDirName,
+		},
+		Write: []testutil.FileIO{
+			{Src: "...", Dst: viceroyBinName},
+
+			// NOTE: The reason for creating this file is that in serve.go when it tries
+			// to write in-memory data back to disk, although we don't need to validate
+			// the contents being written, we don't want the write to fail because no
+			// such file existed.
+			{Src: "", Dst: config.FileName},
+		},
+	})
+	installDir := filepath.Join(rootdir, installDirName)
+	binPath := filepath.Join(rootdir, viceroyBinName)
+	configPath := filepath.Join(rootdir, config.FileName)
+	defer os.RemoveAll(rootdir)
+
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(wd)
+
+	compute.InstallDir = installDir
 
 	var out bytes.Buffer
 
 	progress := text.NewQuietProgress(&out)
 	versioner := mock.Versioner{
 		Version:        "v1.2.3",
-		BinaryFilename: binary,
+		BinaryFilename: viceroyBinName,
 		DownloadOK:     true,
 		DownloadedFile: binPath,
 	}
@@ -53,7 +83,7 @@ func TestGetViceroy(t *testing.T) {
 	// but the function call should fallback to using the stubbed static config
 	// defined above. We also don't pass stdin, stdout arguments as that
 	// particular user flow isn't executed in this test case.
-	err := file.Read("/example", nil, nil, nil)
+	err = file.Read("example", nil, nil, fsterr.MockLog{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +94,7 @@ func TestGetViceroy(t *testing.T) {
 		ErrLog: fsterr.MockLog{},
 	}
 
-	_, err = getViceroy(progress, &out, versioner, &data)
+	_, err = compute.GetViceroy(progress, &out, versioner, &data)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,51 +111,9 @@ func TestGetViceroy(t *testing.T) {
 		t.Fatalf("expected file to be downloaded successfully")
 	}
 
-	movedPath := filepath.Join(installDir, binary)
+	movedPath := filepath.Join(installDir, viceroyBinName)
 
 	if _, err := os.Stat(movedPath); err != nil {
 		t.Fatalf("binary was not moved to the install directory: %s", err)
 	}
 }
-
-// makeEnvironment creates a temporary directory for the test suite to utilise
-// when validating Viceroy installation behaviours.
-//
-// It will create a file within the temporary directory to represent the call
-// to `versioner.Download()` being successful.
-//
-// It also creates a nested directory within the temp directory to represent
-// where the downloaded binary should be moved into.
-//
-// TODO: refactor testutil.NewEnv() to support directory creation.
-func makeEnvironment(downloadedFilename string, t *testing.T) (string, string, string, string) {
-	t.Helper()
-
-	downloadDir, err := os.MkdirTemp("", "fastly-serve-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	binPath := filepath.Join(downloadDir, downloadedFilename)
-	if err := os.WriteFile(binPath, []byte("..."), 0o777); err != nil {
-		t.Fatal(err)
-	}
-
-	// NOTE: The reason for creating this file is that in serve.go when it tries
-	// to write in-memory data back to disk, although we don't need to validate
-	// the contents being written, we don't want the write to fail because no
-	// such file existed.
-	configPath := filepath.Join(downloadDir, "config.toml")
-	if err := os.WriteFile(configPath, []byte("..."), 0o777); err != nil {
-		t.Fatal(err)
-	}
-
-	installDir, err := os.MkdirTemp(downloadDir, "install")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return downloadDir, installDir, binPath, configPath
-}
-
-// TODO: Write tests for the other functions in serve.go
