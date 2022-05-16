@@ -44,10 +44,10 @@ const (
 	SourceDefault
 
 	// DirectoryPermissions is the default directory permissions for the config file directory.
-	DirectoryPermissions = 0700
+	DirectoryPermissions = 0o700
 
 	// FilePermissions is the default file permissions for the config file.
-	FilePermissions = 0600
+	FilePermissions = 0o600
 
 	// RemoteEndpoint represents the API endpoint where we'll pull the dynamic
 	// configuration file from.
@@ -74,13 +74,15 @@ var ErrInvalidConfig = errors.New("the configuration file is invalid")
 // compiled CLI binary and so the user must resolve their invalid config.
 var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
 
-// writeMutex provides synchronisation for the WRITE operation on the CLI config.
+// mutex provides synchronisation for any WRITE operations on the CLI config.
+// This includes calls to the Write method (which affects the disk
+// representation) as well as in-memory updates.
 //
 // NOTE: Historically the CLI has only had to write to the CLI config from
 // within the `main` function but now the `fastly update` command accepts a
 // flag that allows explicitly updating the CLI config, which means we need to
 // ensure there isn't a race condition with writing the config to disk.
-var writeMutex = &sync.Mutex{}
+var mutex = &sync.Mutex{}
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -167,13 +169,16 @@ func (d *Data) Endpoint() (string, Source) {
 	return DefaultEndpoint, SourceDefault // this method should not fail
 }
 
+// FileName is the name of the application configuration file.
+const FileName = "config.toml"
+
 // FilePath is the location of the fastly CLI application config file.
 var FilePath = func() string {
 	if dir, err := os.UserConfigDir(); err == nil {
-		return filepath.Join(dir, "fastly", "config.toml")
+		return filepath.Join(dir, "fastly", FileName)
 	}
 	if dir, err := os.UserHomeDir(); err == nil {
-		return filepath.Join(dir, ".fastly", "config.toml")
+		return filepath.Join(dir, ".fastly", FileName)
 	}
 	panic("unable to deduce user config dir or user home dir")
 }()
@@ -342,7 +347,18 @@ func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 		return fmt.Errorf("fetching remote configuration: expected '200 OK', received '%s'", resp.Status)
 	}
 
+	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+	// representation we lock any operation that would cause the in-memory data
+	// to be updated.
+	//
+	// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
+	// Profiles that are set in-memory continue to be set after reading in the
+	// remote configuration data even though that data source doesn't define any
+	// such data). This can be manually validated using an io.TeeReader.
+	mutex.Lock()
 	err = toml.NewDecoder(resp.Body).Decode(f)
+	mutex.Unlock()
+
 	if err != nil {
 		return err
 	}
@@ -417,7 +433,7 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 // the CLI binary (which we expect to be valid). If an attempt to unmarshal
 // the static config fails then we have to consider something fundamental has
 // gone wrong and subsequently expect the caller to exit the program.
-func (f *File) Read(path string, in io.Reader, out io.Writer) error {
+func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) error {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
 	// Disabling as we need to load the config.toml from the user's file system.
@@ -425,11 +441,20 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 	/* #nosec */
 	data, readErr := os.ReadFile(path)
 	if readErr != nil {
+		errLog.Add(readErr)
 		data = f.static
 	}
 
+	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+	// representation we lock any operation that would cause the in-memory data
+	// to be updated.
+	mutex.Lock()
 	unmarshalErr := toml.Unmarshal(data, f)
+	mutex.Unlock()
+
 	if unmarshalErr != nil {
+		errLog.Add(unmarshalErr)
+
 		// The embedded config is unexpectedly invalid.
 		if readErr != nil {
 			return invalidConfigErr(unmarshalErr)
@@ -448,15 +473,25 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 		contl := strings.ToLower(cont)
 		if contl == "y" || contl == "yes" {
 			data = f.static
+
+			// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+			// representation we lock any operation that would cause the in-memory data
+			// to be updated.
+			mutex.Lock()
 			err = toml.Unmarshal(data, f)
+			mutex.Unlock()
+
 			if err != nil {
+				errLog.Add(err)
 				return invalidConfigErr(err)
 			}
 		} else {
-			return fsterr.RemediationError{
+			err := fsterr.RemediationError{
 				Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, unmarshalErr),
 				Remediation: RemediationManualFix,
 			}
+			errLog.Add(err)
+			return err
 		}
 	}
 
@@ -470,13 +505,18 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 
 	err := createConfigDir(path)
 	if err != nil {
+		errLog.Add(err)
 		return err
 	}
 
 	// The reason we're writing data back to disk, although we've only just read
 	// data from the same file, is because we've already potentially mutated some
 	// fields like [cli.last_checked] and [cli.version].
-	f.Write(path)
+	err = f.Write(path)
+	if err != nil {
+		errLog.Add(err)
+		return err
+	}
 
 	// The top-level 'user' section is what we're using to identify whether the
 	// local config.toml file is using a legacy format. If we find that key, then
@@ -484,12 +524,15 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 	// take the appropriate action of creating the file anew.
 	tree, err := toml.LoadBytes(data)
 	if err != nil {
+		errLog.Add(err)
+
 		// NOTE: We do not expect this error block to ever be hit because if we've
 		// already successfully called toml.Unmarshal, then calling toml.LoadBytes
 		// should equally be successful, but we'll code defensively nonetheless.
 		return invalidConfigErr(err)
 	}
 	if user := tree.Get("user"); user != nil {
+		errLog.Add(ErrLegacyConfig)
 		return ErrLegacyConfig
 	}
 
@@ -499,7 +542,13 @@ func (f *File) Read(path string, in io.Reader, out io.Writer) error {
 // UseStatic allow us to switch the in-memory configuration with the static
 // version embedded into the CLI binary and writes it back to disk.
 func (f *File) UseStatic(cfg []byte, path string) error {
+	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+	// representation we lock any operation that would cause the in-memory data
+	// to be updated.
+	mutex.Lock()
 	err := toml.Unmarshal(cfg, f)
+	mutex.Unlock()
+
 	if err != nil {
 		return invalidConfigErr(err)
 	}
@@ -514,15 +563,13 @@ func (f *File) UseStatic(cfg []byte, path string) error {
 		return err
 	}
 
-	f.Write(path)
-
-	return nil
+	return f.Write(path)
 }
 
 // Write the instance of File to a local application config file.
 func (f *File) Write(path string) error {
-	writeMutex.Lock()
-	defer writeMutex.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
@@ -535,10 +582,10 @@ func (f *File) Write(path string) error {
 		return fmt.Errorf("error creating config file: %w", err)
 	}
 	if err := toml.NewEncoder(fp).Encode(f); err != nil {
-		return fmt.Errorf("error writing config file: %w", err)
+		return fmt.Errorf("error writing to config file: %w", err)
 	}
 	if err := fp.Close(); err != nil {
-		return fmt.Errorf("error saving config file: %w", err)
+		return fmt.Errorf("error saving config file changes: %w", err)
 	}
 
 	return nil

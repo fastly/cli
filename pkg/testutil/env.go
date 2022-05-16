@@ -17,6 +17,7 @@ type FileIO struct {
 // EnvOpts represents configuration when creating a new environment.
 type EnvOpts struct {
 	T     *testing.T
+	Dirs  []string // expect path to have a trailing slash (will be added if missing)
 	Copy  []FileIO // .Src expected to be file path
 	Write []FileIO // .Src expected to be file content
 	Exec  []string // e.g. []string{"npm", "install"}
@@ -29,8 +30,13 @@ func NewEnv(opts EnvOpts) (rootdir string) {
 		opts.T.Fatal(err)
 	}
 
-	if err := os.MkdirAll(rootdir, 0750); err != nil {
+	if err := os.MkdirAll(rootdir, 0o750); err != nil {
 		opts.T.Fatal(err)
+	}
+
+	for _, d := range opts.Dirs {
+		d = strings.TrimRight(d, "/") + "/filename-required.txt"
+		createIntermediaryDirectories(d, rootdir, opts.T)
 	}
 
 	for _, f := range opts.Copy {
@@ -48,18 +54,14 @@ func NewEnv(opts EnvOpts) (rootdir string) {
 
 		// Ensure any intermediary directories exist before trying to write the
 		// given file to disk.
-		intermediary := strings.Replace(f.Dst, filepath.Base(f.Dst), "", 1)
-		intermediary = filepath.Join(rootdir, intermediary)
-		if err := os.MkdirAll(intermediary, 0750); err != nil {
-			opts.T.Fatal(err)
-		}
+		createIntermediaryDirectories(f.Dst, rootdir, opts.T)
 
 		// gosec flagged this:
 		// G304 (CWE-22): Potential file inclusion via variable
 		//
 		// Disabling as this is part of our test suite.
 		/* #nosec */
-		if err := os.WriteFile(dst, []byte(src), 0777); err != nil {
+		if err := os.WriteFile(dst, []byte(src), 0o777); err != nil {
 			opts.T.Fatal(err)
 		}
 	}
@@ -77,4 +79,22 @@ func NewEnv(opts EnvOpts) (rootdir string) {
 	}
 
 	return rootdir
+}
+
+// createIntermediaryDirectories strips the filename from the given path and
+// appends it to the rootdir so that we can use MkdirAll to create the
+// directory and all its intermediary directories.
+//
+// EXAMPLE: /foo/bar/baz.txt will create the foo and bar directories if they
+// don't already exist.
+//
+// NOTE: If path is just a filename (e.g. config.toml), then this function
+// won't necessarily trigger a test failure because we would end up appending
+// an empty string to the rootdir and so the MkdirAll call still succeeds.
+func createIntermediaryDirectories(path, rootdir string, t *testing.T) {
+	intermediary := strings.Replace(path, filepath.Base(path), "", 1)
+	intermediary = filepath.Join(rootdir, intermediary)
+	if err := os.MkdirAll(intermediary, 0o750); err != nil {
+		t.Fatal(err)
+	}
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/config"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
 )
 
@@ -54,7 +55,16 @@ type checkResult struct {
 //     f := CheckAsync(...)
 //     defer f()
 //
-func CheckAsync(ctx context.Context, file config.File, configFilePath string, currentVersion string, cliVersioner Versioner, in io.Reader, out io.Writer) (printResults func(io.Writer)) {
+func CheckAsync(
+	ctx context.Context,
+	file config.File,
+	configFilePath string,
+	currentVersion string,
+	cliVersioner Versioner,
+	in io.Reader,
+	out io.Writer,
+	errLog fsterr.LogInterface,
+) (printResults func(io.Writer)) {
 	if !check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
 		return func(io.Writer) {} // no-op
 	}
@@ -71,7 +81,7 @@ func CheckAsync(ctx context.Context, file config.File, configFilePath string, cu
 			// If the user ran `fastly profile ...`, then the expectation is for the
 			// application configuration to have been updated. In that case we want
 			// to reread the config so we can update the LastChecked field.
-			if err := file.Read(configFilePath, in, out); err == nil {
+			if err := file.Read(configFilePath, in, out, errLog); err == nil {
 				file.CLI.LastChecked = time.Now().Format(time.RFC3339)
 				file.Write(configFilePath)
 			}

@@ -14,6 +14,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/google/go-cmp/cmp"
 )
@@ -136,7 +137,16 @@ func TestCheckAsync(t *testing.T) {
 				out bytes.Buffer
 				buf bytes.Buffer
 			)
-			f := update.CheckAsync(ctx, testcase.file, configFilePath, testcase.currentVersion, testcase.cliVersioner, in, &out)
+			f := update.CheckAsync(
+				ctx,
+				testcase.file,
+				configFilePath,
+				testcase.currentVersion,
+				testcase.cliVersioner,
+				in,
+				&out,
+				fsterr.MockLog{},
+			)
 			f(&buf)
 
 			if want, have := testcase.wantOutput, buf.String(); want != have {

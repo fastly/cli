@@ -150,7 +150,8 @@ func TestConfigRead(t *testing.T) {
 			var out bytes.Buffer
 			in := strings.NewReader(testcase.userResponseToPrompt)
 
-			err = f.Read(configPath, in, &out)
+			mockLog := fsterr.MockLog{}
+			err = f.Read(configPath, in, &out, mockLog)
 
 			if testcase.remediation {
 				e, ok := err.(fsterr.RemediationError)
@@ -232,7 +233,7 @@ func TestUseStatic(t *testing.T) {
 	// embedded in the CLI binary.
 	f = config.File{}
 	var out bytes.Buffer
-	f.Read(configPath, strings.NewReader(""), &out)
+	f.Read(configPath, strings.NewReader(""), &out, fsterr.MockLog{})
 	f.UseStatic(staticConfig, configPath)
 
 	if f.CLI.LastChecked == "" || f.CLI.Version == "" {
@@ -395,7 +396,7 @@ func TestValidConfig(t *testing.T) {
 			var stdout bytes.Buffer
 			in := strings.NewReader("") // these tests won't trigger a user prompt
 
-			err = f.Read(configPath, in, &stdout)
+			err = f.Read(configPath, in, &stdout, nil)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -31,6 +32,9 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.location {
+		if c.Globals.Flag.Verbose {
+			text.Break(out)
+		}
 		fmt.Fprintln(out, c.filePath)
 		return nil
 	}
