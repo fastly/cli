@@ -74,13 +74,15 @@ var ErrInvalidConfig = errors.New("the configuration file is invalid")
 // compiled CLI binary and so the user must resolve their invalid config.
 var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
 
-// writeMutex provides synchronisation for the WRITE operation on the CLI config.
+// mutex provides synchronisation for any WRITE operations on the CLI config.
+// This includes calls to the Write method (which affects the disk
+// representation) as well as in-memory updates.
 //
 // NOTE: Historically the CLI has only had to write to the CLI config from
 // within the `main` function but now the `fastly update` command accepts a
 // flag that allows explicitly updating the CLI config, which means we need to
 // ensure there isn't a race condition with writing the config to disk.
-var writeMutex = &sync.Mutex{}
+var mutex = &sync.Mutex{}
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -345,7 +347,18 @@ func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 		return fmt.Errorf("fetching remote configuration: expected '200 OK', received '%s'", resp.Status)
 	}
 
+	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+	// representation we lock any operation that would cause the in-memory data
+	// to be updated.
+	//
+	// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
+	// Profiles that are set in-memory continue to be set after reading in the
+	// remote configuration data even though that data source doesn't define any
+	// such data). This can be manually validated using an io.TeeReader.
+	mutex.Lock()
 	err = toml.NewDecoder(resp.Body).Decode(f)
+	mutex.Unlock()
+
 	if err != nil {
 		return err
 	}
@@ -432,7 +445,13 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		data = f.static
 	}
 
+	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+	// representation we lock any operation that would cause the in-memory data
+	// to be updated.
+	mutex.Lock()
 	unmarshalErr := toml.Unmarshal(data, f)
+	mutex.Unlock()
+
 	if unmarshalErr != nil {
 		errLog.Add(unmarshalErr)
 
@@ -454,7 +473,14 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		contl := strings.ToLower(cont)
 		if contl == "y" || contl == "yes" {
 			data = f.static
+
+			// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+			// representation we lock any operation that would cause the in-memory data
+			// to be updated.
+			mutex.Lock()
 			err = toml.Unmarshal(data, f)
+			mutex.Unlock()
+
 			if err != nil {
 				errLog.Add(err)
 				return invalidConfigErr(err)
@@ -516,7 +542,13 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 // UseStatic allow us to switch the in-memory configuration with the static
 // version embedded into the CLI binary and writes it back to disk.
 func (f *File) UseStatic(cfg []byte, path string) error {
+	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+	// representation we lock any operation that would cause the in-memory data
+	// to be updated.
+	mutex.Lock()
 	err := toml.Unmarshal(cfg, f)
+	mutex.Unlock()
+
 	if err != nil {
 		return invalidConfigErr(err)
 	}
@@ -531,15 +563,13 @@ func (f *File) UseStatic(cfg []byte, path string) error {
 		return err
 	}
 
-	f.Write(path)
-
-	return nil
+	return f.Write(path)
 }
 
 // Write the instance of File to a local application config file.
 func (f *File) Write(path string) error {
-	writeMutex.Lock()
-	defer writeMutex.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable

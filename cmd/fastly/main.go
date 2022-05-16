@@ -127,6 +127,7 @@ func main() {
 	waitForWrite := make(chan bool)
 	wait := false
 
+	// errLoadConfig should be a RemediationError.
 	var errLoadConfig error
 
 	// Validate if configuration is older than its TTL
@@ -144,14 +145,19 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 			// configuration file to determine where to load the config from.
 			err := file.Load(file.CLI.RemoteConfig, config.FilePath, httpClient)
 			if err != nil {
+				errNotice := "there was a problem updating the versioning information for the Fastly CLI"
+
 				// If there is an error loading the configuration, then there is no
 				// point trying to retry the operation on the next CLI invocation as we
 				// already have a static backup that can be used. Defer another attempt
 				// until after the TTL has expired.
 				file.CLI.LastChecked = time.Now().Format(time.RFC3339)
-				file.Write(config.FilePath)
+				err = file.Write(config.FilePath)
+				if err != nil {
+					text.Break(out)
+					text.Error(out, "%s: %s", errNotice, err)
+				}
 
-				errNotice := "there was a problem updating the versioning information for the Fastly CLI"
 				checkAgain := fmt.Sprintf("we won't check again until %s have passed", file.CLI.TTL)
 				errLoadConfig = fsterr.RemediationError{
 					Inner:       fmt.Errorf("%s (%s):\n\n%w", errNotice, checkAgain, err),
