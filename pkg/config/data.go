@@ -483,7 +483,11 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 	// The reason we're writing data back to disk, although we've only just read
 	// data from the same file, is because we've already potentially mutated some
 	// fields like [cli.last_checked] and [cli.version].
-	f.Write(path)
+	err = f.Write(path)
+	if err != nil {
+		errLog.Add(err)
+		return err
+	}
 
 	// The top-level 'user' section is what we're using to identify whether the
 	// local config.toml file is using a legacy format. If we find that key, then
