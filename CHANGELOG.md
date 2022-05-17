@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.0.1](https://github.com/fastly/cli/releases/tag/v2.0.1) (2022-05-17)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v2.0.0...v2.0.1)
+
+**Security:**
+
+* Omit data from Sentry [#559](https://github.com/fastly/cli/pull/559)
+
 ## [v2.0.0](https://github.com/fastly/cli/releases/tag/v2.0.0) (2022-04-05)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v1.7.1...v2.0.0)
