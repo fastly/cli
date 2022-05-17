@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -82,7 +83,7 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 	//
 	// Disabling as the input is determined from our own package.
 	/* #nosec */
-	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 	if err != nil {
 		return fmt.Errorf(errMsg, err)
 	}
@@ -141,6 +142,22 @@ ERROR:
 	return nil
 }
 
+var (
+	// TokenRegEx matches a Token as part of the error output (https://regex101.com/r/ulIw1m/1)
+	TokenRegEx = regexp.MustCompile(`Token ([\w-]+)`)
+	// TokenFlagRegEx matches the token flag (https://regex101.com/r/YNr78Q/1)
+	TokenFlagRegEx = regexp.MustCompile(`(-t|--token)(\s*=?\s*['"]?)([\w-]+)(['"]?)`)
+)
+
+// FilterToken replaces any matched patterns with "REDACTED".
+//
+// EXAMPLE: https://go.dev/play/p/cT4BwIh9Asa
+func FilterToken(input string) (inputFiltered string) {
+	inputFiltered = TokenRegEx.ReplaceAllString(input, "Token REDACTED")
+	inputFiltered = TokenFlagRegEx.ReplaceAllString(inputFiltered, "${1}${2}REDACTED${4}")
+	return inputFiltered
+}
+
 // instrument reports errors to our error analysis platform.
 func instrument(l LogEntries, cmd string) {
 	sentry.AddBreadcrumb(&sentry.Breadcrumb{
@@ -162,7 +179,7 @@ func instrument(l LogEntries, cmd string) {
 		// https://docs.sentry.io/product/issues/issue-details/breadcrumbs/
 		b := sentry.Breadcrumb{
 			Data:      entry.Context,
-			Message:   fmt.Sprintf("%s (file: %s, line: %d)", entry.Err, file, line),
+			Message:   fmt.Sprintf("%s (file: %s, line: %d)", entry.Err.Error(), file, line),
 			Timestamp: entry.Time,
 			Type:      "error",
 		}

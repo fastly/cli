@@ -39,6 +39,16 @@ func main() {
 			`error matching service name with available services`,
 			`open fastly.toml: no such file or directory`,
 		},
+		BeforeSend: func(event *sentry.Event, _ *sentry.EventHint) *sentry.Event {
+			for i, e := range event.Exception {
+				event.Exception[i].Value = fsterr.FilterToken(e.Value)
+			}
+			return event
+		},
+		BeforeBreadcrumb: func(breadcrumb *sentry.Breadcrumb, _ *sentry.BreadcrumbHint) *sentry.Breadcrumb {
+			breadcrumb.Message = fsterr.FilterToken(breadcrumb.Message)
+			return breadcrumb
+		},
 	})
 	if err != nil {
 		log.Fatal(err)

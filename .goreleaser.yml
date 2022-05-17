@@ -12,7 +12,7 @@ builds:
   - <<: &build_defaults
       main: ./cmd/fastly
       ldflags:
-        - -s -w -X "github.com/fastly/cli/pkg/revision.AppVersion={{ .Version }}"
+        - -s -w -X "github.com/fastly/cli/pkg/revision.AppVersion=v{{ .Version }}"
         - -X "github.com/fastly/cli/pkg/revision.GitCommit={{ .ShortCommit }}"
         - -X "github.com/fastly/cli/pkg/revision.GoVersion={{ .Env.GOVERSION }}"
         - -X "github.com/fastly/cli/pkg/revision.Environment=release"
