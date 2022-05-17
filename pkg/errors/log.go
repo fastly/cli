@@ -145,16 +145,16 @@ ERROR:
 var (
 	// TokenRegEx matches a Token as part of the error output (https://regex101.com/r/ulIw1m/1)
 	TokenRegEx = regexp.MustCompile(`Token ([\w-]+)`)
-	// TokenFlagRegEx matches the token flag (https://regex101.com/r/rTZoFJ/1)
-	TokenFlagRegEx = regexp.MustCompile(`(-t|--token)(\s|=)([\w-]+)`)
+	// TokenFlagRegEx matches the token flag (https://regex101.com/r/YNr78Q/1)
+	TokenFlagRegEx = regexp.MustCompile(`(-t|--token)(\s*=?\s*['"]?)([\w-]+)(['"]?)`)
 )
 
-// filterToken replaces any matched patterns with "REDACTED".
+// FilterToken replaces any matched patterns with "REDACTED".
 //
-// EXAMPLE: https://go.dev/play/p/OZ0gYKGsPur
-func filterToken(input string) (inputFiltered string) {
+// EXAMPLE: https://go.dev/play/p/cT4BwIh9Asa
+func FilterToken(input string) (inputFiltered string) {
 	inputFiltered = TokenRegEx.ReplaceAllString(input, "Token REDACTED")
-	inputFiltered = TokenFlagRegEx.ReplaceAllString(inputFiltered, "${1}${2}REDACTED")
+	inputFiltered = TokenFlagRegEx.ReplaceAllString(inputFiltered, "${1}${2}REDACTED${4}")
 	return inputFiltered
 }
 
@@ -162,7 +162,7 @@ func filterToken(input string) (inputFiltered string) {
 func instrument(l LogEntries, cmd string) {
 	sentry.AddBreadcrumb(&sentry.Breadcrumb{
 		Category: "input",
-		Message:  filterToken(cmd),
+		Message:  cmd,
 		Type:     "info",
 	})
 	for _, entry := range l {
@@ -179,7 +179,7 @@ func instrument(l LogEntries, cmd string) {
 		// https://docs.sentry.io/product/issues/issue-details/breadcrumbs/
 		b := sentry.Breadcrumb{
 			Data:      entry.Context,
-			Message:   fmt.Sprintf("%s (file: %s, line: %d)", filterToken(entry.Err.Error()), file, line),
+			Message:   fmt.Sprintf("%s (file: %s, line: %d)", entry.Err.Error(), file, line),
 			Timestamp: entry.Time,
 			Type:      "error",
 		}
