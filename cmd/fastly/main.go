@@ -40,7 +40,9 @@ func main() {
 			`open fastly.toml: no such file or directory`,
 		},
 		BeforeSend: func(event *sentry.Event, _ *sentry.EventHint) *sentry.Event {
-			event.Exception[0].Value = fsterr.FilterToken(event.Exception[0].Value)
+			for i, e := range event.Exception {
+				event.Exception[i].Value = fsterr.FilterToken(e.Value)
+			}
 			return event
 		},
 		BeforeBreadcrumb: func(breadcrumb *sentry.Breadcrumb, _ *sentry.BreadcrumbHint) *sentry.Breadcrumb {
