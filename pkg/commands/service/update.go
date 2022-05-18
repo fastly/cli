@@ -80,9 +80,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	s, err := c.Globals.APIClient.UpdateService(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Service ID": serviceID,
-			"Name":       c.name.Value,
-			"Comment":    c.comment.Value,
+			"Service ID":   serviceID,
+			"Service Name": c.name.Value,
+			"Comment":      c.comment.Value,
 		})
 		return err
 	}

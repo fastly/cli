@@ -54,9 +54,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 		err = c.Globals.APIClient.ResetUserPassword(input)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"User Login": c.login,
-			})
 			return err
 		}
 
@@ -73,7 +70,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"User ID": c.id,
-			"Input":   input,
 		})
 		return err
 	}

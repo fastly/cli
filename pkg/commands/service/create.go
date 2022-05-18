@@ -31,9 +31,9 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	s, err := c.Globals.APIClient.CreateService(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Name":    c.Input.Name,
-			"Type":    c.Input.Type,
-			"Comment": c.Input.Comment,
+			"Service Name": c.Input.Name,
+			"Type":         c.Input.Type,
+			"Comment":      c.Input.Comment,
 		})
 		return err
 	}

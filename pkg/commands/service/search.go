@@ -32,7 +32,7 @@ func (c *SearchCommand) Exec(in io.Reader, out io.Writer) error {
 	service, err := c.Globals.APIClient.SearchService(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Name": c.Input.Name,
+			"Service Name": c.Input.Name,
 		})
 		return err
 	}

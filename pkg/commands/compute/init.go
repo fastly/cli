@@ -134,11 +134,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	name, desc, authors, err := promptOrReturn(c.manifest, c.dir, email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"Authors":     authors,
 			"Description": desc,
 			"Directory":   c.dir,
-			"Email":       email,
-			"Name":        name,
 		})
 		return err
 	}
@@ -189,9 +186,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Directory":   c.dir,
-			"Name":        name,
 			"Description": desc,
-			"Authors":     authors,
 			"Language":    language,
 		})
 		return err
