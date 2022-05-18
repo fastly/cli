@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.0.2](https://github.com/fastly/cli/releases/tag/v2.0.2) (2022-05-18)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v2.0.1...v2.0.2)
+
+**Enhancements:**
+
+* Remove user identifiable data [#561](https://github.com/fastly/cli/pull/561)
+
 ## [v2.0.1](https://github.com/fastly/cli/releases/tag/v2.0.1) (2022-05-17)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v2.0.0...v2.0.1)
