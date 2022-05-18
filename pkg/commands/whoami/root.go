@@ -34,9 +34,6 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	fullurl := fmt.Sprintf("%s/verify", strings.TrimSuffix(endpoint, "/"))
 	req, err := http.NewRequest("GET", fullurl, nil)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"GET": fullurl,
-		})
 		return fmt.Errorf("error constructing API request: %w", err)
 	}
 

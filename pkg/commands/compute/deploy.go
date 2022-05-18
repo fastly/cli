@@ -610,11 +610,11 @@ func manageNoServiceIDFlow(
 //
 // NOTE: If the creation of the service fails because the user has not
 // activated a free trial, then we'll trigger the trial for their account.
-func createService(name string, apiClient api.Interface, activateTrial activator, progress text.Progress, errLog fsterr.LogInterface) (serviceID string, serviceVersion *fastly.Version, err error) {
+func createService(pkgName string, apiClient api.Interface, activateTrial activator, progress text.Progress, errLog fsterr.LogInterface) (serviceID string, serviceVersion *fastly.Version, err error) {
 	progress.Step("Creating service...")
 
 	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
-		Name: name,
+		Name: pkgName,
 		Type: "wasm",
 	})
 	if err != nil {
@@ -636,15 +636,14 @@ func createService(name string, apiClient api.Interface, activateTrial activator
 			}
 
 			errLog.AddWithContext(err, map[string]interface{}{
-				"Name":        name,
-				"User":        user.Name,
-				"Customer ID": user.CustomerID,
+				"Package Name": pkgName,
+				"Customer ID":  user.CustomerID,
 			})
-			return createService(name, apiClient, activateTrial, progress, errLog)
+			return createService(pkgName, apiClient, activateTrial, progress, errLog)
 		}
 
 		errLog.AddWithContext(err, map[string]interface{}{
-			"Name": name,
+			"Package Name": pkgName,
 		})
 		return serviceID, serviceVersion, fmt.Errorf("error creating service: %w", err)
 	}
