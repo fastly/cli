@@ -30,7 +30,7 @@ var cfg []byte
 func main() {
 	err := sentry.Init(sentry.ClientOptions{
 		Debug:       false,
-		Dsn:         "https://fc6bb51e909b46d7b004aa0cce1470e6@o1025883.ingest.sentry.io/6143707",
+		Dsn:         "https://6e390df3d7924f7bbe521299bbd4f8dc@o1025883.ingest.sentry.io/6423223",
 		Environment: revision.Environment,
 		Release:     revision.AppVersion,
 		IgnoreErrors: []string{
