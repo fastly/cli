@@ -79,7 +79,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Output(out, "Press ^C at any time to quit.")
 
 	if c.from != "" && c.language == "" {
-		text.Warning(out, "The project language cannot be inferred when using --from. Use --language explicitly otherwise 'other' will be the default.")
+		text.Warning(out, "When using the --from flag, the project language cannot be inferred. Please either use the --language flag to explicitly set the language or ensure the project's fastly.toml sets a valid language.")
 	}
 
 	text.Break(out)
