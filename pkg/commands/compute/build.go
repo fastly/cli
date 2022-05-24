@@ -123,26 +123,26 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Name:            "assemblyscript",
 			SourceDirectory: ASSourceDirectory,
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(c.Flags.Timeout, name, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain:       NewAssemblyScript(c.Flags.Timeout, name, c.Manifest.File.Scripts, c.Globals.ErrLog),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: JSSourceDirectory,
 			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewJavaScript(c.Flags.Timeout, name, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain:       NewJavaScript(c.Flags.Timeout, name, c.Manifest.File.Scripts, c.Globals.ErrLog),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
 			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.Globals.HTTPClient, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, name, c.Manifest.File.Scripts.Build),
+			Toolchain:       NewRust(c.Globals.HTTPClient, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, name, c.Manifest.File.Scripts),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{
 			Name:      "other",
-			Toolchain: NewOther(c.Flags.Timeout, c.Manifest.File.Scripts.Build, c.Globals.ErrLog),
+			Toolchain: NewOther(c.Flags.Timeout, c.Manifest.File.Scripts, c.Globals.ErrLog),
 		})
 	default:
 		return fmt.Errorf("unsupported language %s", identLang)
@@ -280,7 +280,7 @@ func CreatePackageArchive(files []string, destination string) error {
 		fmt.Sprintf("fastly-build-%x", p[:n]),
 	)
 
-	if err := os.MkdirAll(tmpDir, 0700); err != nil {
+	if err := os.MkdirAll(tmpDir, 0o700); err != nil {
 		return fmt.Errorf("error creating temporary directory: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
@@ -289,7 +289,7 @@ func CreatePackageArchive(files []string, destination string) error {
 	// root of the archive. This replaces the `tar.ImplicitTopLevelFolder`
 	// behavior.
 	dir := filepath.Join(tmpDir, FileNameWithoutExtension(destination))
-	if err := os.Mkdir(dir, 0700); err != nil {
+	if err := os.Mkdir(dir, 0o700); err != nil {
 		return fmt.Errorf("error creating temporary directory: %w", err)
 	}
 

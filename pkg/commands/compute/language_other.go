@@ -8,24 +8,27 @@ import (
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
+	"github.com/fastly/cli/pkg/manifest"
 )
 
 // Other implements a Toolchain for languages without official support.
 type Other struct {
 	Shell
 
-	build   string
-	errlog  fsterr.LogInterface
-	timeout int
+	build     string
+	errlog    fsterr.LogInterface
+	postBuild string
+	timeout   int
 }
 
 // NewOther constructs a new unsupported language instance.
-func NewOther(timeout int, build string, errlog fsterr.LogInterface) *Other {
+func NewOther(timeout int, scripts manifest.Scripts, errlog fsterr.LogInterface) *Other {
 	return &Other{
-		Shell:   Shell{},
-		build:   build,
-		errlog:  errlog,
-		timeout: timeout,
+		Shell:     Shell{},
+		build:     scripts.Build,
+		errlog:    errlog,
+		postBuild: scripts.PostBuild,
+		timeout:   timeout,
 	}
 }
 
@@ -52,6 +55,23 @@ func (o Other) Build(out, progress io.Writer, verbose bool) error {
 	}
 	cmd, args := o.Shell.Build(o.build)
 
+	err := o.execCommand(cmd, args, out, progress, verbose)
+	if err != nil {
+		return err
+	}
+
+	if o.postBuild != "" {
+		cmd, args := o.Shell.Build(o.postBuild)
+		err := o.execCommand(cmd, args, out, progress, verbose)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (o Other) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command:  cmd,
 		Args:     args,
@@ -67,6 +87,5 @@ func (o Other) Build(out, progress io.Writer, verbose bool) error {
 		o.errlog.Add(err)
 		return err
 	}
-
 	return nil
 }

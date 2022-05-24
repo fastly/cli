@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/manifest"
 )
 
 // NewLanguages returns a list of supported programming languages.
@@ -14,25 +15,25 @@ import (
 // NOTE: The 'timeout' value zero is passed into each New<Language> call as it's
 // only useful during the `compute build` phase and is expected to be
 // provided by the user via a flag on the build command.
-func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName, customBuild string) []*Language {
+func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName string, scripts manifest.Scripts) []*Language {
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
 			DisplayName: "Rust",
 			StarterKits: kits.Rust,
-			Toolchain:   NewRust(d.HTTPClient, d.File.Language.Rust, d.ErrLog, 0, pkgName, customBuild),
+			Toolchain:   NewRust(d.HTTPClient, d.File.Language.Rust, d.ErrLog, 0, pkgName, scripts),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "javascript",
 			DisplayName: "JavaScript",
 			StarterKits: kits.JavaScript,
-			Toolchain:   NewJavaScript(0, pkgName, customBuild, d.ErrLog),
+			Toolchain:   NewJavaScript(0, pkgName, scripts, d.ErrLog),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
 			DisplayName: "AssemblyScript (beta)",
 			StarterKits: kits.AssemblyScript,
-			Toolchain:   NewAssemblyScript(0, pkgName, customBuild, d.ErrLog),
+			Toolchain:   NewAssemblyScript(0, pkgName, scripts, d.ErrLog),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "other",

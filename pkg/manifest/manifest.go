@@ -37,7 +37,7 @@ const (
 	ManifestLatestVersion = 2
 
 	// FilePermissions represents a read/write file mode.
-	FilePermissions = 0666
+	FilePermissions = 0o666
 
 	// SourceUndefined indicates the parameter isn't provided in any of the
 	// available sources, similar to "not found".
@@ -219,7 +219,8 @@ type File struct {
 
 // Scripts represents custom operations.
 type Scripts struct {
-	Build string `toml:"build,omitempty"`
+	Build     string `toml:"build,omitempty"`
+	PostBuild string `toml:"post_build,omitempty"`
 }
 
 // Setup represents a set of service configuration that works with the code in

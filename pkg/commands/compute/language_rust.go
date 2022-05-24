@@ -20,6 +20,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
 )
@@ -75,7 +76,7 @@ func (m *CargoManifest) SetPackageName(name, path string) error {
 		return err
 	}
 
-	if err := os.WriteFile(path, data, 0600); err != nil {
+	if err := os.WriteFile(path, data, 0o600); err != nil {
 		return fmt.Errorf("error updating Cargo manifest file: %w", err)
 	}
 	return nil
@@ -119,24 +120,26 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 type Rust struct {
 	Shell
 
-	pkgName string
-	build   string
-	client  api.HTTPClient
-	config  config.Rust
-	errlog  fsterr.LogInterface
-	timeout int
+	build     string
+	client    api.HTTPClient
+	config    config.Rust
+	errlog    fsterr.LogInterface
+	pkgName   string
+	postBuild string
+	timeout   int
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, pkgName, build string) *Rust {
+func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, pkgName string, scripts manifest.Scripts) *Rust {
 	return &Rust{
-		Shell:   Shell{},
-		pkgName: pkgName,
-		build:   build,
-		client:  client,
-		config:  config,
-		errlog:  errlog,
-		timeout: timeout,
+		Shell:     Shell{},
+		build:     scripts.Build,
+		client:    client,
+		config:    config,
+		errlog:    errlog,
+		pkgName:   pkgName,
+		postBuild: scripts.PostBuild,
+		timeout:   timeout,
 	}
 }
 
@@ -525,20 +528,17 @@ func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
-	s := fstexec.Streaming{
-		Command:  cmd,
-		Args:     args,
-		Env:      os.Environ(),
-		Output:   out,
-		Progress: progress,
-		Verbose:  verbose,
-	}
-	if r.timeout > 0 {
-		s.Timeout = time.Duration(r.timeout) * time.Second
-	}
-	if err := s.Exec(); err != nil {
-		r.errlog.Add(err)
+	err := r.execCommand(cmd, args, out, progress, verbose)
+	if err != nil {
 		return err
+	}
+
+	if r.postBuild != "" {
+		cmd, args := r.Shell.Build(r.postBuild)
+		err := r.execCommand(cmd, args, out, progress, verbose)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Get working directory.
@@ -568,6 +568,25 @@ func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
 		return fmt.Errorf("copying wasm binary: %w", err)
 	}
 
+	return nil
+}
+
+func (r Rust) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
+	s := fstexec.Streaming{
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: progress,
+		Verbose:  verbose,
+	}
+	if r.timeout > 0 {
+		s.Timeout = time.Duration(r.timeout) * time.Second
+	}
+	if err := s.Exec(); err != nil {
+		r.errlog.Add(err)
+		return err
+	}
 	return nil
 }
 

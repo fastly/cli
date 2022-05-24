@@ -13,6 +13,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -60,7 +61,7 @@ func SetPackageName(name, path string) (err error) {
 		return err
 	}
 
-	if err := os.WriteFile(path, data, 0600); err != nil {
+	if err := os.WriteFile(path, data, 0o600); err != nil {
 		return fmt.Errorf("error updating package.json manifest file: %w", err)
 	}
 	return nil
@@ -70,25 +71,27 @@ func SetPackageName(name, path string) (err error) {
 type JavaScript struct {
 	Shell
 
-	pkgName             string
 	build               string
 	errlog              fsterr.LogInterface
 	packageDependency   string
 	packageExecutable   string
+	pkgName             string
+	postBuild           string
 	timeout             int
 	toolchain           string
 	validateScriptBuild bool
 }
 
 // NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int, pkgName, build string, errlog fsterr.LogInterface) *JavaScript {
+func NewJavaScript(timeout int, pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface) *JavaScript {
 	return &JavaScript{
 		Shell:               Shell{},
-		pkgName:             pkgName,
-		build:               build,
+		build:               scripts.Build,
 		errlog:              errlog,
 		packageDependency:   "@fastly/js-compute",
 		packageExecutable:   "js-compute-runtime",
+		pkgName:             pkgName,
+		postBuild:           scripts.PostBuild,
 		timeout:             timeout,
 		toolchain:           JsToolchain,
 		validateScriptBuild: true,
@@ -295,6 +298,23 @@ func (j JavaScript) Build(out, progress io.Writer, verbose bool) error {
 		cmd, args = j.Shell.Build(j.build)
 	}
 
+	err := j.execCommand(cmd, args, out, progress, verbose)
+	if err != nil {
+		return err
+	}
+
+	if j.postBuild != "" {
+		cmd, args := j.Shell.Build(j.postBuild)
+		err := j.execCommand(cmd, args, out, progress, verbose)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (j JavaScript) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command:  cmd,
 		Args:     args,
@@ -310,6 +330,5 @@ func (j JavaScript) Build(out, progress io.Writer, verbose bool) error {
 		j.errlog.Add(err)
 		return err
 	}
-
 	return nil
 }

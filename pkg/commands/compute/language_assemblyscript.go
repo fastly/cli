@@ -10,6 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/manifest"
 )
 
 // ASSourceDirectory represents the source code directory.
@@ -26,24 +27,26 @@ const ASSourceDirectory = "assembly"
 type AssemblyScript struct {
 	JavaScript
 
-	build  string
-	errlog fsterr.LogInterface
+	build     string
+	errlog    fsterr.LogInterface
+	postBuild string
 }
 
 // NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript(timeout int, pkgName, build string, errlog fsterr.LogInterface) *AssemblyScript {
+func NewAssemblyScript(timeout int, pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface) *AssemblyScript {
 	return &AssemblyScript{
 		JavaScript: JavaScript{
-			pkgName:           pkgName,
-			build:             build,
+			build:             scripts.Build,
 			errlog:            errlog,
 			packageDependency: "assemblyscript",
 			packageExecutable: "asc",
+			pkgName:           pkgName,
 			timeout:           timeout,
 			toolchain:         JsToolchain,
 		},
-		build:  build,
-		errlog: errlog,
+		build:     scripts.Build,
+		errlog:    errlog,
+		postBuild: scripts.PostBuild,
 	}
 }
 
@@ -84,6 +87,23 @@ func (a AssemblyScript) Build(out, progress io.Writer, verbose bool) error {
 		cmd, args = a.Shell.Build(a.build)
 	}
 
+	err = a.execCommand(cmd, args, out, progress, verbose)
+	if err != nil {
+		return err
+	}
+
+	if a.postBuild != "" {
+		cmd, args := a.Shell.Build(a.postBuild)
+		err := a.execCommand(cmd, args, out, progress, verbose)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a AssemblyScript) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command:  cmd,
 		Args:     args,
@@ -99,6 +119,5 @@ func (a AssemblyScript) Build(out, progress io.Writer, verbose bool) error {
 		a.errlog.Add(err)
 		return err
 	}
-
 	return nil
 }
