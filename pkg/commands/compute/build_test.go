@@ -9,6 +9,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
@@ -531,13 +532,13 @@ func TestBuildJavaScript(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			if testcase.fastlyManifest != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0777); err != nil {
+				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
 					t.Fatal(err)
 				}
 			}
 
 			if testcase.sourceOverride != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, "src", "index.js"), []byte(testcase.sourceOverride), 0777); err != nil {
+				if err := os.WriteFile(filepath.Join(rootdir, "src", "index.js"), []byte(testcase.sourceOverride), 0o777); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -609,9 +610,7 @@ func TestCustomBuild(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			language = "other"`,
-			dontWantOutput: []string{
-				"This project has a custom build script defined in the fastly.toml manifest",
-			},
+			dontWantOutput:       []string{compute.CustomBuildScriptMessage},
 			wantError:            "error reading custom build instructions from fastly.toml manifest",
 			wantRemediationError: "Add a [scripts.build] setting for your custom build process",
 		},
@@ -626,7 +625,7 @@ func TestCustomBuild(t *testing.T) {
 			build = "echo custom build"`,
 			stdin: "N",
 			wantOutput: []string{
-				"This project has a custom build script defined in the fastly.toml manifest",
+				compute.CustomBuildScriptMessage,
 				"Are you sure you want to continue with the build step?",
 				"Stopping the build process",
 			},
@@ -644,7 +643,7 @@ func TestCustomBuild(t *testing.T) {
 			build = "echo custom build"`,
 			stdin: "Y",
 			wantOutput: []string{
-				"This project has a custom build script defined in the fastly.toml manifest",
+				compute.CustomBuildScriptMessage,
 				"Are you sure you want to continue with the build step?",
 				"Building package using custom toolchain",
 				"Built package 'test'",
@@ -661,7 +660,7 @@ func TestCustomBuild(t *testing.T) {
 			build = "echo custom build"`,
 			stdin: "Y",
 			wantOutput: []string{
-				"This project has a custom build script defined in the fastly.toml manifest",
+				compute.CustomBuildScriptMessage,
 				"Are you sure you want to continue with the build step?",
 				"Building package using custom toolchain",
 				"Built package 'test'",
@@ -678,7 +677,7 @@ func TestCustomBuild(t *testing.T) {
 			build = "echo custom build"`,
 			stdin: "Y",
 			wantOutput: []string{
-				"This project has a custom build script defined in the fastly.toml manifest",
+				compute.CustomBuildScriptMessage,
 				"echo custom build",
 				"Are you sure you want to continue with the build step?",
 				"Building package using custom toolchain",
@@ -696,7 +695,7 @@ func TestCustomBuild(t *testing.T) {
 			build = "echo custom build"`,
 			stdin: "Y",
 			wantOutput: []string{
-				"This project has a custom build script defined in the fastly.toml manifest",
+				compute.CustomBuildScriptMessage,
 				"echo custom build",
 				"Are you sure you want to continue with the build step?",
 				"Building package using custom toolchain",
@@ -717,14 +716,14 @@ func TestCustomBuild(t *testing.T) {
 				"Built package 'test'",
 			},
 			dontWantOutput: []string{
-				"This project has a custom build script defined in the fastly.toml manifest",
+				compute.CustomBuildScriptMessage,
 				"Are you sure you want to continue with the build step?",
 			},
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			if testcase.fastlyManifest != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0777); err != nil {
+				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
 					t.Fatal(err)
 				}
 			}

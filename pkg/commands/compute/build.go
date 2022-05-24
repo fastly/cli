@@ -23,6 +23,14 @@ import (
 // IgnoreFilePath is the filepath name of the Fastly ignore file.
 const IgnoreFilePath = ".fastlyignore"
 
+// CustomBuildScriptMessage is the message displayed to a user when there is a
+// custom build script.
+const CustomBuildScriptMessage = "This project has a custom build script defined in the fastly.toml manifest"
+
+// CustomPostBuildScriptMessage is the message displayed to a user when there is a
+// custom post build script.
+const CustomPostBuildScriptMessage = "This project has a custom post build script defined in the fastly.toml manifest"
+
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
 	Initialize(out io.Writer) error
@@ -59,7 +67,7 @@ func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
-	c.CmdClause.Flag("accept-custom-build", "Do not prompt when project manifest defines [scripts.build]").BoolVar(&c.Flags.AcceptCustomBuild)
+	c.CmdClause.Flag("accept-custom-build", "Do not prompt when project manifest defines either a [scripts.build] or [scripts.post_build]").BoolVar(&c.Flags.AcceptCustomBuild)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.Flags.PackageName)
@@ -148,6 +156,11 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("unsupported language %s", identLang)
 	}
 
+	// NOTE: Even if the user has selected a valid starter kit, and manually
+	// modifies the fastly.toml to have [scripts.build] we override the toolchain
+	// to be "custom". This acts as both a reminder for the user coming back to
+	// their project after a long period of time, but also enables us to warn a
+	// user who has pulled a vulnerable starter kit.
 	toolchain := identLang
 	if c.Manifest.File.Scripts.Build != "" {
 		toolchain = "custom"
@@ -171,27 +184,22 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Done()
 
 	if toolchain == "custom" {
-		if c.Globals.Flag.Verbose || !c.Flags.AcceptCustomBuild {
-			text.Info(out, "This project has a custom build script defined in the fastly.toml manifest:\n")
-			text.Break(out)
-			text.Indent(out, 4, "%s", c.Manifest.File.Scripts.Build)
-		}
 		if !c.Flags.AcceptCustomBuild {
 			// NOTE: A third-party could share a project with a build command for a
 			// language that wouldn't normally require one (e.g. Rust), and do evil
 			// things. So we should notify the user and confirm they would like to
 			// continue with the build.
-			label := "\nAre you sure you want to continue with the build step? [y/N] "
-			answer, err := text.AskYesNo(out, label, in)
+			err := promptForBuildContinue(CustomBuildScriptMessage, c.Manifest.File.Scripts.Build, out, in)
 			if err != nil {
 				return err
 			}
-			if !answer {
-				text.Info(out, "Stopping the build process.")
-				text.Break(out)
-				return fsterr.ErrBuildStopped
-			}
-			text.Break(out)
+		}
+	}
+
+	if c.Manifest.File.Scripts.PostBuild != "" && !c.Flags.AcceptCustomBuild {
+		err := promptForBuildContinue(CustomPostBuildScriptMessage, c.Manifest.File.Scripts.PostBuild, out, in)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -257,6 +265,28 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Done()
 
 	text.Success(out, "Built package '%s' (%s)", name, dest)
+	return nil
+}
+
+// promptForBuildContinue ensures the user is happy to continue with the build
+// when there is either a custom build or post build in the fastly.toml
+// manifest file.
+func promptForBuildContinue(msg, script string, out io.Writer, in io.Reader) error {
+	text.Info(out, "%s:\n", msg)
+	text.Break(out)
+	text.Indent(out, 4, "%s", script)
+
+	label := "\nAre you sure you want to continue with the build step? [y/N] "
+	answer, err := text.AskYesNo(out, label, in)
+	if err != nil {
+		return err
+	}
+	if !answer {
+		text.Info(out, "Stopping the build process.")
+		text.Break(out)
+		return fsterr.ErrBuildStopped
+	}
+	text.Break(out)
 	return nil
 }
 

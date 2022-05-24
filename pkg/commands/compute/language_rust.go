@@ -533,14 +533,6 @@ func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
 		return err
 	}
 
-	if r.postBuild != "" {
-		cmd, args := r.Shell.Build(r.postBuild)
-		err := r.execCommand(cmd, args, out, progress, verbose)
-		if err != nil {
-			return err
-		}
-	}
-
 	// Get working directory.
 	dir, err := os.Getwd()
 	if err != nil {
@@ -566,6 +558,14 @@ func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
 	if err != nil {
 		r.errlog.Add(err)
 		return fmt.Errorf("copying wasm binary: %w", err)
+	}
+
+	if r.postBuild != "" {
+		cmd, args := r.Shell.Build(r.postBuild)
+		err := r.execCommand(cmd, args, out, progress, verbose)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
