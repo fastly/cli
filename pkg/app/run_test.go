@@ -642,8 +642,8 @@ COMMANDS
   compute build [<flags>]
     Build a Compute@Edge package locally
 
-    --accept-custom-build  Do not prompt when project manifest defines either a
-                           [scripts.build] or [scripts.post_build]
+    --accept-custom-build  Skip confirmation prompts when running custom build
+                           commands
     --include-source       Include source code in built package
     --language=LANGUAGE    Language type
     --name=NAME            Package name
@@ -690,9 +690,8 @@ COMMANDS
   compute publish [<flags>]
     Build and deploy a Compute@Edge package to a Fastly service
 
-        --accept-custom-build    Do not prompt when project manifest defines
-                                 either a [scripts.build] or
-                                 [scripts.post_build]
+        --accept-custom-build    Skip confirmation prompts when running custom
+                                 build commands
         --accept-defaults        Accept default values for all prompts and
                                  perform deploy non-interactively
         --comment=COMMENT        Human-readable comment
@@ -715,8 +714,8 @@ COMMANDS
   compute serve [<flags>]
     Build and run a Compute@Edge package locally
 
-    --accept-custom-build    Do not prompt when project manifest defines either
-                             a [scripts.build] or [scripts.post_build]
+    --accept-custom-build    Skip confirmation prompts when running custom build
+                             commands
     --addr="127.0.0.1:7676"  The IPv4 address and port to listen on
     --env=ENV                The environment configuration to use (e.g. stage)
     --file="bin/main.wasm"   The Wasm file to run

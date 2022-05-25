@@ -42,7 +42,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.deploy = deploy
 	c.CmdClause = parent.Command("publish", "Build and deploy a Compute@Edge package to a Fastly service")
 
-	c.CmdClause.Flag("accept-custom-build", "Do not prompt when project manifest defines either a [scripts.build] or [scripts.post_build]").Action(c.acceptCustomBuild.Set).BoolVar(&c.acceptCustomBuild.Value)
+	c.CmdClause.Flag("accept-custom-build", "Skip confirmation prompts when running custom build commands").Action(c.acceptCustomBuild.Set).BoolVar(&c.acceptCustomBuild.Value)
 	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and perform deploy non-interactively").Action(c.acceptDefaults.Set).BoolVar(&c.acceptDefaults.Value)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)

@@ -67,7 +67,7 @@ func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
-	c.CmdClause.Flag("accept-custom-build", "Do not prompt when project manifest defines either a [scripts.build] or [scripts.post_build]").BoolVar(&c.Flags.AcceptCustomBuild)
+	c.CmdClause.Flag("accept-custom-build", "Skip confirmation prompts when running custom build commands").BoolVar(&c.Flags.AcceptCustomBuild)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.Flags.PackageName)
