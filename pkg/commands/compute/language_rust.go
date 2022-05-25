@@ -20,6 +20,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
 )
@@ -75,7 +76,7 @@ func (m *CargoManifest) SetPackageName(name, path string) error {
 		return err
 	}
 
-	if err := os.WriteFile(path, data, 0600); err != nil {
+	if err := os.WriteFile(path, data, 0o600); err != nil {
 		return fmt.Errorf("error updating Cargo manifest file: %w", err)
 	}
 	return nil
@@ -119,24 +120,26 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 type Rust struct {
 	Shell
 
-	pkgName string
-	build   string
-	client  api.HTTPClient
-	config  config.Rust
-	errlog  fsterr.LogInterface
-	timeout int
+	build     string
+	client    api.HTTPClient
+	config    config.Rust
+	errlog    fsterr.LogInterface
+	pkgName   string
+	postBuild string
+	timeout   int
 }
 
 // NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, pkgName, build string) *Rust {
+func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, pkgName string, scripts manifest.Scripts) *Rust {
 	return &Rust{
-		Shell:   Shell{},
-		pkgName: pkgName,
-		build:   build,
-		client:  client,
-		config:  config,
-		errlog:  errlog,
-		timeout: timeout,
+		Shell:     Shell{},
+		build:     scripts.Build,
+		client:    client,
+		config:    config,
+		errlog:    errlog,
+		pkgName:   pkgName,
+		postBuild: scripts.PostBuild,
+		timeout:   timeout,
 	}
 }
 
@@ -495,7 +498,11 @@ func (r Rust) Initialize(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
-func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
+//
+// NOTE: The callback function is called before executing any potential custom
+// post_build script defined, allowing the controlling build logic to display a
+// message to the user informing them a post_build is going to execute.
+func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
 	if err := m.Read("Cargo.toml"); err != nil {
@@ -525,19 +532,8 @@ func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
 
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
-	s := fstexec.Streaming{
-		Command:  cmd,
-		Args:     args,
-		Env:      os.Environ(),
-		Output:   out,
-		Progress: progress,
-		Verbose:  verbose,
-	}
-	if r.timeout > 0 {
-		s.Timeout = time.Duration(r.timeout) * time.Second
-	}
-	if err := s.Exec(); err != nil {
-		r.errlog.Add(err)
+	err := r.execCommand(cmd, args, out, progress, verbose)
+	if err != nil {
 		return err
 	}
 
@@ -568,6 +564,41 @@ func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
 		return fmt.Errorf("copying wasm binary: %w", err)
 	}
 
+	// NOTE: We set the progress indicator to Done() so that any output we now
+	// print via the post_build callback doesn't get hidden by the progress status.
+	// The progress is 'reset' inside the main build controller `build.go`.
+	progress.Done()
+
+	if r.postBuild != "" {
+		if err = callback(); err == nil {
+			cmd, args := r.Shell.Build(r.postBuild)
+			err := r.execCommand(cmd, args, out, progress, verbose)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// TODO: Consider generics to avoid re-implementing this same logic.
+func (r Rust) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
+	s := fstexec.Streaming{
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: progress,
+		Verbose:  verbose,
+	}
+	if r.timeout > 0 {
+		s.Timeout = time.Duration(r.timeout) * time.Second
+	}
+	if err := s.Exec(); err != nil {
+		r.errlog.Add(err)
+		return err
+	}
 	return nil
 }
 

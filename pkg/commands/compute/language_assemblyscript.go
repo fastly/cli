@@ -10,6 +10,8 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // ASSourceDirectory represents the source code directory.
@@ -26,30 +28,32 @@ const ASSourceDirectory = "assembly"
 type AssemblyScript struct {
 	JavaScript
 
-	build  string
-	errlog fsterr.LogInterface
+	build     string
+	errlog    fsterr.LogInterface
+	postBuild string
 }
 
 // NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript(timeout int, pkgName, build string, errlog fsterr.LogInterface) *AssemblyScript {
+func NewAssemblyScript(timeout int, pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface) *AssemblyScript {
 	return &AssemblyScript{
 		JavaScript: JavaScript{
-			pkgName:           pkgName,
-			build:             build,
+			build:             scripts.Build,
 			errlog:            errlog,
 			packageDependency: "assemblyscript",
 			packageExecutable: "asc",
+			pkgName:           pkgName,
 			timeout:           timeout,
 			toolchain:         JsToolchain,
 		},
-		build:  build,
-		errlog: errlog,
+		build:     scripts.Build,
+		errlog:    errlog,
+		postBuild: scripts.PostBuild,
 	}
 }
 
 // Build implements the Toolchain interface and attempts to compile the package
 // AssemblyScript source to a Wasm binary.
-func (a AssemblyScript) Build(out, progress io.Writer, verbose bool) error {
+func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	// Check if bin directory exists and create if not.
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -84,6 +88,30 @@ func (a AssemblyScript) Build(out, progress io.Writer, verbose bool) error {
 		cmd, args = a.Shell.Build(a.build)
 	}
 
+	err = a.execCommand(cmd, args, out, progress, verbose)
+	if err != nil {
+		return err
+	}
+
+	// NOTE: We set the progress indicator to Done() so that any output we now
+	// print via the post_build callback doesn't get hidden by the progress status.
+	// The progress is 'reset' inside the main build controller `build.go`.
+	progress.Done()
+
+	if a.postBuild != "" {
+		if err = callback(); err == nil {
+			cmd, args := a.Shell.Build(a.postBuild)
+			err := a.execCommand(cmd, args, out, progress, verbose)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a AssemblyScript) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command:  cmd,
 		Args:     args,
@@ -99,6 +127,5 @@ func (a AssemblyScript) Build(out, progress io.Writer, verbose bool) error {
 		a.errlog.Add(err)
 		return err
 	}
-
 	return nil
 }

@@ -13,6 +13,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -60,7 +61,7 @@ func SetPackageName(name, path string) (err error) {
 		return err
 	}
 
-	if err := os.WriteFile(path, data, 0600); err != nil {
+	if err := os.WriteFile(path, data, 0o600); err != nil {
 		return fmt.Errorf("error updating package.json manifest file: %w", err)
 	}
 	return nil
@@ -70,25 +71,27 @@ func SetPackageName(name, path string) (err error) {
 type JavaScript struct {
 	Shell
 
-	pkgName             string
 	build               string
 	errlog              fsterr.LogInterface
 	packageDependency   string
 	packageExecutable   string
+	pkgName             string
+	postBuild           string
 	timeout             int
 	toolchain           string
 	validateScriptBuild bool
 }
 
 // NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int, pkgName, build string, errlog fsterr.LogInterface) *JavaScript {
+func NewJavaScript(timeout int, pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface) *JavaScript {
 	return &JavaScript{
 		Shell:               Shell{},
-		pkgName:             pkgName,
-		build:               build,
+		build:               scripts.Build,
 		errlog:              errlog,
 		packageDependency:   "@fastly/js-compute",
 		packageExecutable:   "js-compute-runtime",
+		pkgName:             pkgName,
+		postBuild:           scripts.PostBuild,
 		timeout:             timeout,
 		toolchain:           JsToolchain,
 		validateScriptBuild: true,
@@ -287,7 +290,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // JavaScript source to a Wasm binary.
-func (j JavaScript) Build(out, progress io.Writer, verbose bool) error {
+func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	cmd := j.toolchain
 	args := []string{"run", "build"}
 
@@ -295,6 +298,30 @@ func (j JavaScript) Build(out, progress io.Writer, verbose bool) error {
 		cmd, args = j.Shell.Build(j.build)
 	}
 
+	err := j.execCommand(cmd, args, out, progress, verbose)
+	if err != nil {
+		return err
+	}
+
+	// NOTE: We set the progress indicator to Done() so that any output we now
+	// print via the post_build callback doesn't get hidden by the progress status.
+	// The progress is 'reset' inside the main build controller `build.go`.
+	progress.Done()
+
+	if j.postBuild != "" {
+		if err = callback(); err == nil {
+			cmd, args := j.Shell.Build(j.postBuild)
+			err := j.execCommand(cmd, args, out, progress, verbose)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (j JavaScript) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command:  cmd,
 		Args:     args,
@@ -310,6 +337,5 @@ func (j JavaScript) Build(out, progress io.Writer, verbose bool) error {
 		j.errlog.Add(err)
 		return err
 	}
-
 	return nil
 }
