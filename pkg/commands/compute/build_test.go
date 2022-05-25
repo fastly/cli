@@ -793,29 +793,38 @@ func TestCustomPostBuild(t *testing.T) {
 			wantError:            "error reading custom build instructions from fastly.toml manifest",
 			wantRemediationError: "Add a [scripts.build] setting for your custom build process",
 		},
+		// NOTE: We need a fully functioning environment for the following tests,
+		// otherwise the call to language.Verify() would fail before reaching
+		// language.Build() and we need the build to complete because the
+		// post_build isn't executed until AFTER a build is successful.
 		{
 			name: "stop post_build process",
-			args: args("compute build --language other"),
+			args: args("compute build"),
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.54.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
+						RustupConstraint:    ">= 1.23.0",
+					},
+				},
+			},
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
-			language = "other"
+			language = "rust"
 			[scripts]
 			post_build = "echo custom post_build"`,
 			stdin: "N",
 			wantOutput: []string{
 				compute.CustomPostBuildScriptMessage,
 				"echo custom post_build",
-				"Are you sure you want to continue with the build step?",
-				"Stopping the build process",
+				"Are you sure you want to continue with the post build step?",
+				"Stopping the post build process",
 			},
-			wantError:            "build process stopped by user",
-			wantRemediationError: "Remove or update the custom [scripts.build] in the fastly.toml manifest.",
 		},
-		// NOTE: We need a fully functioning environment for the following tests,
-		// otherwise the call to language.Verify() would fail before reaching
-		// language.Build() and we need the build to complete because the
-		// post_build isn't executed until AFTER a build is successful.
 		{
 			name: "allow post_build process",
 			args: args("compute build"),
@@ -840,7 +849,7 @@ func TestCustomPostBuild(t *testing.T) {
 			wantOutput: []string{
 				compute.CustomPostBuildScriptMessage,
 				"echo custom post_build",
-				"Are you sure you want to continue with the build step?",
+				"Are you sure you want to continue with the post build step?",
 				"Building package using rust toolchain",
 				"Built package 'test'",
 			},
@@ -871,7 +880,7 @@ func TestCustomPostBuild(t *testing.T) {
 			},
 			dontWantOutput: []string{
 				compute.CustomPostBuildScriptMessage,
-				"Are you sure you want to continue with the build step?",
+				"Are you sure you want to continue with the post build step?",
 			},
 		},
 	} {
