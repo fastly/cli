@@ -101,15 +101,15 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// Language from flag takes priority, otherwise infer from manifest and
 	// error if neither are provided. Sanitize by trim and lowercase.
-	var identLang string
+	var toolchain string
 	if c.Flags.Lang != "" {
-		identLang = c.Flags.Lang
+		toolchain = c.Flags.Lang
 	} else if c.Manifest.File.Language != "" {
-		identLang = c.Manifest.File.Language
+		toolchain = c.Manifest.File.Language
 	} else {
 		return fmt.Errorf("language cannot be empty, please provide a language")
 	}
-	identLang = strings.ToLower(strings.TrimSpace(identLang))
+	toolchain = strings.ToLower(strings.TrimSpace(toolchain))
 
 	// Name from flag takes priority, otherwise infer from manifest
 	// error if neither are provided. Sanitize value to ensure it is a safe
@@ -125,7 +125,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	name = sanitize.BaseName(name)
 
 	var language *Language
-	switch identLang {
+	switch toolchain {
 	case "assemblyscript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
@@ -153,20 +153,19 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Toolchain: NewOther(c.Flags.Timeout, c.Manifest.File.Scripts, c.Globals.ErrLog),
 		})
 	default:
-		return fmt.Errorf("unsupported language %s", identLang)
+		return fmt.Errorf("unsupported language %s", toolchain)
 	}
 
-	// NOTE: Even if the user has selected a valid starter kit, and manually
-	// modifies the fastly.toml to have [scripts.build] we override the toolchain
-	// to be "custom". This acts as both a reminder for the user coming back to
-	// their project after a long period of time, but also enables us to warn a
-	// user who has pulled a vulnerable starter kit.
-	toolchain := identLang
+	// NOTE: If there is a custom build script defined, then we set the toolchain
+	// to be "custom" as it means the CLI is no longer responsible for verifying
+	// the user's environment and isn't directly executing its own build process.
 	if c.Manifest.File.Scripts.Build != "" {
 		toolchain = "custom"
 	}
 
-	// NOTE: We don't verify custom build scripts.
+	// NOTE: When we find a custom build script, we don't verify the local
+	// environment (it's up to the user to ensure they have all the tools
+	// necessary to run their custom build script).
 	if c.Manifest.File.Scripts.Build == "" && !c.Flags.SkipVerification {
 		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", toolchain))
 
