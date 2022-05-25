@@ -35,7 +35,7 @@ const CustomPostBuildScriptMessage = "This project has a custom post build scrip
 type Toolchain interface {
 	Initialize(out io.Writer) error
 	Verify(out io.Writer) error
-	Build(out, progress io.Writer, verbose bool) error
+	Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error
 }
 
 // Flags represents the flags defined for the command.
@@ -188,17 +188,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// language that wouldn't normally require one (e.g. Rust), and do evil
 			// things. So we should notify the user and confirm they would like to
 			// continue with the build.
-			err := promptForBuildContinue(CustomBuildScriptMessage, c.Manifest.File.Scripts.Build, out, in)
+			err := promptForBuildContinue(CustomBuildScriptMessage, c.Manifest.File.Scripts.Build, out, in, c.Globals.Verbose())
 			if err != nil {
 				return err
 			}
-		}
-	}
-
-	if c.Manifest.File.Scripts.PostBuild != "" && !c.Flags.AcceptCustomBuild {
-		err := promptForBuildContinue(CustomPostBuildScriptMessage, c.Manifest.File.Scripts.PostBuild, out, in)
-		if err != nil {
-			return err
 		}
 	}
 
@@ -209,13 +202,28 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress = text.ResetProgress(out, c.Globals.Verbose())
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", toolchain))
 
-	if err := language.Build(out, progress, c.Globals.Flag.Verbose); err != nil {
+	postBuildCallback := func() error {
+		if !c.Flags.AcceptCustomBuild {
+			err := promptForBuildContinue(CustomPostBuildScriptMessage, c.Manifest.File.Scripts.PostBuild, out, in, c.Globals.Verbose())
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	if err := language.Build(out, progress, c.Globals.Flag.Verbose, postBuildCallback); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Language": language.Name,
 		})
 		return err
 	}
 
+	if c.Globals.Verbose() {
+		text.Break(out)
+	}
+
+	progress = text.ResetProgress(out, c.Globals.Verbose())
 	progress.Step("Creating package archive...")
 
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", name))
@@ -270,19 +278,26 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // promptForBuildContinue ensures the user is happy to continue with the build
 // when there is either a custom build or post build in the fastly.toml
 // manifest file.
-func promptForBuildContinue(msg, script string, out io.Writer, in io.Reader) error {
+func promptForBuildContinue(msg, script string, out io.Writer, in io.Reader, verbose bool) error {
 	text.Info(out, "%s:\n", msg)
 	text.Break(out)
 	text.Indent(out, 4, "%s", script)
 
-	label := "\nAre you sure you want to continue with the build step? [y/N] "
+	var post string
+	if msg == CustomPostBuildScriptMessage {
+		post = "post "
+	}
+
+	label := fmt.Sprintf("\nAre you sure you want to continue with the %sbuild step? [y/N] ", post)
 	answer, err := text.AskYesNo(out, label, in)
 	if err != nil {
 		return err
 	}
 	if !answer {
-		text.Info(out, "Stopping the build process.")
-		text.Break(out)
+		text.Info(out, "Stopping the %sbuild process.", post)
+		if !verbose {
+			text.Break(out)
+		}
 		return fsterr.ErrBuildStopped
 	}
 	text.Break(out)

@@ -290,7 +290,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // JavaScript source to a Wasm binary.
-func (j JavaScript) Build(out, progress io.Writer, verbose bool) error {
+func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	cmd := j.toolchain
 	args := []string{"run", "build"}
 
@@ -303,11 +303,18 @@ func (j JavaScript) Build(out, progress io.Writer, verbose bool) error {
 		return err
 	}
 
+	// NOTE: We set the progress indicator to Done() so that any output we now
+	// print via the post_build callback doesn't get hidden by the progress status.
+	// The progress is 'reset' inside the main build controller `build.go`.
+	progress.Done()
+
 	if j.postBuild != "" {
-		cmd, args := j.Shell.Build(j.postBuild)
-		err := j.execCommand(cmd, args, out, progress, verbose)
-		if err != nil {
-			return err
+		if err = callback(); err == nil {
+			cmd, args := j.Shell.Build(j.postBuild)
+			err := j.execCommand(cmd, args, out, progress, verbose)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

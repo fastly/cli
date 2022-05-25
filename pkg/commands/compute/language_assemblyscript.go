@@ -11,6 +11,7 @@ import (
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // ASSourceDirectory represents the source code directory.
@@ -52,7 +53,7 @@ func NewAssemblyScript(timeout int, pkgName string, scripts manifest.Scripts, er
 
 // Build implements the Toolchain interface and attempts to compile the package
 // AssemblyScript source to a Wasm binary.
-func (a AssemblyScript) Build(out, progress io.Writer, verbose bool) error {
+func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	// Check if bin directory exists and create if not.
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -92,11 +93,18 @@ func (a AssemblyScript) Build(out, progress io.Writer, verbose bool) error {
 		return err
 	}
 
+	// NOTE: We set the progress indicator to Done() so that any output we now
+	// print via the post_build callback doesn't get hidden by the progress status.
+	// The progress is 'reset' inside the main build controller `build.go`.
+	progress.Done()
+
 	if a.postBuild != "" {
-		cmd, args := a.Shell.Build(a.postBuild)
-		err := a.execCommand(cmd, args, out, progress, verbose)
-		if err != nil {
-			return err
+		if err = callback(); err == nil {
+			cmd, args := a.Shell.Build(a.postBuild)
+			err := a.execCommand(cmd, args, out, progress, verbose)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

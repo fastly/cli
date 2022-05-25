@@ -498,7 +498,11 @@ func (r Rust) Initialize(out io.Writer) error {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // Rust source to a Wasm binary.
-func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
+//
+// NOTE: The callback function is called before executing any potential custom
+// post_build script defined, allowing the controlling build logic to display a
+// message to the user informing them a post_build is going to execute.
+func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
 	if err := m.Read("Cargo.toml"); err != nil {
@@ -560,17 +564,25 @@ func (r *Rust) Build(out, progress io.Writer, verbose bool) error {
 		return fmt.Errorf("copying wasm binary: %w", err)
 	}
 
+	// NOTE: We set the progress indicator to Done() so that any output we now
+	// print via the post_build callback doesn't get hidden by the progress status.
+	// The progress is 'reset' inside the main build controller `build.go`.
+	progress.Done()
+
 	if r.postBuild != "" {
-		cmd, args := r.Shell.Build(r.postBuild)
-		err := r.execCommand(cmd, args, out, progress, verbose)
-		if err != nil {
-			return err
+		if err = callback(); err == nil {
+			cmd, args := r.Shell.Build(r.postBuild)
+			err := r.execCommand(cmd, args, out, progress, verbose)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
+// TODO: Consider generics to avoid re-implementing this same logic.
 func (r Rust) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command:  cmd,
