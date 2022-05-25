@@ -626,6 +626,7 @@ func TestCustomBuild(t *testing.T) {
 			stdin: "N",
 			wantOutput: []string{
 				compute.CustomBuildScriptMessage,
+				"echo custom build",
 				"Are you sure you want to continue with the build step?",
 				"Stopping the build process",
 			},
@@ -644,6 +645,7 @@ func TestCustomBuild(t *testing.T) {
 			stdin: "Y",
 			wantOutput: []string{
 				compute.CustomBuildScriptMessage,
+				"echo custom build",
 				"Are you sure you want to continue with the build step?",
 				"Building package using custom toolchain",
 				"Built package 'test'",
@@ -661,23 +663,6 @@ func TestCustomBuild(t *testing.T) {
 			stdin: "Y",
 			wantOutput: []string{
 				compute.CustomBuildScriptMessage,
-				"Are you sure you want to continue with the build step?",
-				"Building package using custom toolchain",
-				"Built package 'test'",
-			},
-		},
-		{
-			name: "display the custom build when in verbose mode",
-			args: args("compute build --verbose"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "other"
-			[scripts]
-			build = "echo custom build"`,
-			stdin: "Y",
-			wantOutput: []string{
-				compute.CustomBuildScriptMessage,
 				"echo custom build",
 				"Are you sure you want to continue with the build step?",
 				"Building package using custom toolchain",
@@ -685,8 +670,8 @@ func TestCustomBuild(t *testing.T) {
 			},
 		},
 		{
-			name: "display the custom build when in verbose mode and using a non-other language",
-			args: args("compute build --verbose"),
+			name: "display the custom build when using a non-other language",
+			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -730,6 +715,176 @@ func TestCustomBuild(t *testing.T) {
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
+			err = app.Run(opts)
+
+			t.Log(stdout.String())
+
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
+			for _, s := range testcase.wantOutput {
+				testutil.AssertStringContains(t, stdout.String(), s)
+			}
+			for _, s := range testcase.dontWantOutput {
+				testutil.AssertStringDoesntContain(t, stdout.String(), s)
+			}
+		})
+	}
+}
+
+func TestCustomPostBuild(t *testing.T) {
+	args := testutil.Args
+	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
+	}
+
+	// We're going to chdir to a build environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
+			{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
+			{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
+		},
+		// NOTE: Our only requirement is that there be a bin directory. The custom
+		// build script we're using in the test is not going to use any files in the
+		// directory (the script will just `echo` a message).
+		Write: []testutil.FileIO{
+			{Src: "mock content", Dst: "bin/testfile"},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// Before running the test, chdir into the build environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
+
+	for _, testcase := range []struct {
+		applicationConfig    config.File
+		args                 []string
+		dontWantOutput       []string
+		fastlyManifest       string
+		name                 string
+		stdin                string
+		wantError            string
+		wantOutput           []string
+		wantRemediationError string
+	}{
+		{
+			name: "no custom post_build",
+			args: args("compute build --language other"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"`,
+			dontWantOutput:       []string{compute.CustomPostBuildScriptMessage},
+			wantError:            "error reading custom build instructions from fastly.toml manifest",
+			wantRemediationError: "Add a [scripts.build] setting for your custom build process",
+		},
+		{
+			name: "stop post_build process",
+			args: args("compute build --language other"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "other"
+			[scripts]
+			post_build = "echo custom post_build"`,
+			stdin: "N",
+			wantOutput: []string{
+				compute.CustomPostBuildScriptMessage,
+				"echo custom post_build",
+				"Are you sure you want to continue with the build step?",
+				"Stopping the build process",
+			},
+			wantError:            "build process stopped by user",
+			wantRemediationError: "Remove or update the custom [scripts.build] in the fastly.toml manifest.",
+		},
+		// NOTE: We need a fully functioning environment for the following tests,
+		// otherwise the call to language.Verify() would fail before reaching
+		// language.Build() and we need the build to complete because the
+		// post_build isn't executed until AFTER a build is successful.
+		{
+			name: "allow post_build process",
+			args: args("compute build"),
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.54.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
+						RustupConstraint:    ">= 1.23.0",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "rust"
+			[scripts]
+			post_build = "echo custom post_build"`,
+			stdin: "Y",
+			wantOutput: []string{
+				compute.CustomPostBuildScriptMessage,
+				"echo custom post_build",
+				"Are you sure you want to continue with the build step?",
+				"Building package using rust toolchain",
+				"Built package 'test'",
+			},
+		},
+		{
+			name: "avoid prompt confirmation",
+			args: args("compute build --accept-custom-build"),
+			applicationConfig: config.File{
+				Language: config.Language{
+					Rust: config.Rust{
+						ToolchainVersion:    "1.49.0",
+						ToolchainConstraint: ">= 1.54.0",
+						WasmWasiTarget:      "wasm32-wasi",
+						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
+						RustupConstraint:    ">= 1.23.0",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "rust"
+			[scripts]
+			post_build = "echo custom post_build"`,
+			wantOutput: []string{
+				"Building package using rust toolchain",
+				"Built package 'test'",
+			},
+			dontWantOutput: []string{
+				compute.CustomPostBuildScriptMessage,
+				"Are you sure you want to continue with the build step?",
+			},
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.fastlyManifest != "" {
+				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.ConfigFile = testcase.applicationConfig
 			opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
 			err = app.Run(opts)
 
