@@ -242,6 +242,59 @@ func (g *Go) Verify(out io.Writer) error {
 	return nil
 }
 
+// Build implements the Toolchain interface and attempts to compile the package
+// Go source to a Wasm binary.
+func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+	cmd := g.compiler
+	args := []string{
+		"build",
+		"-target=wasi",
+		"-wasm-abi=generic",
+		"-gc=conservative",
+		"-scheduler=asyncify",
+		"-o=bin/main.wasm",
+		"./src",
+	}
+
+	// A bin directory is required.
+	dir, err := os.Getwd()
+	if err != nil {
+		g.errlog.Add(err)
+		return fmt.Errorf("getting current working directory: %w", err)
+	}
+	binDir := filepath.Join(dir, "bin")
+	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
+		g.errlog.Add(err)
+		return fmt.Errorf("creating bin directory: %w", err)
+	}
+
+	if g.build != "" {
+		cmd, args = g.Shell.Build(g.build)
+	}
+
+	err = g.execCommand(cmd, args, out, progress, verbose)
+	if err != nil {
+		return err
+	}
+
+	// NOTE: We set the progress indicator to Done() so that any output we now
+	// print via the post_build callback doesn't get hidden by the progress status.
+	// The progress is 'reset' inside the main build controller `build.go`.
+	progress.Done()
+
+	if g.postBuild != "" {
+		if err = callback(); err == nil {
+			cmd, args := g.Shell.Build(g.postBuild)
+			err := g.execCommand(cmd, args, out, progress, verbose)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (g Go) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
 	s := fstexec.Streaming{
 		Command:  cmd,
@@ -258,12 +311,6 @@ func (g Go) execCommand(cmd string, args []string, out, progress io.Writer, verb
 		g.errlog.Add(err)
 		return err
 	}
-	return nil
-}
-
-// Build implements the Toolchain interface and attempts to compile the package
-// Go source to a Wasm binary.
-func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	return nil
 }
 
