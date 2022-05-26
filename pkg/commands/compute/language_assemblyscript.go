@@ -75,7 +75,7 @@ func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose boo
 	cmd := filepath.Join(toolchaindir, "asc")
 	args := []string{
 		"assembly/index.ts",
-		"--binaryFile",
+		"--outFile",
 		filepath.Join(binDir, "main.wasm"),
 		"--optimize",
 		"--noAssert",
