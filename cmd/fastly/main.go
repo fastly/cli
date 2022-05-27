@@ -12,6 +12,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/check"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -141,7 +142,10 @@ func main() {
 	var errLoadConfig error
 
 	// Validate if configuration is older than its TTL
-	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) {
+	// NOTE: We don't want to trigger a config check when the user is making an
+	// autocomplete request because this can add additional latency to the user's
+	// shell loading completely.
+	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) && !cmd.IsCompletion(args) && !cmd.IsCompletionScript(args) {
 		if verboseOutput {
 			text.Info(out, `
 Compatibility and versioning information for the Fastly CLI is being updated in the background.  The updated data will be used next time you execute a fastly command.
