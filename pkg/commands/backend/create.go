@@ -124,7 +124,10 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.input.UseSSL = fastly.Compatibool(c.useSSL)
 	c.input.SSLCheckCert = fastly.Compatibool(c.sslCheckCert)
 
-	if c.useSSL && !c.port.WasSet {
+	switch {
+	case c.port.WasSet:
+		c.input.Port = fastly.Uint(c.port.Value)
+	case c.useSSL:
 		if c.Globals.Flag.Verbose {
 			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443")
 		}

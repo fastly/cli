@@ -63,7 +63,7 @@ func TestBackendCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
-				CreateBackendFn: createBackendOK,
+				CreateBackendFn: createBackendWithPort(8080),
 			},
 			WantOutput: "Created backend www.test.com (service 123 version 4)",
 		},
@@ -86,9 +86,21 @@ func TestBackendCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
-				CreateBackendFn: createBackendOK,
+				CreateBackendFn: createBackendWithPort(443),
 			},
 			WantOutput: "Use-ssl was set but no port was specified, using default port 443",
+		},
+		// The following test is the same as above but appends --port, --use-ssl and
+		// --verbose so we may validate a successful backend creation.
+		//
+		{
+			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8443 --use-ssl --verbose"),
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				CreateBackendFn: createBackendWithPort(8443),
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 4)",
 		},
 		// The following test specifies a service version that's 'inactive', and
 		// subsequently we expect it to be the same editable version.
@@ -322,6 +334,17 @@ func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 
 func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
+}
+
+func createBackendWithPort(wantPort uint) func(*fastly.CreateBackendInput) (*fastly.Backend, error) {
+	return func(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+		switch {
+		case i.Port != nil && *i.Port == wantPort:
+			return createBackendOK(i)
+		default:
+			return createBackendError(i)
+		}
+	}
 }
 
 func listBackendsOK(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
