@@ -49,7 +49,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
-	c.CmdClause.Flag("snippet-id", "Alphanumeric string identifying a VCL Snippet").Short('i').StringVar(&c.snippetID)
+	c.CmdClause.Flag("snippet-id", "Alphanumeric string identifying a VCL Snippet").StringVar(&c.snippetID)
 
 	// NOTE: Locations is defined in the same snippet package inside create.go
 	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").HintOptions(Locations...).Action(c.location.Set).EnumVar(&c.location.Value, Locations...)
