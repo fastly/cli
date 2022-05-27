@@ -270,8 +270,9 @@ type LocalBackend struct {
 
 // LocalDictionary represents a dictionary to be mocked by the local testing server.
 type LocalDictionary struct {
-	File   string `toml:"file"`
-	Format string `toml:"format"`
+	File     string            `toml:"file,omitempty"`
+	Format   string            `toml:"format"`
+	Contents map[string]string `toml:"contents,omitempty"`
 }
 
 // Exists yields whether the manifest exists.
