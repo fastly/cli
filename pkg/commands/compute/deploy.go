@@ -194,9 +194,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		loggers = &setup.Loggers{
-			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
-			Setup:          c.Manifest.File.Setup.Loggers,
-			Stdout:         out,
+			Setup:  c.Manifest.File.Setup.Loggers,
+			Stdout: out,
 		}
 	}
 
@@ -558,7 +557,7 @@ func manageNoServiceIDFlow(
 	manifestFile *manifest.File,
 	activateTrial activator,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
-	if !globalFlags.AutoYes || !globalFlags.NonInteractive {
+	if !globalFlags.AutoYes && !globalFlags.NonInteractive {
 		text.Break(out)
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
 		text.Break(out)

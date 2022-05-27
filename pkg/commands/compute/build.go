@@ -181,7 +181,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Done()
 
 	if toolchain == "custom" {
-		if !c.Globals.Flag.AutoYes || !c.Globals.Flag.NonInteractive {
+		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
 			// NOTE: A third-party could share a project with a build command for a
 			// language that wouldn't normally require one (e.g. Rust), and do evil
 			// things. So we should notify the user and confirm they would like to
@@ -193,7 +193,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if c.Globals.Verbose() && (!c.Globals.Flag.AutoYes || !c.Globals.Flag.NonInteractive) {
+	if c.Globals.Verbose() && (!c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive) {
 		text.Break(out)
 	}
 
@@ -201,7 +201,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", toolchain))
 
 	postBuildCallback := func() error {
-		if !c.Globals.Flag.AutoYes || !c.Globals.Flag.NonInteractive {
+		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
 			err := promptForBuildContinue(CustomPostBuildScriptMessage, c.Manifest.File.Scripts.PostBuild, out, in, c.Globals.Verbose())
 			if err != nil {
 				return err

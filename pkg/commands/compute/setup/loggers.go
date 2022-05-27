@@ -12,9 +12,8 @@ import (
 //
 // NOTE: It implements the setup.Interface interface.
 type Loggers struct {
-	AcceptDefaults bool
-	Setup          map[string]*manifest.SetupLogger
-	Stdout         io.Writer
+	Setup  map[string]*manifest.SetupLogger
+	Stdout io.Writer
 }
 
 // Logger represents the configuration parameters for creating a dictionary
@@ -25,25 +24,23 @@ type Logger struct {
 
 // Configure prompts the user for specific values related to the service resource.
 func (l *Loggers) Configure() error {
-	if !l.AcceptDefaults {
-		text.Break(l.Stdout)
-		text.Info(l.Stdout, "The package code requires the following log endpoints to be created.")
-		text.Break(l.Stdout)
+	text.Break(l.Stdout)
+	text.Info(l.Stdout, "The package code requires the following log endpoints to be created.")
+	text.Break(l.Stdout)
 
-		for name, settings := range l.Setup {
-			text.Output(l.Stdout, "%s %s", text.Bold("Name:"), name)
-			if settings.Provider != "" {
-				text.Output(l.Stdout, "%s %s", text.Bold("Provider:"), settings.Provider)
-			}
-			text.Break(l.Stdout)
+	for name, settings := range l.Setup {
+		text.Output(l.Stdout, "%s %s", text.Bold("Name:"), name)
+		if settings.Provider != "" {
+			text.Output(l.Stdout, "%s %s", text.Bold("Provider:"), settings.Provider)
 		}
-
-		text.Description(
-			l.Stdout,
-			"Refer to the help documentation for each provider (if no provider shown, then select your own)",
-			"fastly logging <provider> create --help",
-		)
+		text.Break(l.Stdout)
 	}
+
+	text.Description(
+		l.Stdout,
+		"Refer to the help documentation for each provider (if no provider shown, then select your own)",
+		"fastly logging <provider> create --help",
+	)
 
 	return nil
 }

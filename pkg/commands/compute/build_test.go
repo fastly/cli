@@ -689,7 +689,7 @@ func TestCustomBuild(t *testing.T) {
 		},
 		{
 			name: "avoid prompt confirmation",
-			args: args("compute build --accept-custom-build --language other"),
+			args: args("compute build --auto-yes --language other"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
@@ -856,7 +856,7 @@ func TestCustomPostBuild(t *testing.T) {
 		},
 		{
 			name: "avoid prompt confirmation",
-			args: args("compute build --accept-custom-build"),
+			args: args("compute build --auto-yes"),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
