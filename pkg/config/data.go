@@ -608,10 +608,13 @@ func (e *Environment) Read(state map[string]string) {
 // explicit flags. Consumers should bind their flag values to these fields
 // directly.
 type Flag struct {
-	Profile  string
-	Token    string
-	Verbose  bool
-	Endpoint string
+	AcceptDefaults bool
+	AutoYes        bool
+	Endpoint       string
+	NonInteractive bool
+	Profile        string
+	Token          string
+	Verbose        bool
 }
 
 // This suggests our embedded config is unexpectedly faulty and so we should

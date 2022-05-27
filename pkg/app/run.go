@@ -96,10 +96,13 @@ func Run(opts RunOpts) error {
 	//
 	// NOTE: Short flags CAN be safely reused across commands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
-	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
-	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
-	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
+	app.Flag("accept-defaults", "...").Short('d').BoolVar(&globals.Flag.AcceptDefaults)
+	app.Flag("auto-yes", "...").Short('y').BoolVar(&globals.Flag.AutoYes)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
+	app.Flag("non-interactive", "...").Short('i').BoolVar(&globals.Flag.NonInteractive)
+	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
+	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
+	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 
 	commands := defineCommands(app, &globals, md, opts)
 	command, name, err := processCommandInput(opts, app, &globals, commands)

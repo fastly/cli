@@ -139,13 +139,18 @@ var UsageTemplateFuncs = template.FuncMap{
 }
 
 // WARNING: kingpin has no way of decorating flags as being "global" therefore
-// if you add/remove a global flag you will also need to update flag binding in
-// pkg/app/app.go.
+// if you add/remove a global flag you will also need to update the app.Flag()
+// bindings in pkg/app/run.go.
+//
+// NOTE: These map is used to help populate the CLI 'usage' template renderer.
 var globalFlags = map[string]bool{
-	"help":    true,
-	"profile": true,
-	"token":   true,
-	"verbose": true,
+	"accept-defaults": true,
+	"auto-yes":        true,
+	"help":            true,
+	"non-interactive": true,
+	"profile":         true,
+	"token":           true,
+	"verbose":         true,
 }
 
 // VerboseUsageTemplate is the full-fat usage template, rendered when users type
