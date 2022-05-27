@@ -26,3 +26,11 @@ name = "Default Rust template"
     [local_server.dictionaries.strings]
       file = "strings.json"
       format = "json"
+
+    [local_server.dictionaries.toml]
+      format = "inline-toml"
+
+    [local_server.dictionaries.toml.contents]
+      foo = "bar"
+      baz = """
+qux"""
