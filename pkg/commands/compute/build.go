@@ -193,7 +193,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if c.Globals.Verbose() && (!c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive) {
+	if c.Globals.Verbose() {
 		text.Break(out)
 	}
 
