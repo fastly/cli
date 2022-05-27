@@ -90,16 +90,17 @@ func Run(opts RunOpts) error {
 	// therefore if you add/remove a global flag you will also need to update
 	// the globalFlags map in pkg/app/usage.go which is used for usage rendering.
 	//
-	// NOTE: Global flags, unlike command flags, must be unique. For example, if
-	// you try to use a letter that is already taken by any other command flag,
-	// then kingpin will trigger a runtime panic 🎉
+	// NOTE: Global flags, unlike command flags, must be unique. This means BOTH
+	// the long flag and the short flag identifiers must be unique. If you try to
+	// reuse an identifier (long or short), then kingpin will trigger a runtime
+	// panic 🎉
 	//
 	// NOTE: Short flags CAN be safely reused across commands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
-	app.Flag("accept-defaults", "...").Short('d').BoolVar(&globals.Flag.AcceptDefaults)
-	app.Flag("auto-yes", "...").Short('y').BoolVar(&globals.Flag.AutoYes)
+	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&globals.Flag.AcceptDefaults)
+	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&globals.Flag.AutoYes)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
-	app.Flag("non-interactive", "...").Short('i').BoolVar(&globals.Flag.NonInteractive)
+	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&globals.Flag.NonInteractive)
 	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
 	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
