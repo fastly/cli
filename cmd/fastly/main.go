@@ -162,10 +162,10 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 				// already have a static backup that can be used. Defer another attempt
 				// until after the TTL has expired.
 				file.CLI.LastChecked = time.Now().Format(time.RFC3339)
-				err = file.Write(config.FilePath)
-				if err != nil {
+				fileErr := file.Write(config.FilePath)
+				if fileErr != nil {
 					text.Break(out)
-					text.Error(out, "%s: %s", errNotice, err)
+					text.Error(out, "%s: %s", errNotice, fileErr)
 				}
 
 				checkAgain := fmt.Sprintf("we won't check again until %s have passed", file.CLI.TTL)
