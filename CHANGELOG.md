@@ -1,5 +1,25 @@
 # Changelog
 
+## [v3.0.0](https://github.com/fastly/cli/releases/tag/v3.0.0) (2022-05-30)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v2.0.3...v3.0.0)
+
+**Breaking changes:**
+
+* Implement new global flags for handling interactive prompts [#568](https://github.com/fastly/cli/pull/568)
+
+**Bug fixes:**
+
+* The `backend create` command should set `--port` value if specified [#566](https://github.com/fastly/cli/pull/566)
+* Don't overwrite `file.Load` error with `nil` [#569](https://github.com/fastly/cli/pull/569)
+
+**Enhancements:**
+
+* Support `[scripts.post_build]` [#565](https://github.com/fastly/cli/pull/565)
+* Support Viceroy "inline-toml" `format` and new `contents` field [#567](https://github.com/fastly/cli/pull/567)
+* Add example inline-toml dictionary to tests [#570](https://github.com/fastly/cli/pull/570)
+* Avoid config update checks when handling 'completion' flags [#554](https://github.com/fastly/cli/pull/554)
+
 ## [v2.0.3](https://github.com/fastly/cli/releases/tag/v2.0.3) (2022-05-20)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v2.0.2...v2.0.3)
