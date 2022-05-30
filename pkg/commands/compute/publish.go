@@ -17,15 +17,13 @@ type PublishCommand struct {
 	deploy   *DeployCommand
 
 	// Build fields
-	acceptCustomBuild cmd.OptionalBool
-	includeSrc        cmd.OptionalBool
-	lang              cmd.OptionalString
-	name              cmd.OptionalString
-	skipVerification  cmd.OptionalBool
-	timeout           cmd.OptionalInt
+	includeSrc       cmd.OptionalBool
+	lang             cmd.OptionalString
+	name             cmd.OptionalString
+	skipVerification cmd.OptionalBool
+	timeout          cmd.OptionalInt
 
 	// Deploy fields
-	acceptDefaults cmd.OptionalBool
 	comment        cmd.OptionalString
 	domain         cmd.OptionalString
 	pkg            cmd.OptionalString
@@ -42,8 +40,6 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.deploy = deploy
 	c.CmdClause = parent.Command("publish", "Build and deploy a Compute@Edge package to a Fastly service")
 
-	c.CmdClause.Flag("accept-custom-build", "Skip confirmation prompts when running custom build commands").Action(c.acceptCustomBuild.Set).BoolVar(&c.acceptCustomBuild.Value)
-	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and perform deploy non-interactively").Action(c.acceptDefaults.Set).BoolVar(&c.acceptDefaults.Value)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
@@ -83,9 +79,6 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 // the progress indicator.
 func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Reset the fields on the BuildCommand based on PublishCommand values.
-	if c.acceptCustomBuild.WasSet {
-		c.build.Flags.AcceptCustomBuild = c.acceptCustomBuild.Value
-	}
 	if c.includeSrc.WasSet {
 		c.build.Flags.IncludeSrc = c.includeSrc.Value
 	}
@@ -114,9 +107,6 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Reset the fields on the DeployCommand based on PublishCommand values.
 	if c.name.WasSet {
 		c.manifest.Flag.Name = c.name.Value
-	}
-	if c.acceptDefaults.WasSet {
-		c.deploy.AcceptDefaults = c.acceptDefaults.Value
 	}
 	if c.pkg.WasSet {
 		c.deploy.Package = c.pkg.Value

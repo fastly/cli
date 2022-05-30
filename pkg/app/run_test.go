@@ -187,9 +187,16 @@ A tool to interact with the Fastly API
 
 GLOBAL FLAGS
       --help             Show context-sensitive help.
-  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
+  -d, --accept-defaults  Accept default options for all interactive prompts
+                         apart from Yes/No confirmations
+  -y, --auto-yes         Answer yes automatically to all Yes/No confirmations.
+                         This may suppress security warnings
+  -i, --non-interactive  Do not prompt for user input - suitable for CI
+                         processes. Equivalent to --accept-defaults and
+                         --auto-yes
   -o, --profile=PROFILE  Switch account profile for single command execution
                          (see also: 'fastly profile switch')
+  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
   -v, --verbose          Verbose logging
 
 COMMANDS
@@ -229,9 +236,16 @@ USAGE
 
 GLOBAL FLAGS
       --help             Show context-sensitive help.
-  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
+  -d, --accept-defaults  Accept default options for all interactive prompts
+                         apart from Yes/No confirmations
+  -y, --auto-yes         Answer yes automatically to all Yes/No confirmations.
+                         This may suppress security warnings
+  -i, --non-interactive  Do not prompt for user input - suitable for CI
+                         processes. Equivalent to --accept-defaults and
+                         --auto-yes
   -o, --profile=PROFILE  Switch account profile for single command execution
                          (see also: 'fastly profile switch')
+  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
   -v, --verbose          Verbose logging
 
 SUBCOMMANDS
@@ -299,9 +313,16 @@ A tool to interact with the Fastly API
 
 GLOBAL FLAGS
       --help             Show context-sensitive help.
-  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
+  -d, --accept-defaults  Accept default options for all interactive prompts
+                         apart from Yes/No confirmations
+  -y, --auto-yes         Answer yes automatically to all Yes/No confirmations.
+                         This may suppress security warnings
+  -i, --non-interactive  Do not prompt for user input - suitable for CI
+                         processes. Equivalent to --accept-defaults and
+                         --auto-yes
   -o, --profile=PROFILE  Switch account profile for single command execution
                          (see also: 'fastly profile switch')
+  -t, --token=TOKEN      Fastly API token (or via FASTLY_API_TOKEN)
   -v, --verbose          Verbose logging
 
 COMMANDS
@@ -642,13 +663,11 @@ COMMANDS
   compute build [<flags>]
     Build a Compute@Edge package locally
 
-    --accept-custom-build  Skip confirmation prompts when running custom build
-                           commands
-    --include-source       Include source code in built package
-    --language=LANGUAGE    Language type
-    --name=NAME            Package name
-    --skip-verification    Skip verification steps and force build
-    --timeout=TIMEOUT      Timeout, in seconds, for the build compilation step
+    --include-source     Include source code in built package
+    --language=LANGUAGE  Language type
+    --name=NAME          Package name
+    --skip-verification  Skip verification steps and force build
+    --timeout=TIMEOUT    Timeout, in seconds, for the build compilation step
 
   compute deploy [<flags>]
     Deploy a package to a Fastly Compute@Edge service
@@ -659,8 +678,6 @@ COMMANDS
                                  The name of the service
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
-        --accept-defaults        Accept default values for all prompts and
-                                 perform deploy non-interactively
         --comment=COMMENT        Human-readable comment
         --domain=DOMAIN          The name of the domain associated to the
                                  package
@@ -671,7 +688,7 @@ COMMANDS
     Initialize a new Compute@Edge package locally
 
     -n, --name=NAME                Name of package, falls back to --directory
-    -d, --description=DESCRIPTION  Description of the package
+        --description=DESCRIPTION  Description of the package
     -p, --directory=DIRECTORY      Destination to write the new package,
                                    defaulting to the current directory
     -a, --author=AUTHOR ...        Author(s) of the package
@@ -690,10 +707,6 @@ COMMANDS
   compute publish [<flags>]
     Build and deploy a Compute@Edge package to a Fastly service
 
-        --accept-custom-build    Skip confirmation prompts when running custom
-                                 build commands
-        --accept-defaults        Accept default values for all prompts and
-                                 perform deploy non-interactively
         --comment=COMMENT        Human-readable comment
         --domain=DOMAIN          The name of the domain associated to the
                                  package
@@ -714,8 +727,6 @@ COMMANDS
   compute serve [<flags>]
     Build and run a Compute@Edge package locally
 
-    --accept-custom-build    Skip confirmation prompts when running custom build
-                             commands
     --addr="127.0.0.1:7676"  The IPv4 address and port to listen on
     --env=ENV                The environment configuration to use (e.g. stage)
     --file="bin/main.wasm"   The Wasm file to run
@@ -4737,7 +4748,7 @@ COMMANDS
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
-    -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
+        --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
 
   vcl snippet list --version=VERSION [<flags>]
     List the uploaded VCL snippets for a particular service and version
@@ -4768,7 +4779,7 @@ COMMANDS
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
-    -i, --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
+        --snippet-id=SNIPPET-ID  Alphanumeric string identifying a VCL Snippet
         --type=TYPE              The location in generated VCL where the snippet
                                  should be placed
 

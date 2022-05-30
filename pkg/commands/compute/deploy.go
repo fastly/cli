@@ -40,7 +40,6 @@ type DeployCommand struct {
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
-	AcceptDefaults bool
 	Comment        cmd.OptionalString
 	Domain         string
 	Manifest       manifest.Data
@@ -76,7 +75,6 @@ func NewDeployCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:         &c.ServiceVersion.Value,
 		Name:        cmd.FlagVersionName,
 	})
-	c.CmdClause.Flag("accept-defaults", "Accept default values for all prompts and perform deploy non-interactively").BoolVar(&c.AcceptDefaults)
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.Manifest.Flag.Name)
@@ -122,7 +120,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if source == manifest.SourceUndefined {
 		newService = true
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.AcceptDefaults, in, out, verbose, apiClient, pkgName, c.Package, errLog, &c.Manifest.File, activateTrial)
+		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.Globals.Flag, in, out, verbose, apiClient, pkgName, c.Package, errLog, &c.Manifest.File, activateTrial)
 		if err != nil {
 			return err
 		}
@@ -154,7 +152,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	domains := &setup.Domains{
 		APIClient:      apiClient,
-		AcceptDefaults: c.AcceptDefaults,
+		AcceptDefaults: c.Globals.Flag.AcceptDefaults,
 		PackageDomain:  c.Domain,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
@@ -177,7 +175,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if newService {
 		backends = &setup.Backends{
 			APIClient:      apiClient,
-			AcceptDefaults: c.AcceptDefaults,
+			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion.Number,
 			Setup:          c.Manifest.File.Setup.Backends,
@@ -187,7 +185,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		dictionaries = &setup.Dictionaries{
 			APIClient:      apiClient,
-			AcceptDefaults: c.AcceptDefaults,
+			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion.Number,
 			Setup:          c.Manifest.File.Setup.Dictionaries,
@@ -196,9 +194,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		loggers = &setup.Loggers{
-			AcceptDefaults: c.AcceptDefaults,
-			Setup:          c.Manifest.File.Setup.Loggers,
-			Stdout:         out,
+			Setup:  c.Manifest.File.Setup.Loggers,
+			Stdout: out,
 		}
 	}
 
@@ -266,7 +263,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		if err := domains.Create(); err != nil {
 			errLog.AddWithContext(err, map[string]interface{}{
-				"Accept defaults": c.AcceptDefaults,
+				"Accept defaults": c.Globals.Flag.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flag.AutoYes,
+				"Non-interactive": c.Globals.Flag.NonInteractive,
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})
@@ -283,7 +282,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		if err := backends.Create(); err != nil {
 			errLog.AddWithContext(err, map[string]interface{}{
-				"Accept defaults": c.AcceptDefaults,
+				"Accept defaults": c.Globals.Flag.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flag.AutoYes,
+				"Non-interactive": c.Globals.Flag.NonInteractive,
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})
@@ -292,7 +293,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		if err := dictionaries.Create(); err != nil {
 			errLog.AddWithContext(err, map[string]interface{}{
-				"Accept defaults": c.AcceptDefaults,
+				"Accept defaults": c.Globals.Flag.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flag.AutoYes,
+				"Non-interactive": c.Globals.Flag.NonInteractive,
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})
@@ -544,7 +547,7 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 
 // manageNoServiceIDFlow handles creating a new service when no Service ID is found.
 func manageNoServiceIDFlow(
-	acceptDefaults bool,
+	globalFlags config.Flag,
 	in io.Reader,
 	out io.Writer,
 	verbose bool,
@@ -554,7 +557,7 @@ func manageNoServiceIDFlow(
 	manifestFile *manifest.File,
 	activateTrial activator,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
-	if !acceptDefaults {
+	if !globalFlags.AutoYes && !globalFlags.NonInteractive {
 		text.Break(out)
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
 		text.Break(out)

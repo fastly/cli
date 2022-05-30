@@ -54,7 +54,7 @@ func NewInitCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.manifest = data
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
 	c.CmdClause.Flag("name", "Name of package, falls back to --directory").Short('n').StringVar(&c.manifest.File.Name)
-	c.CmdClause.Flag("description", "Description of the package").Short('d').StringVar(&c.manifest.File.Description)
+	c.CmdClause.Flag("description", "Description of the package").StringVar(&c.manifest.File.Description)
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)

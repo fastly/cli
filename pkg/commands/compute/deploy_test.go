@@ -694,10 +694,10 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		// The following test validates no prompts are displayed to the user due to
-		// the use of the --accept-defaults flag.
+		// the use of the --non-interactive flag.
 		{
 			name: "success with setup.backends configuration and accept-defaults",
-			args: args("compute deploy --accept-defaults --token 123"),
+			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
 				CreateBackendFn:   createBackendOK,
@@ -740,13 +740,13 @@ func TestDeploy(t *testing.T) {
 		},
 		// The following test validates that a new 'originless' backend is created
 		// when the user has no [setup] configuration and they also pass the
-		// --accept-defaults flag. This is done by ensuring we DON'T see the
+		// --non-interactive flag. This is done by ensuring we DON'T see the
 		// standard 'Creating backend' output because we want to conceal the fact
 		// that we require a backend for compute services because it's a temporary
 		// implementation detail.
 		{
-			name: "success with no setup.backends configuration and --accept-defaults for new service creation",
-			args: args("compute deploy --accept-defaults --token 123"),
+			name: "success with no setup.backends configuration and non-interactive for new service creation",
+			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,
 				CreateBackendFn:   createBackendOK,
@@ -852,10 +852,10 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		// The following test is the same setup as above, but if the user provides
-		// the --accept-defaults flag we won't prompt for any backends.
+		// the --non-interactive flag we won't prompt for any backends.
 		{
-			name: "success with no setup.backends configuration and use of --accept-defaults",
-			args: args("compute deploy --accept-defaults --token 123"),
+			name: "success with no setup.backends configuration and use of --non-interactive",
+			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				CreateBackendFn:     createBackendOK,
@@ -1012,8 +1012,8 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with setup.dictionaries configuration and no existing service and --accept-defaults",
-			args: args("compute deploy --accept-defaults --token 123"),
+			name: "success with setup.dictionaries configuration and no existing service and --non-interactive",
+			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
 				ActivateVersionFn:      activateVersionOk,
 				CreateBackendFn:        createBackendOK,
@@ -1218,8 +1218,8 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with setup.log_entries configuration and no existing service and --accept-defaults",
-			args: args("compute deploy --accept-defaults --token 123"),
+			name: "success with setup.log_entries configuration and no existing service, but a provider defined",
+			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn:      activateVersionOk,
 				CreateBackendFn:        createBackendOK,
@@ -1246,16 +1246,14 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Uploading package...",
-				"Activating version...",
-				"SUCCESS: Deployed package (service 12345, version 1)",
-			},
-			dontWantOutput: []string{
 				"The package code requires the following log endpoints to be created.",
 				"Name: foo",
 				"Provider: BigQuery",
 				"Refer to the help documentation for each provider (if no provider shown, then select your own):",
 				"fastly logging <provider> create --help",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
 	} {
@@ -1268,7 +1266,7 @@ func TestDeploy(t *testing.T) {
 			if testcase.manifest != "" {
 				manifestContent = testcase.manifest
 			}
-			if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(manifestContent), 0777); err != nil {
+			if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(manifestContent), 0o777); err != nil {
 				t.Fatal(err)
 			}
 

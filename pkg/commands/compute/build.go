@@ -40,12 +40,11 @@ type Toolchain interface {
 
 // Flags represents the flags defined for the command.
 type Flags struct {
-	AcceptCustomBuild bool
-	IncludeSrc        bool
-	Lang              string
-	PackageName       string
-	SkipVerification  bool
-	Timeout           int
+	IncludeSrc       bool
+	Lang             string
+	PackageName      string
+	SkipVerification bool
+	Timeout          int
 }
 
 // BuildCommand produces a deployable artifact from files on the local disk.
@@ -67,7 +66,6 @@ func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
-	c.CmdClause.Flag("accept-custom-build", "Skip confirmation prompts when running custom build commands").BoolVar(&c.Flags.AcceptCustomBuild)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("name", "Package name").StringVar(&c.Flags.PackageName)
@@ -183,7 +181,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Done()
 
 	if toolchain == "custom" {
-		if !c.Flags.AcceptCustomBuild {
+		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
 			// NOTE: A third-party could share a project with a build command for a
 			// language that wouldn't normally require one (e.g. Rust), and do evil
 			// things. So we should notify the user and confirm they would like to
@@ -195,7 +193,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if c.Globals.Verbose() && c.Flags.AcceptCustomBuild {
+	if c.Globals.Verbose() {
 		text.Break(out)
 	}
 
@@ -203,7 +201,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step(fmt.Sprintf("Building package using %s toolchain...", toolchain))
 
 	postBuildCallback := func() error {
-		if !c.Flags.AcceptCustomBuild {
+		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
 			err := promptForBuildContinue(CustomPostBuildScriptMessage, c.Manifest.File.Scripts.PostBuild, out, in, c.Globals.Verbose())
 			if err != nil {
 				return err
