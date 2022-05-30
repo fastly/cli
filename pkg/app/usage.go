@@ -142,7 +142,7 @@ var UsageTemplateFuncs = template.FuncMap{
 // if you add/remove a global flag you will also need to update the app.Flag()
 // bindings in pkg/app/run.go.
 //
-// NOTE: These map is used to help populate the CLI 'usage' template renderer.
+// NOTE: This map is used to help populate the CLI 'usage' template renderer.
 var globalFlags = map[string]bool{
 	"accept-defaults": true,
 	"auto-yes":        true,
