@@ -101,7 +101,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// VALIDATE PACKAGE...
 
-	pkgName, pkgPath, err := validatePackage(c.Manifest, c.Package, errLog, out)
+	pkgName, pkgPath, hashSum, err := validatePackage(c.Manifest, c.Package, errLog, out)
 	if err != nil {
 		return err
 	}
@@ -305,7 +305,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// PACKAGE PROCESSING...
 
-	cont, err := pkgCompare(apiClient, serviceID, serviceVersion.Number, pkgPath, progress, out)
+	cont, err := pkgCompare(apiClient, serviceID, serviceVersion.Number, hashSum, progress, out)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]interface{}{
 			"Package path":    pkgPath,
@@ -373,21 +373,21 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 //
 // NOTE: It also validates if the package size exceeds limit:
 // https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogInterface, out io.Writer) (pkgName, pkgPath string, err error) {
+func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogInterface, out io.Writer) (pkgName, pkgPath, hashSum string, err error) {
 	err = data.File.ReadError()
 	if err != nil {
 		if packageFlag == "" {
 			if errors.Is(err, os.ErrNotExist) {
 				err = fsterr.ErrReadingManifest
 			}
-			return pkgName, pkgPath, err
+			return pkgName, pkgPath, hashSum, err
 		}
 
 		// NOTE: Before returning the manifest read error, we'll attempt to read
 		// the manifest from within the given package archive.
 		err := readManifestFromPackageArchive(&data, packageFlag, out)
 		if err != nil {
-			return pkgName, pkgPath, err
+			return pkgName, pkgPath, hashSum, err
 		}
 	}
 
@@ -399,29 +399,38 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 			"Package name": pkgName,
 			"Source":       source,
 		})
-		return pkgName, pkgPath, err
+		return pkgName, pkgPath, hashSum, err
 	}
 	pkgSize, err := packageSize(pkgPath)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]interface{}{
 			"Package path": pkgPath,
 		})
-		return pkgName, pkgPath, err
+		return pkgName, pkgPath, hashSum, err
 	}
 	if pkgSize > PackageSizeLimit {
-		return pkgName, pkgPath, fsterr.RemediationError{
+		return pkgName, pkgPath, hashSum, fsterr.RemediationError{
 			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
 			Remediation: fsterr.PackageSizeRemediation,
 		}
 	}
-	if err := validate(pkgPath); err != nil {
+	if err := validate(pkgPath, func(f archiver.File) error {
+		if f.Name() == "main.wasm" {
+			h := sha512.New()
+			if _, err := io.Copy(h, f); err != nil {
+				return fmt.Errorf("error computing hashsum: %w", err)
+			}
+			hashSum = fmt.Sprintf("%x", h.Sum(nil))
+		}
+		return nil
+	}); err != nil {
 		errLog.AddWithContext(err, map[string]interface{}{
 			"Package path": pkgPath,
 			"Package size": pkgSize,
 		})
-		return pkgName, pkgPath, err
+		return pkgName, pkgPath, hashSum, err
 	}
-	return pkgName, pkgPath, nil
+	return pkgName, pkgPath, hashSum, nil
 }
 
 // readManifestFromPackageArchive extracts the manifest file from the given
@@ -760,18 +769,13 @@ func checkServiceID(serviceID string, client api.Interface) error {
 
 // pkgCompare compares the local package hashsum against the existing service
 // package version and exits early with message if identical.
-func pkgCompare(client api.Interface, serviceID string, version int, path string, progress text.Progress, out io.Writer) (bool, error) {
+func pkgCompare(client api.Interface, serviceID string, version int, hashSum string, progress text.Progress, out io.Writer) (bool, error) {
 	p, err := client.GetPackage(&fastly.GetPackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
 	})
 
 	if err == nil {
-		hashSum, err := getHashSum(path)
-		if err != nil {
-			return false, fmt.Errorf("error getting package hashsum: %w", err)
-		}
-
 		if hashSum == p.Metadata.HashSum {
 			progress.Done()
 			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version)
@@ -780,31 +784,6 @@ func pkgCompare(client api.Interface, serviceID string, version int, path string
 	}
 
 	return true, nil
-}
-
-// getHashSum creates a SHA 512 hash from the given path input.
-func getHashSum(path string) (hash string, err error) {
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	// Disabling as we trust the source of the filepath variable.
-	/* #nosec */
-	f, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer func() {
-		cerr := f.Close()
-		if err == nil {
-			err = cerr
-		}
-	}()
-
-	h := sha512.New()
-	if _, err := io.Copy(h, f); err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
 // pkgUpload uploads the package to the specified service and version.
