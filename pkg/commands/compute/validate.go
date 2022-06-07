@@ -31,7 +31,7 @@ func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("error reading file path: %w", err)
 	}
 
-	if err := validate(p); err != nil {
+	if err := validate(p, nil); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"Path": c.path,
 		})
@@ -48,14 +48,19 @@ type ValidateCommand struct {
 	path string
 }
 
+// FileValidator validates a file.
+type FileValidator func(archiver.File) error
+
 // validate is a utility function to determine whether a package is valid.
 // It attemptes to unarchive and read a tar.gz file from a specfic path,
 // if successful, it then iterates through (streams) each file in the archive
 // checking the filename against a list of required files. If one of the files
 // doesn't exist it returns an error.
+// validate also call fileValidator, if not nil, passing the file obtained from
+// tar.Read().
 //
 // NOTE: This function is also called by the `deploy` command.
-func validate(path string) error {
+func validate(path string, fileValidator FileValidator) error {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return fmt.Errorf("error reading package: %w", err)
@@ -89,9 +94,16 @@ func validate(path string) error {
 			}
 		}
 
+		if fileValidator != nil {
+			if err = fileValidator(f); err != nil {
+				f.Close()
+				return err
+			}
+		}
+
 		err = f.Close()
 		if err != nil {
-			return fmt.Errorf("error closing package: %w", err)
+			return fmt.Errorf("error closing file: %w", err)
 		}
 	}
 
