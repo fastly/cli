@@ -43,7 +43,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "go",
-			DisplayName: "Go",
+			DisplayName: "Go (TinyGo)",
 			StarterKits: kits.Go,
 			Toolchain: NewGo(
 				pkgName,
