@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"bytes"
 	"crypto/sha512"
 	"errors"
 	"fmt"
@@ -414,13 +415,16 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 			Remediation: fsterr.PackageSizeRemediation,
 		}
 	}
+	contents := map[string]*bytes.Buffer{
+		"fastly.toml": &bytes.Buffer{},
+		"main.wasm":   &bytes.Buffer{},
+	}
 	if err := validate(pkgPath, func(f archiver.File) error {
-		if f.Name() == "main.wasm" {
-			h := sha512.New()
-			if _, err := io.Copy(h, f); err != nil {
-				return fmt.Errorf("error computing hashsum: %w", err)
+		switch fname := f.Name(); fname {
+		case "fastly.toml", "main.wasm":
+			if _, err := io.Copy(contents[fname], f); err != nil {
+				return fmt.Errorf("error reading %s: %w", fname, err)
 			}
-			hashSum = fmt.Sprintf("%x", h.Sum(nil))
 		}
 		return nil
 	}); err != nil {
@@ -428,6 +432,10 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 			"Package path": pkgPath,
 			"Package size": pkgSize,
 		})
+		return pkgName, pkgPath, hashSum, err
+	}
+	hashSum, err = getHashSum(contents)
+	if err != nil {
 		return pkgName, pkgPath, hashSum, err
 	}
 	return pkgName, pkgPath, hashSum, nil
@@ -784,6 +792,17 @@ func pkgCompare(client api.Interface, serviceID string, version int, hashSum str
 	}
 
 	return true, nil
+}
+
+// getHashSum creates a SHA 512 hash from the given file contents in a specific order.
+func getHashSum(contents map[string]*bytes.Buffer) (hash string, err error) {
+	h := sha512.New()
+	for _, fname := range []string{"fastly.toml", "main.wasm"} {
+		if _, err := io.Copy(h, contents[fname]); err != nil {
+			return "", err
+		}
+	}
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
 // pkgUpload uploads the package to the specified service and version.
