@@ -1545,7 +1545,8 @@ COMMANDS
         --service-name=SERVICE-NAME
                                  The name of the service
         --region=REGION          The region that log data will be sent to.
-                                 One of US or EU. Defaults to US if undefined
+                                 One of US, US3, US5, or EU. Defaults to US if
+                                 undefined
         --format=FORMAT          Apache style log formatting. For details on
                                  the default value refer to the documentation
                                  (https://developer.fastly.com/reference/api/logging/datadog/)
@@ -1613,7 +1614,8 @@ COMMANDS
         --new-name=NEW-NAME      New name of the Datadog logging object
         --auth-token=AUTH-TOKEN  The API key from your Datadog account
         --region=REGION          The region that log data will be sent to.
-                                 One of US or EU. Defaults to US if undefined
+                                 One of US, US3, US5, or EU. Defaults to US if
+                                 undefined
         --format=FORMAT          Apache style log formatting. For details on
                                  the default value refer to the documentation
                                  (https://developer.fastly.com/reference/api/logging/datadog/)
