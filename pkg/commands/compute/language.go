@@ -19,7 +19,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
-			DisplayName: "Rust",
+			DisplayName: "Rust (Limited Availability)",
 			StarterKits: kits.Rust,
 			Toolchain: NewRust(
 				pkgName,
@@ -32,7 +32,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "javascript",
-			DisplayName: "JavaScript",
+			DisplayName: "JavaScript (Limited Availability)",
 			StarterKits: kits.JavaScript,
 			Toolchain: NewJavaScript(
 				pkgName,
@@ -43,7 +43,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "go",
-			DisplayName: "Go (TinyGo)",
+			DisplayName: "Go (beta)",
 			StarterKits: kits.Go,
 			Toolchain: NewGo(
 				pkgName,
