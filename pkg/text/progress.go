@@ -74,7 +74,7 @@ func WithReset() Option {
 // isTerminal indicates if the consumer is a modern terminal.
 //
 // EXAMPLE: If the user is on a standard Windows 'command prompt' the spinner
-// output doesn't work, nor does any colour ouput, so we avoid both features.
+// output doesn't work, nor does any colour output, so we avoid both features.
 func isTerminal() bool {
 	if isatty.IsTerminal(os.Stdout.Fd()) && !fstruntime.Windows || isatty.IsCygwinTerminal(os.Stdout.Fd()) {
 		return true
