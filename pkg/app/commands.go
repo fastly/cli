@@ -290,6 +290,7 @@ func defineCommands(
 	profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, globals)
 	profileList := profile.NewListCommand(profileCmdRoot.CmdClause, globals)
 	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, globals)
+	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, globals)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
 	purgeCmdRoot := purge.NewRootCommand(app, globals, data)
 	serviceCmdRoot := service.NewRootCommand(app, globals)
@@ -558,6 +559,7 @@ func defineCommands(
 		profileDelete,
 		profileList,
 		profileSwitch,
+		profileToken,
 		profileUpdate,
 		purgeCmdRoot,
 		serviceCmdRoot,
