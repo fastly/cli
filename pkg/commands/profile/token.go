@@ -32,15 +32,16 @@ func (c *TokenCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.profile == "" {
 		if name, p := profile.Default(c.Globals.File.Profiles); name != "" {
 			fmt.Println(p.Token)
-		} else {
-			text.Error(out, "no profiles available")
+			return nil
 		}
-	} else {
-		if name, p := profile.Get(c.profile, c.Globals.File.Profiles); name != "" {
-			fmt.Println(p.Token)
-		} else {
-			text.Error(out, "profile '%s' does not exist", c.profile)
-		}
+		text.Error(out, "no profiles available")
+		return nil
 	}
+
+	if name, p := profile.Get(c.profile, c.Globals.File.Profiles); name != "" {
+		fmt.Println(p.Token)
+		return nil
+	}
+	text.Error(out, "profile '%s' does not exist", c.profile)
 	return nil
 }
