@@ -519,6 +519,135 @@ func TestSwitch(t *testing.T) {
 	}
 }
 
+func TestToken(t *testing.T) {
+	var (
+		configPath string
+		data       []byte
+	)
+
+	// Create temp environment to run test code within.
+	{
+		wd, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Read the test config.toml data
+		path, err := filepath.Abs(filepath.Join("./", "testdata", "config.toml"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		data, err = os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Create a new test environment along with a test config.toml file.
+		rootdir := testutil.NewEnv(testutil.EnvOpts{
+			T: t,
+			Write: []testutil.FileIO{
+				{Src: string(data), Dst: "config.toml"},
+			},
+		})
+		configPath = filepath.Join(rootdir, "config.toml")
+		defer os.RemoveAll(rootdir)
+
+		if err := os.Chdir(rootdir); err != nil {
+			t.Fatal(err)
+		}
+		defer os.Chdir(wd)
+	}
+
+	args := testutil.Args
+	scenarios := []Scenario{
+		{
+			TestScenario: testutil.TestScenario{
+				Name: "validate default user token is displayed",
+				Args: args("profile token"),
+				API: mock.API{
+					GetTokenSelfFn: getToken,
+					GetUserFn:      getUser,
+				},
+				WantOutput: "123",
+			},
+			ConfigFile: config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default: true,
+						Email:   "foo@example.com",
+						Token:   "123",
+					},
+					"bar": &config.Profile{
+						Default: false,
+						Email:   "bar@example.com",
+						Token:   "456",
+					},
+				},
+			},
+		},
+		{
+			TestScenario: testutil.TestScenario{
+				Name: "validate specified user token is displayed",
+				Args: args("profile token --user bar"), // we choose a non-default profile
+				API: mock.API{
+					GetTokenSelfFn: getToken,
+					GetUserFn:      getUser,
+				},
+				WantOutput: "456",
+			},
+			ConfigFile: config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default: true,
+						Email:   "foo@example.com",
+						Token:   "123",
+					},
+					"bar": &config.Profile{
+						Default: false,
+						Email:   "bar@example.com",
+						Token:   "456",
+					},
+				},
+			},
+		},
+		{
+			TestScenario: testutil.TestScenario{
+				Name:      "validate unknown user causes an error",
+				Args:      args("profile token --user unknown"),
+				WantError: "profile 'unknown' does not exist",
+			},
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.Name, func(t *testing.T) {
+			var (
+				err    error
+				stdout bytes.Buffer
+			)
+
+			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.API)
+
+			// We override the config path so that we don't accidentally write over
+			// our own configuration file.
+			opts.ConfigPath = configPath
+
+			// The read of the config file only really happens in the main()
+			// function, so for the sake of the test environment we need to construct
+			// an in-memory representation of the config file we want to be using.
+			opts.ConfigFile = testcase.ConfigFile
+
+			err = app.Run(opts)
+
+			t.Log(stdout.String())
+
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+		})
+	}
+}
+
 func TestUpdate(t *testing.T) {
 	var (
 		configPath string

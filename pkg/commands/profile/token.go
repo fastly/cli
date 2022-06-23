@@ -6,6 +6,7 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -13,9 +14,7 @@ import (
 // TokenCommand represents a Kingpin command.
 type TokenCommand struct {
 	cmd.Base
-
-	clientFactory APIClientFactory
-	profile       string
+	profile string
 }
 
 // NewTokenCommand returns a new command registered in the parent.
@@ -31,17 +30,22 @@ func NewTokenCommand(parent cmd.Registerer, globals *config.Data) *TokenCommand 
 func (c *TokenCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.profile == "" {
 		if name, p := profile.Default(c.Globals.File.Profiles); name != "" {
-			fmt.Println(p.Token)
+			text.Output(out, p.Token)
 			return nil
 		}
-		text.Error(out, "no profiles available")
-		return nil
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("no profiles available"),
+			Remediation: fsterr.ProfileRemediation,
+		}
 	}
 
 	if name, p := profile.Get(c.profile, c.Globals.File.Profiles); name != "" {
-		fmt.Println(p.Token)
+		text.Output(out, p.Token)
 		return nil
 	}
-	text.Error(out, "profile '%s' does not exist", c.profile)
-	return nil
+	msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
+	return fsterr.RemediationError{
+		Inner:       fmt.Errorf(msg),
+		Remediation: fsterr.ProfileRemediation,
+	}
 }
