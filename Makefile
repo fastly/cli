@@ -21,7 +21,9 @@ LDFLAGS = -ldflags "\
  -X 'github.com/fastly/cli/pkg/revision.Environment=${CLI_ENV}' \
  "
 
-fastly:
+ GO_FILES = $(shell find cmd pkg -type f -name '*.go')
+
+fastly: $(GO_FILES)
 	@go build -trimpath $(LDFLAGS) -o "$@" ./cmd/fastly
 
 # useful for attaching a debugger such as https://github.com/go-delve/delve
