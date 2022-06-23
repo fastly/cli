@@ -562,12 +562,8 @@ func TestToken(t *testing.T) {
 	scenarios := []Scenario{
 		{
 			TestScenario: testutil.TestScenario{
-				Name: "validate default user token is displayed",
-				Args: args("profile token"),
-				API: mock.API{
-					GetTokenSelfFn: getToken,
-					GetUserFn:      getUser,
-				},
+				Name:       "validate default user token is displayed",
+				Args:       args("profile token"),
 				WantOutput: "123",
 			},
 			ConfigFile: config.File{
@@ -587,12 +583,8 @@ func TestToken(t *testing.T) {
 		},
 		{
 			TestScenario: testutil.TestScenario{
-				Name: "validate specified user token is displayed",
-				Args: args("profile token --user bar"), // we choose a non-default profile
-				API: mock.API{
-					GetTokenSelfFn: getToken,
-					GetUserFn:      getUser,
-				},
+				Name:       "validate specified user token is displayed",
+				Args:       args("profile token --user bar"), // we choose a non-default profile
 				WantOutput: "456",
 			},
 			ConfigFile: config.File{
