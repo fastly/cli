@@ -4431,6 +4431,11 @@ COMMANDS
     Switch user profile
 
 
+  profile token [<flags>]
+    Print access token
+
+    -n, --name=NAME  Print access token for the named profile
+
   profile update [<profile>]
     Update user profile
 

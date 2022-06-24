@@ -8,7 +8,8 @@ VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD
 # Enables support for tools such as https://github.com/rakyll/gotest
 TEST_COMMAND ?= go test
 
-TESTARGS ?= ./{cmd,pkg}/...
+# The compute tests can sometimes exceed the default 10m limit.
+TESTARGS ?= -timeout 15m ./{cmd,pkg}/...
 
 CLI_ENV ?= "development"
 

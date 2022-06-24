@@ -16,8 +16,7 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
-// CreateCommand is the parent command for all subcommands in this package.
-// It should be installed under the primary root command.
+// CreateCommand represents a Kingpin command.
 type CreateCommand struct {
 	cmd.Base
 
