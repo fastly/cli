@@ -26,6 +26,7 @@ type Domains struct {
 	// Public
 	APIClient      api.Interface
 	AcceptDefaults bool
+	NonInteractive bool
 	PackageDomain  string
 	Progress       text.Progress
 	ServiceID      string
@@ -64,7 +65,7 @@ func (d *Domains) Configure() error {
 		domain string
 		err    error
 	)
-	if !d.AcceptDefaults {
+	if !d.AcceptDefaults && !d.NonInteractive {
 		domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain: [%s] ", defaultDomain)), d.Stdin, d.validateDomain)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)

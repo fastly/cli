@@ -696,7 +696,7 @@ func TestDeploy(t *testing.T) {
 		// The following test validates no prompts are displayed to the user due to
 		// the use of the --non-interactive flag.
 		{
-			name: "success with setup.backends configuration and accept-defaults",
+			name: "success with setup.backends configuration and non-interactive",
 			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
 				ActivateVersionFn: activateVersionOk,

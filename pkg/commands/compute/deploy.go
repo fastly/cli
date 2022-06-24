@@ -154,6 +154,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	domains := &setup.Domains{
 		APIClient:      apiClient,
 		AcceptDefaults: c.Globals.Flag.AcceptDefaults,
+		NonInteractive: c.Globals.Flag.NonInteractive,
 		PackageDomain:  c.Domain,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
@@ -177,6 +178,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		backends = &setup.Backends{
 			APIClient:      apiClient,
 			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
+			NonInteractive: c.Globals.Flag.NonInteractive,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion.Number,
 			Setup:          c.Manifest.File.Setup.Backends,
@@ -187,6 +189,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		dictionaries = &setup.Dictionaries{
 			APIClient:      apiClient,
 			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
+			NonInteractive: c.Globals.Flag.NonInteractive,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion.Number,
 			Setup:          c.Manifest.File.Setup.Dictionaries,
@@ -416,8 +419,8 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 		}
 	}
 	contents := map[string]*bytes.Buffer{
-		"fastly.toml": &bytes.Buffer{},
-		"main.wasm":   &bytes.Buffer{},
+		"fastly.toml": {},
+		"main.wasm":   {},
 	}
 	if err := validate(pkgPath, func(f archiver.File) error {
 		switch fname := f.Name(); fname {

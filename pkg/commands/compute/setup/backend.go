@@ -22,6 +22,7 @@ type Backends struct {
 	// Public
 	APIClient      api.Interface
 	AcceptDefaults bool
+	NonInteractive bool
 	Progress       text.Progress
 	ServiceID      string
 	ServiceVersion int
@@ -104,7 +105,7 @@ func (b *Backends) isOriginless() bool {
 func (b *Backends) checkPredefined() error {
 	var i int
 	for name, settings := range b.Setup {
-		if !b.AcceptDefaults {
+		if !b.AcceptDefaults && !b.NonInteractive {
 			if i > 0 {
 				text.Break(b.Stdout)
 			}
@@ -128,7 +129,7 @@ func (b *Backends) checkPredefined() error {
 
 		prompt := text.BoldYellow(fmt.Sprintf("Hostname or IP address: [%s] ", defaultAddress))
 
-		if !b.AcceptDefaults {
+		if !b.AcceptDefaults && !b.NonInteractive {
 			addr, err = text.Input(b.Stdout, prompt, b.Stdin, b.validateAddress)
 			if err != nil {
 				return fmt.Errorf("error reading prompt input: %w", err)
@@ -142,7 +143,7 @@ func (b *Backends) checkPredefined() error {
 		if settings.Port > 0 {
 			port = settings.Port
 		}
-		if !b.AcceptDefaults {
+		if !b.AcceptDefaults && !b.NonInteractive {
 			input, err := text.Input(b.Stdout, text.BoldYellow(fmt.Sprintf("Port: [%d] ", port)), b.Stdin)
 			if err != nil {
 				return fmt.Errorf("error reading prompt input: %w", err)
@@ -173,7 +174,7 @@ func (b *Backends) checkPredefined() error {
 // promptForBackend issues a prompt requesting one or more Backends that will
 // be created within the user's service.
 func (b *Backends) promptForBackend() error {
-	if b.AcceptDefaults {
+	if b.AcceptDefaults || b.NonInteractive {
 		b.required = append(b.required, b.createOriginlessBackend())
 		return nil
 	}
