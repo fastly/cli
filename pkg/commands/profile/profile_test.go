@@ -562,7 +562,7 @@ func TestToken(t *testing.T) {
 	scenarios := []Scenario{
 		{
 			TestScenario: testutil.TestScenario{
-				Name:       "validate default user token is displayed",
+				Name:       "validate the active profile token is displayed by default",
 				Args:       args("profile token"),
 				WantOutput: "123",
 			},
@@ -583,7 +583,7 @@ func TestToken(t *testing.T) {
 		},
 		{
 			TestScenario: testutil.TestScenario{
-				Name:       "validate specified user token is displayed",
+				Name:       "validate token is displayed for the specified profile",
 				Args:       args("profile token --name bar"), // we choose a non-default profile
 				WantOutput: "456",
 			},
@@ -604,7 +604,7 @@ func TestToken(t *testing.T) {
 		},
 		{
 			TestScenario: testutil.TestScenario{
-				Name:      "validate unknown user causes an error",
+				Name:      "validate an unrecognised profile causes an error",
 				Args:      args("profile token --name unknown"),
 				WantError: "profile 'unknown' does not exist",
 			},
