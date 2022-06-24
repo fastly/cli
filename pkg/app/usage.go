@@ -361,6 +361,12 @@ func processCommandInput(
 		return command, cmdName, fsterr.RemediationError{Prefix: buf.String()}
 	}
 
+	// Catch scenario where user wants to view help with the following format:
+	// fastly --help <command>
+	if cmd.IsHelpFlagOnly(opts.Args) {
+		return command, cmdName, help(vars, nil)
+	}
+
 	return command, cmdName, nil
 }
 
