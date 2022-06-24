@@ -1,5 +1,15 @@
 # Changelog
 
+## [v3.0.1](https://github.com/fastly/cli/releases/tag/v3.0.1) (2022-06-23)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v3.0.0...v3.0.1)
+
+**Enhancements:**
+
+* Makefile: when building binary, depend on .go files [#579](https://github.com/fastly/cli/pull/579)
+* Include `fastly.toml` hashsum [#575](https://github.com/fastly/cli/pull/575)
+* Hash main.wasm and not the package [#574](https://github.com/fastly/cli/pull/574)
+
 ## [v3.0.0](https://github.com/fastly/cli/releases/tag/v3.0.0) (2022-05-30)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v2.0.3...v3.0.0)
