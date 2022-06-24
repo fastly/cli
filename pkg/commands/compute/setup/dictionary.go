@@ -19,6 +19,7 @@ type Dictionaries struct {
 	// Public
 	APIClient      api.Interface
 	AcceptDefaults bool
+	NonInteractive bool
 	Progress       text.Progress
 	ServiceID      string
 	ServiceVersion int
@@ -49,7 +50,7 @@ type DictionaryItem struct {
 // Configure prompts the user for specific values related to the service resource.
 func (d *Dictionaries) Configure() error {
 	for name, settings := range d.Setup {
-		if !d.AcceptDefaults {
+		if !d.AcceptDefaults && !d.NonInteractive {
 			text.Break(d.Stdout)
 			text.Output(d.Stdout, "Configuring dictionary '%s'", name)
 			if settings.Description != "" {
@@ -71,7 +72,7 @@ func (d *Dictionaries) Configure() error {
 				err   error
 			)
 
-			if !d.AcceptDefaults {
+			if !d.AcceptDefaults && !d.NonInteractive {
 				text.Break(d.Stdout)
 				text.Output(d.Stdout, "Create a dictionary key called '%s'", key)
 				if item.Description != "" {
