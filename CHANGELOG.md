@@ -1,5 +1,18 @@
 # Changelog
 
+## [v3.1.0](https://github.com/fastly/cli/releases/tag/v3.1.0) (2022-06-24)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v3.0.1...v3.1.0)
+
+**Enhancements:**
+
+* Implement `profile token` command [#578](https://github.com/fastly/cli/pull/578)
+
+**Bug fixes:**
+
+* Fix `compute publish --non-interactive` [#583](https://github.com/fastly/cli/pull/583)
+* Support `fastly --help <command>` format [#581](https://github.com/fastly/cli/pull/581)
+
 ## [v3.0.1](https://github.com/fastly/cli/releases/tag/v3.0.1) (2022-06-23)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v3.0.0...v3.0.1)
