@@ -21,8 +21,8 @@ type TokenCommand struct {
 func NewTokenCommand(parent cmd.Registerer, globals *config.Data) *TokenCommand {
 	var c TokenCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("token", "Print user token")
-	c.CmdClause.Flag("user", "Profile user to print token for").Short('u').StringVar(&c.profile)
+	c.CmdClause = parent.Command("token", "Print access token")
+	c.CmdClause.Flag("name", "Print access token for the named profile").Short('n').StringVar(&c.profile)
 	return &c
 }
 

@@ -4432,9 +4432,9 @@ COMMANDS
 
 
   profile token [<flags>]
-    Print user token
+    Print access token
 
-    -u, --user=USER  Profile user to print token for
+    -n, --name=NAME  Print access token for the named profile
 
   profile update [<profile>]
     Update user profile
