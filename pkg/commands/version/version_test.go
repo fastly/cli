@@ -2,6 +2,7 @@ package version_test
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -79,7 +80,7 @@ func TestVersion(t *testing.T) {
 	testutil.AssertNoError(t, err)
 	testutil.AssertString(t, strings.Join([]string{
 		"Fastly CLI version v0.0.0-unknown (unknown)",
-		"Built with go version unknown",
+		fmt.Sprintf("Built with go version %s unknown/unknown", runtime.Version()),
 		"Viceroy version: viceroy 0.0.0",
 		"",
 	}, "\n"), stdout.String())
