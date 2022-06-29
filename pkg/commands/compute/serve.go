@@ -399,6 +399,8 @@ func sourceDirectory(flag cmd.OptionalString, lang string, watch bool, out io.Wr
 	switch lang {
 	case "assemblyscript":
 		return ASSourceDirectory
+	case "go":
+		return GoSourceDirectory
 	case "javascript":
 		return JSSourceDirectory
 	case "rust":
@@ -594,7 +596,13 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 		return nil
 	})
 
-	text.Info(out, "Watching ./%s/**/* for changes.", dir)
+	// NOTE: A language might use the root directory rather than a subdirectory
+	// like the ./src directory (which most currently use).
+	if dir != "" {
+		dir = dir + "/"
+	}
+
+	text.Info(out, "Watching ./%s**/* for changes.", dir)
 	text.Break(out)
 	<-done
 }

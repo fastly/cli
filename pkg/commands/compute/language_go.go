@@ -259,6 +259,7 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 		"-scheduler=asyncify",
 		"-o=bin/main.wasm",
 		"./src",
+		fmt.Sprintf("./%s", GoSourceDirectory),
 	}
 
 	// A bin directory is required.

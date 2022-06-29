@@ -442,8 +442,8 @@ func GetIgnoredFiles(filePath string) (files map[string]bool, err error) {
 	return files, nil
 }
 
-// GetNonIgnoredFiles walks a filepath and returns all files don't exist in the
-// provided ignore files map.
+// GetNonIgnoredFiles walks a filepath and returns all files that don't exist in
+// the provided ignore files map.
 func GetNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, error) {
 	var files []string
 	err := filepath.Walk(base, func(path string, info os.FileInfo, err error) error {
