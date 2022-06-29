@@ -5,40 +5,47 @@ SHELL := /bin/bash -o pipefail
 # the output is consistent across environments.
 VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
 
+# allows for passing additional args to the build e.g.
+# make build GO_ARGS='--ldflags "-s -w"'
+GO_ARGS ?= ""
+
 # Enables support for tools such as https://github.com/rakyll/gotest
 TEST_COMMAND ?= go test
 
 # The compute tests can sometimes exceed the default 10m limit.
-TESTARGS ?= -timeout 15m ./{cmd,pkg}/...
+TEST_ARGS ?= -timeout 15m ./{cmd,pkg}/...
 
 CLI_ENV ?= "development"
 
-# TODO: This is duplicated in .goreleaser and we should figure out how to clean
-# this up so we have one source of truth.
-LDFLAGS = -ldflags "\
- -X 'github.com/fastly/cli/pkg/revision.AppVersion=${VERSION}' \
- -X 'github.com/fastly/cli/pkg/revision.GitCommit=$(shell git rev-parse --short HEAD || echo unknown)' \
- -X 'github.com/fastly/cli/pkg/revision.GoVersion=$(shell go version)' \
- -X 'github.com/fastly/cli/pkg/revision.Environment=${CLI_ENV}' \
- "
+GOHOSTOS ?= $(shell go env GOHOSTOS || echo unknown)
+GOHOSTARCH ?= $(shell go env GOHOSTARCH || echo unknown)
 
  GO_FILES = $(shell find cmd pkg -type f -name '*.go')
 
+# You can pass flags to goreleaser via GORELEASER_ARGS
+# --skip-validate will skip the checks
+# --rm-dist will save you deleting the dist dir
+# --single-target will be quicker and only build for your os & architecture
+# e.g.
+# make fastly GORELEASER_ARGS="--skip-validate --rm-dist"
 fastly: $(GO_FILES)
-	@go build -trimpath $(LDFLAGS) -o "$@" ./cmd/fastly
+	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
+
 
 # useful for attaching a debugger such as https://github.com/go-delve/delve
 debug:
-	@go build -gcflags="all=-N -l" $(LDFLAGS) -o "fastly" ./cmd/fastly
+	@go build -gcflags="all=-N -l" $(GO_ARGS) -o "fastly" ./cmd/fastly
 
 .PHONY: all
 all: dependencies config tidy fmt vet staticcheck gosec test build install
 
+# update goreleaser inline with the release GHA workflow
 .PHONY: dependencies
 dependencies:
 	go install github.com/securego/gosec/v2/cmd/gosec@latest
 	go install honnef.co/go/tools/cmd/staticcheck@latest
 	go install github.com/mgechev/revive@latest
+	go install github.com/goreleaser/goreleaser@v1.9.2
 
 .PHONY: tidy
 tidy:
@@ -67,15 +74,15 @@ staticcheck:
 
 .PHONY: test
 test: config
-	@$(TEST_COMMAND) -race $(TESTARGS)
+	@$(TEST_COMMAND) -race $(TEST_ARGS)
 
 .PHONY: build
 build: config
-	go build $(LDFLAGS) ./cmd/fastly
+	go build $(GO_ARGS) ./cmd/fastly
 
 .PHONY: install
 install: config
-	go install $(LDFLAGS) ./cmd/fastly
+	go install $(GO_ARGS) ./cmd/fastly
 
 .PHONY: changelog
 changelog:

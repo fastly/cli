@@ -14,7 +14,8 @@ builds:
       ldflags:
         - -s -w -X "github.com/fastly/cli/pkg/revision.AppVersion=v{{ .Version }}"
         - -X "github.com/fastly/cli/pkg/revision.GitCommit={{ .ShortCommit }}"
-        - -X "github.com/fastly/cli/pkg/revision.GoVersion={{ .Env.GOVERSION }}"
+        - -X "github.com/fastly/cli/pkg/revision.GoHostOS={{ .Env.GOHOSTOS }}"
+        - -X "github.com/fastly/cli/pkg/revision.GoHostArch={{ .Env.GOHOSTARCH }}"
         - -X "github.com/fastly/cli/pkg/revision.Environment=release"
     id: macos
     goos: [darwin]
