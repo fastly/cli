@@ -1,24 +1,40 @@
-// Package revision defines variables that will be populated with values from
-// the Makefile at build time via LDFLAGS.
+// Package revision defines variables that will be populated with values
+// specified at build time via LDFLAGS. goreleaser will prompt for missing env
+// variables.
+// For more details on LDFLAGS:
+// https://github.com/golang/go/wiki/GcToolchainTricks#including-build-information-in-the-executable
 package revision
 
-import "strings"
+import (
+	"fmt"
+	"runtime"
+	"strings"
+)
 
 var (
 	// AppVersion is the semver for this version of the client, or
-	// "v0.0.0-unknown". Set by `make release`.
+	// "v0.0.0-unknown". Handled by goreleaser.
 	AppVersion string
 
 	// GitCommit is the short git SHA associated with this build, or
-	// "unknown". Set by `make release`.
+	// "unknown". Handled by goreleaser.
 	GitCommit string
 
-	// GoVersion is the output of `go version` associated with this build, or
-	// "go version unknown". Set by `make release`.
+	// GoVersion - Prefer letting the code handle this and set GoHostOS and
+	// GoHostArc instead. It can be set to the build host's `go version` output.
 	GoVersion string
+
+	// GoHostOS is the output of `go env GOHOSTOS` Passed to goreleaser by
+	// `make fastly` or the GHA workflow.
+	GoHostOS string
+
+	// GoHostArch is the output of `go env GOHOSTARCH` Passed to goreleaser by
+	// `make fastly` or the GHA workflow.
+	GoHostArch string
 
 	// Environment is set to either "development" (when working locally) or
 	// "release" when the code being executed is from a published release.
+	// Handled by goreleaser.
 	Environment string
 )
 
@@ -32,8 +48,17 @@ func init() {
 	if GitCommit == "" {
 		GitCommit = "unknown"
 	}
+	if GoHostOS == "" {
+		GoHostOS = "unknown"
+	}
+	if GoHostArch == "" {
+		GoHostArch = "unknown"
+	}
 	if GoVersion == "" {
-		GoVersion = "go version unknown"
+		// runtime.Version() provides the Go tree's version string at build time
+		// the other values like OS and Arch aren't accessible and are passed in
+		// separately
+		GoVersion = fmt.Sprintf("go version %s %s/%s", runtime.Version(), GoHostOS, GoHostArch)
 	}
 	if Environment == "" {
 		Environment = "development"
