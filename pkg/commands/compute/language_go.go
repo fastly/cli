@@ -21,8 +21,8 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GoSourceDirectory represents the source code directory.
-const GoSourceDirectory = "src"
+// GoSourceDirectory represents the source code directory (i.e. root directory).
+const GoSourceDirectory = ""
 
 // GoManifestName represents the language file for configuring dependencies.
 const GoManifestName = "go.mod"
@@ -256,9 +256,7 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 		"-target=wasi",
 		"-wasm-abi=generic",
 		"-gc=conservative",
-		"-scheduler=asyncify",
 		"-o=bin/main.wasm",
-		"./src",
 		fmt.Sprintf("./%s", GoSourceDirectory),
 	}
 
