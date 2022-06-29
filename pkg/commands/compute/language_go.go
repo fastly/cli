@@ -22,7 +22,7 @@ import (
 )
 
 // GoSourceDirectory represents the source code directory (i.e. root directory).
-const GoSourceDirectory = ""
+const GoSourceDirectory = "."
 
 // GoManifestName represents the language file for configuring dependencies.
 const GoManifestName = "go.mod"

@@ -578,7 +578,7 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 
 	filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(fmt.Errorf("error walking directory tree '%s': %w", dir, err))
 		}
 		// If there's no ignore file, we'll default to watching all directories
 		// within the specified top-level directory.
@@ -598,6 +598,9 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 
 	// NOTE: A language might use the root directory rather than a subdirectory
 	// like the ./src directory (which most currently use).
+	if dir == "." {
+		dir = ""
+	}
 	if dir != "" {
 		dir = dir + "/"
 	}
@@ -614,6 +617,8 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 // - .ignore (local)
 // - .gitignore (local)
 // - core.excludesfile (global)
+//
+// NOTE: We also ignore the .git directory.
 func gitIgnore() *ignore.GitIgnore {
 	var (
 		globalIgnore string
@@ -627,6 +632,8 @@ func gitIgnore() *ignore.GitIgnore {
 	for _, file := range []string{".ignore", ".gitignore", globalIgnore} {
 		patterns = append(patterns, readIgnoreFile(file)...)
 	}
+
+	patterns = append(patterns, ".git/")
 
 	return ignore.CompileIgnoreLines(patterns...)
 }
