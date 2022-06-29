@@ -60,7 +60,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("address", "The hostname or IPv4 addres").Required().StringVar(&c.Address)
+	c.CmdClause.Flag("address", "The hostname or IPv4 address").Required().StringVar(&c.Address)
 	c.CmdClause.Flag("user", "The username for the server").Required().StringVar(&c.User)
 	c.CmdClause.Flag("ssh-known-hosts", "A list of host keys for all hosts we can connect to over SFTP").Required().StringVar(&c.SSHKnownHosts)
 	c.RegisterFlag(cmd.StringFlagOpts{
