@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -21,6 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/useragent"
 	toml "github.com/pelletier/go-toml"
+	"github.com/sethvargo/go-retry"
 )
 
 // Source enumerates where a config parameter is taken from.
@@ -349,24 +351,25 @@ func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 
 	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
 	// representation we lock any operation that would cause the in-memory data
-	// to be updated.
-	//
-	// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
-	// Profiles that are set in-memory continue to be set after reading in the
-	// remote configuration data even though that data source doesn't define any
-	// such data). This can be manually validated using an io.TeeReader.
+	// to be updated. Every operation in the following block is modifying the
+	// in-memory `f` data structure.
 	mutex.Lock()
-	err = toml.NewDecoder(resp.Body).Decode(f)
-	mutex.Unlock()
+	{
+		// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
+		// Profiles that are set in-memory continue to be set after reading in the
+		// remote configuration data even though that data source doesn't define any
+		// such data). This can be manually validated using an io.TeeReader.
+		err := toml.NewDecoder(resp.Body).Decode(f)
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		return err
+		f.CLI.Version = revision.SemVer(revision.AppVersion)
+		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+
+		migrateLegacyData(f)
 	}
-
-	f.CLI.Version = revision.SemVer(revision.AppVersion)
-	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-
-	migrateLegacyData(f)
+	mutex.Unlock()
 
 	err = createConfigDir(path)
 	if err != nil {
@@ -434,14 +437,45 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 // the static config fails then we have to consider something fundamental has
 // gone wrong and subsequently expect the caller to exit the program.
 func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) error {
-	// G304 (CWE-22): Potential file inclusion via variable.
-	// gosec flagged this:
-	// Disabling as we need to load the config.toml from the user's file system.
-	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-	/* #nosec */
-	data, readErr := os.ReadFile(path)
-	if readErr != nil {
-		errLog.Add(readErr)
+	// To help mitigate any loss of profile data within the user's config we will
+	// retry the file READ operation if it fails.
+	ctx := context.Background()
+	b := retry.NewConstant(1 * time.Second)
+	b = retry.WithMaxRetries(2, b) // attempts == 3 (first attempt + two retries)
+
+	var (
+		attempts int
+		data     []byte
+		readErr  error
+	)
+	retryErr := retry.Do(ctx, b, func(_ context.Context) error {
+		attempts++
+
+		// G304 (CWE-22): Potential file inclusion via variable.
+		// gosec flagged this:
+		// Disabling as we need to load the config.toml from the user's file system.
+		// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+		/* #nosec */
+		data, readErr = os.ReadFile(path)
+		if readErr != nil {
+			errLog.Add(readErr)
+
+			// We don't retry the error if the file doesn't exist.
+			if errors.Is(readErr, os.ErrNotExist) {
+				return nil
+			}
+			return retry.RetryableError(readErr)
+		}
+
+		return nil
+	})
+
+	// NOTE: retryErr is when we reached the max number of retries, while the
+	// readErr is for catching when we didn't want to retry the READ operation.
+	if retryErr != nil || readErr != nil {
+		errLog.AddWithContext(retryErr, map[string]interface{}{
+			"attempts": attempts,
+		})
 		data = f.static
 	}
 

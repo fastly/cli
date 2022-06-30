@@ -35,6 +35,7 @@ require (
 require (
 	github.com/otiai10/copy v1.7.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
+	github.com/sethvargo/go-retry v0.2.3
 	github.com/tcnksm/go-gitconfig v0.1.2
 )
 
@@ -53,7 +54,6 @@ require (
 	github.com/peterhellberg/link v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.8 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
-	github.com/sethvargo/go-retry v0.2.3 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
