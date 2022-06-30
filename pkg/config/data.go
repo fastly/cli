@@ -446,7 +446,10 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 //
 // NOTE: Some users have noticed that their profile data is deleted after
 // certain (nondeterministic) operations. The fallback to static config may be
-// contributing to this behaviour because if
+// contributing to this behaviour because if a read of the user's config fails
+// and we start to use the static version as a fallback, then that will contain
+// no profile data and that in-memory representation will be persisted back to
+// disk, causing the user's profile data to be lost.
 func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) error {
 	var (
 		attempts int
