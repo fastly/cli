@@ -534,12 +534,18 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 	}
 
 	// We expect LastChecked/Version to not be set if coming from the static config.
+	//
+	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+	// representation we lock any operation that would cause the in-memory data
+	// to be updated.
+	mutex.Lock()
 	if f.CLI.LastChecked == "" {
 		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 	}
 	if f.CLI.Version == "" {
 		f.CLI.Version = revision.SemVer(revision.AppVersion)
 	}
+	mutex.Unlock()
 
 	err := createConfigDir(path)
 	if err != nil {
