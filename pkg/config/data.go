@@ -83,7 +83,7 @@ var ErrInvalidConfig = errors.New("the configuration file is invalid")
 // compiled CLI binary and so the user must resolve their invalid config.
 var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
 
-// mutex provides synchronisation for any WRITE operations on the CLI config.
+// Mutex provides synchronisation for any WRITE operations on the CLI config.
 // This includes calls to the Write method (which affects the disk
 // representation) as well as in-memory updates.
 //
@@ -91,7 +91,7 @@ var RemediationManualFix = "You'll need to manually fix any invalid configuratio
 // within the `main` function but now the `fastly update` command accepts a
 // flag that allows explicitly updating the CLI config, which means we need to
 // ensure there isn't a race condition with writing the config to disk.
-var mutex = &sync.Mutex{}
+var Mutex = &sync.Mutex{}
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -359,7 +359,7 @@ func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 	// representation we lock any operation that would cause the in-memory data
 	// to be updated. Every operation in the following block is modifying the
 	// in-memory `f` data structure.
-	mutex.Lock()
+	Mutex.Lock()
 	{
 		// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
 		// Profiles that are set in-memory continue to be set after reading in the
@@ -375,7 +375,7 @@ func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 
 		migrateLegacyData(f)
 	}
-	mutex.Unlock()
+	Mutex.Unlock()
 
 	err = createConfigDir(path)
 	if err != nil {
@@ -528,9 +528,9 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
 	// representation we lock any operation that would cause the in-memory data
 	// to be updated.
-	mutex.Lock()
+	Mutex.Lock()
 	unmarshalErr := toml.Unmarshal(data, f)
-	mutex.Unlock()
+	Mutex.Unlock()
 
 	if unmarshalErr != nil {
 		errLog.Add(unmarshalErr)
@@ -557,9 +557,9 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 			// NOTE: In an attempt to prevent unexpected changes to the in-memory data
 			// representation we lock any operation that would cause the in-memory data
 			// to be updated.
-			mutex.Lock()
+			Mutex.Lock()
 			err = toml.Unmarshal(data, f)
-			mutex.Unlock()
+			Mutex.Unlock()
 
 			if err != nil {
 				errLog.Add(err)
@@ -580,14 +580,14 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
 	// representation we lock any operation that would cause the in-memory data
 	// to be updated.
-	mutex.Lock()
+	Mutex.Lock()
 	if f.CLI.LastChecked == "" {
 		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 	}
 	if f.CLI.Version == "" {
 		f.CLI.Version = revision.SemVer(revision.AppVersion)
 	}
-	mutex.Unlock()
+	Mutex.Unlock()
 
 	err := createConfigDir(path)
 	if err != nil {
@@ -631,7 +631,7 @@ func (f *File) UseStatic(cfg []byte, path string) (err error) {
 	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
 	// representation we lock any operation that would cause the in-memory data
 	// to be updated.
-	mutex.Lock()
+	Mutex.Lock()
 	{
 		err = toml.Unmarshal(cfg, f)
 		if err != nil {
@@ -643,7 +643,7 @@ func (f *File) UseStatic(cfg []byte, path string) (err error) {
 
 		migrateLegacyData(f)
 	}
-	mutex.Unlock()
+	Mutex.Unlock()
 
 	err = createConfigDir(path)
 	if err != nil {
@@ -679,8 +679,8 @@ func (f *File) Write(path string) (err error) {
 
 		// As well as an OS-level file lock, we want to ensure that WRITE
 		// operations are thread-safe within each process instance.
-		mutex.Lock()
-		defer mutex.Unlock()
+		Mutex.Lock()
+		defer Mutex.Unlock()
 
 		// gosec flagged this:
 		// G304 (CWE-22): Potential file inclusion via variable

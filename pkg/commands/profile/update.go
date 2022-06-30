@@ -60,7 +60,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	if token != "" {
 		opts = append(opts, func(p *config.Profile) {
+			config.Mutex.Lock()
 			p.Token = token
+			config.Mutex.Unlock()
 		})
 	}
 
