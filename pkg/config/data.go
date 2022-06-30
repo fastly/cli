@@ -430,12 +430,16 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 	return true
 }
 
-// Read decodes a toml file from the local disk into config.File.
+// Read decodes a disk file into an in-memory data structure.
 //
 // If reading from disk fails, then we'll use the static config embedded into
 // the CLI binary (which we expect to be valid). If an attempt to unmarshal
 // the static config fails then we have to consider something fundamental has
 // gone wrong and subsequently expect the caller to exit the program.
+//
+// NOTE: Some users have noticed that their profile data is deleted after
+// certain (nondeterministic) operations. The fallback to static config may be
+// contributing to this behaviour because if
 func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) error {
 	// To help mitigate any loss of profile data within the user's config we will
 	// retry the file READ operation if it fails.
