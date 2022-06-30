@@ -447,62 +447,71 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 // NOTE: Some users have noticed that their profile data is deleted after
 // certain (nondeterministic) operations. The fallback to static config may be
 // contributing to this behaviour because if
-func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) (err error) {
-	// To help mitigate any loss of profile data within the user's config we will
-	// attempt to acquire an OS-level file lock to prevent multiple processes
-	// from accessing the file and trying to READ/WRITE to it.
-	fileLock := flock.New(path)
-	lockCtx, cancel := context.WithTimeout(context.Background(), FileLockTimeout)
-	defer cancel()
-
-	// To help mitigate any loss of profile data within the user's config we will
-	// retry the file READ operation if it fails.
-	ctx := context.Background()
-	b := retry.NewConstant(1 * time.Second)
-	b = retry.WithMaxRetries(2, b) // attempts == 3 (first attempt + two retries)
-
+func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) error {
 	var (
 		attempts int
 		data     []byte
-		readErr  error
 		retryErr error
+		readErr  error
 	)
 
-	locked, err := fileLock.TryLockContext(lockCtx, FileLockRetryDelay)
-	if err != nil {
-		return fmt.Errorf("error acquiring file lock for '%s': %w", fileLock.Path(), err)
-	}
+	// NOTE: The use of a file lock inadvertently causes the file to be created
+	// if it didn't originally exist. This means when we attempt to read the
+	// contents of the file it will actually be successful even if the file
+	// originally didn't exist. To avoid this issue we first stat the path.
+	if _, readErr = os.Stat(path); readErr == nil {
+		// To help mitigate any loss of profile data within the user's config we will
+		// attempt to acquire an OS-level file lock to prevent multiple processes
+		// from accessing the file and trying to READ/WRITE to it.
+		fileLock := flock.New(path)
+		lockCtx, cancel := context.WithTimeout(context.Background(), FileLockTimeout)
+		defer cancel()
 
-	if locked {
-		// Once we have a file lock we'll attempt to read, and retry, the file.
-		retryErr = retry.Do(ctx, b, func(_ context.Context) error {
-			attempts++
+		// To help mitigate any loss of profile data within the user's config we will
+		// retry the file READ operation if it fails.
+		ctx := context.Background()
+		b := retry.NewConstant(1 * time.Second)
+		b = retry.WithMaxRetries(2, b) // attempts == 3 (first attempt + two retries)
 
-			// G304 (CWE-22): Potential file inclusion via variable.
-			// gosec flagged this:
-			// Disabling as we need to load the config.toml from the user's file system.
-			// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-			/* #nosec */
-			data, readErr = os.ReadFile(path)
-			if readErr != nil {
-				errLog.Add(readErr)
+		locked, err := fileLock.TryLockContext(lockCtx, FileLockRetryDelay)
+		if err != nil {
+			return fmt.Errorf("error acquiring file lock for '%s': %w", fileLock.Path(), err)
+		}
 
-				// We don't retry the error if the file doesn't exist.
-				if errors.Is(readErr, os.ErrNotExist) {
-					return nil
+		if locked {
+			// Once we have a file lock we'll attempt to read, and retry, the file.
+			retryErr = retry.Do(ctx, b, func(_ context.Context) error {
+				attempts++
+
+				// G304 (CWE-22): Potential file inclusion via variable.
+				// gosec flagged this:
+				// Disabling as we need to load the config.toml from the user's file system.
+				// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+				/* #nosec */
+				data, readErr = os.ReadFile(path)
+				if readErr != nil {
+					errLog.Add(readErr)
+
+					// We don't retry the error if the file doesn't exist. Although in
+					// principle we shouldn't see this error as we .Stat() at the start of
+					// the file.Read() method.
+					if errors.Is(readErr, os.ErrNotExist) {
+						return readErr
+					}
+					return retry.RetryableError(readErr)
 				}
-				return retry.RetryableError(readErr)
-			}
 
-			return nil
-		})
-
-		if err := fileLock.Unlock(); err != nil {
-			errLog.AddWithContext(err, map[string]interface{}{
-				"path":   fileLock.Path(),
-				"locked": fileLock.Locked(),
+				fmt.Printf("%+v\n", string(data))
+				return nil
 			})
-			return fmt.Errorf("error releasing file lock for '%s': %w", fileLock.Path(), err)
+
+			if err := fileLock.Unlock(); err != nil {
+				errLog.AddWithContext(err, map[string]interface{}{
+					"path":   fileLock.Path(),
+					"locked": fileLock.Locked(),
+				})
+				return fmt.Errorf("error releasing file lock for '%s': %w", fileLock.Path(), err)
+			}
 		}
 	}
 
@@ -579,7 +588,7 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 	}
 	mutex.Unlock()
 
-	err = createConfigDir(path)
+	err := createConfigDir(path)
 	if err != nil {
 		errLog.Add(err)
 		return err
