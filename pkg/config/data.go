@@ -331,8 +331,7 @@ func (f *File) Static() []byte {
 	return f.static
 }
 
-// Load gets the configuration file from the CLI API endpoint and encodes it
-// from memory into config.File.
+// Load decodes a network response body into an in-memory data structure.
 func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -504,7 +503,6 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 					return retry.RetryableError(readErr)
 				}
 
-				fmt.Printf("%+v\n", string(data))
 				return nil
 			})
 
@@ -654,26 +652,51 @@ func (f *File) UseStatic(cfg []byte, path string) error {
 	return f.Write(path)
 }
 
-// Write the instance of File to a local application config file.
-func (f *File) Write(path string) error {
-	mutex.Lock()
-	defer mutex.Unlock()
+// Write encodes in-memory data to disk.
+func (f *File) Write(path string) (err error) {
+	// To help mitigate any loss of profile data within the user's config we will
+	// attempt to acquire an OS-level file lock to prevent multiple processes
+	// from accessing the file and trying to READ/WRITE to it.
+	fileLock := flock.New(path)
+	lockCtx, cancel := context.WithTimeout(context.Background(), FileLockTimeout)
+	defer cancel()
 
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	//
-	// Disabling as in most cases the input is determined by our own package.
-	// In other cases we want to control the input for testing purposes.
-	/* #nosec */
-	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
+	locked, err := fileLock.TryLockContext(lockCtx, FileLockRetryDelay)
 	if err != nil {
-		return fmt.Errorf("error creating config file: %w", err)
+		return fmt.Errorf("error acquiring file lock for '%s': %w", fileLock.Path(), err)
 	}
-	if err := toml.NewEncoder(fp).Encode(f); err != nil {
-		return fmt.Errorf("error writing to config file: %w", err)
-	}
-	if err := fp.Close(); err != nil {
-		return fmt.Errorf("error saving config file changes: %w", err)
+
+	if locked {
+		defer func() {
+			if unlockErr := fileLock.Unlock(); unlockErr != nil {
+				// NOTE: By using a named result parameter, i.e. (err error), this
+				// enables us to return an error from a defer statement when there is a
+				// problem releasing the file lock.
+				err = fmt.Errorf("error releasing file lock for '%s': %w", fileLock.Path(), unlockErr)
+			}
+		}()
+
+		// As well as an OS-level file lock, we want to ensure that WRITE
+		// operations are thread-safe within each process instance.
+		mutex.Lock()
+		defer mutex.Unlock()
+
+		// gosec flagged this:
+		// G304 (CWE-22): Potential file inclusion via variable
+		//
+		// Disabling as in most cases the input is determined by our own package.
+		// In other cases we want to control the input for testing purposes.
+		/* #nosec */
+		fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
+		if err != nil {
+			return fmt.Errorf("error creating config file: %w", err)
+		}
+		if err := toml.NewEncoder(fp).Encode(f); err != nil {
+			return fmt.Errorf("error writing to config file: %w", err)
+		}
+		if err := fp.Close(); err != nil {
+			return fmt.Errorf("error saving config file changes: %w", err)
+		}
 	}
 
 	return nil
