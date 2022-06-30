@@ -21,6 +21,7 @@ import (
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/useragent"
+	"github.com/gofrs/flock"
 	toml "github.com/pelletier/go-toml"
 	"github.com/sethvargo/go-retry"
 )
@@ -61,6 +62,12 @@ const (
 	// UpdateSuccessful represents the message shown to a user when their
 	// application configuration has been updated successfully.
 	UpdateSuccessful = "Successfully updated platform compatibility and versioning information."
+
+	// FileLockTimeout is the amount of time to wait trying to acquire a lock.
+	FileLockTimeout = 10 * time.Second
+
+	// FileLockRetryDelay is the mount of time to wait before attempting a retry.
+	FileLockRetryDelay = 500 * time.Millisecond
 )
 
 // ErrLegacyConfig indicates that the local configuration file is using the
@@ -440,7 +447,14 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 // NOTE: Some users have noticed that their profile data is deleted after
 // certain (nondeterministic) operations. The fallback to static config may be
 // contributing to this behaviour because if
-func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) error {
+func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) (err error) {
+	// To help mitigate any loss of profile data within the user's config we will
+	// attempt to acquire an OS-level file lock to prevent multiple processes
+	// from accessing the file and trying to READ/WRITE to it.
+	fileLock := flock.New(path)
+	lockCtx, cancel := context.WithTimeout(context.Background(), FileLockTimeout)
+	defer cancel()
+
 	// To help mitigate any loss of profile data within the user's config we will
 	// retry the file READ operation if it fails.
 	ctx := context.Background()
@@ -451,28 +465,46 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		attempts int
 		data     []byte
 		readErr  error
+		retryErr error
 	)
-	retryErr := retry.Do(ctx, b, func(_ context.Context) error {
-		attempts++
 
-		// G304 (CWE-22): Potential file inclusion via variable.
-		// gosec flagged this:
-		// Disabling as we need to load the config.toml from the user's file system.
-		// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-		/* #nosec */
-		data, readErr = os.ReadFile(path)
-		if readErr != nil {
-			errLog.Add(readErr)
+	locked, err := fileLock.TryLockContext(lockCtx, FileLockRetryDelay)
+	if err != nil {
+		return fmt.Errorf("error acquiring file lock for '%s': %w", fileLock.Path(), err)
+	}
 
-			// We don't retry the error if the file doesn't exist.
-			if errors.Is(readErr, os.ErrNotExist) {
-				return nil
+	if locked {
+		// Once we have a file lock we'll attempt to read, and retry, the file.
+		retryErr = retry.Do(ctx, b, func(_ context.Context) error {
+			attempts++
+
+			// G304 (CWE-22): Potential file inclusion via variable.
+			// gosec flagged this:
+			// Disabling as we need to load the config.toml from the user's file system.
+			// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+			/* #nosec */
+			data, readErr = os.ReadFile(path)
+			if readErr != nil {
+				errLog.Add(readErr)
+
+				// We don't retry the error if the file doesn't exist.
+				if errors.Is(readErr, os.ErrNotExist) {
+					return nil
+				}
+				return retry.RetryableError(readErr)
 			}
-			return retry.RetryableError(readErr)
-		}
 
-		return nil
-	})
+			return nil
+		})
+
+		if err := fileLock.Unlock(); err != nil {
+			errLog.AddWithContext(err, map[string]interface{}{
+				"path":   fileLock.Path(),
+				"locked": fileLock.Locked(),
+			})
+			return fmt.Errorf("error releasing file lock for '%s': %w", fileLock.Path(), err)
+		}
+	}
 
 	// NOTE: retryErr is when we reached the max number of retries, while the
 	// readErr is for catching when we didn't want to retry the READ operation.
@@ -547,7 +579,7 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 	}
 	mutex.Unlock()
 
-	err := createConfigDir(path)
+	err = createConfigDir(path)
 	if err != nil {
 		errLog.Add(err)
 		return err

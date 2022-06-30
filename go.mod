@@ -33,6 +33,7 @@ require (
 )
 
 require (
+	github.com/gofrs/flock v0.8.1
 	github.com/otiai10/copy v1.7.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/sethvargo/go-retry v0.2.3
@@ -42,7 +43,6 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
-	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/jsonapi v1.0.0 // indirect
