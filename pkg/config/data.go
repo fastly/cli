@@ -627,22 +627,23 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 
 // UseStatic allow us to switch the in-memory configuration with the static
 // version embedded into the CLI binary and writes it back to disk.
-func (f *File) UseStatic(cfg []byte, path string) error {
+func (f *File) UseStatic(cfg []byte, path string) (err error) {
 	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
 	// representation we lock any operation that would cause the in-memory data
 	// to be updated.
 	mutex.Lock()
-	err := toml.Unmarshal(cfg, f)
-	mutex.Unlock()
+	{
+		err = toml.Unmarshal(cfg, f)
+		if err != nil {
+			return invalidConfigErr(err)
+		}
 
-	if err != nil {
-		return invalidConfigErr(err)
+		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+		f.CLI.Version = revision.SemVer(revision.AppVersion)
+
+		migrateLegacyData(f)
 	}
-
-	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-	f.CLI.Version = revision.SemVer(revision.AppVersion)
-
-	migrateLegacyData(f)
+	mutex.Unlock()
 
 	err = createConfigDir(path)
 	if err != nil {
