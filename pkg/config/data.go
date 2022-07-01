@@ -353,10 +353,6 @@ func (f *File) Static() []byte {
 }
 
 // Load decodes a network response body into an in-memory data structure.
-//
-// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-// representation we lock any operation that would cause the in-memory data
-// to be updated.
 func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -548,9 +544,6 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		data = f.static
 	}
 
-	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-	// representation we lock any operation that would cause the in-memory data
-	// to be updated.
 	Mutex.Lock()
 	unmarshalErr := toml.Unmarshal(data, f)
 	Mutex.Unlock()
@@ -577,9 +570,6 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		if contl == "y" || contl == "yes" {
 			data = f.static
 
-			// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-			// representation we lock any operation that would cause the in-memory data
-			// to be updated.
 			Mutex.Lock()
 			err = toml.Unmarshal(data, f)
 			Mutex.Unlock()
@@ -599,16 +589,14 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 	}
 
 	// We expect LastChecked/Version to not be set if coming from the static config.
-	//
-	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-	// representation we lock any operation that would cause the in-memory data
-	// to be updated.
 	Mutex.Lock()
-	if f.CLI.LastChecked == "" {
-		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-	}
-	if f.CLI.Version == "" {
-		f.CLI.Version = revision.SemVer(revision.AppVersion)
+	{
+		if f.CLI.LastChecked == "" {
+			f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+		}
+		if f.CLI.Version == "" {
+			f.CLI.Version = revision.SemVer(revision.AppVersion)
+		}
 	}
 	Mutex.Unlock()
 
@@ -650,10 +638,6 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 
 // UseStatic allow us to switch the in-memory configuration with the static
 // version embedded into the CLI binary and writes it back to disk.
-//
-// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-// representation we lock any operation that would cause the in-memory data
-// to be updated.
 func (f *File) UseStatic(cfg []byte, path string) (err error) {
 	Mutex.Lock()
 	err = toml.Unmarshal(cfg, f)

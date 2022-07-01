@@ -161,9 +161,6 @@ func (c *CreateCommand) validateToken(token, endpoint string, progress text.Prog
 func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, progress text.Progress) {
 	progress.Step("Persisting configuration...")
 
-	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-	// representation we lock any operation that would cause the in-memory data
-	// to be updated.
 	config.Mutex.Lock()
 	{
 		c.Globals.File.Fastly.APIEndpoint = endpoint
