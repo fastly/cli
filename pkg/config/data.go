@@ -494,7 +494,7 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		b := retry.NewConstant(1 * time.Second)
 		b = retry.WithMaxRetries(2, b) // attempts == 3 (first attempt + two retries)
 
-		locked, err := fileLock.TryLockContext(lockCtx, FileLockRetryDelay)
+		locked, err := fileLock.TryRLockContext(lockCtx, FileLockRetryDelay)
 		if err != nil {
 			return fmt.Errorf("error acquiring file lock for '%s': %w", fileLock.Path(), err)
 		}
