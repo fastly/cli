@@ -85,7 +85,7 @@ var RemediationManualFix = "You'll need to manually fix any invalid configuratio
 
 // Mutex provides synchronisation for any WRITE operations on the CLI config.
 // This includes calls to the Write method (which affects the disk
-// representation) as well as in-memory updates.
+// representation) as well as in-memory data structure updates.
 //
 // NOTE: Historically the CLI has only had to write to the CLI config from
 // within the `main` function but now the `fastly update` command accepts a
@@ -97,15 +97,21 @@ var RemediationManualFix = "You'll need to manually fix any invalid configuratio
 // can potentially return out of the function early, then we'd never call the
 // mutex's Unlock method.
 //
-// BUT we also can't rely on using the defer statement either because in the
-// case of the UseStatic method, the last line of the method is a call to
-// .Write() which itself also tries to acquire a lock. So if we deferred the
-// Unlock, we'd call into .Write() and deadlock waiting to acquire a lock that
-// we never actually released.
+// We also can't rely on using the defer statement either because in the case
+// of the UseStatic() method, the last line of the method is a call to .Write()
+// which itself also tries to acquire a lock. So if we deferred the Unlock(),
+// we'd eventually call out to .Write() and deadlock waiting to acquire the lock
+// that we never actually released from within the caller.
 //
-// Because of this we should be mindful whenever using the defer statement in
-// favour of multiple calls to Lock/Unlock specific portions of the code
-// accessing the in-memory data (while checking for early returns).
+// Because of this we should be mindful whenever using the defer statement, and
+// possibly opt for multiple calls to Lock/Unlock around specific portions of
+// the code accessing the in-memory data (while also checking for early returns).
+//
+// NOTE: Ideally we wouldn't need to sprinkle mutex references all over the
+// code, and instead have it abstracted away inside the config.File type, but
+// this requires exposing lots of setter methods for each field on each nested
+// subfield type (this would be a lot of extra code). If we start to experience
+// issues with mutex usage, then this decision can be revisited.
 var Mutex = &sync.Mutex{}
 
 // Data holds global-ish configuration data from all sources: environment

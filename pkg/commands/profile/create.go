@@ -165,25 +165,28 @@ func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint strin
 	// representation we lock any operation that would cause the in-memory data
 	// to be updated.
 	config.Mutex.Lock()
-	defer config.Mutex.Unlock()
+	{
+		c.Globals.File.Fastly.APIEndpoint = endpoint
 
-	c.Globals.File.Fastly.APIEndpoint = endpoint
-
-	if c.Globals.File.Profiles == nil {
-		c.Globals.File.Profiles = make(config.Profiles)
+		if c.Globals.File.Profiles == nil {
+			c.Globals.File.Profiles = make(config.Profiles)
+		}
+		c.Globals.File.Profiles[profileName] = &config.Profile{
+			Default: def,
+			Email:   email,
+			Token:   token,
+		}
 	}
-	c.Globals.File.Profiles[profileName] = &config.Profile{
-		Default: def,
-		Email:   email,
-		Token:   token,
-	}
+	config.Mutex.Unlock()
 
 	// If the user wants the newly created profile to be their new default, then
 	// we'll call Set for its side effect of resetting all other profiles to have
 	// their Default field set to false.
 	if def {
 		if p, ok := profile.Set(profileName, c.Globals.File.Profiles); ok {
+			config.Mutex.Lock()
 			c.Globals.File.Profiles = p
+			config.Mutex.Unlock()
 		}
 	}
 }

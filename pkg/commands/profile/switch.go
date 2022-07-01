@@ -31,12 +31,17 @@ func NewSwitchCommand(parent cmd.Registerer, globals *config.Data) *SwitchComman
 func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
 	var ok bool
 
-	if c.Globals.File.Profiles, ok = profile.Set(c.profile, c.Globals.File.Profiles); !ok {
+	p, ok := profile.Set(c.profile, c.Globals.File.Profiles)
+	if !ok {
 		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 		err := errors.New(msg)
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
+
+	config.Mutex.Lock()
+	c.Globals.File.Profiles = p
+	config.Mutex.Unlock()
 
 	if err := c.Globals.File.Write(c.Globals.Path); err != nil {
 		c.Globals.ErrLog.Add(err)
