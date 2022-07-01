@@ -683,7 +683,13 @@ func (f *File) Write(path string) (err error) {
 				// NOTE: By using a named result parameter, i.e. (err error), this
 				// enables us to return an error from a defer statement when there is a
 				// problem releasing the file lock.
-				err = fmt.Errorf("error releasing file lock for '%s': %w", fileLock.Path(), unlockErr)
+				msg := "error releasing file lock for '%s': %w"
+				if err == nil {
+					err = fmt.Errorf(msg, fileLock.Path(), unlockErr)
+				} else {
+					// This prevents us from losing the previous logic error.
+					err = fmt.Errorf(msg+" (%w)", fileLock.Path(), unlockErr, err)
+				}
 			}
 		}()
 
