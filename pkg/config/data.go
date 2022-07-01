@@ -91,6 +91,21 @@ var RemediationManualFix = "You'll need to manually fix any invalid configuratio
 // within the `main` function but now the `fastly update` command accepts a
 // flag that allows explicitly updating the CLI config, which means we need to
 // ensure there isn't a race condition with writing the config to disk.
+//
+// We also need to be careful with low-level mutex usage because it's easy to
+// cause a deadlock! For example, if we lock around a section of code that
+// can potentially return out of the function early, then we'd never call the
+// mutex's Unlock method.
+//
+// BUT we also can't rely on using the defer statement either because in the
+// case of the UseStatic method, the last line of the method is a call to
+// .Write() which itself also tries to acquire a lock. So if we deferred the
+// Unlock, we'd call into .Write() and deadlock waiting to acquire a lock that
+// we never actually released.
+//
+// Because of this we should be mindful whenever using the defer statement in
+// favour of multiple calls to Lock/Unlock specific portions of the code
+// accessing the in-memory data (while checking for early returns).
 var Mutex = &sync.Mutex{}
 
 // Data holds global-ish configuration data from all sources: environment
@@ -332,6 +347,10 @@ func (f *File) Static() []byte {
 }
 
 // Load decodes a network response body into an in-memory data structure.
+//
+// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+// representation we lock any operation that would cause the in-memory data
+// to be updated.
 func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -355,24 +374,22 @@ func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 		return fmt.Errorf("fetching remote configuration: expected '200 OK', received '%s'", resp.Status)
 	}
 
-	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-	// representation we lock any operation that would cause the in-memory data
-	// to be updated. Every operation in the following block is modifying the
-	// in-memory `f` data structure.
+	// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
+	// Profiles that are set in-memory continue to be set after reading in the
+	// remote configuration data even though that data source doesn't define any
+	// such data). This can be manually validated using an io.TeeReader.
+	Mutex.Lock()
+	err = toml.NewDecoder(resp.Body).Decode(f)
+	Mutex.Unlock()
+
+	if err != nil {
+		return err
+	}
+
 	Mutex.Lock()
 	{
-		// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
-		// Profiles that are set in-memory continue to be set after reading in the
-		// remote configuration data even though that data source doesn't define any
-		// such data). This can be manually validated using an io.TeeReader.
-		err := toml.NewDecoder(resp.Body).Decode(f)
-		if err != nil {
-			return err
-		}
-
 		f.CLI.Version = revision.SemVer(revision.AppVersion)
 		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-
 		migrateLegacyData(f)
 	}
 	Mutex.Unlock()
@@ -627,20 +644,23 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 
 // UseStatic allow us to switch the in-memory configuration with the static
 // version embedded into the CLI binary and writes it back to disk.
+//
+// NOTE: In an attempt to prevent unexpected changes to the in-memory data
+// representation we lock any operation that would cause the in-memory data
+// to be updated.
 func (f *File) UseStatic(cfg []byte, path string) (err error) {
-	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-	// representation we lock any operation that would cause the in-memory data
-	// to be updated.
+	Mutex.Lock()
+	err = toml.Unmarshal(cfg, f)
+	Mutex.Unlock()
+
+	if err != nil {
+		return invalidConfigErr(err)
+	}
+
 	Mutex.Lock()
 	{
-		err = toml.Unmarshal(cfg, f)
-		if err != nil {
-			return invalidConfigErr(err)
-		}
-
 		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 		f.CLI.Version = revision.SemVer(revision.AppVersion)
-
 		migrateLegacyData(f)
 	}
 	Mutex.Unlock()
