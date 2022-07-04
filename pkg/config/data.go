@@ -21,7 +21,6 @@ import (
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/useragent"
-	"github.com/gofrs/flock"
 	toml "github.com/pelletier/go-toml"
 	"github.com/sethvargo/go-retry"
 )
@@ -62,12 +61,6 @@ const (
 	// UpdateSuccessful represents the message shown to a user when their
 	// application configuration has been updated successfully.
 	UpdateSuccessful = "Successfully updated platform compatibility and versioning information."
-
-	// FileLockTimeout is the amount of time to wait trying to acquire a lock.
-	FileLockTimeout = 10 * time.Second
-
-	// FileLockRetryDelay is the mount of time to wait before attempting a retry.
-	FileLockRetryDelay = 500 * time.Millisecond
 )
 
 // ErrLegacyConfig indicates that the local configuration file is using the
@@ -476,64 +469,35 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		readErr  error
 	)
 
-	// NOTE: The use of a file lock inadvertently causes the file to be created
-	// if it didn't originally exist. This means when we attempt to read the
-	// contents of the file it will actually be successful even if the file
-	// originally didn't exist. To avoid this issue we first stat the path.
-	if _, readErr = os.Stat(path); readErr == nil {
-		// To help mitigate any loss of profile data within the user's config we will
-		// attempt to acquire an OS-level file lock to prevent multiple processes
-		// from accessing the file and trying to READ/WRITE to it.
-		fileLock := flock.New(path)
-		lockCtx, cancel := context.WithTimeout(context.Background(), FileLockTimeout)
-		defer cancel()
+	// To help mitigate any loss of profile data within the user's config we will
+	// retry the file READ operation if it fails.
+	ctx := context.Background()
+	b := retry.NewConstant(1 * time.Second)
+	b = retry.WithMaxRetries(2, b) // attempts == 3 (first attempt + two retries)
 
-		// To help mitigate any loss of profile data within the user's config we will
-		// retry the file READ operation if it fails.
-		ctx := context.Background()
-		b := retry.NewConstant(1 * time.Second)
-		b = retry.WithMaxRetries(2, b) // attempts == 3 (first attempt + two retries)
+	retryErr = retry.Do(ctx, b, func(_ context.Context) error {
+		attempts++
 
-		locked, err := fileLock.TryRLockContext(lockCtx, FileLockRetryDelay)
-		if err != nil {
-			return fmt.Errorf("error acquiring file lock for '%s': %w", fileLock.Path(), err)
-		}
+		// G304 (CWE-22): Potential file inclusion via variable.
+		// gosec flagged this:
+		// Disabling as we need to load the config.toml from the user's file system.
+		// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+		/* #nosec */
+		data, readErr = os.ReadFile(path)
+		if readErr != nil {
+			errLog.Add(readErr)
 
-		if locked {
-			// Once we have a file lock we'll attempt to read, and retry, the file.
-			retryErr = retry.Do(ctx, b, func(_ context.Context) error {
-				attempts++
-
-				// G304 (CWE-22): Potential file inclusion via variable.
-				// gosec flagged this:
-				// Disabling as we need to load the config.toml from the user's file system.
-				// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-				/* #nosec */
-				data, readErr = os.ReadFile(path)
-				if readErr != nil {
-					errLog.Add(readErr)
-
-					// We don't retry the error if the file doesn't exist. Although in
-					// principle we shouldn't see this error as we .Stat() at the start of
-					// the file.Read() method.
-					if errors.Is(readErr, os.ErrNotExist) {
-						return readErr
-					}
-					return retry.RetryableError(readErr)
-				}
-
-				return nil
-			})
-
-			if err := fileLock.Unlock(); err != nil {
-				errLog.AddWithContext(err, map[string]interface{}{
-					"path":   fileLock.Path(),
-					"locked": fileLock.Locked(),
-				})
-				return fmt.Errorf("error releasing file lock for '%s': %w", fileLock.Path(), err)
+			// We don't retry the error if the file doesn't exist. Although in
+			// principle we shouldn't see this error as we .Stat() at the start of
+			// the file.Read() method.
+			if errors.Is(readErr, os.ErrNotExist) {
+				return readErr
 			}
+			return retry.RetryableError(readErr)
 		}
-	}
+
+		return nil
+	})
 
 	// NOTE: retryErr is when we reached the max number of retries, while the
 	// readErr is for catching when we didn't want to retry the READ operation.
@@ -665,55 +629,24 @@ func (f *File) UseStatic(cfg []byte, path string) (err error) {
 
 // Write encodes in-memory data to disk.
 func (f *File) Write(path string) (err error) {
-	// To help mitigate any loss of profile data within the user's config we will
-	// attempt to acquire an OS-level file lock to prevent multiple processes
-	// from accessing the file and trying to READ/WRITE to it.
-	fileLock := flock.New(path)
-	lockCtx, cancel := context.WithTimeout(context.Background(), FileLockTimeout)
-	defer cancel()
+	Mutex.Lock()
+	defer Mutex.Unlock()
 
-	locked, err := fileLock.TryLockContext(lockCtx, FileLockRetryDelay)
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as in most cases the input is determined by our own package.
+	// In other cases we want to control the input for testing purposes.
+	/* #nosec */
+	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
 	if err != nil {
-		return fmt.Errorf("error acquiring file lock for '%s': %w", fileLock.Path(), err)
+		return fmt.Errorf("error creating config file: %w", err)
 	}
-
-	if locked {
-		defer func() {
-			if unlockErr := fileLock.Unlock(); unlockErr != nil {
-				// NOTE: By using a named result parameter, i.e. (err error), this
-				// enables us to return an error from a defer statement when there is a
-				// problem releasing the file lock.
-				msg := "error releasing file lock for '%s': %w"
-				if err == nil {
-					err = fmt.Errorf(msg, fileLock.Path(), unlockErr)
-				} else {
-					// This prevents us from losing the previous logic error.
-					err = fmt.Errorf(msg+" (%w)", fileLock.Path(), unlockErr, err)
-				}
-			}
-		}()
-
-		// As well as an OS-level file lock, we want to ensure that WRITE
-		// operations are thread-safe within each process instance.
-		Mutex.Lock()
-		defer Mutex.Unlock()
-
-		// gosec flagged this:
-		// G304 (CWE-22): Potential file inclusion via variable
-		//
-		// Disabling as in most cases the input is determined by our own package.
-		// In other cases we want to control the input for testing purposes.
-		/* #nosec */
-		fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, FilePermissions)
-		if err != nil {
-			return fmt.Errorf("error creating config file: %w", err)
-		}
-		if err := toml.NewEncoder(fp).Encode(f); err != nil {
-			return fmt.Errorf("error writing to config file: %w", err)
-		}
-		if err := fp.Close(); err != nil {
-			return fmt.Errorf("error saving config file changes: %w", err)
-		}
+	if err := toml.NewEncoder(fp).Encode(f); err != nil {
+		return fmt.Errorf("error writing to config file: %w", err)
+	}
+	if err := fp.Close(); err != nil {
+		return fmt.Errorf("error saving config file changes: %w", err)
 	}
 
 	return nil
