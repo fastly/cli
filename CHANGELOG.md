@@ -1,5 +1,18 @@
 # Changelog
 
+## [v3.1.1](https://github.com/fastly/cli/releases/tag/v3.1.1) (2022-07-04)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v3.1.0...v3.1.1)
+
+**Enhancements:**
+
+* Handle build info more accurately [#588](https://github.com/fastly/cli/pull/588)
+
+**Bug fixes:**
+
+* Fix version check [#589](https://github.com/fastly/cli/pull/589)
+* Address profile data loss [#590](https://github.com/fastly/cli/pull/590)
+
 ## [v3.1.0](https://github.com/fastly/cli/releases/tag/v3.1.0) (2022-06-24)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v3.0.1...v3.1.0)
