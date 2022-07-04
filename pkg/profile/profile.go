@@ -53,6 +53,9 @@ func Get(name string, p config.Profiles) (string, *config.Profile) {
 // NOTE: The type assigned to the config.Profiles map key value is a struct.
 // Structs are passed by value and so we must return the mutated type.
 func Set(name string, p config.Profiles) (config.Profiles, bool) {
+	config.Mutex.Lock()
+	defer config.Mutex.Unlock()
+
 	var ok bool
 	for k, v := range p {
 		v.Default = false
@@ -66,6 +69,9 @@ func Set(name string, p config.Profiles) (config.Profiles, bool) {
 
 // Delete removes the named profile from the profile configuration.
 func Delete(name string, p config.Profiles) bool {
+	config.Mutex.Lock()
+	defer config.Mutex.Unlock()
+
 	var ok bool
 	for k := range p {
 		if k == name {

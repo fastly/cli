@@ -60,7 +60,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	if token != "" {
 		opts = append(opts, func(p *config.Profile) {
+			config.Mutex.Lock()
 			p.Token = token
+			config.Mutex.Unlock()
 		})
 	}
 
@@ -72,7 +74,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 	opts = append(opts, func(p *config.Profile) {
+		config.Mutex.Lock()
 		p.Default = def
+		config.Mutex.Unlock()
 	})
 
 	// User didn't want to change their token value so reassign original.
@@ -98,18 +102,24 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 	opts = append(opts, func(p *config.Profile) {
+		config.Mutex.Lock()
 		p.Email = u.Login
+		config.Mutex.Unlock()
 	})
 
 	var ok bool
 
-	if c.Globals.File.Profiles, ok = profile.Edit(c.profile, c.Globals.File.Profiles, opts...); !ok {
+	ps, ok := profile.Edit(c.profile, c.Globals.File.Profiles, opts...)
+	if !ok {
 		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf(msg),
 			Remediation: fsterr.ProfileRemediation,
 		}
 	}
+	config.Mutex.Lock()
+	c.Globals.File.Profiles = ps
+	config.Mutex.Unlock()
 
 	if err := c.persistCfg(); err != nil {
 		return err

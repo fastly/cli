@@ -35,6 +35,7 @@ require (
 require (
 	github.com/otiai10/copy v1.7.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
+	github.com/sethvargo/go-retry v0.2.3
 	github.com/tcnksm/go-gitconfig v0.1.2
 )
 

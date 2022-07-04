@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -21,6 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/useragent"
 	toml "github.com/pelletier/go-toml"
+	"github.com/sethvargo/go-retry"
 )
 
 // Source enumerates where a config parameter is taken from.
@@ -74,15 +76,36 @@ var ErrInvalidConfig = errors.New("the configuration file is invalid")
 // compiled CLI binary and so the user must resolve their invalid config.
 var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
 
-// mutex provides synchronisation for any WRITE operations on the CLI config.
+// Mutex provides synchronisation for any WRITE operations on the CLI config.
 // This includes calls to the Write method (which affects the disk
-// representation) as well as in-memory updates.
+// representation) as well as in-memory data structure updates.
 //
 // NOTE: Historically the CLI has only had to write to the CLI config from
 // within the `main` function but now the `fastly update` command accepts a
 // flag that allows explicitly updating the CLI config, which means we need to
 // ensure there isn't a race condition with writing the config to disk.
-var mutex = &sync.Mutex{}
+//
+// We also need to be careful with low-level mutex usage because it's easy to
+// cause a deadlock! For example, if we lock around a section of code that
+// can potentially return out of the function early, then we'd never call the
+// mutex's Unlock method.
+//
+// We also can't rely on using the defer statement either because in the case
+// of the UseStatic() method, the last line of the method is a call to .Write()
+// which itself also tries to acquire a lock. So if we deferred the Unlock(),
+// we'd eventually call out to .Write() and deadlock waiting to acquire the lock
+// that we never actually released from within the caller.
+//
+// Because of this we should be mindful whenever using the defer statement, and
+// possibly opt for multiple calls to Lock/Unlock around specific portions of
+// the code accessing the in-memory data (while also checking for early returns).
+//
+// NOTE: Ideally we wouldn't need to sprinkle mutex references all over the
+// code, and instead have it abstracted away inside the config.File type, but
+// this requires exposing lots of setter methods for each field on each nested
+// subfield type (this would be a lot of extra code). If we start to experience
+// issues with mutex usage, then this decision can be revisited.
+var Mutex = &sync.Mutex{}
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -322,8 +345,7 @@ func (f *File) Static() []byte {
 	return f.static
 }
 
-// Load gets the configuration file from the CLI API endpoint and encodes it
-// from memory into config.File.
+// Load decodes a network response body into an in-memory data structure.
 func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -347,26 +369,25 @@ func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
 		return fmt.Errorf("fetching remote configuration: expected '200 OK', received '%s'", resp.Status)
 	}
 
-	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-	// representation we lock any operation that would cause the in-memory data
-	// to be updated.
-	//
 	// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
 	// Profiles that are set in-memory continue to be set after reading in the
 	// remote configuration data even though that data source doesn't define any
 	// such data). This can be manually validated using an io.TeeReader.
-	mutex.Lock()
+	Mutex.Lock()
 	err = toml.NewDecoder(resp.Body).Decode(f)
-	mutex.Unlock()
+	Mutex.Unlock()
 
 	if err != nil {
 		return err
 	}
 
-	f.CLI.Version = revision.SemVer(revision.AppVersion)
-	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-
-	migrateLegacyData(f)
+	Mutex.Lock()
+	{
+		f.CLI.Version = revision.SemVer(revision.AppVersion)
+		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+		migrateLegacyData(f)
+	}
+	Mutex.Unlock()
 
 	err = createConfigDir(path)
 	if err != nil {
@@ -427,30 +448,69 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 	return true
 }
 
-// Read decodes a toml file from the local disk into config.File.
+// Read decodes a disk file into an in-memory data structure.
 //
 // If reading from disk fails, then we'll use the static config embedded into
 // the CLI binary (which we expect to be valid). If an attempt to unmarshal
 // the static config fails then we have to consider something fundamental has
 // gone wrong and subsequently expect the caller to exit the program.
+//
+// NOTE: Some users have noticed that their profile data is deleted after
+// certain (nondeterministic) operations. The fallback to static config may be
+// contributing to this behaviour because if a read of the user's config fails
+// and we start to use the static version as a fallback, then that will contain
+// no profile data and that in-memory representation will be persisted back to
+// disk, causing the user's profile data to be lost.
 func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) error {
-	// G304 (CWE-22): Potential file inclusion via variable.
-	// gosec flagged this:
-	// Disabling as we need to load the config.toml from the user's file system.
-	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-	/* #nosec */
-	data, readErr := os.ReadFile(path)
-	if readErr != nil {
-		errLog.Add(readErr)
+	var (
+		attempts int
+		data     []byte
+		retryErr error
+		readErr  error
+	)
+
+	// To help mitigate any loss of profile data within the user's config we will
+	// retry the file READ operation if it fails.
+	ctx := context.Background()
+	b := retry.NewConstant(1 * time.Second)
+	b = retry.WithMaxRetries(2, b) // attempts == 3 (first attempt + two retries)
+
+	retryErr = retry.Do(ctx, b, func(_ context.Context) error {
+		attempts++
+
+		// G304 (CWE-22): Potential file inclusion via variable.
+		// gosec flagged this:
+		// Disabling as we need to load the config.toml from the user's file system.
+		// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+		/* #nosec */
+		data, readErr = os.ReadFile(path)
+		if readErr != nil {
+			errLog.Add(readErr)
+
+			// We don't retry the error if the file doesn't exist. Although in
+			// principle we shouldn't see this error as we .Stat() at the start of
+			// the file.Read() method.
+			if errors.Is(readErr, os.ErrNotExist) {
+				return readErr
+			}
+			return retry.RetryableError(readErr)
+		}
+
+		return nil
+	})
+
+	// NOTE: retryErr is when we reached the max number of retries, while the
+	// readErr is for catching when we didn't want to retry the READ operation.
+	if retryErr != nil || readErr != nil {
+		errLog.AddWithContext(retryErr, map[string]interface{}{
+			"attempts": attempts,
+		})
 		data = f.static
 	}
 
-	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-	// representation we lock any operation that would cause the in-memory data
-	// to be updated.
-	mutex.Lock()
+	Mutex.Lock()
 	unmarshalErr := toml.Unmarshal(data, f)
-	mutex.Unlock()
+	Mutex.Unlock()
 
 	if unmarshalErr != nil {
 		errLog.Add(unmarshalErr)
@@ -474,12 +534,9 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		if contl == "y" || contl == "yes" {
 			data = f.static
 
-			// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-			// representation we lock any operation that would cause the in-memory data
-			// to be updated.
-			mutex.Lock()
+			Mutex.Lock()
 			err = toml.Unmarshal(data, f)
-			mutex.Unlock()
+			Mutex.Unlock()
 
 			if err != nil {
 				errLog.Add(err)
@@ -496,12 +553,16 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 	}
 
 	// We expect LastChecked/Version to not be set if coming from the static config.
-	if f.CLI.LastChecked == "" {
-		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+	Mutex.Lock()
+	{
+		if f.CLI.LastChecked == "" {
+			f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+		}
+		if f.CLI.Version == "" {
+			f.CLI.Version = revision.SemVer(revision.AppVersion)
+		}
 	}
-	if f.CLI.Version == "" {
-		f.CLI.Version = revision.SemVer(revision.AppVersion)
-	}
+	Mutex.Unlock()
 
 	err := createConfigDir(path)
 	if err != nil {
@@ -541,22 +602,22 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 
 // UseStatic allow us to switch the in-memory configuration with the static
 // version embedded into the CLI binary and writes it back to disk.
-func (f *File) UseStatic(cfg []byte, path string) error {
-	// NOTE: In an attempt to prevent unexpected changes to the in-memory data
-	// representation we lock any operation that would cause the in-memory data
-	// to be updated.
-	mutex.Lock()
-	err := toml.Unmarshal(cfg, f)
-	mutex.Unlock()
+func (f *File) UseStatic(cfg []byte, path string) (err error) {
+	Mutex.Lock()
+	err = toml.Unmarshal(cfg, f)
+	Mutex.Unlock()
 
 	if err != nil {
 		return invalidConfigErr(err)
 	}
 
-	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-	f.CLI.Version = revision.SemVer(revision.AppVersion)
-
-	migrateLegacyData(f)
+	Mutex.Lock()
+	{
+		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+		f.CLI.Version = revision.SemVer(revision.AppVersion)
+		migrateLegacyData(f)
+	}
+	Mutex.Unlock()
 
 	err = createConfigDir(path)
 	if err != nil {
@@ -566,10 +627,10 @@ func (f *File) UseStatic(cfg []byte, path string) error {
 	return f.Write(path)
 }
 
-// Write the instance of File to a local application config file.
-func (f *File) Write(path string) error {
-	mutex.Lock()
-	defer mutex.Unlock()
+// Write encodes in-memory data to disk.
+func (f *File) Write(path string) (err error) {
+	Mutex.Lock()
+	defer Mutex.Unlock()
 
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable

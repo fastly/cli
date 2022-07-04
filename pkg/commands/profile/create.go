@@ -161,23 +161,29 @@ func (c *CreateCommand) validateToken(token, endpoint string, progress text.Prog
 func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, progress text.Progress) {
 	progress.Step("Persisting configuration...")
 
-	c.Globals.File.Fastly.APIEndpoint = endpoint
+	config.Mutex.Lock()
+	{
+		c.Globals.File.Fastly.APIEndpoint = endpoint
 
-	if c.Globals.File.Profiles == nil {
-		c.Globals.File.Profiles = make(config.Profiles)
+		if c.Globals.File.Profiles == nil {
+			c.Globals.File.Profiles = make(config.Profiles)
+		}
+		c.Globals.File.Profiles[profileName] = &config.Profile{
+			Default: def,
+			Email:   email,
+			Token:   token,
+		}
 	}
-	c.Globals.File.Profiles[profileName] = &config.Profile{
-		Default: def,
-		Email:   email,
-		Token:   token,
-	}
+	config.Mutex.Unlock()
 
 	// If the user wants the newly created profile to be their new default, then
 	// we'll call Set for its side effect of resetting all other profiles to have
 	// their Default field set to false.
 	if def {
 		if p, ok := profile.Set(profileName, c.Globals.File.Profiles); ok {
+			config.Mutex.Lock()
 			c.Globals.File.Profiles = p
+			config.Mutex.Unlock()
 		}
 	}
 }
