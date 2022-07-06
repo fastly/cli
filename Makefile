@@ -8,9 +8,6 @@ VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD
 # Allows overriding go executable.
 GO_BIN ?= go
 
-# Allows overriding go executable.
-GO_BIN ?= go
-
 # Enables support for tools such as https://github.com/rakyll/gotest
 TEST_COMMAND ?= $(GO_BIN) test
 
