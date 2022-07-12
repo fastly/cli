@@ -10,7 +10,7 @@ ttl = "5m"
 [language]
   [language.go]
     tinygo_constraint = ">= 0.24.0"
-    toolchain_constraint = ">= 1.17"
+    toolchain_constraint = ">= 1.17 < 1.19" # upper limit should be temporary (just while we figure out any rough edges)
 
   [language.rust]
   toolchain_version = "1.56.1"
