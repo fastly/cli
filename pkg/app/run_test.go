@@ -3896,7 +3896,7 @@ COMMANDS
                                  version
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
-        --address=ADDRESS        The hostname or IPv4 addres
+        --address=ADDRESS        The hostname or IPv4 address
         --user=USER              The username for the server
         --ssh-known-hosts=SSH-KNOWN-HOSTS
                                  A list of host keys for all hosts we can
