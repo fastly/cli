@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
@@ -800,7 +801,12 @@ func pkgCompare(client api.Interface, serviceID string, version int, hashSum str
 // getHashSum creates a SHA 512 hash from the given file contents in a specific order.
 func getHashSum(contents map[string]*bytes.Buffer) (hash string, err error) {
 	h := sha512.New()
-	for _, fname := range []string{"fastly.toml", "main.wasm"} {
+	keys := make([]string, 0, len(contents))
+	for k := range contents {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, fname := range keys {
 		if _, err := io.Copy(h, contents[fname]); err != nil {
 			return "", err
 		}
