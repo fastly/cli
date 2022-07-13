@@ -65,17 +65,14 @@ func (m *CargoManifest) Read(path string) error {
 // before using the tree API to update the name field and marshalling it back
 // to toml afterwards.
 func (m *CargoManifest) SetPackageName(name, path string) error {
-	tree, err := toml.LoadFile(path)
-	if err != nil {
-		return err
+	if err := m.Read("Cargo.toml"); err != nil {
+		return fmt.Errorf("error reading Cargo.toml manifest: %w", err)
 	}
-	tree.Set("package.name", name)
-
-	data, err := tree.Marshal()
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading Cargo.toml file: %w", err)
 	}
-
+	data = bytes.ReplaceAll(data, []byte(m.Package.Name), []byte(name))
 	if err := os.WriteFile(path, data, 0o600); err != nil {
 		return fmt.Errorf("error updating Cargo manifest file: %w", err)
 	}
