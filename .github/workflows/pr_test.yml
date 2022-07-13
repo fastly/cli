@@ -53,6 +53,7 @@ jobs:
   test:
     strategy:
       matrix:
+        tinygo-version: [0.24.0]
         go-version: [1.18.x]
         node-version: [12]
         rust-toolchain: [stable]
@@ -81,6 +82,23 @@ jobs:
         key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-mod-
+    # NOTE: 
+    # We can't install TinyGo for Windows without the scoop package manager. 
+    # There is a third-party action that installs scoop but it's broken until its v2 is released.
+    - if: ${{ matrix.platform != 'windows-latest' }}
+      id: tinygo
+      run: echo ::set-output name=run_tests::true
+    - if: ${{ matrix.platform == 'ubuntu-latest' }}
+      run: |
+        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo_${{ matrix.tinygo-version }}_amd64.deb
+        sudo dpkg -i tinygo_${{ matrix.tinygo-version }}_amd64.deb
+        echo "/usr/local/bin" >> $GITHUB_PATH
+        tinygo version
+    - if: ${{ matrix.platform == 'macos-latest' }}
+      run: |
+        brew tap tinygo-org/tools
+        brew install tinygo
+        tinygo version
     - name: "Install Rust"
       uses: actions-rs/toolchain@v1
       with:
@@ -104,3 +122,4 @@ jobs:
         TEST_COMPUTE_INIT: true
         TEST_COMPUTE_BUILD: true
         TEST_COMPUTE_DEPLOY: true
+        TEST_COMPUTE_TINYGO: ${{ steps.tinygo.outputs.run_tests }}

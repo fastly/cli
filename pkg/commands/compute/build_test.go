@@ -574,9 +574,9 @@ func TestBuildJavaScript(t *testing.T) {
 
 func TestBuildGo(t *testing.T) {
 	args := testutil.Args
-	if os.Getenv("TEST_COMPUTE_BUILD_GO") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
+	if os.Getenv("TEST_COMPUTE_TINYGO") == "" || os.Getenv("TEST_COMPUTE_BUILD_GO") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
-		t.Skip("Set TEST_COMPUTE_BUILD_GO or TEST_COMPUTE_BUILD to run this test")
+		t.Skip("Set TEST_COMPUTE_TINYGO or TEST_COMPUTE_BUILD_GO or TEST_COMPUTE_BUILD to run this test")
 	}
 
 	// We're going to chdir to a build environment,
