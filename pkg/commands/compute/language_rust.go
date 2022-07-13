@@ -59,15 +59,16 @@ func (m *CargoManifest) Read(path string) error {
 }
 
 // SetPackageName into Cargo.toml manifest.
-//
-// NOTE: We can't presume to know the structure of the Cargo manifest, and so
-// we use the toml library's tree API to load the file into a tree structure
-// before using the tree API to update the name field and marshalling it back
-// to toml afterwards.
 func (m *CargoManifest) SetPackageName(name, path string) error {
 	if err := m.Read("Cargo.toml"); err != nil {
 		return fmt.Errorf("error reading Cargo.toml manifest: %w", err)
 	}
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable.
+	// Disabling as we need to load the Cargo.toml from the user's file system.
+	// This file is read, and the content is written back with the package
+	// name updated.
+	/* #nosec */
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("error reading Cargo.toml file: %w", err)
