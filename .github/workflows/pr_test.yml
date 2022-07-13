@@ -82,26 +82,6 @@ jobs:
         key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-mod-
-    # NOTE: 
-    # We can't install TinyGo for Windows without the scoop package manager. 
-    # There is a third-party action that installs scoop but it's broken until its v2 is released.
-    # https://github.com/MinoruSekine/setup-scoop/issues/7#issuecomment-1183050540
-    - if: ${{ matrix.platform != 'windows-latest' }}
-      id: tinygo
-      run: echo ::set-output name=run_tests::true
-    - if: ${{ matrix.platform == 'ubuntu-latest' }}
-      run: |
-        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo_${{ matrix.tinygo-version }}_amd64.deb
-        sudo dpkg -i tinygo_${{ matrix.tinygo-version }}_amd64.deb
-        echo "/usr/local/bin" >> $GITHUB_PATH
-    - if: ${{ matrix.platform == 'macos-latest' }}
-      run: |
-        brew tap tinygo-org/tools
-        brew install tinygo
-        tinygo version
-        # wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo${{ matrix.tinygo-version }}.darwin-amd64.tar.gz
-        # tar -xvf tinygo${{ matrix.tinygo-version }}.darwin-amd64.tar.gz
-        # echo "${{ github.workspace }}/tinygo/bin" >> $GITHUB_PATH
     - name: "Install Rust"
       uses: actions-rs/toolchain@v1
       with:
@@ -118,11 +98,39 @@ jobs:
     - name: "Download latest app config"
       run: |
         make config
-    - name: "Test suite"
+    - if: ${{ matrix.platform == 'ubuntu-latest' }}
+      name: Install TinyGo (Ubuntu)
+      run: |
+        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo_${{ matrix.tinygo-version }}_amd64.deb
+        sudo dpkg -i tinygo_${{ matrix.tinygo-version }}_amd64.deb
+        echo "/usr/local/bin" >> $GITHUB_PATH
+        tinygo version
+    - if: ${{ matrix.platform == 'macos-latest' }}
+      name: Install TinyGo (macOS)
+      run: |
+        brew tap tinygo-org/tools
+        brew install tinygo
+        tinygo version
+    - if: ${{ matrix.platform != 'windows-latest' }}
+      name: "Test suite"
       run: make test
       shell: bash
       env:
         TEST_COMPUTE_INIT: true
         TEST_COMPUTE_BUILD: true
         TEST_COMPUTE_DEPLOY: true
-        TEST_COMPUTE_TINYGO: ${{ steps.tinygo.outputs.run_tests }}
+    # NOTE: I was unable to get scoops's shims to persist across steps.
+    # So we duplicate the `make test` step and combine the scoop install.
+    - if: ${{ matrix.platform == 'windows-latest' }}
+      name: "Test suite (Windows)"
+      run: |
+        iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
+        scoop install binaryen
+        scoop install go
+        scoop install tinygo
+        tinygo version
+        make test
+      env:
+        TEST_COMPUTE_INIT: true
+        TEST_COMPUTE_BUILD: true
+        TEST_COMPUTE_DEPLOY: true
