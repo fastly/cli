@@ -85,6 +85,7 @@ jobs:
     # NOTE: 
     # We can't install TinyGo for Windows without the scoop package manager. 
     # There is a third-party action that installs scoop but it's broken until its v2 is released.
+    # https://github.com/MinoruSekine/setup-scoop/issues/7#issuecomment-1183050540
     - if: ${{ matrix.platform != 'windows-latest' }}
       id: tinygo
       run: echo ::set-output name=run_tests::true
@@ -93,12 +94,14 @@ jobs:
         wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo_${{ matrix.tinygo-version }}_amd64.deb
         sudo dpkg -i tinygo_${{ matrix.tinygo-version }}_amd64.deb
         echo "/usr/local/bin" >> $GITHUB_PATH
-        tinygo version
     - if: ${{ matrix.platform == 'macos-latest' }}
       run: |
-        brew tap tinygo-org/tools
-        brew install tinygo
-        tinygo version
+        # brew tap tinygo-org/tools
+        # brew install tinygo
+        # tinygo version
+        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo${{ matrix.tinygo-version }}.darwin-amd64.tar.gz
+        tar -xvf tinygo${{ matrix.tinygo-version }}.darwin-amd64.tar.gz
+        echo "${{ github.workspace }}/tinygo/bin" >> $GITHUB_PATH
     - name: "Install Rust"
       uses: actions-rs/toolchain@v1
       with:
