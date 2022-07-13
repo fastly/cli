@@ -96,12 +96,12 @@ jobs:
         echo "/usr/local/bin" >> $GITHUB_PATH
     - if: ${{ matrix.platform == 'macos-latest' }}
       run: |
-        # brew tap tinygo-org/tools
-        # brew install tinygo
-        # tinygo version
-        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo${{ matrix.tinygo-version }}.darwin-amd64.tar.gz
-        tar -xvf tinygo${{ matrix.tinygo-version }}.darwin-amd64.tar.gz
-        echo "${{ github.workspace }}/tinygo/bin" >> $GITHUB_PATH
+        brew tap tinygo-org/tools
+        brew install tinygo
+        tinygo version
+        # wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo${{ matrix.tinygo-version }}.darwin-amd64.tar.gz
+        # tar -xvf tinygo${{ matrix.tinygo-version }}.darwin-amd64.tar.gz
+        # echo "${{ github.workspace }}/tinygo/bin" >> $GITHUB_PATH
     - name: "Install Rust"
       uses: actions-rs/toolchain@v1
       with:
