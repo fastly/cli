@@ -9,7 +9,7 @@ ttl = "5m"
 
 [language]
   [language.go]
-    tinygo_constraint = ">= 0.24.0"
+    tinygo_constraint = ">= 0.24.0-0" # NOTE -0 indicates to the CLI's semver package that we accept pre-releases (TinyGo users commonly use pre-releases).
     toolchain_constraint = ">= 1.17 < 1.19" # upper limit should be temporary (just while we figure out any rough edges)
 
   [language.rust]
