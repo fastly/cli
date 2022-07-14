@@ -486,7 +486,7 @@ func validateFastlyCrate(metadata CargoMetadata, v *semver.Version, out io.Write
 // package. It is a noop for Rust as the Cargo toolchain handles these steps.
 func (r Rust) Initialize(out io.Writer) error {
 	var m CargoManifest
-	if err := m.setPackageName(r.pkgName, RustManifestName); err != nil {
+	if err := m.SetPackageName(r.pkgName, RustManifestName); err != nil {
 		r.errlog.Add(err)
 		return fmt.Errorf("error updating %s manifest: %w", RustManifestName, err)
 	}
