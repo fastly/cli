@@ -10,12 +10,14 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -26,15 +28,15 @@ const GoSourceDirectory = "src"
 const GoManifestName = "go.mod"
 
 // NewGo constructs a new Go toolchain.
-func NewGo(pkgName, build string, errlog fsterr.LogInterface, timeout int, cfg config.Go) *Go {
+func NewGo(pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int, cfg config.Go) *Go {
 	return &Go{
-		Shell: Shell{},
-
-		build:     build,
+		Shell:     Shell{},
+		build:     scripts.Build,
 		compiler:  "tinygo",
 		config:    cfg,
 		errlog:    errlog,
 		pkgName:   pkgName,
+		postBuild: scripts.PostBuild,
 		timeout:   timeout,
 		toolchain: "go",
 	}
@@ -54,6 +56,9 @@ type Go struct {
 	errlog fsterr.LogInterface
 	// pkgName is the name of the package (also used as the module name).
 	pkgName string
+	// postBuild is a custom script executed after the build but before the WASM
+	// binary is added to the .tar.gz archive.
+	postBuild string
 	// timeout is the build execution threshold.
 	timeout int
 	// toolchain is the go executable.
@@ -237,9 +242,28 @@ func (g *Go) Verify(out io.Writer) error {
 	return nil
 }
 
+func (g Go) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
+	s := fstexec.Streaming{
+		Command:  cmd,
+		Args:     args,
+		Env:      os.Environ(),
+		Output:   out,
+		Progress: progress,
+		Verbose:  verbose,
+	}
+	if g.timeout > 0 {
+		s.Timeout = time.Duration(g.timeout) * time.Second
+	}
+	if err := s.Exec(); err != nil {
+		g.errlog.Add(err)
+		return err
+	}
+	return nil
+}
+
 // Build implements the Toolchain interface and attempts to compile the package
 // Go source to a Wasm binary.
-func (g *Go) Build(out, progress io.Writer, verbose bool) error {
+func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	return nil
 }
 

@@ -28,6 +28,9 @@ import (
 // RustSourceDirectory represents the source code directory.
 const RustSourceDirectory = "src"
 
+// RustManifestName represents the language file for configuring dependencies.
+const RustManifestName = "Cargo.toml"
+
 // CargoPackage models the package configuration properties of a Rust Cargo
 // package which we are interested in and is embedded within CargoManifest and
 // CargoLock.
@@ -127,23 +130,19 @@ type Rust struct {
 	timeout   int
 }
 
-// NewRust constructs a new Rust.
-func NewRust(client api.HTTPClient, config config.Rust, errlog fsterr.LogInterface, timeout int, pkgName string, scripts manifest.Scripts) *Rust {
+// NewRust constructs a new Rust toolchain.
+func NewRust(pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface, client api.HTTPClient, timeout int, cfg config.Rust) *Rust {
 	return &Rust{
 		Shell:     Shell{},
 		build:     scripts.Build,
 		client:    client,
-		config:    config,
+		config:    cfg,
 		errlog:    errlog,
 		pkgName:   pkgName,
 		postBuild: scripts.PostBuild,
 		timeout:   timeout,
 	}
 }
-
-// IncludeFiles implements the Toolchain interface and returns a list of
-// additional files to include in the package archive for Rust packages.
-func (r Rust) IncludeFiles() []string { return []string{"Cargo.toml"} }
 
 // Verify implements the Toolchain interface and verifies whether the Rust
 // language toolchain is correctly configured on the host.
@@ -473,7 +472,7 @@ func validateFastlyCrate(metadata CargoMetadata, v *semver.Version, out io.Write
 		text.Break(out)
 		text.Info(out, fmt.Sprintf(
 			"an optional upgrade for the fastly crate is available, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
-			text.Bold("Cargo.toml"),
+			text.Bold(RustManifestName),
 			text.Bold(fmt.Sprintf(`fastly = "^%s"`, v.String())),
 			text.Bold("cargo update -p fastly"),
 		))
@@ -487,9 +486,9 @@ func validateFastlyCrate(metadata CargoMetadata, v *semver.Version, out io.Write
 // package. It is a noop for Rust as the Cargo toolchain handles these steps.
 func (r Rust) Initialize(out io.Writer) error {
 	var m CargoManifest
-	if err := m.SetPackageName(r.pkgName, "Cargo.toml"); err != nil {
+	if err := m.setPackageName(r.pkgName, RustManifestName); err != nil {
 		r.errlog.Add(err)
-		return fmt.Errorf("error updating Cargo.toml manifest: %w", err)
+		return fmt.Errorf("error updating %s manifest: %w", RustManifestName, err)
 	}
 	return nil
 }
@@ -503,9 +502,9 @@ func (r Rust) Initialize(out io.Writer) error {
 func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	// Get binary name from Cargo.toml.
 	var m CargoManifest
-	if err := m.Read("Cargo.toml"); err != nil {
+	if err := m.Read(RustManifestName); err != nil {
 		r.errlog.Add(err)
-		return fmt.Errorf("error reading Cargo.toml manifest: %w", err)
+		return fmt.Errorf("error reading %s manifest: %w", RustManifestName, err)
 	}
 	binName := m.Package.Name
 
@@ -704,7 +703,7 @@ func newCargoUpdateRemediationErr(err error, version string) fsterr.RemediationE
 		Inner: err,
 		Remediation: fmt.Sprintf(
 			"To fix this error, edit %s with:\n\n\t %s\n\nAnd then run the following command:\n\n\t$ %s\n",
-			text.Bold("Cargo.toml"),
+			text.Bold(RustManifestName),
 			text.Bold(fmt.Sprintf(`fastly = "^%s"`, version)),
 			text.Bold("cargo update -p fastly"),
 		),

@@ -45,7 +45,7 @@ type InitCommand struct {
 }
 
 // Languages is a list of supported language options.
-var Languages = []string{"rust", "assemblyscript", "javascript", "other"}
+var Languages = []string{"rust", "javascript", "go", "assemblyscript", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
 func NewInitCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *InitCommand {
@@ -77,6 +77,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Output(out, "Creating a new Compute@Edge project%s.", introContext)
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
+
+	if c.from != "" && c.language == "" {
+		text.Warning(out, "The project language cannot be inferred when using --from. Use --language explicitly otherwise 'other' will be the default.")
+	}
+
 	text.Break(out)
 
 	cont, err := verifyDirectory(c.dir, c.skipVerification, out, in)
@@ -111,7 +116,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	mf := c.manifest.File
 	if c.dir == "" && !mf.Exists() {
-		fmt.Fprintf(progress, "--directory not specified, using current directory\n")
+		fmt.Fprintf(progress, "--directory not specified, using current directory\n\n")
 		c.dir = wd
 	}
 
@@ -390,7 +395,7 @@ func packageAuthors(authors []string, manifestEmail string, in io.Reader, out io
 // selectLanguage decides whether to prompt the user for a language if none
 // defined or try and match the --language flag against available languages.
 func selectLanguage(from string, langFlag string, ls []*Language, mf manifest.File, in io.Reader, out io.Writer) (*Language, error) {
-	if from != "" || mf.Exists() {
+	if from != "" && langFlag == "" || mf.Exists() {
 		return nil, nil
 	}
 
@@ -557,8 +562,9 @@ func fetchPackageTemplate(
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
+		err := fmt.Errorf("failed to get package: %s", res.Status)
 		errLog.Add(err)
-		return fmt.Errorf("failed to get package: %s", res.Status)
+		return err
 	}
 
 	filename := filepath.Base(from)

@@ -128,27 +128,61 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
 			SourceDirectory: ASSourceDirectory,
-			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewAssemblyScript(c.Flags.Timeout, name, c.Manifest.File.Scripts, c.Globals.ErrLog),
+			IncludeFiles:    []string{JSManifestName},
+			Toolchain: NewAssemblyScript(
+				name,
+				c.Manifest.File.Scripts,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+			),
+		})
+	case "go":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "go",
+			SourceDirectory: GoSourceDirectory,
+			IncludeFiles:    []string{GoManifestName},
+			Toolchain: NewGo(
+				name,
+				c.Manifest.File.Scripts,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+				c.Globals.File.Language.Go,
+			),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: JSSourceDirectory,
-			IncludeFiles:    []string{"package.json"},
-			Toolchain:       NewJavaScript(c.Flags.Timeout, name, c.Manifest.File.Scripts, c.Globals.ErrLog),
+			IncludeFiles:    []string{JSManifestName},
+			Toolchain: NewJavaScript(
+				name,
+				c.Manifest.File.Scripts,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+			),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
-			IncludeFiles:    []string{"Cargo.toml"},
-			Toolchain:       NewRust(c.Globals.HTTPClient, c.Globals.File.Language.Rust, c.Globals.ErrLog, c.Flags.Timeout, name, c.Manifest.File.Scripts),
+			IncludeFiles:    []string{RustManifestName},
+			Toolchain: NewRust(
+				name,
+				c.Manifest.File.Scripts,
+				c.Globals.ErrLog,
+				c.Globals.HTTPClient,
+				c.Flags.Timeout,
+				c.Globals.File.Language.Rust,
+			),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{
-			Name:      "other",
-			Toolchain: NewOther(c.Flags.Timeout, c.Manifest.File.Scripts, c.Globals.ErrLog),
+			Name: "other",
+			Toolchain: NewOther(
+				c.Manifest.File.Scripts,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+			),
 		})
 	default:
 		return fmt.Errorf("unsupported language %s", toolchain)

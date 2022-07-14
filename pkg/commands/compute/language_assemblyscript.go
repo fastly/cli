@@ -33,8 +33,8 @@ type AssemblyScript struct {
 	postBuild string
 }
 
-// NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript(timeout int, pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface) *AssemblyScript {
+// NewAssemblyScript constructs a new AssemblyScript toolchain.
+func NewAssemblyScript(pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int) *AssemblyScript {
 	return &AssemblyScript{
 		JavaScript: JavaScript{
 			build:             scripts.Build,
