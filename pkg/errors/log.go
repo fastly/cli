@@ -202,8 +202,12 @@ func createLogEntry(err error) LogEntry {
 
 	_, file, line, ok := runtime.Caller(2)
 	if ok {
+		idx := strings.Index(file, "/pkg/")
+		if idx == -1 {
+			idx = 0
+		}
 		le.Caller = map[string]interface{}{
-			"FILE": file[strings.Index(file, "/pkg/"):],
+			"FILE": file[idx:],
 			"LINE": line,
 		}
 	}
