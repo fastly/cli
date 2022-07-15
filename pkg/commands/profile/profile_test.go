@@ -388,6 +388,48 @@ func TestList(t *testing.T) {
 				},
 			},
 		},
+		{
+			TestScenario: testutil.TestScenario{
+				Name:      "validate listing profiles with --verbose and --json causes an error",
+				Args:      args("profile list --verbose --json"),
+				WantError: "invalid flag combination, --verbose and --json",
+			},
+			ConfigFile: config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default: false,
+						Email:   "foo@example.com",
+						Token:   "123",
+					},
+					"bar": &config.Profile{
+						Default: false,
+						Email:   "bar@example.com",
+						Token:   "456",
+					},
+				},
+			},
+		},
+		{
+			TestScenario: testutil.TestScenario{
+				Name:       "validate listing profiles with --json displays data correctly",
+				Args:       args("profile list --json"),
+				WantOutput: `{"bar":{"default":false,"email":"bar@example.com","token":"456"},"foo":{"default":false,"email":"foo@example.com","token":"123"}}`,
+			},
+			ConfigFile: config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default: false,
+						Email:   "foo@example.com",
+						Token:   "123",
+					},
+					"bar": &config.Profile{
+						Default: false,
+						Email:   "bar@example.com",
+						Token:   "456",
+					},
+				},
+			},
+		},
 	}
 
 	for _, testcase := range scenarios {

@@ -4423,9 +4423,10 @@ COMMANDS
     Delete user profile
 
 
-  profile list
+  profile list [<flags>]
     List user profiles
 
+    -j, --json  Render output as JSON
 
   profile switch <profile>
     Switch user profile

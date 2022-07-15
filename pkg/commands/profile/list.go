@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -14,6 +15,7 @@ import (
 // ListCommand represents a Kingpin command.
 type ListCommand struct {
 	cmd.Base
+	json bool
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -21,11 +23,32 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("list", "List user profiles")
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        cmd.FlagJSONName,
+		Description: cmd.FlagJSONDesc,
+		Dst:         &c.json,
+		Short:       'j',
+	})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.json {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
+	if !c.Globals.Verbose() {
+		if c.json {
+			data, err := json.Marshal(c.Globals.File.Profiles)
+			if err != nil {
+				return err
+			}
+			fmt.Fprint(out, string(data))
+			return nil
+		}
+	}
+
 	if c.Globals.File.Profiles == nil {
 		msg := "no profiles available"
 		return fsterr.RemediationError{
