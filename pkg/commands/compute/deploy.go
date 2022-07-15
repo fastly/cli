@@ -724,7 +724,7 @@ func manageExistingServiceFlow(
 		return serviceVersion, err
 	}
 	if serviceDetails.Type != "wasm" {
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceDetails.Type), map[string]interface{}{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion,
 			"Service Type":    serviceDetails.Type,
