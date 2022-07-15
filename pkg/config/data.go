@@ -309,9 +309,9 @@ type Profiles map[string]*Profile
 
 // Profile represents a specific profile account.
 type Profile struct {
-	Default bool   `toml:"default"`
-	Email   string `toml:"email"`
-	Token   string `toml:"token"`
+	Default bool   `toml:"default" json:"default"`
+	Email   string `toml:"email" json:"email"`
+	Token   string `toml:"token" json:"token"`
 }
 
 // StarterKitLanguages represents language specific starter kits.
