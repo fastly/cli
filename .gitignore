@@ -1,8 +1,6 @@
-# ignore fastly binary
-#
-# NOTE: This can cause fuzzy finders to fail to locate cmd/fastly/main.go
-# because gitignore cannot negate files inside an ignore directory.
+# Fastly binary
 **/fastly
+# But allow fastly main package
 !cmd/fastly
 
 RELEASE_CHANGELOG.md
