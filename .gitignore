@@ -2,7 +2,8 @@
 #
 # NOTE: This can cause fuzzy finders to fail to locate cmd/fastly/main.go
 # because gitignore cannot negate files inside an ignore directory.
-fastly
+**/fastly
+!cmd/fastly
 
 RELEASE_CHANGELOG.md
 
