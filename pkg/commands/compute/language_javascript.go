@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -71,30 +70,28 @@ func SetPackageName(name, path string) (err error) {
 type JavaScript struct {
 	Shell
 
-	build               string
-	errlog              fsterr.LogInterface
-	packageDependency   string
-	packageExecutable   string
-	pkgName             string
-	postBuild           string
-	timeout             int
-	toolchain           string
-	validateScriptBuild bool
+	build             string
+	errlog            fsterr.LogInterface
+	packageDependency string
+	packageExecutable string
+	pkgName           string
+	postBuild         string
+	timeout           int
+	toolchain         string
 }
 
 // NewJavaScript constructs a new JavaScript.
 func NewJavaScript(timeout int, pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface) *JavaScript {
 	return &JavaScript{
-		Shell:               Shell{},
-		build:               scripts.Build,
-		errlog:              errlog,
-		packageDependency:   "@fastly/js-compute",
-		packageExecutable:   "js-compute-runtime",
-		pkgName:             pkgName,
-		postBuild:           scripts.PostBuild,
-		timeout:             timeout,
-		toolchain:           JsToolchain,
-		validateScriptBuild: true,
+		Shell:             Shell{},
+		build:             scripts.Build,
+		errlog:            errlog,
+		packageDependency: "@fastly/js-compute",
+		packageExecutable: "js-compute-runtime",
+		pkgName:           pkgName,
+		postBuild:         scripts.PostBuild,
+		timeout:           timeout,
+		toolchain:         JsToolchain,
 	}
 }
 
@@ -255,50 +252,26 @@ func (j JavaScript) Verify(out io.Writer) error {
 
 	fmt.Fprintf(out, "Found %s at %s\n", j.packageExecutable, path)
 
-	if j.validateScriptBuild {
-		remediation := "npm run"
-		pkgErr := fmt.Sprintf("package.json requires a `script` field with a `build` step defined that calls the `%s` binary", j.packageExecutable)
-		remediation = fmt.Sprintf("Check your package.json has a `script` field with a `build` step defined:\n\n\t$ %s", text.Bold(remediation))
-
-		// gosec flagged this:
-		// G204 (CWE-78): Subprocess launched with variable
-		// Disabling as the variables come from trusted sources:
-		// The CLI parser enforces supported values via EnumVar.
-		/* #nosec */
-		cmd := exec.Command(j.toolchain, "run")
-		stdoutStderr, err := cmd.CombinedOutput()
-		if err != nil {
-			j.errlog.Add(err)
-			return fsterr.RemediationError{
-				Inner:       fmt.Errorf("%s: %w", pkgErr, err),
-				Remediation: remediation,
-			}
-		}
-
-		if !strings.Contains(string(stdoutStderr), " build\n") {
-			err := fsterr.RemediationError{
-				Inner:       fmt.Errorf("%s:\n\n%s", pkgErr, stdoutStderr),
-				Remediation: remediation,
-			}
-			j.errlog.Add(err)
-			return err
-		}
-	}
-
 	return nil
 }
 
 // Build implements the Toolchain interface and attempts to compile the package
 // JavaScript source to a Wasm binary.
 func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	cmd := j.toolchain
-	args := []string{"run", "build"}
+	toolchaindir, err := getJsToolchainBinPath(j.toolchain)
+	if err != nil {
+		j.errlog.Add(err)
+		return fmt.Errorf("getting %s path: %w", j.toolchain, err)
+	}
+
+	cmd := filepath.Join(toolchaindir, j.packageExecutable)
+	args := []string{"bin/index.js", "bin/main.wasm"}
 
 	if j.build != "" {
 		cmd, args = j.Shell.Build(j.build)
 	}
 
-	err := j.execCommand(cmd, args, out, progress, verbose)
+	err = j.execCommand(cmd, args, out, progress, verbose)
 	if err != nil {
 		return err
 	}
