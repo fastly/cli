@@ -80,9 +80,6 @@ func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose boo
 		"--optimize",
 		"--noAssert",
 	}
-	if verbose {
-		args = append(args, "--verbose")
-	}
 
 	if a.build != "" {
 		cmd, args = a.Shell.Build(a.build)
