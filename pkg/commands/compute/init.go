@@ -111,7 +111,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	mf := c.manifest.File
 	if c.dir == "" && !mf.Exists() {
-		fmt.Fprintf(progress, "--directory not specified, using current directory\n")
+		fmt.Fprintf(progress, "--directory not specified, using current directory\n\n")
 		c.dir = wd
 	}
 
