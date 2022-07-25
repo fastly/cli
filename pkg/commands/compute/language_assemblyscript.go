@@ -69,7 +69,7 @@ func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose boo
 	toolchaindir, err := getJsToolchainBinPath(a.toolchain)
 	if err != nil {
 		a.errlog.Add(err)
-		return fmt.Errorf("getting npm path: %w", err)
+		return fmt.Errorf("getting %s path: %w", a.toolchain, err)
 	}
 
 	cmd := filepath.Join(toolchaindir, "asc")
