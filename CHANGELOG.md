@@ -1,5 +1,19 @@
 # Changelog
 
+## [v3.2.0](https://github.com/fastly/cli/releases/tag/v3.2.0) (2022-07-27)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v3.1.1...v3.2.0)
+
+**Enhancements:**
+
+* Compute@Edge TinyGo Support [#594](https://github.com/fastly/cli/pull/594)
+* `pkg/commands/profile`: add `--json` flag for `list` command [#602](https://github.com/fastly/cli/pull/602)
+
+**Bug fixes:**
+
+* `pkg/commands/compute/deploy.go` (`getHashSum`): sort key order [#596](https://github.com/fastly/cli/pull/596)
+* `pkg/errors/log.go`: prevent runtime panic due to a `nil` reference [#601](https://github.com/fastly/cli/pull/601)
+
 ## [v3.1.1](https://github.com/fastly/cli/releases/tag/v3.1.1) (2022-07-04)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v3.1.0...v3.1.1)
