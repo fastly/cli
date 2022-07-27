@@ -21,67 +21,47 @@ rustup_constraint = ">= 1.23.0"
 [viceroy]
 ttl = "24h"
 
-[starter-kits]
+[[starter-kits.rust]]
+name = "Authenticate at edge with OAuth"
+description = "Connect to an identity provider such as Auth0 using OAuth 2.0 and validate authentication status at the Edge, to authorize access to your edge or origin hosted applications."
+path = "https://github.com/fastly/compute-rust-auth"
 
-  [[starter-kits.assemblyscript]]
-    branch = ""
-    description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
-    name = "Default starter for AssemblyScript"
-    path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
-    tag = ""
+[[starter-kits.rust]]
+name = "Beacon termination"
+description = "Capture beacon data from the browser, divert beacon request payloads to a log endpoint, and avoid putting load on your own infrastructure."
+path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination"
 
-  [[starter-kits.go]]
-    branch = ""
-    description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
-    name = "Default starter for Go"
-    path = "https://github.com/fastly/compute-starter-kit-go-default"
-    tag = ""
+[[starter-kits.rust]]
+name = "Default starter for Rust"
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+path = "https://github.com/fastly/compute-starter-kit-rust-default"
 
-  [[starter-kits.javascript]]
-    branch = ""
-    description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
-    name = "Default starter for JavaScript"
-    path = "https://github.com/fastly/compute-starter-kit-javascript-default"
-    tag = ""
+[[starter-kits.rust]]
+name = "Empty starter for Rust"
+description = "An empty starter kit project template."
+path = "https://github.com/fastly/compute-starter-kit-rust-empty"
 
-  [[starter-kits.javascript]]
-    branch = ""
-    description = "An empty application template for the Fastly Compute@Edge environment which simply returns a 200 OK response."
-    name = "Empty starter for JavaScript"
-    path = "https://github.com/fastly/compute-starter-kit-javascript-empty"
-    tag = ""
+[[starter-kits.rust]]
+name = "Static content"
+description = "Apply performance, security and usability upgrades to static bucket services such as Google Cloud Storage or AWS S3."
+path = "https://github.com/fastly/compute-starter-kit-rust-static-content"
 
-  [[starter-kits.rust]]
-    branch = ""
-    description = "Connect to an identity provider such as Auth0 using OAuth 2.0 and validate authentication status at the Edge, to authorize access to your edge or origin hosted applications."
-    name = "Authenticate at edge with OAuth"
-    path = "https://github.com/fastly/compute-rust-auth"
-    tag = ""
+[[starter-kits.assemblyscript]]
+name = "Default starter for AssemblyScript"
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
 
-  [[starter-kits.rust]]
-    branch = ""
-    description = "Capture beacon data from the browser, divert beacon request payloads to a log endpoint, and avoid putting load on your own infrastructure."
-    name = "Beacon termination"
-    path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination"
-    tag = ""
+[[starter-kits.go]]
+name = "Default starter for Go"
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+path = "https://github.com/fastly/compute-starter-kit-go-default"
 
-  [[starter-kits.rust]]
-    branch = ""
-    description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
-    name = "Default starter for Rust"
-    path = "https://github.com/fastly/compute-starter-kit-rust-default"
-    tag = ""
+[[starter-kits.javascript]]
+name = "Default starter for JavaScript"
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+path = "https://github.com/fastly/compute-starter-kit-javascript-default"
 
-  [[starter-kits.rust]]
-    branch = ""
-    description = "An empty starter kit project template."
-    name = "Empty starter for Rust"
-    path = "https://github.com/fastly/compute-starter-kit-rust-empty"
-    tag = ""
-
-  [[starter-kits.rust]]
-    branch = ""
-    description = "Apply performance, security and usability upgrades to static bucket services such as Google Cloud Storage or AWS S3."
-    name = "Static content"
-    path = "https://github.com/fastly/compute-starter-kit-rust-static-content"
-    tag = ""
+[[starter-kits.javascript]]
+name = "Empty starter for JavaScript"
+description = "An empty application template for the Fastly Compute@Edge environment which simply returns a 200 OK response."
+path = "https://github.com/fastly/compute-starter-kit-javascript-empty"
