@@ -61,6 +61,11 @@ func (s *Streaming) MonitorSignalsAsync() {
 // stderr output to the supplied io.Writer, it waits for the command to exit
 // cleanly or returns an error.
 func (s *Streaming) Exec() error {
+	if s.Verbose {
+		text.Break(s.Output)
+		text.Description(s.Output, "Process command", fmt.Sprintf("%s %s", s.Command, strings.Join(s.Args, " ")))
+	}
+
 	// Construct the command with given arguments and environment.
 	var cmd *exec.Cmd
 	if s.Timeout > 0 {
