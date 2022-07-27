@@ -293,6 +293,10 @@ func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, c
 		cmd, args = j.Shell.Build(j.build)
 	}
 
+	if verbose {
+		printCompilerCommand(cmd, args, out)
+	}
+
 	err := j.execCommand(cmd, args, out, progress, verbose)
 	if err != nil {
 		return err
