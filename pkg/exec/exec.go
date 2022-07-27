@@ -63,7 +63,7 @@ func (s *Streaming) MonitorSignalsAsync() {
 func (s *Streaming) Exec() error {
 	if s.Verbose {
 		text.Break(s.Output)
-		text.Description(s.Output, "Compiler command", strings.NewReplacer("[", "", "]", "").Replace(fmt.Sprintf("%s %s", s.Command, s.Args)))
+		text.Description(s.Output, "Process command", strings.NewReplacer("[", "", "]", "").Replace(fmt.Sprintf("%s %s", s.Command, s.Args)))
 	}
 
 	// Construct the command with given arguments and environment.
