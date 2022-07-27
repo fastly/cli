@@ -128,7 +128,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
 			SourceDirectory: ASSourceDirectory,
-			IncludeFiles:    []string{JSManifestName},
+			IncludeFiles:    []string{},
 			Toolchain: NewAssemblyScript(
 				name,
 				c.Manifest.File.Scripts,
@@ -140,7 +140,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		language = NewLanguage(&LanguageOptions{
 			Name:            "go",
 			SourceDirectory: GoSourceDirectory,
-			IncludeFiles:    []string{GoManifestName},
+			IncludeFiles:    []string{},
 			Toolchain: NewGo(
 				name,
 				c.Manifest.File.Scripts,
@@ -153,7 +153,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: JSSourceDirectory,
-			IncludeFiles:    []string{JSManifestName},
+			IncludeFiles:    []string{},
 			Toolchain: NewJavaScript(
 				name,
 				c.Manifest.File.Scripts,
@@ -165,7 +165,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
-			IncludeFiles:    []string{RustManifestName},
+			IncludeFiles:    []string{},
 			Toolchain: NewRust(
 				name,
 				c.Manifest.File.Scripts,
