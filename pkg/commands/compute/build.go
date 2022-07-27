@@ -462,8 +462,3 @@ func GetNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, er
 
 	return files, err
 }
-
-func printCompilerCommand(cmd string, args []string, out io.Writer) {
-	text.Break(out)
-	text.Description(out, "Compiler command", strings.NewReplacer("[", "", "]", "").Replace(fmt.Sprintf("%s %s", cmd, args)))
-}

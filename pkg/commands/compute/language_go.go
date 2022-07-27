@@ -276,10 +276,6 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 		cmd, args = g.Shell.Build(g.build)
 	}
 
-	if verbose {
-		printCompilerCommand(cmd, args, out)
-	}
-
 	err = g.execCommand(cmd, args, out, progress, verbose)
 	if err != nil {
 		return err

@@ -56,10 +56,6 @@ func (o Other) Build(out io.Writer, progress text.Progress, verbose bool, callba
 	}
 	cmd, args := o.Shell.Build(o.build)
 
-	if verbose {
-		printCompilerCommand(cmd, args, out)
-	}
-
 	err := o.execCommand(cmd, args, out, progress, verbose)
 	if err != nil {
 		return err

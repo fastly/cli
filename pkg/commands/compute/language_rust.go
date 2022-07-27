@@ -527,10 +527,6 @@ func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callba
 		cmd, args = r.Shell.Build(r.build)
 	}
 
-	if verbose {
-		printCompilerCommand(cmd, args, out)
-	}
-
 	// Execute the `cargo build` commands with the Wasm WASI target, release
 	// flags and env vars.
 	err := r.execCommand(cmd, args, out, progress, verbose)

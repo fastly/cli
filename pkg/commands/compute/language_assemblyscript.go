@@ -85,10 +85,6 @@ func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose boo
 		cmd, args = a.Shell.Build(a.build)
 	}
 
-	if verbose {
-		printCompilerCommand(cmd, args, out)
-	}
-
 	err = a.execCommand(cmd, args, out, progress, verbose)
 	if err != nil {
 		return err
