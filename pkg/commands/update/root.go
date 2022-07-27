@@ -122,6 +122,15 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
+	file := c.Globals.File
+	err = file.Load(file.CLI.RemoteConfig, config.FilePath, c.Globals.HTTPClient)
+	if err != nil {
+		return errors.RemediationError{
+			Inner:       fmt.Errorf("error updating the versioning information for the Fastly CLI: %w", err),
+			Remediation: errors.UpdateRemediation,
+		}
+	}
+
 	progress.Done()
 
 	text.Success(out, "Updated %s to %s.", currentPath, latest)
