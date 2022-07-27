@@ -48,6 +48,9 @@ func (re RemediationError) Print(w io.Writer) {
 	}
 }
 
+// FormatTemplate represents a generic error message prefix.
+var FormatTemplate = "To fix this error, run the following command:\n\n\t$ %s"
+
 // AuthRemediation suggests checking the provided --token.
 var AuthRemediation = fmt.Sprintf(strings.Join([]string{
 	"This error may be caused by a missing, incorrect, or expired Fastly API token.",

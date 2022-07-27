@@ -277,7 +277,20 @@ type Viceroy struct {
 
 // Language represents C@E language specific configuration.
 type Language struct {
+	Go   Go   `toml:"go"`
 	Rust Rust `toml:"rust"`
+}
+
+// Go represents Go C@E language specific configuration.
+type Go struct {
+	// TinyGoConstraint is the `tinygo` version that we support.
+	TinyGoConstraint string `toml:"tinygo_constraint"`
+
+	// ToolchainConstraint is the `go` version that we support.
+	//
+	// We aim for go versions that support go modules by default.
+	// https://go.dev/blog/using-go-modules
+	ToolchainConstraint string `toml:"toolchain_constraint"`
 }
 
 // Rust represents Rust C@E language specific configuration.
@@ -288,7 +301,7 @@ type Rust struct {
 	// DEPRECATED in favour of ToolchainConstraint
 	ToolchainVersion string `toml:"toolchain_version"`
 
-	// ToolchainConstrain is the `rustup` toolchain constraint for the compiler
+	// ToolchainConstraint is the `rustup` toolchain constraint for the compiler
 	// that we support (a range is expected, e.g. >= 1.49.0 < 2.0.0).
 	ToolchainConstraint string `toml:"toolchain_constraint"`
 
@@ -317,6 +330,7 @@ type Profile struct {
 // StarterKitLanguages represents language specific starter kits.
 type StarterKitLanguages struct {
 	AssemblyScript []StarterKit `toml:"assemblyscript"`
+	Go             []StarterKit `toml:"go"`
 	JavaScript     []StarterKit `toml:"javascript"`
 	Rust           []StarterKit `toml:"rust"`
 }

@@ -51,6 +51,11 @@ name = "Default starter for AssemblyScript"
 description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
 path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
 
+[[starter-kits.go]]
+name = "Default starter for Go"
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+path = "https://github.com/fastly/compute-starter-kit-go-default"
+
 [[starter-kits.javascript]]
 name = "Default starter for JavaScript"
 description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."

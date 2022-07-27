@@ -163,25 +163,25 @@ func Break(w io.Writer) {
 // Error is a wrapper for fmt.Fprintf with a bold red "ERROR: " prefix.
 func Error(w io.Writer, format string, args ...interface{}) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+BoldRed("ERROR: ")+format, args...)
+	fmt.Fprintf(w, "\n"+Wrap(BoldRed("ERROR: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Warning is a wrapper for fmt.Fprintf with a bold yellow "WARNING: " prefix.
 func Warning(w io.Writer, format string, args ...interface{}) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+BoldYellow("WARNING: ")+format, args...)
+	fmt.Fprintf(w, "\n"+Wrap(BoldYellow("WARNING: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
 func Info(w io.Writer, format string, args ...interface{}) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Bold("INFO: ")+format, args...)
+	fmt.Fprintf(w, "\n"+Wrap(Bold("INFO: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Success is a wrapper for fmt.Fprintf with a bold green "SUCCESS: " prefix.
 func Success(w io.Writer, format string, args ...interface{}) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+BoldGreen("SUCCESS: ")+format, args...)
+	fmt.Fprintf(w, "\n"+Wrap(BoldGreen("SUCCESS: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Description formats the output of a description item. A description item

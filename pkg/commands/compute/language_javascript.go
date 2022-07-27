@@ -20,11 +20,11 @@ import (
 // JSSourceDirectory represents the source code directory.
 const JSSourceDirectory = "src"
 
+// JSManifestName represents the language file for configuring dependencies.
+const JSManifestName = "package.json"
+
 // JsToolchain represents the default JS toolchain.
 const JsToolchain = "npm"
-
-// errFormat represents a generic error message prefix.
-var errFormat = "To fix this error, run the following command:\n\n\t$ %s"
 
 // SetPackageName into package.json manifest.
 //
@@ -62,7 +62,7 @@ func SetPackageName(name, path string) (err error) {
 	}
 
 	if err := os.WriteFile(path, data, 0o600); err != nil {
-		return fmt.Errorf("error updating package.json manifest file: %w", err)
+		return fmt.Errorf("error updating %s manifest file: %w", JSManifestName, err)
 	}
 	return nil
 }
@@ -82,8 +82,8 @@ type JavaScript struct {
 	validateScriptBuild bool
 }
 
-// NewJavaScript constructs a new JavaScript.
-func NewJavaScript(timeout int, pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface) *JavaScript {
+// NewJavaScript constructs a new JavaScript toolchain.
+func NewJavaScript(pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int) *JavaScript {
 	return &JavaScript{
 		Shell:               Shell{},
 		build:               scripts.Build,
@@ -126,33 +126,28 @@ func (j JavaScript) Initialize(out io.Writer) error {
 	//
 	// A valid npm package manifest file is needed for the install command to
 	// work. Therefore, we first assert whether one exists in the current $PWD.
-	pkg, err := filepath.Abs("package.json")
+	m, err := filepath.Abs(JSManifestName)
 	if err != nil {
 		j.errlog.Add(err)
-		return fmt.Errorf("getting package.json path: %w", err)
+		return fmt.Errorf("getting %s path: %w", JSManifestName, err)
 	}
 
-	if !filesystem.FileExists(pkg) {
+	if !filesystem.FileExists(m) {
 		remediation := "npm init"
 		err := fsterr.RemediationError{
-			Inner:       fmt.Errorf("package.json not found"),
-			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
+			Inner:       fmt.Errorf("%s not found", JSManifestName),
+			Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
 		}
 		j.errlog.Add(err)
 		return err
 	}
 
-	path, err := filepath.Abs("package.json")
-	if err != nil {
+	if err := SetPackageName(j.pkgName, m); err != nil {
 		j.errlog.Add(err)
-		return err
-	}
-	if err := SetPackageName(j.pkgName, path); err != nil {
-		j.errlog.Add(err)
-		return fmt.Errorf("error updating package.json manifest: %w", err)
+		return fmt.Errorf("error updating %s manifest: %w", JSManifestName, err)
 	}
 
-	fmt.Fprintf(out, "Found package.json at %s\n", pkg)
+	fmt.Fprintf(out, "Found %s at %s\n", JSManifestName, m)
 	fmt.Fprintf(out, "Installing package dependencies...\n")
 
 	cmd := fstexec.Streaming{
@@ -194,23 +189,23 @@ func (j JavaScript) Verify(out io.Writer) error {
 	// A valid package is needed for compilation and to assert whether the
 	// required dependencies are installed locally. Therefore, we first assert
 	// whether one exists in the current $PWD.
-	pkg, err := filepath.Abs("package.json")
+	pkg, err := filepath.Abs(JSManifestName)
 	if err != nil {
 		j.errlog.Add(err)
-		return fmt.Errorf("getting package.json path: %w", err)
+		return fmt.Errorf("getting %s path: %w", JSManifestName, err)
 	}
 
 	if !filesystem.FileExists(pkg) {
 		remediation := "npm init"
 		err := fsterr.RemediationError{
-			Inner:       fmt.Errorf("package.json not found"),
-			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
+			Inner:       fmt.Errorf("%s not found", JSManifestName),
+			Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
 		}
 		j.errlog.Add(err)
 		return err
 	}
 
-	fmt.Fprintf(out, "Found package.json at %s\n", pkg)
+	fmt.Fprintf(out, "Found %s at %s\n", JSManifestName, pkg)
 
 	// 3) Check if `js-compute-runtime` is installed.
 	//
@@ -221,8 +216,8 @@ func (j JavaScript) Verify(out io.Writer) error {
 	if !checkJsPackageDependencyExists(j.toolchain, j.packageDependency) {
 		remediation := fmt.Sprintf("npm install --save-dev %s", j.packageDependency)
 		err := fsterr.RemediationError{
-			Inner:       fmt.Errorf("`%s` not found in package.json", j.packageDependency),
-			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
+			Inner:       fmt.Errorf("`%s` not found in %s", j.packageDependency, JSManifestName),
+			Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
 		}
 		j.errlog.Add(err)
 		return err
@@ -234,7 +229,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 		remediation := "npm install --global npm@latest"
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("could not determine %s bin path", j.toolchain),
-			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
+			Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
 		}
 	}
 
@@ -247,7 +242,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 		remediation := fmt.Sprintf("npm install --save-dev %s", j.packageDependency)
 		err := fsterr.RemediationError{
 			Inner:       fmt.Errorf("`%s` binary not found in %s", j.packageExecutable, p),
-			Remediation: fmt.Sprintf(errFormat, text.Bold(remediation)),
+			Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
 		}
 		j.errlog.Add(err)
 		return err
@@ -257,8 +252,8 @@ func (j JavaScript) Verify(out io.Writer) error {
 
 	if j.validateScriptBuild {
 		remediation := "npm run"
-		pkgErr := fmt.Sprintf("package.json requires a `script` field with a `build` step defined that calls the `%s` binary", j.packageExecutable)
-		remediation = fmt.Sprintf("Check your package.json has a `script` field with a `build` step defined:\n\n\t$ %s", text.Bold(remediation))
+		pkgErr := fmt.Sprintf("%s requires a `script` field with a `build` step defined that calls the `%s` binary", JSManifestName, j.packageExecutable)
+		remediation = fmt.Sprintf("Check your %s has a `script` field with a `build` step defined:\n\n\t$ %s", JSManifestName, text.Bold(remediation))
 
 		// gosec flagged this:
 		// G204 (CWE-78): Subprocess launched with variable

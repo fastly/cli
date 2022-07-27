@@ -23,7 +23,7 @@ type Other struct {
 }
 
 // NewOther constructs a new unsupported language instance.
-func NewOther(timeout int, scripts manifest.Scripts, errlog fsterr.LogInterface) *Other {
+func NewOther(scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int) *Other {
 	return &Other{
 		Shell:     Shell{},
 		build:     scripts.Build,

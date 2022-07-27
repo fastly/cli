@@ -1,6 +1,6 @@
 ## Development
 
-The Fastly CLI requires [Go 1.16 or above](https://golang.org). Clone this repo
+The Fastly CLI requires [Go 1.18 or above](https://golang.org). Clone this repo
 to any path and type `make` to run all of the tests and generate a development
 build locally.
 
@@ -54,3 +54,19 @@ CLI_CATEGORY=logging CLI_CATEGORY_COMMAND=logging CLI_PACKAGE=foobar CLI_COMMAND
 ```
 
 > **NOTE**: Within the generated files, keep an eye out for any `<...>` references that need to be manually updated.
+
+### config.toml
+
+The CLI will attempt to sync its internal configuration data with the following API endpoint:
+
+```
+https://developer.fastly.com/api/internal/cli-config
+```
+
+The config served from that endpoint is the result of an internal Fastly build process that uses the `.fastly/config.toml` file in the CLI repo as a template, and then dynamically adds in any available Starter Kits.
+
+In case of an API service failure, the CLI will use a built-in version of the `config.toml` file here:
+
+```
+./cmd/fastly/static/config.toml
+```

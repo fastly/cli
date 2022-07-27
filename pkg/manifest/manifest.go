@@ -255,8 +255,7 @@ type SetupLogger struct {
 	Provider string `toml:"provider,omitempty"`
 }
 
-// LocalServer represents a list of backends that should be mocked as per the
-// configuration values.
+// LocalServer represents a list of mocked Viceroy resources.
 type LocalServer struct {
 	Backends     map[string]LocalBackend    `toml:"backends"`
 	Dictionaries map[string]LocalDictionary `toml:"dictionaries,omitempty"`

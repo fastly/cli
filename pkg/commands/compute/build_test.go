@@ -509,15 +509,6 @@ func TestBuildJavaScript(t *testing.T) {
 			wantError: "name cannot be empty, please provide a name",
 		},
 		{
-			name: "JavaScript success",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "javascript"`,
-			wantOutputContains: "Built package 'test'",
-		},
-		{
 			name: "JavaScript compilation error",
 			args: args("compute build --verbose"),
 			fastlyManifest: `
@@ -529,6 +520,15 @@ func TestBuildJavaScript(t *testing.T) {
 			ERG`,
 			wantError: "error during execution process",
 		},
+		{
+			name: "JavaScript success",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "javascript"`,
+			wantOutputContains: "Built package 'test'",
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			if testcase.fastlyManifest != "" {
@@ -537,14 +537,161 @@ func TestBuildJavaScript(t *testing.T) {
 				}
 			}
 
+			// We want to ensure the original `index.js` is put back in case of a test
+			// case overriding its content using `sourceOverride`.
+			src := filepath.Join(rootdir, "src", "index.js")
+			b, err := os.ReadFile(src)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func(src string, b []byte) {
+				err := os.WriteFile(src, b, 0o644)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}(src, b)
+
 			if testcase.sourceOverride != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, "src", "index.js"), []byte(testcase.sourceOverride), 0o777); err != nil {
+				if err := os.WriteFile(src, []byte(testcase.sourceOverride), 0o777); err != nil {
 					t.Fatal(err)
 				}
 			}
 
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			err = app.Run(opts)
+
+			t.Log(stdout.String())
+
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
+			if testcase.wantOutputContains != "" {
+				testutil.AssertStringContains(t, stdout.String(), testcase.wantOutputContains)
+			}
+		})
+	}
+}
+
+func TestBuildGo(t *testing.T) {
+	args := testutil.Args
+	if os.Getenv("TEST_COMPUTE_BUILD_GO") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_BUILD_GO or TEST_COMPUTE_BUILD to run this test")
+	}
+
+	// We're going to chdir to a build environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{Src: filepath.Join("testdata", "build", "go", "go.mod"), Dst: "go.mod"},
+			{Src: filepath.Join("testdata", "build", "go", "main.go"), Dst: "main.go"},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// Before running the test, chdir into the build environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
+
+	for _, testcase := range []struct {
+		name                 string
+		args                 []string
+		fastlyManifest       string
+		sourceOverride       string
+		wantError            string
+		wantRemediationError string
+		wantOutputContains   string
+	}{
+		{
+			name:                 "no fastly.toml manifest",
+			args:                 args("compute build"),
+			wantError:            "error reading package manifest",
+			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
+		},
+		{
+			name: "empty language",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"`,
+			wantError: "language cannot be empty, please provide a language",
+		},
+		{
+			name: "empty name",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 2
+			language = "go"`,
+			wantError: "name cannot be empty, please provide a name",
+		},
+		{
+			name: "syntax error",
+			args: args("compute build --verbose"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "go"`,
+			sourceOverride: `D"F;
+			'GREGERgregeg '
+			ERG`,
+			wantError: "error during execution process",
+		},
+		{
+			name: "success",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "go"`,
+			wantOutputContains: "Built package 'test'",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.fastlyManifest != "" {
+				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			// We want to ensure the original `main.go` is put back in case of a test
+			// case overriding its content using `sourceOverride`.
+			src := filepath.Join(rootdir, "main.go")
+			b, err := os.ReadFile(src)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func(src string, b []byte) {
+				err := os.WriteFile(src, b, 0o644)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}(src, b)
+
+			if testcase.sourceOverride != "" {
+				if err := os.WriteFile(src, []byte(testcase.sourceOverride), 0o777); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			var stdout threadsafe.Buffer
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+
+			// NOTE: The following constraints should be kept in-sync with
+			// cmd/fastly/static/config.toml
+			opts.ConfigFile.Language.Go.TinyGoConstraint = ">= 0.24.0-0" // NOTE: -0 is to allow prereleases.
+			opts.ConfigFile.Language.Go.ToolchainConstraint = ">= 1.17 < 1.19"
+
 			err = app.Run(opts)
 
 			t.Log(stdout.String())

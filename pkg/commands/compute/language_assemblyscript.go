@@ -33,8 +33,8 @@ type AssemblyScript struct {
 	postBuild string
 }
 
-// NewAssemblyScript constructs a new AssemblyScript.
-func NewAssemblyScript(timeout int, pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface) *AssemblyScript {
+// NewAssemblyScript constructs a new AssemblyScript toolchain.
+func NewAssemblyScript(pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int) *AssemblyScript {
 	return &AssemblyScript{
 		JavaScript: JavaScript{
 			build:             scripts.Build,
@@ -74,14 +74,11 @@ func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose boo
 
 	cmd := filepath.Join(toolchaindir, "asc")
 	args := []string{
-		"assembly/index.ts",
-		"--binaryFile",
+		fmt.Sprintf("%s/index.ts", ASSourceDirectory),
+		"--outFile",
 		filepath.Join(binDir, "main.wasm"),
 		"--optimize",
 		"--noAssert",
-	}
-	if verbose {
-		args = append(args, "--verbose")
 	}
 
 	if a.build != "" {
