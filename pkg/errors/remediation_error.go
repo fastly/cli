@@ -154,3 +154,6 @@ var ComputeTrialRemediation = "For more help with this error see fastly.help/cli
 
 // ProfileRemediation suggests no profiles exist.
 var ProfileRemediation = "Run `fastly profile create <NAME>` to create a profile, or `fastly profile list` to view available profiles (at least one profile should be set as 'default')."
+
+// UpdateRemediation suggests no profiles exist.
+var UpdateRemediation = "We'll attempt to update the Fastly CLI versioning information on the next invocation. If there are any errors, ensure `fastly config` matches https://developer.fastly.com/api/internal/cli-config"
