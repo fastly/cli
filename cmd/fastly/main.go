@@ -145,7 +145,8 @@ func main() {
 	// NOTE: We don't want to trigger a config check when the user is making an
 	// autocomplete request because this can add additional latency to the user's
 	// shell loading completely.
-	if check.Stale(file.CLI.LastChecked, file.CLI.TTL) && !cmd.IsCompletion(args) && !cmd.IsCompletionScript(args) {
+	stale := (file.CLI.Version != revision.AppVersion) || check.Stale(file.CLI.LastChecked, file.CLI.TTL)
+	if stale && !cmd.IsCompletion(args) && !cmd.IsCompletionScript(args) {
 		if verboseOutput {
 			text.Info(out, `
 Compatibility and versioning information for the Fastly CLI is being updated in the background.  The updated data will be used next time you execute a fastly command.
