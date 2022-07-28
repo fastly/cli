@@ -141,16 +141,28 @@ func main() {
 	// errLoadConfig should be a RemediationError.
 	var errLoadConfig error
 
-	// Validate if configuration is older than its TTL
+	// If the version stored in the config doesn't match our current version,
+	// block running of the command until the new config is downloaded.
+	waitBeforeRun := file.CLI.Version != revision.AppVersion
+
+	// Validate if configuration is older than its TTL or this is the
+	// first run after an update.
 	// NOTE: We don't want to trigger a config check when the user is making an
 	// autocomplete request because this can add additional latency to the user's
 	// shell loading completely.
-	stale := (file.CLI.Version != revision.AppVersion) || check.Stale(file.CLI.LastChecked, file.CLI.TTL)
+	stale := check.Stale(file.CLI.LastChecked, file.CLI.TTL) || waitBeforeRun
 	if stale && !cmd.IsCompletion(args) && !cmd.IsCompletionScript(args) {
 		if verboseOutput {
-			text.Info(out, `
+			msg := `
 Compatibility and versioning information for the Fastly CLI is being updated in the background.  The updated data will be used next time you execute a fastly command.
-			`)
+			`
+			if waitBeforeRun {
+				msg = `
+Compatibility and versioning information for the Fastly CLI is being updated.  Your command will be executed once the update is complete.
+`
+			}
+
+			text.Info(out, msg)
 		}
 
 		wait = true
@@ -182,6 +194,12 @@ Compatibility and versioning information for the Fastly CLI is being updated in 
 
 			waitForWrite <- true
 		}()
+	}
+
+	if waitBeforeRun {
+		<-waitForWrite
+		afterWrite(verboseOutput, errLoadConfig, out)
+		wait = false
 	}
 
 	// Main is basically just a shim to call Run, so we do that here.
