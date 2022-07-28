@@ -6,7 +6,7 @@
 
 **Bug fixes:**
 
-* Ignore TTL & update config if app version doesn't match config version [#612](htps://github.com/fastly/cli/pull/612)
+* Ignore TTL & update config if app version doesn't match config version [#612](https://github.com/fastly/cli/pull/612)
 
 ## [v3.2.1](https://github.com/fastly/cli/releases/tag/v3.2.1) (2022-07-27)
 
