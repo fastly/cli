@@ -1,5 +1,13 @@
 # Changelog
 
+## [v3.2.3](https://github.com/fastly/cli/releases/tag/v3.2.3) (2022-07-28)
+
+[Full Changelog](https://github.com/fastly/cli/releases/tag/v3.2.2...v3.2.3)
+
+**Bug fixes:**
+
+* Block for config update if CLI version updated [#615](https://github.com/fastly/cli/pull/615)
+
 ## [v3.2.2](https://github.com/fastly/cli/releases/tag/v3.2.2) (2022-07-28)
 
 [Full Changelog](https://github.com/fastly/cli/releases/tag/v3.2.1...v3.2.2)
