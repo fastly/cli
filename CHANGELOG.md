@@ -1,5 +1,13 @@
 # Changelog
 
+## [v3.2.2](https://github.com/fastly/cli/releases/tag/v3.2.2) (2022-07-28)
+
+[Full Changelog](https://github.com/fastly/cli/releases/tag/v3.2.1...v3.2.2)
+
+**Bug fixes:**
+
+* Ignore TTL & update config if app version doesn't match config version [#610](htps://github.com/fastly/cli/pull/610)
+
 ## [v3.2.1](https://github.com/fastly/cli/releases/tag/v3.2.1) (2022-07-27)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v3.2.0...v3.2.1)
