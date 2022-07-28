@@ -196,7 +196,7 @@ Compatibility and versioning information for the Fastly CLI is being updated.  Y
 		}()
 	}
 
-	if waitBeforeRun {
+	if wait && waitBeforeRun {
 		<-waitForWrite
 		afterWrite(verboseOutput, errLoadConfig, out)
 		wait = false
