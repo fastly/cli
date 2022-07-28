@@ -10,9 +10,9 @@
 </div>
 
 ## Quick links
-- [Installation](https://developer.fastly.com/reference/cli/#installing)
-- [Shell auto-completion](https://developer.fastly.com/reference/cli/#shell-auto-completion)
-- [Configuring](https://developer.fastly.com/reference/cli/#configuring)
+- [Installation](https://developer.fastly.com/learning/tools/cli#installing)
+- [Shell auto-completion](https://developer.fastly.com/learning/tools/cli#shell-auto-completion)
+- [Configuring](https://developer.fastly.com/learning/tools/cli#configuring)
 - [Commands](https://developer.fastly.com/reference/cli/#command-groups)
 - [Development](DEVELOP.md)
 - [Testing](TESTING.md)
