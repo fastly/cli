@@ -1,5 +1,13 @@
 # Changelog
 
+## [v3.2.4](https://github.com/fastly/cli/releases/tag/v3.2.4) (2022-07-28)
+
+[Full Changelog](https://github.com/fastly/cli/releases/tag/v3.2.3...v3.2.4)
+
+**Bug fixes:**
+
+* Fix `--completion-script-zsh` [#617](https://github.com/fastly/cli/pull/617)
+
 ## [v3.2.3](https://github.com/fastly/cli/releases/tag/v3.2.3) (2022-07-28)
 
 [Full Changelog](https://github.com/fastly/cli/releases/tag/v3.2.2...v3.2.3)
