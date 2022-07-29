@@ -79,7 +79,7 @@ func TestDeploy(t *testing.T) {
 
 	originalPackageSizeLimit := compute.PackageSizeLimit
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		api                  mock.API
 		args                 []string
 		dontWantOutput       []string
@@ -1256,7 +1256,9 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			// Because the manifest can be mutated on each test scenario, we recreate
 			// the file each time.

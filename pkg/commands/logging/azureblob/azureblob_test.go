@@ -96,7 +96,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 }
 
 func TestUpdateBlobStorageInput(t *testing.T) {
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name      string
 		cmd       *azureblob.UpdateCommand
 		api       mock.API
@@ -152,7 +152,9 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			want:      nil,
 			wantError: errors.ErrNoServiceID.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Globals.APIClient = testcase.api
 

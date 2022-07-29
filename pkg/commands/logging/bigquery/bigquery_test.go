@@ -94,7 +94,7 @@ func TestCreateBigQueryInput(t *testing.T) {
 }
 
 func TestUpdateBigQueryInput(t *testing.T) {
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name      string
 		cmd       *bigquery.UpdateCommand
 		api       mock.API
@@ -146,7 +146,9 @@ func TestUpdateBigQueryInput(t *testing.T) {
 			want:      nil,
 			wantError: errors.ErrNoServiceID.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Globals.APIClient = testcase.api
 

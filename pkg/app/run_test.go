@@ -41,7 +41,8 @@ func TestApplication(t *testing.T) {
 	// correctly, and check behaviors that can't be associated with a specific
 	// command or subcommand. Commands should be tested in their packages,
 	// leveraging the app.Run helper as appropriate.
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var (
 				stdout bytes.Buffer
@@ -130,7 +131,8 @@ whoami
 `,
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var (
 				stdout bytes.Buffer

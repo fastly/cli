@@ -15,7 +15,7 @@ import (
 
 func TestDictionaryItemDescribe(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -41,7 +41,9 @@ func TestDictionaryItemDescribe(t *testing.T) {
 			api:        mock.API{GetDictionaryItemFn: describeDictionaryItemOKDeleted},
 			wantOutput: describeDictionaryItemOutputDeleted,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -108,7 +110,7 @@ func (p *mockDictionaryItemPaginator) GetNext() (di []*fastly.DictionaryItem, er
 
 func TestDictionaryItemsList(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -164,7 +166,9 @@ func TestDictionaryItemsList(t *testing.T) {
 			args:       args("dictionary-item list --service-id 123 --dictionary-id 456 --page 2 --per-page 1"),
 			wantOutput: listDictionaryItemsPageTwoOutput,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -178,7 +182,7 @@ func TestDictionaryItemsList(t *testing.T) {
 
 func TestDictionaryItemCreate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -199,7 +203,9 @@ func TestDictionaryItemCreate(t *testing.T) {
 			api:        mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			wantOutput: "\nSUCCESS: Created dictionary item foo (service 123, dictionary 456)\n",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -213,7 +219,7 @@ func TestDictionaryItemCreate(t *testing.T) {
 
 func TestDictionaryItemUpdate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		fileData   string
@@ -260,7 +266,9 @@ func TestDictionaryItemUpdate(t *testing.T) {
 			api:        mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsOK},
 			wantOutput: "\nSUCCESS: Made 4 modifications of Dictionary 456 on service 123\n",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var filePath string
 			if testcase.fileData != "" {
@@ -287,7 +295,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 
 func TestDictionaryItemDelete(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -308,7 +316,9 @@ func TestDictionaryItemDelete(t *testing.T) {
 			api:        mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			wantOutput: "\nSUCCESS: Deleted dictionary item foo (service 123, dicitonary 456)\n",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)

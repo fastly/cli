@@ -43,7 +43,7 @@ func TestInit(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name             string
 		args             []string
 		configFile       config.File
@@ -362,7 +362,9 @@ func TestInit(t *testing.T) {
 				"SUCCESS: Initialized package",
 			},
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			// We're going to chdir to an init environment,
 			// so save the PWD to return to, afterwards.

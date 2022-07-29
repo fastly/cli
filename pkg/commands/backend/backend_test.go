@@ -113,7 +113,8 @@ func TestBackendCreate(t *testing.T) {
 			WantOutput: "Created backend www.test.com (service 123 version 3)",
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -193,7 +194,8 @@ func TestBackendList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -231,7 +233,8 @@ func TestBackendDescribe(t *testing.T) {
 			WantOutput: describeBackendOutput,
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -271,7 +274,8 @@ func TestBackendUpdate(t *testing.T) {
 			WantOutput: "Updated backend www.example.com (service 123 version 4)",
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -309,7 +313,8 @@ func TestBackendDelete(t *testing.T) {
 			WantOutput: "Deleted backend www.test.com (service 123 version 4)",
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)

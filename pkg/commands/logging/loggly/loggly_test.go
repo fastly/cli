@@ -85,7 +85,7 @@ func TestCreateLogglyInput(t *testing.T) {
 }
 
 func TestUpdateLogglyInput(t *testing.T) {
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name      string
 		cmd       *loggly.UpdateCommand
 		api       mock.API
@@ -132,7 +132,9 @@ func TestUpdateLogglyInput(t *testing.T) {
 			want:      nil,
 			wantError: errors.ErrNoServiceID.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Globals.APIClient = testcase.api
 
