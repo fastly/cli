@@ -1,8 +1,10 @@
 package filesystem
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -10,7 +12,7 @@ import (
 // FileExists asserts whether a file path exists.
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
+	return !errors.Is(err, fs.ErrNotExist)
 }
 
 // CopyFile copies a file from src to dst. If src and dst files exist, and are
@@ -35,7 +37,7 @@ func CopyFile(src, dst string) (err error) {
 	// Get destination file stats.
 	ds, err := os.Stat(dst)
 	if err != nil {
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("cannot read destination file: %s", dst)
 		}
 	} else {
@@ -58,7 +60,7 @@ func CopyFile(src, dst string) (err error) {
 	defer in.Close() // #nosec G307
 
 	// Create all directories of destination
-	if err = os.MkdirAll(filepath.Dir(dst), 0700); err != nil {
+	if err = os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
 		return fmt.Errorf("creating destination directory: %w", err)
 	}
 
@@ -96,8 +98,8 @@ func MakeDirectoryIfNotExists(path string) error {
 		return nil
 	case err == nil && !fi.IsDir():
 		return fmt.Errorf("%s already exists as a regular file", path)
-	case os.IsNotExist(err):
-		return os.MkdirAll(path, 0750)
+	case errors.Is(err, fs.ErrNotExist):
+		return os.MkdirAll(path, 0o750)
 	case err != nil:
 		return err
 	}

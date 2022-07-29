@@ -122,7 +122,7 @@ func (c *ListCommand) printSummary(out io.Writer, us []*fastly.User) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprint(out, string(data))
+		out.Write(data)
 		return nil
 	}
 	t := text.NewTable(out)

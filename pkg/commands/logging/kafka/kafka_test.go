@@ -16,11 +16,10 @@ import (
 
 func TestCreateKafkaInput(t *testing.T) {
 	for _, testcase := range []struct {
-		name          string
-		cmd           *kafka.CreateCommand
-		want          *fastly.CreateKafkaInput
-		wantError     string
-		wantSASLError string
+		name      string
+		cmd       *kafka.CreateCommand
+		want      *fastly.CreateKafkaInput
+		wantError string
 	}{
 		{
 			name: "required values set flag serviceID",
@@ -58,7 +57,6 @@ func TestCreateKafkaInput(t *testing.T) {
 		{
 			name:      "error missing serviceID",
 			cmd:       createCommandMissingServiceID(),
-			want:      nil,
 			wantError: errors.ErrNoServiceID.Error(),
 		},
 		{
@@ -77,49 +75,6 @@ func TestCreateKafkaInput(t *testing.T) {
 				Password:        "12345",
 			},
 		},
-		{
-			name:          "verify SASL validation: missing username",
-			cmd:           createCommandSASL("scram-sha-256", "", "password"),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-		{
-			name:          "verify SASL validation: missing password",
-			cmd:           createCommandSASL("plain", "user", ""),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-		{
-			name:          "verify SASL validation: username with no auth method or password",
-			cmd:           createCommandSASL("", "user1", ""),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-		{
-			name:          "verify SASL validation: password with no auth method",
-			cmd:           createCommandSASL("", "", "password"),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-
-		{
-			name:          "verify SASL validation: no SASL, but auth-method given",
-			cmd:           createCommandNoSASL("scram-sha-256", "", ""),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified",
-		},
-		{
-			name:          "verify SASL validation: no SASL, but username with given",
-			cmd:           createCommandNoSASL("", "user1", ""),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified",
-		},
-		{
-			name:          "verify SASL validation: no SASL, but password given",
-			cmd:           createCommandNoSASL("", "", "password"),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password options are only valid when the --use-sasl flag is specified",
-		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var bs []byte
@@ -128,40 +83,38 @@ func TestCreateKafkaInput(t *testing.T) {
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
-				APIClient:          testcase.cmd.Base.Globals.APIClient,
+				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
 				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
-			if err != nil {
-				if testcase.wantError == "" {
-					t.Fatalf("unexpected error getting service details: %v", err)
-				}
+
+			switch {
+			case err != nil && testcase.wantError == "":
+				t.Fatalf("unexpected error getting service details: %v", err)
+				return
+			case err != nil && testcase.wantError != "":
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				return
+			case err == nil && testcase.wantError != "":
+				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+			case err == nil && testcase.wantError == "":
+				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				testutil.AssertEqual(t, testcase.want, have)
 			}
-			if err == nil {
-				if testcase.wantError != "" {
-					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
-				}
-			}
-
-			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
-			testutil.AssertErrorContains(t, err, testcase.wantSASLError)
-			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
 
 func TestUpdateKafkaInput(t *testing.T) {
 	for _, testcase := range []struct {
-		name          string
-		cmd           *kafka.UpdateCommand
-		api           mock.API
-		want          *fastly.UpdateKafkaInput
-		wantError     string
-		wantSASLError string
+		name      string
+		cmd       *kafka.UpdateCommand
+		api       mock.API
+		want      *fastly.UpdateKafkaInput
+		wantError string
 	}{
 		{
 			name: "all values set flag serviceID",
@@ -258,53 +211,9 @@ func TestUpdateKafkaInput(t *testing.T) {
 				Password:        fastly.String(""),
 			},
 		},
-		{
-			name: "verify SASL validation: missing username",
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				GetKafkaFn:     getKafkaOK,
-			},
-			cmd:           updateCommandSASL("scram-sha-256", "", "password"),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-		{
-			name: "verify SASL validation: missing password",
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				GetKafkaFn:     getKafkaOK,
-			},
-			cmd:           updateCommandSASL("plain", "user", ""),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-		{
-			name: "verify SASL validation: username with no auth method",
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				GetKafkaFn:     getKafkaOK,
-			},
-			cmd:           updateCommandSASL("", "user1", ""),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-		{
-			name: "verify SASL validation: password with no auth method",
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				GetKafkaFn:     getKafkaOK,
-			},
-			cmd:           updateCommandSASL("", "", "password"),
-			want:          nil,
-			wantSASLError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			testcase.cmd.Base.Globals.APIClient = testcase.api
+			testcase.cmd.Globals.APIClient = testcase.api
 
 			var bs []byte
 			out := bytes.NewBuffer(bs)
@@ -318,22 +227,21 @@ func TestUpdateKafkaInput(t *testing.T) {
 				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
-			if err != nil {
-				if testcase.wantError == "" {
-					t.Fatalf("unexpected error getting service details: %v", err)
-				}
+
+			switch {
+			case err != nil && testcase.wantError == "":
+				t.Fatalf("unexpected error getting service details: %v", err)
+				return
+			case err != nil && testcase.wantError != "":
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				return
+			case err == nil && testcase.wantError != "":
+				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+			case err == nil && testcase.wantError == "":
+				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				testutil.AssertEqual(t, testcase.want, have)
 			}
-			if err == nil {
-				if testcase.wantError != "" {
-					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
-				}
-			}
-
-			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
-			testutil.AssertErrorContains(t, err, testcase.wantSASLError)
-			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
@@ -466,51 +374,6 @@ func createCommandSASL(authMethod, user, password string) *kafka.CreateCommand {
 		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
 		RequestMaxBytes: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 11111},
 		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: authMethod},
-		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: user},
-		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: password},
-	}
-}
-
-func createCommandNoSASL(authMethod, user, password string) *kafka.CreateCommand {
-	var b bytes.Buffer
-
-	globals := config.Data{
-		File:   config.File{},
-		Env:    config.Environment{},
-		Output: &b,
-	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
-
-	return &kafka.CreateCommand{
-		Base: cmd.Base{
-			Globals: &globals,
-		},
-		Manifest: manifest.Data{
-			Flag: manifest.Flag{
-				ServiceID: "123",
-			},
-		},
-		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
-		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
-					WasSet: true,
-				},
-				Value: true,
-			},
-		},
-		Topic:           "logs",
-		Brokers:         "127.0.0.1,127.0.0.2",
-		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		RequestMaxBytes: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 11111},
-		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
 		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: authMethod},
 		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: user},
 		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: password},

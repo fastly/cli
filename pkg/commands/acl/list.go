@@ -147,7 +147,7 @@ func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACL) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprint(out, string(data))
+		out.Write(data)
 		return nil
 	}
 

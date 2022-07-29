@@ -132,7 +132,7 @@ func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.Token) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprint(out, string(data))
+		out.Write(data)
 		return nil
 	}
 

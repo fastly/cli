@@ -2,8 +2,10 @@ package compute
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/exec"
@@ -16,7 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/file"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
@@ -90,9 +92,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 	if !cont {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("project directory not empty"),
-			Remediation: errors.ExistingDirRemediation,
+			Remediation: fsterr.ExistingDirRemediation,
 		}
 	}
 
@@ -101,7 +103,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// This is because we don't want any progress output until later.
 	progress := instantiateProgress(c.Globals.Verbose(), out)
 
-	defer func(errLog errors.LogInterface) {
+	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
 			errLog.Add(err)
 			progress.Fail() // progress.Done is handled inline
@@ -257,13 +259,13 @@ func verifyDestination(path string, progress text.Progress) (dst string, err err
 	}
 
 	fi, err := os.Stat(dst)
-	if err != nil && !os.IsNotExist(err) {
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return dst, fmt.Errorf("couldn't verify package directory: %w", err) // generic error
 	}
 	if err == nil && !fi.IsDir() {
 		return dst, fmt.Errorf("package destination is not a directory") // specific problem
 	}
-	if err != nil && os.IsNotExist(err) { // normal-ish case
+	if err != nil && errors.Is(err, fs.ErrNotExist) { // normal-ish case
 		fmt.Fprintf(progress, "Creating %s...\n", dst)
 		if err := os.MkdirAll(dst, 0o700); err != nil {
 			return dst, fmt.Errorf("error creating package destination: %w", err)
@@ -520,7 +522,7 @@ func fetchPackageTemplate(
 	progress text.Progress,
 	client api.HTTPClient,
 	out io.Writer,
-	errLog errors.LogInterface,
+	errLog fsterr.LogInterface,
 ) error {
 	// We don't try to fetch a package template if the user is bringing their own
 	// compiled Wasm binary (or if the directory currently already contains a
@@ -664,7 +666,7 @@ mimes:
 func clonePackageFromEndpoint(from string, branch string, tag string, dst string) error {
 	_, err := exec.LookPath("git")
 	if err != nil {
-		return errors.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("`git` not found in $PATH"),
 			Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
 		}
