@@ -380,51 +380,6 @@ func createCommandSASL(authMethod, user, password string) *kafka.CreateCommand {
 	}
 }
 
-func createCommandNoSASL(authMethod, user, password string) *kafka.CreateCommand {
-	var b bytes.Buffer
-
-	globals := config.Data{
-		File:   config.File{},
-		Env:    config.Environment{},
-		Output: &b,
-	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
-
-	return &kafka.CreateCommand{
-		Base: cmd.Base{
-			Globals: &globals,
-		},
-		Manifest: manifest.Data{
-			Flag: manifest.Flag{
-				ServiceID: "123",
-			},
-		},
-		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
-		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
-					WasSet: true,
-				},
-				Value: true,
-			},
-		},
-		Topic:           "logs",
-		Brokers:         "127.0.0.1,127.0.0.2",
-		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		RequestMaxBytes: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 11111},
-		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
-		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: authMethod},
-		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: user},
-		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: password},
-	}
-}
-
 func createCommandMissingServiceID() *kafka.CreateCommand {
 	res := createCommandAll()
 	res.Manifest = manifest.Data{}
