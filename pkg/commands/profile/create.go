@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -198,7 +199,7 @@ func (c *CreateCommand) persistCfg() error {
 	switch {
 	case err == nil && !fi.IsDir():
 		return fmt.Errorf("config file path %s isn't a directory", dir)
-	case err != nil && os.IsNotExist(err):
+	case err != nil && errors.Is(err, fs.ErrNotExist):
 		if err := os.MkdirAll(dir, config.DirectoryPermissions); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 				"Directory":   dir,

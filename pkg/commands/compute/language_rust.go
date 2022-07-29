@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/exec"
@@ -396,7 +398,7 @@ func rustcSysroot(target string, errlog fsterr.LogInterface) error {
 
 	sysroot := strings.TrimSpace(string(stdoutStderr))
 	path := filepath.Join(sysroot, "lib", "rustlib", "wasm32-wasi")
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
 		errlog.Add(err)
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("the Rust target directory `%s` doesn't exist", path),
