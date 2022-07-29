@@ -211,46 +211,6 @@ func TestUpdateKafkaInput(t *testing.T) {
 				Password:        fastly.String(""),
 			},
 		},
-		{
-			name: "verify SASL validation: missing username",
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				GetKafkaFn:     getKafkaOK,
-			},
-			cmd:       updateCommandSASL("scram-sha-256", "", "password"),
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-		{
-			name: "verify SASL validation: missing password",
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				GetKafkaFn:     getKafkaOK,
-			},
-			cmd:       updateCommandSASL("plain", "user", ""),
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-		{
-			name: "verify SASL validation: username with no auth method",
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				GetKafkaFn:     getKafkaOK,
-			},
-			cmd:       updateCommandSASL("", "user1", ""),
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
-		{
-			name: "verify SASL validation: password with no auth method",
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-				GetKafkaFn:     getKafkaOK,
-			},
-			cmd:       updateCommandSASL("", "", "password"),
-			wantError: "the --auth-method, --username, and --password flags must be present when using the --use-sasl flag",
-		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Globals.APIClient = testcase.api
