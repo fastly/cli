@@ -173,7 +173,7 @@ func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet)
 		if err != nil {
 			return err
 		}
-		fmt.Fprint(out, string(data))
+		out.Write(data)
 		return nil
 	}
 
@@ -196,7 +196,7 @@ func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprint(out, string(data))
+		out.Write(data)
 		return nil
 	}
 

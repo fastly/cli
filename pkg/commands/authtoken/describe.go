@@ -66,7 +66,7 @@ func (c *DescribeCommand) print(out io.Writer, r *fastly.Token) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprint(out, string(data))
+		out.Write(data)
 		return nil
 	}
 

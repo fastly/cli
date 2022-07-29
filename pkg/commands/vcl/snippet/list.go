@@ -150,7 +150,7 @@ func (c *ListCommand) printSummary(out io.Writer, ss []*fastly.Snippet) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprint(out, string(data))
+		out.Write(data)
 		return nil
 	}
 
