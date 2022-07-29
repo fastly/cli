@@ -71,28 +71,27 @@ func TestCreateOpenstackInput(t *testing.T) {
 
 			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
-				APIClient:          testcase.cmd.Base.Globals.APIClient,
+				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
 				Out:                out,
 				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
-			if err != nil {
-				if testcase.wantError == "" {
-					t.Fatalf("unexpected error getting service details: %v", err)
-				}
+
+			switch {
+			case err != nil && testcase.wantError == "":
+				t.Fatalf("unexpected error getting service details: %v", err)
+				return
+			case err != nil && testcase.wantError != "":
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				return
+			case err == nil && testcase.wantError != "":
+				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+			case err == nil && testcase.wantError == "":
+				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				testutil.AssertEqual(t, testcase.want, have)
 			}
-			if err == nil {
-				if testcase.wantError != "" {
-					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
-				}
-			}
-
-			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
@@ -157,7 +156,7 @@ func TestUpdateOpenstackInput(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			testcase.cmd.Base.Globals.APIClient = testcase.api
+			testcase.cmd.Globals.APIClient = testcase.api
 
 			var bs []byte
 			out := bytes.NewBuffer(bs)
@@ -171,22 +170,21 @@ func TestUpdateOpenstackInput(t *testing.T) {
 				ServiceVersionFlag: testcase.cmd.ServiceVersion,
 				VerboseMode:        verboseMode,
 			})
-			if err != nil {
-				if testcase.wantError == "" {
-					t.Fatalf("unexpected error getting service details: %v", err)
-				}
+
+			switch {
+			case err != nil && testcase.wantError == "":
+				t.Fatalf("unexpected error getting service details: %v", err)
+				return
+			case err != nil && testcase.wantError != "":
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				return
+			case err == nil && testcase.wantError != "":
+				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
+			case err == nil && testcase.wantError == "":
+				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				testutil.AssertEqual(t, testcase.want, have)
 			}
-			if err == nil {
-				if testcase.wantError != "" {
-					t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
-				}
-			}
-
-			have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertEqual(t, testcase.want, have)
 		})
 	}
 }
