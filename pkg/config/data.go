@@ -298,7 +298,7 @@ type Rust struct {
 	// ToolchainVersion is the `rustup` toolchain string for the compiler that we
 	// support
 	//
-	// DEPRECATED in favour of ToolchainConstraint
+	// Deprecated: Use ToolchainConstraint instead
 	ToolchainVersion string `toml:"toolchain_version"`
 
 	// ToolchainConstraint is the `rustup` toolchain constraint for the compiler
