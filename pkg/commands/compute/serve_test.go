@@ -85,7 +85,7 @@ func TestGetViceroy(t *testing.T) {
 	// but the function call should fallback to using the stubbed static config
 	// defined above. We also don't pass stdin, stdout arguments as that
 	// particular user flow isn't executed in this test case.
-	err = file.Read("example", cfg, nil, nil, fsterr.MockLog{}, false)
+	err = file.Read("example", cfg, strings.NewReader("yes"), &out, fsterr.MockLog{}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
