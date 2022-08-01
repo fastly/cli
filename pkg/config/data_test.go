@@ -33,13 +33,15 @@ type testReadScenario struct {
 func TestConfigRead(t *testing.T) {
 	scenarios := []testReadScenario{
 		{
-			name:         "static config should be used when there is no local user config",
-			staticConfig: staticConfig,
+			name:                 "static config should be used when there is no local user config",
+			userResponseToPrompt: "yes", // prompts asks user to confirm they want a static fallback
+			staticConfig:         staticConfig,
 		},
 		{
-			name:         "static config should return an error when invalid",
-			staticConfig: staticConfigInvalid,
-			wantError:    config.ErrInvalidConfig.Error(),
+			name:                 "static config should return an error when invalid",
+			userResponseToPrompt: "yes", // prompts asks user to confirm they want a static fallback
+			staticConfig:         staticConfigInvalid,
+			wantError:            config.ErrInvalidConfig.Error(),
 		},
 		{
 			name:                 "when user config is invalid (and the user accepts static config) but static config is also invalid, it should return an error",

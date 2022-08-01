@@ -1,13 +1,11 @@
 package config
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,7 +17,6 @@ import (
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
-	"github.com/sethvargo/go-retry"
 )
 
 // Source enumerates where a config parameter is taken from.
@@ -64,8 +61,7 @@ const (
 // legacy format.
 var ErrLegacyConfig = errors.New("the configuration file is in the legacy format")
 
-// ErrInvalidConfig indicates that the configuration file used was the static
-// one embedded into the compiled CLI binary and that failed to be unmarshalled.
+// ErrInvalidConfig indicates that the configuration file used was invalid.
 var ErrInvalidConfig = errors.New("the configuration file is invalid")
 
 // RemediationManualFix indicates that the configuration file used was invalid
@@ -402,55 +398,35 @@ func (f *File) Read(
 	errLog fsterr.LogInterface,
 	verbose bool,
 ) error {
-	var (
-		attempts int
-		data     []byte
-		retryErr error
-		readErr  error
-	)
-
 	f.static = cfg
+	replacement := "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
 
-	// To help mitigate any loss of profile data within the user's config we will
-	// retry the file READ operation if it fails.
-	ctx := context.Background()
-	b := retry.NewConstant(1 * time.Second)
-	b = retry.WithMaxRetries(2, b) // attempts == 3 (first attempt + two retries)
+	// G304 (CWE-22): Potential file inclusion via variable.
+	// gosec flagged this:
+	// Disabling as we need to load the config.toml from the user's file system.
+	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+	/* #nosec */
+	data, readErr := os.ReadFile(path)
+	if readErr != nil {
+		errLog.Add(readErr)
+		data = f.static
 
-	retryErr = retry.Do(ctx, b, func(_ context.Context) error {
-		attempts++
+		msg := "unable to load your configuration data"
+		label := fmt.Sprintf("We were %s. %s", msg, replacement)
 
-		// G304 (CWE-22): Potential file inclusion via variable.
-		// gosec flagged this:
-		// Disabling as we need to load the config.toml from the user's file system.
-		// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-		/* #nosec */
-		data, readErr = os.ReadFile(path)
-		if readErr != nil {
-			errLog.Add(readErr)
-
-			// We don't retry the error if the file doesn't exist. Although in
-			// principle we shouldn't see this error as we .Stat() at the start of
-			// the file.Read() method.
-			if errors.Is(readErr, os.ErrNotExist) {
-				return readErr
-			}
-			return retry.RetryableError(readErr)
+		cont, err := text.AskYesNo(out, label, in)
+		if err != nil {
+			return fmt.Errorf("error reading input: %w", err)
 		}
 
-		return nil
-	})
-
-	var useStatic bool
-
-	// NOTE: retryErr is when we reached the max number of retries, while the
-	// readErr is for catching when we didn't want to retry the READ operation.
-	if retryErr != nil || readErr != nil {
-		errLog.AddWithContext(retryErr, map[string]interface{}{
-			"attempts": attempts,
-		})
-		data = f.static
-		useStatic = true
+		if !cont {
+			err := fsterr.RemediationError{
+				Inner:       fmt.Errorf(msg),
+				Remediation: RemediationManualFix,
+			}
+			errLog.Add(err)
+			return err
+		}
 	}
 
 	Mutex.Lock()
@@ -462,7 +438,7 @@ func (f *File) Read(
 
 		// If the static embedded config failed to be unmarshalled, then that's
 		// unexpected and we can't recover from that.
-		if useStatic {
+		if readErr != nil {
 			return invalidConfigErr(unmarshalErr)
 		}
 
@@ -471,30 +447,30 @@ func (f *File) Read(
 		// version embedded into the CLI binary.
 
 		text.Break(out)
-		label := fmt.Sprintf("Your configuration file (%s) is invalid. Replace it with a valid version? (any existing email/token data will be lost) [y/N] ", path)
-		cont, err := text.Input(out, label, in)
+
+		label := fmt.Sprintf("Your configuration file (%s) is invalid. %s", path, replacement)
+		cont, err := text.AskYesNo(out, label, in)
 		if err != nil {
-			return fmt.Errorf("error reading input %w", err)
+			return fmt.Errorf("error reading input: %w", err)
 		}
-		contl := strings.ToLower(cont)
-		if contl == "y" || contl == "yes" {
-			data = f.static
-
-			Mutex.Lock()
-			err = toml.Unmarshal(data, f)
-			Mutex.Unlock()
-
-			if err != nil {
-				errLog.Add(err)
-				return invalidConfigErr(err)
-			}
-		} else {
+		if !cont {
 			err := fsterr.RemediationError{
 				Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, unmarshalErr),
 				Remediation: RemediationManualFix,
 			}
 			errLog.Add(err)
 			return err
+		}
+
+		data = f.static
+
+		Mutex.Lock()
+		err = toml.Unmarshal(data, f)
+		Mutex.Unlock()
+
+		if err != nil {
+			errLog.Add(err)
+			return invalidConfigErr(err)
 		}
 	}
 
