@@ -14,7 +14,7 @@ import (
 
 func TestFTPCreate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -70,7 +70,9 @@ func TestFTPCreate(t *testing.T) {
 			},
 			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -84,7 +86,7 @@ func TestFTPCreate(t *testing.T) {
 
 func TestFTPList(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -138,7 +140,9 @@ func TestFTPList(t *testing.T) {
 			},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -152,7 +156,7 @@ func TestFTPList(t *testing.T) {
 
 func TestFTPDescribe(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -178,7 +182,9 @@ func TestFTPDescribe(t *testing.T) {
 			},
 			wantOutput: describeFTPOutput,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -192,7 +198,7 @@ func TestFTPDescribe(t *testing.T) {
 
 func TestFTPUpdate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -220,7 +226,9 @@ func TestFTPUpdate(t *testing.T) {
 			},
 			wantOutput: "Updated FTP logging endpoint log (service 123 version 4)",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -234,7 +242,7 @@ func TestFTPUpdate(t *testing.T) {
 
 func TestFTPDelete(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -262,7 +270,9 @@ func TestFTPDelete(t *testing.T) {
 			},
 			wantOutput: "Deleted FTP logging endpoint logs (service 123 version 4)",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)

@@ -16,7 +16,7 @@ type UpdateCommand struct {
 	cmd.Base
 	Manifest manifest.Data
 
-	//required
+	// required
 	EndpointName   string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion

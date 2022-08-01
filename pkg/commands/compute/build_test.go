@@ -38,7 +38,7 @@ func TestBuildRust(t *testing.T) {
 
 	args := testutil.Args
 
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name                 string
 		args                 []string
 		applicationConfig    config.File
@@ -296,7 +296,9 @@ func TestBuildRust(t *testing.T) {
 			},
 			wantOutputContains: "Built package 'test'",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			// We're going to chdir to a build environment,
 			// so save the PWD to return to, afterwards.
@@ -918,7 +920,7 @@ func TestCustomPostBuild(t *testing.T) {
 	}
 	defer os.Chdir(pwd)
 
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		applicationConfig    config.File
 		args                 []string
 		dontWantOutput       []string
@@ -1030,7 +1032,9 @@ func TestCustomPostBuild(t *testing.T) {
 				"Are you sure you want to continue with the post build step?",
 			},
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			if testcase.fastlyManifest != "" {
 				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {

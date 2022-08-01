@@ -14,7 +14,7 @@ import (
 
 func TestElasticsearchCreate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -54,7 +54,9 @@ func TestElasticsearchCreate(t *testing.T) {
 			},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -68,7 +70,7 @@ func TestElasticsearchCreate(t *testing.T) {
 
 func TestElasticsearchList(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -122,7 +124,9 @@ func TestElasticsearchList(t *testing.T) {
 			},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -136,7 +140,7 @@ func TestElasticsearchList(t *testing.T) {
 
 func TestElasticsearchDescribe(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -162,7 +166,9 @@ func TestElasticsearchDescribe(t *testing.T) {
 			},
 			wantOutput: describeElasticsearchOutput,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -176,7 +182,7 @@ func TestElasticsearchDescribe(t *testing.T) {
 
 func TestElasticsearchUpdate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -204,7 +210,9 @@ func TestElasticsearchUpdate(t *testing.T) {
 			},
 			wantOutput: "Updated Elasticsearch logging endpoint log (service 123 version 4)",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -218,7 +226,7 @@ func TestElasticsearchUpdate(t *testing.T) {
 
 func TestElasticsearchDelete(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -246,7 +254,9 @@ func TestElasticsearchDelete(t *testing.T) {
 			},
 			wantOutput: "Deleted Elasticsearch logging endpoint logs (service 123 version 4)",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)

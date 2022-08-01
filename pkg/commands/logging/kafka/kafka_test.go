@@ -109,7 +109,7 @@ func TestCreateKafkaInput(t *testing.T) {
 }
 
 func TestUpdateKafkaInput(t *testing.T) {
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name      string
 		cmd       *kafka.UpdateCommand
 		api       mock.API
@@ -211,7 +211,9 @@ func TestUpdateKafkaInput(t *testing.T) {
 				Password:        fastly.String(""),
 			},
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Globals.APIClient = testcase.api
 

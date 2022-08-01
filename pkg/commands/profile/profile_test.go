@@ -102,7 +102,8 @@ func TestCreate(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var (
 				err    error
@@ -244,7 +245,8 @@ func TestDelete(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var (
 				err    error
@@ -432,7 +434,8 @@ func TestList(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var (
 				err    error
@@ -532,7 +535,8 @@ func TestSwitch(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var (
 				err    error
@@ -653,7 +657,8 @@ func TestToken(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var (
 				err    error
@@ -761,7 +766,8 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var (
 				err    error

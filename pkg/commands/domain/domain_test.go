@@ -40,7 +40,8 @@ func TestDomainCreate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -104,7 +105,8 @@ func TestDomainList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -140,7 +142,8 @@ func TestDomainDescribe(t *testing.T) {
 			WantOutput: describeDomainOutput,
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -187,7 +190,8 @@ func TestDomainUpdate(t *testing.T) {
 			WantOutput: "Updated domain www.example.com (service 123 version 4)",
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -225,7 +229,8 @@ func TestDomainDelete(t *testing.T) {
 			WantOutput: "Deleted domain www.test.com (service 123 version 4)",
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -314,7 +319,8 @@ func TestDomainValidate(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)

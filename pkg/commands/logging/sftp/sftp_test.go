@@ -98,7 +98,7 @@ func TestCreateSFTPInput(t *testing.T) {
 }
 
 func TestUpdateSFTPInput(t *testing.T) {
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name      string
 		cmd       *sftp.UpdateCommand
 		api       mock.API
@@ -157,7 +157,9 @@ func TestUpdateSFTPInput(t *testing.T) {
 			want:      nil,
 			wantError: errors.ErrNoServiceID.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Globals.APIClient = testcase.api
 

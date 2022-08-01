@@ -14,7 +14,7 @@ import (
 
 func TestHTTPSCreate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -46,7 +46,9 @@ func TestHTTPSCreate(t *testing.T) {
 			},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -60,7 +62,7 @@ func TestHTTPSCreate(t *testing.T) {
 
 func TestHTTPSList(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -114,7 +116,9 @@ func TestHTTPSList(t *testing.T) {
 			},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -128,7 +132,7 @@ func TestHTTPSList(t *testing.T) {
 
 func TestHTTPSDescribe(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -154,7 +158,9 @@ func TestHTTPSDescribe(t *testing.T) {
 			},
 			wantOutput: describeHTTPSOutput,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -168,7 +174,7 @@ func TestHTTPSDescribe(t *testing.T) {
 
 func TestHTTPSUpdate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -196,7 +202,9 @@ func TestHTTPSUpdate(t *testing.T) {
 			},
 			wantOutput: "Updated HTTPS logging endpoint log (service 123 version 4)",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -210,7 +218,7 @@ func TestHTTPSUpdate(t *testing.T) {
 
 func TestHTTPSDelete(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -238,7 +246,9 @@ func TestHTTPSDelete(t *testing.T) {
 			},
 			wantOutput: "Deleted HTTPS logging endpoint logs (service 123 version 4)",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)

@@ -360,7 +360,8 @@ func TestValidConfig(t *testing.T) {
 
 	scenarios := []testValidConfigScenario{s1, s2, s3}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			// We're going to chdir to an temp environment,
 			// so save the PWD to return to, afterwards.

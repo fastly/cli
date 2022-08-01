@@ -14,7 +14,7 @@ import (
 
 func TestLogglyCreate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -46,7 +46,9 @@ func TestLogglyCreate(t *testing.T) {
 			},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -60,7 +62,7 @@ func TestLogglyCreate(t *testing.T) {
 
 func TestLogglyList(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -114,7 +116,9 @@ func TestLogglyList(t *testing.T) {
 			},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -128,7 +132,7 @@ func TestLogglyList(t *testing.T) {
 
 func TestLogglyDescribe(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -154,7 +158,9 @@ func TestLogglyDescribe(t *testing.T) {
 			},
 			wantOutput: describeLogglyOutput,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -168,7 +174,7 @@ func TestLogglyDescribe(t *testing.T) {
 
 func TestLogglyUpdate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -196,7 +202,9 @@ func TestLogglyUpdate(t *testing.T) {
 			},
 			wantOutput: "Updated Loggly logging endpoint log (service 123 version 4)",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -210,7 +218,7 @@ func TestLogglyUpdate(t *testing.T) {
 
 func TestLogglyDelete(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -238,7 +246,9 @@ func TestLogglyDelete(t *testing.T) {
 			},
 			wantOutput: "Deleted Loggly logging endpoint logs (service 123 version 4)",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)

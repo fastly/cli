@@ -18,7 +18,7 @@ import (
 
 func TestServiceCreate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -59,7 +59,9 @@ func TestServiceCreate(t *testing.T) {
 			api:       mock.API{CreateServiceFn: createServiceError},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -154,7 +156,7 @@ func (p *mockServicesPaginator) GetNext() (ss []*fastly.Service, err error) {
 
 func TestServiceList(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -211,7 +213,9 @@ func TestServiceList(t *testing.T) {
 			args:       args("service list --verbose"),
 			wantOutput: listServicesVerboseOutput,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -225,7 +229,7 @@ func TestServiceList(t *testing.T) {
 
 func TestServiceDescribe(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -266,7 +270,9 @@ func TestServiceDescribe(t *testing.T) {
 			api:       mock.API{GetServiceDetailsFn: describeServiceError},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -280,7 +286,7 @@ func TestServiceDescribe(t *testing.T) {
 
 func TestServiceSearch(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -305,7 +311,9 @@ func TestServiceSearch(t *testing.T) {
 			api:       mock.API{SearchServiceFn: searchServiceOK},
 			wantError: "error parsing arguments: expected argument for flag '--name'",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -319,7 +327,7 @@ func TestServiceSearch(t *testing.T) {
 
 func TestServiceUpdate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -368,7 +376,9 @@ func TestServiceUpdate(t *testing.T) {
 			api:       mock.API{UpdateServiceFn: updateServiceError},
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -384,7 +394,7 @@ func TestServiceDelete(t *testing.T) {
 	args := testutil.Args
 	nonEmptyServiceID := regexp.MustCompile(`service_id = "[^"]+"`)
 
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args                 []string
 		api                  mock.API
 		manifest             string
@@ -423,7 +433,9 @@ func TestServiceDelete(t *testing.T) {
 			manifest:  "fastly-valid.toml",
 			wantError: errTest.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			// We're going to chdir to an temp environment,
 			// so save the PWD to return to, afterwards.

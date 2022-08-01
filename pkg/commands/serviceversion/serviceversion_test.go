@@ -13,7 +13,7 @@ import (
 
 func TestVersionClone(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -43,7 +43,9 @@ func TestVersionClone(t *testing.T) {
 			},
 			wantError: testutil.Err.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -57,7 +59,7 @@ func TestVersionClone(t *testing.T) {
 
 func TestVersionList(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -93,7 +95,9 @@ func TestVersionList(t *testing.T) {
 			api:       mock.API{ListVersionsFn: testutil.ListVersionsError},
 			wantError: testutil.Err.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -107,7 +111,7 @@ func TestVersionList(t *testing.T) {
 
 func TestVersionUpdate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -139,7 +143,9 @@ func TestVersionUpdate(t *testing.T) {
 			},
 			wantError: testutil.Err.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -153,7 +159,7 @@ func TestVersionUpdate(t *testing.T) {
 
 func TestVersionActivate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -189,7 +195,9 @@ func TestVersionActivate(t *testing.T) {
 			},
 			wantOutput: "Activated service 123 version 3",
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -203,7 +211,7 @@ func TestVersionActivate(t *testing.T) {
 
 func TestVersionDeactivate(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -237,7 +245,9 @@ func TestVersionDeactivate(t *testing.T) {
 			},
 			wantError: testutil.Err.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -251,7 +261,7 @@ func TestVersionDeactivate(t *testing.T) {
 
 func TestVersionLock(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -277,7 +287,9 @@ func TestVersionLock(t *testing.T) {
 			},
 			wantError: testutil.Err.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)

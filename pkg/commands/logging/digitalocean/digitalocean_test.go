@@ -97,7 +97,7 @@ func TestCreateDigitalOceanInput(t *testing.T) {
 }
 
 func TestUpdateDigitalOceanInput(t *testing.T) {
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name      string
 		cmd       *digitalocean.UpdateCommand
 		api       mock.API
@@ -154,7 +154,9 @@ func TestUpdateDigitalOceanInput(t *testing.T) {
 			want:      nil,
 			wantError: errors.ErrNoServiceID.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Globals.APIClient = testcase.api
 

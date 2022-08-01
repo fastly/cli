@@ -88,9 +88,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("error parsing arguments: required flag --comment not provided")
 	}
 
-	if c.comment.WasSet {
-		c.input.Comment = fastly.String(c.comment.Value)
-	}
+	c.input.Comment = fastly.String(c.comment.Value)
 
 	ver, err := c.Globals.APIClient.UpdateVersion(&c.input)
 	if err != nil {

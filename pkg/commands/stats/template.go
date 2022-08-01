@@ -44,7 +44,7 @@ func fmtBlock(out io.Writer, service string, block statsResponseData) error {
 
 	hitRate := 0.0
 	if agg.Hits > 0 {
-		hitRate = float64((agg.Hits - agg.Miss - agg.Errors)) / float64(agg.Hits)
+		hitRate = float64(agg.Hits-agg.Miss-agg.Errors) / float64(agg.Hits)
 	}
 
 	// TODO: parse the JSON more strictly so this doesn't need to be dynamic.

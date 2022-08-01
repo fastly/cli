@@ -86,7 +86,7 @@ func TestCreateDatadogInput(t *testing.T) {
 }
 
 func TestUpdateDatadogInput(t *testing.T) {
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name      string
 		cmd       *datadog.UpdateCommand
 		api       mock.API
@@ -134,7 +134,9 @@ func TestUpdateDatadogInput(t *testing.T) {
 			want:      nil,
 			wantError: errors.ErrNoServiceID.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Globals.APIClient = testcase.api
 

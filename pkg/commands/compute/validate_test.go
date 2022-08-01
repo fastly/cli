@@ -20,7 +20,8 @@ func TestValidate(t *testing.T) {
 			WantOutput: "Validated package",
 		},
 	}
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			// We're going to chdir to a deploy environment,
 			// so save the PWD to return to, afterwards.

@@ -14,7 +14,7 @@ import (
 
 func TestHistorical(t *testing.T) {
 	args := testutil.Args
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		args       []string
 		api        mock.API
 		wantError  string
@@ -35,7 +35,9 @@ func TestHistorical(t *testing.T) {
 			api:        mock.API{GetStatsJSONFn: getStatsJSONOK},
 			wantOutput: historicalJSONOK,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)

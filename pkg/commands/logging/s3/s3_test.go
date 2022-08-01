@@ -110,7 +110,7 @@ func TestCreateS3Input(t *testing.T) {
 }
 
 func TestUpdateS3Input(t *testing.T) {
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name      string
 		cmd       *s3.UpdateCommand
 		api       mock.API
@@ -171,7 +171,9 @@ func TestUpdateS3Input(t *testing.T) {
 			want:      nil,
 			wantError: errors.ErrNoServiceID.Error(),
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
 			testcase.cmd.Globals.APIClient = testcase.api
 

@@ -71,7 +71,8 @@ func TestACLEntryCreate(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -123,7 +124,8 @@ func TestACLEntryDelete(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -173,7 +175,8 @@ func TestACLEntryDescribe(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -318,7 +321,8 @@ func TestACLEntryList(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
@@ -444,7 +448,8 @@ func TestACLEntryUpdate(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
