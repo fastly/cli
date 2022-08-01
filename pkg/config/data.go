@@ -441,6 +441,8 @@ func (f *File) Read(
 		return nil
 	})
 
+	var useStatic bool
+
 	// NOTE: retryErr is when we reached the max number of retries, while the
 	// readErr is for catching when we didn't want to retry the READ operation.
 	if retryErr != nil || readErr != nil {
@@ -448,6 +450,7 @@ func (f *File) Read(
 			"attempts": attempts,
 		})
 		data = f.static
+		useStatic = true
 	}
 
 	Mutex.Lock()
@@ -457,9 +460,9 @@ func (f *File) Read(
 	if unmarshalErr != nil {
 		errLog.Add(unmarshalErr)
 
-		// The presence of a readErr error indicates we're using the static embedded
-		// config, and unmarshaling that data unexpectedly failed.
-		if readErr != nil {
+		// If the static embedded config failed to be unmarshalled, then that's
+		// unexpected and we can't recover from that.
+		if useStatic {
 			return invalidConfigErr(unmarshalErr)
 		}
 
