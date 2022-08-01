@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "embed"
-	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -97,7 +96,7 @@ func main() {
 
 	// The CLI relies on a valid configuration, otherwise we can't continue.
 	err = file.Read(config.FilePath, cfg, in, out, fsterr.Log, verboseOutput)
-	if err != nil && !errors.Is(err, config.ErrLegacyConfig) {
+	if err != nil {
 		fsterr.Deduce(err).Print(color.Error)
 		os.Exit(1)
 	}
