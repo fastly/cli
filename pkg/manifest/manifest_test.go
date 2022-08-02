@@ -109,7 +109,7 @@ func TestManifest(t *testing.T) {
 			} else {
 				// otherwise if we expect the manifest to be invalid/unrecognised then
 				// the error should match our expectations.
-				if !errors.As(err, &tc.expectedError) {
+				if !errors.Is(err, tc.expectedError) {
 					t.Fatalf("incorrect error type: %T, expected: %T", err, tc.expectedError)
 				}
 				// Ensure the remediation error is as expected.
