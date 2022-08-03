@@ -187,33 +187,6 @@ type LegacyUser struct {
 	Token string `toml:"token"`
 }
 
-// File represents our dynamic application toml configuration.
-type File struct {
-	CLI           CLI                 `toml:"cli"`
-	ConfigVersion int                 `toml:"config_version"`
-	Fastly        Fastly              `toml:"fastly"`
-	Language      Language            `toml:"language"`
-	Profiles      Profiles            `toml:"profile"`
-	StarterKits   StarterKitLanguages `toml:"starter-kits"`
-	Viceroy       Viceroy             `toml:"viceroy"`
-
-	// We store off a possible legacy configuration so that we can later extract
-	// the relevant email and token values that may pre-exist.
-	//
-	// NOTE: We set omitempty so when we write the in-memory data back to disk
-	// we'll cause the [user] block to be removed. If we didn't do this, then
-	// every time we run a command with --verbose we would see a message telling
-	// us our config.toml was in a legacy format, even though we would have
-	// already migrated the user data to the [profile] section.
-	LegacyUser LegacyUser `toml:"user,omitempty"`
-
-	// Store off copy of the static application configuration that has been
-	// embedded into the compiled CLI binary.
-	//
-	// NOTE: This field is private to prevent it being written back to disk.
-	static []byte `toml:",omitempty"`
-}
-
 // Fastly represents fastly specific configuration.
 type Fastly struct {
 	APIEndpoint string `toml:"api_endpoint"`
@@ -308,23 +281,6 @@ type StarterKit struct {
 	Branch      string `toml:"branch"`
 }
 
-// MigrateLegacy ensures legacy data is transitioned to config new format.
-func (f *File) MigrateLegacy() {
-	if f.LegacyUser.Email != "" || f.LegacyUser.Token != "" {
-		if f.Profiles == nil {
-			f.Profiles = make(Profiles)
-		}
-		// NOTE: We keep the assignment separate just in case the user somehow has
-		// a config.toml with BOTH a populated [user] + [profile] section.
-		f.Profiles["user"] = &Profile{
-			Default: true,
-			Email:   f.LegacyUser.Email,
-			Token:   f.LegacyUser.Token,
-		}
-		f.LegacyUser = LegacyUser{}
-	}
-}
-
 // createConfigDir creates the application configuration directory if it
 // doesn't already exist.
 func createConfigDir(path string) error {
@@ -336,27 +292,51 @@ func createConfigDir(path string) error {
 	return nil
 }
 
-// ValidConfig checks the current config version isn't different from the
-// config statically embedded into the CLI binary. If it is then we consider
-// the config not valid and we'll fallback to the embedded config.
-func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
-	var cfg File
-	err := toml.Unmarshal(f.static, &cfg)
-	if err != nil {
-		return false
-	}
+// File represents our dynamic application toml configuration.
+type File struct {
+	CLI           CLI                 `toml:"cli"`
+	ConfigVersion int                 `toml:"config_version"`
+	Fastly        Fastly              `toml:"fastly"`
+	Language      Language            `toml:"language"`
+	Profiles      Profiles            `toml:"profile"`
+	StarterKits   StarterKitLanguages `toml:"starter-kits"`
+	Viceroy       Viceroy             `toml:"viceroy"`
 
-	if f.ConfigVersion != cfg.ConfigVersion {
-		if verbose {
-			text.Output(out, `
-				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
-				Your configuration will be migrated to a compatible configuration format.
-			`)
-			text.Break(out)
-		}
-		return false
-	}
-	return true
+	// We store off a possible legacy configuration so that we can later extract
+	// the relevant email and token values that may pre-exist.
+	//
+	// NOTE: We set omitempty so when we write the in-memory data back to disk
+	// we'll cause the [user] block to be removed. If we didn't do this, then
+	// every time we run a command with --verbose we would see a message telling
+	// us our config.toml was in a legacy format, even though we would have
+	// already migrated the user data to the [profile] section.
+	LegacyUser LegacyUser `toml:"user,omitempty"`
+
+	// Store a copy of the static application configuration that has been embedded
+	// into the compiled CLI binary.
+	//
+	// NOTE: This field is private to prevent it being written back to disk.
+	static []byte `toml:",omitempty"`
+
+	// Store the flag values for --auto-yes/--non-interactive as at the time of
+	// the config File construction we need these values and need to be stored so
+	// that other callers of File.Read() don't need to have the values passed
+	// around in function arguments.
+	//
+	// NOTE: These fields are private to prevent them being written back to disk,
+	// but it means we need to expose Setter methods.
+	autoYes        bool `toml:",omitempty"`
+	nonInteractive bool `toml:",omitempty"`
+}
+
+// SetAutoYes sets the associated flag value.
+func (f *File) SetAutoYes(v bool) {
+	f.autoYes = v
+}
+
+// SetNonInteractive sets the associated flag value.
+func (f *File) SetNonInteractive(v bool) {
+	f.nonInteractive = v
 }
 
 // NOTE: Static 👇 is public for the sake of the test suite.
@@ -388,21 +368,23 @@ func (f *File) Read(
 		data = f.static
 		useStatic = true
 
-		msg := "unable to load your configuration data"
-		label := fmt.Sprintf("We were %s. %s", msg, replacement)
+		if !f.autoYes && !f.nonInteractive {
+			msg := "unable to load your configuration data"
+			label := fmt.Sprintf("We were %s. %s", msg, replacement)
 
-		cont, err := text.AskYesNo(out, label, in)
-		if err != nil {
-			return fmt.Errorf("error reading input: %w", err)
-		}
-
-		if !cont {
-			err := fsterr.RemediationError{
-				Inner:       fmt.Errorf(msg),
-				Remediation: RemediationManualFix,
+			cont, err := text.AskYesNo(out, label, in)
+			if err != nil {
+				return fmt.Errorf("error reading input: %w", err)
 			}
-			errLog.Add(err)
-			return err
+
+			if !cont {
+				err := fsterr.RemediationError{
+					Inner:       fmt.Errorf(msg),
+					Remediation: RemediationManualFix,
+				}
+				errLog.Add(err)
+				return err
+			}
 		}
 	}
 
@@ -508,6 +490,46 @@ func (f *File) Read(
 	}
 
 	return nil
+}
+
+// MigrateLegacy ensures legacy data is transitioned to config new format.
+func (f *File) MigrateLegacy() {
+	if f.LegacyUser.Email != "" || f.LegacyUser.Token != "" {
+		if f.Profiles == nil {
+			f.Profiles = make(Profiles)
+		}
+		// NOTE: We keep the assignment separate just in case the user somehow has
+		// a config.toml with BOTH a populated [user] + [profile] section.
+		f.Profiles["user"] = &Profile{
+			Default: true,
+			Email:   f.LegacyUser.Email,
+			Token:   f.LegacyUser.Token,
+		}
+		f.LegacyUser = LegacyUser{}
+	}
+}
+
+// ValidConfig checks the current config version isn't different from the
+// config statically embedded into the CLI binary. If it is then we consider
+// the config not valid and we'll fallback to the embedded config.
+func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
+	var cfg File
+	err := toml.Unmarshal(f.static, &cfg)
+	if err != nil {
+		return false
+	}
+
+	if f.ConfigVersion != cfg.ConfigVersion {
+		if verbose {
+			text.Output(out, `
+				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
+				Your configuration will be migrated to a compatible configuration format.
+			`)
+			text.Break(out)
+		}
+		return false
+	}
+	return true
 }
 
 // UseStatic allow us to switch the in-memory configuration with the static

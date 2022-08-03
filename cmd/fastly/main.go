@@ -87,8 +87,23 @@ func main() {
 		}
 	}
 
+	// Similarly for the --auto-yes/--non-interactive flags, we need access to
+	// these for handling interactive error prompts to the user, in case the CLI
+	// is being run in a CI environment.
+	var autoYes, nonInteractive bool
+	for _, seg := range args {
+		if seg == "-y" || seg == "--auto-yes" {
+			autoYes = true
+		}
+		if seg == "-i" || seg == "--non-interactive" {
+			nonInteractive = true
+		}
+	}
+
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
+	file.SetAutoYes(autoYes)
+	file.SetNonInteractive(nonInteractive)
 
 	// The CLI relies on a valid configuration, otherwise we can't continue.
 	err = file.Read(config.FilePath, in, out, fsterr.Log, verboseOutput)
