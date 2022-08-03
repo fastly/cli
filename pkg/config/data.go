@@ -399,7 +399,8 @@ func (f *File) Read(
 	verbose bool,
 ) error {
 	f.static = cfg
-	replacement := "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
+
+	const replacement = "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
 
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
