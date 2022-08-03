@@ -192,8 +192,7 @@ type Fastly struct {
 
 // CLI represents CLI specific configuration.
 type CLI struct {
-	RemoteConfig string `toml:"remote_config"`
-	Version      string `toml:"version"`
+	Version string `toml:"version"`
 }
 
 // User represents user specific configuration.
