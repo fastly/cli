@@ -398,6 +398,7 @@ func (f *File) Read(
 	errLog fsterr.LogInterface,
 	verbose bool,
 ) error {
+	var useStatic bool
 	f.static = cfg
 
 	const replacement = "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
@@ -407,10 +408,11 @@ func (f *File) Read(
 	// Disabling as we need to load the config.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
-	data, readErr := os.ReadFile(path)
-	if readErr != nil {
-		errLog.Add(readErr)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		errLog.Add(err)
 		data = f.static
+		useStatic = true
 
 		msg := "unable to load your configuration data"
 		label := fmt.Sprintf("We were %s. %s", msg, replacement)
@@ -439,7 +441,7 @@ func (f *File) Read(
 
 		// If the static embedded config failed to be unmarshalled, then that's
 		// unexpected and we can't recover from that.
-		if readErr != nil {
+		if useStatic {
 			return invalidConfigErr(unmarshalErr)
 		}
 
@@ -487,7 +489,7 @@ func (f *File) Read(
 	}
 	Mutex.Unlock()
 
-	err := createConfigDir(path)
+	err = createConfigDir(path)
 	if err != nil {
 		errLog.Add(err)
 		return err
