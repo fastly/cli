@@ -1,6 +1,7 @@
 package config
 
 import (
+	_ "embed"
 	"errors"
 	"fmt"
 	"io"
@@ -389,17 +390,21 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 	return true
 }
 
+// NOTE: Static 👇 is public for the sake of the test suite.
+
+//go:embed config.toml
+var Static []byte
+
 // Read decodes a disk file into an in-memory data structure.
 func (f *File) Read(
 	path string,
-	cfg []byte,
 	in io.Reader,
 	out io.Writer,
 	errLog fsterr.LogInterface,
 	verbose bool,
 ) error {
 	var useStatic bool
-	f.static = cfg
+	f.static = Static
 
 	const replacement = "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
 
@@ -535,7 +540,7 @@ func (f *File) Read(
 	}
 
 	if legacyFormat || !f.ValidConfig(verbose, out) {
-		err = f.UseStatic(cfg, path)
+		err = f.UseStatic(f.static, path)
 		if err != nil {
 			return err
 		}

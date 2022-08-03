@@ -81,6 +81,11 @@ func TestConfigRead(t *testing.T) {
 			}
 
 			// Create test environment
+			backupStatic := config.Static
+			defer func() {
+				config.Static = backupStatic
+			}()
+			config.Static = testcase.staticConfig
 			opts := testutil.EnvOpts{T: t}
 			if testcase.userConfigFilename != "" {
 				b, err := os.ReadFile(filepath.Join("testdata", testcase.userConfigFilename))
@@ -88,11 +93,11 @@ func TestConfigRead(t *testing.T) {
 					t.Fatal(err)
 				}
 				opts.Write = []testutil.FileIO{
-					{Src: string(b), Dst: "config.toml"},
+					{Src: string(b), Dst: "user-config.toml"},
 				}
 			}
 			rootdir := testutil.NewEnv(opts)
-			configPath := filepath.Join(rootdir, "config.toml")
+			configPath := filepath.Join(rootdir, "user-config.toml")
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the temp environment.
@@ -119,7 +124,7 @@ func TestConfigRead(t *testing.T) {
 			mockLog := fsterr.MockLog{}
 
 			var f config.File
-			err = f.Read(configPath, testcase.staticConfig, in, &out, mockLog, false)
+			err = f.Read(configPath, in, &out, mockLog, false)
 
 			if testcase.remediation {
 				e, ok := err.(fsterr.RemediationError)
@@ -174,10 +179,10 @@ func TestUseStatic(t *testing.T) {
 	rootdir := testutil.NewEnv(testutil.EnvOpts{
 		T: t,
 		Write: []testutil.FileIO{
-			{Src: string(b), Dst: "config.toml"},
+			{Src: string(b), Dst: "user-config.toml"},
 		},
 	})
-	legacyConfigPath := filepath.Join(rootdir, "config.toml")
+	legacyUserConfigPath := filepath.Join(rootdir, "user-config.toml")
 	defer os.RemoveAll(rootdir)
 
 	// Before running the test, chdir into the temp environment.
@@ -193,7 +198,7 @@ func TestUseStatic(t *testing.T) {
 	// Validate that legacy configuration can be migrated to the static one
 	// embedded in the CLI binary.
 	f := config.File{}
-	f.Read(legacyConfigPath, staticConfig, strings.NewReader(""), &out, fsterr.MockLog{}, false)
+	f.Read(legacyUserConfigPath, strings.NewReader(""), &out, fsterr.MockLog{}, false)
 
 	if f.CLI.LastChecked == "" || f.CLI.Version == "" {
 		t.Fatalf("expected LastChecked/Version to be set: %+v", f)
@@ -209,7 +214,7 @@ func TestUseStatic(t *testing.T) {
 	}
 
 	// We validate both the in-memory data structure (above) AND the file on disk (below).
-	data, err := os.ReadFile(legacyConfigPath)
+	data, err := os.ReadFile(legacyUserConfigPath)
 	if err != nil {
 		t.Error(err)
 	}
@@ -226,8 +231,13 @@ func TestUseStatic(t *testing.T) {
 	// into the CLI to be used, and we'll migrate the legacy data to the new
 	// format, but by specifying the static config as being invalid we expect the
 	// CLI to return the error.
+	backupStatic := config.Static
+	defer func() {
+		config.Static = backupStatic
+	}()
+	config.Static = staticConfigInvalid
 	f = config.File{}
-	err = f.Read(legacyConfigPath, staticConfigInvalid, strings.NewReader(""), &out, fsterr.MockLog{}, false)
+	err = f.Read(legacyUserConfigPath, strings.NewReader(""), &out, fsterr.MockLog{}, false)
 	if err == nil {
 		t.Fatal("expected an error, but got nil")
 	} else {
@@ -306,7 +316,7 @@ func TestValidConfig(t *testing.T) {
 			var stdout bytes.Buffer
 			in := strings.NewReader("") // these tests won't trigger a user prompt
 
-			err = f.Read(configPath, testcase.staticConfig, in, &stdout, nil, false)
+			err = f.Read(configPath, in, &stdout, nil, false)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

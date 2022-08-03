@@ -74,18 +74,13 @@ func TestGetViceroy(t *testing.T) {
 		DownloadedFile: binPath,
 	}
 
-	// cfg would (in main.go) be embeded from cmd/fastly/static/config.toml
-	cfg := []byte(`config_version = 2
-	[viceroy]
-	ttl = "24h"`)
-
 	var file config.File
 
 	// NOTE: We purposefully provide a nonsensical path, which we expect to fail,
 	// but the function call should fallback to using the stubbed static config
 	// defined above. We also don't pass stdin, stdout arguments as that
 	// particular user flow isn't executed in this test case.
-	err = file.Read("example", cfg, strings.NewReader("yes"), &out, fsterr.MockLog{}, false)
+	err = file.Read("example", strings.NewReader("yes"), &out, fsterr.MockLog{}, false)
 	if err != nil {
 		t.Fatal(err)
 	}

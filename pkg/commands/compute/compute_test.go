@@ -270,7 +270,7 @@ func TestGetIgnoredFiles(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			if err := os.WriteFile(filepath.Join(rootdir, compute.IgnoreFilePath), []byte(testcase.fastlyignore), 0777); err != nil {
+			if err := os.WriteFile(filepath.Join(rootdir, compute.IgnoreFilePath), []byte(testcase.fastlyignore), 0o777); err != nil {
 				t.Fatal(err)
 			}
 			output, err := compute.GetIgnoredFiles(compute.IgnoreFilePath)
@@ -504,7 +504,7 @@ func (v httpClient) Do(*http.Request) (*http.Response, error) {
 		versions = append(versions, fmt.Sprintf(`{"num":"%s"}`, vv))
 	}
 
-	_, err := rec.Write([]byte(fmt.Sprintf(`{"versions":[%s]}`, strings.Join(versions, ","))))
+	_, err := fmt.Fprintf(rec, `{"versions":[%s]}`, strings.Join(versions, ","))
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "embed"
 	"io"
 	"log"
 	"net/http"
@@ -20,9 +19,6 @@ import (
 )
 
 const sentryTimeout = 2 * time.Second
-
-//go:embed static/config.toml
-var cfg []byte
 
 func main() {
 	err := sentry.Init(sentry.ClientOptions{
@@ -95,7 +91,7 @@ func main() {
 	var file config.File
 
 	// The CLI relies on a valid configuration, otherwise we can't continue.
-	err = file.Read(config.FilePath, cfg, in, out, fsterr.Log, verboseOutput)
+	err = file.Read(config.FilePath, in, out, fsterr.Log, verboseOutput)
 	if err != nil {
 		fsterr.Deduce(err).Print(color.Error)
 		os.Exit(1)
@@ -103,16 +99,15 @@ func main() {
 
 	// Main is basically just a shim to call Run, so we do that here.
 	opts := app.RunOpts{
-		APIClient:    clientFactory,
-		Args:         args,
-		ConfigFile:   file,
-		ConfigPath:   config.FilePath,
-		Env:          env,
-		ErrLog:       fsterr.Log,
-		HTTPClient:   httpClient,
-		StaticConfig: cfg,
-		Stdin:        in,
-		Stdout:       out,
+		APIClient:  clientFactory,
+		Args:       args,
+		ConfigFile: file,
+		ConfigPath: config.FilePath,
+		Env:        env,
+		ErrLog:     fsterr.Log,
+		HTTPClient: httpClient,
+		Stdin:      in,
+		Stdout:     out,
 		Versioners: app.Versioners{
 			CLI:     versionerCLI,
 			Viceroy: versionerViceroy,

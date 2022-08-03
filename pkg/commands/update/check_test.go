@@ -89,7 +89,6 @@ func TestCheck(t *testing.T) {
 }
 
 func TestCheckAsync(t *testing.T) {
-	cfg := []byte("config_version = 2")
 	for _, testcase := range []struct {
 		name           string
 		file           config.File
@@ -138,7 +137,6 @@ func TestCheckAsync(t *testing.T) {
 				configFilePath,
 				testcase.currentVersion,
 				testcase.cliVersioner,
-				cfg,
 				in,
 				&out,
 				fsterr.MockLog{},

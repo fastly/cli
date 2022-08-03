@@ -95,7 +95,7 @@ release-changelog:
 
 .PHONY: config
 config:
-	@curl -so cmd/fastly/static/config.toml https://developer.fastly.com/api/internal/cli-config
+	@curl -so pkg/config/config.toml https://developer.fastly.com/api/internal/cli-config
 
 .PHONY: scaffold
 scaffold:

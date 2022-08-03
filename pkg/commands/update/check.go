@@ -59,7 +59,6 @@ func CheckAsync(
 	cfgPath string,
 	currentVersion string,
 	cliVersioner Versioner,
-	cfg []byte,
 	in io.Reader,
 	out io.Writer,
 	errLog fsterr.LogInterface,
@@ -77,7 +76,7 @@ func CheckAsync(
 			// If the user ran `fastly profile ...`, then the expectation is for the
 			// application configuration to have been updated. In that case we want
 			// to reread the config so we can update the LastChecked field.
-			if err := file.Read(cfgPath, cfg, in, out, errLog, verbose); err == nil {
+			if err := file.Read(cfgPath, in, out, errLog, verbose); err == nil {
 				file.CLI.LastChecked = time.Now().Format(time.RFC3339)
 				file.Write(cfgPath)
 			}
