@@ -3,18 +3,15 @@ package update_test
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/google/go-cmp/cmp"
 )
@@ -24,28 +21,19 @@ func TestCheck(t *testing.T) {
 		name        string
 		current     string
 		latest      update.Versioner
-		wantError   string
 		wantCurrent semver.Version
 		wantLatest  semver.Version
 		wantUpdate  bool
 	}{
 		{
-			name:      "empty current version",
-			current:   "",
-			latest:    mock.Versioner{},
-			wantError: "error reading current version: Version string empty",
+			name:    "empty current version",
+			current: "",
+			latest:  mock.Versioner{},
 		},
 		{
-			name:      "invalid current version",
-			current:   "unknown",
-			latest:    mock.Versioner{},
-			wantError: "error reading current version: No Major.Minor.Patch elements found",
-		},
-		{
-			name:      "latest version check fails",
-			current:   "v1.0.0",
-			latest:    mock.Versioner{Error: errors.New("kaboom")},
-			wantError: "error fetching latest version: kaboom",
+			name:    "invalid current version",
+			current: "unknown",
+			latest:  mock.Versioner{},
 		},
 		{
 			name:        "same version",
@@ -65,16 +53,7 @@ func TestCheck(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			current, latest, shouldUpdate, err := update.Check(context.Background(), testcase.current, testcase.latest)
-			if testcase.wantError != "" {
-				if want, have := testcase.wantError, err; want != have.Error() {
-					t.Fatalf("error: want %q, have %q", want, have.Error())
-				}
-				return
-			}
-			if err != nil {
-				t.Fatal(err)
-			}
+			current, latest, shouldUpdate := update.Check(context.Background(), testcase.current, testcase.latest)
 			if want, have := testcase.wantCurrent, current; !want.Equals(have) {
 				t.Fatalf("current version: want %s, have %s", want, have)
 			}
@@ -108,12 +87,7 @@ func TestCheckAsync(t *testing.T) {
 			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",
 		},
 		{
-			name: "recent last_check new version",
-			file: config.File{
-				CLI: config.CLI{
-					LastChecked: time.Now().Add(-4 * time.Hour).Format(time.RFC3339),
-				},
-			},
+			name:           "recent last_check new version",
 			currentVersion: "0.0.1",
 			cliVersioner:   mock.Versioner{Version: "0.0.2"},
 			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",
@@ -126,21 +100,11 @@ func TestCheckAsync(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 
-			in := strings.NewReader("user input")
-			var (
-				out bytes.Buffer
-				buf bytes.Buffer
-			)
+			var buf bytes.Buffer
 			f := update.CheckAsync(
 				ctx,
-				testcase.file,
-				configFilePath,
 				testcase.currentVersion,
 				testcase.cliVersioner,
-				in,
-				&out,
-				fsterr.MockLog{},
-				false,
 			)
 			f(&buf)
 

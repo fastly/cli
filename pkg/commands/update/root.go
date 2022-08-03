@@ -35,13 +35,7 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner V
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	current, latest, shouldUpdate, err := Check(context.Background(), revision.AppVersion, c.cliVersioner)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"App version": revision.AppVersion,
-		})
-		return fmt.Errorf("error checking for latest version: %w", err)
-	}
+	current, latest, shouldUpdate := Check(context.Background(), revision.AppVersion, c.cliVersioner)
 
 	text.Break(out)
 	text.Output(out, "Current version: %s", current)

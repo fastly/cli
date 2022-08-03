@@ -153,8 +153,8 @@ func TestConfigRead(t *testing.T) {
 						t.Fatalf("unexpected err: %v", err)
 					}
 
-					if f.CLI.LastChecked == "" || f.CLI.Version == "" {
-						t.Fatalf("expected LastChecked/Version to be set: %+v", f)
+					if f.CLI.Version == "" {
+						t.Fatalf("expected CLI.Version to be set: %+v", f)
 					}
 				}
 			}
@@ -200,8 +200,8 @@ func TestUseStatic(t *testing.T) {
 	f := config.File{}
 	f.Read(legacyUserConfigPath, strings.NewReader(""), &out, fsterr.MockLog{}, false)
 
-	if f.CLI.LastChecked == "" || f.CLI.Version == "" {
-		t.Fatalf("expected LastChecked/Version to be set: %+v", f)
+	if f.CLI.Version == "" {
+		t.Fatalf("expected CLI.Version to be set: %+v", f)
 	}
 	if f.Profiles["user"].Token != "foobar" {
 		t.Fatalf("wanted token: %s, got: %s", "foobar", f.LegacyUser.Token)

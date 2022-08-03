@@ -7,8 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sync"
-	"time"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/env"
@@ -195,7 +193,6 @@ type Fastly struct {
 // CLI represents CLI specific configuration.
 type CLI struct {
 	RemoteConfig string `toml:"remote_config"`
-	LastChecked  string `toml:"last_checked"`
 	Version      string `toml:"version"`
 }
 
@@ -429,10 +426,7 @@ func (f *File) Read(
 		}
 	}
 
-	// NOTE: When using the embedded config the LastChecked/Version fields won't be set.
-	if f.CLI.LastChecked == "" {
-		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-	}
+	// NOTE: When using the embedded config the CLI.Version field won't be set.
 	if f.CLI.Version == "" {
 		f.CLI.Version = revision.SemVer(revision.AppVersion)
 	}
@@ -540,7 +534,6 @@ func (f *File) UseStatic(cfg []byte, path string) (err error) {
 		return invalidConfigErr(err)
 	}
 
-	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 	f.CLI.Version = revision.SemVer(revision.AppVersion)
 	f.MigrateLegacy()
 
@@ -552,19 +545,8 @@ func (f *File) UseStatic(cfg []byte, path string) (err error) {
 	return f.Write(path)
 }
 
-var mutex = &sync.Mutex{}
-
 // Write encodes in-memory data to disk.
-//
-// NOTE: pkg/commands/update/check.go contains a CheckAsync function which
-// asynchronously calls the config's file.Read() method, followed by calling the
-// config's file.Write() method. Because of this we use a mutex to prevent a
-// race condition writing content to disk, in case the user command invoked was
-// one of the profile commands (which are expected to trigger a change in data).
 func (f *File) Write(path string) (err error) {
-	mutex.Lock()
-	defer mutex.Unlock()
-
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
 	//
