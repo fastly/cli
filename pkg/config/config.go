@@ -70,37 +70,6 @@ var ErrInvalidConfig = errors.New("the configuration file is invalid")
 // compiled CLI binary and so the user must resolve their invalid config.
 var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
 
-// Mutex provides synchronisation for any WRITE operations on the CLI config.
-// This includes calls to the Write method (which affects the disk
-// representation) as well as in-memory data structure updates.
-//
-// NOTE: Historically the CLI has only had to write to the CLI config from
-// within the `main` function but now the `fastly update` command accepts a
-// flag that allows explicitly updating the CLI config, which means we need to
-// ensure there isn't a race condition with writing the config to disk.
-//
-// We also need to be careful with low-level mutex usage because it's easy to
-// cause a deadlock! For example, if we lock around a section of code that
-// can potentially return out of the function early, then we'd never call the
-// mutex's Unlock method.
-//
-// We also can't rely on using the defer statement either because in the case
-// of the UseStatic() method, the last line of the method is a call to .Write()
-// which itself also tries to acquire a lock. So if we deferred the Unlock(),
-// we'd eventually call out to .Write() and deadlock waiting to acquire the lock
-// that we never actually released from within the caller.
-//
-// Because of this we should be mindful whenever using the defer statement, and
-// possibly opt for multiple calls to Lock/Unlock around specific portions of
-// the code accessing the in-memory data (while also checking for early returns).
-//
-// NOTE: Ideally we wouldn't need to sprinkle mutex references all over the
-// code, and instead have it abstracted away inside the config.File type, but
-// this requires exposing lots of setter methods for each field on each nested
-// subfield type (this would be a lot of extra code). If we start to experience
-// issues with mutex usage, then this decision can be revisited.
-var Mutex = &sync.Mutex{}
-
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
 // the components that need it, including the place the parameter came from,
@@ -437,9 +406,7 @@ func (f *File) Read(
 		}
 	}
 
-	Mutex.Lock()
 	unmarshalErr := toml.Unmarshal(data, f)
-	Mutex.Unlock()
 
 	if unmarshalErr != nil {
 		errLog.Add(unmarshalErr)
@@ -472,9 +439,7 @@ func (f *File) Read(
 
 		data = f.static
 
-		Mutex.Lock()
 		err = toml.Unmarshal(data, f)
-		Mutex.Unlock()
 
 		if err != nil {
 			errLog.Add(err)
@@ -483,16 +448,12 @@ func (f *File) Read(
 	}
 
 	// NOTE: When using the embedded config the LastChecked/Version fields won't be set.
-	Mutex.Lock()
-	{
-		if f.CLI.LastChecked == "" {
-			f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-		}
-		if f.CLI.Version == "" {
-			f.CLI.Version = revision.SemVer(revision.AppVersion)
-		}
+	if f.CLI.LastChecked == "" {
+		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 	}
-	Mutex.Unlock()
+	if f.CLI.Version == "" {
+		f.CLI.Version = revision.SemVer(revision.AppVersion)
+	}
 
 	err = createConfigDir(path)
 	if err != nil {
@@ -552,21 +513,14 @@ func (f *File) Read(
 // UseStatic allow us to switch the in-memory configuration with the static
 // version embedded into the CLI binary and writes it back to disk.
 func (f *File) UseStatic(cfg []byte, path string) (err error) {
-	Mutex.Lock()
 	err = toml.Unmarshal(cfg, f)
-	Mutex.Unlock()
-
 	if err != nil {
 		return invalidConfigErr(err)
 	}
 
-	Mutex.Lock()
-	{
-		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-		f.CLI.Version = revision.SemVer(revision.AppVersion)
-		f.MigrateLegacy()
-	}
-	Mutex.Unlock()
+	f.CLI.LastChecked = time.Now().Format(time.RFC3339)
+	f.CLI.Version = revision.SemVer(revision.AppVersion)
+	f.MigrateLegacy()
 
 	err = createConfigDir(path)
 	if err != nil {
@@ -576,10 +530,18 @@ func (f *File) UseStatic(cfg []byte, path string) (err error) {
 	return f.Write(path)
 }
 
+var mutex = &sync.Mutex{}
+
 // Write encodes in-memory data to disk.
+//
+// NOTE: pkg/commands/update/check.go contains a CheckAsync function which
+// asynchronously calls the config's file.Read() method, followed by calling the
+// config's file.Write() method. Because of this we use a mutex to prevent a
+// race condition writing content to disk, in case the user command invoked was
+// one of the profile commands (which are expected to trigger a change in data).
 func (f *File) Write(path string) (err error) {
-	Mutex.Lock()
-	defer Mutex.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable

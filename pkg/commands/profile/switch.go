@@ -39,9 +39,7 @@ func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	config.Mutex.Lock()
 	c.Globals.File.Profiles = p
-	config.Mutex.Unlock()
 
 	if err := c.Globals.File.Write(c.Globals.Path); err != nil {
 		c.Globals.ErrLog.Add(err)
