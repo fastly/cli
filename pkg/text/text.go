@@ -22,22 +22,21 @@ const DefaultTextWidth = 90
 // source code with whatever leading indentation looks best in context. For
 // example,
 //
-//     Wrap(`
-//         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-//         eiusmod tempor incididunt ut labore et dolore magna aliqua. Dolor
-//         sed viverra ipsum nunc aliquet bibendum enim. In massa tempor nec
-//         feugiat.
-//     `, 40)
+//	Wrap(`
+//	    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+//	    eiusmod tempor incididunt ut labore et dolore magna aliqua. Dolor
+//	    sed viverra ipsum nunc aliquet bibendum enim. In massa tempor nec
+//	    feugiat.
+//	`, 40)
 //
 // Produces the output string
 //
-//      Lorem ipsum dolor sit amet, consectetur
-//      adipiscing elit, sed do eiusmod tempor
-//      incididunt ut labore et dolore magna
-//      aliqua. Dolor sed viverra ipsum nunc
-//      aliquet bibendum enim. In massa tempor
-//      nec feugiat.
-//
+//	Lorem ipsum dolor sit amet, consectetur
+//	adipiscing elit, sed do eiusmod tempor
+//	incididunt ut labore et dolore magna
+//	aliqua. Dolor sed viverra ipsum nunc
+//	aliquet bibendum enim. In massa tempor
+//	nec feugiat.
 func Wrap(text string, width uint) string {
 	var b strings.Builder
 	s := bufio.NewScanner(strings.NewReader(text))
@@ -188,9 +187,8 @@ func Success(w io.Writer, format string, args ...interface{}) {
 // consists of a `term` and a `description`. Emphasis is placed on the
 // `description` using Bold(). For example:
 //
-//     To compile the package, run:
-//         fastly compute build
-//
+//	To compile the package, run:
+//	    fastly compute build
 func Description(w io.Writer, term, description string) {
 	fmt.Fprintf(w, "%s:\n\t%s\n\n", term, Bold(description))
 }

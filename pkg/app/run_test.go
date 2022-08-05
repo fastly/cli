@@ -337,8 +337,8 @@ COMMANDS
 
         --name=NAME              Name for the ACL. Must start with an
                                  alphanumeric character and contain only
-                                 alphanumeric characters, underscores, and
-                                 whitespace
+                                 alphanumeric characters, underscores,
+                                 and whitespace
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -547,8 +547,8 @@ COMMANDS
                                    Overrides ssl_hostname, but only for cert
                                    verification. Does not affect SNI at all.
         --ssl-sni-hostname=SSL-SNI-HOSTNAME
-                                   Overrides ssl_hostname, but only for SNI in
-                                   the handshake. Does not affect cert
+                                   Overrides ssl_hostname, but only for SNI
+                                   in the handshake. Does not affect cert
                                    validation at all.
         --min-tls-version=MIN-TLS-VERSION
                                    Minimum allowed TLS version on SSL
@@ -649,8 +649,8 @@ COMMANDS
                                    Overrides ssl_hostname, but only for cert
                                    verification. Does not affect SNI at all.
         --ssl-sni-hostname=SSL-SNI-HOSTNAME
-                                   Overrides ssl_hostname, but only for SNI in
-                                   the handshake. Does not affect cert
+                                   Overrides ssl_hostname, but only for SNI
+                                   in the handshake. Does not affect cert
                                    validation at all.
         --min-tls-version=MIN-TLS-VERSION
                                    Minimum allowed TLS version on SSL
@@ -1104,9 +1104,9 @@ COMMANDS
                                  The unique Azure Blob Storage namespace in
                                  which your data objects are stored
         --sas-token=SAS-TOKEN    The Azure shared access signature providing
-                                 write access to the blob service objects. Be
-                                 sure to update your token before it expires or
-                                 the logging functionality will not work
+                                 write access to the blob service objects.
+                                 Be sure to update your token before it expires
+                                 or the logging functionality will not work
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -1142,8 +1142,8 @@ COMMANDS
                                  The maximum size of a log file in bytes
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -1210,9 +1210,9 @@ COMMANDS
                                  The unique Azure Blob Storage namespace in
                                  which your data objects are stored
         --sas-token=SAS-TOKEN    The Azure shared access signature providing
-                                 write access to the blob service objects. Be
-                                 sure to update your token before it expires or
-                                 the logging functionality will not work
+                                 write access to the blob service objects.
+                                 Be sure to update your token before it expires
+                                 or the logging functionality will not work
         --path=PATH              The path to upload logs to
         --period=PERIOD          How frequently log files are finalized so they
                                  can be available for reading (in seconds,
@@ -1244,8 +1244,8 @@ COMMANDS
                                  The maximum size of a log file in bytes
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -1255,8 +1255,8 @@ COMMANDS
   logging bigquery create --name=NAME --version=VERSION --project-id=PROJECT-ID --dataset=DATASET --table=TABLE --user=USER --secret-key=SECRET-KEY [<flags>]
     Create a BigQuery logging endpoint on a Fastly service version
 
-    -n, --name=NAME              The name of the BigQuery logging object. Used
-                                 as a primary key for API access
+    -n, --name=NAME              The name of the BigQuery logging object.
+                                 Used as a primary key for API access
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -1280,12 +1280,12 @@ COMMANDS
                                  that matches the schema of your BigQuery table
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug. This field
@@ -1360,12 +1360,12 @@ COMMANDS
                                  that matches the schema of your BigQuery table
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug. This field
@@ -1378,8 +1378,8 @@ COMMANDS
   logging cloudfiles create --name=NAME --version=VERSION --user=USER --access-key=ACCESS-KEY --bucket=BUCKET [<flags>]
     Create a Cloudfiles logging endpoint on a Fastly service version
 
-    -n, --name=NAME              The name of the Cloudfiles logging object. Used
-                                 as a primary key for API access
+    -n, --name=NAME              The name of the Cloudfiles logging object.
+                                 Used as a primary key for API access
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -1423,8 +1423,8 @@ COMMANDS
                                  disk
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -1516,8 +1516,8 @@ COMMANDS
                                  disk
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -1527,8 +1527,8 @@ COMMANDS
   logging datadog create --name=NAME --version=VERSION --auth-token=AUTH-TOKEN [<flags>]
     Create a Datadog logging endpoint on a Fastly service version
 
-    -n, --name=NAME              The name of the Datadog logging object. Used as
-                                 a primary key for API access
+    -n, --name=NAME              The name of the Datadog logging object.
+                                 Used as a primary key for API access
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -1538,10 +1538,10 @@ COMMANDS
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
-        --region=REGION          The region that log data will be sent to. One
-                                 of US or EU. Defaults to US if undefined
-        --format=FORMAT          Apache style log formatting. For details on the
-                                 default value refer to the documentation
+        --region=REGION          The region that log data will be sent to.
+                                 One of US or EU. Defaults to US if undefined
+        --format=FORMAT          Apache style log formatting. For details on
+                                 the default value refer to the documentation
                                  (https://developer.fastly.com/reference/api/logging/datadog/)
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -1606,10 +1606,10 @@ COMMANDS
                                  The name of the service
         --new-name=NEW-NAME      New name of the Datadog logging object
         --auth-token=AUTH-TOKEN  The API key from your Datadog account
-        --region=REGION          The region that log data will be sent to. One
-                                 of US or EU. Defaults to US if undefined
-        --format=FORMAT          Apache style log formatting. For details on the
-                                 default value refer to the documentation
+        --region=REGION          The region that log data will be sent to.
+                                 One of US or EU. Defaults to US if undefined
+        --format=FORMAT          Apache style log formatting. For details on
+                                 the default value refer to the documentation
                                  (https://developer.fastly.com/reference/api/logging/datadog/)
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -1670,8 +1670,8 @@ COMMANDS
                                  disk
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -1766,8 +1766,8 @@ COMMANDS
                                  disk
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -1783,9 +1783,9 @@ COMMANDS
                                    specific version
         --autoclone                If the selected service version is not
                                    editable, clone it and use the clone.
-        --index=INDEX              The name of the Elasticsearch index to send
-                                   documents (logs) to. The index must follow
-                                   the Elasticsearch index format rules
+        --index=INDEX              The name of the Elasticsearch index to
+                                   send documents (logs) to. The index must
+                                   follow the Elasticsearch index format rules
                                    (https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html).
                                    We support strftime
                                    (http://man7.org/linux/man-pages/man3/strftime.3.html)
@@ -1798,10 +1798,10 @@ COMMANDS
         --service-name=SERVICE-NAME
                                    The name of the service
         --pipeline=PIPELINE        The ID of the Elasticsearch ingest pipeline
-                                   to apply pre-process transformations to
-                                   before indexing. For example my_pipeline_id.
-                                   Learn more about creating a pipeline in the
-                                   Elasticsearch docs
+                                   to apply pre-process transformations
+                                   to before indexing. For example
+                                   my_pipeline_id. Learn more about creating
+                                   a pipeline in the Elasticsearch docs
                                    (https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html)
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
@@ -1822,8 +1822,8 @@ COMMANDS
                                    The version of the custom logging format used
                                    for the configured endpoint. Can be either 2
                                    (default) or 1
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
         --response-condition=RESPONSE-CONDITION
@@ -1887,9 +1887,9 @@ COMMANDS
         --service-name=SERVICE-NAME
                                    The name of the service
         --new-name=NEW-NAME        New name of the Elasticsearch logging object
-        --index=INDEX              The name of the Elasticsearch index to send
-                                   documents (logs) to. The index must follow
-                                   the Elasticsearch index format rules
+        --index=INDEX              The name of the Elasticsearch index to
+                                   send documents (logs) to. The index must
+                                   follow the Elasticsearch index format rules
                                    (https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html).
                                    We support strftime
                                    (http://man7.org/linux/man-pages/man3/strftime.3.html)
@@ -1898,10 +1898,10 @@ COMMANDS
                                    interpolate as YYYY-MM-DD with today's date
         --url=URL                  The URL to stream logs to. Must use HTTPS.
         --pipeline=PIPELINE        The ID of the Elasticsearch ingest pipeline
-                                   to apply pre-process transformations to
-                                   before indexing. For example my_pipeline_id.
-                                   Learn more about creating a pipeline in the
-                                   Elasticsearch docs
+                                   to apply pre-process transformations
+                                   to before indexing. For example
+                                   my_pipeline_id. Learn more about creating
+                                   a pipeline in the Elasticsearch docs
                                    (https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html)
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
@@ -1922,8 +1922,8 @@ COMMANDS
                                    The version of the custom logging format used
                                    for the configured endpoint. Can be either 2
                                    (default) or 1
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
         --response-condition=RESPONSE-CONDITION
@@ -1979,8 +1979,8 @@ COMMANDS
                                  default. Can be none or waf_debug
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -2055,12 +2055,12 @@ COMMANDS
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
@@ -2073,8 +2073,8 @@ COMMANDS
                                  default. Can be none or waf_debug
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -2090,8 +2090,8 @@ COMMANDS
                                  version
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
-        --user=USER              Your GCS service account email address. The
-                                 client_email field in your service account
+        --user=USER              Your GCS service account email address.
+                                 The client_email field in your service account
                                  authentication JSON
         --bucket=BUCKET          The bucket of the GCS bucket
         --secret-key=SECRET-KEY  Your GCS account secret key. The private_key
@@ -2110,12 +2110,12 @@ COMMANDS
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --message-type=MESSAGE-TYPE
                                  How the message should be formatted. One of:
                                  classic (default), loggly, logplex or blank
@@ -2131,8 +2131,8 @@ COMMANDS
                                  default. Can be none or waf_debug
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -2190,8 +2190,8 @@ COMMANDS
                                  The name of the service
         --new-name=NEW-NAME      New name of the GCS logging object
         --bucket=BUCKET          The bucket of the GCS bucket
-        --user=USER              Your GCS service account email address. The
-                                 client_email field in your service account
+        --user=USER              Your GCS service account email address.
+                                 The client_email field in your service account
                                  authentication JSON
         --secret-key=SECRET-KEY  Your GCS account secret key. The private_key
                                  field in your service account authentication
@@ -2202,12 +2202,12 @@ COMMANDS
                                  default 3600)
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --gzip-level=GZIP-LEVEL  What level of GZIP encoding to have when
                                  dumping logs (default 0, no compression)
         --format=FORMAT          Apache style log formatting
@@ -2226,8 +2226,8 @@ COMMANDS
                                  default. Can be none or waf_debug
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -2445,8 +2445,8 @@ COMMANDS
   logging honeycomb create --name=NAME --version=VERSION --dataset=DATASET --auth-token=AUTH-TOKEN [<flags>]
     Create a Honeycomb logging endpoint on a Fastly service version
 
-    -n, --name=NAME              The name of the Honeycomb logging object. Used
-                                 as a primary key for API access
+    -n, --name=NAME              The name of the Honeycomb logging object.
+                                 Used as a primary key for API access
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -2542,8 +2542,8 @@ COMMANDS
   logging https create --name=NAME --version=VERSION --url=URL [<flags>]
     Create an HTTPS logging endpoint on a Fastly service version
 
-    -n, --name=NAME                The name of the HTTPS logging object. Used as
-                                   a primary key for API access
+    -n, --name=NAME                The name of the HTTPS logging object.
+                                   Used as a primary key for API access
         --version=VERSION          'latest', 'active', or the number of a
                                    specific version
         --autoclone                If the selected service version is not
@@ -2566,9 +2566,9 @@ COMMANDS
                                    PUT. Defaults to POST if not specified
         --json-format=JSON-FORMAT  Enforces valid JSON formatting for log
                                    entries. Can be disabled 0, array of json
-                                   (wraps JSON log batches in an array) 1, or
-                                   newline delimited json (places each JSON log
-                                   entry onto a new line in a batch) 2
+                                   (wraps JSON log batches in an array) 1,
+                                   or newline delimited json (places each JSON
+                                   log entry onto a new line in a batch) 2
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
         --tls-client-cert=TLS-CLIENT-CERT
@@ -2590,8 +2590,8 @@ COMMANDS
                                    The version of the custom logging format used
                                    for the configured endpoint. Can be either 2
                                    (default) or 1
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
         --response-condition=RESPONSE-CONDITION
@@ -2669,9 +2669,9 @@ COMMANDS
                                    PUT. Defaults to POST if not specified
         --json-format=JSON-FORMAT  Enforces valid JSON formatting for log
                                    entries. Can be disabled 0, array of json
-                                   (wraps JSON log batches in an array) 1, or
-                                   newline delimited json (places each JSON log
-                                   entry onto a new line in a batch) 2
+                                   (wraps JSON log batches in an array) 1,
+                                   or newline delimited json (places each JSON
+                                   log entry onto a new line in a batch) 2
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
         --tls-client-cert=TLS-CLIENT-CERT
@@ -2693,8 +2693,8 @@ COMMANDS
                                    The version of the custom logging format used
                                    for the configured endpoint. Can be either 2
                                    (default) or 1
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
         --response-condition=RESPONSE-CONDITION
@@ -2711,8 +2711,8 @@ COMMANDS
   logging kafka create --name=NAME --version=VERSION --topic=TOPIC --brokers=BROKERS [<flags>]
     Create a Kafka logging endpoint on a Fastly service version
 
-    -n, --name=NAME                The name of the Kafka logging object. Used as
-                                   a primary key for API access
+    -n, --name=NAME                The name of the Kafka logging object.
+                                   Used as a primary key for API access
         --version=VERSION          'latest', 'active', or the number of a
                                    specific version
         --autoclone                If the selected service version is not
@@ -2728,14 +2728,14 @@ COMMANDS
                                    The codec used for compression of your logs.
                                    One of: gzip, snappy, lz4
         --required-acks=REQUIRED-ACKS
-                                   The Number of acknowledgements a leader must
-                                   receive before a write is considered
+                                   The Number of acknowledgements a leader
+                                   must receive before a write is considered
                                    successful. One of: 1 (default) One server
                                    needs to respond. 0 No servers need to
                                    respond. -1 Wait for all in-sync replicas to
                                    respond
-        --use-tls                  Whether to use TLS for secure logging. Can be
-                                   either true or false
+        --use-tls                  Whether to use TLS for secure logging.
+                                   Can be either true or false
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
         --tls-client-cert=TLS-CLIENT-CERT
@@ -2754,8 +2754,8 @@ COMMANDS
                                    The version of the custom logging format used
                                    for the configured endpoint. Can be either 2
                                    (default) or 1
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
         --response-condition=RESPONSE-CONDITION
@@ -2832,14 +2832,14 @@ COMMANDS
                                    The codec used for compression of your logs.
                                    One of: gzip, snappy, lz4
         --required-acks=REQUIRED-ACKS
-                                   The Number of acknowledgements a leader must
-                                   receive before a write is considered
+                                   The Number of acknowledgements a leader
+                                   must receive before a write is considered
                                    successful. One of: 1 (default) One server
                                    needs to respond. 0 No servers need to
                                    respond. -1 Wait for all in-sync replicas to
                                    respond
-        --use-tls                  Whether to use TLS for secure logging. Can be
-                                   either true or false
+        --use-tls                  Whether to use TLS for secure logging.
+                                   Can be either true or false
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
         --tls-client-cert=TLS-CLIENT-CERT
@@ -2858,8 +2858,8 @@ COMMANDS
                                    The version of the custom logging format used
                                    for the configured endpoint. Can be either 2
                                    (default) or 1
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
         --response-condition=RESPONSE-CONDITION
@@ -2882,8 +2882,8 @@ COMMANDS
   logging kinesis create --name=NAME --version=VERSION --stream-name=STREAM-NAME --region=REGION [<flags>]
     Create an Amazon Kinesis logging endpoint on a Fastly service version
 
-    -n, --name=NAME                The name of the Kinesis logging object. Used
-                                   as a primary key for API access
+    -n, --name=NAME                The name of the Kinesis logging object.
+                                   Used as a primary key for API access
         --version=VERSION          'latest', 'active', or the number of a
                                    specific version
         --stream-name=STREAM-NAME  The Amazon Kinesis stream to send logs to
@@ -2909,8 +2909,8 @@ COMMANDS
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
 
@@ -2979,16 +2979,16 @@ COMMANDS
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
 
   logging logentries create --name=NAME --version=VERSION [<flags>]
     Create a Logentries logging endpoint on a Fastly service version
 
-    -n, --name=NAME              The name of the Logentries logging object. Used
-                                 as a primary key for API access
+    -n, --name=NAME              The name of the Logentries logging object.
+                                 Used as a primary key for API access
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME
@@ -3001,12 +3001,12 @@ COMMANDS
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
@@ -3079,12 +3079,12 @@ COMMANDS
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
@@ -3191,8 +3191,8 @@ COMMANDS
   logging logshuttle create --name=NAME --version=VERSION --url=URL --auth-token=AUTH-TOKEN [<flags>]
     Create a Logshuttle logging endpoint on a Fastly service version
 
-    -n, --name=NAME              The name of the Logshuttle logging object. Used
-                                 as a primary key for API access
+    -n, --name=NAME              The name of the Logshuttle logging object.
+                                 Used as a primary key for API access
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -3384,8 +3384,8 @@ COMMANDS
   logging openstack create --name=NAME --version=VERSION --bucket=BUCKET --access-key=ACCESS-KEY --user=USER --url=URL [<flags>]
     Create an OpenStack logging endpoint on a Fastly service version
 
-    -n, --name=NAME              The name of the OpenStack logging object. Used
-                                 as a primary key for API access
+    -n, --name=NAME              The name of the OpenStack logging object.
+                                 Used as a primary key for API access
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -3427,8 +3427,8 @@ COMMANDS
                                  default. Can be none or waf_debug
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -3518,8 +3518,8 @@ COMMANDS
                                  disk
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -3529,8 +3529,8 @@ COMMANDS
   logging papertrail create --name=NAME --version=VERSION --address=ADDRESS [<flags>]
     Create a Papertrail logging endpoint on a Fastly service version
 
-    -n, --name=NAME              The name of the Papertrail logging object. Used
-                                 as a primary key for API access
+    -n, --name=NAME              The name of the Papertrail logging object.
+                                 Used as a primary key for API access
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -3543,12 +3543,12 @@ COMMANDS
         --port=PORT              The port number
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --format=FORMAT          Apache style log formatting
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
@@ -3613,12 +3613,12 @@ COMMANDS
         --port=PORT              The port number
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --format=FORMAT          Apache style log formatting
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
@@ -3677,15 +3677,15 @@ COMMANDS
                                  encrypt your log files before writing them to
                                  disk
         --server-side-encryption=SERVER-SIDE-ENCRYPTION
-                                 Set to enable S3 Server Side Encryption. Can be
-                                 either AES256 or aws:kms
+                                 Set to enable S3 Server Side Encryption.
+                                 Can be either AES256 or aws:kms
         --server-side-encryption-kms-key-id=SERVER-SIDE-ENCRYPTION-KMS-KEY-ID
                                  Server-side KMS Key ID. Must be set if
                                  server-side-encryption is set to aws:kms
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -3777,15 +3777,15 @@ COMMANDS
                                  encrypt your log files before writing them to
                                  disk
         --server-side-encryption=SERVER-SIDE-ENCRYPTION
-                                 Set to enable S3 Server Side Encryption. Can be
-                                 either AES256 or aws:kms
+                                 Set to enable S3 Server Side Encryption.
+                                 Can be either AES256 or aws:kms
         --server-side-encryption-kms-key-id=SERVER-SIDE-ENCRYPTION-KMS-KEY-ID
                                  Server-side KMS Key ID. Must be set if
                                  server-side-encryption is set to aws:kms
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -3807,8 +3807,8 @@ COMMANDS
                                  then fastly.toml)
         --service-name=SERVICE-NAME
                                  The name of the service
-        --region=REGION          The region that log data will be sent to. One
-                                 of US or EU. Defaults to US if undefined
+        --region=REGION          The region that log data will be sent to.
+                                 One of US or EU. Defaults to US if undefined
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
@@ -3879,8 +3879,8 @@ COMMANDS
                                  (default) or 1
         --auth-token=AUTH-TOKEN  The token to use for authentication
                                  (https://www.scalyr.com/keys)
-        --region=REGION          The region that log data will be sent to. One
-                                 of US or EU. Defaults to US if undefined
+        --region=REGION          The region that log data will be sent to.
+                                 One of US or EU. Defaults to US if undefined
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
@@ -3945,8 +3945,8 @@ COMMANDS
                                  default. Can be none or waf_debug
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -4046,8 +4046,8 @@ COMMANDS
                                  default. Can be none or waf_debug
         --compression-codec=COMPRESSION-CODEC
                                  The codec used for compression of your logs.
-                                 Valid values are zstd, snappy, and gzip. If the
-                                 specified codec is "gzip", gzip_level will
+                                 Valid values are zstd, snappy, and gzip. If
+                                 the specified codec is "gzip", gzip_level will
                                  default to 3. To specify a different level,
                                  leave compression_codec blank and explicitly
                                  set the level using gzip_level. Specifying both
@@ -4057,8 +4057,8 @@ COMMANDS
   logging splunk create --name=NAME --version=VERSION --url=URL [<flags>]
     Create a Splunk logging endpoint on a Fastly service version
 
-    -n, --name=NAME                The name of the Splunk logging object. Used
-                                   as a primary key for API access
+    -n, --name=NAME                The name of the Splunk logging object.
+                                   Used as a primary key for API access
         --version=VERSION          'latest', 'active', or the number of a
                                    specific version
         --autoclone                If the selected service version is not
@@ -4089,8 +4089,8 @@ COMMANDS
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
         --auth-token=AUTH-TOKEN    A Splunk token for use in posting logs over
@@ -4168,8 +4168,8 @@ COMMANDS
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug. This field is not required and has
                                    no default value
@@ -4178,8 +4178,8 @@ COMMANDS
   logging sumologic create --name=NAME --version=VERSION --url=URL [<flags>]
     Create a Sumologic logging endpoint on a Fastly service version
 
-    -n, --name=NAME              The name of the Sumologic logging object. Used
-                                 as a primary key for API access
+    -n, --name=NAME              The name of the Sumologic logging object.
+                                 Used as a primary key for API access
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
         --autoclone              If the selected service version is not
@@ -4192,12 +4192,12 @@ COMMANDS
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
@@ -4264,12 +4264,12 @@ COMMANDS
         --format=FORMAT          Apache style log formatting
         --format-version=FORMAT-VERSION
                                  The version of the custom logging format used
-                                 for the configured endpoint. Can be either 2
-                                 (the default, version 2 log format) or 1 (the
-                                 version 1 log format). The logging call gets
-                                 placed by default in vcl_log if format_version
-                                 is set to 2 and in vcl_deliver if
-                                 format_version is set to 1
+                                 for the configured endpoint. Can be either
+                                 2 (the default, version 2 log format) or
+                                 1 (the version 1 log format). The logging
+                                 call gets placed by default in vcl_log if
+                                 format_version is set to 2 and in vcl_deliver
+                                 if format_version is set to 1
         --response-condition=RESPONSE-CONDITION
                                  The name of an existing condition in the
                                  configured endpoint, or leave blank to always
@@ -4285,8 +4285,8 @@ COMMANDS
   logging syslog create --name=NAME --version=VERSION --address=ADDRESS [<flags>]
     Create a Syslog logging endpoint on a Fastly service version
 
-    -n, --name=NAME                The name of the Syslog logging object. Used
-                                   as a primary key for API access
+    -n, --name=NAME                The name of the Syslog logging object.
+                                   Used as a primary key for API access
         --version=VERSION          'latest', 'active', or the number of a
                                    specific version
         --autoclone                If the selected service version is not
@@ -4297,8 +4297,8 @@ COMMANDS
         --service-name=SERVICE-NAME
                                    The name of the service
         --port=PORT                The port number
-        --use-tls                  Whether to use TLS for secure logging. Can be
-                                   either true or false
+        --use-tls                  Whether to use TLS for secure logging.
+                                   Can be either true or false
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
         --tls-hostname=TLS-HOSTNAME
@@ -4324,8 +4324,8 @@ COMMANDS
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
 
@@ -4381,8 +4381,8 @@ COMMANDS
         --new-name=NEW-NAME        New name of the Syslog logging object
         --address=ADDRESS          A hostname or IPv4 address
         --port=PORT                The port number
-        --use-tls                  Whether to use TLS for secure logging. Can be
-                                   either true or false
+        --use-tls                  Whether to use TLS for secure logging.
+                                   Can be either true or false
         --tls-ca-cert=TLS-CA-CERT  A secure certificate to authenticate the
                                    server with. Must be in PEM format
         --tls-hostname=TLS-HOSTNAME
@@ -4408,8 +4408,8 @@ COMMANDS
                                    The name of an existing condition in the
                                    configured endpoint, or leave blank to always
                                    execute
-        --placement=PLACEMENT      Where in the generated VCL the logging call
-                                   should be placed, overriding any
+        --placement=PLACEMENT      Where in the generated VCL the logging
+                                   call should be placed, overriding any
                                    format_version default. Can be none or
                                    waf_debug
 
@@ -4646,8 +4646,8 @@ COMMANDS
   vcl custom create --content=CONTENT --name=NAME --version=VERSION [<flags>]
     Upload a VCL for a particular service and version
 
-        --content=CONTENT        VCL passed as file path or content, e.g. $(<
-                                 main.vcl)
+        --content=CONTENT        VCL passed as file path or content, e.g.
+                                 $(< main.vcl)
         --name=NAME              The name of the VCL
         --version=VERSION        'latest', 'active', or the number of a specific
                                  version
@@ -4704,8 +4704,8 @@ COMMANDS
         --autoclone              If the selected service version is not
                                  editable, clone it and use the clone.
         --new-name=NEW-NAME      New name for the VCL
-        --content=CONTENT        VCL passed as file path or content, e.g. $(<
-                                 main.vcl)
+        --content=CONTENT        VCL passed as file path or content, e.g.
+                                 $(< main.vcl)
     -s, --service-id=SERVICE-ID  Service ID (falls back to FASTLY_SERVICE_ID,
                                  then fastly.toml)
         --service-name=SERVICE-NAME

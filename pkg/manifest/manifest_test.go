@@ -77,7 +77,7 @@ func TestManifest(t *testing.T) {
 		}
 
 		defer func(path string, b []byte) {
-			err := os.WriteFile(path, b, 0644)
+			err := os.WriteFile(path, b, 0o644)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -109,7 +109,7 @@ func TestManifest(t *testing.T) {
 			} else {
 				// otherwise if we expect the manifest to be invalid/unrecognised then
 				// the error should match our expectations.
-				if !errors.As(err, &tc.expectedError) {
+				if !errors.Is(err, tc.expectedError) {
 					t.Fatalf("incorrect error type: %T, expected: %T", err, tc.expectedError)
 				}
 				// Ensure the remediation error is as expected.
@@ -143,7 +143,7 @@ func TestManifestPrepend(t *testing.T) {
 		}
 
 		defer func(path string, b []byte) {
-			err := os.WriteFile(path, b, 0644)
+			err := os.WriteFile(path, b, 0o644)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -245,7 +245,7 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 	}
 
 	defer func(fpath string, b []byte) {
-		err := os.WriteFile(fpath, b, 0644)
+		err := os.WriteFile(fpath, b, 0o644)
 		if err != nil {
 			t.Fatal(err)
 		}
