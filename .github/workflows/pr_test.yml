@@ -62,6 +62,8 @@ jobs:
     steps:
     - name: "Checkout code"
       uses: actions/checkout@v2
+    - if: ${{ matrix.platform == 'macos-latest' }}
+      run: brew install binaryen wasm-tools # needed to fix tinygo error: missing wasm-opt
     - name: "Install Go"
       uses: actions/setup-go@v2
       with:
