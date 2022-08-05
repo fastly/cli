@@ -52,9 +52,8 @@ type checkResult struct {
 //
 // Callers should invoke CheckAsync via
 //
-//     f := CheckAsync(...)
-//     defer f()
-//
+//	f := CheckAsync(...)
+//	defer f()
 func CheckAsync(
 	ctx context.Context,
 	file config.File,

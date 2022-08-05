@@ -59,9 +59,8 @@ func (s *Stack) Len() int {
 // calling each Fn function state in FIFO order. If any Fn returns an
 // error, it gets logged to the provided writer. Should be deferrerd, such as:
 //
-//     undoStack := undo.NewStack()
-//     defer func() { undoStack.RunIfError(w, err) }()
-//
+//	undoStack := undo.NewStack()
+//	defer func() { undoStack.RunIfError(w, err) }()
 func (s *Stack) RunIfError(w io.Writer, err error) {
 	if err == nil {
 		return
