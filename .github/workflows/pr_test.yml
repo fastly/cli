@@ -66,6 +66,9 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
+    - uses: acifani/setup-tinygo@v1
+      with:
+        tinygo-version: ${{ matrix.tinygo-version }}
     - name: "Restore golang bin cache"
       uses: actions/cache@v2
       with:
@@ -98,38 +101,9 @@ jobs:
     - name: "Download latest app config"
       run: |
         make config
-    - if: ${{ matrix.platform == 'ubuntu-latest' }}
-      name: Install TinyGo (Ubuntu)
-      run: |
-        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo_${{ matrix.tinygo-version }}_amd64.deb
-        sudo dpkg -i tinygo_${{ matrix.tinygo-version }}_amd64.deb
-        echo "/usr/local/bin" >> $GITHUB_PATH
-        tinygo version
-    - if: ${{ matrix.platform == 'macos-latest' }}
-      name: Install TinyGo (macOS)
-      run: |
-        brew tap tinygo-org/tools
-        brew install tinygo
-        tinygo version
-    - if: ${{ matrix.platform != 'windows-latest' }}
-      name: "Test suite"
+    - name: "Test suite"
       run: make test
       shell: bash
-      env:
-        TEST_COMPUTE_INIT: true
-        TEST_COMPUTE_BUILD: true
-        TEST_COMPUTE_DEPLOY: true
-    # NOTE: I was unable to get scoops's shims to persist across steps.
-    # So we duplicate the `make test` step and combine the scoop install.
-    - if: ${{ matrix.platform == 'windows-latest' }}
-      name: "Test suite (Windows)"
-      run: |
-        iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
-        scoop install binaryen
-        scoop install go
-        scoop install tinygo
-        tinygo version
-        make test
       env:
         TEST_COMPUTE_INIT: true
         TEST_COMPUTE_BUILD: true
