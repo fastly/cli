@@ -35,11 +35,12 @@ func TestConfigLoad(t *testing.T) {
 		f *config.File
 	)
 	if err := f.Load("foo", "/path/to/config.toml", c); err != nil {
-		if !errors.As(err, &fsterr.RemediationError{}) {
+		var remediation fsterr.RemediationError
+		if !errors.As(err, &remediation) {
 			t.Errorf("expected RemediationError got: %T", err)
 		}
-		if err.(fsterr.RemediationError).Remediation != fsterr.NetworkRemediation {
-			t.Errorf("expected NetworkRemediation got: %s", err.(fsterr.RemediationError).Remediation)
+		if remediation.Remediation != fsterr.NetworkRemediation {
+			t.Errorf("expected NetworkRemediation got: %s", remediation.Remediation)
 		}
 	} else {
 		t.Error("expected an error, got nil")
