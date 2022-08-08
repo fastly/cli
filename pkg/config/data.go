@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +18,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/useragent"
 	toml "github.com/pelletier/go-toml"
 	"github.com/sethvargo/go-retry"
 )
@@ -246,6 +243,8 @@ type File struct {
 
 	// Store off copy of the static application configuration that has been
 	// embedded into the compiled CLI binary.
+	//
+	// NOTE: This field is private to prevent it being written back to disk.
 	static []byte `toml:",omitempty"`
 }
 
@@ -257,7 +256,6 @@ type Fastly struct {
 // CLI represents CLI specific configuration.
 type CLI struct {
 	RemoteConfig string `toml:"remote_config"`
-	TTL          string `toml:"ttl"`
 	LastChecked  string `toml:"last_checked"`
 	Version      string `toml:"version"`
 }
@@ -344,75 +342,8 @@ type StarterKit struct {
 	Branch      string `toml:"branch"`
 }
 
-// SetStatic sets the embedded config into the File for backup purposes.
-//
-// NOTE: The reason we have a setter method is because the File struct is
-// expected to be marshalled back into a toml file and we don't want the
-// contents of f.static to be persisted to disk (which happens when a field is
-// defined as public, so we make it private instead and expose a getter/setter).
-func (f *File) SetStatic(static []byte) {
-	f.static = static
-}
-
-// Static returns the embedded backup config.
-func (f *File) Static() []byte {
-	return f.static
-}
-
-// Load decodes a network response body into an in-memory data structure.
-func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
-	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("User-Agent", useragent.Name)
-	resp, err := c.Do(req)
-	if err != nil {
-		if urlErr, ok := err.(*url.Error); ok && urlErr.Timeout() {
-			return fsterr.RemediationError{
-				Inner:       err,
-				Remediation: fsterr.NetworkRemediation,
-			}
-		}
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("fetching remote configuration: expected '200 OK', received '%s'", resp.Status)
-	}
-
-	// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
-	// Profiles that are set in-memory continue to be set after reading in the
-	// remote configuration data even though that data source doesn't define any
-	// such data). This can be manually validated using an io.TeeReader.
-	Mutex.Lock()
-	err = toml.NewDecoder(resp.Body).Decode(f)
-	Mutex.Unlock()
-
-	if err != nil {
-		return err
-	}
-
-	Mutex.Lock()
-	{
-		f.CLI.Version = revision.SemVer(revision.AppVersion)
-		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-		migrateLegacyData(f)
-	}
-	Mutex.Unlock()
-
-	err = createConfigDir(path)
-	if err != nil {
-		return err
-	}
-
-	return f.Write(path)
-}
-
-// migrateLegacyData ensures legacy data is transitioned to config new format.
-func migrateLegacyData(f *File) {
+// MigrateLegacy ensures legacy data is transitioned to config new format.
+func (f *File) MigrateLegacy() {
 	if f.LegacyUser.Email != "" || f.LegacyUser.Token != "" {
 		if f.Profiles == nil {
 			f.Profiles = make(Profiles)
@@ -463,25 +394,22 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 }
 
 // Read decodes a disk file into an in-memory data structure.
-//
-// If reading from disk fails, then we'll use the static config embedded into
-// the CLI binary (which we expect to be valid). If an attempt to unmarshal
-// the static config fails then we have to consider something fundamental has
-// gone wrong and subsequently expect the caller to exit the program.
-//
-// NOTE: Some users have noticed that their profile data is deleted after
-// certain (nondeterministic) operations. The fallback to static config may be
-// contributing to this behaviour because if a read of the user's config fails
-// and we start to use the static version as a fallback, then that will contain
-// no profile data and that in-memory representation will be persisted back to
-// disk, causing the user's profile data to be lost.
-func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) error {
+func (f *File) Read(
+	path string,
+	cfg []byte,
+	in io.Reader,
+	out io.Writer,
+	errLog fsterr.LogInterface,
+	verbose bool,
+) error {
 	var (
 		attempts int
 		data     []byte
 		retryErr error
 		readErr  error
 	)
+
+	f.static = cfg
 
 	// To help mitigate any loss of profile data within the user's config we will
 	// retry the file READ operation if it fails.
@@ -529,7 +457,8 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 	if unmarshalErr != nil {
 		errLog.Add(unmarshalErr)
 
-		// The embedded config is unexpectedly invalid.
+		// The presence of a readErr error indicates we're using the static embedded
+		// config, and unmarshaling that data unexpectedly failed.
 		if readErr != nil {
 			return invalidConfigErr(unmarshalErr)
 		}
@@ -566,7 +495,7 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		}
 	}
 
-	// We expect LastChecked/Version to not be set if coming from the static config.
+	// NOTE: When using the embedded config the LastChecked/Version fields won't be set.
 	Mutex.Lock()
 	{
 		if f.CLI.LastChecked == "" {
@@ -606,9 +535,28 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		// should equally be successful, but we'll code defensively nonetheless.
 		return invalidConfigErr(err)
 	}
+
+	var legacyFormat bool
+
 	if user := tree.Get("user"); user != nil {
 		errLog.Add(ErrLegacyConfig)
-		return ErrLegacyConfig
+
+		if verbose {
+			text.Output(out, `
+        Found your local configuration file (required to use the CLI) was using a legacy format.
+        File will be updated to the latest format.
+      `)
+			text.Break(out)
+		}
+
+		legacyFormat = true
+	}
+
+	if legacyFormat || !f.ValidConfig(verbose, out) {
+		err = f.UseStatic(cfg, path)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -629,7 +577,7 @@ func (f *File) UseStatic(cfg []byte, path string) (err error) {
 	{
 		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
 		f.CLI.Version = revision.SemVer(revision.AppVersion)
-		migrateLegacyData(f)
+		f.MigrateLegacy()
 	}
 	Mutex.Unlock()
 

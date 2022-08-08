@@ -89,6 +89,7 @@ func TestCheck(t *testing.T) {
 }
 
 func TestCheckAsync(t *testing.T) {
+	cfg := []byte("config_version = 2")
 	for _, testcase := range []struct {
 		name           string
 		file           config.File
@@ -102,12 +103,7 @@ func TestCheckAsync(t *testing.T) {
 			cliVersioner:   mock.Versioner{Version: "0.0.1"},
 		},
 		{
-			name: "no last_check new version",
-			file: config.File{
-				CLI: config.CLI{
-					TTL: "24h",
-				},
-			},
+			name:           "no last_check new version",
 			currentVersion: "0.0.1",
 			cliVersioner:   mock.Versioner{Version: "0.0.2"},
 			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",
@@ -117,7 +113,6 @@ func TestCheckAsync(t *testing.T) {
 			file: config.File{
 				CLI: config.CLI{
 					LastChecked: time.Now().Add(-4 * time.Hour).Format(time.RFC3339),
-					TTL:         "5m",
 				},
 			},
 			currentVersion: "0.0.1",
@@ -143,9 +138,11 @@ func TestCheckAsync(t *testing.T) {
 				configFilePath,
 				testcase.currentVersion,
 				testcase.cliVersioner,
+				cfg,
 				in,
 				&out,
 				fsterr.MockLog{},
+				false,
 			)
 			f(&buf)
 

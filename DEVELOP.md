@@ -26,7 +26,7 @@ There are two ways to scaffold a new command, that is intended to be a non-compo
 1. `make scaffold`: e.g. `fastly foo <create|delete|describe|update>`
 2. `make scaffold-category`: e.g. `fastly foo bar <create|delete|describe|update>`
 
-The latter `Makefile` target is for commands we want to group under a common category (in the above example `foo` is the category and `bar` is the command). A real example of a category command would be `fastly logging`, where `logging` is the category and within that category are multiple logging provider commands (e.g. `fastly logging splunk`, where `splunk` is the command). 
+The latter `Makefile` target is for commands we want to group under a common category (in the above example `foo` is the category and `bar` is the command). A real example of a category command would be `fastly logging`, where `logging` is the category and within that category are multiple logging provider commands (e.g. `fastly logging splunk`, where `splunk` is the command).
 
 The `logging` category is an otherwise non-functional command (i.e. if you execute `fastly logging`, then all you see is help output describing the available commands under the logging category).
 
@@ -57,7 +57,7 @@ CLI_CATEGORY=logging CLI_CATEGORY_COMMAND=logging CLI_PACKAGE=foobar CLI_COMMAND
 
 ### config.toml
 
-The CLI will attempt to sync its internal configuration data with the following API endpoint:
+When compiling the CLI for a new release, it will pull the required configuration data from the following API endpoint:
 
 ```
 https://developer.fastly.com/api/internal/cli-config
@@ -65,7 +65,7 @@ https://developer.fastly.com/api/internal/cli-config
 
 The config served from that endpoint is the result of an internal Fastly build process that uses the `.fastly/config.toml` file in the CLI repo as a template, and then dynamically adds in any available Starter Kits.
 
-In case of an API service failure, the CLI will use a built-in version of the `config.toml` file here:
+The configuration is then saved to disk (at the following location) and embedded into the CLI when compiled.
 
 ```
 ./cmd/fastly/static/config.toml

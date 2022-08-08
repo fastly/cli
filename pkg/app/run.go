@@ -30,16 +30,17 @@ type Versioners struct {
 
 // RunOpts represent arguments to Run()
 type RunOpts struct {
-	APIClient  APIClientFactory
-	Args       []string
-	ConfigFile config.File
-	ConfigPath string
-	Env        config.Environment
-	ErrLog     fsterr.LogInterface
-	HTTPClient api.HTTPClient
-	Stdin      io.Reader
-	Stdout     io.Writer
-	Versioners Versioners
+	APIClient    APIClientFactory
+	Args         []string
+	ConfigFile   config.File
+	ConfigPath   string
+	Env          config.Environment
+	ErrLog       fsterr.LogInterface
+	HTTPClient   api.HTTPClient
+	StaticConfig []byte
+	Stdin        io.Reader
+	Stdout       io.Writer
+	Versioners   Versioners
 }
 
 // Run constructs the application including all of the subcommands, parses the
@@ -187,9 +188,11 @@ func Run(opts RunOpts) error {
 			opts.ConfigPath,
 			revision.AppVersion,
 			opts.Versioners.CLI,
+			opts.StaticConfig,
 			opts.Stdin,
 			opts.Stdout,
 			opts.ErrLog,
+			globals.Verbose(),
 		)
 		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}

@@ -9,7 +9,6 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/revision"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
@@ -51,15 +50,6 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	progress := text.NewProgress(out, c.Globals.Verbose())
 	progress.Step("Updating versioning information...")
-
-	err = c.Globals.File.Load(c.Globals.File.CLI.RemoteConfig, config.FilePath, c.Globals.HTTPClient)
-	if err != nil {
-		progress.Fail()
-		return errors.RemediationError{
-			Inner:       fmt.Errorf("there was a problem updating the versioning information for the Fastly CLI:\n\n%w", err),
-			Remediation: errors.BugRemediation,
-		}
-	}
 
 	progress.Step("Checking CLI binary update...")
 	if !shouldUpdate {

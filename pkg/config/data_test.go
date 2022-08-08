@@ -2,11 +2,7 @@ package config_test
 
 import (
 	"bytes"
-	"context"
 	_ "embed"
-	"errors"
-	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,35 +13,6 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 	toml "github.com/pelletier/go-toml"
 )
-
-type mockHTTPClient struct{}
-
-func (c mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
-	return &http.Response{}, &url.Error{
-		Err: context.DeadlineExceeded,
-	}
-}
-
-// TestConfigLoad validates that when a context.DeadlineExceeded error is
-// returned from a http.Client.Do request, that an appropriate remediation
-// error is returned to the user.
-func TestConfigLoad(t *testing.T) {
-	var (
-		c mockHTTPClient
-		f *config.File
-	)
-	if err := f.Load("foo", "/path/to/config.toml", c); err != nil {
-		var remediation fsterr.RemediationError
-		if !errors.As(err, &remediation) {
-			t.Errorf("expected RemediationError got: %T", err)
-		}
-		if remediation.Remediation != fsterr.NetworkRemediation {
-			t.Errorf("expected NetworkRemediation got: %s", remediation.Remediation)
-		}
-	} else {
-		t.Error("expected an error, got nil")
-	}
-}
 
 //go:embed testdata/static/config.toml
 var staticConfig []byte
@@ -90,11 +57,10 @@ func TestConfigRead(t *testing.T) {
 			wantError:            config.RemediationManualFix,
 		},
 		{
-			name:                 "when user config is in the legacy format, it should return a specific error",
+			name:                 "when user config is in the legacy format, it should use static config",
 			staticConfig:         staticConfig,
 			userConfigFilename:   "config-legacy.toml",
 			userResponseToPrompt: "no",
-			wantError:            config.ErrLegacyConfig.Error(),
 		},
 		{
 			name:               "when user config is valid, it should return no error",
@@ -145,14 +111,13 @@ func TestConfigRead(t *testing.T) {
 				}
 			}
 
-			var f config.File
-			f.SetStatic(testcase.staticConfig)
-
 			var out bytes.Buffer
 			in := strings.NewReader(testcase.userResponseToPrompt)
 
 			mockLog := fsterr.MockLog{}
-			err = f.Read(configPath, in, &out, mockLog)
+
+			var f config.File
+			err = f.Read(configPath, testcase.staticConfig, in, &out, mockLog, false)
 
 			if testcase.remediation {
 				e, ok := err.(fsterr.RemediationError)
@@ -210,7 +175,7 @@ func TestUseStatic(t *testing.T) {
 			{Src: string(b), Dst: "config.toml"},
 		},
 	})
-	configPath := filepath.Join(rootdir, "config.toml")
+	legacyConfigPath := filepath.Join(rootdir, "config.toml")
 	defer os.RemoveAll(rootdir)
 
 	// Before running the test, chdir into the temp environment.
@@ -221,21 +186,12 @@ func TestUseStatic(t *testing.T) {
 	}
 	defer os.Chdir(pwd)
 
-	// Validate that invalid static configuration returns a specific error.
-	f := config.File{}
-	err = f.UseStatic(staticConfigInvalid, configPath)
-	if err == nil {
-		t.Fatal("expected an error, but got nil")
-	} else {
-		testutil.AssertErrorContains(t, err, config.ErrInvalidConfig.Error())
-	}
+	var out bytes.Buffer
 
 	// Validate that legacy configuration can be migrated to the static one
 	// embedded in the CLI binary.
-	f = config.File{}
-	var out bytes.Buffer
-	f.Read(configPath, strings.NewReader(""), &out, fsterr.MockLog{})
-	f.UseStatic(staticConfig, configPath)
+	f := config.File{}
+	f.Read(legacyConfigPath, staticConfig, strings.NewReader(""), &out, fsterr.MockLog{}, false)
 
 	if f.CLI.LastChecked == "" || f.CLI.Version == "" {
 		t.Fatalf("expected LastChecked/Version to be set: %+v", f)
@@ -251,7 +207,7 @@ func TestUseStatic(t *testing.T) {
 	}
 
 	// We validate both the in-memory data structure (above) AND the file on disk (below).
-	data, err := os.ReadFile(configPath)
+	data, err := os.ReadFile(legacyConfigPath)
 	if err != nil {
 		t.Error(err)
 	}
@@ -261,73 +217,19 @@ func TestUseStatic(t *testing.T) {
 	if !strings.Contains(string(data), "  [profile.user]\n    default = true\n    email = \"testing@fastly.com\"\n    token = \"foobar\"") {
 		t.Error("expected legacy [user] section to be migrated to [profile.user]")
 	}
-}
 
-// TestConfigWrite validates all logic flows within config.File.Write()
-//
-// Specifically we're interested in whether the f.Static field is written to
-// disk (we don't we want it to be) and whether its value is reset (we do want).
-func TestConfigWrite(t *testing.T) {
-	// We're going to chdir to an temp environment,
-	// so save the PWD to return to, afterwards.
-	pwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create test environment
-	b, err := os.ReadFile(filepath.Join("testdata", "config.toml"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	rootdir := testutil.NewEnv(testutil.EnvOpts{
-		T: t,
-		Write: []testutil.FileIO{
-			{Src: string(b), Dst: "config.toml"},
-		},
-	})
-	configPath := filepath.Join(rootdir, "config.toml")
-	defer os.RemoveAll(rootdir)
-
-	// Before running the test, chdir into the temp environment.
-	// When we're done, chdir back to our original location.
-	// This is so we can reliably assert file structure.
-	if err := os.Chdir(rootdir); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chdir(pwd)
-
-	// Validate the f.Static field is reset and restored.
-	var f config.File
-	f.SetStatic(staticConfig)
-	f.Write(configPath)
-	if len(f.Static()) < 1 {
-		t.Fatal("expected f.Static to be set")
-	}
-
-	// Validate the f.Static isn't written back to disk by reading from disk and
-	// unmarshalling the data to check f.Static is now zero length.
+	// Validate that invalid static configuration returns a specific error.
 	//
-	// NOTE: We have to manually reset f.Static because toml.Unmarshal won't
-	// reset any fields already with values (f.Static would still have a value
-	// set as the field would have been reset at the end of the f.Write, which we
-	// validated in the above test assertion).
-	//
-	// So although we manually reset f.Static, if the local toml file was
-	// incorrectly marshalled with a static field, we'd expect the contents to be
-	// set back into f.Static when we unmarshal the local toml file. It's that
-	// behaviour of f.Write that we want to validate doesn't happen.
-	f.SetStatic([]byte(""))
-	bs, err := os.ReadFile(configPath)
-	if err != nil {
-		t.Fatalf("unexpected err: %v", err)
-	}
-	err = toml.Unmarshal(bs, &f)
-	if err != nil {
-		t.Fatalf("unexpected err: %v", err)
-	}
-	if len(f.Static()) > 0 {
-		t.Fatalf("expected f.Static to be not set: %+v", f.Static())
+	// NOTE: By providing a legacy config, we'll cause the static config embedded
+	// into the CLI to be used, and we'll migrate the legacy data to the new
+	// format, but by specifying the static config as being invalid we expect the
+	// CLI to return the error.
+	f = config.File{}
+	err = f.Read(legacyConfigPath, staticConfigInvalid, strings.NewReader(""), &out, fsterr.MockLog{}, false)
+	if err == nil {
+		t.Fatal("expected an error, but got nil")
+	} else {
+		testutil.AssertErrorContains(t, err, config.ErrInvalidConfig.Error())
 	}
 }
 
@@ -341,14 +243,19 @@ type testValidConfigScenario struct {
 }
 
 // TestValidConfig validates all logic flows within config.File.ValidConfig()
+//
+// NOTE: Even with invalid config we expect the static config embedded with the
+// CLI to be utilised.
 func TestValidConfig(t *testing.T) {
 	s1 := testValidConfigScenario{}
 	s1.Name = "invalid config"
+	s1.ok = true
 	s1.staticConfig = staticConfig
 	s1.userConfig = "config-incompatible-config-version.toml"
 
 	s2 := testValidConfigScenario{}
 	s2.Name = "invalid config with verbose output"
+	s2.ok = true
 	s2.staticConfig = staticConfig
 	s2.userConfig = "config-incompatible-config-version.toml"
 	s2.verboseOutput = true
@@ -393,12 +300,11 @@ func TestValidConfig(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var f config.File
-			f.SetStatic(testcase.staticConfig)
 
 			var stdout bytes.Buffer
 			in := strings.NewReader("") // these tests won't trigger a user prompt
 
-			err = f.Read(configPath, in, &stdout, nil)
+			err = f.Read(configPath, testcase.staticConfig, in, &stdout, nil, false)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
