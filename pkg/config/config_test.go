@@ -245,40 +245,32 @@ func TestUseStatic(t *testing.T) {
 	}
 }
 
-type testValidConfigScenario struct {
+type testInvalidConfigScenario struct {
 	testutil.TestScenario
 
-	result        bool
-	staticConfig  []byte
-	userConfig    string
-	verboseOutput bool
+	invalid      bool
+	staticConfig []byte
+	userConfig   string
 }
 
-// TestValidConfig validates all logic flows within config.File.ValidConfig()
+// TestInvalidConfig validates all logic flows within config.File.ValidConfig()
 //
 // NOTE: Even with invalid config we expect the static config embedded with the
 // CLI to be utilised.
-func TestValidConfig(t *testing.T) {
-	s1 := testValidConfigScenario{}
-	s1.Name = "invalid config"
-	s1.result = true
+func TestInvalidConfig(t *testing.T) {
+	s1 := testInvalidConfigScenario{}
+	s1.Name = "invalid config version, invalid cli version"
+	s1.invalid = true
 	s1.staticConfig = staticConfig
 	s1.userConfig = "config-incompatible-config-version.toml"
 
-	s2 := testValidConfigScenario{}
-	s2.Name = "invalid config with verbose output"
-	s2.result = true
+	s2 := testInvalidConfigScenario{}
+	s2.Name = "valid config version, invalid cli version"
+	s2.invalid = false
 	s2.staticConfig = staticConfig
-	s2.userConfig = "config-incompatible-config-version.toml"
-	s2.verboseOutput = true
+	s2.userConfig = "config.toml"
 
-	s3 := testValidConfigScenario{}
-	s3.Name = "valid config"
-	s3.result = true
-	s3.staticConfig = staticConfig
-	s3.userConfig = "config.toml"
-
-	scenarios := []testValidConfigScenario{s1, s2, s3}
+	scenarios := []testInvalidConfigScenario{s1, s2}
 
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
@@ -312,22 +304,17 @@ func TestValidConfig(t *testing.T) {
 			defer os.Chdir(pwd)
 
 			var f config.File
-
 			var stdout bytes.Buffer
-			in := strings.NewReader("") // these tests won't trigger a user prompt
+			config.Static = testcase.staticConfig
 
-			err = f.Read(configPath, in, &stdout, nil, false)
+			in := strings.NewReader("") // these tests won't trigger a user prompt
+			err = f.Read(configPath, in, &stdout, nil, true)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			result := f.InvalidConfig(testcase.verboseOutput, &stdout)
-			if result != testcase.result {
-				t.Fatalf("want %t, have: %t", testcase.result, result)
-			}
-
 			output := strings.ReplaceAll(stdout.String(), "\n", " ")
-			if !testcase.result && testcase.verboseOutput {
+			if testcase.invalid {
 				testutil.AssertStringContains(t, output, "incompatible with the current CLI version")
 			}
 		})
