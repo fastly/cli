@@ -308,12 +308,6 @@ type File struct {
 	// already migrated the user data to the [profile] section.
 	LegacyUser LegacyUser `toml:"user,omitempty"`
 
-	// Store a copy of the static application configuration that has been embedded
-	// into the compiled CLI binary.
-	//
-	// NOTE: This field is private to prevent it being written back to disk.
-	static []byte `toml:",omitempty"`
-
 	// Store the flag values for --auto-yes/--non-interactive as at the time of
 	// the config File construction we need these values and need to be stored so
 	// that other callers of File.Read() don't need to have the values passed
@@ -354,7 +348,6 @@ func (f *File) Read(
 	verbose bool,
 ) error {
 	var useStatic bool
-	f.static = Static
 
 	const replacement = "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
 
@@ -366,7 +359,7 @@ func (f *File) Read(
 	data, err := os.ReadFile(path)
 	if err != nil {
 		errLog.Add(err)
-		data = f.static
+		data = Static
 		useStatic = true
 
 		if !f.autoYes && !f.nonInteractive {
@@ -420,7 +413,7 @@ func (f *File) Read(
 			return err
 		}
 
-		data = f.static
+		data = Static
 
 		err = toml.Unmarshal(data, f)
 		if err != nil {
@@ -472,7 +465,7 @@ func (f *File) Read(
 	}
 
 	if legacyFormat || f.InvalidConfig(verbose, out) {
-		err = f.UseStatic(f.static, path)
+		err = f.UseStatic(Static, path)
 		if err != nil {
 			return err
 		}
@@ -509,7 +502,7 @@ func (f *File) MigrateLegacy() {
 // InvalidConfig indicates if the application config is invalid.
 func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
 	var staticConfig File
-	err := toml.Unmarshal(f.static, &staticConfig)
+	err := toml.Unmarshal(Static, &staticConfig)
 	if err != nil {
 		return true
 	}
