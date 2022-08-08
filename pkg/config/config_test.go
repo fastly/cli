@@ -248,7 +248,7 @@ func TestUseStatic(t *testing.T) {
 type testValidConfigScenario struct {
 	testutil.TestScenario
 
-	ok            bool
+	result        bool
 	staticConfig  []byte
 	userConfig    string
 	verboseOutput bool
@@ -261,20 +261,20 @@ type testValidConfigScenario struct {
 func TestValidConfig(t *testing.T) {
 	s1 := testValidConfigScenario{}
 	s1.Name = "invalid config"
-	s1.ok = true
+	s1.result = true
 	s1.staticConfig = staticConfig
 	s1.userConfig = "config-incompatible-config-version.toml"
 
 	s2 := testValidConfigScenario{}
 	s2.Name = "invalid config with verbose output"
-	s2.ok = true
+	s2.result = true
 	s2.staticConfig = staticConfig
 	s2.userConfig = "config-incompatible-config-version.toml"
 	s2.verboseOutput = true
 
 	s3 := testValidConfigScenario{}
 	s3.Name = "valid config"
-	s3.ok = true
+	s3.result = true
 	s3.staticConfig = staticConfig
 	s3.userConfig = "config.toml"
 
@@ -321,13 +321,13 @@ func TestValidConfig(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			ok := f.ValidConfig(testcase.verboseOutput, &stdout)
-			if ok != testcase.ok {
-				t.Fatalf("want %t, have: %t", testcase.ok, ok)
+			result := f.InvalidConfig(testcase.verboseOutput, &stdout)
+			if result != testcase.result {
+				t.Fatalf("want %t, have: %t", testcase.result, result)
 			}
 
 			output := strings.ReplaceAll(stdout.String(), "\n", " ")
-			if !testcase.ok && testcase.verboseOutput {
+			if !testcase.result && testcase.verboseOutput {
 				testutil.AssertStringContains(t, output, "incompatible with the current CLI version")
 			}
 		})

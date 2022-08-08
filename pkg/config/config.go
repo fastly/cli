@@ -341,6 +341,11 @@ func (f *File) SetNonInteractive(v bool) {
 var Static []byte
 
 // Read decodes a disk file into an in-memory data structure.
+//
+// NOTE: If user local configuration can't be read, then we'll ask the user to
+// confirm whether to use the static config embedded in the CLI binary. If the
+// user local configuration is deemed to be invalid, then we'll automatically
+// switch to the static config and migrate the user's profile data (if any).
 func (f *File) Read(
 	path string,
 	in io.Reader,
@@ -418,28 +423,19 @@ func (f *File) Read(
 		data = f.static
 
 		err = toml.Unmarshal(data, f)
-
 		if err != nil {
 			errLog.Add(err)
 			return invalidConfigErr(err)
 		}
 	}
 
-	// NOTE: When using the embedded config the CLI.Version field won't be set.
-	if f.CLI.Version == "" {
+	// When using the embedded config the CLI.Version field won't be set, so we
+	// provide a default value that is the current CLI version running.
+	if useStatic {
 		f.CLI.Version = revision.SemVer(revision.AppVersion)
 	}
 
 	err = createConfigDir(path)
-	if err != nil {
-		errLog.Add(err)
-		return err
-	}
-
-	// The reason we're writing data back to disk, although we've only just read
-	// data from the same file, is because we've already potentially mutated some
-	// fields like [cli.last_checked] and [cli.version].
-	err = f.Write(path)
 	if err != nil {
 		errLog.Add(err)
 		return err
@@ -475,7 +471,7 @@ func (f *File) Read(
 		legacyFormat = true
 	}
 
-	if legacyFormat || !f.ValidConfig(verbose, out) {
+	if legacyFormat || f.InvalidConfig(verbose, out) {
 		err = f.UseStatic(f.static, path)
 		if err != nil {
 			return err
@@ -491,9 +487,17 @@ func (f *File) MigrateLegacy() {
 		if f.Profiles == nil {
 			f.Profiles = make(Profiles)
 		}
-		// NOTE: We keep the assignment separate just in case the user somehow has
-		// a config.toml with BOTH a populated [user] + [profile] section.
-		f.Profiles["user"] = &Profile{
+
+		// We keep the assignment separate just in case the user somehow has a
+		// config.toml with BOTH a populated [user] + [profile] section, and
+		// possibly even already has a default account of "user".
+
+		key := "user"
+		if _, ok := f.Profiles[key]; ok {
+			key = "legacy" // avoid overriding the default
+		}
+
+		f.Profiles[key] = &Profile{
 			Default: true,
 			Email:   f.LegacyUser.Email,
 			Token:   f.LegacyUser.Token,
@@ -502,17 +506,20 @@ func (f *File) MigrateLegacy() {
 	}
 }
 
-// ValidConfig checks the current config version isn't different from the
-// config statically embedded into the CLI binary. If it is then we consider
-// the config not valid and we'll fallback to the embedded config.
-func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
-	var cfg File
-	err := toml.Unmarshal(f.static, &cfg)
+// InvalidConfig indicates if the application config is invalid.
+func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
+	var staticConfig File
+	err := toml.Unmarshal(f.static, &staticConfig)
 	if err != nil {
-		return false
+		return true
 	}
 
-	if f.ConfigVersion != cfg.ConfigVersion {
+	// If the ConfigVersion doesn't match, then this suggests a breaking change
+	// divergence in either the user's config or the CLI's config.
+	//
+	// If the CLI.Version doesn't match, then this suggests a breaking change
+	// divergence in the CLI's logic/implementation.
+	if f.ConfigVersion != staticConfig.ConfigVersion || f.CLI.Version != staticConfig.CLI.Version {
 		if verbose {
 			text.Output(out, `
 				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
@@ -520,13 +527,15 @@ func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
 			`)
 			text.Break(out)
 		}
-		return false
+		return true
 	}
-	return true
+	return false
 }
 
-// UseStatic allow us to switch the in-memory configuration with the static
-// version embedded into the CLI binary and writes it back to disk.
+// UseStatic switches the in-memory configuration with the static version
+// embedded into the CLI binary and writes it back to disk.
+//
+// NOTE: We will attempt to migrate the profile data.
 func (f *File) UseStatic(cfg []byte, path string) (err error) {
 	err = toml.Unmarshal(cfg, f)
 	if err != nil {
@@ -592,7 +601,7 @@ type Flag struct {
 	Verbose        bool
 }
 
-// This suggests our embedded config is unexpectedly faulty and so we should
+// This suggests the application config is unexpectedly faulty and so we should
 // fail with a bug remediation.
 func invalidConfigErr(err error) error {
 	return fsterr.RemediationError{
