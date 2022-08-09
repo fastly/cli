@@ -1,8 +1,6 @@
 package main
 
 import (
-	_ "embed"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -11,22 +9,16 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/check"
-	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/sync"
-	"github.com/fastly/cli/pkg/text"
 	"github.com/fatih/color"
 	"github.com/getsentry/sentry-go"
 )
 
 const sentryTimeout = 2 * time.Second
-
-//go:embed static/config.toml
-var cfg []byte
 
 func main() {
 	err := sentry.Init(sentry.ClientOptions{
@@ -95,111 +87,29 @@ func main() {
 		}
 	}
 
+	// Similarly for the --auto-yes/--non-interactive flags, we need access to
+	// these for handling interactive error prompts to the user, in case the CLI
+	// is being run in a CI environment.
+	var autoYes, nonInteractive bool
+	for _, seg := range args {
+		if seg == "-y" || seg == "--auto-yes" {
+			autoYes = true
+		}
+		if seg == "-i" || seg == "--non-interactive" {
+			nonInteractive = true
+		}
+	}
+
 	// Extract a subset of configuration options from the local application directory.
 	var file config.File
-	file.SetStatic(cfg)
-	err = file.Read(config.FilePath, in, out, fsterr.Log)
+	file.SetAutoYes(autoYes)
+	file.SetNonInteractive(nonInteractive)
 
+	// The CLI relies on a valid configuration, otherwise we can't continue.
+	err = file.Read(config.FilePath, in, out, fsterr.Log, verboseOutput)
 	if err != nil {
-		if err == config.ErrLegacyConfig {
-			if verboseOutput {
-				text.Output(out, `
-					Found your local configuration file (required to use the CLI) was using a legacy format.
-					File will be updated to the latest format.
-				`)
-				text.Break(out)
-			}
-		} else {
-			// We've hit a scenario where our fallback static config is invalid, and
-			// that is very much an unexpected situation.
-			fsterr.Deduce(err).Print(color.Error)
-			os.Exit(1)
-		}
-	}
-
-	// There are two scenarios we now want to look out for...
-	//
-	// 1. The config is using a legacy format.
-	// 2. The config is invalid (e.g. major version bump) for CLI version running.
-	//
-	// To prevent issues we'll replace the config with what's embedded into the CLI,
-	// as we know that is compatible with the code currently being executed.
-	if err == config.ErrLegacyConfig || !file.ValidConfig(verboseOutput, out) {
-		err = file.UseStatic(cfg, config.FilePath)
-		if err != nil {
-			fsterr.Deduce(err).Print(color.Error)
-			os.Exit(1)
-		}
-	}
-
-	// When the local configuration file is stale we'll need to acquire the
-	// latest version and write that back to disk. To ensure the CLI program
-	// doesn't complete before the write has finished, we block via a channel.
-	waitForWrite := make(chan bool)
-	wait := false
-
-	// errLoadConfig should be a RemediationError.
-	var errLoadConfig error
-
-	// If the version stored in the config doesn't match our current version,
-	// block running of the command until the new config is downloaded.
-	waitBeforeRun := file.CLI.Version != revision.AppVersion
-
-	// Validate if configuration is older than its TTL or this is the
-	// first run after an update.
-	// NOTE: We don't want to trigger a config check when the user is making an
-	// autocomplete request because this can add additional latency to the user's
-	// shell loading completely.
-	stale := check.Stale(file.CLI.LastChecked, file.CLI.TTL) || waitBeforeRun
-	if stale && !cmd.IsCompletion(args) && !cmd.IsCompletionScript(args) {
-		if verboseOutput {
-			msg := `
-Compatibility and versioning information for the Fastly CLI is being updated in the background.  The updated data will be used next time you execute a fastly command.
-			`
-			if waitBeforeRun {
-				msg = `
-Compatibility and versioning information for the Fastly CLI is being updated.  Your command will be executed once the update is complete.
-`
-			}
-
-			text.Info(out, msg)
-		}
-
-		wait = true
-		go func() {
-			// NOTE: we no longer use the hardcoded config.RemoteEndpoint constant.
-			// Instead we rely on the values inside of the application
-			// configuration file to determine where to load the config from.
-			err := file.Load(file.CLI.RemoteConfig, config.FilePath, httpClient)
-			if err != nil {
-				errNotice := "there was a problem updating the versioning information for the Fastly CLI"
-
-				// If there is an error loading the configuration, then there is no
-				// point trying to retry the operation on the next CLI invocation as we
-				// already have a static backup that can be used. Defer another attempt
-				// until after the TTL has expired.
-				file.CLI.LastChecked = time.Now().Format(time.RFC3339)
-				fileErr := file.Write(config.FilePath)
-				if fileErr != nil {
-					text.Break(out)
-					text.Error(out, "%s: %s", errNotice, fileErr)
-				}
-
-				checkAgain := fmt.Sprintf("we won't check again until %s have passed", file.CLI.TTL)
-				errLoadConfig = fsterr.RemediationError{
-					Inner:       fmt.Errorf("%s (%s):\n\n%w", errNotice, checkAgain, err),
-					Remediation: fsterr.BugRemediation + "\n\n" + fsterr.ConfigRemediation,
-				}
-			}
-
-			waitForWrite <- true
-		}()
-	}
-
-	if wait && waitBeforeRun {
-		<-waitForWrite
-		afterWrite(verboseOutput, errLoadConfig, out)
-		wait = false
+		fsterr.Deduce(err).Print(color.Error)
+		os.Exit(1)
 	}
 
 	// Main is basically just a shim to call Run, so we do that here.
@@ -233,68 +143,11 @@ Compatibility and versioning information for the Fastly CLI is being updated.  Y
 	if err != nil {
 		fsterr.Deduce(err).Print(color.Error)
 
-		// NOTE: if we have an error processing the command, then we should be sure
-		// to wait for the async file write to complete (otherwise we'll end up in
-		// a situation where there is a local application configuration file but
-		// with incomplete contents).
-		//
-		// It would have been nice to just do something like...
-		//
-		// if wait {
-		//   defer func(){
-		//     <-waitForWrite
-		//     afterWrite(verboseOutput, errLoadConfig, out)
-		//   }()
-		// }
-		//
-		// ...and to have this a bit further up the script, as it would have meant
-		// we could avoid duplicating the following if statement in two places.
-		//
-		// As it is, we have to wait for the async write operation here and also at
-		// the end of the main function.
-		//
-		// The problem with defer is that it doesn't work when os.Exit() is
-		// encountered, so you either use something like runtime.Goexit() which is
-		// pretty hairy and requires other changes like `defer os.Exit(0)` at the
-		// top of the main() function (it also has some funky side-effects related
-		// to how any other goroutines will persist and errors within those could
-		// cause other unexpected behaviour). The alternative is we re-architecture
-		// the entire call flow which isn't ideal either.
-		//
-		// So we've opted for duplication.
-		//
-		if wait {
-			<-waitForWrite
-			afterWrite(verboseOutput, errLoadConfig, out)
-		}
-
 		// NOTE: os.Exit doesn't honour any deferred calls so we have to manually
 		// flush the Sentry buffer here (as well as the deferred call at the top of
 		// the main function).
 		sentry.Flush(sentryTimeout)
 		os.Exit(1)
-	}
-
-	// If the command being run finishes before the latest config is written back
-	// to disk, then wait for the write operation to complete.
-	//
-	// I use a variable instead of calling check.Stale() again, incase the file
-	// object has indeed been updated already and is no longer considered stale!
-	if wait {
-		<-waitForWrite
-		afterWrite(verboseOutput, errLoadConfig, out)
-	}
-}
-
-// afterWrite determines what to do once our waitForWrite channel has received
-// a message. The message indicates either the file was written successfully or
-// that an error had occurred and so we should display an error message.
-func afterWrite(verboseOutput bool, errLoadConfig error, out io.Writer) {
-	if verboseOutput && errLoadConfig == nil {
-		text.Info(out, config.UpdateSuccessful)
-	}
-	if errLoadConfig != nil {
-		errLoadConfig.(fsterr.RemediationError).Print(color.Error)
 	}
 }
 

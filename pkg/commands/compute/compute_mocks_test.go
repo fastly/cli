@@ -108,7 +108,7 @@ func (v versionClient) Do(req *http.Request) (*http.Response, error) {
 		versions = append(versions, fmt.Sprintf(`{"num":"%s"}`, vv))
 	}
 
-	_, err := rec.Write([]byte(fmt.Sprintf(`{"versions":[%s]}`, strings.Join(versions, ","))))
+	_, err := fmt.Fprintf(rec, `{"versions":[%s]}`, strings.Join(versions, ","))
 	if err != nil {
 		return nil, err
 	}

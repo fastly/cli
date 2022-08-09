@@ -183,13 +183,8 @@ func Run(opts RunOpts) error {
 		defer cancel() // push cancel on the defer stack first...
 		f := update.CheckAsync(
 			ctx,
-			opts.ConfigFile,
-			opts.ConfigPath,
 			revision.AppVersion,
 			opts.Versioners.CLI,
-			opts.Stdin,
-			opts.Stdout,
-			opts.ErrLog,
 		)
 		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}

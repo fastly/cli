@@ -1,17 +1,12 @@
 package config
 
 import (
-	"context"
+	_ "embed"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
-	"sync"
-	"time"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/env"
@@ -20,9 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/useragent"
 	toml "github.com/pelletier/go-toml"
-	"github.com/sethvargo/go-retry"
 )
 
 // Source enumerates where a config parameter is taken from.
@@ -67,45 +60,13 @@ const (
 // legacy format.
 var ErrLegacyConfig = errors.New("the configuration file is in the legacy format")
 
-// ErrInvalidConfig indicates that the configuration file used was the static
-// one embedded into the compiled CLI binary and that failed to be unmarshalled.
+// ErrInvalidConfig indicates that the configuration file used was invalid.
 var ErrInvalidConfig = errors.New("the configuration file is invalid")
 
 // RemediationManualFix indicates that the configuration file used was invalid
 // and that the user rejected the use of the static config embedded into the
 // compiled CLI binary and so the user must resolve their invalid config.
 var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
-
-// Mutex provides synchronisation for any WRITE operations on the CLI config.
-// This includes calls to the Write method (which affects the disk
-// representation) as well as in-memory data structure updates.
-//
-// NOTE: Historically the CLI has only had to write to the CLI config from
-// within the `main` function but now the `fastly update` command accepts a
-// flag that allows explicitly updating the CLI config, which means we need to
-// ensure there isn't a race condition with writing the config to disk.
-//
-// We also need to be careful with low-level mutex usage because it's easy to
-// cause a deadlock! For example, if we lock around a section of code that
-// can potentially return out of the function early, then we'd never call the
-// mutex's Unlock method.
-//
-// We also can't rely on using the defer statement either because in the case
-// of the UseStatic() method, the last line of the method is a call to .Write()
-// which itself also tries to acquire a lock. So if we deferred the Unlock(),
-// we'd eventually call out to .Write() and deadlock waiting to acquire the lock
-// that we never actually released from within the caller.
-//
-// Because of this we should be mindful whenever using the defer statement, and
-// possibly opt for multiple calls to Lock/Unlock around specific portions of
-// the code accessing the in-memory data (while also checking for early returns).
-//
-// NOTE: Ideally we wouldn't need to sprinkle mutex references all over the
-// code, and instead have it abstracted away inside the config.File type, but
-// this requires exposing lots of setter methods for each field on each nested
-// subfield type (this would be a lot of extra code). If we start to experience
-// issues with mutex usage, then this decision can be revisited.
-var Mutex = &sync.Mutex{}
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -224,31 +185,6 @@ type LegacyUser struct {
 	Token string `toml:"token"`
 }
 
-// File represents our dynamic application toml configuration.
-type File struct {
-	CLI           CLI                 `toml:"cli"`
-	ConfigVersion int                 `toml:"config_version"`
-	Fastly        Fastly              `toml:"fastly"`
-	Language      Language            `toml:"language"`
-	Profiles      Profiles            `toml:"profile"`
-	StarterKits   StarterKitLanguages `toml:"starter-kits"`
-	Viceroy       Viceroy             `toml:"viceroy"`
-
-	// We store off a possible legacy configuration so that we can later extract
-	// the relevant email and token values that may pre-exist.
-	//
-	// NOTE: We set omitempty so when we write the in-memory data back to disk
-	// we'll cause the [user] block to be removed. If we didn't do this, then
-	// every time we run a command with --verbose we would see a message telling
-	// us our config.toml was in a legacy format, even though we would have
-	// already migrated the user data to the [profile] section.
-	LegacyUser LegacyUser `toml:"user,omitempty"`
-
-	// Store off copy of the static application configuration that has been
-	// embedded into the compiled CLI binary.
-	static []byte `toml:",omitempty"`
-}
-
 // Fastly represents fastly specific configuration.
 type Fastly struct {
 	APIEndpoint string `toml:"api_endpoint"`
@@ -256,10 +192,7 @@ type Fastly struct {
 
 // CLI represents CLI specific configuration.
 type CLI struct {
-	RemoteConfig string `toml:"remote_config"`
-	TTL          string `toml:"ttl"`
-	LastChecked  string `toml:"last_checked"`
-	Version      string `toml:"version"`
+	Version string `toml:"version"`
 }
 
 // User represents user specific configuration.
@@ -344,90 +277,6 @@ type StarterKit struct {
 	Branch      string `toml:"branch"`
 }
 
-// SetStatic sets the embedded config into the File for backup purposes.
-//
-// NOTE: The reason we have a setter method is because the File struct is
-// expected to be marshalled back into a toml file and we don't want the
-// contents of f.static to be persisted to disk (which happens when a field is
-// defined as public, so we make it private instead and expose a getter/setter).
-func (f *File) SetStatic(static []byte) {
-	f.static = static
-}
-
-// Static returns the embedded backup config.
-func (f *File) Static() []byte {
-	return f.static
-}
-
-// Load decodes a network response body into an in-memory data structure.
-func (f *File) Load(endpoint, path string, c api.HTTPClient) error {
-	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("User-Agent", useragent.Name)
-	resp, err := c.Do(req)
-	if err != nil {
-		if urlErr, ok := err.(*url.Error); ok && urlErr.Timeout() {
-			return fsterr.RemediationError{
-				Inner:       err,
-				Remediation: fsterr.NetworkRemediation,
-			}
-		}
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("fetching remote configuration: expected '200 OK', received '%s'", resp.Status)
-	}
-
-	// NOTE: Decoding does not cause existing field data in f to be reset (e.g.
-	// Profiles that are set in-memory continue to be set after reading in the
-	// remote configuration data even though that data source doesn't define any
-	// such data). This can be manually validated using an io.TeeReader.
-	Mutex.Lock()
-	err = toml.NewDecoder(resp.Body).Decode(f)
-	Mutex.Unlock()
-
-	if err != nil {
-		return err
-	}
-
-	Mutex.Lock()
-	{
-		f.CLI.Version = revision.SemVer(revision.AppVersion)
-		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-		migrateLegacyData(f)
-	}
-	Mutex.Unlock()
-
-	err = createConfigDir(path)
-	if err != nil {
-		return err
-	}
-
-	return f.Write(path)
-}
-
-// migrateLegacyData ensures legacy data is transitioned to config new format.
-func migrateLegacyData(f *File) {
-	if f.LegacyUser.Email != "" || f.LegacyUser.Token != "" {
-		if f.Profiles == nil {
-			f.Profiles = make(Profiles)
-		}
-		// NOTE: We keep the assignment separate just in case the user somehow has
-		// a config.toml with BOTH a populated [user] + [profile] section.
-		f.Profiles["user"] = &Profile{
-			Default: true,
-			Email:   f.LegacyUser.Email,
-			Token:   f.LegacyUser.Token,
-		}
-		f.LegacyUser = LegacyUser{}
-	}
-}
-
 // createConfigDir creates the application configuration directory if it
 // doesn't already exist.
 func createConfigDir(path string) error {
@@ -439,98 +288,108 @@ func createConfigDir(path string) error {
 	return nil
 }
 
-// ValidConfig checks the current config version isn't different from the
-// config statically embedded into the CLI binary. If it is then we consider
-// the config not valid and we'll fallback to the embedded config.
-func (f *File) ValidConfig(verbose bool, out io.Writer) bool {
-	var cfg File
-	err := toml.Unmarshal(f.static, &cfg)
-	if err != nil {
-		return false
-	}
+// File represents our dynamic application toml configuration.
+type File struct {
+	CLI           CLI                 `toml:"cli"`
+	ConfigVersion int                 `toml:"config_version"`
+	Fastly        Fastly              `toml:"fastly"`
+	Language      Language            `toml:"language"`
+	Profiles      Profiles            `toml:"profile"`
+	StarterKits   StarterKitLanguages `toml:"starter-kits"`
+	Viceroy       Viceroy             `toml:"viceroy"`
 
-	if f.ConfigVersion != cfg.ConfigVersion {
-		if verbose {
-			text.Output(out, `
-				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
-				Your configuration will be migrated to a compatible configuration format.
-			`)
-			text.Break(out)
-		}
-		return false
-	}
-	return true
+	// We store off a possible legacy configuration so that we can later extract
+	// the relevant email and token values that may pre-exist.
+	//
+	// NOTE: We set omitempty so when we write the in-memory data back to disk
+	// we'll cause the [user] block to be removed. If we didn't do this, then
+	// every time we run a command with --verbose we would see a message telling
+	// us our config.toml was in a legacy format, even though we would have
+	// already migrated the user data to the [profile] section.
+	LegacyUser LegacyUser `toml:"user,omitempty"`
+
+	// Store the flag values for --auto-yes/--non-interactive as at the time of
+	// the config File construction we need these values and need to be stored so
+	// that other callers of File.Read() don't need to have the values passed
+	// around in function arguments.
+	//
+	// NOTE: These fields are private to prevent them being written back to disk,
+	// but it means we need to expose Setter methods.
+	autoYes        bool `toml:",omitempty"`
+	nonInteractive bool `toml:",omitempty"`
 }
+
+// SetAutoYes sets the associated flag value.
+func (f *File) SetAutoYes(v bool) {
+	f.autoYes = v
+}
+
+// SetNonInteractive sets the associated flag value.
+func (f *File) SetNonInteractive(v bool) {
+	f.nonInteractive = v
+}
+
+// NOTE: Static 👇 is public for the sake of the test suite.
+
+//go:embed config.toml
+var Static []byte
 
 // Read decodes a disk file into an in-memory data structure.
 //
-// If reading from disk fails, then we'll use the static config embedded into
-// the CLI binary (which we expect to be valid). If an attempt to unmarshal
-// the static config fails then we have to consider something fundamental has
-// gone wrong and subsequently expect the caller to exit the program.
-//
-// NOTE: Some users have noticed that their profile data is deleted after
-// certain (nondeterministic) operations. The fallback to static config may be
-// contributing to this behaviour because if a read of the user's config fails
-// and we start to use the static version as a fallback, then that will contain
-// no profile data and that in-memory representation will be persisted back to
-// disk, causing the user's profile data to be lost.
-func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogInterface) error {
-	var (
-		attempts int
-		data     []byte
-		retryErr error
-		readErr  error
-	)
+// NOTE: If user local configuration can't be read, then we'll ask the user to
+// confirm whether to use the static config embedded in the CLI binary. If the
+// user local configuration is deemed to be invalid, then we'll automatically
+// switch to the static config and migrate the user's profile data (if any).
+func (f *File) Read(
+	path string,
+	in io.Reader,
+	out io.Writer,
+	errLog fsterr.LogInterface,
+	verbose bool,
+) error {
+	var useStatic bool
 
-	// To help mitigate any loss of profile data within the user's config we will
-	// retry the file READ operation if it fails.
-	ctx := context.Background()
-	b := retry.NewConstant(1 * time.Second)
-	b = retry.WithMaxRetries(2, b) // attempts == 3 (first attempt + two retries)
+	const replacement = "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
 
-	retryErr = retry.Do(ctx, b, func(_ context.Context) error {
-		attempts++
+	// G304 (CWE-22): Potential file inclusion via variable.
+	// gosec flagged this:
+	// Disabling as we need to load the config.toml from the user's file system.
+	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+	/* #nosec */
+	data, err := os.ReadFile(path)
+	if err != nil {
+		errLog.Add(err)
+		data = Static
+		useStatic = true
 
-		// G304 (CWE-22): Potential file inclusion via variable.
-		// gosec flagged this:
-		// Disabling as we need to load the config.toml from the user's file system.
-		// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-		/* #nosec */
-		data, readErr = os.ReadFile(path)
-		if readErr != nil {
-			errLog.Add(readErr)
+		if !f.autoYes && !f.nonInteractive {
+			msg := "unable to load your configuration data"
+			label := fmt.Sprintf("We were %s. %s", msg, replacement)
 
-			// We don't retry the error if the file doesn't exist. Although in
-			// principle we shouldn't see this error as we .Stat() at the start of
-			// the file.Read() method.
-			if errors.Is(readErr, os.ErrNotExist) {
-				return readErr
+			cont, err := text.AskYesNo(out, label, in)
+			if err != nil {
+				return fmt.Errorf("error reading input: %w", err)
 			}
-			return retry.RetryableError(readErr)
+
+			if !cont {
+				err := fsterr.RemediationError{
+					Inner:       fmt.Errorf(msg),
+					Remediation: RemediationManualFix,
+				}
+				errLog.Add(err)
+				return err
+			}
 		}
-
-		return nil
-	})
-
-	// NOTE: retryErr is when we reached the max number of retries, while the
-	// readErr is for catching when we didn't want to retry the READ operation.
-	if retryErr != nil || readErr != nil {
-		errLog.AddWithContext(retryErr, map[string]interface{}{
-			"attempts": attempts,
-		})
-		data = f.static
 	}
 
-	Mutex.Lock()
 	unmarshalErr := toml.Unmarshal(data, f)
-	Mutex.Unlock()
 
 	if unmarshalErr != nil {
 		errLog.Add(unmarshalErr)
 
-		// The embedded config is unexpectedly invalid.
-		if readErr != nil {
+		// If the static embedded config failed to be unmarshalled, then that's
+		// unexpected and we can't recover from that.
+		if useStatic {
 			return invalidConfigErr(unmarshalErr)
 		}
 
@@ -539,24 +398,13 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		// version embedded into the CLI binary.
 
 		text.Break(out)
-		label := fmt.Sprintf("Your configuration file (%s) is invalid. Replace it with a valid version? (any existing email/token data will be lost) [y/N] ", path)
-		cont, err := text.Input(out, label, in)
+
+		label := fmt.Sprintf("Your configuration file (%s) is invalid. %s", path, replacement)
+		cont, err := text.AskYesNo(out, label, in)
 		if err != nil {
-			return fmt.Errorf("error reading input %w", err)
+			return fmt.Errorf("error reading input: %w", err)
 		}
-		contl := strings.ToLower(cont)
-		if contl == "y" || contl == "yes" {
-			data = f.static
-
-			Mutex.Lock()
-			err = toml.Unmarshal(data, f)
-			Mutex.Unlock()
-
-			if err != nil {
-				errLog.Add(err)
-				return invalidConfigErr(err)
-			}
-		} else {
+		if !cont {
 			err := fsterr.RemediationError{
 				Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, unmarshalErr),
 				Remediation: RemediationManualFix,
@@ -564,30 +412,23 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 			errLog.Add(err)
 			return err
 		}
-	}
 
-	// We expect LastChecked/Version to not be set if coming from the static config.
-	Mutex.Lock()
-	{
-		if f.CLI.LastChecked == "" {
-			f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-		}
-		if f.CLI.Version == "" {
-			f.CLI.Version = revision.SemVer(revision.AppVersion)
+		data = Static
+
+		err = toml.Unmarshal(data, f)
+		if err != nil {
+			errLog.Add(err)
+			return invalidConfigErr(err)
 		}
 	}
-	Mutex.Unlock()
 
-	err := createConfigDir(path)
-	if err != nil {
-		errLog.Add(err)
-		return err
+	// When using the embedded config the CLI.Version field won't be set, so we
+	// provide a default value that is the current CLI version running.
+	if useStatic {
+		f.CLI.Version = revision.SemVer(revision.AppVersion)
 	}
 
-	// The reason we're writing data back to disk, although we've only just read
-	// data from the same file, is because we've already potentially mutated some
-	// fields like [cli.last_checked] and [cli.version].
-	err = f.Write(path)
+	err = createConfigDir(path)
 	if err != nil {
 		errLog.Add(err)
 		return err
@@ -606,32 +447,96 @@ func (f *File) Read(path string, in io.Reader, out io.Writer, errLog fsterr.LogI
 		// should equally be successful, but we'll code defensively nonetheless.
 		return invalidConfigErr(err)
 	}
+
+	var legacyFormat bool
+
 	if user := tree.Get("user"); user != nil {
 		errLog.Add(ErrLegacyConfig)
-		return ErrLegacyConfig
+
+		if verbose {
+			text.Output(out, `
+        Found your local configuration file (required to use the CLI) was using a legacy format.
+        File will be updated to the latest format.
+      `)
+			text.Break(out)
+		}
+
+		legacyFormat = true
+	}
+
+	if legacyFormat || f.InvalidConfig(verbose, out) {
+		err = f.UseStatic(Static, path)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-// UseStatic allow us to switch the in-memory configuration with the static
-// version embedded into the CLI binary and writes it back to disk.
-func (f *File) UseStatic(cfg []byte, path string) (err error) {
-	Mutex.Lock()
-	err = toml.Unmarshal(cfg, f)
-	Mutex.Unlock()
+// MigrateLegacy ensures legacy data is transitioned to config new format.
+func (f *File) MigrateLegacy() {
+	if f.LegacyUser.Email != "" || f.LegacyUser.Token != "" {
+		if f.Profiles == nil {
+			f.Profiles = make(Profiles)
+		}
 
+		// We keep the assignment separate just in case the user somehow has a
+		// config.toml with BOTH a populated [user] + [profile] section, and
+		// possibly even already has a default account of "user".
+
+		key := "user"
+		if _, ok := f.Profiles[key]; ok {
+			key = "legacy" // avoid overriding the default
+		}
+
+		f.Profiles[key] = &Profile{
+			Default: true,
+			Email:   f.LegacyUser.Email,
+			Token:   f.LegacyUser.Token,
+		}
+		f.LegacyUser = LegacyUser{}
+	}
+}
+
+// InvalidConfig indicates if the application config is invalid.
+func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
+	var staticConfig File
+	err := toml.Unmarshal(Static, &staticConfig)
+	if err != nil {
+		return true
+	}
+
+	// If the ConfigVersion doesn't match, then this suggests a breaking change
+	// divergence in either the user's config or the CLI's config.
+	//
+	// If the CLI.Version doesn't match the CLI binary version, then this suggests
+	// a breaking change divergence in the CLI's logic/implementation.
+	if f.ConfigVersion != staticConfig.ConfigVersion || f.CLI.Version != revision.SemVer(revision.AppVersion) {
+		if verbose {
+			text.Output(out, `
+				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
+				Your configuration will be migrated to a compatible configuration format.
+			`)
+			text.Break(out)
+		}
+		return true
+	}
+	return false
+}
+
+// UseStatic switches the in-memory configuration with the static version
+// embedded into the CLI binary and writes it back to disk.
+//
+// NOTE: We will attempt to migrate the profile data.
+func (f *File) UseStatic(cfg []byte, path string) (err error) {
+	err = toml.Unmarshal(cfg, f)
 	if err != nil {
 		return invalidConfigErr(err)
 	}
 
-	Mutex.Lock()
-	{
-		f.CLI.LastChecked = time.Now().Format(time.RFC3339)
-		f.CLI.Version = revision.SemVer(revision.AppVersion)
-		migrateLegacyData(f)
-	}
-	Mutex.Unlock()
+	f.CLI.Version = revision.SemVer(revision.AppVersion)
+	f.MigrateLegacy()
 
 	err = createConfigDir(path)
 	if err != nil {
@@ -643,9 +548,6 @@ func (f *File) UseStatic(cfg []byte, path string) (err error) {
 
 // Write encodes in-memory data to disk.
 func (f *File) Write(path string) (err error) {
-	Mutex.Lock()
-	defer Mutex.Unlock()
-
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
 	//
@@ -692,7 +594,7 @@ type Flag struct {
 	Verbose        bool
 }
 
-// This suggests our embedded config is unexpectedly faulty and so we should
+// This suggests the application config is unexpectedly faulty and so we should
 // fail with a bug remediation.
 func invalidConfigErr(err error) error {
 	return fsterr.RemediationError{

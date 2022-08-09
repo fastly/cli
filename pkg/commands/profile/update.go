@@ -1,12 +1,8 @@
 package profile
 
 import (
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
-	"os"
-	"path/filepath"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
@@ -62,9 +58,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	if token != "" {
 		opts = append(opts, func(p *config.Profile) {
-			config.Mutex.Lock()
 			p.Token = token
-			config.Mutex.Unlock()
 		})
 	}
 
@@ -76,9 +70,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 	opts = append(opts, func(p *config.Profile) {
-		config.Mutex.Lock()
 		p.Default = def
-		config.Mutex.Unlock()
 	})
 
 	// User didn't want to change their token value so reassign original.
@@ -104,9 +96,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 	opts = append(opts, func(p *config.Profile) {
-		config.Mutex.Lock()
 		p.Email = u.Login
-		config.Mutex.Unlock()
 	})
 
 	var ok bool
@@ -119,12 +109,11 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 			Remediation: fsterr.ProfileRemediation,
 		}
 	}
-	config.Mutex.Lock()
 	c.Globals.File.Profiles = ps
-	config.Mutex.Unlock()
 
-	if err := c.persistCfg(); err != nil {
-		return err
+	if err := c.Globals.File.Write(c.Globals.Path); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("error saving config file: %w", err)
 	}
 
 	progress.Done()
@@ -162,29 +151,4 @@ func (c *UpdateCommand) validateToken(token, endpoint string, progress text.Prog
 	}
 
 	return user, nil
-}
-
-// persistCfg writes the updated configuration data to disk.
-func (c *UpdateCommand) persistCfg() error {
-	dir := filepath.Dir(c.Globals.Path)
-	fi, err := os.Stat(dir)
-	switch {
-	case err == nil && !fi.IsDir():
-		return fmt.Errorf("config file path %s isn't a directory", dir)
-	case err != nil && errors.Is(err, fs.ErrNotExist):
-		if err := os.MkdirAll(dir, config.DirectoryPermissions); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-				"Directory":   dir,
-				"Permissions": config.DirectoryPermissions,
-			})
-			return fmt.Errorf("error creating config file directory: %w", err)
-		}
-	}
-
-	if err := c.Globals.File.Write(c.Globals.Path); err != nil {
-		c.Globals.ErrLog.Add(err)
-		return fmt.Errorf("error saving config file: %w", err)
-	}
-
-	return nil
 }
