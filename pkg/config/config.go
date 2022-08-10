@@ -488,8 +488,12 @@ func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
 	// divergence in either the user's config or the CLI's config.
 	//
 	// If the CLI.Version doesn't match the CLI binary version, then this suggests
-	// a breaking change divergence in the CLI's logic/implementation.
-	if f.ConfigVersion != staticConfig.ConfigVersion || f.CLI.Version != revision.SemVer(revision.AppVersion) {
+	// a version update. This _might_ include a breaking change in the CLI's
+	// logic/implementation, or a new starter kit, for example.
+	// In this case we update the config regardless to ensure the
+	// CLI.Version is up to date.
+	switch {
+	case f.ConfigVersion != staticConfig.ConfigVersion:
 		if verbose {
 			text.Output(out, `
 				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
@@ -497,6 +501,8 @@ func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
 			`)
 			text.Break(out)
 		}
+		return true
+	case f.CLI.Version != revision.SemVer(revision.AppVersion):
 		return true
 	}
 	return false
