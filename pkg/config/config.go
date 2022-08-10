@@ -535,7 +535,9 @@ func (f *File) Write(path string) (err error) {
 	if err != nil {
 		return fmt.Errorf("error creating config file: %w", err)
 	}
-	if err := toml.NewEncoder(fp).Encode(f); err != nil {
+	encoder := toml.NewEncoder(fp)
+	encoder.Indentation("")
+	if err := encoder.Encode(f); err != nil {
 		return fmt.Errorf("error writing to config file: %w", err)
 	}
 	if err := fp.Close(); err != nil {

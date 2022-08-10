@@ -221,7 +221,7 @@ func TestUseStatic(t *testing.T) {
 	if strings.Contains(string(data), "[user]") {
 		t.Error("expected legacy [user] section to be removed")
 	}
-	if !strings.Contains(string(data), "  [profile.user]\n    default = true\n    email = \"testing@fastly.com\"\n    token = \"foobar\"") {
+	if !strings.Contains(string(data), "[profile.user]\ndefault = true\nemail = \"testing@fastly.com\"\ntoken = \"foobar\"") {
 		t.Error("expected legacy [user] section to be migrated to [profile.user]")
 	}
 
