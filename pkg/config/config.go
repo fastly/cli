@@ -46,6 +46,7 @@ const (
 )
 
 var (
+	currentConfigVersion int
 
 	// ErrLegacyConfig indicates that the local configuration file is using the
 	// legacy format.
@@ -339,7 +340,16 @@ func (f *File) Read(
 	errLog fsterr.LogInterface,
 	verbose bool,
 ) error {
-	var useStatic bool
+	// Ensure the static config is sound. This should never happen (tm).
+	// We are checking this earlier to simplify the code later on.
+	var staticConfig File
+	err := toml.Unmarshal(Static, &staticConfig)
+	if err != nil {
+		errLog.Add(err)
+		return invalidConfigErr(err)
+	}
+
+	currentConfigVersion = staticConfig.ConfigVersion
 
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
@@ -350,21 +360,13 @@ func (f *File) Read(
 	if err != nil {
 		errLog.Add(err)
 		data = Static
-		useStatic = true
 	}
 
 	unmarshalErr := toml.Unmarshal(data, f)
-
 	if unmarshalErr != nil {
 		errLog.Add(unmarshalErr)
 
-		// If the static embedded config failed to be unmarshalled, then that's
-		// unexpected and we can't recover from that.
-		if useStatic {
-			return invalidConfigErr(unmarshalErr)
-		}
-
-		// Otherwise if the local disk config failed to be unmarshalled, then
+		// If the local disk config failed to be unmarshalled, then
 		// ask the user if they would like us to replace their config with the
 		// version embedded into the CLI binary.
 
@@ -384,20 +386,7 @@ func (f *File) Read(
 			errLog.Add(err)
 			return err
 		}
-
-		data = Static
-
-		err = toml.Unmarshal(data, f)
-		if err != nil {
-			errLog.Add(err)
-			return invalidConfigErr(err)
-		}
-	}
-
-	// When using the embedded config the CLI.Version field won't be set, so we
-	// provide a default value that is the current CLI version running.
-	if useStatic {
-		f.CLI.Version = revision.SemVer(revision.AppVersion)
+		f = &staticConfig
 	}
 
 	err = createConfigDir(path)
@@ -406,46 +395,8 @@ func (f *File) Read(
 		return err
 	}
 
-	// The top-level 'user' section is what we're using to identify whether the
-	// local config.toml file is using a legacy format. If we find that key, then
-	// we must delete the file and return an error so that the calling code can
-	// take the appropriate action of creating the file anew.
-	tree, err := toml.LoadBytes(data)
-	if err != nil {
-		errLog.Add(err)
-
-		// NOTE: We do not expect this error block to ever be hit because if we've
-		// already successfully called toml.Unmarshal, then calling toml.LoadBytes
-		// should equally be successful, but we'll code defensively nonetheless.
-		return invalidConfigErr(err)
-	}
-
-	var legacyFormat bool
-
-	if user := tree.Get("user"); user != nil {
-		errLog.Add(ErrLegacyConfig)
-
-		if verbose {
-			text.Output(out, `
-        Found your local configuration file (required to use the CLI) was using a legacy format.
-        File will be updated to the latest format.
-      `)
-			text.Break(out)
-		}
-
-		legacyFormat = true
-	}
-
-	if legacyFormat || f.InvalidConfig(verbose, out) {
-		err = f.UseStatic(path)
-		if err != nil {
-			return err
-		}
-	}
-
-	// First time users will have the static config persisted to disk.
-	if useStatic {
-		f.Write(path)
+	if f.NeedsUpdating(data, out, errLog, verbose) {
+		return f.UseStatic(path)
 	}
 
 	return nil
@@ -476,24 +427,35 @@ func (f *File) MigrateLegacy() {
 	}
 }
 
-// InvalidConfig indicates if the application config is invalid.
-func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
-	var staticConfig File
-	err := toml.Unmarshal(Static, &staticConfig)
+// NeedsUpdating indicates if the application config needs updating.
+func (f *File) NeedsUpdating(data []byte, out io.Writer, errLog fsterr.LogInterface, verbose bool) bool {
+	tree, err := toml.LoadBytes(data)
 	if err != nil {
-		return true
+		// NOTE: We do not expect this error block to ever be hit because if we've
+		// already successfully called toml.Unmarshal, then calling toml.LoadBytes
+		// should equally be successful.
+		panic("LoadBytes failed but Unmarshal succeeded")
 	}
 
-	// If the ConfigVersion doesn't match, then this suggests a breaking change
-	// divergence in either the user's config or the CLI's config.
-	//
-	// If the CLI.Version doesn't match the CLI binary version, then this suggests
-	// a version update. This _might_ include a breaking change in the CLI's
-	// logic/implementation, or a new starter kit, for example.
-	// In this case we update the config regardless to ensure the
-	// CLI.Version is up to date.
 	switch {
-	case f.ConfigVersion != staticConfig.ConfigVersion:
+	case tree.Get("user") != nil:
+		// The top-level 'user' section is what we're using to identify whether the
+		// local config.toml file is using a legacy format. If we find that key, then
+		// we must delete the file and return an error so that the calling code can
+		// take the appropriate action of creating the file anew.
+		errLog.Add(ErrLegacyConfig)
+
+		if verbose {
+			text.Output(out, `
+				Found your local configuration file (required to use the CLI) was using a legacy format.
+				File will be updated to the latest format.
+			`)
+			text.Break(out)
+		}
+		return true
+	case f.ConfigVersion != currentConfigVersion:
+		// If the ConfigVersion doesn't match, then this suggests a breaking change
+		// divergence in either the user's config or the CLI's config.
 		if verbose {
 			text.Output(out, `
 				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
@@ -503,8 +465,14 @@ func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
 		}
 		return true
 	case f.CLI.Version != revision.SemVer(revision.AppVersion):
+		// If the CLI.Version doesn't match the CLI binary version, then this suggests
+		// a version update. This _might_ include a breaking change in the CLI's
+		// logic/implementation, or a new starter kit, for example.
+		// In this case we update the config regardless to ensure the
+		// CLI.Version is up to date.
 		return true
 	}
+
 	return false
 }
 
