@@ -510,6 +510,7 @@ func (f *File) Write(path string) (err error) {
 		return fmt.Errorf("error creating config file: %w", err)
 	}
 	encoder := toml.NewEncoder(fp)
+	// Remove leading spaces from the TOML file.
 	encoder.Indentation("")
 	if err := encoder.Encode(f); err != nil {
 		return fmt.Errorf("error writing to config file: %w", err)
