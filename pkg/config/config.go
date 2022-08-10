@@ -46,7 +46,7 @@ const (
 )
 
 var (
-	currentConfigVersion int
+	CurrentConfigVersion int
 
 	// ErrLegacyConfig indicates that the local configuration file is using the
 	// legacy format.
@@ -349,7 +349,7 @@ func (f *File) Read(
 		return invalidConfigErr(err)
 	}
 
-	currentConfigVersion = staticConfig.ConfigVersion
+	CurrentConfigVersion = staticConfig.ConfigVersion
 
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
@@ -453,7 +453,7 @@ func (f *File) NeedsUpdating(data []byte, out io.Writer, errLog fsterr.LogInterf
 			text.Break(out)
 		}
 		return true
-	case f.ConfigVersion != currentConfigVersion:
+	case f.ConfigVersion != CurrentConfigVersion:
 		// If the ConfigVersion doesn't match, then this suggests a breaking change
 		// divergence in either the user's config or the CLI's config.
 		if verbose {
