@@ -46,6 +46,7 @@ const (
 )
 
 var (
+	// CurrentConfigVersion indicates the present config version.
 	CurrentConfigVersion int
 
 	// ErrLegacyConfig indicates that the local configuration file is using the
