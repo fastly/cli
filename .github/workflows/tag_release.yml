@@ -22,9 +22,9 @@ jobs:
       run: |
         make config
     - name: "Display app config"
-      run: cat cmd/fastly/static/config.toml
+      run: cat pkg/config/config.toml
     - name: "Validate app config"
-      run: cat cmd/fastly/static/config.toml | grep 'remote_config = "https://developer.fastly.com/api/internal/cli-config"'
+      run: cat pkg/config/config.toml | grep 'remote_config = "https://developer.fastly.com/api/internal/cli-config"'
     # Passing the raw SSH private key causes an error:
     # Load key "/tmp/id_*": invalid format
     #

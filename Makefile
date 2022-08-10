@@ -29,9 +29,8 @@ GO_FILES = $(shell find cmd pkg -type f -name '*.go')
 fastly: dependencies $(GO_FILES)
 	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
 
-
 # useful for attaching a debugger such as https://github.com/go-delve/delve
-debug:
+debug: config
 	@$(GO_BIN) build -gcflags="all=-N -l" $(GO_ARGS) -o "fastly" ./cmd/fastly
 
 .PHONY: all
@@ -84,14 +83,6 @@ build: config
 .PHONY: install
 install: config
 	$(GO_BIN) install $(GO_ARGS) ./cmd/fastly
-
-.PHONY: changelog
-changelog:
-	@$(shell pwd)/scripts/changelog.sh
-
-.PHONY: release-changelog
-release-changelog:
-	@$(shell pwd)/scripts/release-changelog.sh
 
 .PHONY: config
 config:

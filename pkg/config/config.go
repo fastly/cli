@@ -349,8 +349,6 @@ func (f *File) Read(
 ) error {
 	var useStatic bool
 
-	const replacement = "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
-
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
 	// Disabling as we need to load the config.toml from the user's file system.
@@ -361,25 +359,6 @@ func (f *File) Read(
 		errLog.Add(err)
 		data = Static
 		useStatic = true
-
-		if !f.autoYes && !f.nonInteractive {
-			msg := "unable to load your configuration data"
-			label := fmt.Sprintf("We were %s. %s", msg, replacement)
-
-			cont, err := text.AskYesNo(out, label, in)
-			if err != nil {
-				return fmt.Errorf("error reading input: %w", err)
-			}
-
-			if !cont {
-				err := fsterr.RemediationError{
-					Inner:       fmt.Errorf(msg),
-					Remediation: RemediationManualFix,
-				}
-				errLog.Add(err)
-				return err
-			}
-		}
 	}
 
 	unmarshalErr := toml.Unmarshal(data, f)
@@ -399,6 +378,7 @@ func (f *File) Read(
 
 		text.Break(out)
 
+		replacement := "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
 		label := fmt.Sprintf("Your configuration file (%s) is invalid. %s", path, replacement)
 		cont, err := text.AskYesNo(out, label, in)
 		if err != nil {
@@ -469,6 +449,11 @@ func (f *File) Read(
 		if err != nil {
 			return err
 		}
+	}
+
+	// First time users will have the static config persisted to disk.
+	if useStatic {
+		f.Write(path)
 	}
 
 	return nil
