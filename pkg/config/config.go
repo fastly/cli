@@ -43,30 +43,22 @@ const (
 
 	// FilePermissions is the default file permissions for the config file.
 	FilePermissions = 0o600
-
-	// RemoteEndpoint represents the API endpoint where we'll pull the dynamic
-	// configuration file from.
-	//
-	// NOTE: once the configuration is stored locally, it will allow for
-	// overriding this default endpoint.
-	RemoteEndpoint = "https://developer.fastly.com/api/internal/cli-config"
-
-	// UpdateSuccessful represents the message shown to a user when their
-	// application configuration has been updated successfully.
-	UpdateSuccessful = "Successfully updated platform compatibility and versioning information."
 )
 
-// ErrLegacyConfig indicates that the local configuration file is using the
-// legacy format.
-var ErrLegacyConfig = errors.New("the configuration file is in the legacy format")
+var (
 
-// ErrInvalidConfig indicates that the configuration file used was invalid.
-var ErrInvalidConfig = errors.New("the configuration file is invalid")
+	// ErrLegacyConfig indicates that the local configuration file is using the
+	// legacy format.
+	ErrLegacyConfig = errors.New("the configuration file is in the legacy format")
 
-// RemediationManualFix indicates that the configuration file used was invalid
-// and that the user rejected the use of the static config embedded into the
-// compiled CLI binary and so the user must resolve their invalid config.
-var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
+	// ErrInvalidConfig indicates that the configuration file used was invalid.
+	ErrInvalidConfig = errors.New("the configuration file is invalid")
+
+	// RemediationManualFix indicates that the configuration file used was invalid
+	// and that the user rejected the use of the static config embedded into the
+	// compiled CLI binary and so the user must resolve their invalid config.
+	RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
+)
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -445,7 +437,7 @@ func (f *File) Read(
 	}
 
 	if legacyFormat || f.InvalidConfig(verbose, out) {
-		err = f.UseStatic(Static, path)
+		err = f.UseStatic(path)
 		if err != nil {
 			return err
 		}
@@ -514,8 +506,8 @@ func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
 // embedded into the CLI binary and writes it back to disk.
 //
 // NOTE: We will attempt to migrate the profile data.
-func (f *File) UseStatic(cfg []byte, path string) (err error) {
-	err = toml.Unmarshal(cfg, f)
+func (f *File) UseStatic(path string) (err error) {
+	err = toml.Unmarshal(Static, f)
 	if err != nil {
 		return invalidConfigErr(err)
 	}
