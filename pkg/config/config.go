@@ -481,8 +481,8 @@ func (f *File) NeedsUpdating(data []byte, out io.Writer, errLog fsterr.LogInterf
 // embedded into the CLI binary and writes it back to disk.
 //
 // NOTE: We will attempt to migrate the profile data.
-func (f *File) UseStatic(path string) (err error) {
-	err = toml.Unmarshal(Static, f)
+func (f *File) UseStatic(path string) error {
+	err := toml.Unmarshal(Static, f)
 	if err != nil {
 		return invalidConfigErr(err)
 	}
@@ -499,7 +499,7 @@ func (f *File) UseStatic(path string) (err error) {
 }
 
 // Write encodes in-memory data to disk.
-func (f *File) Write(path string) (err error) {
+func (f *File) Write(path string) error {
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
 	//
