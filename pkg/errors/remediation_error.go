@@ -154,3 +154,12 @@ var ComputeTrialRemediation = "For more help with this error see fastly.help/cli
 
 // ProfileRemediation suggests no profiles exist.
 var ProfileRemediation = "Run `fastly profile create <NAME>` to create a profile, or `fastly profile list` to view available profiles (at least one profile should be set as 'default')."
+
+// InvalidStaticConfigRemediation indicates an unexpected error occurred when
+// deserialising the CLI's internal configuration.
+var InvalidStaticConfigRemediation = strings.Join([]string{
+	"The Fastly CLI attempted to parse an internal configuration file but failed.",
+	"Run `fastly update` to upgrade your current CLI version.",
+	"If this does not resolve the issue, then please file an issue:",
+	"https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md",
+}, " ")

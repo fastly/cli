@@ -347,7 +347,7 @@ func (f *File) Read(
 	err := toml.Unmarshal(Static, &staticConfig)
 	if err != nil {
 		errLog.Add(err)
-		return invalidConfigErr(err)
+		return invalidStaticConfigErr(err)
 	}
 
 	CurrentConfigVersion = staticConfig.ConfigVersion
@@ -484,7 +484,7 @@ func (f *File) NeedsUpdating(data []byte, out io.Writer, errLog fsterr.LogInterf
 func (f *File) UseStatic(path string) error {
 	err := toml.Unmarshal(Static, f)
 	if err != nil {
-		return invalidConfigErr(err)
+		return invalidStaticConfigErr(err)
 	}
 
 	f.CLI.Version = revision.SemVer(revision.AppVersion)
@@ -549,11 +549,11 @@ type Flag struct {
 	Verbose        bool
 }
 
-// This suggests the application config is unexpectedly faulty and so we should
-// fail with a bug remediation.
-func invalidConfigErr(err error) error {
+// invalidStaticConfigErr generates an error to alert the user to an issue with
+// the CLI's internal configuration.
+func invalidStaticConfigErr(err error) error {
 	return fsterr.RemediationError{
 		Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, err),
-		Remediation: fsterr.BugRemediation,
+		Remediation: fsterr.InvalidStaticConfigRemediation,
 	}
 }
