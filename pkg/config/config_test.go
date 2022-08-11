@@ -221,7 +221,7 @@ func TestUseStatic(t *testing.T) {
 	if strings.Contains(string(data), "[user]") {
 		t.Error("expected legacy [user] section to be removed")
 	}
-	if !strings.Contains(string(data), "  [profile.user]\n    default = true\n    email = \"testing@fastly.com\"\n    token = \"foobar\"") {
+	if !strings.Contains(string(data), "[profile.user]\ndefault = true\nemail = \"testing@fastly.com\"\ntoken = \"foobar\"") {
 		t.Error("expected legacy [user] section to be migrated to [profile.user]")
 	}
 
@@ -316,6 +316,58 @@ func TestInvalidConfig(t *testing.T) {
 			output := strings.ReplaceAll(stdout.String(), "\n", " ")
 			if testcase.invalid {
 				testutil.AssertStringContains(t, output, "incompatible with the current CLI version")
+			}
+		})
+	}
+}
+
+func TestNeedsUpdating(t *testing.T) {
+	t.Parallel()
+
+	config.CurrentConfigVersion = 2
+
+	tests := []struct {
+		name     string
+		filename string
+		want     bool
+	}{
+		{
+			"legacy config should be updated",
+			"config-legacy.toml",
+			true,
+		},
+		{
+			"outdated config_version config should be updated",
+			"config.toml",
+			true,
+		},
+		{
+			"mismatching CLI version config should be updated",
+			"config-outdated-cli-version.toml",
+			true,
+		},
+		{
+			"current config should not be updated",
+			"config-current.toml",
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join("testdata", tt.filename))
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			var f config.File
+			if err = toml.Unmarshal(data, &f); err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			var stdout bytes.Buffer
+			mockLog := fsterr.MockLog{}
+			result := f.NeedsUpdating(data, &stdout, mockLog, true)
+			if result != tt.want {
+				t.Fatalf("expected %v got %v", tt.want, result)
 			}
 		})
 	}

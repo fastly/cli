@@ -43,30 +43,24 @@ const (
 
 	// FilePermissions is the default file permissions for the config file.
 	FilePermissions = 0o600
-
-	// RemoteEndpoint represents the API endpoint where we'll pull the dynamic
-	// configuration file from.
-	//
-	// NOTE: once the configuration is stored locally, it will allow for
-	// overriding this default endpoint.
-	RemoteEndpoint = "https://developer.fastly.com/api/internal/cli-config"
-
-	// UpdateSuccessful represents the message shown to a user when their
-	// application configuration has been updated successfully.
-	UpdateSuccessful = "Successfully updated platform compatibility and versioning information."
 )
 
-// ErrLegacyConfig indicates that the local configuration file is using the
-// legacy format.
-var ErrLegacyConfig = errors.New("the configuration file is in the legacy format")
+var (
+	// CurrentConfigVersion indicates the present config version.
+	CurrentConfigVersion int
 
-// ErrInvalidConfig indicates that the configuration file used was invalid.
-var ErrInvalidConfig = errors.New("the configuration file is invalid")
+	// ErrLegacyConfig indicates that the local configuration file is using the
+	// legacy format.
+	ErrLegacyConfig = errors.New("the configuration file is in the legacy format")
 
-// RemediationManualFix indicates that the configuration file used was invalid
-// and that the user rejected the use of the static config embedded into the
-// compiled CLI binary and so the user must resolve their invalid config.
-var RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
+	// ErrInvalidConfig indicates that the configuration file used was invalid.
+	ErrInvalidConfig = errors.New("the configuration file is invalid")
+
+	// RemediationManualFix indicates that the configuration file used was invalid
+	// and that the user rejected the use of the static config embedded into the
+	// compiled CLI binary and so the user must resolve their invalid config.
+	RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
+)
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -347,7 +341,16 @@ func (f *File) Read(
 	errLog fsterr.LogInterface,
 	verbose bool,
 ) error {
-	var useStatic bool
+	// Ensure the static config is sound. This should never happen (tm).
+	// We are checking this earlier to simplify the code later on.
+	var staticConfig File
+	err := toml.Unmarshal(Static, &staticConfig)
+	if err != nil {
+		errLog.Add(err)
+		return invalidStaticConfigErr(err)
+	}
+
+	CurrentConfigVersion = staticConfig.ConfigVersion
 
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// gosec flagged this:
@@ -358,21 +361,13 @@ func (f *File) Read(
 	if err != nil {
 		errLog.Add(err)
 		data = Static
-		useStatic = true
 	}
 
 	unmarshalErr := toml.Unmarshal(data, f)
-
 	if unmarshalErr != nil {
 		errLog.Add(unmarshalErr)
 
-		// If the static embedded config failed to be unmarshalled, then that's
-		// unexpected and we can't recover from that.
-		if useStatic {
-			return invalidConfigErr(unmarshalErr)
-		}
-
-		// Otherwise if the local disk config failed to be unmarshalled, then
+		// If the local disk config failed to be unmarshalled, then
 		// ask the user if they would like us to replace their config with the
 		// version embedded into the CLI binary.
 
@@ -392,20 +387,7 @@ func (f *File) Read(
 			errLog.Add(err)
 			return err
 		}
-
-		data = Static
-
-		err = toml.Unmarshal(data, f)
-		if err != nil {
-			errLog.Add(err)
-			return invalidConfigErr(err)
-		}
-	}
-
-	// When using the embedded config the CLI.Version field won't be set, so we
-	// provide a default value that is the current CLI version running.
-	if useStatic {
-		f.CLI.Version = revision.SemVer(revision.AppVersion)
+		f = &staticConfig
 	}
 
 	err = createConfigDir(path)
@@ -414,46 +396,8 @@ func (f *File) Read(
 		return err
 	}
 
-	// The top-level 'user' section is what we're using to identify whether the
-	// local config.toml file is using a legacy format. If we find that key, then
-	// we must delete the file and return an error so that the calling code can
-	// take the appropriate action of creating the file anew.
-	tree, err := toml.LoadBytes(data)
-	if err != nil {
-		errLog.Add(err)
-
-		// NOTE: We do not expect this error block to ever be hit because if we've
-		// already successfully called toml.Unmarshal, then calling toml.LoadBytes
-		// should equally be successful, but we'll code defensively nonetheless.
-		return invalidConfigErr(err)
-	}
-
-	var legacyFormat bool
-
-	if user := tree.Get("user"); user != nil {
-		errLog.Add(ErrLegacyConfig)
-
-		if verbose {
-			text.Output(out, `
-        Found your local configuration file (required to use the CLI) was using a legacy format.
-        File will be updated to the latest format.
-      `)
-			text.Break(out)
-		}
-
-		legacyFormat = true
-	}
-
-	if legacyFormat || f.InvalidConfig(verbose, out) {
-		err = f.UseStatic(Static, path)
-		if err != nil {
-			return err
-		}
-	}
-
-	// First time users will have the static config persisted to disk.
-	if useStatic {
-		f.Write(path)
+	if f.NeedsUpdating(data, out, errLog, verbose) {
+		return f.UseStatic(path)
 	}
 
 	return nil
@@ -484,20 +428,35 @@ func (f *File) MigrateLegacy() {
 	}
 }
 
-// InvalidConfig indicates if the application config is invalid.
-func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
-	var staticConfig File
-	err := toml.Unmarshal(Static, &staticConfig)
+// NeedsUpdating indicates if the application config needs updating.
+func (f *File) NeedsUpdating(data []byte, out io.Writer, errLog fsterr.LogInterface, verbose bool) bool {
+	tree, err := toml.LoadBytes(data)
 	if err != nil {
-		return true
+		// NOTE: We do not expect this error block to ever be hit because if we've
+		// already successfully called toml.Unmarshal, then calling toml.LoadBytes
+		// should equally be successful.
+		panic("LoadBytes failed but Unmarshal succeeded")
 	}
 
-	// If the ConfigVersion doesn't match, then this suggests a breaking change
-	// divergence in either the user's config or the CLI's config.
-	//
-	// If the CLI.Version doesn't match the CLI binary version, then this suggests
-	// a breaking change divergence in the CLI's logic/implementation.
-	if f.ConfigVersion != staticConfig.ConfigVersion || f.CLI.Version != revision.SemVer(revision.AppVersion) {
+	switch {
+	case tree.Get("user") != nil:
+		// The top-level 'user' section is what we're using to identify whether the
+		// local config.toml file is using a legacy format. If we find that key, then
+		// we must delete the file and return an error so that the calling code can
+		// take the appropriate action of creating the file anew.
+		errLog.Add(ErrLegacyConfig)
+
+		if verbose {
+			text.Output(out, `
+				Found your local configuration file (required to use the CLI) was using a legacy format.
+				File will be updated to the latest format.
+			`)
+			text.Break(out)
+		}
+		return true
+	case f.ConfigVersion != CurrentConfigVersion:
+		// If the ConfigVersion doesn't match, then this suggests a breaking change
+		// divergence in either the user's config or the CLI's config.
 		if verbose {
 			text.Output(out, `
 				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
@@ -506,7 +465,15 @@ func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
 			text.Break(out)
 		}
 		return true
+	case f.CLI.Version != revision.SemVer(revision.AppVersion):
+		// If the CLI.Version doesn't match the CLI binary version, then this suggests
+		// a version update. This _might_ include a breaking change in the CLI's
+		// logic/implementation, or a new starter kit, for example.
+		// In this case we update the config regardless to ensure the
+		// CLI.Version is up to date.
+		return true
 	}
+
 	return false
 }
 
@@ -514,10 +481,10 @@ func (f *File) InvalidConfig(verbose bool, out io.Writer) bool {
 // embedded into the CLI binary and writes it back to disk.
 //
 // NOTE: We will attempt to migrate the profile data.
-func (f *File) UseStatic(cfg []byte, path string) (err error) {
-	err = toml.Unmarshal(cfg, f)
+func (f *File) UseStatic(path string) error {
+	err := toml.Unmarshal(Static, f)
 	if err != nil {
-		return invalidConfigErr(err)
+		return invalidStaticConfigErr(err)
 	}
 
 	f.CLI.Version = revision.SemVer(revision.AppVersion)
@@ -532,7 +499,7 @@ func (f *File) UseStatic(cfg []byte, path string) (err error) {
 }
 
 // Write encodes in-memory data to disk.
-func (f *File) Write(path string) (err error) {
+func (f *File) Write(path string) error {
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
 	//
@@ -543,7 +510,10 @@ func (f *File) Write(path string) (err error) {
 	if err != nil {
 		return fmt.Errorf("error creating config file: %w", err)
 	}
-	if err := toml.NewEncoder(fp).Encode(f); err != nil {
+	encoder := toml.NewEncoder(fp)
+	// Remove leading spaces from the TOML file.
+	encoder.Indentation("")
+	if err := encoder.Encode(f); err != nil {
 		return fmt.Errorf("error writing to config file: %w", err)
 	}
 	if err := fp.Close(); err != nil {
@@ -579,11 +549,11 @@ type Flag struct {
 	Verbose        bool
 }
 
-// This suggests the application config is unexpectedly faulty and so we should
-// fail with a bug remediation.
-func invalidConfigErr(err error) error {
+// invalidStaticConfigErr generates an error to alert the user to an issue with
+// the CLI's internal configuration.
+func invalidStaticConfigErr(err error) error {
 	return fsterr.RemediationError{
 		Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, err),
-		Remediation: fsterr.BugRemediation,
+		Remediation: fsterr.InvalidStaticConfigRemediation,
 	}
 }
