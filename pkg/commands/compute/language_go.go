@@ -75,7 +75,7 @@ type Go struct {
 func (g Go) Initialize(out io.Writer) error {
 	// Remediation used in variation sections.
 	goURL := "https://go.dev/"
-	remediation := fmt.Sprintf("To fix this error, install %s by visiting:\n\n\t$ %s", g.toolchain, text.Bold(goURL))
+	remediation := fmt.Sprintf("To fix this error, install %s by visiting:\n\n\t$ %s\n\nThen execute:\n\n\t$ fastly compute init", g.toolchain, text.Bold(goURL))
 
 	var (
 		bin string
@@ -147,10 +147,11 @@ func (g Go) Initialize(out io.Writer) error {
 		}
 
 		if !filesystem.FileExists(m) {
-			remediation := "go mod init"
+			msg := fmt.Sprintf(fsterr.FormatTemplate, text.Bold("go mod init"))
+			remediation := fmt.Sprintf("%s\n\nThen execute:\n\n\t$ fastly compute init", msg)
 			err := fsterr.RemediationError{
 				Inner:       fmt.Errorf("%s not found", JSManifestName),
-				Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
+				Remediation: remediation,
 			}
 			g.errlog.Add(err)
 			return err

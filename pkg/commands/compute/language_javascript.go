@@ -112,7 +112,7 @@ func (j JavaScript) Initialize(out io.Writer) error {
 	if err != nil {
 		j.errlog.Add(err)
 		nodejsURL := "https://nodejs.org/"
-		remediation := fmt.Sprintf("To fix this error, install Node.js and %s by visiting:\n\n\t$ %s", j.toolchain, text.Bold(nodejsURL))
+		remediation := fmt.Sprintf("To fix this error, install Node.js and %s by visiting:\n\n\t$ %s\n\nThen execute:\n\n\t$ fastly compute init", j.toolchain, text.Bold(nodejsURL))
 
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("`%s` not found in $PATH", j.toolchain),
@@ -133,7 +133,8 @@ func (j JavaScript) Initialize(out io.Writer) error {
 	}
 
 	if !filesystem.FileExists(m) {
-		remediation := "npm init"
+		msg := fmt.Sprintf(fsterr.FormatTemplate, text.Bold("npm init"))
+		remediation := fmt.Sprintf("%s\n\nThen execute\n\n\t$ fastly compute init", msg)
 		err := fsterr.RemediationError{
 			Inner:       fmt.Errorf("%s not found", JSManifestName),
 			Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
