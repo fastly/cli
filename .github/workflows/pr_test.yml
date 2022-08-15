@@ -68,7 +68,7 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
-    - uses: acifani/setup-tinygo@v1
+    - uses: Integralist/setup-tinygo@v1.0.0
       with:
         tinygo-version: ${{ matrix.tinygo-version }}
     - name: "Restore golang bin cache"
