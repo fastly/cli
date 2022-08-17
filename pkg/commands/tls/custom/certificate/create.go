@@ -1,4 +1,4 @@
-package activations
+package certificate
 
 import (
 	"io"
@@ -13,13 +13,16 @@ import (
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
 	var c CreateCommand
-	c.CmdClause = parent.Command("enable", "Enable TLS for a particular TLS domain and certificate combination").Alias("add")
+	c.CmdClause = parent.Command("create", "Create a TLS certificate").Alias("add")
 	c.Globals = globals
 	c.manifest = data
 
 	// Required flags
-	c.CmdClause.Flag("cert-id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.certID)
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS activation").Required().StringVar(&c.id)
+	c.CmdClause.Flag("cert-blob", "The PEM-formatted certificate blob").Required().StringVar(&c.certBlob)
+
+	// Optional flags
+	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS certificate").StringVar(&c.id)
+	c.CmdClause.Flag("name", "A customizable name for your certificate. Defaults to the certificate's Common Name or first Subject Alternative Names (SAN) entry").StringVar(&c.name)
 
 	return &c
 }
@@ -28,34 +31,40 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 type CreateCommand struct {
 	cmd.Base
 
-	certID   string
+	certBlob string
 	id       string
 	manifest manifest.Data
+	name     string
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	input := c.constructInput()
 
-	r, err := c.Globals.APIClient.CreateTLSActivation(input)
+	r, err := c.Globals.APIClient.CreateCustomTLSCertificate(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"TLS Activation ID":             c.id,
-			"TLS Activation Certificate ID": c.certID,
+			"TLS Certificate ID":   c.id,
+			"TLS Certificate Name": c.name,
 		})
 		return err
 	}
 
-	text.Success(out, "Enabled TLS Activation '%s' (Certificate '%s')", r.ID, r.Certificate.ID)
+	text.Success(out, "Created TLS Certificate '%s'", r.ID)
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) constructInput() *fastly.CreateTLSActivationInput {
-	var input fastly.CreateTLSActivationInput
+func (c *CreateCommand) constructInput() *fastly.CreateCustomTLSCertificateInput {
+	var input fastly.CreateCustomTLSCertificateInput
 
-	input.ID = c.id
-	input.Certificate = &fastly.CustomTLSCertificate{ID: c.certID}
+	if c.id != "" {
+		input.ID = c.id
+	}
+	input.CertBlob = c.certBlob
+	if c.name != "" {
+		input.Name = c.name
+	}
 
 	return &input
 }

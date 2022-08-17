@@ -1,4 +1,4 @@
-package privatekeys
+package certificate
 
 import (
 	"io"
@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("private-keys", "Upload and manage private keys used to sign a Certificate")
+	c.CmdClause = parent.Command("certificate", "Upload and manage TLS certificates")
 	return &c
 }
 

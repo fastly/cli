@@ -1,4 +1,4 @@
-package activations
+package activation
 
 import (
 	"encoding/json"

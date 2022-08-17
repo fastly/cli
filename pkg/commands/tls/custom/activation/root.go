@@ -1,4 +1,4 @@
-package activations
+package activation
 
 import (
 	"io"
@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("activations", "Upload and manage TLS activations")
+	c.CmdClause = parent.Command("activation", "Upload and manage TLS activations")
 	return &c
 }
 

@@ -1,4 +1,4 @@
-package domains
+package domain
 
 import (
 	"io"
@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("domains", "Manage TLS domains")
+	c.CmdClause = parent.Command("domain", "Manage TLS domains")
 	return &c
 }
 

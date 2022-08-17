@@ -1,4 +1,4 @@
-package activations
+package activation
 
 import (
 	"io"
@@ -10,21 +10,22 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
-	var c UpdateCommand
-	c.CmdClause = parent.Command("update", "Update the certificate used to terminate TLS traffic for the domain associated with this TLS activation")
+// NewCreateCommand returns a usable command registered under the parent.
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
+	var c CreateCommand
+	c.CmdClause = parent.Command("enable", "Enable TLS for a particular TLS domain and certificate combination").Alias("add")
 	c.Globals = globals
 	c.manifest = data
 
 	// Required flags
 	c.CmdClause.Flag("cert-id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.certID)
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS activation").Required().StringVar(&c.id)
+
 	return &c
 }
 
-// UpdateCommand calls the Fastly API to update an appropriate resource.
-type UpdateCommand struct {
+// CreateCommand calls the Fastly API to create an appropriate resource.
+type CreateCommand struct {
 	cmd.Base
 
 	certID   string
@@ -33,10 +34,10 @@ type UpdateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	input := c.constructInput()
 
-	r, err := c.Globals.APIClient.UpdateTLSActivation(input)
+	r, err := c.Globals.APIClient.CreateTLSActivation(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"TLS Activation ID":             c.id,
@@ -45,13 +46,13 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated TLS Activation Certificate '%s' (previously: '%s')", r.Certificate.ID, input.Certificate.ID)
+	text.Success(out, "Enabled TLS Activation '%s' (Certificate '%s')", r.ID, r.Certificate.ID)
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *UpdateCommand) constructInput() *fastly.UpdateTLSActivationInput {
-	var input fastly.UpdateTLSActivationInput
+func (c *CreateCommand) constructInput() *fastly.CreateTLSActivationInput {
+	var input fastly.CreateTLSActivationInput
 
 	input.ID = c.id
 	input.Certificate = &fastly.CustomTLSCertificate{ID: c.certID}
