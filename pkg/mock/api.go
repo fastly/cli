@@ -282,6 +282,7 @@ type API struct {
 	GetCustomTLSConfigurationFn    func(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
 	ListCustomTLSConfigurationsFn  func(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
 	UpdateCustomTLSConfigurationFn func(i *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
+	GetTLSActivationFn             func(i *fastly.GetTLSActivationInput) (*fastly.TLSActivation, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1422,4 +1423,9 @@ func (m API) ListCustomTLSConfigurations(i *fastly.ListCustomTLSConfigurationsIn
 // UpdateCustomTLSConfiguration implements Interface.
 func (m API) UpdateCustomTLSConfiguration(i *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 	return m.UpdateCustomTLSConfigurationFn(i)
+}
+
+// GetTLSActivation implements Interface.
+func (m API) GetTLSActivation(i *fastly.GetTLSActivationInput) (*fastly.TLSActivation, error) {
+	return m.GetTLSActivationFn(i)
 }

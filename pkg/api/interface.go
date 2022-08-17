@@ -291,6 +291,7 @@ type Interface interface {
 	GetCustomTLSConfiguration(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
 	ListCustomTLSConfigurations(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
 	UpdateCustomTLSConfiguration(i *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
+	GetTLSActivation(i *fastly.GetTLSActivationInput) (*fastly.TLSActivation, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
