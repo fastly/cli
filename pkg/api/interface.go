@@ -301,6 +301,7 @@ type Interface interface {
 	DeleteCustomTLSCertificate(i *fastly.DeleteCustomTLSCertificateInput) error
 	GetCustomTLSCertificate(i *fastly.GetCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
 	ListCustomTLSCertificates(i *fastly.ListCustomTLSCertificatesInput) ([]*fastly.CustomTLSCertificate, error)
+	UpdateCustomTLSCertificate(i *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
