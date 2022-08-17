@@ -107,9 +107,11 @@ func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.CustomTLSConfigur
 
 		if len(r.DNSRecords) > 0 {
 			for _, v := range r.DNSRecords {
-				fmt.Fprintf(out, "DNS Record ID: %s\n", v.ID)
-				fmt.Fprintf(out, "DNS Record Type: %s\n", v.RecordType)
-				fmt.Fprintf(out, "DNS Record Region: %s\n", v.Region)
+				if v != nil {
+					fmt.Fprintf(out, "DNS Record ID: %s\n", v.ID)
+					fmt.Fprintf(out, "DNS Record Type: %s\n", v.RecordType)
+					fmt.Fprintf(out, "DNS Record Region: %s\n", v.Region)
+				}
 			}
 		}
 
@@ -156,7 +158,9 @@ func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.CustomTLSConfigur
 	for _, r := range rs {
 		drs := make([]string, len(r.DNSRecords))
 		for i, v := range r.DNSRecords {
-			drs[i] = v.ID
+			if v != nil {
+				drs[i] = v.ID
+			}
 		}
 		t.AddLine(
 			r.Name,

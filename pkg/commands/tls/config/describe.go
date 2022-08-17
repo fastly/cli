@@ -98,9 +98,11 @@ func (c *DescribeCommand) print(out io.Writer, r *fastly.CustomTLSConfiguration)
 
 	if len(r.DNSRecords) > 0 {
 		for _, v := range r.DNSRecords {
-			fmt.Fprintf(out, "DNS Record ID: %s\n", v.ID)
-			fmt.Fprintf(out, "DNS Record Type: %s\n", v.RecordType)
-			fmt.Fprintf(out, "DNS Record Region: %s\n", v.Region)
+			if v != nil {
+				fmt.Fprintf(out, "DNS Record ID: %s\n", v.ID)
+				fmt.Fprintf(out, "DNS Record Type: %s\n", v.RecordType)
+				fmt.Fprintf(out, "DNS Record Region: %s\n", v.Region)
+			}
 		}
 	}
 
