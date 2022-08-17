@@ -57,7 +57,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	r, err := c.Globals.APIClient.GetTLSActivation(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
-			"TLS Configuration ID": c.id,
+			"TLS Activation ID": c.id,
 		})
 		return err
 	}
