@@ -1,3 +1,6 @@
+.PHONY: default
+default: build ;
+
 SHELL := /bin/bash -o pipefail
 
 # the rationale for using both `git describe` and `git rev-parse` is because
