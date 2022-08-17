@@ -279,7 +279,8 @@ type API struct {
 	NewListDictionaryItemsPaginatorFn func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
 	NewListServicesPaginatorFn        func(i *fastly.ListServicesInput) fastly.PaginatorServices
 
-	GetCustomTLSConfigurationFn func(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
+	GetCustomTLSConfigurationFn   func(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
+	ListCustomTLSConfigurationsFn func(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1410,4 +1411,9 @@ func (m API) NewListServicesPaginator(i *fastly.ListServicesInput) fastly.Pagina
 // GetCustomTLSConfiguration implements Interface.
 func (m API) GetCustomTLSConfiguration(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 	return m.GetCustomTLSConfigurationFn(i)
+}
+
+// ListCustomTLSConfigurations implements Interface.
+func (m API) ListCustomTLSConfigurations(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error) {
+	return m.ListCustomTLSConfigurationsFn(i)
 }

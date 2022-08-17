@@ -289,6 +289,7 @@ type Interface interface {
 	NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices
 
 	GetCustomTLSConfiguration(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
+	ListCustomTLSConfigurations(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
