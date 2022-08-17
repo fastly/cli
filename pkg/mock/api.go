@@ -290,6 +290,7 @@ type API struct {
 
 	CreateCustomTLSCertificateFn func(i *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
 	DeleteCustomTLSCertificateFn func(i *fastly.DeleteCustomTLSCertificateInput) error
+	GetCustomTLSCertificateFn    func(i *fastly.GetCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1465,4 +1466,9 @@ func (m API) CreateCustomTLSCertificate(i *fastly.CreateCustomTLSCertificateInpu
 // DeleteCustomTLSCertificate implements Interface.
 func (m API) DeleteCustomTLSCertificate(i *fastly.DeleteCustomTLSCertificateInput) error {
 	return m.DeleteCustomTLSCertificateFn(i)
+}
+
+// GetCustomTLSCertificate implements Interface.
+func (m API) GetCustomTLSCertificate(i *fastly.GetCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+	return m.GetCustomTLSCertificateFn(i)
 }
