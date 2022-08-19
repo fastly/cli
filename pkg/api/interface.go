@@ -304,6 +304,8 @@ type Interface interface {
 	UpdateCustomTLSCertificate(i *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
 
 	ListTLSDomains(i *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error)
+
+	CreatePrivateKey(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

@@ -295,6 +295,8 @@ type API struct {
 	UpdateCustomTLSCertificateFn func(i *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
 
 	ListTLSDomainsFn func(i *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error)
+
+	CreatePrivateKeyFn func(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1490,4 +1492,9 @@ func (m API) UpdateCustomTLSCertificate(i *fastly.UpdateCustomTLSCertificateInpu
 // ListTLSDomains implements Interface.
 func (m API) ListTLSDomains(i *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error) {
 	return m.ListTLSDomainsFn(i)
+}
+
+// CreatePrivateKey implements Interface.
+func (m API) CreatePrivateKey(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error) {
+	return m.CreatePrivateKeyFn(i)
 }
