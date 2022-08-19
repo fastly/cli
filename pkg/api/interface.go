@@ -317,6 +317,7 @@ type Interface interface {
 
 	CreateTLSSubscription(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 	DeleteTLSSubscription(i *fastly.DeleteTLSSubscriptionInput) error
+	GetTLSSubscription(i *fastly.GetTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
