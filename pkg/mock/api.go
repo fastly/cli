@@ -298,6 +298,7 @@ type API struct {
 
 	CreatePrivateKeyFn func(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error)
 	DeletePrivateKeyFn func(i *fastly.DeletePrivateKeyInput) error
+	GetPrivateKeyFn    func(i *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1503,4 +1504,9 @@ func (m API) CreatePrivateKey(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateK
 // DeletePrivateKey implements Interface.
 func (m API) DeletePrivateKey(i *fastly.DeletePrivateKeyInput) error {
 	return m.DeletePrivateKeyFn(i)
+}
+
+// GetPrivateKey implements Interface.
+func (m API) GetPrivateKey(i *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error) {
+	return m.GetPrivateKeyFn(i)
 }
