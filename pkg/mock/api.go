@@ -310,6 +310,7 @@ type API struct {
 	DeleteTLSSubscriptionFn func(i *fastly.DeleteTLSSubscriptionInput) error
 	GetTLSSubscriptionFn    func(i *fastly.GetTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 	ListTLSSubscriptionsFn  func(i *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error)
+	UpdateTLSSubscriptionFn func(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1565,4 +1566,9 @@ func (m API) GetTLSSubscription(i *fastly.GetTLSSubscriptionInput) (*fastly.TLSS
 // ListTLSSubscriptions implements Interface.
 func (m API) ListTLSSubscriptions(i *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error) {
 	return m.ListTLSSubscriptionsFn(i)
+}
+
+// UpdateTLSSubscription implements Interface.
+func (m API) UpdateTLSSubscription(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+	return m.UpdateTLSSubscriptionFn(i)
 }
