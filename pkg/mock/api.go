@@ -297,6 +297,7 @@ type API struct {
 	ListTLSDomainsFn func(i *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error)
 
 	CreatePrivateKeyFn func(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error)
+	DeletePrivateKeyFn func(i *fastly.DeletePrivateKeyInput) error
 }
 
 // AllDatacenters implements Interface.
@@ -1497,4 +1498,9 @@ func (m API) ListTLSDomains(i *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain,
 // CreatePrivateKey implements Interface.
 func (m API) CreatePrivateKey(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error) {
 	return m.CreatePrivateKeyFn(i)
+}
+
+// DeletePrivateKey implements Interface.
+func (m API) DeletePrivateKey(i *fastly.DeletePrivateKeyInput) error {
+	return m.DeletePrivateKeyFn(i)
 }

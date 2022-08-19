@@ -306,6 +306,7 @@ type Interface interface {
 	ListTLSDomains(i *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error)
 
 	CreatePrivateKey(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error)
+	DeletePrivateKey(i *fastly.DeletePrivateKeyInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
