@@ -316,6 +316,7 @@ type Interface interface {
 	UpdateBulkCertificate(i *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error)
 
 	CreateTLSSubscription(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
+	DeleteTLSSubscription(i *fastly.DeleteTLSSubscriptionInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
