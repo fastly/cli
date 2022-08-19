@@ -308,6 +308,7 @@ type Interface interface {
 	CreatePrivateKey(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error)
 	DeletePrivateKey(i *fastly.DeletePrivateKeyInput) error
 	GetPrivateKey(i *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error)
+	ListPrivateKeys(i *fastly.ListPrivateKeysInput) ([]*fastly.PrivateKey, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
