@@ -312,6 +312,7 @@ type Interface interface {
 
 	DeleteBulkCertificate(i *fastly.DeleteBulkCertificateInput) error
 	GetBulkCertificate(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error)
+	ListBulkCertificates(i *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

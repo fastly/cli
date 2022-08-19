@@ -303,6 +303,7 @@ type API struct {
 
 	DeleteBulkCertificateFn func(i *fastly.DeleteBulkCertificateInput) error
 	GetBulkCertificateFn    func(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error)
+	ListBulkCertificatesFn  func(i *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1528,4 +1529,9 @@ func (m API) DeleteBulkCertificate(i *fastly.DeleteBulkCertificateInput) error {
 // GetBulkCertificate implements Interface.
 func (m API) GetBulkCertificate(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
 	return m.GetBulkCertificateFn(i)
+}
+
+// ListBulkCertificates implements Interface.
+func (m API) ListBulkCertificates(i *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
+	return m.ListBulkCertificatesFn(i)
 }
