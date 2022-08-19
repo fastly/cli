@@ -305,6 +305,8 @@ type API struct {
 	GetBulkCertificateFn    func(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error)
 	ListBulkCertificatesFn  func(i *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error)
 	UpdateBulkCertificateFn func(i *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error)
+
+	CreateTLSSubscriptionFn func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1540,4 +1542,9 @@ func (m API) ListBulkCertificates(i *fastly.ListBulkCertificatesInput) ([]*fastl
 // UpdateBulkCertificate implements Interface.
 func (m API) UpdateBulkCertificate(i *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 	return m.UpdateBulkCertificateFn(i)
+}
+
+// CreateTLSSubscription implements Interface.
+func (m API) CreateTLSSubscription(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+	return m.CreateTLSSubscriptionFn(i)
 }
