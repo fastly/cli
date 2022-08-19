@@ -12,8 +12,6 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
-var include = []string{"tls_certificate", "tls_configuration", "tls_domain"}
-
 // NewDescribeCommand returns a usable command registered under the parent.
 func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
 	var c DescribeCommand

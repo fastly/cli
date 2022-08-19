@@ -12,8 +12,6 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
-const include = "dns_records"
-
 // NewDescribeCommand returns a usable command registered under the parent.
 func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
 	var c DescribeCommand
