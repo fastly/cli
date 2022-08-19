@@ -47,6 +47,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
 			"TLS Bulk Certificate ID": c.id,
+			"Allow Untrusted":         c.allowUntrusted.Value,
 		})
 		return err
 	}
