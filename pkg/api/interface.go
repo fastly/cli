@@ -310,6 +310,7 @@ type Interface interface {
 	GetPrivateKey(i *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error)
 	ListPrivateKeys(i *fastly.ListPrivateKeysInput) ([]*fastly.PrivateKey, error)
 
+	CreateBulkCertificate(i *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error)
 	DeleteBulkCertificate(i *fastly.DeleteBulkCertificateInput) error
 	GetBulkCertificate(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error)
 	ListBulkCertificates(i *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error)

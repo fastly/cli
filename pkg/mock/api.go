@@ -301,6 +301,7 @@ type API struct {
 	GetPrivateKeyFn    func(i *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error)
 	ListPrivateKeysFn  func(i *fastly.ListPrivateKeysInput) ([]*fastly.PrivateKey, error)
 
+	CreateBulkCertificateFn func(i *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error)
 	DeleteBulkCertificateFn func(i *fastly.DeleteBulkCertificateInput) error
 	GetBulkCertificateFn    func(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error)
 	ListBulkCertificatesFn  func(i *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error)
@@ -1526,6 +1527,11 @@ func (m API) GetPrivateKey(i *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, er
 // ListPrivateKeys implements Interface.
 func (m API) ListPrivateKeys(i *fastly.ListPrivateKeysInput) ([]*fastly.PrivateKey, error) {
 	return m.ListPrivateKeysFn(i)
+}
+
+// CreateBulkCertificate implements Interface.
+func (m API) CreateBulkCertificate(i *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+	return m.CreateBulkCertificateFn(i)
 }
 
 // DeleteBulkCertificate implements Interface.
