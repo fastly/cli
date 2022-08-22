@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("tls-custom", "Upload and manage keys and certificates used to enable TLS for your domains on Fastly")
+	c.CmdClause = parent.Command("tls-custom", "Manage custom keys and certs used to enable TLS")
 	return &c
 }
 

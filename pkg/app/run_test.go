@@ -123,6 +123,10 @@ purge
 service
 service-version
 stats
+tls-config
+tls-custom
+tls-platform
+tls-subscription
 update
 user
 vcl
@@ -202,31 +206,35 @@ GLOBAL FLAGS
   -v, --verbose          Verbose logging
 
 COMMANDS
-  help             Show help.
-  acl              Manipulate Fastly ACLs (Access Control Lists)
-  acl-entry        Manipulate Fastly ACL (Access Control List) entries
-  auth-token       Manage API tokens for Fastly service users
-  backend          Manipulate Fastly service version backends
-  compute          Manage Compute@Edge packages
-  config           Display the Fastly CLI configuration
-  dictionary       Manipulate Fastly edge dictionaries
-  dictionary-item  Manipulate Fastly edge dictionary items
-  domain           Manipulate Fastly service version domains
-  healthcheck      Manipulate Fastly service version healthchecks
-  ip-list          List Fastly's public IPs
-  log-tail         Tail Compute@Edge logs
-  logging          Manipulate Fastly service version logging endpoints
-  pops             List Fastly datacenters
-  profile          Manage user profiles
-  purge            Invalidate objects in the Fastly cache
-  service          Manipulate Fastly services
-  service-version  Manipulate Fastly service versions
-  stats            View historical and realtime statistics for a Fastly service
-  update           Update the CLI to the latest version
-  user             Manipulate users of the Fastly API and web interface
-  vcl              Manipulate Fastly service version VCL
-  version          Display version information for the Fastly CLI
-  whoami           Get information about the currently authenticated account
+  help              Show help.
+  acl               Manipulate Fastly ACLs (Access Control Lists)
+  acl-entry         Manipulate Fastly ACL (Access Control List) entries
+  auth-token        Manage API tokens for Fastly service users
+  backend           Manipulate Fastly service version backends
+  compute           Manage Compute@Edge packages
+  config            Display the Fastly CLI configuration
+  dictionary        Manipulate Fastly edge dictionaries
+  dictionary-item   Manipulate Fastly edge dictionary items
+  domain            Manipulate Fastly service version domains
+  healthcheck       Manipulate Fastly service version healthchecks
+  ip-list           List Fastly's public IPs
+  log-tail          Tail Compute@Edge logs
+  logging           Manipulate Fastly service version logging endpoints
+  pops              List Fastly datacenters
+  profile           Manage user profiles
+  purge             Invalidate objects in the Fastly cache
+  service           Manipulate Fastly services
+  service-version   Manipulate Fastly service versions
+  stats             View historical and realtime statistics for a Fastly service
+  tls-config        Apply configuration options for each TLS enabled domain
+  tls-custom        Manage custom keys and certs used to enable TLS
+  tls-platform      Manage large numbers of TLS certificates
+  tls-subscription  Generate TLS certificates procured and renewed by Fastly
+  update            Update the CLI to the latest version
+  user              Manipulate users of the Fastly API and web interface
+  vcl               Manipulate Fastly service version VCL
+  version           Display version information for the Fastly CLI
+  whoami            Get information about the currently authenticated account
 
 SEE ALSO
   https://developer.fastly.com/reference/cli/
@@ -4599,6 +4607,267 @@ COMMANDS
   stats regions
     List stats regions
 
+
+  tls-config describe --id=ID [<flags>]
+    Show a TLS configuration
+
+        --id=ID            Alphanumeric string identifying a TLS configuration
+        --include=INCLUDE  Include related objects (comma-separated values)
+    -j, --json             Render output as JSON
+
+  tls-config list [<flags>]
+    List all TLS configurations
+
+        --filter-bulk        Optionally filter by the bulk attribute
+        --include=INCLUDE    Include related objects (comma-separated values)
+    -j, --json               Render output as JSON
+        --page=PAGE          Page number of data set to fetch
+        --per-page=PER-PAGE  Number of records per page
+
+  tls-config update --id=ID --name=NAME
+    Update a TLS configuration
+
+    --id=ID      Alphanumeric string identifying a TLS configuration
+    --name=NAME  A custom name for your TLS configuration
+
+  tls-custom activation enable --cert-id=CERT-ID --id=ID
+    Enable TLS for a particular TLS domain and certificate combination
+
+    --cert-id=CERT-ID  Alphanumeric string identifying a TLS certificate
+    --id=ID            Alphanumeric string identifying a TLS activation
+
+  tls-custom activation disable --id=ID
+    Disable TLS on the domain associated with this TLS activation
+
+    --id=ID  Alphanumeric string identifying a TLS activation
+
+  tls-custom activation describe --id=ID [<flags>]
+    Show a TLS configuration
+
+        --id=ID            Alphanumeric string identifying a TLS activation
+        --include=INCLUDE  Include related objects (comma-separated values)
+    -j, --json             Render output as JSON
+
+  tls-custom activation list [<flags>]
+    List all TLS activations
+
+        --filter-cert=FILTER-CERT  Limit the returned activations to a specific
+                                   certificate
+        --filter-config=FILTER-CONFIG
+                                   Limit the returned activations to a specific
+                                   TLS configuration
+        --filter-domain=FILTER-DOMAIN
+                                   Limit the returned rules to a specific domain
+                                   name
+        --include=INCLUDE          Include related objects (comma-separated
+                                   values)
+    -j, --json                     Render output as JSON
+        --page=PAGE                Page number of data set to fetch
+        --per-page=PER-PAGE        Number of records per page
+
+  tls-custom activation update --cert-id=CERT-ID --id=ID
+    Update the certificate used to terminate TLS traffic for the domain
+    associated with this TLS activation
+
+    --cert-id=CERT-ID  Alphanumeric string identifying a TLS certificate
+    --id=ID            Alphanumeric string identifying a TLS activation
+
+  tls-custom certificate create --cert-blob=CERT-BLOB [<flags>]
+    Create a TLS certificate
+
+    --cert-blob=CERT-BLOB  The PEM-formatted certificate blob
+    --id=ID                Alphanumeric string identifying a TLS certificate
+    --name=NAME            A customizable name for your certificate. Defaults
+                           to the certificate's Common Name or first Subject
+                           Alternative Names (SAN) entry
+
+  tls-custom certificate delete --id=ID
+    Destroy a TLS certificate. TLS certificates already enabled for a domain
+    cannot be destroyed
+
+    --id=ID  Alphanumeric string identifying a TLS certificate
+
+  tls-custom certificate describe --id=ID [<flags>]
+    Show a TLS certificate
+
+        --id=ID  Alphanumeric string identifying a TLS certificate
+    -j, --json   Render output as JSON
+
+  tls-custom certificate list [<flags>]
+    List all TLS certificates
+
+        --filter-not-after=FILTER-NOT-AFTER
+                             Limit the returned certificates to those that
+                             expire prior to the specified date in UTC
+        --filter-domain=FILTER-DOMAIN
+                             Limit the returned certificates to those that
+                             include the specific domain
+        --include=INCLUDE    Include related objects (comma-separated values)
+    -j, --json               Render output as JSON
+        --page=PAGE          Page number of data set to fetch
+        --per-page=PER-PAGE  Number of records per page
+        --sort=SORT          The order in which to list the results by creation
+                             date
+
+  tls-custom certificate update --cert-blob=CERT-BLOB --id=ID [<flags>]
+    Replace a TLS certificate with a newly reissued TLS certificate, or update a
+    TLS certificate's name
+
+    --cert-blob=CERT-BLOB  The PEM-formatted certificate blob
+    --id=ID                Alphanumeric string identifying a TLS certificate
+    --name=NAME            A customizable name for your certificate. Defaults
+                           to the certificate's Common Name or first Subject
+                           Alternative Names (SAN) entry
+
+  tls-custom list [<flags>]
+    List all TLS domains
+
+        --filter-cert=FILTER-CERT  Limit the returned domains to those listed in
+                                   the given TLS certificate's SAN list
+        --filter-in-use            Limit the returned domains to those currently
+                                   using Fastly to terminate TLS with SNI
+        --filter-subscription=FILTER-SUBSCRIPTION
+                                   Limit the returned domains to those for a
+                                   given TLS subscription
+        --include=INCLUDE          Include related objects (comma-separated
+                                   values)
+    -j, --json                     Render output as JSON
+        --page=PAGE                Page number of data set to fetch
+        --per-page=PER-PAGE        Number of records per page
+        --sort=SORT                The order in which to list the results by
+                                   creation date
+
+  tls-custom private-key create --key=KEY --name=NAME
+    Create a TLS certificate
+
+    --key=KEY    The contents of the private key. Must be a PEM-formatted key
+    --name=NAME  A customizable name for your private key
+
+  tls-custom private-key delete --id=ID
+    Destroy a TLS private key. Only private keys not already matched to any
+    certificates can be deleted
+
+    --id=ID  Alphanumeric string identifying a private Key
+
+  tls-custom private-key describe --id=ID [<flags>]
+    Show a TLS private key
+
+        --id=ID  Alphanumeric string identifying a private Key
+    -j, --json   Render output as JSON
+
+  tls-custom private-key list [<flags>]
+    List all TLS private keys
+
+        --filter-in-use=FILTER-IN-USE
+                             Limit the returned keys to those without any
+                             matching TLS certificates
+    -j, --json               Render output as JSON
+        --page=PAGE          Page number of data set to fetch
+        --per-page=PER-PAGE  Number of records per page
+
+  tls-platform upload --cert-blob=CERT-BLOB --intermediates-blob=INTERMEDIATES-BLOB [<flags>]
+    Upload a new certificate
+
+    --cert-blob=CERT-BLOB  The PEM-formatted certificate blob
+    --intermediates-blob=INTERMEDIATES-BLOB
+                           The PEM-formatted chain of intermediate blobs
+    --allow-untrusted      Allow certificates that chain to untrusted roots
+    --config=CONFIG ...    Alphanumeric string identifying a TLS configuration
+                           (set flag once per Configuration ID)
+
+  tls-platform delete --id=ID
+    Destroy a certificate. This disables TLS for all domains listed as SAN
+    entries
+
+    --id=ID  Alphanumeric string identifying a TLS bulk certificate
+
+  tls-platform describe --id=ID [<flags>]
+    Retrieve a single certificate
+
+        --id=ID  Alphanumeric string identifying a TLS bulk certificate
+    -j, --json   Render output as JSON
+
+  tls-platform list [<flags>]
+    List all certificates
+
+        --filter-domain=FILTER-DOMAIN
+                             Optionally filter by the bulk attribute
+    -j, --json               Render output as JSON
+        --page=PAGE          Page number of data set to fetch
+        --per-page=PER-PAGE  Number of records per page
+        --sort=SORT          The order in which to list the results by creation
+                             date
+
+  tls-platform update --id=ID --cert-blob=CERT-BLOB --intermediates-blob=INTERMEDIATES-BLOB [<flags>]
+    Replace a certificate with a newly reissued certificate
+
+    --id=ID                Alphanumeric string identifying a TLS bulk
+                           certificate
+    --cert-blob=CERT-BLOB  The PEM-formatted certificate blob
+    --intermediates-blob=INTERMEDIATES-BLOB
+                           The PEM-formatted chain of intermediate blobs
+    --allow-untrusted      Allow certificates that chain to untrusted roots
+
+  tls-subscription create --domain=DOMAIN [<flags>]
+    Create a new TLS subscription
+
+    --domain=DOMAIN ...        Domain(s) to add to the TLS certificates
+                               generated for the subscription (set flag once per
+                               domain)
+    --cert-auth=CERT-AUTH      The entity that issues and certifies the TLS
+                               certificates for your subscription. Valid values
+                               are lets-encrypt or globalsign
+    --common-name=COMMON-NAME  The domain name associated with the subscription.
+                               Default to the first domain specified by --domain
+    --config=CONFIG            Alphanumeric string identifying a TLS
+                               configuration
+
+  tls-subscription delete --id=ID [<flags>]
+    Destroy a TLS subscription. A subscription cannot be destroyed if there are
+    domains in the TLS enabled state
+
+    --id=ID  Alphanumeric string identifying a TLS subscription
+    --force  A flag that allows you to edit and delete a subscription with
+             active domains
+
+  tls-subscription describe --id=ID [<flags>]
+    Show a TLS subscription
+
+        --id=ID            Alphanumeric string identifying a TLS subscription
+        --include=INCLUDE  Include related objects (comma-separated values)
+    -j, --json             Render output as JSON
+
+  tls-subscription list [<flags>]
+    List all TLS subscriptions
+
+        --filter-active      Limit the returned subscriptions to those that have
+                             currently active orders
+        --filter-domain=FILTER-DOMAIN
+                             Limit the returned subscriptions to those that
+                             include the specific domain
+        --filter-state=FILTER-STATE
+                             Limit the returned subscriptions by state
+        --include=INCLUDE    Include related objects (comma-separated values)
+    -j, --json               Render output as JSON
+        --page=PAGE          Page number of data set to fetch
+        --per-page=PER-PAGE  Number of records per page
+        --sort=SORT          The order in which to list the results by creation
+                             date
+
+  tls-subscription update --id=ID --domain=DOMAIN [<flags>]
+    Change the TLS domains or common name associated with this subscription,
+    or update the TLS configuration for this set of domains
+
+    --id=ID                    Alphanumeric string identifying a TLS
+                               subscription
+    --common-name=COMMON-NAME  The domain name associated with the subscription
+    --config=CONFIG            Alphanumeric string identifying a TLS
+                               configuration
+    --domain=DOMAIN ...        Domain(s) to add to the TLS certificates
+                               generated for the subscription (set flag once per
+                               domain)
+    --force                    A flag that allows you to edit and delete a
+                               subscription with active domains
 
   update
     Update the CLI to the latest version

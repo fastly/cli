@@ -48,6 +48,15 @@ import (
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/stats"
+
+	tlsConfig "github.com/fastly/cli/pkg/commands/tls/config"
+	tlsCustom "github.com/fastly/cli/pkg/commands/tls/custom"
+	tlsCustomActivation "github.com/fastly/cli/pkg/commands/tls/custom/activation"
+	tlsCustomCertificate "github.com/fastly/cli/pkg/commands/tls/custom/certificate"
+	tlsCustomDomain "github.com/fastly/cli/pkg/commands/tls/custom/domain"
+	tlsCustomPrivateKey "github.com/fastly/cli/pkg/commands/tls/custom/privatekey"
+	tlsPlatform "github.com/fastly/cli/pkg/commands/tls/platform"
+	tlsSubscription "github.com/fastly/cli/pkg/commands/tls/subscription"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/commands/vcl"
@@ -311,6 +320,41 @@ func defineCommands(
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, globals, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, globals, data)
 	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, globals)
+	tlsConfigCmdRoot := tlsConfig.NewRootCommand(app, globals)
+	tlsConfigDescribe := tlsConfig.NewDescribeCommand(tlsConfigCmdRoot.CmdClause, globals, data)
+	tlsConfigList := tlsConfig.NewListCommand(tlsConfigCmdRoot.CmdClause, globals, data)
+	tlsConfigUpdate := tlsConfig.NewUpdateCommand(tlsConfigCmdRoot.CmdClause, globals, data)
+	tlsCustomCmdRoot := tlsCustom.NewRootCommand(app, globals)
+	tlsCustomActivationCmdRoot := tlsCustomActivation.NewRootCommand(tlsCustomCmdRoot.CmdClause, globals)
+	tlsCustomActivationCreate := tlsCustomActivation.NewCreateCommand(tlsCustomActivationCmdRoot.CmdClause, globals, data)
+	tlsCustomActivationDelete := tlsCustomActivation.NewDeleteCommand(tlsCustomActivationCmdRoot.CmdClause, globals, data)
+	tlsCustomActivationDescribe := tlsCustomActivation.NewDescribeCommand(tlsCustomActivationCmdRoot.CmdClause, globals, data)
+	tlsCustomActivationList := tlsCustomActivation.NewListCommand(tlsCustomActivationCmdRoot.CmdClause, globals, data)
+	tlsCustomActivationUpdate := tlsCustomActivation.NewUpdateCommand(tlsCustomActivationCmdRoot.CmdClause, globals, data)
+	tlsCustomCertificateCmdRoot := tlsCustomCertificate.NewRootCommand(tlsCustomCmdRoot.CmdClause, globals)
+	tlsCustomCertificateCreate := tlsCustomCertificate.NewCreateCommand(tlsCustomCertificateCmdRoot.CmdClause, globals, data)
+	tlsCustomCertificateDelete := tlsCustomCertificate.NewDeleteCommand(tlsCustomCertificateCmdRoot.CmdClause, globals, data)
+	tlsCustomCertificateDescribe := tlsCustomCertificate.NewDescribeCommand(tlsCustomCertificateCmdRoot.CmdClause, globals, data)
+	tlsCustomCertificateList := tlsCustomCertificate.NewListCommand(tlsCustomCertificateCmdRoot.CmdClause, globals, data)
+	tlsCustomCertificateUpdate := tlsCustomCertificate.NewUpdateCommand(tlsCustomCertificateCmdRoot.CmdClause, globals, data)
+	tlsCustomDomainList := tlsCustomDomain.NewListCommand(tlsCustomCmdRoot.CmdClause, globals, data)
+	tlsCustomPrivateKeyCmdRoot := tlsCustomPrivateKey.NewRootCommand(tlsCustomCmdRoot.CmdClause, globals)
+	tlsCustomPrivateKeyCreate := tlsCustomPrivateKey.NewCreateCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, globals, data)
+	tlsCustomPrivateKeyDelete := tlsCustomPrivateKey.NewDeleteCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, globals, data)
+	tlsCustomPrivateKeyDescribe := tlsCustomPrivateKey.NewDescribeCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, globals, data)
+	tlsCustomPrivateKeyList := tlsCustomPrivateKey.NewListCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, globals, data)
+	tlsPlatformCmdRoot := tlsPlatform.NewRootCommand(app, globals)
+	tlsPlatformCreate := tlsPlatform.NewCreateCommand(tlsPlatformCmdRoot.CmdClause, globals, data)
+	tlsPlatformDelete := tlsPlatform.NewDeleteCommand(tlsPlatformCmdRoot.CmdClause, globals, data)
+	tlsPlatformDescribe := tlsPlatform.NewDescribeCommand(tlsPlatformCmdRoot.CmdClause, globals, data)
+	tlsPlatformList := tlsPlatform.NewListCommand(tlsPlatformCmdRoot.CmdClause, globals, data)
+	tlsPlatformUpdate := tlsPlatform.NewUpdateCommand(tlsPlatformCmdRoot.CmdClause, globals, data)
+	tlsSubscriptionCmdRoot := tlsSubscription.NewRootCommand(app, globals)
+	tlsSubscriptionCreate := tlsSubscription.NewCreateCommand(tlsSubscriptionCmdRoot.CmdClause, globals, data)
+	tlsSubscriptionDelete := tlsSubscription.NewDeleteCommand(tlsSubscriptionCmdRoot.CmdClause, globals, data)
+	tlsSubscriptionDescribe := tlsSubscription.NewDescribeCommand(tlsSubscriptionCmdRoot.CmdClause, globals, data)
+	tlsSubscriptionList := tlsSubscription.NewListCommand(tlsSubscriptionCmdRoot.CmdClause, globals, data)
+	tlsSubscriptionUpdate := tlsSubscription.NewUpdateCommand(tlsSubscriptionCmdRoot.CmdClause, globals, data)
 	updateRoot := update.NewRootCommand(app, opts.ConfigPath, opts.Versioners.CLI, globals)
 	userCmdRoot := user.NewRootCommand(app, globals)
 	userCreate := user.NewCreateCommand(userCmdRoot.CmdClause, globals, data)
@@ -580,6 +624,41 @@ func defineCommands(
 		statsHistorical,
 		statsRealtime,
 		statsRegions,
+		tlsConfigCmdRoot,
+		tlsConfigDescribe,
+		tlsConfigList,
+		tlsConfigUpdate,
+		tlsCustomCmdRoot,
+		tlsCustomActivationCmdRoot,
+		tlsCustomActivationCreate,
+		tlsCustomActivationDelete,
+		tlsCustomActivationDescribe,
+		tlsCustomActivationList,
+		tlsCustomActivationUpdate,
+		tlsCustomCertificateCmdRoot,
+		tlsCustomCertificateCreate,
+		tlsCustomCertificateDelete,
+		tlsCustomCertificateDescribe,
+		tlsCustomCertificateList,
+		tlsCustomCertificateUpdate,
+		tlsCustomDomainList,
+		tlsCustomPrivateKeyCmdRoot,
+		tlsCustomPrivateKeyCreate,
+		tlsCustomPrivateKeyDelete,
+		tlsCustomPrivateKeyDescribe,
+		tlsCustomPrivateKeyList,
+		tlsPlatformCmdRoot,
+		tlsPlatformCreate,
+		tlsPlatformDelete,
+		tlsPlatformDescribe,
+		tlsPlatformList,
+		tlsPlatformUpdate,
+		tlsSubscriptionCmdRoot,
+		tlsSubscriptionCreate,
+		tlsSubscriptionDelete,
+		tlsSubscriptionDescribe,
+		tlsSubscriptionList,
+		tlsSubscriptionUpdate,
 		updateRoot,
 		userCmdRoot,
 		userCreate,
