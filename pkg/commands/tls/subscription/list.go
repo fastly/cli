@@ -23,7 +23,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.manifest = data
 
 	// Optional Flags
-	c.CmdClause.Flag("filter-active", "Limit the returned subscriptions to those that have currently active orders").HintOptions("true").EnumVar(&c.filterHasActiveOrder, "true")
+	c.CmdClause.Flag("filter-active", "Limit the returned subscriptions to those that have currently active orders").BoolVar(&c.filterHasActiveOrder)
 	c.CmdClause.Flag("filter-domain", "Limit the returned subscriptions to those that include the specific domain").StringVar(&c.filterTLSDomainID)
 	c.CmdClause.Flag("filter-state", "Limit the returned subscriptions by state").HintOptions(states...).EnumVar(&c.filterState, states...)
 	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include...).EnumVar(&c.include, include...)
@@ -44,7 +44,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 type ListCommand struct {
 	cmd.Base
 
-	filterHasActiveOrder string
+	filterHasActiveOrder bool
 	filterState          string
 	filterTLSDomainID    string
 	include              string
@@ -92,8 +92,8 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListTLSSubscriptionsInput {
 	var input fastly.ListTLSSubscriptionsInput
 
-	if c.filterHasActiveOrder != "" {
-		// TODO: implement in go-fastly
+	if c.filterHasActiveOrder {
+		input.FilterActiveOrders = c.filterHasActiveOrder
 	}
 	if c.filterState != "" {
 		input.FilterState = c.filterState
