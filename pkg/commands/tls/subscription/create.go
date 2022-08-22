@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
-const certAuth = []string{"lets-encrypt", "globalsign"}
+var certAuth = []string{"lets-encrypt", "globalsign"}
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
