@@ -197,3 +197,58 @@ func TestList(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdate(t *testing.T) {
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing --id flag",
+			Args:      args("tls-platform update --cert-blob example --intermediates-blob example"),
+			WantError: "error parsing arguments: required flag --id not provided",
+		},
+		{
+			Name:      "validate missing --cert-blob flag",
+			Args:      args("tls-platform update --id example --intermediates-blob example"),
+			WantError: "error parsing arguments: required flag --cert-blob not provided",
+		},
+		{
+			Name:      "validate missing --intermediates-blob flag",
+			Args:      args("tls-platform update --id example --cert-blob example"),
+			WantError: "error parsing arguments: required flag --intermediates-blob not provided",
+		},
+		{
+			Name: "validate API error",
+			API: mock.API{
+				UpdateBulkCertificateFn: func(_ *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+					return nil, testutil.Err
+				},
+			},
+			Args:      args("tls-platform update --id example --cert-blob example --intermediates-blob example"),
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Name: "validate API success",
+			API: mock.API{
+				UpdateBulkCertificateFn: func(_ *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+					return &fastly.BulkCertificate{
+						ID: "123",
+					}, nil
+				},
+			},
+			Args:       args("tls-platform update --id example --cert-blob example --intermediates-blob example"),
+			WantOutput: "Updated TLS Bulk Certificate '123'",
+		},
+	}
+
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
+		t.Run(testcase.Name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.API)
+			err := app.Run(opts)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+		})
+	}
+}

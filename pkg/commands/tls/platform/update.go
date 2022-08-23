@@ -52,7 +52,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated TLS Bulk Certificate '%s' (previously: '%s')", r.ID, input.ID)
+	text.Success(out, "Updated TLS Bulk Certificate '%s'", r.ID)
 	return nil
 }
 
