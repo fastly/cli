@@ -10,21 +10,28 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
+const (
+	validateAPIError      = "validate API error"
+	validateAPISuccess    = "validate API success"
+	validateMissingIDFlag = "validate missing --id flag"
+	mockResponseID        = "123"
+)
+
 func TestCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --cert-blob flag",
 			Args:      args("tls-platform upload --intermediates-blob example"),
-			WantError: "error parsing arguments: required flag --cert-blob not provided",
+			WantError: "required flag --cert-blob not provided",
 		},
 		{
 			Name:      "validate missing --intermediates-blob flag",
 			Args:      args("tls-platform upload --cert-blob example"),
-			WantError: "error parsing arguments: required flag --intermediates-blob not provided",
+			WantError: "required flag --intermediates-blob not provided",
 		},
 		{
-			Name: "validate API error",
+			Name: validateAPIError,
 			API: mock.API{
 				CreateBulkCertificateFn: func(_ *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
@@ -34,7 +41,7 @@ func TestCreate(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate API success",
+			Name: validateAPISuccess,
 			API: mock.API{
 				CreateBulkCertificateFn: func(_ *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return &fastly.BulkCertificate{
@@ -64,12 +71,12 @@ func TestDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --id flag",
+			Name:      validateMissingIDFlag,
 			Args:      args("tls-platform delete"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			Name: "validate API error",
+			Name: validateAPIError,
 			API: mock.API{
 				DeleteBulkCertificateFn: func(_ *fastly.DeleteBulkCertificateInput) error {
 					return testutil.Err
@@ -79,7 +86,7 @@ func TestDelete(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate API success",
+			Name: validateAPISuccess,
 			API: mock.API{
 				DeleteBulkCertificateFn: func(_ *fastly.DeleteBulkCertificateInput) error {
 					return nil
@@ -107,12 +114,12 @@ func TestDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --id flag",
+			Name:      validateMissingIDFlag,
 			Args:      args("tls-platform describe"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			Name: "validate API error",
+			Name: validateAPIError,
 			API: mock.API{
 				GetBulkCertificateFn: func(_ *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
@@ -122,7 +129,7 @@ func TestDescribe(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate API success",
+			Name: validateAPISuccess,
 			API: mock.API{
 				GetBulkCertificateFn: func(_ *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					t := testutil.Date
@@ -156,7 +163,7 @@ func TestList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name: "validate API error",
+			Name: validateAPIError,
 			API: mock.API{
 				ListBulkCertificatesFn: func(_ *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
@@ -166,13 +173,13 @@ func TestList(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate API success",
+			Name: validateAPISuccess,
 			API: mock.API{
 				ListBulkCertificatesFn: func(_ *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
 					t := testutil.Date
 					return []*fastly.BulkCertificate{
 						{
-							ID:        "123",
+							ID:        mockResponseID,
 							CreatedAt: &t,
 							UpdatedAt: &t,
 							Replace:   true,
@@ -181,7 +188,7 @@ func TestList(t *testing.T) {
 				},
 			},
 			Args:       args("tls-platform list --verbose"),
-			WantOutput: "\nID: 123\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: true\n",
+			WantOutput: "\nID: " + mockResponseID + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: true\n",
 		},
 	}
 
@@ -202,7 +209,7 @@ func TestUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --id flag",
+			Name:      validateMissingIDFlag,
 			Args:      args("tls-platform update --cert-blob example --intermediates-blob example"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
@@ -217,7 +224,7 @@ func TestUpdate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --intermediates-blob not provided",
 		},
 		{
-			Name: "validate API error",
+			Name: validateAPIError,
 			API: mock.API{
 				UpdateBulkCertificateFn: func(_ *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
@@ -227,11 +234,11 @@ func TestUpdate(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate API success",
+			Name: validateAPISuccess,
 			API: mock.API{
 				UpdateBulkCertificateFn: func(_ *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return &fastly.BulkCertificate{
-						ID: "123",
+						ID: mockResponseID,
 					}, nil
 				},
 			},

@@ -11,19 +11,35 @@ import (
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
+func NewUpdateCommand(
+	parent cmd.Registerer, globals *config.Data, data manifest.Data,
+) *UpdateCommand {
 	var c UpdateCommand
-	c.CmdClause = parent.Command("update", "Replace a certificate with a newly reissued certificate")
+	c.CmdClause = parent.Command(
+		"update", "Replace a certificate with a newly reissued certificate",
+	)
 	c.Globals = globals
 	c.manifest = data
 
 	// Required flags
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS bulk certificate").Required().StringVar(&c.id)
-	c.CmdClause.Flag("cert-blob", "The PEM-formatted certificate blob").Required().StringVar(&c.certBlob)
-	c.CmdClause.Flag("intermediates-blob", "The PEM-formatted chain of intermediate blobs").Required().StringVar(&c.intermediatesBlob)
+
+	c.CmdClause.Flag(
+		"id", "Alphanumeric string identifying a TLS bulk certificate",
+	).Required().StringVar(&c.id)
+
+	c.CmdClause.Flag(
+		"cert-blob", "The PEM-formatted certificate blob",
+	).Required().StringVar(&c.certBlob)
+
+	c.CmdClause.Flag(
+		"intermediates-blob", "The PEM-formatted chain of intermediate blobs",
+	).Required().StringVar(&c.intermediatesBlob)
 
 	// Optional flags
-	c.CmdClause.Flag("allow-untrusted", "Allow certificates that chain to untrusted roots").Action(c.allowUntrusted.Set).BoolVar(&c.allowUntrusted.Value)
+
+	c.CmdClause.Flag(
+		"allow-untrusted", "Allow certificates that chain to untrusted roots",
+	).Action(c.allowUntrusted.Set).BoolVar(&c.allowUntrusted.Value)
 
 	return &c
 }
@@ -40,12 +56,12 @@ type UpdateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := c.constructInput()
 
 	r, err := c.Globals.APIClient.UpdateBulkCertificate(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"TLS Bulk Certificate ID": c.id,
 			"Allow Untrusted":         c.allowUntrusted.Value,
 		})
@@ -56,7 +72,8 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-// constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
+// constructInput transforms values parsed from CLI flags into an object to be
+// used by the API client library.
 func (c *UpdateCommand) constructInput() *fastly.UpdateBulkCertificateInput {
 	var input fastly.UpdateBulkCertificateInput
 
