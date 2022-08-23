@@ -59,3 +59,52 @@ func TestCreate(t *testing.T) {
 		})
 	}
 }
+
+func TestDescribe(t *testing.T) {
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing --id flag",
+			Args:      args("tls-platform describe"),
+			WantError: "error parsing arguments: required flag --id not provided",
+		},
+		{
+			Name: "validate API error",
+			API: mock.API{
+				GetBulkCertificateFn: func(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
+					return nil, testutil.Err
+				},
+			},
+			Args:      args("tls-platform describe --id example"),
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Name: "validate API success",
+			API: mock.API{
+				GetBulkCertificateFn: func(_ *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
+					t := testutil.Date
+					return &fastly.BulkCertificate{
+						ID:        "123",
+						CreatedAt: &t,
+						UpdatedAt: &t,
+						Replace:   true,
+					}, nil
+				},
+			},
+			Args:       args("tls-platform describe --id example"),
+			WantOutput: "\nID: 123\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: true\n",
+		},
+	}
+
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
+		t.Run(testcase.Name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.API)
+			err := app.Run(opts)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+		})
+	}
+}
