@@ -28,7 +28,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	return &c
 }
 
-// UpdateCommand calls the Fastly API to update an appropriate resource.
+// CreateCommand calls the Fastly API to update an appropriate resource.
 type CreateCommand struct {
 	cmd.Base
 
