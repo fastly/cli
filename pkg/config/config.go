@@ -325,6 +325,7 @@ func (f *File) SetNonInteractive(v bool) {
 
 // NOTE: Static 👇 is public for the sake of the test suite.
 
+// Static is the embedded configuration file used by the CLI.:was
 //go:embed config.toml
 var Static []byte
 
