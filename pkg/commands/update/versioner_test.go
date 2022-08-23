@@ -39,13 +39,16 @@ type mockClient struct {
 func (c mockClient) GetLatestRelease(ctx context.Context, owner, repo string) (release *github.RepositoryRelease, response *github.Response, err error) {
 	return release, response, err
 }
+
 func (c mockClient) GetRelease(ctx context.Context, owner, repo string, id int64) (release *github.RepositoryRelease, response *github.Response, err error) {
 	return c.release, response, err
 }
+
 func (c mockClient) DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (asset io.ReadCloser, redirectURL string, err error) {
 	asset, err = os.Open(filepath.Join("testdata", c.name))
 	return asset, redirectURL, err
 }
+
 func (c mockClient) ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) (releases []*github.RepositoryRelease, response *github.Response, err error) {
 	return []*github.RepositoryRelease{c.release}, response, err
 }

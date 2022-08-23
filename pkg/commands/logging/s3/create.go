@@ -121,10 +121,8 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		return nil, fmt.Errorf("error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag")
 	} else if c.AccessKey.WasSet && !c.SecretKey.WasSet {
 		return nil, fmt.Errorf("error parsing arguments: required flag --secret-key not provided")
-
 	} else if !c.AccessKey.WasSet && c.SecretKey.WasSet {
 		return nil, fmt.Errorf("error parsing arguments: required flag --access-key not provided")
-
 	}
 
 	// The following blocks enforces the mutual exclusivity of the

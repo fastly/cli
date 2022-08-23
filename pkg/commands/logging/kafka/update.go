@@ -187,7 +187,6 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.AuthMethod.WasSet {
 		input.AuthMethod = fastly.String(c.AuthMethod.Value)
-
 	}
 
 	if c.User.WasSet {

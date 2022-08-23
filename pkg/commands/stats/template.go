@@ -70,7 +70,8 @@ func fmtBlock(out io.Writer, service string, block statsResponseData) error {
 		"Pass":         fmt.Sprintf("%30d", agg.Pass),
 		"Synth":        fmt.Sprintf("%30d", agg.Synth),
 		"Errors":       fmt.Sprintf("%30d", agg.Errors),
-		"Uncacheable":  fmt.Sprintf("%30d", agg.Uncachable)}
+		"Uncacheable":  fmt.Sprintf("%30d", agg.Uncachable),
+	}
 
 	return blockTemplate.Execute(out, values)
 }

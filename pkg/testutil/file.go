@@ -40,7 +40,7 @@ func CopyFile(t *testing.T, fromFilename, toFilename string) {
 	}()
 
 	toDir := filepath.Dir(toFilename)
-	if err := os.MkdirAll(toDir, 0750); err != nil {
+	if err := os.MkdirAll(toDir, 0o750); err != nil {
 		t.Fatal(err)
 	}
 
