@@ -132,7 +132,7 @@ func TestUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --id flag",
-			Args:      args("tls-config update"),
+			Args:      args("tls-config update --name example"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
