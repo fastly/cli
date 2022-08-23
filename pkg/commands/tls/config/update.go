@@ -44,7 +44,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated TLS Configuration '%s' (previously: '%s')", r.Name, input.Name)
+	text.Success(out, "Updated TLS Configuration '%s'", r.ID)
 	return nil
 }
 

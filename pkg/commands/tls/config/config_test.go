@@ -126,3 +126,53 @@ func TestList(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdate(t *testing.T) {
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name:      "validate missing --id flag",
+			Args:      args("tls-config update"),
+			WantError: "error parsing arguments: required flag --id not provided",
+		},
+		{
+			Name:      "validate missing --name flag",
+			Args:      args("tls-config update --id 123"),
+			WantError: "error parsing arguments: required flag --name not provided",
+		},
+		{
+			Name: "validate API error",
+			API: mock.API{
+				UpdateCustomTLSConfigurationFn: func(i *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
+					return nil, testutil.Err
+				},
+			},
+			Args:      args("tls-config update --id example --name example"),
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Name: "validate API success",
+			API: mock.API{
+				UpdateCustomTLSConfigurationFn: func(_ *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
+					return &fastly.CustomTLSConfiguration{
+						ID: "123",
+					}, nil
+				},
+			},
+			Args:       args("tls-config update --id example --name example"),
+			WantOutput: "Updated TLS Configuration '123'",
+		},
+	}
+
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
+		t.Run(testcase.Name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.API)
+			err := app.Run(opts)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+		})
+	}
+}
