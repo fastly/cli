@@ -26,7 +26,7 @@ func TestCreate(t *testing.T) {
 		{
 			Name: "validate API error",
 			API: mock.API{
-				CreateBulkCertificateFn: func(i *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+				CreateBulkCertificateFn: func(_ *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -36,7 +36,7 @@ func TestCreate(t *testing.T) {
 		{
 			Name: "validate API success",
 			API: mock.API{
-				CreateBulkCertificateFn: func(i *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+				CreateBulkCertificateFn: func(_ *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return &fastly.BulkCertificate{
 						ID: "123",
 					}, nil
@@ -71,7 +71,7 @@ func TestDelete(t *testing.T) {
 		{
 			Name: "validate API error",
 			API: mock.API{
-				DeleteBulkCertificateFn: func(i *fastly.DeleteBulkCertificateInput) error {
+				DeleteBulkCertificateFn: func(_ *fastly.DeleteBulkCertificateInput) error {
 					return testutil.Err
 				},
 			},
@@ -81,7 +81,7 @@ func TestDelete(t *testing.T) {
 		{
 			Name: "validate API success",
 			API: mock.API{
-				DeleteBulkCertificateFn: func(i *fastly.DeleteBulkCertificateInput) error {
+				DeleteBulkCertificateFn: func(_ *fastly.DeleteBulkCertificateInput) error {
 					return nil
 				},
 			},
@@ -114,7 +114,7 @@ func TestDescribe(t *testing.T) {
 		{
 			Name: "validate API error",
 			API: mock.API{
-				GetBulkCertificateFn: func(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
+				GetBulkCertificateFn: func(_ *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -135,6 +135,52 @@ func TestDescribe(t *testing.T) {
 				},
 			},
 			Args:       args("tls-platform describe --id example"),
+			WantOutput: "\nID: 123\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: true\n",
+		},
+	}
+
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
+		t.Run(testcase.Name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.API)
+			err := app.Run(opts)
+			testutil.AssertErrorContains(t, err, testcase.WantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+		})
+	}
+}
+
+func TestList(t *testing.T) {
+	args := testutil.Args
+	scenarios := []testutil.TestScenario{
+		{
+			Name: "validate API error",
+			API: mock.API{
+				ListBulkCertificatesFn: func(_ *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
+					return nil, testutil.Err
+				},
+			},
+			Args:      args("tls-platform list"),
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Name: "validate API success",
+			API: mock.API{
+				ListBulkCertificatesFn: func(_ *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
+					t := testutil.Date
+					return []*fastly.BulkCertificate{
+						{
+							ID:        "123",
+							CreatedAt: &t,
+							UpdatedAt: &t,
+							Replace:   true,
+						},
+					}, nil
+				},
+			},
+			Args:       args("tls-platform list --verbose"),
 			WantOutput: "\nID: 123\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: true\n",
 		},
 	}

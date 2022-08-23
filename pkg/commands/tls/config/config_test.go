@@ -109,7 +109,7 @@ func TestList(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-config list --filter-bulk --verbose"),
+			Args:       args("tls-config list --verbose"),
 			WantOutput: "\nID: 123\nName: Foo\nDNS Record ID: 456\nDNS Record Type: Bar\nDNS Record Region: Baz\nBulk: true\nDefault: true\nHTTP Protocol: 1.1\nTLS Protocol: 1.3\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
