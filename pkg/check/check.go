@@ -1,3 +1,4 @@
+// Package check provides functions for validating installed binaries.
 package check
 
 import (
