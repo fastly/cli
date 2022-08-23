@@ -101,6 +101,10 @@ func (g Go) Initialize(out io.Writer) error {
 
 	// 2. Check go version is correct.
 	{
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+		// Disabling as we trust the source of the variable.
+		/* #nosec */
 		cmd := exec.Command(bin, "version") // e.g. go version go1.18 darwin/amd64
 		stdoutStderr, err := cmd.CombinedOutput()
 		output := string(stdoutStderr)
@@ -209,6 +213,10 @@ func (g *Go) Verify(out io.Writer) error {
 
 	// 2. Check tinygo version is correct.
 	{
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+		// Disabling as we trust the source of the variable.
+		/* #nosec */
 		cmd := exec.Command(bin, "version") // e.g. tinygo version 0.24.0 darwin/amd64 (using go version go1.18 and LLVM version 14.0.0)
 		stdoutStderr, err := cmd.CombinedOutput()
 		output := string(stdoutStderr)
