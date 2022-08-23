@@ -211,17 +211,17 @@ func TestUpdate(t *testing.T) {
 		{
 			Name:      validateMissingIDFlag,
 			Args:      args("tls-platform update --cert-blob example --intermediates-blob example"),
-			WantError: "error parsing arguments: required flag --id not provided",
+			WantError: "required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --cert-blob flag",
 			Args:      args("tls-platform update --id example --intermediates-blob example"),
-			WantError: "error parsing arguments: required flag --cert-blob not provided",
+			WantError: "required flag --cert-blob not provided",
 		},
 		{
 			Name:      "validate missing --intermediates-blob flag",
 			Args:      args("tls-platform update --id example --cert-blob example"),
-			WantError: "error parsing arguments: required flag --intermediates-blob not provided",
+			WantError: "required flag --intermediates-blob not provided",
 		},
 		{
 			Name: validateAPIError,
