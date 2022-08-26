@@ -2,12 +2,19 @@ package config_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v6/fastly"
+)
+
+const (
+	validateAPIError   = "validate API error"
+	validateAPISuccess = "validate API success"
+	mockResponseID     = "123"
 )
 
 func TestDescribe(t *testing.T) {
@@ -19,7 +26,7 @@ func TestDescribe(t *testing.T) {
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			Name: "validate API error",
+			Name: validateAPIError,
 			API: mock.API{
 				GetCustomTLSConfigurationFn: func(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					return nil, testutil.Err
@@ -29,12 +36,12 @@ func TestDescribe(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate API success",
+			Name: validateAPISuccess,
 			API: mock.API{
 				GetCustomTLSConfigurationFn: func(_ *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					t := testutil.Date
 					return &fastly.CustomTLSConfiguration{
-						ID:   "123",
+						ID:   mockResponseID,
 						Name: "Foo",
 						DNSRecords: []*fastly.DNSRecord{
 							{
@@ -53,7 +60,7 @@ func TestDescribe(t *testing.T) {
 				},
 			},
 			Args:       args("tls-config describe --id example"),
-			WantOutput: "\nID: 123\nName: Foo\nDNS Record ID: 456\nDNS Record Type: Bar\nDNS Record Region: Baz\nBulk: true\nDefault: true\nHTTP Protocol: 1.1\nTLS Protocol: 1.3\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "\nID: " + mockResponseID + "\nName: Foo\nDNS Record ID: 456\nDNS Record Type: Bar\nDNS Record Region: Baz\nBulk: true\nDefault: true\nHTTP Protocol: 1.1\nTLS Protocol: 1.3\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
@@ -74,7 +81,7 @@ func TestList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name: "validate API error",
+			Name: validateAPIError,
 			API: mock.API{
 				ListCustomTLSConfigurationsFn: func(_ *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error) {
 					return nil, testutil.Err
@@ -84,13 +91,13 @@ func TestList(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate API success",
+			Name: validateAPISuccess,
 			API: mock.API{
-				ListCustomTLSConfigurationsFn: func(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error) {
+				ListCustomTLSConfigurationsFn: func(_ *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error) {
 					t := testutil.Date
 					return []*fastly.CustomTLSConfiguration{
 						{
-							ID:   "123",
+							ID:   mockResponseID,
 							Name: "Foo",
 							DNSRecords: []*fastly.DNSRecord{
 								{
@@ -110,7 +117,7 @@ func TestList(t *testing.T) {
 				},
 			},
 			Args:       args("tls-config list --verbose"),
-			WantOutput: "\nID: 123\nName: Foo\nDNS Record ID: 456\nDNS Record Type: Bar\nDNS Record Region: Baz\nBulk: true\nDefault: true\nHTTP Protocol: 1.1\nTLS Protocol: 1.3\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "\nID: " + mockResponseID + "\nName: Foo\nDNS Record ID: 456\nDNS Record Type: Bar\nDNS Record Region: Baz\nBulk: true\nDefault: true\nHTTP Protocol: 1.1\nTLS Protocol: 1.3\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
@@ -141,7 +148,7 @@ func TestUpdate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Name: "validate API error",
+			Name: validateAPIError,
 			API: mock.API{
 				UpdateCustomTLSConfigurationFn: func(i *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					return nil, testutil.Err
@@ -151,16 +158,16 @@ func TestUpdate(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Name: "validate API success",
+			Name: validateAPISuccess,
 			API: mock.API{
 				UpdateCustomTLSConfigurationFn: func(_ *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					return &fastly.CustomTLSConfiguration{
-						ID: "123",
+						ID: mockResponseID,
 					}, nil
 				},
 			},
 			Args:       args("tls-config update --id example --name example"),
-			WantOutput: "Updated TLS Configuration '123'",
+			WantOutput: fmt.Sprintf("Updated TLS Configuration '%s'", mockResponseID),
 		},
 	}
 

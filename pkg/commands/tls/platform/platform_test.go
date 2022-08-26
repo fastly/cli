@@ -2,6 +2,7 @@ package platform_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
@@ -45,12 +46,12 @@ func TestCreate(t *testing.T) {
 			API: mock.API{
 				CreateBulkCertificateFn: func(_ *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return &fastly.BulkCertificate{
-						ID: "123",
+						ID: mockResponseID,
 					}, nil
 				},
 			},
 			Args:       args("tls-platform upload --cert-blob example --intermediates-blob example"),
-			WantOutput: "Uploaded TLS Bulk Certificate '123'",
+			WantOutput: fmt.Sprintf("Uploaded TLS Bulk Certificate '%s'", mockResponseID),
 		},
 	}
 

@@ -10,6 +10,8 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
+const emptyString = ""
+
 var certAuth = []string{"lets-encrypt", "globalsign"}
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -42,12 +44,12 @@ type CreateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := c.constructInput()
 
 	r, err := c.Globals.APIClient.CreateTLSSubscription(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"TLS Domains":               c.domains,
 			"TLS Common Name":           c.commonName,
 			"TLS Configuration ID":      c.config,
@@ -56,7 +58,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created TLS Subscription '%s' (Authority: %s, Common Name: %s)", r.ID, r.CertificateAuthority, r.CommonName)
+	text.Success(out, "Created TLS Subscription '%s' (Authority: %s, Common Name: %s)", r.ID, r.CertificateAuthority, r.CommonName.ID)
 	return nil
 }
 
@@ -70,13 +72,13 @@ func (c *CreateCommand) constructInput() *fastly.CreateTLSSubscriptionInput {
 	}
 	input.Domains = domains
 
-	if c.commonName != "" {
+	if c.commonName != emptyString {
 		input.CommonName = &fastly.TLSDomain{ID: c.commonName}
 	}
-	if c.certAuth != "" {
+	if c.certAuth != emptyString {
 		input.CertificateAuthority = c.certAuth
 	}
-	if c.config != "" {
+	if c.config != emptyString {
 		input.Configuration = &fastly.TLSConfiguration{ID: c.config}
 	}
 
