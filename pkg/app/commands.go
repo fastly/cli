@@ -337,7 +337,8 @@ func defineCommands(
 	tlsCustomCertificateDescribe := tlsCustomCertificate.NewDescribeCommand(tlsCustomCertificateCmdRoot.CmdClause, globals, data)
 	tlsCustomCertificateList := tlsCustomCertificate.NewListCommand(tlsCustomCertificateCmdRoot.CmdClause, globals, data)
 	tlsCustomCertificateUpdate := tlsCustomCertificate.NewUpdateCommand(tlsCustomCertificateCmdRoot.CmdClause, globals, data)
-	tlsCustomDomainList := tlsCustomDomain.NewListCommand(tlsCustomCmdRoot.CmdClause, globals, data)
+	tlsCustomDomainCmdRoot := tlsCustomDomain.NewRootCommand(tlsCustomCmdRoot.CmdClause, globals)
+	tlsCustomDomainList := tlsCustomDomain.NewListCommand(tlsCustomDomainCmdRoot.CmdClause, globals, data)
 	tlsCustomPrivateKeyCmdRoot := tlsCustomPrivateKey.NewRootCommand(tlsCustomCmdRoot.CmdClause, globals)
 	tlsCustomPrivateKeyCreate := tlsCustomPrivateKey.NewCreateCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, globals, data)
 	tlsCustomPrivateKeyDelete := tlsCustomPrivateKey.NewDeleteCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, globals, data)
@@ -641,6 +642,7 @@ func defineCommands(
 		tlsCustomCertificateDescribe,
 		tlsCustomCertificateList,
 		tlsCustomCertificateUpdate,
+		tlsCustomDomainCmdRoot,
 		tlsCustomDomainList,
 		tlsCustomPrivateKeyCmdRoot,
 		tlsCustomPrivateKeyCreate,
