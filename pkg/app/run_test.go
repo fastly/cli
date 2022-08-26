@@ -4719,7 +4719,7 @@ COMMANDS
                            to the certificate's Common Name or first Subject
                            Alternative Names (SAN) entry
 
-  tls-custom list [<flags>]
+  tls-custom domain list [<flags>]
     List all TLS domains
 
         --filter-cert=FILTER-CERT  Limit the returned domains to those listed in
