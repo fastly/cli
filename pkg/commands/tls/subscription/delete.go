@@ -43,12 +43,12 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"TLS Subscription ID": c.id,
-			"Force":               c.force,
+			"Force":               c.force.Value,
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted TLS Subscription '%s' (force: %t)", c.id, c.force)
+	text.Success(out, "Deleted TLS Subscription '%s' (force: %t)", c.id, c.force.Value)
 	return nil
 }
 
