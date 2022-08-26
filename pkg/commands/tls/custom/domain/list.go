@@ -13,6 +13,8 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
+const emptyString = ""
+
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
 	var c ListCommand
@@ -54,7 +56,7 @@ type ListCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -63,7 +65,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	rs, err := c.Globals.APIClient.ListTLSDomains(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Filter In Use":            c.filterInUse,
 			"Filter TLS Certificates":  c.filterTLSCertsID,
 			"Filter TLS Subscriptions": c.filterTLSSubsID,
@@ -76,7 +78,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, rs)
+		printVerbose(out, rs)
 	} else {
 		err = c.printSummary(out, rs)
 		if err != nil {
@@ -93,13 +95,13 @@ func (c *ListCommand) constructInput() *fastly.ListTLSDomainsInput {
 	if c.filterInUse.WasSet {
 		input.FilterInUse = &c.filterInUse.Value
 	}
-	if c.filterTLSCertsID != "" {
+	if c.filterTLSCertsID != emptyString {
 		input.FilterTLSCertificateID = c.filterTLSCertsID
 	}
-	if c.filterTLSSubsID != "" {
+	if c.filterTLSSubsID != emptyString {
 		input.FilterTLSSubscriptionID = c.filterTLSSubsID
 	}
-	if c.include != "" {
+	if c.include != emptyString {
 		input.Include = c.include
 	}
 	if c.pageNumber > 0 {
@@ -117,7 +119,7 @@ func (c *ListCommand) constructInput() *fastly.ListTLSDomainsInput {
 
 // printVerbose displays the information returned from the API in a verbose
 // format.
-func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.TLSDomain) {
+func printVerbose(out io.Writer, rs []*fastly.TLSDomain) {
 	for _, r := range rs {
 		fmt.Fprintf(out, "\nID: %s\n", r.ID)
 		fmt.Fprintf(out, "Type: %s\n", r.Type)
@@ -133,7 +135,11 @@ func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.TLSDomain) error 
 		if err != nil {
 			return err
 		}
-		out.Write(data)
+		_, err = out.Write(data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error: unable to write data to stdout: %w", err)
+		}
 		return nil
 	}
 

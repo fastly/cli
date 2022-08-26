@@ -144,7 +144,11 @@ func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.TLSSubscription) 
 		if err != nil {
 			return err
 		}
-		out.Write(data)
+		_, err = out.Write(data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error: unable to write data to stdout: %w", err)
+		}
 		return nil
 	}
 

@@ -46,7 +46,7 @@ type ListCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -55,7 +55,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	rs, err := c.Globals.APIClient.ListPrivateKeys(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Filter In Use": c.filterInUse,
 			"Page Number":   c.pageNumber,
 			"Page Size":     c.pageSize,
@@ -64,7 +64,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, rs)
+		printVerbose(out, rs)
 	} else {
 		err = c.printSummary(out, rs)
 		if err != nil {
@@ -93,9 +93,8 @@ func (c *ListCommand) constructInput() *fastly.ListPrivateKeysInput {
 
 // printVerbose displays the information returned from the API in a verbose
 // format.
-func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.PrivateKey) {
+func printVerbose(out io.Writer, rs []*fastly.PrivateKey) {
 	for _, r := range rs {
-
 		fmt.Fprintf(out, "\nID: %s\n", r.ID)
 		fmt.Fprintf(out, "Name: %s\n", r.Name)
 		fmt.Fprintf(out, "Key Length: %d\n", r.KeyLength)
@@ -106,7 +105,7 @@ func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.PrivateKey) {
 			fmt.Fprintf(out, "Created at: %s\n", r.CreatedAt)
 		}
 
-		fmt.Fprintf(out, "Key Type: %t\n", r.Replace)
+		fmt.Fprintf(out, "Replace: %t\n", r.Replace)
 		fmt.Fprintf(out, "\n")
 	}
 }
@@ -119,7 +118,11 @@ func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.PrivateKey) error
 		if err != nil {
 			return err
 		}
-		out.Write(data)
+		_, err = out.Write(data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error: unable to write data to stdout: %w", err)
+		}
 		return nil
 	}
 

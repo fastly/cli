@@ -13,6 +13,8 @@ import (
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
+const emptyString = ""
+
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
 	var c ListCommand
@@ -52,7 +54,7 @@ type ListCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -61,7 +63,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	rs, err := c.Globals.APIClient.ListCustomTLSCertificates(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Filter Not After":     c.filterNotAfter,
 			"Filter TLS Domain ID": c.filterTLSDomainID,
 			"Include":              c.include,
@@ -73,7 +75,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, rs)
+		printVerbose(out, rs)
 	} else {
 		err = c.printSummary(out, rs)
 		if err != nil {
@@ -87,13 +89,13 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListCustomTLSCertificatesInput {
 	var input fastly.ListCustomTLSCertificatesInput
 
-	if c.filterNotAfter != "" {
+	if c.filterNotAfter != emptyString {
 		input.FilterNotAfter = c.filterNotAfter
 	}
-	if c.filterTLSDomainID != "" {
+	if c.filterTLSDomainID != emptyString {
 		input.FilterTLSDomainsID = c.filterTLSDomainID
 	}
-	if c.include != "" {
+	if c.include != emptyString {
 		input.Include = c.include
 	}
 	if c.pageNumber > 0 {
@@ -111,9 +113,8 @@ func (c *ListCommand) constructInput() *fastly.ListCustomTLSCertificatesInput {
 
 // printVerbose displays the information returned from the API in a verbose
 // format.
-func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.CustomTLSCertificate) {
+func printVerbose(out io.Writer, rs []*fastly.CustomTLSCertificate) {
 	for _, r := range rs {
-
 		fmt.Fprintf(out, "\nID: %s\n", r.ID)
 		fmt.Fprintf(out, "Issued to: %s\n", r.IssuedTo)
 		fmt.Fprintf(out, "Issuer: %s\n", r.Issuer)
@@ -149,7 +150,11 @@ func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.CustomTLSCertific
 		if err != nil {
 			return err
 		}
-		out.Write(data)
+		_, err = out.Write(data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error: unable to write data to stdout: %w", err)
+		}
 		return nil
 	}
 
