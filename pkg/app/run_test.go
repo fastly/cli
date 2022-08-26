@@ -4854,7 +4854,7 @@ COMMANDS
         --sort=SORT          The order in which to list the results by creation
                              date
 
-  tls-subscription update --id=ID --domain=DOMAIN [<flags>]
+  tls-subscription update --id=ID [<flags>]
     Change the TLS domains or common name associated with this subscription,
     or update the TLS configuration for this set of domains
 
