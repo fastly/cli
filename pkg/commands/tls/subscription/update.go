@@ -42,12 +42,12 @@ type UpdateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := c.constructInput()
 
 	r, err := c.Globals.APIClient.UpdateTLSSubscription(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"TLS Subscription ID": c.id,
 			"Force":               c.force.Value,
 		})
