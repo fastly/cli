@@ -26,7 +26,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause.Flag("filter-active", "Limit the returned subscriptions to those that have currently active orders").BoolVar(&c.filterHasActiveOrder)
 	c.CmdClause.Flag("filter-domain", "Limit the returned subscriptions to those that include the specific domain").StringVar(&c.filterTLSDomainID)
 	c.CmdClause.Flag("filter-state", "Limit the returned subscriptions by state").HintOptions(states...).EnumVar(&c.filterState, states...)
-	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include...).EnumVar(&c.include, include...)
+	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include...).EnumVar(&c.include, include...) // include is defined in ./describe.go
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
