@@ -126,7 +126,7 @@ func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.CustomTLSCertific
 			fmt.Fprintf(out, "Not before: %s\n", r.NotBefore)
 		}
 
-		fmt.Fprintf(out, "Name: %t\n", r.Replace)
+		fmt.Fprintf(out, "Replace: %t\n", r.Replace)
 		fmt.Fprintf(out, "Serial number: %s\n", r.SerialNumber)
 		fmt.Fprintf(out, "Signature algorithm: %s\n", r.SignatureAlgorithm)
 
