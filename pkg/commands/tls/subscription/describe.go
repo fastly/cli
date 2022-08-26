@@ -47,7 +47,7 @@ type DescribeCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -56,7 +56,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	r, err := c.Globals.APIClient.GetTLSSubscription(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"TLS Subscription ID": c.id,
 			"Include":             c.include,
 		})
@@ -90,7 +90,12 @@ func (c *DescribeCommand) print(out io.Writer, r *fastly.TLSSubscription) error 
 		if err != nil {
 			return err
 		}
-		out.Write(data)
+		_, err = out.Write(data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error: unable to write data to stdout: %w", err)
+		}
+
 		return nil
 	}
 
