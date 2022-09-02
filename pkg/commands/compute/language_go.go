@@ -161,7 +161,7 @@ func (g Go) Initialize(out io.Writer) error {
 			return err
 		}
 
-		if err := g.setPackageName(g.pkgName, GoManifestName); err != nil {
+		if err := g.setPackageName(GoManifestName); err != nil {
 			g.errlog.Add(err)
 			return fmt.Errorf("error updating %s manifest: %w", GoManifestName, err)
 		}
@@ -332,7 +332,7 @@ func (g Go) execCommand(cmd string, args []string, out, progress io.Writer, verb
 // NOTE: The implementation scans the go.mod line-by-line looking for the
 // module directive (typically the first line, but not guaranteed) and replaces
 // the module path with the user's configured package name.
-func (g Go) setPackageName(_, path string) (err error) {
+func (g Go) setPackageName(path string) (err error) {
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
 	//
