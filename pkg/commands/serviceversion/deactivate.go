@@ -48,7 +48,7 @@ func NewDeactivateCommand(parent cmd.Registerer, globals *config.Data, data mani
 }
 
 // Exec invokes the application logic for the command.
-func (c *DeactivateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DeactivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,

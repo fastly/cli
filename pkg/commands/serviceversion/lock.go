@@ -48,7 +48,7 @@ func NewLockCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec invokes the application logic for the command.
-func (c *LockCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *LockCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,

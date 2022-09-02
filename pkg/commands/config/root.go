@@ -30,7 +30,7 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) (err error) {
+func (c *RootCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if c.location {
 		if c.Globals.Flag.Verbose {
 			text.Break(out)

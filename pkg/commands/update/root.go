@@ -34,7 +34,7 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner V
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	current, latest, shouldUpdate := Check(context.Background(), revision.AppVersion, c.cliVersioner)
 
 	text.Break(out)

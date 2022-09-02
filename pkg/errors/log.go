@@ -37,13 +37,13 @@ type LogInterface interface {
 type MockLog struct{}
 
 // Add adds an error to the mock log.
-func (ml MockLog) Add(err error) {}
+func (ml MockLog) Add(_ error) {}
 
 // AddWithContext adds an error and context to the mock log.
-func (ml MockLog) AddWithContext(err error, ctx map[string]any) {}
+func (ml MockLog) AddWithContext(_ error, _ map[string]any) {}
 
 // Persist writes the error data to logPath.
-func (ml MockLog) Persist(logPath string, args []string) error { return nil }
+func (ml MockLog) Persist(_ string, _ []string) error { return nil }
 
 // Log is the primary interface for consumers.
 var Log = new(LogEntries)

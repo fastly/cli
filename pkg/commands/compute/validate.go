@@ -22,7 +22,7 @@ func NewValidateCommand(parent cmd.Registerer, globals *config.Data) *ValidateCo
 }
 
 // Exec implements the command interface.
-func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	p, err := filepath.Abs(c.path)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

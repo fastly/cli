@@ -75,7 +75,7 @@ type UpdateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
@@ -135,7 +135,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 // constructDynamicInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *UpdateCommand) constructDynamicInput(serviceID string, serviceVersion int) (*fastly.UpdateDynamicSnippetInput, error) {
+func (c *UpdateCommand) constructDynamicInput(serviceID string, _ int) (*fastly.UpdateDynamicSnippetInput, error) {
 	var input fastly.UpdateDynamicSnippetInput
 
 	input.ID = c.snippetID

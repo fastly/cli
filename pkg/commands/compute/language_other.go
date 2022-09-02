@@ -34,12 +34,12 @@ func NewOther(scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int)
 }
 
 // Initialize is a no-op.
-func (o Other) Initialize(out io.Writer) error {
+func (o Other) Initialize(_ io.Writer) error {
 	return nil
 }
 
 // Verify is a no-op.
-func (o Other) Verify(out io.Writer) error {
+func (o Other) Verify(_ io.Writer) error {
 	return nil
 }
 

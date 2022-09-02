@@ -57,7 +57,7 @@ type ValidateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return errors.ErrNoToken

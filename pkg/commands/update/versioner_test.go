@@ -36,26 +36,26 @@ type mockClient struct {
 
 // Satisfy the GitHubRepoClient interface...
 
-func (c mockClient) GetLatestRelease(ctx context.Context, owner, repo string) (release *github.RepositoryRelease, response *github.Response, err error) {
+func (c mockClient) GetLatestRelease(_ context.Context, _, _ string) (release *github.RepositoryRelease, response *github.Response, err error) {
 	return release, response, err
 }
 
-func (c mockClient) GetRelease(ctx context.Context, owner, repo string, id int64) (release *github.RepositoryRelease, response *github.Response, err error) {
+func (c mockClient) GetRelease(_ context.Context, _, _ string, _ int64) (release *github.RepositoryRelease, response *github.Response, err error) {
 	return c.release, response, err
 }
 
-func (c mockClient) DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (asset io.ReadCloser, redirectURL string, err error) {
+func (c mockClient) DownloadReleaseAsset(_ context.Context, _, _ string, _ int64, _ *http.Client) (asset io.ReadCloser, redirectURL string, err error) {
 	asset, err = os.Open(filepath.Join("testdata", c.name))
 	return asset, redirectURL, err
 }
 
-func (c mockClient) ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) (releases []*github.RepositoryRelease, response *github.Response, err error) {
+func (c mockClient) ListReleases(_ context.Context, _, _ string, _ *github.ListOptions) (releases []*github.RepositoryRelease, response *github.Response, err error) {
 	return []*github.RepositoryRelease{c.release}, response, err
 }
 
 // Mock some functions called by Download() method...
 
-func (c mockClient) GetReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
+func (c mockClient) GetReleaseID(_ context.Context, _ semver.Version) (id int64, err error) {
 	return id, err
 }
 

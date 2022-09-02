@@ -67,7 +67,7 @@ type DescribeCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -138,7 +138,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 // constructDynamicInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *DescribeCommand) constructDynamicInput(serviceID string, serviceVersion int) (*fastly.GetDynamicSnippetInput, error) {
+func (c *DescribeCommand) constructDynamicInput(serviceID string, _ int) (*fastly.GetDynamicSnippetInput, error) {
 	var input fastly.GetDynamicSnippetInput
 
 	input.ID = c.snippetID

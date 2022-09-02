@@ -47,7 +47,7 @@ func NewRealtimeCommand(parent cmd.Registerer, globals *config.Data, data manife
 }
 
 // Exec implements the command interface.
-func (c *RealtimeCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *RealtimeCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err

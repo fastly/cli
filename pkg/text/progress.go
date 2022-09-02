@@ -292,7 +292,7 @@ func NewQuietProgress(output io.Writer) *QuietProgress {
 }
 
 // Tick implements the Progress interface. It's a no-op.
-func (p *QuietProgress) Tick(r rune) {}
+func (p *QuietProgress) Tick(_ rune) {}
 
 // Tick implements the Progress interface.
 func (p *QuietProgress) Write(buf []byte) (int, error) {
@@ -329,7 +329,7 @@ func NewVerboseProgress(output io.Writer) *VerboseProgress {
 }
 
 // Tick implements the Progress interface. It's a no-op.
-func (p *VerboseProgress) Tick(r rune) {}
+func (p *VerboseProgress) Tick(_ rune) {}
 
 // Tick implements the Progress interface.
 func (p *VerboseProgress) Write(buf []byte) (int, error) {
@@ -365,7 +365,7 @@ func NewNullProgress() *NullProgress {
 }
 
 // Tick implements the Progress interface. It's a no-opt
-func (p *NullProgress) Tick(r rune) {}
+func (p *NullProgress) Tick(_ rune) {}
 
 // Tick implements the Progress interface.
 func (p *NullProgress) Write(buf []byte) (int, error) {
@@ -373,7 +373,7 @@ func (p *NullProgress) Write(buf []byte) (int, error) {
 }
 
 // Step implements the Progress interface.
-func (p *NullProgress) Step(msg string) {}
+func (p *NullProgress) Step(_ string) {}
 
 // Done implements the Progress interface. It's a no-op.
 func (p *NullProgress) Done() {}

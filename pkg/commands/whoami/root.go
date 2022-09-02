@@ -29,7 +29,7 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	endpoint, _ := c.Globals.Endpoint()
 	fullurl := fmt.Sprintf("%s/verify", strings.TrimSuffix(endpoint, "/"))
 	req, err := http.NewRequest("GET", fullurl, nil)

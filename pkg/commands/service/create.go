@@ -27,7 +27,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	s, err := c.Globals.APIClient.CreateService(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

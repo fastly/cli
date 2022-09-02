@@ -35,7 +35,7 @@ func NewPackCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec implements the command interface.
-func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
+func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	progress := text.NewProgress(out, c.Globals.Verbose())
 
 	defer func(errLog fsterr.LogInterface) {

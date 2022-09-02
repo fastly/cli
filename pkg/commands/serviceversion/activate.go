@@ -53,7 +53,7 @@ func NewActivateCommand(parent cmd.Registerer, globals *config.Data, data manife
 }
 
 // Exec invokes the application logic for the command.
-func (c *ActivateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,

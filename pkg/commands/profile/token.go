@@ -27,7 +27,7 @@ func NewTokenCommand(parent cmd.Registerer, globals *config.Data) *TokenCommand 
 }
 
 // Exec implements the command interface.
-func (c *TokenCommand) Exec(in io.Reader, out io.Writer) (err error) {
+func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if c.profile == "" {
 		if name, p := profile.Default(c.Globals.File.Profiles); name != "" {
 			text.Output(out, p.Token)

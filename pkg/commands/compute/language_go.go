@@ -332,7 +332,7 @@ func (g Go) execCommand(cmd string, args []string, out, progress io.Writer, verb
 // NOTE: The implementation scans the go.mod line-by-line looking for the
 // module directive (typically the first line, but not guaranteed) and replaces
 // the module path with the user's configured package name.
-func (g Go) setPackageName(name, path string) (err error) {
+func (g Go) setPackageName(_, path string) (err error) {
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
 	//

@@ -42,7 +42,7 @@ func ListVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 
 // ListVersionsError returns a generic error message when attempting to list
 // service versions.
-func ListVersionsError(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+func ListVersionsError(_ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return nil, Err
 }
 
@@ -58,6 +58,6 @@ func CloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.
 
 // CloneVersionError returns a generic error message when attempting to clone a
 // service version.
-func CloneVersionError(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+func CloneVersionError(_ *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return nil, Err
 }

@@ -28,7 +28,7 @@ func NewSwitchCommand(parent cmd.Registerer, globals *config.Data) *SwitchComman
 }
 
 // Exec invokes the application logic for the command.
-func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *SwitchCommand) Exec(_ io.Reader, out io.Writer) error {
 	var ok bool
 
 	p, ok := profile.Set(c.profile, c.Globals.File.Profiles)

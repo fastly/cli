@@ -55,7 +55,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
+func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return errors.ErrNoToken

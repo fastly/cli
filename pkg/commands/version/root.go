@@ -39,7 +39,7 @@ func NewRootCommand(parent cmd.Registerer, viceroyVersioner update.Versioner) *R
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Fastly CLI version %s (%s)\n", revision.AppVersion, revision.GitCommit)
 	fmt.Fprintf(out, "Built with %s\n", revision.GoVersion)
 
