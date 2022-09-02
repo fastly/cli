@@ -81,7 +81,7 @@ Requests:                                        0
 var historicalJSONOK = `{"start_time":0}
 `
 
-func getStatsJSONOK(i *fastly.GetStatsInput, o interface{}) error {
+func getStatsJSONOK(i *fastly.GetStatsInput, o any) error {
 	msg := []byte(`
 {
   "status": "success",
@@ -98,6 +98,6 @@ func getStatsJSONOK(i *fastly.GetStatsInput, o interface{}) error {
 	return json.Unmarshal(msg, o)
 }
 
-func getStatsJSONError(i *fastly.GetStatsInput, o interface{}) error {
+func getStatsJSONError(i *fastly.GetStatsInput, o any) error {
 	return errTest
 }

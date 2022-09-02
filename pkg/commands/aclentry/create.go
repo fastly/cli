@@ -55,7 +55,7 @@ type CreateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	a, err := c.Globals.APIClient.CreateACLEntry(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return err

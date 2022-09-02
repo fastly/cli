@@ -11,7 +11,7 @@ import (
 )
 
 // AssertEqual fatals a test if the parameters aren't equal.
-func AssertEqual(t *testing.T, want, have interface{}) {
+func AssertEqual(t *testing.T, want, have any) {
 	t.Helper()
 	if diff := cmp.Diff(want, have); diff != "" {
 		t.Fatal(diff)

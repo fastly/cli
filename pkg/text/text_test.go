@@ -123,23 +123,23 @@ func TestAskYesNo(t *testing.T) {
 func TestPrefixes(t *testing.T) {
 	for _, testcase := range []struct {
 		name   string
-		f      func(io.Writer, string, ...interface{})
+		f      func(io.Writer, string, ...any)
 		format string
-		args   []interface{}
+		args   []any
 		want   string
 	}{
 		{
 			name:   "Error",
 			f:      text.Error,
 			format: "Test string %d.",
-			args:   []interface{}{123},
+			args:   []any{123},
 			want:   "\nERROR: Test string 123.\n",
 		},
 		{
 			name:   "Success",
 			f:      text.Success,
 			format: "%s %q %d.",
-			args:   []interface{}{"Good", "job", 99},
+			args:   []any{"Good", "job", 99},
 			want:   "\nSUCCESS: Good \"job\" 99.\n",
 		},
 	} {

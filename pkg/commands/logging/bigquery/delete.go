@@ -54,7 +54,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 }
 
 // Exec invokes the application logic for the command.
-func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
@@ -65,7 +65,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
@@ -76,7 +76,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.ServiceVersion = serviceVersion.Number
 
 	if err := c.Globals.APIClient.DeleteBigQuery(&c.Input); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})

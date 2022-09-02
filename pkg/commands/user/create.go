@@ -39,7 +39,7 @@ type CreateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return errors.ErrNoToken
@@ -49,7 +49,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	r, err := c.Globals.APIClient.CreateUser(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"User Login": c.login,
 			"User Name":  c.name,
 		})

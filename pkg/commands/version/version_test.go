@@ -43,7 +43,7 @@ func TestVersion(t *testing.T) {
 	// gosec flagged this:
 	// Disabling as this is for test suite purposes only.
 	/* #nosec */
-	err = os.Chmod(filepath.Join(rootdir, "viceroy"), 0777)
+	err = os.Chmod(filepath.Join(rootdir, "viceroy"), 0o777)
 	if err != nil {
 		t.Fatal(err)
 	}

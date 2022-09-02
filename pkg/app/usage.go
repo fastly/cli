@@ -21,7 +21,7 @@ import (
 // with Kingpin's annoying love of side effects, we have to swap the app.Writers
 // to capture output; the out and err parameters, therefore, are the io.Writers
 // re-assigned to the app via app.Writers after calling Usage.
-func Usage(args []string, app *kingpin.Application, out, err io.Writer, vars map[string]interface{}) string {
+func Usage(args []string, app *kingpin.Application, out, err io.Writer, vars map[string]any) string {
 	var buf bytes.Buffer
 	app.Writers(&buf, io.Discard)
 	app.UsageContext(&kingpin.UsageContext{
@@ -244,7 +244,7 @@ func processCommandInput(
 	// TODO: In the future expose some variables for the template to utilise.
 	// We don't initialise the map currently as there are no variables to expose.
 	// But it's useful to have it implemented so it's ready to roll when we do.
-	var vars map[string]interface{}
+	var vars map[string]any
 
 	// NOTE: We call two similar methods below: ParseContext() and Parse().
 	//
@@ -375,7 +375,7 @@ var metadata []byte
 
 // commandsMetadata represents the metadata.json content that will provide extra
 // contextual information.
-type commandsMetadata map[string]interface{}
+type commandsMetadata map[string]any
 
 // UsageJSON returns a structured representation of the application usage
 // documentation in JSON format. This is useful for machine consumtion.
@@ -457,7 +457,7 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 		data := recurse(m.Depth, segs, data)
 		apis, ok := data["apis"]
 		if ok {
-			apis, ok := apis.([]interface{})
+			apis, ok := apis.([]any)
 			if ok {
 				for _, api := range apis {
 					a, ok := api.(string)
@@ -470,7 +470,7 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 
 		examples, ok := data["examples"]
 		if ok {
-			examples, ok := examples.([]interface{})
+			examples, ok := examples.([]any)
 			if ok {
 				for _, example := range examples {
 					c := resolveToString(example, "cmd")
@@ -507,7 +507,7 @@ func recurse(n int, segs []string, data commandsMetadata) commandsMetadata {
 	}
 	value, ok := data[segs[0]]
 	if ok {
-		value, ok := value.(map[string]interface{})
+		value, ok := value.(map[string]any)
 		if ok {
 			return recurse(n-1, segs[1:], value)
 		}
@@ -516,8 +516,8 @@ func recurse(n int, segs []string, data commandsMetadata) commandsMetadata {
 }
 
 // resolveToString extracts a value from a map as a string
-func resolveToString(i interface{}, key string) string {
-	m, ok := i.(map[string]interface{})
+func resolveToString(i any, key string) string {
+	m, ok := i.(map[string]any)
 	if ok {
 		v, ok := m[key]
 		if ok {
@@ -558,8 +558,8 @@ func displayHelp(
 	args []string,
 	app *kingpin.Application,
 	stdout, stderr io.Writer,
-) func(vars map[string]interface{}, err error) error {
-	return func(vars map[string]interface{}, err error) error {
+) func(vars map[string]any, err error) error {
+	return func(vars map[string]any, err error) error {
 		usage := Usage(args, app, stdout, stderr, vars)
 		remediation := fsterr.RemediationError{Prefix: usage}
 		if err != nil {

@@ -133,7 +133,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, progress text.Prog
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Endpoint": endpoint,
 		})
 		return nil, fmt.Errorf("error regenerating Fastly API client: %w", err)
@@ -149,7 +149,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, progress text.Prog
 		ID: t.UserID,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"User ID": t.UserID,
 		})
 		return nil, fmt.Errorf("error fetching token user: %w", err)
@@ -195,7 +195,7 @@ func (c *CreateCommand) persistCfg() error {
 		return fmt.Errorf("config file path %s isn't a directory", dir)
 	case err != nil && errors.Is(err, fs.ErrNotExist):
 		if err := os.MkdirAll(dir, config.DirectoryPermissions); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Directory":   dir,
 				"Permissions": config.DirectoryPermissions,
 			})

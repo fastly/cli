@@ -48,7 +48,7 @@ func NewLockCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec invokes the application logic for the command.
-func (c *LockCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *LockCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,
@@ -59,7 +59,7 @@ func (c *LockCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
@@ -71,7 +71,7 @@ func (c *LockCommand) Exec(in io.Reader, out io.Writer) error {
 
 	ver, err := c.Globals.APIClient.LockVersion(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})

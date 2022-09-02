@@ -217,7 +217,7 @@ type API struct {
 	DeleteOpenstackFn func(*fastly.DeleteOpenstackInput) error
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
-	GetStatsJSONFn func(i *fastly.GetStatsInput, dst interface{}) error
+	GetStatsJSONFn func(i *fastly.GetStatsInput, dst any) error
 
 	CreateManagedLoggingFn func(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
@@ -278,6 +278,40 @@ type API struct {
 	NewListACLEntriesPaginatorFn      func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
 	NewListDictionaryItemsPaginatorFn func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
 	NewListServicesPaginatorFn        func(i *fastly.ListServicesInput) fastly.PaginatorServices
+
+	GetCustomTLSConfigurationFn    func(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
+	ListCustomTLSConfigurationsFn  func(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
+	UpdateCustomTLSConfigurationFn func(i *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
+	GetTLSActivationFn             func(i *fastly.GetTLSActivationInput) (*fastly.TLSActivation, error)
+	ListTLSActivationsFn           func(i *fastly.ListTLSActivationsInput) ([]*fastly.TLSActivation, error)
+	UpdateTLSActivationFn          func(i *fastly.UpdateTLSActivationInput) (*fastly.TLSActivation, error)
+	CreateTLSActivationFn          func(i *fastly.CreateTLSActivationInput) (*fastly.TLSActivation, error)
+	DeleteTLSActivationFn          func(i *fastly.DeleteTLSActivationInput) error
+
+	CreateCustomTLSCertificateFn func(i *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
+	DeleteCustomTLSCertificateFn func(i *fastly.DeleteCustomTLSCertificateInput) error
+	GetCustomTLSCertificateFn    func(i *fastly.GetCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
+	ListCustomTLSCertificatesFn  func(i *fastly.ListCustomTLSCertificatesInput) ([]*fastly.CustomTLSCertificate, error)
+	UpdateCustomTLSCertificateFn func(i *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
+
+	ListTLSDomainsFn func(i *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error)
+
+	CreatePrivateKeyFn func(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error)
+	DeletePrivateKeyFn func(i *fastly.DeletePrivateKeyInput) error
+	GetPrivateKeyFn    func(i *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error)
+	ListPrivateKeysFn  func(i *fastly.ListPrivateKeysInput) ([]*fastly.PrivateKey, error)
+
+	CreateBulkCertificateFn func(i *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error)
+	DeleteBulkCertificateFn func(i *fastly.DeleteBulkCertificateInput) error
+	GetBulkCertificateFn    func(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error)
+	ListBulkCertificatesFn  func(i *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error)
+	UpdateBulkCertificateFn func(i *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error)
+
+	CreateTLSSubscriptionFn func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
+	DeleteTLSSubscriptionFn func(i *fastly.DeleteTLSSubscriptionInput) error
+	GetTLSSubscriptionFn    func(i *fastly.GetTLSSubscriptionInput) (*fastly.TLSSubscription, error)
+	ListTLSSubscriptionsFn  func(i *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error)
+	UpdateTLSSubscriptionFn func(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1151,7 +1185,7 @@ func (m API) GetRegions() (*fastly.RegionsResponse, error) {
 }
 
 // GetStatsJSON implements Interface.
-func (m API) GetStatsJSON(i *fastly.GetStatsInput, dst interface{}) error {
+func (m API) GetStatsJSON(i *fastly.GetStatsInput, dst any) error {
 	return m.GetStatsJSONFn(i, dst)
 }
 
@@ -1403,4 +1437,144 @@ func (m API) NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput)
 // NewListServicesPaginator implements Interface.
 func (m API) NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices {
 	return m.NewListServicesPaginatorFn(i)
+}
+
+// GetCustomTLSConfiguration implements Interface.
+func (m API) GetCustomTLSConfiguration(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
+	return m.GetCustomTLSConfigurationFn(i)
+}
+
+// ListCustomTLSConfigurations implements Interface.
+func (m API) ListCustomTLSConfigurations(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error) {
+	return m.ListCustomTLSConfigurationsFn(i)
+}
+
+// UpdateCustomTLSConfiguration implements Interface.
+func (m API) UpdateCustomTLSConfiguration(i *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
+	return m.UpdateCustomTLSConfigurationFn(i)
+}
+
+// GetTLSActivation implements Interface.
+func (m API) GetTLSActivation(i *fastly.GetTLSActivationInput) (*fastly.TLSActivation, error) {
+	return m.GetTLSActivationFn(i)
+}
+
+// ListTLSActivations implements Interface.
+func (m API) ListTLSActivations(i *fastly.ListTLSActivationsInput) ([]*fastly.TLSActivation, error) {
+	return m.ListTLSActivationsFn(i)
+}
+
+// UpdateTLSActivation implements Interface.
+func (m API) UpdateTLSActivation(i *fastly.UpdateTLSActivationInput) (*fastly.TLSActivation, error) {
+	return m.UpdateTLSActivationFn(i)
+}
+
+// CreateTLSActivation implements Interface.
+func (m API) CreateTLSActivation(i *fastly.CreateTLSActivationInput) (*fastly.TLSActivation, error) {
+	return m.CreateTLSActivationFn(i)
+}
+
+// DeleteTLSActivation implements Interface.
+func (m API) DeleteTLSActivation(i *fastly.DeleteTLSActivationInput) error {
+	return m.DeleteTLSActivationFn(i)
+}
+
+// CreateCustomTLSCertificate implements Interface.
+func (m API) CreateCustomTLSCertificate(i *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+	return m.CreateCustomTLSCertificateFn(i)
+}
+
+// DeleteCustomTLSCertificate implements Interface.
+func (m API) DeleteCustomTLSCertificate(i *fastly.DeleteCustomTLSCertificateInput) error {
+	return m.DeleteCustomTLSCertificateFn(i)
+}
+
+// GetCustomTLSCertificate implements Interface.
+func (m API) GetCustomTLSCertificate(i *fastly.GetCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+	return m.GetCustomTLSCertificateFn(i)
+}
+
+// ListCustomTLSCertificates implements Interface.
+func (m API) ListCustomTLSCertificates(i *fastly.ListCustomTLSCertificatesInput) ([]*fastly.CustomTLSCertificate, error) {
+	return m.ListCustomTLSCertificatesFn(i)
+}
+
+// UpdateCustomTLSCertificate implements Interface.
+func (m API) UpdateCustomTLSCertificate(i *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+	return m.UpdateCustomTLSCertificateFn(i)
+}
+
+// ListTLSDomains implements Interface.
+func (m API) ListTLSDomains(i *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error) {
+	return m.ListTLSDomainsFn(i)
+}
+
+// CreatePrivateKey implements Interface.
+func (m API) CreatePrivateKey(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error) {
+	return m.CreatePrivateKeyFn(i)
+}
+
+// DeletePrivateKey implements Interface.
+func (m API) DeletePrivateKey(i *fastly.DeletePrivateKeyInput) error {
+	return m.DeletePrivateKeyFn(i)
+}
+
+// GetPrivateKey implements Interface.
+func (m API) GetPrivateKey(i *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error) {
+	return m.GetPrivateKeyFn(i)
+}
+
+// ListPrivateKeys implements Interface.
+func (m API) ListPrivateKeys(i *fastly.ListPrivateKeysInput) ([]*fastly.PrivateKey, error) {
+	return m.ListPrivateKeysFn(i)
+}
+
+// CreateBulkCertificate implements Interface.
+func (m API) CreateBulkCertificate(i *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+	return m.CreateBulkCertificateFn(i)
+}
+
+// DeleteBulkCertificate implements Interface.
+func (m API) DeleteBulkCertificate(i *fastly.DeleteBulkCertificateInput) error {
+	return m.DeleteBulkCertificateFn(i)
+}
+
+// GetBulkCertificate implements Interface.
+func (m API) GetBulkCertificate(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
+	return m.GetBulkCertificateFn(i)
+}
+
+// ListBulkCertificates implements Interface.
+func (m API) ListBulkCertificates(i *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
+	return m.ListBulkCertificatesFn(i)
+}
+
+// UpdateBulkCertificate implements Interface.
+func (m API) UpdateBulkCertificate(i *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+	return m.UpdateBulkCertificateFn(i)
+}
+
+// CreateTLSSubscription implements Interface.
+func (m API) CreateTLSSubscription(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+	return m.CreateTLSSubscriptionFn(i)
+}
+
+// DeleteTLSSubscription implements Interface.
+func (m API) DeleteTLSSubscription(i *fastly.DeleteTLSSubscriptionInput) error {
+	return m.DeleteTLSSubscriptionFn(i)
+}
+
+// GetTLSSubscription implements Interface.
+func (m API) GetTLSSubscription(i *fastly.GetTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+	return m.GetTLSSubscriptionFn(i)
+}
+
+// ListTLSSubscriptions implements Interface.
+func (m API) ListTLSSubscriptions(i *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error) {
+	return m.ListTLSSubscriptionsFn(i)
+}
+
+// UpdateTLSSubscription implements Interface.
+func (m API) UpdateTLSSubscription(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+	return m.UpdateTLSSubscriptionFn(i)
 }

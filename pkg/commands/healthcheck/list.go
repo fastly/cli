@@ -57,7 +57,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -72,7 +72,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
@@ -84,7 +84,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	healthChecks, err := c.Globals.APIClient.ListHealthChecks(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})

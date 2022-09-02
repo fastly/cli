@@ -57,7 +57,7 @@ type ValidateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return errors.ErrNoToken
@@ -73,7 +73,7 @@ func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
@@ -85,7 +85,7 @@ func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
 
 		r, err := c.Globals.APIClient.ValidateAllDomains(input)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})
@@ -103,7 +103,7 @@ func (c *ValidateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	r, err := c.Globals.APIClient.ValidateDomain(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 			"Domain Name":     c.name,

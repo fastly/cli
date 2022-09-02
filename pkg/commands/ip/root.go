@@ -25,7 +25,7 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return errors.ErrNoToken

@@ -35,7 +35,7 @@ func NewPackCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec implements the command interface.
-func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
+func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	progress := text.NewProgress(out, c.Globals.Verbose())
 
 	defer func(errLog fsterr.LogInterface) {
@@ -53,7 +53,7 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	dir := filepath.Dir(pkg)
 	err = filesystem.MakeDirectoryIfNotExists(dir)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Wasm directory (relative)": dir,
 		})
 		return err
@@ -61,21 +61,21 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	src, err := filepath.Abs(c.wasmBinary)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Path (absolute)": src,
 		})
 		return err
 	}
 	dst, err := filepath.Abs(pkg)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Wasm destination (relative)": pkg,
 		})
 		return err
 	}
 	progress.Step("Copying wasm binary...")
 	if err := filesystem.CopyFile(src, dst); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Path (absolute)":             src,
 			"Wasm destination (absolute)": dst,
 		})
@@ -93,7 +93,7 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	src = manifest.Filename
 	dst = fmt.Sprintf("pkg/%s/%s", name, manifest.Filename)
 	if err := filesystem.CopyFile(src, dst); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Manifest (destination)": dst,
 			"Manifest (source)":      src,
 		})
@@ -108,7 +108,7 @@ func (c *PackCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		src := []string{dir}
 		dst := fmt.Sprintf("%s.tar.gz", dir)
 		if err = tar.Archive(src, dst); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Tar source":      dir,
 				"Tar destination": dst,
 			})

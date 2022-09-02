@@ -33,7 +33,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -79,7 +79,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-func display(k string, v *config.Profile, out io.Writer, style func(a ...interface{}) string) {
+func display(k string, v *config.Profile, out io.Writer, style func(a ...any) string) {
 	text.Break(out)
 	text.Output(out, style(k))
 	text.Break(out)

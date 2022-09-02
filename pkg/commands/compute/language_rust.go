@@ -486,7 +486,7 @@ func validateFastlyCrate(metadata CargoMetadata, v *semver.Version, out io.Write
 
 // Initialize implements the Toolchain interface and initializes a newly cloned
 // package. It is a noop for Rust as the Cargo toolchain handles these steps.
-func (r Rust) Initialize(out io.Writer) error {
+func (r Rust) Initialize(_ io.Writer) error {
 	var m CargoManifest
 	if err := m.SetPackageName(r.pkgName, RustManifestName); err != nil {
 		r.errlog.Add(err)

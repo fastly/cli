@@ -68,7 +68,7 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func (c *RootCommand) tail(out io.Writer) {
 
 		req, err := http.NewRequest("GET", path, nil)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"GET": path,
 			})
 			text.Error(out, "unable to create new request: %v", err)
@@ -222,7 +222,6 @@ func (c *RootCommand) tail(out io.Writer) {
 				// Send batch down batchCh to the output loop.
 				c.batchCh <- batch
 			}
-
 		}
 		resp.Body.Close()
 
@@ -244,7 +243,7 @@ func (c *RootCommand) tail(out io.Writer) {
 		_, next := getLinks(resp.Header)
 		curWindow, err = getTimeFromLink(next)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Next link": next,
 			})
 			text.Error(out, "error generating window from next link")

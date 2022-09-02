@@ -54,7 +54,7 @@ func NewHistoricalCommand(parent cmd.Registerer, globals *config.Data, data mani
 }
 
 // Exec implements the command interface.
-func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 	var envelope statsResponse
 	err = c.Globals.APIClient.GetStatsJSON(&c.Input, &envelope)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return err
@@ -82,7 +82,7 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 	case "json":
 		err := writeBlocksJSON(out, serviceID, envelope.Data)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
 		}
@@ -91,7 +91,7 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 		writeHeader(out, envelope.Meta)
 		err := writeBlocks(out, serviceID, envelope.Data)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
 		}
@@ -118,7 +118,7 @@ func writeBlocks(out io.Writer, service string, blocks []statsResponseData) erro
 	return nil
 }
 
-func writeBlocksJSON(out io.Writer, service string, blocks []statsResponseData) error {
+func writeBlocksJSON(out io.Writer, _ string, blocks []statsResponseData) error {
 	for _, block := range blocks {
 		if err := json.NewEncoder(out).Encode(block); err != nil {
 			return err

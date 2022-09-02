@@ -44,7 +44,7 @@ type ListCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
 	if s == config.SourceUndefined {
 		return fsterr.ErrNoToken
@@ -60,7 +60,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	rs, err := c.Globals.APIClient.ListCustomerUsers(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Customer ID": c.customerID.Value,
 		})
 		return err

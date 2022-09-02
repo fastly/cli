@@ -187,7 +187,6 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.AuthMethod.WasSet {
 		input.AuthMethod = fastly.String(c.AuthMethod.Value)
-
 	}
 
 	if c.User.WasSet {
@@ -202,7 +201,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
@@ -213,7 +212,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})

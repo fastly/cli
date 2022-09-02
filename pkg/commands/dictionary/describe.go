@@ -57,7 +57,7 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 }
 
 // Exec invokes the application logic for the command.
-func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -72,7 +72,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
@@ -84,7 +84,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	dictionary, err := c.Globals.APIClient.GetDictionary(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})
@@ -103,7 +103,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		info, err = c.Globals.APIClient.GetDictionaryInfo(&infoInput)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})
@@ -115,7 +115,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		items, err = c.Globals.APIClient.ListDictionaryItems(&itemInput)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})

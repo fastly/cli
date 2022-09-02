@@ -60,7 +60,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
@@ -71,7 +71,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
@@ -95,7 +95,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	d, err := c.Globals.APIClient.UpdateDomain(&c.input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 			"New Name":        c.NewName.Value,

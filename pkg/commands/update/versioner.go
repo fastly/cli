@@ -170,7 +170,7 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 	// Disabling as the file was not executable without it and we need all users
 	// to be able to execute the binary.
 	/* #nosec */
-	err = os.Chmod(extractedBinary, 0777)
+	err = os.Chmod(extractedBinary, 0o777)
 	if err != nil {
 		return "", err
 	}

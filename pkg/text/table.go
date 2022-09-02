@@ -26,7 +26,7 @@ func NewTable(w io.Writer) *Table {
 }
 
 // AddLine writes a new row to the table.
-func (t *Table) AddLine(args ...interface{}) {
+func (t *Table) AddLine(args ...any) {
 	var b strings.Builder
 	for i := range args {
 		b.WriteString(lineStyle(`%v`))
@@ -39,7 +39,7 @@ func (t *Table) AddLine(args ...interface{}) {
 }
 
 // AddHeader writes a table header line.
-func (t *Table) AddHeader(args ...interface{}) {
+func (t *Table) AddHeader(args ...any) {
 	var b strings.Builder
 	for i := range args {
 		b.WriteString(headerStyle(`%s`))

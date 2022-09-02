@@ -68,7 +68,9 @@ func ResetProgress(output io.Writer, verbose bool) Progress {
 
 // WithReset resets the ProgressOptions.
 func WithReset() Option {
-	return func(p *ProgressOptions) { p.reset = true }
+	return func(p *ProgressOptions) {
+		p.reset = true
+	}
 }
 
 // isTerminal indicates if the consumer is a modern terminal.
@@ -152,7 +154,7 @@ func NewInteractiveProgress(output io.Writer, options ...Option) *InteractivePro
 	return p
 }
 
-func (p *InteractiveProgress) replaceLine(format string, args ...interface{}) {
+func (p *InteractiveProgress) replaceLine(format string, args ...any) {
 	// Clear the current line.
 	n := utf8.RuneCountInString(p.currentOutput)
 	switch runtime.GOOS {
@@ -292,7 +294,7 @@ func NewQuietProgress(output io.Writer) *QuietProgress {
 }
 
 // Tick implements the Progress interface. It's a no-op.
-func (p *QuietProgress) Tick(r rune) {}
+func (p *QuietProgress) Tick(_ rune) {}
 
 // Tick implements the Progress interface.
 func (p *QuietProgress) Write(buf []byte) (int, error) {
@@ -329,7 +331,7 @@ func NewVerboseProgress(output io.Writer) *VerboseProgress {
 }
 
 // Tick implements the Progress interface. It's a no-op.
-func (p *VerboseProgress) Tick(r rune) {}
+func (p *VerboseProgress) Tick(_ rune) {}
 
 // Tick implements the Progress interface.
 func (p *VerboseProgress) Write(buf []byte) (int, error) {
@@ -365,7 +367,7 @@ func NewNullProgress() *NullProgress {
 }
 
 // Tick implements the Progress interface. It's a no-opt
-func (p *NullProgress) Tick(r rune) {}
+func (p *NullProgress) Tick(_ rune) {}
 
 // Tick implements the Progress interface.
 func (p *NullProgress) Write(buf []byte) (int, error) {
@@ -373,7 +375,7 @@ func (p *NullProgress) Write(buf []byte) (int, error) {
 }
 
 // Step implements the Progress interface.
-func (p *NullProgress) Step(msg string) {}
+func (p *NullProgress) Step(_ string) {}
 
 // Done implements the Progress interface. It's a no-op.
 func (p *NullProgress) Done() {}

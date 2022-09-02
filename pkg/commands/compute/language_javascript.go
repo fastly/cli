@@ -43,12 +43,12 @@ func SetPackageName(name, path string) (err error) {
 		return err
 	}
 
-	var i interface{}
+	var i any
 	if err = json.Unmarshal(data, &i); err != nil {
 		return err
 	}
 
-	m, ok := i.(map[string]interface{})
+	m, ok := i.(map[string]any)
 	if !ok {
 		return err
 	}

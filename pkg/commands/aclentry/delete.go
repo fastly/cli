@@ -49,7 +49,7 @@ type DeleteCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 	err = c.Globals.APIClient.DeleteACLEntry(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return err

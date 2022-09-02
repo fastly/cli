@@ -1,3 +1,5 @@
+// Package undocumented provides abstractions for talking to undocumented Fastly
+// API endpoints.
 package undocumented
 
 import (

@@ -34,7 +34,7 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner V
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	current, latest, shouldUpdate := Check(context.Background(), revision.AppVersion, c.cliVersioner)
 
 	text.Break(out)
@@ -54,7 +54,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	progress.Step("Fetching latest release...")
 	latestPath, err := c.cliVersioner.Download(context.Background(), latest)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Current CLI version": current,
 			"Latest CLI version":  latest,
 		})
@@ -73,7 +73,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	currentPath, err := filepath.Abs(execPath)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Executable path": execPath,
 		})
 		progress.Fail()
@@ -96,7 +96,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	if err := os.Rename(latestPath, currentPath); err != nil {
 		if err := filesystem.CopyFile(latestPath, currentPath); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Executable (source)":      latestPath,
 				"Executable (destination)": currentPath,
 			})

@@ -101,6 +101,10 @@ func (g Go) Initialize(out io.Writer) error {
 
 	// 2. Check go version is correct.
 	{
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+		// Disabling as we trust the source of the variable.
+		/* #nosec */
 		cmd := exec.Command(bin, "version") // e.g. go version go1.18 darwin/amd64
 		stdoutStderr, err := cmd.CombinedOutput()
 		output := string(stdoutStderr)
@@ -157,7 +161,7 @@ func (g Go) Initialize(out io.Writer) error {
 			return err
 		}
 
-		if err := g.setPackageName(g.pkgName, GoManifestName); err != nil {
+		if err := g.setPackageName(GoManifestName); err != nil {
 			g.errlog.Add(err)
 			return fmt.Errorf("error updating %s manifest: %w", GoManifestName, err)
 		}
@@ -209,6 +213,10 @@ func (g *Go) Verify(out io.Writer) error {
 
 	// 2. Check tinygo version is correct.
 	{
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+		// Disabling as we trust the source of the variable.
+		/* #nosec */
 		cmd := exec.Command(bin, "version") // e.g. tinygo version 0.24.0 darwin/amd64 (using go version go1.18 and LLVM version 14.0.0)
 		stdoutStderr, err := cmd.CombinedOutput()
 		output := string(stdoutStderr)
@@ -324,7 +332,7 @@ func (g Go) execCommand(cmd string, args []string, out, progress io.Writer, verb
 // NOTE: The implementation scans the go.mod line-by-line looking for the
 // module directive (typically the first line, but not guaranteed) and replaces
 // the module path with the user's configured package name.
-func (g Go) setPackageName(name, path string) (err error) {
+func (g Go) setPackageName(path string) (err error) {
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
 	//

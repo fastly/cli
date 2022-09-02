@@ -58,7 +58,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
@@ -69,7 +69,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
@@ -82,7 +82,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.writeOnly.WasSet {
 		writeOnly, err := strconv.ParseBool(c.writeOnly.Value)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})
@@ -93,7 +93,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	d, err := c.Globals.APIClient.CreateDictionary(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})

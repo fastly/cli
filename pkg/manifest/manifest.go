@@ -383,7 +383,7 @@ func (f *File) Read(path string) (err error) {
 // supported and only if there is no [setup] configuration defined.
 //
 // NOTE: It contains similar conversions to the custom Version.UnmarshalText().
-// Specifically, it type switches the interface{} into various types before
+// Specifically, it type switches the any into various types before
 // attempting to convert the underlying value into an integer.
 func (f *File) AutoMigrateVersion(data []byte, path string) ([]byte, error) {
 	tree, err := toml.LoadBytes(data)

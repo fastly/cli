@@ -69,7 +69,7 @@ type Optional struct {
 
 // Set implements kingpin.Action and is used as callback to set that the optional
 // inner value is valid.
-func (o *Optional) Set(e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+func (o *Optional) Set(_ *kingpin.ParseElement, _ *kingpin.ParseContext) error {
 	o.WasSet = true
 	return nil
 }

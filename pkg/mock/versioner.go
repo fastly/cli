@@ -45,6 +45,6 @@ func (v Versioner) BinaryName() string {
 }
 
 // SetAsset allows configuring the release asset format.
-func (v Versioner) SetAsset(name string) {
+func (v Versioner) SetAsset(_ string) {
 	// NoOp
 }

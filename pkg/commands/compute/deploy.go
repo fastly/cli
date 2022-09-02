@@ -267,7 +267,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		domains.Progress = progress
 
 		if err := domains.Create(); err != nil {
-			errLog.AddWithContext(err, map[string]interface{}{
+			errLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flag.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flag.AutoYes,
 				"Non-interactive": c.Globals.Flag.NonInteractive,
@@ -286,7 +286,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		dictionaries.Progress = progress
 
 		if err := backends.Create(); err != nil {
-			errLog.AddWithContext(err, map[string]interface{}{
+			errLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flag.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flag.AutoYes,
 				"Non-interactive": c.Globals.Flag.NonInteractive,
@@ -297,7 +297,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		if err := dictionaries.Create(); err != nil {
-			errLog.AddWithContext(err, map[string]interface{}{
+			errLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flag.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flag.AutoYes,
 				"Non-interactive": c.Globals.Flag.NonInteractive,
@@ -312,7 +312,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	cont, err := pkgCompare(apiClient, serviceID, serviceVersion.Number, hashSum, progress, out)
 	if err != nil {
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Package path":    pkgPath,
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
@@ -325,7 +325,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	err = pkgUpload(progress, apiClient, serviceID, serviceVersion.Number, pkgPath)
 	if err != nil {
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Package path":    pkgPath,
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
@@ -354,7 +354,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		ServiceVersion: serviceVersion.Number,
 	})
 	if err != nil {
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})
@@ -399,7 +399,7 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 	pkgName, source := data.Name()
 	pkgPath, err = packagePath(packageFlag, pkgName, source)
 	if err != nil {
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Package path": packageFlag,
 			"Package name": pkgName,
 			"Source":       source,
@@ -408,7 +408,7 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 	}
 	pkgSize, err := packageSize(pkgPath)
 	if err != nil {
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Package path": pkgPath,
 		})
 		return pkgName, pkgPath, hashSum, err
@@ -432,7 +432,7 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 		}
 		return nil
 	}); err != nil {
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Package path": pkgPath,
 			"Package size": pkgSize,
 		})
@@ -604,7 +604,7 @@ func manageNoServiceIDFlow(
 	serviceID, serviceVersion, err = createService(pkgName, apiClient, activateTrial, progress, errLog)
 	if err != nil {
 		progress.Fail()
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Package name": pkgName,
 		})
 		return serviceID, serviceVersion, err
@@ -619,7 +619,7 @@ func manageNoServiceIDFlow(
 	if packageFlag == "" {
 		err = updateManifestServiceID(manifestFile, manifest.Filename, serviceID)
 		if err != nil {
-			errLog.AddWithContext(err, map[string]interface{}{
+			errLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
 			return serviceID, serviceVersion, err
@@ -659,14 +659,14 @@ func createService(pkgName string, apiClient api.Interface, activateTrial activa
 				}
 			}
 
-			errLog.AddWithContext(err, map[string]interface{}{
+			errLog.AddWithContext(err, map[string]any{
 				"Package Name": pkgName,
 				"Customer ID":  user.CustomerID,
 			})
 			return createService(pkgName, apiClient, activateTrial, progress, errLog)
 		}
 
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Package Name": pkgName,
 		})
 		return serviceID, serviceVersion, fmt.Errorf("error creating service: %w", err)
@@ -707,7 +707,7 @@ func manageExistingServiceFlow(
 ) (serviceVersion *fastly.Version, err error) {
 	serviceVersion, err = serviceVersionFlag.Parse(serviceID, apiClient)
 	if err != nil {
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return serviceVersion, err
@@ -717,14 +717,14 @@ func manageExistingServiceFlow(
 	// VCL service, for which we cannot upload a wasm package format to.
 	serviceDetails, err := apiClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
 	if err != nil {
-		errLog.AddWithContext(err, map[string]interface{}{
+		errLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion,
 		})
 		return serviceVersion, err
 	}
 	if serviceDetails.Type != "wasm" {
-		errLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceDetails.Type), map[string]interface{}{
+		errLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceDetails.Type), map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion,
 			"Service Type":    serviceDetails.Type,
@@ -762,7 +762,7 @@ func manageExistingServiceFlow(
 
 // errLogService records the error, service id and version into the error log.
 func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
-	l.AddWithContext(err, map[string]interface{}{
+	l.AddWithContext(err, map[string]any{
 		"Service ID":      sid,
 		"Service Version": sv,
 	})

@@ -39,7 +39,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -50,7 +50,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	for paginator.HasNext() {
 		data, err := paginator.GetNext()
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Remaining Pages": paginator.Remaining(),
 			})
 			return err

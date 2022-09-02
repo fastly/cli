@@ -27,7 +27,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data) *DeleteComman
 }
 
 // Exec invokes the application logic for the command.
-func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if ok := profile.Delete(c.profile, c.Globals.File.Profiles); ok {
 		if err := c.Globals.File.Write(c.Globals.Path); err != nil {
 			return err

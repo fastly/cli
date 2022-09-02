@@ -121,10 +121,8 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		return nil, fmt.Errorf("error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag")
 	} else if c.AccessKey.WasSet && !c.SecretKey.WasSet {
 		return nil, fmt.Errorf("error parsing arguments: required flag --secret-key not provided")
-
 	} else if !c.AccessKey.WasSet && c.SecretKey.WasSet {
 		return nil, fmt.Errorf("error parsing arguments: required flag --access-key not provided")
-
 	}
 
 	// The following blocks enforces the mutual exclusivity of the
@@ -219,7 +217,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
@@ -230,7 +228,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})

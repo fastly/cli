@@ -445,14 +445,18 @@ func updateDictionaryError(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary,
 	return nil, errTest
 }
 
-var errTest = errors.New("an expected error ocurred")
-var errFail = errors.New("this error should not be returned and indicates a failure in the code")
+var (
+	errTest = errors.New("an expected error ocurred")
+	errFail = errors.New("this error should not be returned and indicates a failure in the code")
+)
 
-var createDictionaryOutput = "\nSUCCESS: Created dictionary denylist (service 123 version 4)\n"
-var createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (service 123 version 4)\n"
-var deleteDictionaryOutput = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 4)\n"
-var updateDictionaryOutput = "\nSUCCESS: Updated dictionary oldname (service 123 version 4)\n"
-var updateDictionaryNameOutput = "\nSUCCESS: Updated dictionary dict-1 (service 123 version 4)\n"
+var (
+	createDictionaryOutput          = "\nSUCCESS: Created dictionary denylist (service 123 version 4)\n"
+	createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (service 123 version 4)\n"
+	deleteDictionaryOutput          = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 4)\n"
+	updateDictionaryOutput          = "\nSUCCESS: Updated dictionary oldname (service 123 version 4)\n"
+	updateDictionaryNameOutput      = "\nSUCCESS: Updated dictionary dict-1 (service 123 version 4)\n"
+)
 
 var updateDictionaryOutputVerbose = strings.Join(
 	[]string{

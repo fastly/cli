@@ -57,7 +57,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -72,7 +72,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
@@ -121,7 +121,6 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", googlepubsub.FormatVersion)
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", googlepubsub.ResponseCondition)
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", googlepubsub.Placement)
-
 	}
 	fmt.Fprintln(out)
 

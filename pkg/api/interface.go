@@ -226,7 +226,7 @@ type Interface interface {
 	DeleteOpenstack(*fastly.DeleteOpenstackInput) error
 
 	GetRegions() (*fastly.RegionsResponse, error)
-	GetStatsJSON(*fastly.GetStatsInput, interface{}) error
+	GetStatsJSON(*fastly.GetStatsInput, any) error
 
 	CreateManagedLogging(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
@@ -287,11 +287,45 @@ type Interface interface {
 	NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
 	NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
 	NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices
+
+	GetCustomTLSConfiguration(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
+	ListCustomTLSConfigurations(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
+	UpdateCustomTLSConfiguration(i *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
+	GetTLSActivation(i *fastly.GetTLSActivationInput) (*fastly.TLSActivation, error)
+	ListTLSActivations(i *fastly.ListTLSActivationsInput) ([]*fastly.TLSActivation, error)
+	UpdateTLSActivation(i *fastly.UpdateTLSActivationInput) (*fastly.TLSActivation, error)
+	CreateTLSActivation(i *fastly.CreateTLSActivationInput) (*fastly.TLSActivation, error)
+	DeleteTLSActivation(i *fastly.DeleteTLSActivationInput) error
+
+	CreateCustomTLSCertificate(i *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
+	DeleteCustomTLSCertificate(i *fastly.DeleteCustomTLSCertificateInput) error
+	GetCustomTLSCertificate(i *fastly.GetCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
+	ListCustomTLSCertificates(i *fastly.ListCustomTLSCertificatesInput) ([]*fastly.CustomTLSCertificate, error)
+	UpdateCustomTLSCertificate(i *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error)
+
+	ListTLSDomains(i *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error)
+
+	CreatePrivateKey(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error)
+	DeletePrivateKey(i *fastly.DeletePrivateKeyInput) error
+	GetPrivateKey(i *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error)
+	ListPrivateKeys(i *fastly.ListPrivateKeysInput) ([]*fastly.PrivateKey, error)
+
+	CreateBulkCertificate(i *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error)
+	DeleteBulkCertificate(i *fastly.DeleteBulkCertificateInput) error
+	GetBulkCertificate(i *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error)
+	ListBulkCertificates(i *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error)
+	UpdateBulkCertificate(i *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error)
+
+	CreateTLSSubscription(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
+	DeleteTLSSubscription(i *fastly.DeleteTLSSubscriptionInput) error
+	GetTLSSubscription(i *fastly.GetTLSSubscriptionInput) (*fastly.TLSSubscription, error)
+	ListTLSSubscriptions(i *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error)
+	UpdateTLSSubscription(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
 type RealtimeStatsInterface interface {
-	GetRealtimeStatsJSON(*fastly.GetRealtimeStatsInput, interface{}) error
+	GetRealtimeStatsJSON(*fastly.GetRealtimeStatsInput, any) error
 }
 
 // Ensure that fastly.Client satisfies Interface.
