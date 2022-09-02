@@ -33,7 +33,11 @@ func (c *ConfigFile) Write(config any) error {
 // non-existent config file interface.
 func NewNonExistentConfigFile() *ConfigFile {
 	return &ConfigFile{
-		PathFn:   func() string { return "" },
-		ExistsFn: func() bool { return false },
+		PathFn: func() string {
+			return ""
+		},
+		ExistsFn: func() bool {
+			return false
+		},
 	}
 }

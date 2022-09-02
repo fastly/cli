@@ -113,7 +113,6 @@ func (c *ListCommand) constructInput() *fastly.ListTLSActivationsInput {
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.TLSActivation) {
 	for _, r := range rs {
-
 		fmt.Fprintf(out, "\nID: %s\n", r.ID)
 
 		if r.CreatedAt != nil {

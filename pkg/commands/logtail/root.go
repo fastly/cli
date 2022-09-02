@@ -222,7 +222,6 @@ func (c *RootCommand) tail(out io.Writer) {
 				// Send batch down batchCh to the output loop.
 				c.batchCh <- batch
 			}
-
 		}
 		resp.Body.Close()
 

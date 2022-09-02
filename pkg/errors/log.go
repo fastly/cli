@@ -43,7 +43,9 @@ func (ml MockLog) Add(_ error) {}
 func (ml MockLog) AddWithContext(_ error, _ map[string]any) {}
 
 // Persist writes the error data to logPath.
-func (ml MockLog) Persist(_ string, _ []string) error { return nil }
+func (ml MockLog) Persist(_ string, _ []string) error {
+	return nil
+}
 
 // Log is the primary interface for consumers.
 var Log = new(LogEntries)

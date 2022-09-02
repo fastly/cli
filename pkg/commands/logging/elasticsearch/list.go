@@ -126,7 +126,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", elasticsearch.FormatVersion)
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", elasticsearch.ResponseCondition)
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", elasticsearch.Placement)
-
 	}
 	fmt.Fprintln(out)
 

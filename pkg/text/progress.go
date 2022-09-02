@@ -68,7 +68,9 @@ func ResetProgress(output io.Writer, verbose bool) Progress {
 
 // WithReset resets the ProgressOptions.
 func WithReset() Option {
-	return func(p *ProgressOptions) { p.reset = true }
+	return func(p *ProgressOptions) {
+		p.reset = true
+	}
 }
 
 // isTerminal indicates if the consumer is a modern terminal.

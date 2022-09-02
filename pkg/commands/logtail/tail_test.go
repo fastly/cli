@@ -296,7 +296,6 @@ func TestSplitOnIdx(t *testing.T) {
 		if len(right) != test.expright {
 			t.Errorf("#%d: exp: %d != got: %d", i, test.expright, len(right))
 		}
-
 	}
 }
 

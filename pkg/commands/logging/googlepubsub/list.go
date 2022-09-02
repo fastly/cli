@@ -121,7 +121,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", googlepubsub.FormatVersion)
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", googlepubsub.ResponseCondition)
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", googlepubsub.Placement)
-
 	}
 	fmt.Fprintln(out)
 
