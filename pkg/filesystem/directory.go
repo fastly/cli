@@ -75,18 +75,19 @@ func CopyFile(src, dst string) (err error) {
 	if err != nil {
 		return fmt.Errorf("error creating destination file: %w", err)
 	}
+
 	defer func() {
 		cerr := out.Close()
 		if err == nil {
 			err = cerr
 		}
 	}()
+
 	if _, err = io.Copy(out, in); err != nil {
 		return fmt.Errorf("error copying file contents: %w", err)
 	}
-	err = out.Sync()
 
-	return
+	return out.Sync()
 }
 
 // MakeDirectoryIfNotExists asserts whether a directory exists and makes it

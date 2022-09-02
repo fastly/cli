@@ -185,11 +185,11 @@ func GetViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as the variables come from trusted sources.
 	/* #nosec */
-	cmd := exec.Command(bin, "--version")
+	c := exec.Command(bin, "--version")
 
 	var install, checkUpdate bool
 
-	stdoutStderr, err := cmd.CombinedOutput()
+	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
 		cfg.ErrLog.Add(err)
 
@@ -424,8 +424,8 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 		return err
 	}
 
-	manifest := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
-	args := []string{"-C", manifest, "--addr", addr, file}
+	manifestPath := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
+	args := []string{"-C", manifestPath, "--addr", addr, file}
 
 	if debug {
 		args = append(args, "--debug")
@@ -433,23 +433,23 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 	if verbose {
 		text.Output(out, "Wasm file: %s", file)
-		text.Output(out, "Manifest: %s", manifest)
+		text.Output(out, "Manifest: %s", manifestPath)
 	}
 
-	cmd := &fstexec.Streaming{
+	s := &fstexec.Streaming{
 		Args:     args,
 		Command:  bin,
 		Env:      os.Environ(),
 		Output:   out,
 		SignalCh: make(chan os.Signal, 1),
 	}
-	cmd.MonitorSignals()
+	s.MonitorSignals()
 
 	text.Break(out)
 
 	restart := make(chan bool)
 	if watch {
-		go watchFiles(verbose, srcDir, cmd, out, restart)
+		go watchFiles(verbose, srcDir, s, out, restart)
 	}
 
 	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
@@ -472,7 +472,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 	// we do finally come to stop the `serve` command (e.g. user presses Ctrl-c).
 	// How big an issue this is depends on how many file modifications a user
 	// makes, because having lots of signal listeners could exhaust resources.
-	if err := cmd.Exec(); err != nil {
+	if err := s.Exec(); err != nil {
 		errLog.Add(err)
 		e := strings.TrimSpace(err.Error())
 		if strings.Contains(e, "interrupt") {
@@ -481,7 +481,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 		if strings.Contains(e, "killed") {
 			select {
 			case <-restart:
-				cmd.SignalCh <- syscall.SIGTERM
+				s.SignalCh <- syscall.SIGTERM
 				return fsterr.ErrViceroyRestart
 			case <-time.After(1 * time.Second):
 				return fsterr.ErrSignalKilled
@@ -495,7 +495,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
-func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+func watchFiles(verbose bool, dir string, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 	gi := gitIgnore()
 
 	watcher, err := fsnotify.NewWatcher()
@@ -549,7 +549,7 @@ func watchFiles(verbose bool, dir string, cmd *fstexec.Streaming, out io.Writer,
 		// there might be an unhandled error when they press Ctrl-c to stop the
 		// serve command from blocking their terminal. That said, this is unlikely
 		// and is a low risk concern.
-		err := cmd.Signal(os.Kill)
+		err := s.Signal(os.Kill)
 		if err != nil {
 			log.Fatal(err)
 		}

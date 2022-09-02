@@ -703,8 +703,8 @@ func clonePackageFromEndpoint(from string, branch string, tag string, dst string
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as there should be no vulnerability to cloning a remote repo.
 	/* #nosec */
-	cmd := exec.Command("git", args...)
-	stdoutStderr, err := cmd.CombinedOutput()
+	c := exec.Command("git", args...)
+	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error fetching package template: %w\n\n%s", err, stdoutStderr)
 	}
@@ -737,17 +737,12 @@ func clonePackageFromEndpoint(from string, branch string, tag string, dst string
 			return err
 		}
 
-		if err := filesystem.CopyFile(path, dst); err != nil {
-			return err
-		}
-
-		return nil
+		return filesystem.CopyFile(path, dst)
 	})
 
 	if err != nil {
 		return fmt.Errorf("error copying files from package template: %w", err)
 	}
-
 	return nil
 }
 
