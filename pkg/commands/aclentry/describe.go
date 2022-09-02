@@ -75,7 +75,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	a, err := c.Globals.APIClient.GetACLEntry(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return err

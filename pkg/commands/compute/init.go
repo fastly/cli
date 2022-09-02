@@ -124,7 +124,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	dst, err := verifyDestination(c.dir, progress)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory": c.dir,
 		})
 		return err
@@ -140,7 +140,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	name, desc, authors, err := promptOrReturn(c.manifest, c.dir, email, in, out)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Description": desc,
 			"Directory":   c.dir,
 		})
@@ -150,7 +150,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	languages := NewLanguages(c.Globals.File.StarterKits, c.Globals, name, mf.Scripts)
 	language, err := selectLanguage(c.from, c.language, languages, mf, in, out)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Language": c.language,
 		})
 		return err
@@ -161,7 +161,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if noProjectFiles(c.from, language, mf) {
 		from, branch, tag, err = promptForStarterKit(language.StarterKits, in, out)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"From":           c.from,
 				"Branch":         c.branch,
 				"Tag":            c.tag,
@@ -180,7 +180,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	err = fetchPackageTemplate(language, c.from, branch, tag, c.dir, mf, file.Archives, progress, c.Globals.HTTPClient, out, c.Globals.ErrLog)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"From":      from,
 			"Branch":    branch,
 			"Tag":       tag,
@@ -191,7 +191,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	mf, err = updateManifest(mf, progress, c.dir, name, desc, authors, language)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory":   c.dir,
 			"Description": desc,
 			"Language":    language,

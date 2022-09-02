@@ -38,7 +38,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	r, err := c.Globals.APIClient.UpdateTLSActivation(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"TLS Activation ID":             c.id,
 			"TLS Activation Certificate ID": c.certID,
 		})

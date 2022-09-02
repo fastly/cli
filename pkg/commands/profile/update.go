@@ -128,7 +128,7 @@ func (c *UpdateCommand) validateToken(token, endpoint string, progress text.Prog
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Endpoint": endpoint,
 		})
 		return nil, fmt.Errorf("error regenerating Fastly API client: %w", err)
@@ -144,7 +144,7 @@ func (c *UpdateCommand) validateToken(token, endpoint string, progress text.Prog
 		ID: t.UserID,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"User ID": t.UserID,
 		})
 		return nil, fmt.Errorf("error fetching token user: %w", err)

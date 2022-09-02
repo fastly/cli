@@ -31,7 +31,7 @@ func NewSearchCommand(parent cmd.Registerer, globals *config.Data, data manifest
 func (c *SearchCommand) Exec(in io.Reader, out io.Writer) error {
 	service, err := c.Globals.APIClient.SearchService(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service Name": c.Input.Name,
 		})
 		return err

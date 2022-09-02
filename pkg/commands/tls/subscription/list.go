@@ -65,7 +65,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	rs, err := c.Globals.APIClient.ListTLSSubscriptions(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Filter Active":        c.filterHasActiveOrder,
 			"Filter State":         c.filterState,
 			"Filter TLS Domain ID": c.filterTLSDomainID,

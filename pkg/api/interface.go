@@ -226,7 +226,7 @@ type Interface interface {
 	DeleteOpenstack(*fastly.DeleteOpenstackInput) error
 
 	GetRegions() (*fastly.RegionsResponse, error)
-	GetStatsJSON(*fastly.GetStatsInput, interface{}) error
+	GetStatsJSON(*fastly.GetStatsInput, any) error
 
 	CreateManagedLogging(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
@@ -325,7 +325,7 @@ type Interface interface {
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
 type RealtimeStatsInterface interface {
-	GetRealtimeStatsJSON(*fastly.GetRealtimeStatsInput, interface{}) error
+	GetRealtimeStatsJSON(*fastly.GetRealtimeStatsInput, any) error
 }
 
 // Ensure that fastly.Client satisfies Interface.

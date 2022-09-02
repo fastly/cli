@@ -50,7 +50,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	for paginator.HasNext() {
 		data, err := paginator.GetNext()
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Remaining Pages": paginator.Remaining(),
 			})
 			return err

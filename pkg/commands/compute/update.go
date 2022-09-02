@@ -71,7 +71,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
@@ -81,7 +81,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress := text.NewProgress(out, c.Globals.Verbose())
 	defer func() {
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})
@@ -96,7 +96,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		PackagePath:    c.path,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})

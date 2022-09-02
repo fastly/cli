@@ -217,7 +217,7 @@ type API struct {
 	DeleteOpenstackFn func(*fastly.DeleteOpenstackInput) error
 
 	GetRegionsFn   func() (*fastly.RegionsResponse, error)
-	GetStatsJSONFn func(i *fastly.GetStatsInput, dst interface{}) error
+	GetStatsJSONFn func(i *fastly.GetStatsInput, dst any) error
 
 	CreateManagedLoggingFn func(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
@@ -1185,7 +1185,7 @@ func (m API) GetRegions() (*fastly.RegionsResponse, error) {
 }
 
 // GetStatsJSON implements Interface.
-func (m API) GetStatsJSON(i *fastly.GetStatsInput, dst interface{}) error {
+func (m API) GetStatsJSON(i *fastly.GetStatsInput, dst any) error {
 	return m.GetStatsJSONFn(i, dst)
 }
 

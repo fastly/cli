@@ -29,7 +29,7 @@ var LogPath = func() string {
 // LogInterface represents the LogEntries behaviours.
 type LogInterface interface {
 	Add(err error)
-	AddWithContext(err error, ctx map[string]interface{})
+	AddWithContext(err error, ctx map[string]any)
 	Persist(logPath string, args []string) error
 }
 
@@ -40,7 +40,7 @@ type MockLog struct{}
 func (ml MockLog) Add(err error) {}
 
 // AddWithContext adds an error and context to the mock log.
-func (ml MockLog) AddWithContext(err error, ctx map[string]interface{}) {}
+func (ml MockLog) AddWithContext(err error, ctx map[string]any) {}
 
 // Persist writes the error data to logPath.
 func (ml MockLog) Persist(logPath string, args []string) error { return nil }
@@ -59,7 +59,7 @@ func (l *LogEntries) Add(err error) {
 }
 
 // AddWithContext adds a new log entry with extra contextual data.
-func (l *LogEntries) AddWithContext(err error, ctx map[string]interface{}) {
+func (l *LogEntries) AddWithContext(err error, ctx map[string]any) {
 	le := createLogEntry(err)
 	le.Context = ctx
 
@@ -206,7 +206,7 @@ func createLogEntry(err error) LogEntry {
 		if idx == -1 {
 			idx = 0
 		}
-		le.Caller = map[string]interface{}{
+		le.Caller = map[string]any{
 			"FILE": file[idx:],
 			"LINE": line,
 		}
@@ -219,8 +219,8 @@ func createLogEntry(err error) LogEntry {
 type LogEntry struct {
 	Time    time.Time
 	Err     error
-	Caller  map[string]interface{}
-	Context map[string]interface{}
+	Caller  map[string]any
+	Context map[string]any
 }
 
 // Caller represents where an error occurred.

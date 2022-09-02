@@ -18,7 +18,7 @@ type statsResponseMeta struct {
 	Region string `json:"region"`
 }
 
-type statsResponseData map[string]interface{}
+type statsResponseData map[string]any
 
 type realtimeResponse struct {
 	Timestamp uint64                 `json:"timestamp"`

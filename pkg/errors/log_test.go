@@ -18,7 +18,7 @@ func TestLogAdd(t *testing.T) {
 	le.Add(fmt.Errorf("bar"))
 	le.Add(fmt.Errorf("baz"))
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["beep"] = "boop"
 	m["this"] = "that"
 	m["nums"] = 123
@@ -69,7 +69,7 @@ func TestLogPersist(t *testing.T) {
 	le.Add(fmt.Errorf("bar"))
 	le.Add(fmt.Errorf("baz"))
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["beep"] = "boop"
 	m["this"] = "that"
 	m["nums"] = 123
@@ -175,7 +175,7 @@ func TestLogPersistLogRotation(t *testing.T) {
 	le.Add(fmt.Errorf("bar"))
 	le.Add(fmt.Errorf("baz"))
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["beep"] = "boop"
 	m["this"] = "that"
 	m["nums"] = 123

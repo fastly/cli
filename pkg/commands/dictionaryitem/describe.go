@@ -69,7 +69,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 
 	item, err := c.Globals.APIClient.GetDictionaryItem(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return err

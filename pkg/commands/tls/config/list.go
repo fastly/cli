@@ -58,7 +58,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	rs, err := c.Globals.APIClient.ListCustomTLSConfigurations(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Filter Bulk": c.filterBulk,
 			"Include":     c.include,
 			"Page Number": c.pageNumber,

@@ -152,7 +152,7 @@ func NewInteractiveProgress(output io.Writer, options ...Option) *InteractivePro
 	return p
 }
 
-func (p *InteractiveProgress) replaceLine(format string, args ...interface{}) {
+func (p *InteractiveProgress) replaceLine(format string, args ...any) {
 	// Clear the current line.
 	n := utf8.RuneCountInString(p.currentOutput)
 	switch runtime.GOOS {

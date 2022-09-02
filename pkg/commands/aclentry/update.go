@@ -79,7 +79,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 		err = c.Globals.APIClient.BatchModifyACLEntries(input)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
 			return err
@@ -96,7 +96,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	a, err := c.Globals.APIClient.UpdateACLEntry(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return err
@@ -118,7 +118,7 @@ func (c *UpdateCommand) constructBatchInput(serviceID string) (*fastly.BatchModi
 
 	err := json.Unmarshal(bs, &input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"File": s,
 		})
 		return nil, err
@@ -129,7 +129,7 @@ func (c *UpdateCommand) constructBatchInput(serviceID string) (*fastly.BatchModi
 			Inner:       fmt.Errorf("missing 'entries' %s", c.file.Value),
 			Remediation: "Consult the API documentation for the JSON format: https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries",
 		}
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"File": string(bs),
 		})
 		return nil, err

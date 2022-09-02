@@ -68,7 +68,7 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 	var envelope statsResponse
 	err = c.Globals.APIClient.GetStatsJSON(&c.Input, &envelope)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return err
@@ -82,7 +82,7 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 	case "json":
 		err := writeBlocksJSON(out, serviceID, envelope.Data)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
 		}
@@ -91,7 +91,7 @@ func (c *HistoricalCommand) Exec(in io.Reader, out io.Writer) error {
 		writeHeader(out, envelope.Meta)
 		err := writeBlocks(out, serviceID, envelope.Data)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
 		}

@@ -60,7 +60,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	rs, err := c.Globals.APIClient.ListCustomerUsers(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Customer ID": c.customerID.Value,
 		})
 		return err

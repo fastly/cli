@@ -65,7 +65,7 @@ func WrapIndent(s string, lim uint, indent uint) string {
 // Output writes the help text to the writer using Wrap with DefaultTextWidth,
 // suffixed by a newlines. It's intended to be used to provide detailed
 // information, context, or help to the user.
-func Output(w io.Writer, format string, args ...interface{}) {
+func Output(w io.Writer, format string, args ...any) {
 	text := fmt.Sprintf(format, args...)
 	fmt.Fprintf(w, "%s\n", Wrap(text, DefaultTextWidth))
 }
@@ -160,25 +160,25 @@ func Break(w io.Writer) {
 }
 
 // Error is a wrapper for fmt.Fprintf with a bold red "ERROR: " prefix.
-func Error(w io.Writer, format string, args ...interface{}) {
+func Error(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
 	fmt.Fprintf(w, "\n"+Wrap(BoldRed("ERROR: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Warning is a wrapper for fmt.Fprintf with a bold yellow "WARNING: " prefix.
-func Warning(w io.Writer, format string, args ...interface{}) {
+func Warning(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
 	fmt.Fprintf(w, "\n"+Wrap(BoldYellow("WARNING: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
-func Info(w io.Writer, format string, args ...interface{}) {
+func Info(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
 	fmt.Fprintf(w, "\n"+Wrap(Bold("INFO: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Success is a wrapper for fmt.Fprintf with a bold green "SUCCESS: " prefix.
-func Success(w io.Writer, format string, args ...interface{}) {
+func Success(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
 	fmt.Fprintf(w, "\n"+Wrap(BoldGreen("SUCCESS: ")+format, DefaultTextWidth)+"\n", args...)
 }
@@ -196,7 +196,7 @@ func Description(w io.Writer, term, description string) {
 // Indent writes the help text to the writer using WrapIndent with
 // DefaultTextWidth, suffixed by a newlines. It's intended to be used to provide
 // detailed information, context, or help to the user.
-func Indent(w io.Writer, indent uint, format string, args ...interface{}) {
+func Indent(w io.Writer, indent uint, format string, args ...any) {
 	text := fmt.Sprintf(format, args...)
 	fmt.Fprintf(w, "%s\n", WrapIndent(text, DefaultTextWidth, indent))
 }

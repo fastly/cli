@@ -169,7 +169,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
@@ -178,7 +178,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})
@@ -187,7 +187,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	d, err := c.Globals.APIClient.CreateCloudfiles(input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})

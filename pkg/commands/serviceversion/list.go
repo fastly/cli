@@ -68,7 +68,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	versions, err := c.Globals.APIClient.ListVersions(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return err

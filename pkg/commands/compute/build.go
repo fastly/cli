@@ -203,7 +203,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		err = language.Verify(progress)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Language": language.Name,
 			})
 			return err
@@ -245,7 +245,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if err := language.Build(out, progress, c.Globals.Flag.Verbose, postBuildCallback); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Language": language.Name,
 		})
 		return err
@@ -273,7 +273,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	binFiles, err := GetNonIgnoredFiles("bin", ignoreFiles)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Ignore files": ignoreFiles,
 		})
 		return err
@@ -283,7 +283,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.Flags.IncludeSrc {
 		srcFiles, err := GetNonIgnoredFiles(language.SourceDirectory, ignoreFiles)
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Source directory": language.SourceDirectory,
 				"Ignore files":     ignoreFiles,
 			})
@@ -294,7 +294,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	err = CreatePackageArchive(files, dest)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Files":       files,
 			"Destination": dest,
 		})

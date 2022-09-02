@@ -56,7 +56,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	_, err = c.Globals.APIClient.CreateDictionaryItem(&c.Input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return err

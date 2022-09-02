@@ -60,7 +60,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 			ID: serviceID,
 		})
 		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
 			return err
@@ -72,7 +72,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 				ServiceVersion: s.ActiveVersion.Number,
 			})
 			if err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+				c.Globals.ErrLog.AddWithContext(err, map[string]any{
 					"Service ID":      serviceID,
 					"Service Version": s.ActiveVersion.Number,
 				})
@@ -82,7 +82,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if err := c.Globals.APIClient.DeleteService(&c.Input); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return errors.RemediationError{

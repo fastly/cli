@@ -79,7 +79,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-func display(k string, v *config.Profile, out io.Writer, style func(a ...interface{}) string) {
+func display(k string, v *config.Profile, out io.Writer, style func(a ...any) string) {
 	text.Break(out)
 	text.Output(out, style(k))
 	text.Break(out)
