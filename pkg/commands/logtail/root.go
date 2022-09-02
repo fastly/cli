@@ -601,7 +601,7 @@ func getLinks(head http.Header) (prev, next string) {
 			next = link.URL
 		}
 	}
-	return
+	return prev, next
 }
 
 // findIdxBySeq returns the slice index after the

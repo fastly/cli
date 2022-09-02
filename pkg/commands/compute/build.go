@@ -100,26 +100,32 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Language from flag takes priority, otherwise infer from manifest and
 	// error if neither are provided. Sanitize by trim and lowercase.
 	var toolchain string
-	if c.Flags.Lang != "" {
+
+	switch {
+	case c.Flags.Lang != "":
 		toolchain = c.Flags.Lang
-	} else if c.Manifest.File.Language != "" {
+	case c.Manifest.File.Language != "":
 		toolchain = c.Manifest.File.Language
-	} else {
+	default:
 		return fmt.Errorf("language cannot be empty, please provide a language")
 	}
+
 	toolchain = strings.ToLower(strings.TrimSpace(toolchain))
 
 	// Name from flag takes priority, otherwise infer from manifest
 	// error if neither are provided. Sanitize value to ensure it is a safe
 	// filepath, replacing spaces with hyphens etc.
 	var name string
-	if c.Flags.PackageName != "" {
+
+	switch {
+	case c.Flags.PackageName != "":
 		name = c.Flags.PackageName
-	} else if c.Manifest.File.Name != "" {
+	case c.Manifest.File.Name != "":
 		name = c.Manifest.File.Name
-	} else {
+	default:
 		return fmt.Errorf("name cannot be empty, please provide a name")
 	}
+
 	name = sanitize.BaseName(name)
 
 	var language *Language
@@ -380,11 +386,7 @@ func CreatePackageArchive(files []string, destination string) error {
 	tar.OverwriteExisting = true //
 	tar.MkdirAll = true          // make destination directory if it doesn't exist
 
-	if err = tar.Archive([]string{dir}, destination); err != nil {
-		return err
-	}
-
-	return nil
+	return tar.Archive([]string{dir}, destination)
 }
 
 // FileNameWithoutExtension returns a filename with its extension stripped.

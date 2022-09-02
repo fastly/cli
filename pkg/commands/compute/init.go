@@ -423,18 +423,21 @@ func promptForLanguage(languages []*Language, in io.Reader, out io.Writer) (*Lan
 	for i, lang := range languages {
 		text.Output(out, "[%d] %s", i+1, lang.DisplayName)
 	}
+
 	option, err := text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
 	if err != nil {
 		return nil, fmt.Errorf("reading input %w", err)
 	}
+
 	if option == "" {
 		option = "1"
 	}
-	if i, err := strconv.Atoi(option); err == nil {
-		language = languages[i-1]
-	} else {
+
+	i, err := strconv.Atoi(option)
+	if err != nil {
 		return nil, fmt.Errorf("selecting language")
 	}
+	language = languages[i-1]
 
 	return language, nil
 }

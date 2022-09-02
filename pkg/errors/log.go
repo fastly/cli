@@ -257,9 +257,10 @@ var FileRotationSize int64 = 5242880 // 5mb
 // ServiceVersion returns an integer regardless of whether the given argument
 // is a nil pointer or not. It helps to reduce the boilerplate found across the
 // codebase when tracking errors related to `cmd.ServiceDetails`.
-func ServiceVersion(v *fastly.Version) (sv int) {
+func ServiceVersion(v *fastly.Version) int {
+	var sv int
 	if v != nil {
 		sv = v.Number
 	}
-	return
+	return sv
 }

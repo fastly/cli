@@ -173,7 +173,11 @@ func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet)
 		if err != nil {
 			return err
 		}
-		out.Write(data)
+		_, err = out.Write(data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error: unable to write data to stdout: %w", err)
+		}
 		return nil
 	}
 
@@ -196,7 +200,11 @@ func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
 		if err != nil {
 			return err
 		}
-		out.Write(data)
+		_, err = out.Write(data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error: unable to write data to stdout: %w", err)
+		}
 		return nil
 	}
 
