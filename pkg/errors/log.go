@@ -92,7 +92,10 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 
 	if fi, err := f.Stat(); err == nil {
 		if fi.Size() >= FileRotationSize {
-			f.Close()
+			err = f.Close()
+			if err != nil {
+				return err
+			}
 
 			// gosec flagged this:
 			// G304 (CWE-22): Potential file inclusion via variable
@@ -139,7 +142,9 @@ ERROR:
 		}
 	}
 
-	f.Write([]byte("------------------------------\n\n"))
+	if _, err := f.Write([]byte("------------------------------\n\n")); err != nil {
+		return err
+	}
 
 	return nil
 }

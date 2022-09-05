@@ -93,7 +93,6 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		out.Write(data)
 		_, err = out.Write(data)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)

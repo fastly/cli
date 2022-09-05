@@ -152,7 +152,5 @@ func (a ArchiveBase) Extract() error {
 		}
 	}
 
-	os.RemoveAll(dirContentToMove)
-
-	return nil
+	return os.RemoveAll(dirContentToMove)
 }

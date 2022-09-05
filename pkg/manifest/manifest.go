@@ -372,7 +372,11 @@ func (f *File) Read(path string) (err error) {
 		text.Break(f.output)
 		text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
 		text.Break(f.output)
-		f.Write(path)
+		err = f.Write(path)
+		if err != nil {
+			f.errLog.Add(err)
+			return fmt.Errorf("unable to save fastly.toml manifest change: %w", err)
+		}
 	}
 
 	return nil

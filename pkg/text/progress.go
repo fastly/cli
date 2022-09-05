@@ -193,7 +193,10 @@ func (p *InteractiveProgress) Write(buf []byte) (int, error) {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
 
-	p.writeBuffer.Write(buf)
+	_, err := p.writeBuffer.Write(buf)
+	if err != nil {
+		return len(buf), err
+	}
 	p.lastBufferLine = LastFullLine(p.writeBuffer.String())
 
 	return len(buf), nil

@@ -176,7 +176,10 @@ func (c *RootCommand) tail(out io.Writer) {
 			// Reuse the connection for the retry, or cleanup in the
 			// case of Exit.
 			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
+			err := resp.Body.Close()
+			if err != nil {
+				c.Globals.ErrLog.Add(err)
+			}
 
 			// Try the response again after a 1 second wait.
 			if resp.StatusCode/100 == 5 && resp.StatusCode != 501 ||
@@ -223,7 +226,10 @@ func (c *RootCommand) tail(out io.Writer) {
 				c.batchCh <- batch
 			}
 		}
-		resp.Body.Close()
+		err = resp.Body.Close()
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+		}
 
 		if err := scanner.Err(); err != nil {
 			c.Globals.ErrLog.Add(err)
