@@ -90,7 +90,10 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	// https://github.com/golang/go/issues/21997#issuecomment-331744930
 	if fstruntime.Windows {
 		if err := os.Rename(execPath, execPath+"~"); err != nil {
-			os.Remove(execPath + "~")
+			c.Globals.ErrLog.Add(err)
+			if err = os.Remove(execPath + "~"); err != nil {
+				c.Globals.ErrLog.Add(err)
+			}
 		}
 	}
 

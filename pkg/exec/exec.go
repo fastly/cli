@@ -150,9 +150,9 @@ func (s *Streaming) Exec() error {
 }
 
 // Signal enables spawned subprocess to accept given signal.
-func (s *Streaming) Signal(signal os.Signal) error {
+func (s *Streaming) Signal(sig os.Signal) error {
 	if s.Process != nil {
-		err := s.Process.Signal(signal)
+		err := s.Process.Signal(sig)
 		if err != nil {
 			return err
 		}

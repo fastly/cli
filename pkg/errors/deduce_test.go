@@ -38,7 +38,7 @@ func TestDeduce(t *testing.T) {
 		{
 			name:  "fastly.HTTPError 503",
 			input: http503,
-			want:  errors.RemediationError{Inner: errors.SimplifyFastlyError(*http503)},
+			want:  errors.RemediationError{Inner: errors.SimplifyFastlyError(*http503), Remediation: errors.BugRemediation},
 		},
 		{
 			name:  "fastly.HTTPError 401",

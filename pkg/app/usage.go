@@ -215,12 +215,12 @@ func processCommandInput(
 	// existence of `help --format json`, if present we print usage JSON and
 	// exit early.
 	if cmd.ArgsIsHelpJSON(opts.Args) {
-		json, err := UsageJSON(app)
+		j, err := UsageJSON(app)
 		if err != nil {
 			globals.ErrLog.Add(err)
 			return command, cmdName, err
 		}
-		fmt.Fprintf(opts.Stdout, "%s", json)
+		fmt.Fprintf(opts.Stdout, "%s", j)
 		return command, strings.Join(opts.Args, ""), nil
 	}
 
@@ -445,13 +445,13 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 		if m.Hidden {
 			continue
 		}
-		var cmd commandJSON
-		cmd.Name = m.Name
-		cmd.Description = m.Help
-		cmd.Flags = getFlagJSON(m.Flags)
-		cmd.Children = getCommandJSON(m.Commands, data)
-		cmd.APIs = []string{}
-		cmd.Examples = []Example{}
+		var cj commandJSON
+		cj.Name = m.Name
+		cj.Description = m.Help
+		cj.Flags = getFlagJSON(m.Flags)
+		cj.Children = getCommandJSON(m.Commands, data)
+		cj.APIs = []string{}
+		cj.Examples = []Example{}
 
 		segs := strings.Split(m.FullCommand(), " ")
 		data := recurse(m.Depth, segs, data)
@@ -462,7 +462,7 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 				for _, api := range apis {
 					a, ok := api.(string)
 					if ok {
-						cmd.APIs = append(cmd.APIs, a)
+						cj.APIs = append(cj.APIs, a)
 					}
 				}
 			}
@@ -477,7 +477,7 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 					d := resolveToString(example, "description")
 					t := resolveToString(example, "title")
 					if c != "" && t != "" {
-						cmd.Examples = append(cmd.Examples, Example{
+						cj.Examples = append(cj.Examples, Example{
 							Cmd:         c,
 							Description: d,
 							Title:       t,
@@ -487,7 +487,7 @@ func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []command
 			}
 		}
 
-		cmds = append(cmds, cmd)
+		cmds = append(cmds, cj)
 	}
 	return cmds
 }

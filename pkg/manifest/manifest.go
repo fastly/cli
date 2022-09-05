@@ -153,8 +153,8 @@ type Version int
 // defined as "99.0.0" then we won't accidentally store it as the integer 99
 // but instead will return an error because it exceeds the current
 // ManifestLatestVersion version.
-func (v *Version) UnmarshalText(text []byte) error {
-	s := string(text)
+func (v *Version) UnmarshalText(txt []byte) error {
+	s := string(txt)
 
 	if i, err := strconv.Atoi(s); err == nil {
 		*v = Version(i)
@@ -372,7 +372,11 @@ func (f *File) Read(path string) (err error) {
 		text.Break(f.output)
 		text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
 		text.Break(f.output)
-		f.Write(path)
+		err = f.Write(path)
+		if err != nil {
+			f.errLog.Add(err)
+			return fmt.Errorf("unable to save fastly.toml manifest change: %w", err)
+		}
 	}
 
 	return nil
@@ -549,11 +553,7 @@ func (f *File) Write(path string) error {
 		return err
 	}
 
-	if err := fp.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return fp.Close()
 }
 
 // appendSpecRef appends the fastly.toml specification URL to the manifest.

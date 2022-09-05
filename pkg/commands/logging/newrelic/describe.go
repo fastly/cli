@@ -96,8 +96,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	c.print(out, a)
-	return nil
+	return c.print(out, a)
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -118,7 +117,11 @@ func (c *DescribeCommand) print(out io.Writer, nr *fastly.NewRelic) error {
 		if err != nil {
 			return err
 		}
-		out.Write(data)
+		_, err = out.Write(data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error: unable to write data to stdout: %w", err)
+		}
 		return nil
 	}
 

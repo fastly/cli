@@ -62,20 +62,20 @@ func (b *Backends) Create() error {
 		}
 	}
 
-	for _, backend := range b.required {
+	for _, bk := range b.required {
 		if !b.isOriginless() {
-			b.Progress.Step(fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", backend.Name, backend.Address, backend.Port))
+			b.Progress.Step(fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", bk.Name, bk.Address, bk.Port))
 		}
 
 		_, err := b.APIClient.CreateBackend(&fastly.CreateBackendInput{
 			ServiceID:       b.ServiceID,
 			ServiceVersion:  b.ServiceVersion,
-			Name:            backend.Name,
-			Address:         backend.Address,
-			Port:            fastly.Uint(backend.Port),
-			OverrideHost:    backend.OverrideHost,
-			SSLCertHostname: backend.SSLCertHostname,
-			SSLSNIHostname:  backend.SSLSNIHostname,
+			Name:            bk.Name,
+			Address:         bk.Address,
+			Port:            fastly.Uint(bk.Port),
+			OverrideHost:    bk.OverrideHost,
+			SSLCertHostname: bk.SSLCertHostname,
+			SSLSNIHostname:  bk.SSLSNIHostname,
 		})
 		if err != nil {
 			b.Progress.Fail()
@@ -236,11 +236,11 @@ func (b *Backends) promptForBackend() error {
 // createOriginlessBackend returns a Backend instance configured to the
 // localhost settings expected of an 'originless' backend.
 func (b *Backends) createOriginlessBackend() Backend {
-	var backend Backend
-	backend.Name = "originless"
-	backend.Address = "127.0.0.1"
-	backend.Port = uint(80)
-	return backend
+	var bk Backend
+	bk.Name = "originless"
+	bk.Address = "127.0.0.1"
+	bk.Port = uint(80)
+	return bk
 }
 
 // validateAddress checks the user entered address is a valid hostname or IP.

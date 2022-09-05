@@ -23,11 +23,12 @@ func Deduce(err error) RemediationError {
 
 	var httpError *fastly.HTTPError
 	if errors.As(err, &httpError) {
-		var remediation string
-		switch httpError.StatusCode {
-		case http.StatusUnauthorized:
+		remediation := BugRemediation
+
+		if httpError.StatusCode == http.StatusUnauthorized {
 			remediation = AuthRemediation
 		}
+
 		return RemediationError{Inner: SimplifyFastlyError(*httpError), Remediation: remediation}
 	}
 

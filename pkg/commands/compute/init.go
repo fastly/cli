@@ -423,18 +423,21 @@ func promptForLanguage(languages []*Language, in io.Reader, out io.Writer) (*Lan
 	for i, lang := range languages {
 		text.Output(out, "[%d] %s", i+1, lang.DisplayName)
 	}
+
 	option, err := text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
 	if err != nil {
 		return nil, fmt.Errorf("reading input %w", err)
 	}
+
 	if option == "" {
 		option = "1"
 	}
-	if i, err := strconv.Atoi(option); err == nil {
-		language = languages[i-1]
-	} else {
+
+	i, err := strconv.Atoi(option)
+	if err != nil {
 		return nil, fmt.Errorf("selecting language")
 	}
+	language = languages[i-1]
 
 	return language, nil
 }
@@ -703,8 +706,8 @@ func clonePackageFromEndpoint(from string, branch string, tag string, dst string
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as there should be no vulnerability to cloning a remote repo.
 	/* #nosec */
-	cmd := exec.Command("git", args...)
-	stdoutStderr, err := cmd.CombinedOutput()
+	c := exec.Command("git", args...)
+	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error fetching package template: %w\n\n%s", err, stdoutStderr)
 	}
@@ -737,17 +740,12 @@ func clonePackageFromEndpoint(from string, branch string, tag string, dst string
 			return err
 		}
 
-		if err := filesystem.CopyFile(path, dst); err != nil {
-			return err
-		}
-
-		return nil
+		return filesystem.CopyFile(path, dst)
 	})
 
 	if err != nil {
 		return fmt.Errorf("error copying files from package template: %w", err)
 	}
-
 	return nil
 }
 

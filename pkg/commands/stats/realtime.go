@@ -2,6 +2,7 @@ package stats
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
@@ -95,8 +96,11 @@ func loopJSON(client api.RealtimeStatsInterface, service string, out io.Writer) 
 		}
 		timestamp = envelope.Timestamp
 
-		for _, block := range envelope.Data {
-			out.Write(block)
+		for _, data := range envelope.Data {
+			_, err = out.Write(data)
+			if err != nil {
+				return fmt.Errorf("error: unable to write data to stdout: %w", err)
+			}
 			text.Break(out)
 		}
 	}

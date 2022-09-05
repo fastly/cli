@@ -46,7 +46,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// we should prompt the user to see if the new profile they're creating needs
 	// to become the new default.
 	def := true
-	if profile, _ := profile.Default(c.Globals.File.Profiles); profile != "" {
+	if profileName, _ := profile.Default(c.Globals.File.Profiles); profileName != "" {
 		def, err = c.promptForDefault(in, out)
 		if err != nil {
 			return err
@@ -66,7 +66,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 }
 
 // tokenFlow initialises the token flow.
-func (c *CreateCommand) tokenFlow(profile string, def bool, in io.Reader, out io.Writer) error {
+func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, out io.Writer) error {
 	var err error
 
 	// If user provides a --token flag, then don't prompt them for input.
@@ -95,7 +95,7 @@ func (c *CreateCommand) tokenFlow(profile string, def bool, in io.Reader, out io
 		return err
 	}
 
-	c.updateInMemCfg(profile, user.Login, token, endpoint, def, progress)
+	c.updateInMemCfg(profileName, user.Login, token, endpoint, def, progress)
 
 	progress.Done()
 	return nil

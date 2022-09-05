@@ -309,8 +309,8 @@ type File struct {
 	//
 	// NOTE: These fields are private to prevent them being written back to disk,
 	// but it means we need to expose Setter methods.
-	autoYes        bool `toml:",omitempty"`
-	nonInteractive bool `toml:",omitempty"`
+	autoYes        bool
+	nonInteractive bool
 }
 
 // SetAutoYes sets the associated flag value.

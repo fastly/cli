@@ -184,13 +184,13 @@ func Success(w io.Writer, format string, args ...any) {
 }
 
 // Description formats the output of a description item. A description item
-// consists of a `term` and a `description`. Emphasis is placed on the
+// consists of a `intro` and a `description`. Emphasis is placed on the
 // `description` using Bold(). For example:
 //
 //	To compile the package, run:
 //	    fastly compute build
-func Description(w io.Writer, term, description string) {
-	fmt.Fprintf(w, "%s:\n\t%s\n\n", term, Bold(description))
+func Description(w io.Writer, intro, description string) {
+	fmt.Fprintf(w, "%s:\n\t%s\n\n", intro, Bold(description))
 }
 
 // Indent writes the help text to the writer using WrapIndent with

@@ -192,5 +192,5 @@ func SetBackendHostDefaults(address string) (overrideHost, sslSNIHostname, sslCe
 		sslSNIHostname = overrideHost
 		sslCertHostname = overrideHost
 	}
-	return
+	return overrideHost, sslSNIHostname, sslCertHostname
 }

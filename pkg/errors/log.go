@@ -92,7 +92,10 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 
 	if fi, err := f.Stat(); err == nil {
 		if fi.Size() >= FileRotationSize {
-			f.Close()
+			err = f.Close()
+			if err != nil {
+				return err
+			}
 
 			// gosec flagged this:
 			// G304 (CWE-22): Potential file inclusion via variable
@@ -139,7 +142,9 @@ ERROR:
 		}
 	}
 
-	f.Write([]byte("------------------------------\n\n"))
+	if _, err := f.Write([]byte("------------------------------\n\n")); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -257,9 +262,10 @@ var FileRotationSize int64 = 5242880 // 5mb
 // ServiceVersion returns an integer regardless of whether the given argument
 // is a nil pointer or not. It helps to reduce the boilerplate found across the
 // codebase when tracking errors related to `cmd.ServiceDetails`.
-func ServiceVersion(v *fastly.Version) (sv int) {
+func ServiceVersion(v *fastly.Version) int {
+	var sv int
 	if v != nil {
 		sv = v.Number
 	}
-	return
+	return sv
 }
