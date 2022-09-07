@@ -564,9 +564,8 @@ COMMANDS
         --max-tls-version=MAX-TLS-VERSION
                                    Maximum allowed TLS version on SSL
                                    connections to this backend
-        --ssl-ciphers=SSL-CIPHERS  Colon delimited list of OpenSSL ciphers (see
-                                   https://www.openssl.org/docs/man1.0.2/man1/ciphers
-                                   for details)
+        --ssl-ciphers=SSL-CIPHERS  List of OpenSSL ciphers
+                                   (https://www.openssl.org/docs/man1.0.2/man1/ciphers)
 
   backend delete --version=VERSION --name=NAME [<flags>]
     Delete a backend on a Fastly service version
@@ -666,9 +665,8 @@ COMMANDS
         --max-tls-version=MAX-TLS-VERSION
                                    Maximum allowed TLS version on SSL
                                    connections to this backend
-        --ssl-ciphers=SSL-CIPHERS  Colon delimited list of OpenSSL ciphers (see
-                                   https://www.openssl.org/docs/man1.0.2/man1/ciphers
-                                   for details)
+        --ssl-ciphers=SSL-CIPHERS  List of OpenSSL ciphers
+                                   (https://www.openssl.org/docs/man1.0.2/man1/ciphers)
 
   compute build [<flags>]
     Build a Compute@Edge package locally
