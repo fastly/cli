@@ -29,13 +29,15 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 			flagValue:   "active",
 			wantVersion: 1,
 		},
+		// NOTE: Default behaviour for an empty flag value (or no flag at all) is to
+		// get the active version, and if no active version return the latest.
 		"empty": {
 			flagValue:   "",
-			wantVersion: 3,
+			wantVersion: 1,
 		},
 		"omitted": {
 			flagOmitted: true,
-			wantVersion: 3,
+			wantVersion: 1,
 		},
 		"specific version OK": {
 			flagValue:   "2",
