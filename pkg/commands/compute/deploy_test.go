@@ -175,6 +175,7 @@ func TestDeploy(t *testing.T) {
 			name: "list domains error",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
+				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsError,
@@ -383,6 +384,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionError,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateDomainFn:      createDomainOK,
 				DeleteDomainFn:      deleteDomainOK,
 				GetPackageFn:        getPackageOk,
@@ -405,6 +407,7 @@ func TestDeploy(t *testing.T) {
 			name: "identical package",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
+				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageIdentical,
 				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
@@ -420,6 +423,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
 				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
@@ -434,7 +438,7 @@ func TestDeploy(t *testing.T) {
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
 				"https://directly-careful-coyote.edgecompute.app",
-				"Deployed package (service 123, version 3)",
+				"Deployed package (service 123, version 4)",
 			},
 		},
 		{
@@ -489,7 +493,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with inactive version",
-			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz"),
+			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version latest"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,
@@ -885,6 +889,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
 				GetServiceFn:        getServiceOK,
@@ -914,7 +919,7 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
-				"SUCCESS: Deployed package (service 123, version 3)",
+				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
 				"Creating backend 'google' (host: beep.com, port: 123)",
@@ -926,6 +931,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
 				GetServiceFn:        getServiceOK,
@@ -951,7 +957,7 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
-				"SUCCESS: Deployed package (service 123, version 3)",
+				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
 				"Configuring dictionary 'dict_a'",
@@ -1109,6 +1115,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
 				GetServiceFn:        getServiceOK,
@@ -1128,7 +1135,7 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Uploading package...",
 				"Activating version...",
-				"SUCCESS: Deployed package (service 123, version 3)",
+				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
 				"The package code requires the following log endpoints to be created.",
@@ -1263,7 +1270,7 @@ func TestDeploy(t *testing.T) {
 			// Because the manifest can be mutated on each test scenario, we recreate
 			// the file each time.
 			manifestContent := `manifest_version = 2
-			name = "package"			
+			name = "package"
 			`
 			if testcase.manifest != "" {
 				manifestContent = testcase.manifest

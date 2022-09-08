@@ -102,8 +102,11 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 		return vs[0], nil
 	case "active":
 		v, err = GetActiveVersion(vs)
-	case "":
-		return vs[0], nil
+	case "": // no --version flag provided
+		v, err = GetActiveVersion(vs)
+		if err != nil {
+			return vs[0], nil // if no active version, return latest version
+		}
 	default:
 		v, err = GetSpecifiedVersion(vs, sv.Value)
 	}
