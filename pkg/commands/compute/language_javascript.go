@@ -217,7 +217,7 @@ func (j JavaScript) Verify(out io.Writer) error {
 	if !checkJsPackageDependencyExists(j.toolchain, j.packageDependency) {
 		remediation := fmt.Sprintf("npm install --save-dev %s", j.packageDependency)
 		err := fsterr.RemediationError{
-			Inner:       fmt.Errorf("`%s` not found in %s", j.packageDependency, JSManifestName),
+			Inner:       fmt.Errorf("`%s` not installed", j.packageDependency),
 			Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
 		}
 		j.errlog.Add(err)
