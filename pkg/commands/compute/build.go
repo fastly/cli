@@ -38,6 +38,35 @@ type Toolchain interface {
 	Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error
 }
 
+// ToolchainValidator represents required tools and files that need to exist.
+type ToolchainValidator struct {
+	// Compilation is a language specific compilation target that converts the
+	// language code into a Wasm binary (e.g. wasm32-wasi, tinygo).
+	Compilation string
+
+	// Constraints is a language specific set of supported toolchain and
+	// compilation versions. Two keys are supported: "toolchain" and
+	// "compilation", with the latter being optional as not all language
+	// compilation steps are separate tools from the toolchain itself.
+	Constraints map[string]string
+
+	// Installer is a language specific command to install the dependencies
+	// defined within the language manifest.
+	Installer string
+
+	// Manifest is a language specific manifest file for defining project
+	// configuration (e.g. package.json, Cargo.toml, go.mod).
+	Manifest string
+
+	// SDK is a language specific Compute@Edge compatible SDK (e.g.
+	// @fastly/js-compute, compute-sdk-go).
+	SDK string
+
+	// Toolchain is a language specific executable responsible for managing
+	// dependencies (e.g. npm, cargo, go).
+	Toolchain string
+}
+
 // Flags represents the flags defined for the command.
 type Flags struct {
 	IncludeSrc       bool
