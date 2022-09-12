@@ -11,7 +11,6 @@ version = "0.0.1"
 
 [language]
   [language.rust]
-  toolchain_version = "1.49.0"
   # we're also missing the 'toolchain_constraint' property
   wasm_wasi_target = "wasm32-wasi"
   fastly_sys_constraint = ">= 0.3.3 < 0.5.0"

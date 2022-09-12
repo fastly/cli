@@ -100,7 +100,6 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    "1.49.0",
 						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: "0.0.0",
@@ -134,7 +133,6 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    "1.49.0",
 						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: "0.0.0",
@@ -169,7 +167,6 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    "1.49.0",
 						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.4.0 <= 0.9.0", // the fastly-sys version in 0.6.0 is actually ^0.3.6 so a minimum of 0.4.0 causes the constraint to fail
@@ -206,7 +203,6 @@ func TestBuildRust(t *testing.T) {
 					Rust: config.Rust{
 						// NOTE: A 'stable' release will fail the constraint, which is set
 						// to something lower than current stable.
-						ToolchainVersion:    "1.0.0",
 						ToolchainConstraint: ">= 1.0.0 < 1.40.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.4.0 <= 0.9.0", // the fastly-sys version in 0.6.0 is actually ^0.3.6 so a minimum of 0.4.0 causes the constraint to fail
@@ -230,7 +226,6 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    "1.49.0",
 						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
@@ -264,7 +259,6 @@ func TestBuildRust(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    "1.49.0",
 						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
@@ -952,7 +946,6 @@ func TestCustomPostBuild(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    "1.49.0",
 						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
@@ -980,7 +973,6 @@ func TestCustomPostBuild(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    "1.49.0",
 						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
@@ -1009,7 +1001,6 @@ func TestCustomPostBuild(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainVersion:    "1.49.0",
 						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 						FastlySysConstraint: ">= 0.3.0 <= 0.6.0",
