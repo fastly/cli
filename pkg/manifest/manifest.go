@@ -217,7 +217,7 @@ type File struct {
 	readError error
 }
 
-// Scripts represents custom operations.
+// Scripts represents build configuration.
 type Scripts struct {
 	Build     string `toml:"build,omitempty"`
 	PostBuild string `toml:"post_build,omitempty"`
