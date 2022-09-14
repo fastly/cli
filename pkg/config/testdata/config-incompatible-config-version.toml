@@ -11,10 +11,8 @@ version = "0.0.1"
 
 [language]
   [language.rust]
-  # we're also missing the 'toolchain_constraint' property
+  # we're missing the 'toolchain_constraint' property
   wasm_wasi_target = "wasm32-wasi"
-  fastly_sys_constraint = ">= 0.3.3 < 0.5.0"
-  rustup_constraint = ">= 1.23.0"
 
 [starter-kits]
 [[starter-kits.assemblyscript]]
