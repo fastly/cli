@@ -58,6 +58,10 @@ const RustSourceDirectory = "src"
 // RustToolchain is the executable responsible for managing dependencies.
 const RustToolchain = "cargo"
 
+// RustToolchainCommandRemediation is the command to execute to fix the
+// toolchain.
+const RustToolchainCommandRemediation = "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`)."
+
 // RustToolchainURL is the official Rust website URL.
 const RustToolchainURL = "https://doc.rust-lang.org/stable/cargo/"
 
@@ -99,6 +103,7 @@ func NewRust(
 			SDK:                           RustSDK,
 			SDKCustomValidator:            validateRustSDK,
 			Toolchain:                     RustToolchain,
+			ToolchainCommandRemediation:   RustToolchainCommandRemediation,
 			ToolchainVersionCommand:       RustToolchainVersionCommand,
 			ToolchainVersionPattern:       regexp.MustCompile(`cargo (?P<version>\d[^\s]+)`),
 			ToolchainURL:                  RustToolchainURL,

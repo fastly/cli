@@ -110,6 +110,10 @@ type ToolchainValidator struct {
 	// dependencies (e.g. npm, cargo, go).
 	Toolchain string
 
+	// ToolchainCommandRemediation is a language specific shell command a user
+	// can execute to fix the missing compilation target.
+	ToolchainCommandRemediation string
+
 	// ToolchainSkipVersion is a language specific indicator that the
 	// toolchain does not need to have its version checked against a constraint
 	// defined in the CLI's application configuration.
@@ -175,11 +179,12 @@ func (tv ToolchainValidator) toolchain() error {
 // toolchainVersion validates the toolchain/compilation meets the defined
 // constraints.
 func (tv ToolchainValidator) toolchainVersion() error {
+	args := strings.Split(tv.ToolchainVersionCommand, " ")
+
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
 	// Disabling as we trust the source of the variable.
 	/* #nosec */
-	args := strings.Split(tv.ToolchainVersionCommand, " ")
 	cmd := exec.Command(args[0], args[1:]...)
 	stdoutStderr, err := cmd.CombinedOutput()
 	output := string(stdoutStderr)
@@ -222,8 +227,8 @@ func (tv ToolchainValidator) toolchainVersion() error {
 
 	if !c.Check(v) {
 		err := fsterr.RemediationError{
-			Inner:       fmt.Errorf("version %s didn't meet the constraint %s", version, constraint),
-			Remediation: tv.visitURLRemediation(tv.Toolchain, tv.ToolchainURL),
+			Inner:       fmt.Errorf("toolchain version %s didn't meet the constraint %s", version, constraint),
+			Remediation: tv.commandRemediation(tv.Toolchain, tv.ToolchainURL, tv.ToolchainCommandRemediation),
 		}
 		tv.ErrLog.Add(err)
 		return err
@@ -269,6 +274,10 @@ func (tv ToolchainValidator) sdk() error {
 		return fmt.Errorf("failed to construct path to '%s': %w", tv.Manifest, err)
 	}
 
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+	// Disabling as we trust the source of the variable.
+	/* #nosec */
 	bs, err := os.ReadFile(m)
 	if err != nil {
 		err = fmt.Errorf("failed to read file '%s': %w", m, err)
@@ -359,11 +368,12 @@ func (tv ToolchainValidator) compilation() error {
 		return nil
 	}
 
+	args := strings.Split(tv.CompilationTargetCommand, " ")
+
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
 	// Disabling as we trust the source of the variable.
 	/* #nosec */
-	args := strings.Split(tv.CompilationTargetCommand, " ")
 	cmd := exec.Command(args[0], args[1:]...)
 	stdoutStderr, err := cmd.CombinedOutput()
 	output := string(stdoutStderr)
@@ -445,6 +455,10 @@ func (tv ToolchainValidator) buildScript() error {
 		return fmt.Errorf("failed to construct path to '%s': %w", manifest.Filename, err)
 	}
 
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+	// Disabling as we trust the source of the variable.
+	/* #nosec */
 	bs, err := os.ReadFile(m)
 	if err != nil {
 		err = fmt.Errorf("failed to read file '%s': %w", m, err)

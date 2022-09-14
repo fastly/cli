@@ -2,12 +2,12 @@ package compute_test
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
@@ -16,20 +16,30 @@ import (
 	"github.com/fastly/cli/pkg/threadsafe"
 )
 
+// buildScriptRust is interpolated with each Rust test's inlined fastly.toml
+const buildScriptRust = "cargo build --bin {name} --release --target wasm32-wasi --color always"
+
+// buildScriptAssemblyScript is interpolated with each AssemblyScript test's
+// inlined fastly.toml
+const buildScriptAssemblyScript = "$(npm bin)/asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
+
+// buildScriptJavaScript is interpolated with each JavaScript test's inlined
+// fastly.toml
+const buildScriptJavaScript = "$(npm bin)/webpack && $(npm bin)/js-compute-runtime ./bin/index.js ./bin/main.wasm"
+
+// buildScriptGo is interpolated with each Go test's inlined fastly.toml
+const buildScriptGo = "tinygo build -target=wasi -wasm-abi=generic -gc=conservative -o bin/main.wasm ./"
+
 // TestBuildRust validates that the rust ecosystem is in place and accurate.
 //
 // NOTE:
 // The defined tests rely on some key pieces of information:
 //
-// 1. The `fastly` crate internally consumes a `fastly-sys` crate.
-// 2. The `fastly-sys` create didn't exist until `fastly` 0.4.0.
-// 3. Users of `fastly` should always have the latest `fastly-sys`.
-// 4. Users of `fastly` shouldn't need to know about `fastly-sys`.
-// 5. Each test has a 'default' Cargo.toml created for it.
-// 6. Each test can override the default Cargo.toml by defining a `cargoManifest`.
+// 1. Each test has a 'default' Cargo.toml created for it.
+// 2. Each test can override the default Cargo.toml by defining a `cargoManifest`.
 //
 // You can locate the default Cargo.toml here:
-// pkg/commands/compute/testdata/build/Cargo.toml
+// ./testdata/build/rust/Cargo.toml
 func TestBuildRust(t *testing.T) {
 	if os.Getenv("TEST_COMPUTE_BUILD_RUST") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
@@ -44,8 +54,6 @@ func TestBuildRust(t *testing.T) {
 		applicationConfig    config.File
 		fastlyManifest       string
 		cargoManifest        string
-		cargoLock            string
-		client               api.HTTPClient
 		wantError            string
 		wantRemediationError string
 		wantOutputContains   string
@@ -53,7 +61,6 @@ func TestBuildRust(t *testing.T) {
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute build"),
-			client:               versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError:            "error reading package manifest",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
@@ -63,7 +70,6 @@ func TestBuildRust(t *testing.T) {
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"`,
-			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError: "language cannot be empty, please provide a language",
 		},
 		{
@@ -72,7 +78,6 @@ func TestBuildRust(t *testing.T) {
 			fastlyManifest: `
 			manifest_version = 2
 			language = "rust"`,
-			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError: "name cannot be empty, please provide a name",
 		},
 		{
@@ -82,11 +87,10 @@ func TestBuildRust(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			language = "foobar"`,
-			client:    versionClient{fastlyVersions: []string{"0.0.0"}},
 			wantError: "unsupported language foobar",
 		},
 		{
-			name: "error reading cargo metadata",
+			name: "missing fastly dependency",
 			args: args("compute build"),
 			fastlyManifest: `
 			manifest_version = 2
@@ -95,8 +99,7 @@ func TestBuildRust(t *testing.T) {
 			cargoManifest: `
 			[package]
 			name = "test"`,
-			client:    versionClient{fastlyVersions: []string{"0.4.0"}},
-			wantError: "reading cargo metadata",
+			wantError: "failed to find SDK 'fastly' in the 'Cargo.toml' manifest",
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -105,74 +108,6 @@ func TestBuildRust(t *testing.T) {
 					},
 				},
 			},
-		},
-		{
-			name: "fastly-sys crate not found",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "rust"`,
-			cargoManifest: `
-			[package]
-			name = "test"
-			version = "0.1.0"
-
-			[dependencies]
-			fastly = "=0.3.2"`,
-			cargoLock: `
-			[[package]]
-			name = "test"
-			version = "0.1.0"
-
-			[[package]]
-			name = "fastly"
-			version = "0.3.2"`,
-			applicationConfig: config.File{
-				Language: config.Language{
-					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.54.0",
-						WasmWasiTarget:      "wasm32-wasi",
-					},
-				},
-			},
-			client: versionClient{
-				fastlyVersions: []string{"0.4.0"},
-			},
-			wantError:            "fastly-sys crate not found", // fastly 0.3.3 is where fastly-sys was introduced
-			wantRemediationError: "fastly = \"^0.4.0\"",
-		},
-		{
-			name: "fastly-sys crate out-of-date",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "rust"`,
-			cargoManifest: `
-			[package]
-			name = "test"
-			version = "0.1.0"
-
-			[dependencies]
-			fastly = "=0.4.0"`,
-			cargoLock: `
-			[[package]]
-			name = "fastly-sys"
-			version = "0.3.7"`,
-			applicationConfig: config.File{
-				Language: config.Language{
-					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.54.0",
-						WasmWasiTarget:      "wasm32-wasi",
-					},
-				},
-			},
-			client: versionClient{
-				fastlyVersions: []string{"0.6.0"},
-			},
-			wantError:            "fastly crate not up-to-date",
-			wantRemediationError: "fastly = \"^0.6.0\"",
 		},
 		{
 			name: "rust toolchain does not match the constraint",
@@ -188,33 +123,30 @@ func TestBuildRust(t *testing.T) {
 
 			[dependencies]
 			fastly = "=0.4.0"`,
-			cargoLock: `
-			[[package]]
-			name = "fastly-sys"
-			version = "0.3.7"`,
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
-						// NOTE: A 'stable' release will fail the constraint, which is set
-						// to something lower than current stable.
+						// NOTE: This test is purposely setting the constraint lower to what
+						// is reasonably going to be the current stable release installed to
+						// force the test failure scenario to be hit.
 						ToolchainConstraint: ">= 1.0.0 < 1.40.0",
 						WasmWasiTarget:      "wasm32-wasi",
 					},
 				},
 			},
-			client: versionClient{
-				fastlyVersions: []string{"0.6.0"},
-			},
-			wantError:            "rustc constraint '>= 1.0.0 < 1.40.0' not met:",
+			wantError:            "toolchain version 1.63.0 didn't meet the constraint >= 1.0.0 < 1.40.0",
 			wantRemediationError: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`).",
 		},
 		{
 			name: "fastly crate prerelease",
 			args: args("compute build"),
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
-			language = "rust"`,
+			language = "rust"
+
+      [scripts]
+      build = "%s"`, buildScriptRust),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -230,21 +162,10 @@ func TestBuildRust(t *testing.T) {
 
 			[dependencies]
 			fastly = "0.6.0"`,
-			cargoLock: `
-			[[package]]
-			name = "fastly-sys"
-			version = "0.3.7"
-
-			[[package]]
-			name = "fastly"
-			version = "0.6.0"`,
-			client: versionClient{
-				fastlyVersions: []string{"0.6.0"},
-			},
 			wantOutputContains: "Built package 'test'",
 		},
 		{
-			name: "Rust success",
+			name: "successful build",
 			args: args("compute build"),
 			applicationConfig: config.File{
 				Language: config.Language{
@@ -254,10 +175,13 @@ func TestBuildRust(t *testing.T) {
 					},
 				},
 			},
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
-			language = "rust"`,
+			language = "rust"
+
+      [scripts]
+      build = "%s"`, buildScriptRust),
 			cargoManifest: `
 			[package]
 			name = "test"
@@ -265,17 +189,6 @@ func TestBuildRust(t *testing.T) {
 
 			[dependencies]
 			fastly = "=0.6.0"`,
-			cargoLock: `
-			[[package]]
-			name = "fastly"
-			version = "0.6.0"
-
-			[[package]]
-			name = "fastly-sys"
-			version = "0.3.7"`,
-			client: versionClient{
-				fastlyVersions: []string{"0.6.0"},
-			},
 			wantOutputContains: "Built package 'test'",
 		},
 	}
@@ -301,7 +214,6 @@ func TestBuildRust(t *testing.T) {
 				Write: []testutil.FileIO{
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 					{Src: testcase.cargoManifest, Dst: "Cargo.toml"},
-					{Src: testcase.cargoLock, Dst: "Cargo.lock"},
 				},
 			})
 			defer os.RemoveAll(rootdir)
@@ -317,7 +229,6 @@ func TestBuildRust(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.ConfigFile = testcase.applicationConfig
-			opts.HTTPClient = testcase.client
 			err = app.Run(opts)
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
@@ -376,12 +287,15 @@ func TestBuildAssemblyScript(t *testing.T) {
 			wantError: "unsupported language foobar",
 		},
 		{
-			name: "AssemblyScript success",
+			name: "successful build",
 			args: args("compute build"),
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
-			language = "assemblyscript"`,
+			language = "assemblyscript"
+
+      [scripts]
+      build = "%s"`, buildScriptAssemblyScript),
 			wantOutputContains: "Built package 'test'",
 		},
 	} {
@@ -493,24 +407,30 @@ func TestBuildJavaScript(t *testing.T) {
 			wantError: "name cannot be empty, please provide a name",
 		},
 		{
-			name: "JavaScript compilation error",
+			name: "compilation error",
 			args: args("compute build --verbose"),
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
-			language = "javascript"`,
+			language = "javascript"
+
+      [scripts]
+      build = "%s"`, buildScriptJavaScript),
 			sourceOverride: `D"F;
 			'GREGERgregeg '
 			ERG`,
 			wantError: "error during execution process",
 		},
 		{
-			name: "JavaScript success",
+			name: "successful build",
 			args: args("compute build"),
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
-			language = "javascript"`,
+			language = "javascript"
+
+      [scripts]
+      build = "%s"`, buildScriptJavaScript),
 			wantOutputContains: "Built package 'test'",
 		},
 	} {
@@ -622,22 +542,28 @@ func TestBuildGo(t *testing.T) {
 		{
 			name: "syntax error",
 			args: args("compute build --verbose"),
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
-			language = "go"`,
+			language = "go"
+
+      [scripts]
+      build = "%s"`, buildScriptGo),
 			sourceOverride: `D"F;
 			'GREGERgregeg '
 			ERG`,
 			wantError: "error during execution process",
 		},
 		{
-			name: "success",
+			name: "successful build",
 			args: args("compute build"),
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
-			language = "go"`,
+			language = "go"
+
+      [scripts]
+      build = "%s"`, buildScriptGo),
 			wantOutputContains: "Built package 'test'",
 		},
 	} {
@@ -689,7 +615,7 @@ func TestBuildGo(t *testing.T) {
 	}
 }
 
-func TestCustomBuild(t *testing.T) {
+func TestOtherBuild(t *testing.T) {
 	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
@@ -735,17 +661,6 @@ func TestCustomBuild(t *testing.T) {
 		wantRemediationError string
 	}{
 		{
-			name: "no custom build",
-			args: args("compute build --language other"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "other"`,
-			dontWantOutput:       []string{compute.CustomBuildScriptMessage},
-			wantError:            "error reading custom build instructions from fastly.toml manifest",
-			wantRemediationError: "Add a [scripts.build] setting for your custom build process",
-		},
-		{
 			name: "stop build process",
 			args: args("compute build --language other"),
 			fastlyManifest: `
@@ -762,7 +677,7 @@ func TestCustomBuild(t *testing.T) {
 				"Stopping the build process",
 			},
 			wantError:            "build process stopped by user",
-			wantRemediationError: "Remove or update the custom [scripts.build] in the fastly.toml manifest.",
+			wantRemediationError: "Check the [scripts.build] in the fastly.toml manifest is safe to execute or skip this prompt using either `--auto-yes` or `--non-interactive`.",
 		},
 		{
 			name: "allow build process",
@@ -778,7 +693,7 @@ func TestCustomBuild(t *testing.T) {
 				compute.CustomBuildScriptMessage,
 				"echo custom build",
 				"Are you sure you want to continue with the build step?",
-				"Building package using custom toolchain",
+				"Building package using other toolchain",
 				"Built package 'test'",
 			},
 		},
@@ -796,27 +711,9 @@ func TestCustomBuild(t *testing.T) {
 				compute.CustomBuildScriptMessage,
 				"echo custom build",
 				"Are you sure you want to continue with the build step?",
-				"Building package using custom toolchain",
+				"Building package using other toolchain",
 				"Built package 'test'",
 			},
-		},
-		{
-			name: "display the custom build when using a non-other language",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "rust"
-			[scripts]
-			build = "echo custom build"`,
-			stdin: "Y",
-			wantOutput: []string{
-				compute.CustomBuildScriptMessage,
-				"echo custom build",
-				"Are you sure you want to continue with the build step?",
-				"Building package using custom toolchain",
-			},
-			wantError: "error reading Cargo.toml manifest", // we expect this to error as we don't actually setup the relevant files for a rust build
 		},
 		{
 			name: "avoid prompt confirmation",
@@ -828,7 +725,7 @@ func TestCustomBuild(t *testing.T) {
 			[scripts]
 			build = "echo custom build"`,
 			wantOutput: []string{
-				"Building package using custom toolchain",
+				"Building package using other toolchain",
 				"Built package 'test'",
 			},
 			dontWantOutput: []string{
@@ -905,6 +802,7 @@ func TestCustomPostBuild(t *testing.T) {
 	scenarios := []struct {
 		applicationConfig    config.File
 		args                 []string
+		cargoManifest        string
 		dontWantOutput       []string
 		fastlyManifest       string
 		name                 string
@@ -913,17 +811,6 @@ func TestCustomPostBuild(t *testing.T) {
 		wantOutput           []string
 		wantRemediationError string
 	}{
-		{
-			name: "no custom post_build",
-			args: args("compute build --language other"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "other"`,
-			dontWantOutput:       []string{compute.CustomPostBuildScriptMessage},
-			wantError:            "error reading custom build instructions from fastly.toml manifest",
-			wantRemediationError: "Add a [scripts.build] setting for your custom build process",
-		},
 		// NOTE: We need a fully functioning environment for the following tests,
 		// otherwise the call to language.Verify() would fail before reaching
 		// language.Build() and we need the build to complete because the
@@ -939,12 +826,20 @@ func TestCustomPostBuild(t *testing.T) {
 					},
 				},
 			},
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
 			language = "rust"
 			[scripts]
-			post_build = "echo custom post_build"`,
+      build = "%s"
+			post_build = "echo custom post_build"`, buildScriptRust),
+			cargoManifest: `
+			[package]
+			name = "test"
+			version = "0.1.0"
+
+			[dependencies]
+			fastly = "=0.6.0"`,
 			stdin: "N",
 			wantOutput: []string{
 				compute.CustomPostBuildScriptMessage,
@@ -964,12 +859,20 @@ func TestCustomPostBuild(t *testing.T) {
 					},
 				},
 			},
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
 			language = "rust"
 			[scripts]
-			post_build = "echo custom post_build"`,
+      build = "%s"
+			post_build = "echo custom post_build"`, buildScriptRust),
+			cargoManifest: `
+			[package]
+			name = "test"
+			version = "0.1.0"
+
+			[dependencies]
+			fastly = "=0.6.0"`,
 			stdin: "Y",
 			wantOutput: []string{
 				compute.CustomPostBuildScriptMessage,
@@ -990,12 +893,20 @@ func TestCustomPostBuild(t *testing.T) {
 					},
 				},
 			},
-			fastlyManifest: `
+			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
 			language = "rust"
 			[scripts]
-			post_build = "echo custom post_build"`,
+      build = "%s"
+			post_build = "echo custom post_build"`, buildScriptRust),
+			cargoManifest: `
+			[package]
+			name = "test"
+			version = "0.1.0"
+
+			[dependencies]
+			fastly = "=0.6.0"`,
 			wantOutput: []string{
 				"Building package using rust toolchain",
 				"Built package 'test'",
@@ -1011,6 +922,11 @@ func TestCustomPostBuild(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			if testcase.fastlyManifest != "" {
 				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if testcase.cargoManifest != "" {
+				if err := os.WriteFile(filepath.Join(rootdir, "Cargo.toml"), []byte(testcase.cargoManifest), 0o777); err != nil {
 					t.Fatal(err)
 				}
 			}

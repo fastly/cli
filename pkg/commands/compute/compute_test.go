@@ -1,13 +1,9 @@
 package compute_test
 
 import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -349,31 +345,4 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 			testutil.AssertEqual(t, testcase.wantFiles, output)
 		})
 	}
-}
-
-type errorClient struct {
-	err error
-}
-
-func (c errorClient) Do(*http.Request) (*http.Response, error) {
-	return nil, c.err
-}
-
-type httpClient struct {
-	versions []string
-}
-
-func (v httpClient) Do(*http.Request) (*http.Response, error) {
-	rec := httptest.NewRecorder()
-
-	var versions []string
-	for _, vv := range v.versions {
-		versions = append(versions, fmt.Sprintf(`{"num":"%s"}`, vv))
-	}
-
-	_, err := fmt.Fprintf(rec, `{"versions":[%s]}`, strings.Join(versions, ","))
-	if err != nil {
-		return nil, err
-	}
-	return rec.Result(), nil
 }

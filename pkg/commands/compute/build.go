@@ -207,19 +207,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// print doesn't get hidden by the progress status.
 	progress.Done()
 
-	if toolchain == "custom" {
-		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
-			// Although not a security prevention method. If we are able to detect a
-			// custom build script (due to the fastly.toml defined with "custom" for
-			// its language choice), then we'll at least display a message to the user
-			// informing them, as "custom" indicates a non-official build script.
-			err := promptForBuildContinue(CustomBuildScriptMessage, c.Manifest.File.Scripts.Build, out, in, c.Globals.Verbose())
-			if err != nil {
-				return err
-			}
-		}
-	}
-
 	if c.Globals.Verbose() {
 		text.Break(out)
 	}
