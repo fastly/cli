@@ -15,7 +15,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.19.x
+        go-version: 1.18.x
     - name: "Restore golang bin cache"
       id: go-bin-cache
       uses: actions/cache@v2
@@ -60,7 +60,7 @@ jobs:
     strategy:
       matrix:
         tinygo-version: [0.24.0]
-        go-version: [1.19.x]
+        go-version: [1.18.x]
         node-version: [12]
         rust-toolchain: [stable]
         platform: [ubuntu-latest, macos-latest, windows-latest]
