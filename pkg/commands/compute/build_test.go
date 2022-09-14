@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
+	fstruntime "github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/threadsafe"
 )
@@ -251,6 +252,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 		name                 string
 		args                 []string
 		fastlyManifest       string
+		skipWindows          bool
 		wantError            string
 		wantRemediationError string
 		wantOutputContains   string
@@ -297,9 +299,14 @@ func TestBuildAssemblyScript(t *testing.T) {
       [scripts]
       build = "%s"`, buildScriptAssemblyScript),
 			wantOutputContains: "Built package 'test'",
+			skipWindows:        true,
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			if fstruntime.Windows && testcase.skipWindows {
+				t.Skip()
+			}
+
 			// We're going to chdir to a build environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
@@ -379,6 +386,7 @@ func TestBuildJavaScript(t *testing.T) {
 		name                 string
 		args                 []string
 		fastlyManifest       string
+		skipWindows          bool
 		sourceOverride       string
 		wantError            string
 		wantRemediationError string
@@ -432,9 +440,14 @@ func TestBuildJavaScript(t *testing.T) {
       [scripts]
       build = "%s"`, buildScriptJavaScript),
 			wantOutputContains: "Built package 'test'",
+			skipWindows:        true,
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			if fstruntime.Windows && testcase.skipWindows {
+				t.Skip()
+			}
+
 			if testcase.fastlyManifest != "" {
 				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
 					t.Fatal(err)
