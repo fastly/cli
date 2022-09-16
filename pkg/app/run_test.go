@@ -3674,8 +3674,9 @@ COMMANDS
         --timestamp-format=TIMESTAMP-FORMAT
                                  strftime specified timestamp formatting
                                  (default "%Y-%m-%dT%H:%M:%S.000")
-        --redundancy=REDUNDANCY  The S3 redundancy level. Can be either standard
-                                 or reduced_redundancy
+        --redundancy=REDUNDANCY  The S3 storage class. One of: 
+                                 standard, intelligent_tiering, standard_ia, onezone_ia, 
+                                 glacier, glacier_ir, deep_archive, or reduced_redundancy
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
@@ -3774,8 +3775,9 @@ COMMANDS
         --timestamp-format=TIMESTAMP-FORMAT
                                  strftime specified timestamp formatting
                                  (default "%Y-%m-%dT%H:%M:%S.000")
-        --redundancy=REDUNDANCY  The S3 redundancy level. Can be either standard
-                                 or reduced_redundancy
+        --redundancy=REDUNDANCY  The S3 storage class. One of: 
+                                 standard, intelligent_tiering, standard_ia, onezone_ia, 
+                                 glacier, glacier_ir, deep_archive, or reduced_redundancy
         --placement=PLACEMENT    Where in the generated VCL the logging call
                                  should be placed, overriding any format_version
                                  default. Can be none or waf_debug
