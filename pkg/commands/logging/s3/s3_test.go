@@ -438,3 +438,37 @@ func updateCommandMissingServiceID() *s3.UpdateCommand {
 	res.Manifest = manifest.Data{}
 	return res
 }
+
+func TestValidateRedundancy(t *testing.T) {
+	for _, testcase := range []struct {
+		value     string
+		want      fastly.S3Redundancy
+		wantError string
+	}{
+		{value: "standard", want: fastly.S3RedundancyStandard},
+		{value: "standard_ia", want: fastly.S3RedundancyStandardIA},
+		{value: "onezone_ia", want: fastly.S3RedundancyOneZoneIA},
+		{value: "glacier", want: fastly.S3RedundancyGlacierFlexibleRetrieval},
+		{value: "glacier_ir", want: fastly.S3RedundancyGlacierInstantRetrieval},
+		{value: "deep_archive", want: fastly.S3RedundancyGlacierDeepArchive},
+		{value: "reduced_redundancy", want: fastly.S3RedundancyReduced},
+		{value: "bad_value", wantError: "unknown redundancy"},
+	} {
+		t.Run(testcase.value, func(t *testing.T) {
+			have, err := s3.ValidateRedundancy(testcase.value)
+
+			switch {
+			case err != nil && testcase.wantError == "":
+				t.Fatalf("unexpected error ValidateRedundancy: %v", err)
+				return
+			case err != nil && testcase.wantError != "":
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+				return
+			case err == nil && testcase.wantError != "":
+				t.Fatalf("expected error, have nil (redundancy: %s)", testcase.value)
+			case err == nil && testcase.wantError == "":
+				testutil.AssertEqual(t, testcase.want, have)
+			}
+		})
+	}
+}
