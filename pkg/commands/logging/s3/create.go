@@ -196,11 +196,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Redundancy.WasSet {
-		switch c.Redundancy.Value {
-		case string(fastly.S3RedundancyStandard):
-			input.Redundancy = fastly.S3RedundancyStandard
-		case string(fastly.S3RedundancyReduced):
-			input.Redundancy = fastly.S3RedundancyReduced
+		redundancy, err := ValidateRedundancy(c.Redundancy.Value)
+		if err == nil {
+			input.Redundancy = redundancy
 		}
 	}
 
@@ -214,6 +212,30 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	return &input, nil
+}
+
+func ValidateRedundancy(val string) (redundancy fastly.S3Redundancy, err error) {
+	switch val {
+	case string(fastly.S3RedundancyStandard):
+		redundancy = fastly.S3RedundancyStandard
+	case string(fastly.S3RedundancyIntelligentTiering):
+		redundancy = fastly.S3RedundancyIntelligentTiering
+	case string(fastly.S3RedundancyStandardIA):
+		redundancy = fastly.S3RedundancyStandardIA
+	case string(fastly.S3RedundancyOneZoneIA):
+		redundancy = fastly.S3RedundancyOneZoneIA
+	case string(fastly.S3RedundancyGlacierInstantRetrieval):
+		redundancy = fastly.S3RedundancyGlacierInstantRetrieval
+	case string(fastly.S3RedundancyGlacierFlexibleRetrieval):
+		redundancy = fastly.S3RedundancyGlacierFlexibleRetrieval
+	case string(fastly.S3RedundancyGlacierDeepArchive):
+		redundancy = fastly.S3RedundancyGlacierDeepArchive
+	case string(fastly.S3RedundancyReduced):
+		redundancy = fastly.S3RedundancyReduced
+	default:
+		err = fmt.Errorf("Unknown redundancy: " + val)
+	}
+	return
 }
 
 // Exec invokes the application logic for the command.

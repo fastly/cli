@@ -179,11 +179,9 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Redundancy.WasSet {
-		switch c.Redundancy.Value {
-		case string(fastly.S3RedundancyStandard):
-			input.Redundancy = fastly.S3RedundancyPtr(fastly.S3RedundancyStandard)
-		case string(fastly.S3RedundancyReduced):
-			input.Redundancy = fastly.S3RedundancyPtr(fastly.S3RedundancyReduced)
+		redundancy, err := ValidateRedundancy(c.Redundancy.Value)
+		if err == nil {
+			input.Redundancy = fastly.S3RedundancyPtr(redundancy)
 		}
 	}
 
