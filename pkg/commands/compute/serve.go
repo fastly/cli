@@ -103,10 +103,8 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Step("Running local server...")
 	progress.Done()
 
-	srcDir := sourceDirectory(c.lang, c.manifest.File.Language, c.watch, out)
-
 	for {
-		err = local(bin, srcDir, c.file, c.addr, c.env.Value, c.debug, c.watch, c.Globals.Verbose(), out, c.Globals.ErrLog)
+		err = local(bin, c.file, c.addr, c.env.Value, c.debug, c.watch, c.Globals.Verbose(), out, c.Globals.ErrLog)
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
 				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
@@ -387,33 +385,8 @@ func setBinPerms(bin string) error {
 	return nil
 }
 
-// sourceDirectory identifies the source code directory for the given language.
-func sourceDirectory(flag cmd.OptionalString, lang string, watch bool, out io.Writer) string {
-	if flag.WasSet {
-		lang = flag.Value
-	}
-	lang = strings.ToLower(strings.TrimSpace(lang))
-
-	defaultDir := "src"
-
-	switch lang {
-	case "assemblyscript":
-		return ASSourceDirectory
-	case "go":
-		return GoSourceDirectory
-	case "javascript":
-		return JSSourceDirectory
-	case "rust":
-		return RustSourceDirectory
-	}
-	if watch {
-		text.Info(out, "The --watch flag defaults to watching file modifications in a ./src directory.")
-	}
-	return defaultDir
-}
-
 // local spawns a subprocess that runs the compiled binary.
-func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out io.Writer, errLog fsterr.LogInterface) error {
+func local(bin, file, addr, env string, debug, watch, verbose bool, out io.Writer, errLog fsterr.LogInterface) error {
 	if env != "" {
 		env = "." + env
 	}
@@ -449,7 +422,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 	restart := make(chan bool)
 	if watch {
-		go watchFiles(verbose, srcDir, s, out, restart)
+		go watchFiles(verbose, s, out, restart)
 	}
 
 	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
@@ -495,7 +468,7 @@ func local(bin, srcDir, file, addr, env string, debug, watch, verbose bool, out 
 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
-func watchFiles(verbose bool, dir string, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+func watchFiles(verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 	gi := gitIgnore()
 
 	watcher, err := fsnotify.NewWatcher()
@@ -576,9 +549,10 @@ func watchFiles(verbose bool, dir string, s *fstexec.Streaming, out io.Writer, r
 		}
 	}()
 
-	filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) error {
+	// Walk all directories and files starting from the project's root directory.
+	err = filepath.WalkDir(".", func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
-			log.Fatal(fmt.Errorf("error walking directory tree '%s': %w", dir, err))
+			return fmt.Errorf("error configuring watching for file changes: %w", err)
 		}
 		// If there's no ignore file, we'll default to watching all directories
 		// within the specified top-level directory.
@@ -595,17 +569,11 @@ func watchFiles(verbose bool, dir string, s *fstexec.Streaming, out io.Writer, r
 		}
 		return nil
 	})
-
-	// NOTE: A language might use the root directory rather than a subdirectory
-	// like the ./src directory (which most currently use).
-	if dir == "." {
-		dir = ""
-	}
-	if dir != "" {
-		dir = dir + "/"
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	text.Info(out, "Watching ./%s**/* for changes.", dir)
+	text.Info(out, "Watching ./**/* for changes.")
 	text.Break(out)
 	<-done
 }
