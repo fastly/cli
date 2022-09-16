@@ -214,6 +214,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	return &input, nil
 }
 
+// ValidateRedundancy identifies the given redundancy type.
 func ValidateRedundancy(val string) (redundancy fastly.S3Redundancy, err error) {
 	switch val {
 	case string(fastly.S3RedundancyStandard):
@@ -233,7 +234,7 @@ func ValidateRedundancy(val string) (redundancy fastly.S3Redundancy, err error) 
 	case string(fastly.S3RedundancyReduced):
 		redundancy = fastly.S3RedundancyReduced
 	default:
-		err = fmt.Errorf("Unknown redundancy: " + val)
+		err = fmt.Errorf("unknown redundancy: " + val)
 	}
 	return
 }

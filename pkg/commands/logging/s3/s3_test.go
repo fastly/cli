@@ -452,7 +452,7 @@ func TestValidateRedundancy(t *testing.T) {
 		{value: "glacier_ir", want: fastly.S3RedundancyGlacierInstantRetrieval},
 		{value: "deep_archive", want: fastly.S3RedundancyGlacierDeepArchive},
 		{value: "reduced_redundancy", want: fastly.S3RedundancyReduced},
-		{value: "bad_value", wantError: "Unknown redundancy"},
+		{value: "bad_value", wantError: "unknown redundancy"},
 	} {
 		t.Run(testcase.value, func(t *testing.T) {
 			have, err := s3.ValidateRedundancy(testcase.value)
