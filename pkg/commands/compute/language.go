@@ -16,7 +16,7 @@ import (
 // NOTE: The 'timeout' value zero is passed into each New<Language> call as it's
 // only useful during the `compute build` phase and is expected to be
 // provided by the user via a flag on the build command.
-func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName string, scripts manifest.Scripts, out io.Writer) []*Language {
+func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName string, fastlyManifest manifest.File, out io.Writer) []*Language {
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
@@ -24,7 +24,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 			StarterKits: kits.Rust,
 			Toolchain: NewRust(
 				pkgName,
-				scripts,
+				&fastlyManifest,
 				d.ErrLog,
 				0,
 				d.File.Language.Rust,
@@ -37,7 +37,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 			StarterKits: kits.JavaScript,
 			Toolchain: NewJavaScript(
 				pkgName,
-				scripts,
+				&fastlyManifest,
 				d.ErrLog,
 				0,
 				out,
@@ -49,7 +49,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 			StarterKits: kits.Go,
 			Toolchain: NewGo(
 				pkgName,
-				scripts,
+				&fastlyManifest,
 				d.ErrLog,
 				0,
 				d.File.Language.Go,
@@ -62,7 +62,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 			StarterKits: kits.AssemblyScript,
 			Toolchain: NewAssemblyScript(
 				pkgName,
-				scripts,
+				&fastlyManifest,
 				d.ErrLog,
 				0,
 				out,

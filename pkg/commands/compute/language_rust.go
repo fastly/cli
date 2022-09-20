@@ -42,6 +42,13 @@ const RustCompilationTargetCommand = "rustup target list --installed --toolchain
 // the toolchain itself.
 var RustConstraints = make(map[string]string)
 
+// RustDefaultBuildCommand is a build command compiled into the CLI binary so it
+// can be used as a fallback for customer's who have an existing C@E project and
+// are simply upgrading their CLI version and might not be familiar with the
+// changes in the 4.0.0 release with regards to how build logic has moved to the
+// fastly.toml manifest.
+const RustDefaultBuildCommand = "cargo build --bin {name} --release --target wasm32-wasi --color always"
+
 // RustManifest is the manifest file for defining project configuration.
 const RustManifest = "Cargo.toml"
 
@@ -72,7 +79,7 @@ const RustToolchainVersionCommand = "cargo version"
 // NewRust constructs a new Rust toolchain.
 func NewRust(
 	pkgName string,
-	scripts manifest.Scripts,
+	fastlyManifest *manifest.File,
 	errlog fsterr.LogInterface,
 	timeout int,
 	cfg config.Rust,
@@ -82,11 +89,10 @@ func NewRust(
 
 	return &Rust{
 		Shell:     Shell{},
-		build:     scripts.Build,
 		config:    cfg,
 		errlog:    errlog,
 		pkgName:   pkgName,
-		postBuild: scripts.PostBuild,
+		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
 		validator: ToolchainValidator{
 			Compilation:                   RustCompilation,
@@ -96,7 +102,9 @@ func NewRust(
 			CompilationTargetPattern:      regexp.MustCompile(fmt.Sprintf(`(?P<version>)%s`, RustCompilation)),
 			CompilationURL:                RustCompilationURL,
 			Constraints:                   RustConstraints,
+			DefaultBuildCommand:           RustDefaultBuildCommand,
 			ErrLog:                        errlog,
+			FastlyManifestFile:            fastlyManifest,
 			Manifest:                      RustManifest,
 			ManifestRemediation:           RustManifestRemediation,
 			Output:                        out,
@@ -115,8 +123,7 @@ func NewRust(
 type Rust struct {
 	Shell
 
-	// build is a shell command defined in fastly.toml using [scripts.build].
-	build  string
+	// config is the Rust specific application configuration.
 	config config.Rust
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
@@ -143,14 +150,19 @@ func (r Rust) Initialize(_ io.Writer) error {
 }
 
 // Verify ensures the user's environment has all the required resources/tools.
-func (r *Rust) Verify(_ io.Writer) (err error) {
+func (r *Rust) Verify(_ io.Writer) error {
 	return r.validator.Validate()
 }
 
 // Build compiles the user's source code into a Wasm binary.
 func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+	// NOTE: We purposes reference the validator pointer to the fastly.toml file.
+	// This is because the manifest.File might be updated when migrating a
+	// pre-existing project to use the CLI v4.0.0 (as prior to this version the
+	// manifest would not require [script.build] to be defined. As of v4.0.0 if no
+	// value is set, then we provide a default.
 	return build(language{
-		buildScript: r.build,
+		buildScript: r.validator.FastlyManifestFile.Scripts.Build,
 		buildFn:     r.Shell.Build,
 		errlog:      r.errlog,
 		pkgName:     r.pkgName,

@@ -147,7 +147,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	languages := NewLanguages(c.Globals.File.StarterKits, c.Globals, name, mf.Scripts, out)
+	languages := NewLanguages(c.Globals.File.StarterKits, c.Globals, name, mf, out)
 	language, err := selectLanguage(c.from, c.language, languages, mf, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

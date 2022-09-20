@@ -17,20 +17,6 @@ import (
 	"github.com/fastly/cli/pkg/threadsafe"
 )
 
-// buildScriptRust is interpolated with each Rust test's inlined fastly.toml
-const buildScriptRust = "cargo build --bin {name} --release --target wasm32-wasi --color always"
-
-// buildScriptAssemblyScript is interpolated with each AssemblyScript test's
-// inlined fastly.toml
-const buildScriptAssemblyScript = "$(npm bin)/asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
-
-// buildScriptJavaScript is interpolated with each JavaScript test's inlined
-// fastly.toml
-const buildScriptJavaScript = "$(npm bin)/webpack && $(npm bin)/js-compute-runtime ./bin/index.js ./bin/main.wasm"
-
-// buildScriptGo is interpolated with each Go test's inlined fastly.toml
-const buildScriptGo = "tinygo build -target=wasi -wasm-abi=generic -gc=conservative -o bin/main.wasm ./"
-
 // TestBuildRust validates that the rust ecosystem is in place and accurate.
 //
 // NOTE:
@@ -147,7 +133,7 @@ func TestBuildRust(t *testing.T) {
 			language = "rust"
 
       [scripts]
-      build = "%s"`, buildScriptRust),
+      build = "%s"`, compute.RustDefaultBuildCommand),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -182,7 +168,7 @@ func TestBuildRust(t *testing.T) {
 			language = "rust"
 
       [scripts]
-      build = "%s"`, buildScriptRust),
+      build = "%s"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
 			name = "test"
@@ -297,7 +283,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 			language = "assemblyscript"
 
       [scripts]
-      build = "%s"`, buildScriptAssemblyScript),
+      build = "%s"`, compute.AsDefaultBuildCommand),
 			wantOutputContains: "Built package 'test'",
 			skipWindows:        true,
 		},
@@ -423,7 +409,7 @@ func TestBuildJavaScript(t *testing.T) {
 			language = "javascript"
 
       [scripts]
-      build = "%s"`, buildScriptJavaScript),
+      build = "%s"`, compute.JsDefaultBuildCommand),
 			sourceOverride: `D"F;
 			'GREGERgregeg '
 			ERG`,
@@ -438,7 +424,7 @@ func TestBuildJavaScript(t *testing.T) {
 			language = "javascript"
 
       [scripts]
-      build = "%s"`, buildScriptJavaScript),
+      build = "%s"`, compute.JsDefaultBuildCommand),
 			wantOutputContains: "Built package 'test'",
 			skipWindows:        true,
 		},
@@ -561,7 +547,7 @@ func TestBuildGo(t *testing.T) {
 			language = "go"
 
       [scripts]
-      build = "%s"`, buildScriptGo),
+      build = "%s"`, compute.GoDefaultBuildCommand),
 			sourceOverride: `D"F;
 			'GREGERgregeg '
 			ERG`,
@@ -576,7 +562,7 @@ func TestBuildGo(t *testing.T) {
 			language = "go"
 
       [scripts]
-      build = "%s"`, buildScriptGo),
+      build = "%s"`, compute.GoDefaultBuildCommand),
 			wantOutputContains: "Built package 'test'",
 		},
 	} {
@@ -842,7 +828,7 @@ func TestCustomPostBuild(t *testing.T) {
 			language = "rust"
 			[scripts]
       build = "%s"
-			post_build = "echo custom post_build"`, buildScriptRust),
+			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
 			name = "test"
@@ -875,7 +861,7 @@ func TestCustomPostBuild(t *testing.T) {
 			language = "rust"
 			[scripts]
       build = "%s"
-			post_build = "echo custom post_build"`, buildScriptRust),
+			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
 			name = "test"
@@ -909,7 +895,7 @@ func TestCustomPostBuild(t *testing.T) {
 			language = "rust"
 			[scripts]
       build = "%s"
-			post_build = "echo custom post_build"`, buildScriptRust),
+			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
 			name = "test"

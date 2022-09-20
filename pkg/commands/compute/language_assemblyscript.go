@@ -17,6 +17,13 @@ const AsCompilation = "asc"
 // AsCompilationURL is the official assemblyscript package URL.
 const AsCompilationURL = "https://www.npmjs.com/package/assemblyscript"
 
+// AsDefaultBuildCommand is a build command compiled into the CLI binary so it
+// can be used as a fallback for customer's who have an existing C@E project and
+// are simply upgrading their CLI version and might not be familiar with the
+// changes in the 4.0.0 release with regards to how build logic has moved to the
+// fastly.toml manifest.
+const AsDefaultBuildCommand = "$(npm bin)/asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
+
 // AsSDK is the required Compute@Edge SDK.
 // https://www.npmjs.com/package/@fastly/as-compute
 const AsSDK = "@fastly/as-compute"
@@ -27,14 +34,13 @@ const AsSourceDirectory = "assembly"
 // NewAssemblyScript constructs a new AssemblyScript toolchain.
 func NewAssemblyScript(
 	pkgName string,
-	scripts manifest.Scripts,
+	fastlyManifest *manifest.File,
 	errlog fsterr.LogInterface,
 	timeout int,
 	out io.Writer,
 ) *AssemblyScript {
 	return &AssemblyScript{
 		JavaScript: JavaScript{
-			build:   scripts.Build,
 			errlog:  errlog,
 			pkgName: pkgName,
 			timeout: timeout,
@@ -56,7 +62,9 @@ func NewAssemblyScript(
 				CompilationCommandRemediation: fmt.Sprintf(JsCompilationCommandRemediation, AsSDK),
 				CompilationSkipVersion:        true,
 				CompilationURL:                AsCompilationURL,
+				DefaultBuildCommand:           AsDefaultBuildCommand,
 				ErrLog:                        errlog,
+				FastlyManifestFile:            fastlyManifest,
 				Installer:                     JsInstaller,
 				Manifest:                      JsManifest,
 				ManifestRemediation:           JsManifestRemediation,
@@ -68,9 +76,8 @@ func NewAssemblyScript(
 				ToolchainURL:                  JsToolchainURL,
 			},
 		},
-		build:     scripts.Build,
 		errlog:    errlog,
-		postBuild: scripts.PostBuild,
+		postBuild: fastlyManifest.Scripts.PostBuild,
 	}
 }
 
@@ -85,8 +92,6 @@ func NewAssemblyScript(
 type AssemblyScript struct {
 	JavaScript
 
-	// build is a shell command defined in fastly.toml using [scripts.build].
-	build string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// postBuild is a custom script executed after the build but before the Wasm
@@ -96,8 +101,13 @@ type AssemblyScript struct {
 
 // Build compiles the user's source code into a Wasm binary.
 func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+	// NOTE: We purposes reference the validator pointer to the fastly.toml file.
+	// This is because the manifest.File might be updated when migrating a
+	// pre-existing project to use the CLI v4.0.0 (as prior to this version the
+	// manifest would not require [script.build] to be defined. As of v4.0.0 if no
+	// value is set, then we provide a default.
 	return build(language{
-		buildScript: a.build,
+		buildScript: a.validator.FastlyManifestFile.Scripts.Build,
 		buildFn:     a.Shell.Build,
 		errlog:      a.errlog,
 		pkgName:     a.pkgName,

@@ -22,6 +22,13 @@ const JsCompilationCommandRemediation = "npm install --save-dev %s"
 // JsCompilationURL is the official Fastly C@E JS runtime package URL.
 const JsCompilationURL = "https://www.npmjs.com/package/@fastly/js-compute"
 
+// JsDefaultBuildCommand is a build command compiled into the CLI binary so it
+// can be used as a fallback for customer's who have an existing C@E project and
+// are simply upgrading their CLI version and might not be familiar with the
+// changes in the 4.0.0 release with regards to how build logic has moved to the
+// fastly.toml manifest.
+const JsDefaultBuildCommand = "$(npm bin)/webpack && $(npm bin)/js-compute-runtime ./bin/index.js ./bin/main.wasm"
+
 // JsInstaller is the command used to install the dependencies defined within
 // the Js language manifest.
 const JsInstaller = "npm install"
@@ -48,17 +55,16 @@ const JsToolchainURL = "https://nodejs.org/"
 // NewJavaScript constructs a new JavaScript toolchain.
 func NewJavaScript(
 	pkgName string,
-	scripts manifest.Scripts,
+	fastlyManifest *manifest.File,
 	errlog fsterr.LogInterface,
 	timeout int,
 	out io.Writer,
 ) *JavaScript {
 	return &JavaScript{
 		Shell:     Shell{},
-		build:     scripts.Build,
 		errlog:    errlog,
 		pkgName:   pkgName,
-		postBuild: scripts.PostBuild,
+		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
 		validator: ToolchainValidator{
 			Compilation: JsCompilation,
@@ -78,7 +84,9 @@ func NewJavaScript(
 			CompilationCommandRemediation: fmt.Sprintf(JsCompilationCommandRemediation, JsSDK),
 			CompilationSkipVersion:        true,
 			CompilationURL:                JsCompilationURL,
+			DefaultBuildCommand:           JsDefaultBuildCommand,
 			ErrLog:                        errlog,
+			FastlyManifestFile:            fastlyManifest,
 			Installer:                     JsInstaller,
 			Manifest:                      JsManifest,
 			ManifestRemediation:           JsManifestRemediation,
@@ -96,8 +104,6 @@ func NewJavaScript(
 type JavaScript struct {
 	Shell
 
-	// build is a shell command defined in fastly.toml using [scripts.build].
-	build string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// pkgName is the name of the package (also used as the module name).
@@ -127,8 +133,13 @@ func (j JavaScript) Verify(_ io.Writer) error {
 
 // Build compiles the user's source code into a Wasm binary.
 func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+	// NOTE: We purposes reference the validator pointer to the fastly.toml file.
+	// This is because the manifest.File might be updated when migrating a
+	// pre-existing project to use the CLI v4.0.0 (as prior to this version the
+	// manifest would not require [script.build] to be defined. As of v4.0.0 if no
+	// value is set, then we provide a default.
 	return build(language{
-		buildScript: j.build,
+		buildScript: j.validator.FastlyManifestFile.Scripts.Build,
 		buildFn:     j.Shell.Build,
 		errlog:      j.errlog,
 		pkgName:     j.pkgName,

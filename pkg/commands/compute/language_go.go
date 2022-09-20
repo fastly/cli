@@ -33,6 +33,13 @@ const GoCompilationTargetCommand = "tinygo version"
 // the toolchain itself.
 var GoConstraints = make(map[string]string)
 
+// GoDefaultBuildCommand is a build command compiled into the CLI binary so it
+// can be used as a fallback for customer's who have an existing C@E project and
+// are simply upgrading their CLI version and might not be familiar with the
+// changes in the 4.0.0 release with regards to how build logic has moved to the
+// fastly.toml manifest.
+const GoDefaultBuildCommand = "tinygo build -target=wasi -wasm-abi=generic -gc=conservative -o bin/main.wasm ./"
+
 // GoInstaller is the command used to install the dependencies defined within
 // the Go language manifest.
 const GoInstaller = "go mod download"
@@ -62,7 +69,7 @@ const GoToolchainVersionCommand = "go version"
 // NewGo constructs a new Go toolchain.
 func NewGo(
 	pkgName string,
-	scripts manifest.Scripts,
+	fastlyManifest *manifest.File,
 	errlog fsterr.LogInterface,
 	timeout int,
 	cfg config.Go,
@@ -73,10 +80,9 @@ func NewGo(
 
 	return &Go{
 		Shell:     Shell{},
-		build:     scripts.Build,
 		errlog:    errlog,
 		pkgName:   pkgName,
-		postBuild: scripts.PostBuild,
+		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
 		validator: ToolchainValidator{
 			Compilation:              GoCompilation,
@@ -84,7 +90,9 @@ func NewGo(
 			CompilationTargetPattern: regexp.MustCompile(`tinygo version (?P<version>\d[^\s]+)`),
 			CompilationURL:           GoCompilationURL,
 			Constraints:              GoConstraints,
+			DefaultBuildCommand:      GoDefaultBuildCommand,
 			ErrLog:                   errlog,
+			FastlyManifestFile:       fastlyManifest,
 			Installer:                GoInstaller,
 			Manifest:                 GoManifest,
 			ManifestRemediation:      GoManifestRemediation,
@@ -107,8 +115,6 @@ func NewGo(
 type Go struct {
 	Shell
 
-	// build is a shell command defined in fastly.toml using [scripts.build].
-	build string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// pkgName is the name of the package (also used as the module name).
@@ -138,8 +144,13 @@ func (g *Go) Verify(_ io.Writer) error {
 
 // Build compiles the user's source code into a Wasm binary.
 func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+	// NOTE: We purposes reference the validator pointer to the fastly.toml file.
+	// This is because the manifest.File might be updated when migrating a
+	// pre-existing project to use the CLI v4.0.0 (as prior to this version the
+	// manifest would not require [script.build] to be defined. As of v4.0.0 if no
+	// value is set, then we provide a default.
 	return build(language{
-		buildScript: g.build,
+		buildScript: g.validator.FastlyManifestFile.Scripts.Build,
 		buildFn:     g.Shell.Build,
 		errlog:      g.errlog,
 		pkgName:     g.pkgName,

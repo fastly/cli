@@ -299,83 +299,6 @@ func (f *File) SetOutput(output io.Writer) {
 	f.output = output
 }
 
-// Read loads the manifest file content from disk.
-func (f *File) Read(path string) (err error) {
-	defer func() {
-		if err != nil {
-			f.readError = err
-		}
-	}()
-
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable.
-	// Disabling as we need to load the fastly.toml from the user's file system.
-	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-	/* #nosec */
-	data, err := os.ReadFile(path)
-	if err != nil {
-		f.errLog.Add(err)
-		return err
-	}
-
-	// NOTE: temporary fix needed because of a bug that appeared in v0.25.0 where
-	// the manifest_version was stored in fastly.toml as a 'section', e.g.
-	// `[manifest_version]`.
-	//
-	// This subsequently would cause errors when trying to unmarshal the data, so
-	// we need to identify if it exists in the file (as a section) and remove it.
-	//
-	// We do this before trying to unmarshal the toml data into a go data
-	// structure otherwise we'll see errors from the toml library.
-	manifestSection, err := containsManifestSection(data)
-	if err != nil {
-		f.errLog.Add(err)
-		return fmt.Errorf("failed to parse the fastly.toml manifest: %w", err)
-	}
-
-	if manifestSection {
-		buf, err := stripManifestSection(bytes.NewReader(data), path)
-		if err != nil {
-			f.errLog.Add(err)
-			return fsterr.ErrInvalidManifestVersion
-		}
-		data = buf.Bytes()
-	}
-
-	// The AutoMigrateVersion() method will either return the []byte unmodified or
-	// it will have updated the manifest_version field to reflect the latest
-	// version supported by the Fastly CLI.
-	data, err = f.AutoMigrateVersion(data, path)
-	if err != nil {
-		f.errLog.Add(err)
-		return err
-	}
-
-	err = toml.Unmarshal(data, f)
-	if err != nil {
-		f.errLog.Add(err)
-		return fsterr.ErrParsingManifest
-	}
-
-	f.exists = true
-
-	if f.ManifestVersion == 0 {
-		f.ManifestVersion = ManifestLatestVersion
-
-		text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
-		text.Break(f.output)
-		text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
-		text.Break(f.output)
-		err = f.Write(path)
-		if err != nil {
-			f.errLog.Add(err)
-			return fmt.Errorf("unable to save fastly.toml manifest change: %w", err)
-		}
-	}
-
-	return nil
-}
-
 // AutoMigrateVersion updates the manifest_version value to
 // ManifestLatestVersion if the current version is less than the latest
 // supported and only if there is no [setup] configuration defined.
@@ -455,7 +378,7 @@ func (f *File) AutoMigrateVersion(data []byte, path string) ([]byte, error) {
 		// This only happens once. All future file reads result in one Unmarshal.
 		err = toml.Unmarshal(data, f)
 		if err != nil {
-			return data, fmt.Errorf("error unmarshalling fastly.toml: %w", err)
+			return data, fmt.Errorf("error unmarshaling fastly.toml: %w", err)
 		}
 
 		if err = f.Write(path); err != nil {
@@ -466,6 +389,125 @@ func (f *File) AutoMigrateVersion(data []byte, path string) ([]byte, error) {
 	}
 
 	return data, fsterr.ErrIncompatibleManifestVersion
+}
+
+// Load parses the input data into the File struct and persists it to disk.
+//
+// NOTE: This is used by the `compute build` command logic.
+// Which has to modify the toml tree for supporting a v4.0.0 migration path.
+// e.g. if user manifest is missing [scripts.build] then add a default value.
+func (f *File) Load(data []byte) error {
+	err := toml.Unmarshal(data, f)
+	if err != nil {
+		return fmt.Errorf("error unmarshaling fastly.toml: %w", err)
+	}
+	return f.Write(Filename)
+}
+
+// Read loads the manifest file content from disk.
+func (f *File) Read(path string) (err error) {
+	defer func() {
+		if err != nil {
+			f.readError = err
+		}
+	}()
+
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable.
+	// Disabling as we need to load the fastly.toml from the user's file system.
+	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
+	/* #nosec */
+	data, err := os.ReadFile(path)
+	if err != nil {
+		f.errLog.Add(err)
+		return err
+	}
+
+	// NOTE: temporary fix needed because of a bug that appeared in v0.25.0 where
+	// the manifest_version was stored in fastly.toml as a 'section', e.g.
+	// `[manifest_version]`.
+	//
+	// This subsequently would cause errors when trying to unmarshal the data, so
+	// we need to identify if it exists in the file (as a section) and remove it.
+	//
+	// We do this before trying to unmarshal the toml data into a go data
+	// structure otherwise we'll see errors from the toml library.
+	manifestSection, err := containsManifestSection(data)
+	if err != nil {
+		f.errLog.Add(err)
+		return fmt.Errorf("failed to parse the fastly.toml manifest: %w", err)
+	}
+
+	if manifestSection {
+		buf, err := stripManifestSection(bytes.NewReader(data), path)
+		if err != nil {
+			f.errLog.Add(err)
+			return fsterr.ErrInvalidManifestVersion
+		}
+		data = buf.Bytes()
+	}
+
+	// The AutoMigrateVersion() method will either return the []byte unmodified or
+	// it will have updated the manifest_version field to reflect the latest
+	// version supported by the Fastly CLI.
+	data, err = f.AutoMigrateVersion(data, path)
+	if err != nil {
+		f.errLog.Add(err)
+		return err
+	}
+
+	err = toml.Unmarshal(data, f)
+	if err != nil {
+		f.errLog.Add(err)
+		return fsterr.ErrParsingManifest
+	}
+
+	f.exists = true
+
+	if f.ManifestVersion == 0 {
+		f.ManifestVersion = ManifestLatestVersion
+
+		text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
+		text.Break(f.output)
+		text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
+		text.Break(f.output)
+		err = f.Write(path)
+		if err != nil {
+			f.errLog.Add(err)
+			return fmt.Errorf("unable to save fastly.toml manifest change: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// Write persists the manifest content to disk.
+func (f *File) Write(path string) error {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as in most cases this is provided by a static constant embedded
+	// from the 'manifest' package, and in other cases we want the user to be
+	// able to provide a custom path to their fastly.toml manifest.
+	/* #nosec */
+	fp, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	if err := appendSpecRef(fp); err != nil {
+		return err
+	}
+
+	if err := toml.NewEncoder(fp).Encode(f); err != nil {
+		return err
+	}
+
+	if err := fp.Sync(); err != nil {
+		return err
+	}
+
+	return fp.Close()
 }
 
 // containsManifestSection loads the slice of bytes into a toml tree structure
@@ -519,35 +561,6 @@ func stripManifestSection(r io.Reader, path string) (*bytes.Buffer, error) {
 	}
 
 	return buf, nil
-}
-
-// Write persists the manifest content to disk.
-func (f *File) Write(path string) error {
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	//
-	// Disabling as in most cases this is provided by a static constant embedded
-	// from the 'manifest' package, and in other cases we want the user to be
-	// able to provide a custom path to their fastly.toml manifest.
-	/* #nosec */
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-
-	if err := appendSpecRef(fp); err != nil {
-		return err
-	}
-
-	if err := toml.NewEncoder(fp).Encode(f); err != nil {
-		return err
-	}
-
-	if err := fp.Sync(); err != nil {
-		return err
-	}
-
-	return fp.Close()
 }
 
 // appendSpecRef appends the fastly.toml specification URL to the manifest.

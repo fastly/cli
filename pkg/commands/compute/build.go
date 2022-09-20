@@ -126,7 +126,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			IncludeFiles:    []string{},
 			Toolchain: NewAssemblyScript(
 				name,
-				c.Manifest.File.Scripts,
+				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				progress,
@@ -139,7 +139,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			IncludeFiles:    []string{},
 			Toolchain: NewGo(
 				name,
-				c.Manifest.File.Scripts,
+				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				c.Globals.File.Language.Go,
@@ -153,7 +153,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			IncludeFiles:    []string{},
 			Toolchain: NewJavaScript(
 				name,
-				c.Manifest.File.Scripts,
+				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				progress,
@@ -166,7 +166,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			IncludeFiles:    []string{},
 			Toolchain: NewRust(
 				name,
-				c.Manifest.File.Scripts,
+				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				c.Globals.File.Language.Rust,

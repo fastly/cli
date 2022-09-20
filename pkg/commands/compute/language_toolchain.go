@@ -80,9 +80,21 @@ type ToolchainValidator struct {
 	// compilation steps are separate tools from the toolchain itself.
 	Constraints map[string]string
 
+	// DefaultBuildCommand is a build command compiled into the CLI binary so it
+	// can be used as a fallback for customer's who have an existing C@E project and
+	// are simply upgrading their CLI version and might not be familiar with the
+	// changes in the 4.0.0 release with regards to how build logic has moved to the
+	// fastly.toml manifest.
+	DefaultBuildCommand string
+
 	// ErrLog is used to log any errors to the user's local error log file, which
 	// is also persisted to Sentry for Fastly error tracking/managment.
 	ErrLog fsterr.LogInterface
+
+	// FastlyManifestFile is a reference to the in-memory manifest.File data
+	// structure. The reference is needed so the ToolchainValidator can update the
+	// manifest file.
+	FastlyManifestFile *manifest.File
 
 	// Installer is a language specific command to install the dependencies
 	// defined within the language manifest (e.g. go mod download, npm install).
@@ -445,9 +457,9 @@ func (tv ToolchainValidator) compilationVersion(version string) error {
 	return nil
 }
 
-// buildScript validates the language manifest contains a scripts.build value.
+// buildScript validates the Fastly manifest contains a scripts.build value.
 func (tv ToolchainValidator) buildScript() error {
-	fmt.Fprintf(tv.Output, "\nChecking manifest '%s' contains a build script...\n", tv.Manifest)
+	fmt.Fprintf(tv.Output, "\nChecking manifest '%s' contains a build script...\n", manifest.Filename)
 
 	m, err := filepath.Abs(manifest.Filename)
 	if err != nil {
@@ -475,17 +487,33 @@ func (tv ToolchainValidator) buildScript() error {
 
 	if v, ok := tree.GetArray("scripts").(*toml.Tree); ok {
 		if script, ok := v.Get("build").(string); ok && script != "" {
-			fmt.Fprint(tv.Output, "Found build script\n")
+			fmt.Fprintf(tv.Output, "Found [scripts.build] '%s'\n", script)
 			return nil
 		}
 	}
 
 	err = fmt.Errorf("failed to find a [scripts] section with a 'build' property in the '%s' manifest", m)
 	tv.ErrLog.Add(err)
-	return fsterr.RemediationError{
-		Inner:       err,
-		Remediation: fsterr.ComputeBuildRemediation,
+
+	// We failed to find a [scripts.build] which is required, so we'll set a
+	// default value for the user.
+	tree.Set("scripts.build", tv.DefaultBuildCommand)
+
+	data, err := tree.Marshal()
+	if err != nil {
+		return fmt.Errorf("error updating fastly.toml with a default [scripts.build]: %w", err)
 	}
+
+	err = tv.FastlyManifestFile.Load(data)
+	if err != nil {
+		return fsterr.RemediationError{
+			Inner:       err,
+			Remediation: fmt.Sprintf(fsterr.ComputeBuildRemediation, tv.DefaultBuildCommand),
+		}
+	}
+
+	fmt.Fprintf(tv.Output, "Found default [scripts.build] '%s'\n", tv.DefaultBuildCommand)
+	return nil
 }
 
 // binDir validates a bin directory is available.
