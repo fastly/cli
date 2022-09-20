@@ -16,7 +16,8 @@ import (
 // language code into a Wasm binary.
 const JsCompilation = "js-compute-runtime"
 
-// JsCompilationCommandRemediation
+// JsCompilationCommandRemediation is the command to execute to fix the missing
+// compilation target.
 const JsCompilationCommandRemediation = "npm install --save-dev %s"
 
 // JsCompilationURL is the official Fastly C@E JS runtime package URL.
