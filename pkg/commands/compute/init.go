@@ -147,7 +147,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	languages := NewLanguages(c.Globals.File.StarterKits, c.Globals, name, mf.Scripts)
+	languages := NewLanguages(c.Globals.File.StarterKits, c.Globals, name, mf.Scripts, out)
 	language, err := selectLanguage(c.from, c.language, languages, mf, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -233,7 +233,14 @@ func verifyDirectory(dir string, skipVerification bool, out io.Writer, in io.Rea
 
 	if len(files) > 0 {
 		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
-		return text.AskYesNo(out, label, in)
+		result, err := text.AskYesNo(out, label, in)
+		if err != nil {
+			return false, err
+		}
+		if result {
+			text.Break(out)
+		}
+		return result, nil
 	}
 
 	return true, nil

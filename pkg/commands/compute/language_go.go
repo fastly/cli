@@ -3,42 +3,98 @@ package compute
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
-	"path/filepath"
+	"regexp"
 	"strings"
-	"time"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	fstexec "github.com/fastly/cli/pkg/exec"
-	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GoSourceDirectory represents the source code directory (i.e. root directory).
+// GoCompilation is a language specific compilation target that converts the
+// language code into a Wasm binary.
+const GoCompilation = "tinygo"
+
+// GoCompilationURL is the official TinyGo website URL.
+const GoCompilationURL = "https://tinygo.org"
+
+// GoCompilationTargetCommand is the shell command for returning the tinygo
+// version.
+const GoCompilationTargetCommand = "tinygo version"
+
+// GoConstraints is the set of supported toolchain and compilation versions.
+//
+// NOTE: Two keys are supported: "toolchain" and "compilation", with the latter
+// being optional as not all language compilation steps are separate tools from
+// the toolchain itself.
+var GoConstraints = make(map[string]string)
+
+// GoInstaller is the command used to install the dependencies defined within
+// the Go language manifest.
+const GoInstaller = "go mod download"
+
+// GoManifest is the manifest file for defining project configuration.
+const GoManifest = "go.mod"
+
+// GoManifestRemediation is a error remediation message for a missing manifest.
+const GoManifestRemediation = "go mod init"
+
+// GoSDK is the required Compute@Edge SDK.
+// https://pkg.go.dev/github.com/fastly/compute-sdk-go
+const GoSDK = "fastly/compute-sdk-go"
+
+// GoSourceDirectory represents the source code directory.                                               │                                                           │
 const GoSourceDirectory = "."
 
-// GoManifestName represents the language file for configuring dependencies.
-const GoManifestName = "go.mod"
+// GoToolchain is the executable responsible for managing dependencies.
+const GoToolchain = "go"
+
+// GoToolchainURL is the official Go website URL.
+const GoToolchainURL = "https://go.dev/"
+
+// GoToolchainVersionCommand is the shell command for returning the go version.
+const GoToolchainVersionCommand = "go version"
 
 // NewGo constructs a new Go toolchain.
-func NewGo(pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int, cfg config.Go) *Go {
+func NewGo(
+	pkgName string,
+	scripts manifest.Scripts,
+	errlog fsterr.LogInterface,
+	timeout int,
+	cfg config.Go,
+	out io.Writer,
+) *Go {
+	GoConstraints["toolchain"] = cfg.ToolchainConstraint
+	GoConstraints["compilation"] = cfg.TinyGoConstraint
+
 	return &Go{
 		Shell:     Shell{},
 		build:     scripts.Build,
-		compiler:  "tinygo",
-		config:    cfg,
 		errlog:    errlog,
 		pkgName:   pkgName,
 		postBuild: scripts.PostBuild,
 		timeout:   timeout,
-		toolchain: "go",
+		validator: ToolchainValidator{
+			Compilation:              GoCompilation,
+			CompilationTargetCommand: GoCompilationTargetCommand,
+			CompilationTargetPattern: regexp.MustCompile(`tinygo version (?P<version>\d[^\s]+)`),
+			CompilationURL:           GoCompilationURL,
+			Constraints:              GoConstraints,
+			ErrLog:                   errlog,
+			Installer:                GoInstaller,
+			Manifest:                 GoManifest,
+			ManifestRemediation:      GoManifestRemediation,
+			Output:                   out,
+			SDK:                      GoSDK,
+			Toolchain:                GoToolchain,
+			ToolchainVersionCommand:  GoToolchainVersionCommand,
+			ToolchainVersionPattern:  regexp.MustCompile(`go version go(?P<version>\d[^\s]+)`),
+			ToolchainURL:             GoToolchainURL,
+		},
 	}
 }
 
@@ -51,280 +107,45 @@ func NewGo(pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface,
 type Go struct {
 	Shell
 
-	// build is a custom build script defined in fastly.toml using [scripts.build].
+	// build is a shell command defined in fastly.toml using [scripts.build].
 	build string
-	// compiler is a WASM/WASI capable compiler (i.e. not the standard go compiler)
-	compiler string
-	// config is Go configuration such as toolchain constraints.
-	config config.Go
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// pkgName is the name of the package (also used as the module name).
 	pkgName string
-	// postBuild is a custom script executed after the build but before the WASM
+	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
 	// timeout is the build execution threshold.
 	timeout int
-	// toolchain is the go executable.
-	toolchain string
+	// validator is an abstraction to validate required resources are installed.
+	validator ToolchainValidator
 }
 
-// Initialize implements the Toolchain interface and initializes a newly cloned
-// package by installing required dependencies.
-func (g Go) Initialize(out io.Writer) error {
-	// Remediation used in variation sections.
-	goURL := "https://go.dev/"
-	remediation := fmt.Sprintf("To fix this error, install %s by visiting:\n\n\t$ %s\n\nThen execute:\n\n\t$ fastly compute init", g.toolchain, text.Bold(goURL))
-
-	var (
-		bin string
-		err error
-	)
-
-	// 1. Check go command is on $PATH.
-	{
-		fmt.Fprintf(out, "Checking if %s is installed...\n", g.toolchain)
-
-		bin, err = exec.LookPath(g.toolchain)
-		if err != nil {
-			g.errlog.Add(err)
-
-			return fsterr.RemediationError{
-				Inner:       fmt.Errorf("`%s` not found in $PATH", g.toolchain),
-				Remediation: remediation,
-			}
-		}
-
-		fmt.Fprintf(out, "Found %s at %s\n", g.toolchain, bin)
-	}
-
-	// 2. Check go version is correct.
-	{
-		// gosec flagged this:
-		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
-		// Disabling as we trust the source of the variable.
-		/* #nosec */
-		cmd := exec.Command(bin, "version") // e.g. go version go1.18 darwin/amd64
-		stdoutStderr, err := cmd.CombinedOutput()
-		output := string(stdoutStderr)
-		if err != nil {
-			if len(stdoutStderr) > 0 {
-				err = fmt.Errorf("%w: %s", err, strings.TrimSpace(output))
-			}
-			g.errlog.Add(err)
-			return err
-		}
-
-		segs := strings.Split(output, " ")
-		if len(segs) < 3 {
-			return errors.New("unexpected go version output")
-		}
-		version := segs[2][2:]
-
-		v, err := semver.NewVersion(version)
-		if err != nil {
-			return fmt.Errorf("error parsing version output %s into a semver: %w", version, err)
-		}
-
-		c, err := semver.NewConstraint(g.config.ToolchainConstraint)
-		if err != nil {
-			return fmt.Errorf("error parsing toolchain constraint %s into a semver: %w", g.config.ToolchainConstraint, err)
-		}
-
-		if !c.Check(v) {
-			err := fsterr.RemediationError{
-				Inner:       fmt.Errorf("version %s didn't meet the constraint %s", version, g.config.ToolchainConstraint),
-				Remediation: remediation,
-			}
-			g.errlog.Add(err)
-			return err
-		}
-	}
-
-	// 3. Set package name.
-	{
-		m, err := filepath.Abs(GoManifestName)
-		if err != nil {
-			g.errlog.Add(err)
-			return fmt.Errorf("getting %s path: %w", JSManifestName, err)
-		}
-
-		if !filesystem.FileExists(m) {
-			msg := fmt.Sprintf(fsterr.FormatTemplate, text.Bold("go mod init"))
-			remediation := fmt.Sprintf("%s\n\nThen execute:\n\n\t$ fastly compute init", msg)
-			err := fsterr.RemediationError{
-				Inner:       fmt.Errorf("%s not found", JSManifestName),
-				Remediation: remediation,
-			}
-			g.errlog.Add(err)
-			return err
-		}
-
-		if err := g.setPackageName(GoManifestName); err != nil {
-			g.errlog.Add(err)
-			return fmt.Errorf("error updating %s manifest: %w", GoManifestName, err)
-		}
-
-		fmt.Fprintf(out, "Found %s at %s\n", GoManifestName, m)
-	}
-
-	// 4. Download dependencies.
-	{
-		fmt.Fprintf(out, "Installing package dependencies...\n")
-		cmd := fstexec.Streaming{
-			Command: "go",
-			Args:    []string{"mod", "download"},
-			Env:     os.Environ(),
-			Output:  out,
-		}
-		return cmd.Exec()
-	}
-}
-
-// Verify implements the Toolchain interface and verifies whether the Go
-// language toolchain is correctly configured on the host.
-func (g *Go) Verify(out io.Writer) error {
-	// Remediation used in variation sections.
-	tinygoURL := "https://tinygo.org"
-	remediation := fmt.Sprintf("To fix this error, install %s by visiting:\n\n\t$ %s", g.compiler, text.Bold(tinygoURL))
-
-	var (
-		bin string
-		err error
-	)
-
-	// 1. Check tinygo command is on $PATH.
-	{
-		fmt.Fprintf(out, "Checking if %s is installed...\n", g.compiler)
-
-		bin, err = exec.LookPath(g.compiler)
-		if err != nil {
-			g.errlog.Add(err)
-
-			return fsterr.RemediationError{
-				Inner:       fmt.Errorf("`%s` not found in $PATH", g.compiler),
-				Remediation: remediation,
-			}
-		}
-
-		fmt.Fprintf(out, "Found %s at %s\n", g.compiler, bin)
-	}
-
-	// 2. Check tinygo version is correct.
-	{
-		// gosec flagged this:
-		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
-		// Disabling as we trust the source of the variable.
-		/* #nosec */
-		cmd := exec.Command(bin, "version") // e.g. tinygo version 0.24.0 darwin/amd64 (using go version go1.18 and LLVM version 14.0.0)
-		stdoutStderr, err := cmd.CombinedOutput()
-		output := string(stdoutStderr)
-		if err != nil {
-			if len(stdoutStderr) > 0 {
-				err = fmt.Errorf("%w: %s", err, strings.TrimSpace(output))
-			}
-			g.errlog.Add(err)
-			return err
-		}
-
-		segs := strings.Split(output, " ")
-		if len(segs) < 3 {
-			return errors.New("unexpected tinygo version output")
-		}
-		version := segs[2]
-
-		v, err := semver.NewVersion(version)
-		if err != nil {
-			return fmt.Errorf("error parsing version output %s into a semver: %w", version, err)
-		}
-
-		c, err := semver.NewConstraint(g.config.TinyGoConstraint)
-		if err != nil {
-			return fmt.Errorf("error parsing toolchain constraint %s into a semver: %w", g.config.TinyGoConstraint, err)
-		}
-
-		if !c.Check(v) {
-			err := fsterr.RemediationError{
-				Inner:       fmt.Errorf("version %s didn't meet the constraint %s", version, g.config.TinyGoConstraint),
-				Remediation: remediation,
-			}
-			g.errlog.Add(err)
-			return err
-		}
+// Initialize handles any non-build related set-up.
+func (g Go) Initialize(_ io.Writer) error {
+	if err := g.setPackageName(GoManifest); err != nil {
+		g.errlog.Add(err)
+		return fmt.Errorf("error updating %s manifest: %w", GoManifest, err)
 	}
 	return nil
 }
 
-// Build implements the Toolchain interface and attempts to compile the package
-// Go source to a Wasm binary.
+// Verify ensures the user's environment has all the required resources/tools.
+func (g *Go) Verify(_ io.Writer) error {
+	return g.validator.Validate()
+}
+
+// Build compiles the user's source code into a Wasm binary.
 func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	cmd := g.compiler
-	args := []string{
-		"build",
-		"-target=wasi",
-		"-wasm-abi=generic",
-		"-gc=conservative",
-		"-o=bin/main.wasm",
-		fmt.Sprintf("./%s", GoSourceDirectory),
-	}
-
-	// A bin directory is required.
-	dir, err := os.Getwd()
-	if err != nil {
-		g.errlog.Add(err)
-		return fmt.Errorf("getting current working directory: %w", err)
-	}
-	binDir := filepath.Join(dir, "bin")
-	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
-		g.errlog.Add(err)
-		return fmt.Errorf("creating bin directory: %w", err)
-	}
-
-	if g.build != "" {
-		cmd, args = g.Shell.Build(g.build)
-	}
-
-	err = g.execCommand(cmd, args, out, progress, verbose)
-	if err != nil {
-		return err
-	}
-
-	// NOTE: We set the progress indicator to Done() so that any output we now
-	// print via the post_build callback doesn't get hidden by the progress status.
-	// The progress is 'reset' inside the main build controller `build.go`.
-	progress.Done()
-
-	if g.postBuild != "" {
-		if err = callback(); err == nil {
-			cmd, args := g.Shell.Build(g.postBuild)
-			err := g.execCommand(cmd, args, out, progress, verbose)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (g Go) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
-	s := fstexec.Streaming{
-		Command:  cmd,
-		Args:     args,
-		Env:      os.Environ(),
-		Output:   out,
-		Progress: progress,
-		Verbose:  verbose,
-	}
-	if g.timeout > 0 {
-		s.Timeout = time.Duration(g.timeout) * time.Second
-	}
-	if err := s.Exec(); err != nil {
-		g.errlog.Add(err)
-		return err
-	}
-	return nil
+	return build(language{
+		buildScript: g.build,
+		buildFn:     g.Shell.Build,
+		errlog:      g.errlog,
+		pkgName:     g.pkgName,
+		postBuild:   g.postBuild,
+		timeout:     g.timeout,
+	}, out, progress, verbose, nil, callback)
 }
 
 // setPackageName into go.mod manifest.

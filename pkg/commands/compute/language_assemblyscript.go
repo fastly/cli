@@ -3,19 +3,76 @@ package compute
 import (
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
-	"time"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
-	fstexec "github.com/fastly/cli/pkg/exec"
-	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// ASSourceDirectory represents the source code directory.
-const ASSourceDirectory = "assembly"
+// AsCompilation is a language specific compilation target that converts the
+// language code into a Wasm binary.
+const AsCompilation = "asc"
+
+// AsCompilationURL is the official assemblyscript package URL.
+const AsCompilationURL = "https://www.npmjs.com/package/assemblyscript"
+
+// AsSDK is the required Compute@Edge SDK.
+// https://www.npmjs.com/package/@fastly/as-compute
+const AsSDK = "@fastly/as-compute"
+
+// AsSourceDirectory represents the source code directory.
+const AsSourceDirectory = "assembly"
+
+// NewAssemblyScript constructs a new AssemblyScript toolchain.
+func NewAssemblyScript(
+	pkgName string,
+	scripts manifest.Scripts,
+	errlog fsterr.LogInterface,
+	timeout int,
+	out io.Writer,
+) *AssemblyScript {
+	return &AssemblyScript{
+		JavaScript: JavaScript{
+			build:   scripts.Build,
+			errlog:  errlog,
+			pkgName: pkgName,
+			timeout: timeout,
+			validator: ToolchainValidator{
+				Compilation: AsCompilation,
+				CompilationDirectPath: func() (string, error) {
+					p, err := getJsToolchainBinPath(JsToolchain)
+					if err != nil {
+						errlog.Add(err)
+						remediation := "npm install --global npm@latest"
+						return "", fsterr.RemediationError{
+							Inner:       fmt.Errorf("could not determine %s bin path", JsToolchain),
+							Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
+						}
+					}
+
+					return filepath.Join(p, AsCompilation), nil
+				},
+				CompilationCommandRemediation: fmt.Sprintf(JsCompilationCommandRemediation, AsSDK),
+				CompilationSkipVersion:        true,
+				CompilationURL:                AsCompilationURL,
+				ErrLog:                        errlog,
+				Installer:                     JsInstaller,
+				Manifest:                      JsManifest,
+				ManifestRemediation:           JsManifestRemediation,
+				Output:                        out,
+				SDK:                           AsSDK,
+				SDKCustomValidator:            validateJsSDK,
+				Toolchain:                     JsToolchain,
+				ToolchainSkipVersion:          true,
+				ToolchainURL:                  JsToolchainURL,
+			},
+		},
+		build:     scripts.Build,
+		errlog:    errlog,
+		postBuild: scripts.PostBuild,
+	}
+}
 
 // AssemblyScript implements a Toolchain for the AssemblyScript language.
 //
@@ -28,101 +85,23 @@ const ASSourceDirectory = "assembly"
 type AssemblyScript struct {
 	JavaScript
 
-	build     string
-	errlog    fsterr.LogInterface
+	// build is a shell command defined in fastly.toml using [scripts.build].
+	build string
+	// errlog is an abstraction for recording errors to disk.
+	errlog fsterr.LogInterface
+	// postBuild is a custom script executed after the build but before the Wasm
+	// binary is added to the .tar.gz archive.
 	postBuild string
 }
 
-// NewAssemblyScript constructs a new AssemblyScript toolchain.
-func NewAssemblyScript(pkgName string, scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int) *AssemblyScript {
-	return &AssemblyScript{
-		JavaScript: JavaScript{
-			build:             scripts.Build,
-			errlog:            errlog,
-			packageDependency: "assemblyscript",
-			packageExecutable: "asc",
-			pkgName:           pkgName,
-			timeout:           timeout,
-			toolchain:         JsToolchain,
-		},
-		build:     scripts.Build,
-		errlog:    errlog,
-		postBuild: scripts.PostBuild,
-	}
-}
-
-// Build implements the Toolchain interface and attempts to compile the package
-// AssemblyScript source to a Wasm binary.
+// Build compiles the user's source code into a Wasm binary.
 func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	// Check if bin directory exists and create if not.
-	pwd, err := os.Getwd()
-	if err != nil {
-		a.errlog.Add(err)
-		return fmt.Errorf("getting current working directory: %w", err)
-	}
-	binDir := filepath.Join(pwd, "bin")
-	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
-		a.errlog.Add(err)
-		return fmt.Errorf("making bin directory: %w", err)
-	}
-
-	toolchaindir, err := getJsToolchainBinPath(a.toolchain)
-	if err != nil {
-		a.errlog.Add(err)
-		return fmt.Errorf("getting npm path: %w", err)
-	}
-
-	cmd := filepath.Join(toolchaindir, "asc")
-	args := []string{
-		fmt.Sprintf("%s/index.ts", ASSourceDirectory),
-		"--outFile",
-		filepath.Join(binDir, "main.wasm"),
-		"--optimize",
-		"--noAssert",
-	}
-
-	if a.build != "" {
-		cmd, args = a.Shell.Build(a.build)
-	}
-
-	err = a.execCommand(cmd, args, out, progress, verbose)
-	if err != nil {
-		return err
-	}
-
-	// NOTE: We set the progress indicator to Done() so that any output we now
-	// print via the post_build callback doesn't get hidden by the progress status.
-	// The progress is 'reset' inside the main build controller `build.go`.
-	progress.Done()
-
-	if a.postBuild != "" {
-		if err = callback(); err == nil {
-			cmd, args := a.Shell.Build(a.postBuild)
-			err := a.execCommand(cmd, args, out, progress, verbose)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (a AssemblyScript) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
-	s := fstexec.Streaming{
-		Command:  cmd,
-		Args:     args,
-		Env:      os.Environ(),
-		Output:   out,
-		Progress: progress,
-		Verbose:  verbose,
-	}
-	if a.timeout > 0 {
-		s.Timeout = time.Duration(a.timeout) * time.Second
-	}
-	if err := s.Exec(); err != nil {
-		a.errlog.Add(err)
-		return err
-	}
-	return nil
+	return build(language{
+		buildScript: a.build,
+		buildFn:     a.Shell.Build,
+		errlog:      a.errlog,
+		pkgName:     a.pkgName,
+		postBuild:   a.postBuild,
+		timeout:     a.timeout,
+	}, out, progress, verbose, nil, callback)
 }

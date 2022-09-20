@@ -15,8 +15,6 @@ ttl = "5m"
   [language.rust]
   toolchain_constraint = ">= 1.56.1"
   wasm_wasi_target = "wasm32-wasi"
-  fastly_sys_constraint = ">= 0.3.3"
-  rustup_constraint = ">= 1.23.0"
 
 [viceroy]
 ttl = "24h"

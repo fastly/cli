@@ -228,14 +228,6 @@ type Rust struct {
 
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
 	WasmWasiTarget string `toml:"wasm_wasi_target"`
-
-	// FastlySysConstraint is a free-form semver constraint for the internal Rust
-	// ABI version that should be supported.
-	FastlySysConstraint string `toml:"fastly_sys_constraint"`
-
-	// RustupConstraint is a free-form semver constraint for the rustup version
-	// that should be installed.
-	RustupConstraint string `toml:"rustup_constraint"`
 }
 
 // Profiles represents multiple profile accounts.

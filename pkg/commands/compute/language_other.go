@@ -1,36 +1,41 @@
 package compute
 
 import (
-	"fmt"
 	"io"
-	"os"
-	"time"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
-	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
+
+// NewOther constructs a new unsupported language instance.
+func NewOther(name string, scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int) *Other {
+	return &Other{
+		Shell: Shell{},
+
+		build:     scripts.Build,
+		errlog:    errlog,
+		pkgName:   name,
+		postBuild: scripts.PostBuild,
+		timeout:   timeout,
+	}
+}
 
 // Other implements a Toolchain for languages without official support.
 type Other struct {
 	Shell
 
-	build     string
-	errlog    fsterr.LogInterface
+	// build is a shell command defined in fastly.toml using [scripts.build].
+	build string
+	// errlog is an abstraction for recording errors to disk.
+	errlog fsterr.LogInterface
+	// pkgName is the name of the package (also used as the module name).
+	pkgName string
+	// postBuild is a custom script executed after the build but before the Wasm
+	// binary is added to the .tar.gz archive.
 	postBuild string
-	timeout   int
-}
-
-// NewOther constructs a new unsupported language instance.
-func NewOther(scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int) *Other {
-	return &Other{
-		Shell:     Shell{},
-		build:     scripts.Build,
-		errlog:    errlog,
-		postBuild: scripts.PostBuild,
-		timeout:   timeout,
-	}
+	// timeout is the build execution threshold.
+	timeout int
 }
 
 // Initialize is a no-op.
@@ -46,54 +51,12 @@ func (o Other) Verify(_ io.Writer) error {
 // Build implements the Toolchain interface and attempts to compile the package
 // source to a Wasm binary.
 func (o Other) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	if o.build == "" {
-		err := fmt.Errorf("error reading custom build instructions from fastly.toml manifest")
-		o.errlog.Add(err)
-		return fsterr.RemediationError{
-			Inner:       err,
-			Remediation: fsterr.ComputeBuildRemediation,
-		}
-	}
-	cmd, args := o.Shell.Build(o.build)
-
-	err := o.execCommand(cmd, args, out, progress, verbose)
-	if err != nil {
-		return err
-	}
-
-	// NOTE: We set the progress indicator to Done() so that any output we now
-	// print via the post_build callback doesn't get hidden by the progress status.
-	// The progress is 'reset' inside the main build controller `build.go`.
-	progress.Done()
-
-	if o.postBuild != "" {
-		if err = callback(); err == nil {
-			cmd, args := o.Shell.Build(o.postBuild)
-			err := o.execCommand(cmd, args, out, progress, verbose)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (o Other) execCommand(cmd string, args []string, out, progress io.Writer, verbose bool) error {
-	s := fstexec.Streaming{
-		Command:  cmd,
-		Args:     args,
-		Env:      os.Environ(),
-		Output:   out,
-		Progress: progress,
-		Verbose:  verbose,
-	}
-	if o.timeout > 0 {
-		s.Timeout = time.Duration(o.timeout) * time.Second
-	}
-	if err := s.Exec(); err != nil {
-		o.errlog.Add(err)
-		return err
-	}
-	return nil
+	return build(language{
+		buildScript: o.build,
+		buildFn:     o.Shell.Build,
+		errlog:      o.errlog,
+		pkgName:     o.pkgName,
+		postBuild:   o.postBuild,
+		timeout:     o.timeout,
+	}, out, progress, verbose, nil, callback)
 }

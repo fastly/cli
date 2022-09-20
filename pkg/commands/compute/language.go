@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+	"io"
 	"runtime"
 	"sort"
 	"strings"
@@ -15,7 +16,7 @@ import (
 // NOTE: The 'timeout' value zero is passed into each New<Language> call as it's
 // only useful during the `compute build` phase and is expected to be
 // provided by the user via a flag on the build command.
-func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName string, scripts manifest.Scripts) []*Language {
+func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName string, scripts manifest.Scripts, out io.Writer) []*Language {
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
@@ -25,9 +26,9 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 				pkgName,
 				scripts,
 				d.ErrLog,
-				d.HTTPClient,
 				0,
 				d.File.Language.Rust,
+				out,
 			),
 		}),
 		NewLanguage(&LanguageOptions{
@@ -39,6 +40,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 				scripts,
 				d.ErrLog,
 				0,
+				out,
 			),
 		}),
 		NewLanguage(&LanguageOptions{
@@ -51,6 +53,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 				d.ErrLog,
 				0,
 				d.File.Language.Go,
+				out,
 			),
 		}),
 		NewLanguage(&LanguageOptions{
@@ -62,6 +65,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 				scripts,
 				d.ErrLog,
 				0,
+				out,
 			),
 		}),
 		NewLanguage(&LanguageOptions{

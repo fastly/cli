@@ -10,12 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Masterminds/semver/v3"
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/kingpin"
@@ -350,136 +347,6 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 			output, err := compute.GetNonIgnoredFiles(testcase.path, testcase.ignoredFiles)
 			testutil.AssertNoError(t, err)
 			testutil.AssertEqual(t, testcase.wantFiles, output)
-		})
-	}
-}
-
-func TestGetLatestCrateVersion(t *testing.T) {
-	for _, testcase := range []struct {
-		name        string
-		inputClient api.HTTPClient
-		wantVersion *semver.Version
-		wantError   string
-	}{
-		{
-			name:        "http error",
-			inputClient: &errorClient{testutil.Err},
-			wantError:   testutil.Err.Error(),
-		},
-		{
-			name:        "no valid versions",
-			inputClient: &httpClient{[]string{}},
-			wantError:   "no valid crate versions found",
-		},
-		{
-			name:        "unsorted",
-			inputClient: &httpClient{[]string{"0.5.23", "0.1.0", "1.2.3", "0.7.3"}},
-			wantVersion: semver.MustParse("1.2.3"),
-		},
-		{
-			name:        "reverse chronological",
-			inputClient: &httpClient{[]string{"1.2.3", "0.8.3", "0.3.2"}},
-			wantVersion: semver.MustParse("1.2.3"),
-		},
-		{
-			name:        "contains pre-release",
-			inputClient: &httpClient{[]string{"0.2.3", "0.8.3", "0.3.2", "0.9.0-beta.2"}},
-			wantVersion: semver.MustParse("0.8.3"),
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
-			errlog := fsterr.MockLog{}
-			v, err := compute.GetLatestCrateVersion(testcase.inputClient, "fastly", errlog)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			if err == nil && !v.Equal(testcase.wantVersion) {
-				t.Errorf("wanted version %s, got %s", testcase.wantVersion, v)
-			}
-		})
-	}
-}
-
-func TestGetCrateVersionFromMetadata(t *testing.T) {
-	for _, testcase := range []struct {
-		name        string
-		inputLock   compute.CargoMetadata
-		inputCrate  string
-		wantVersion *semver.Version
-		wantError   string
-	}{
-		{
-			name:       "crate not found",
-			inputLock:  compute.CargoMetadata{},
-			inputCrate: "fastly",
-			wantError:  "fastly crate not found",
-		},
-		{
-			name: "parsing error",
-			inputLock: compute.CargoMetadata{
-				Package: []compute.CargoMetadataPackage{
-					{
-						Name:    "foo",
-						Version: "1.2.3",
-					},
-					{
-						Name:    "fastly",
-						Version: "dgsfdfg",
-					},
-				},
-			},
-			inputCrate: "fastly",
-			wantError:  "error parsing cargo metadata",
-		},
-		{
-			name: "success",
-			inputLock: compute.CargoMetadata{
-				Package: []compute.CargoMetadataPackage{
-					{
-						Name:    "foo",
-						Version: "1.2.3",
-					},
-					{
-						Name:    "fastly-sys",
-						Version: "0.3.0",
-					},
-					{
-						Name:    "fastly",
-						Version: "3.0.0",
-					},
-				},
-			},
-			inputCrate:  "fastly",
-			wantVersion: semver.MustParse("3.0.0"),
-		},
-		{
-			name: "success nested",
-			inputLock: compute.CargoMetadata{
-				Package: []compute.CargoMetadataPackage{
-					{
-						Name:    "foo",
-						Version: "1.2.3",
-					},
-					{
-						Name:    "fastly",
-						Version: "3.0.0",
-						Dependencies: []compute.CargoMetadataPackage{
-							{
-								Name:    "fastly-sys",
-								Version: "0.3.0",
-							},
-						},
-					},
-				},
-			},
-			inputCrate:  "fastly-sys",
-			wantVersion: semver.MustParse("0.3.0"),
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
-			v, err := compute.GetCrateVersionFromMetadata(testcase.inputLock, testcase.inputCrate)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			if err == nil && !v.Equal(testcase.wantVersion) {
-				t.Errorf("wanted version %s, got %s", testcase.wantVersion, v)
-			}
 		})
 	}
 }

@@ -385,6 +385,31 @@ func setBinPerms(bin string) error {
 	return nil
 }
 
+// sourceDirectory identifies the source code directory for the given language.
+func sourceDirectory(flag cmd.OptionalString, lang string, watch bool, out io.Writer) string {
+	if flag.WasSet {
+		lang = flag.Value
+	}
+	lang = strings.ToLower(strings.TrimSpace(lang))
+
+	defaultDir := "src"
+
+	switch lang {
+	case "assemblyscript":
+		return AsSourceDirectory
+	case "go":
+		return GoSourceDirectory
+	case "javascript":
+		return JsSourceDirectory
+	case "rust":
+		return RustSourceDirectory
+	}
+	if watch {
+		text.Info(out, "The --watch flag defaults to watching file modifications in a ./src directory.")
+	}
+	return defaultDir
+}
+
 // local spawns a subprocess that runs the compiled binary.
 func local(bin, file, addr, env string, debug, watch, verbose bool, out io.Writer, errLog fsterr.LogInterface) error {
 	if env != "" {

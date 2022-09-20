@@ -23,49 +23,13 @@ import (
 // IgnoreFilePath is the filepath name of the Fastly ignore file.
 const IgnoreFilePath = ".fastlyignore"
 
-// CustomBuildScriptMessage is the message displayed to a user when there is a
-// custom build script.
+// CustomBuildScriptMessage is the message displayed to the user so they can see what
+// the build script will execute.
 const CustomBuildScriptMessage = "This project has a custom build script defined in the fastly.toml manifest"
 
 // CustomPostBuildScriptMessage is the message displayed to a user when there is a
 // custom post build script.
 const CustomPostBuildScriptMessage = "This project has a custom post build script defined in the fastly.toml manifest"
-
-// Toolchain abstracts a Compute@Edge source language toolchain.
-type Toolchain interface {
-	Initialize(out io.Writer) error
-	Verify(out io.Writer) error
-	Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error
-}
-
-// ToolchainValidator represents required tools and files that need to exist.
-type ToolchainValidator struct {
-	// Compilation is a language specific compilation target that converts the
-	// language code into a Wasm binary (e.g. wasm32-wasi, tinygo).
-	Compilation string
-
-	// Constraints is a language specific set of supported toolchain and
-	// compilation versions. Two keys are supported: "toolchain" and
-	// "compilation", with the latter being optional as not all language
-	// compilation steps are separate tools from the toolchain itself.
-	Constraints map[string]string
-
-	// Installer is a language specific command to install the dependencies
-	// defined within the language manifest.
-	Installer string
-
-	// Manifest is a language specific manifest file for defining project
-	// configuration (e.g. package.json, Cargo.toml, go.mod).
-	Manifest string
-
-	// SDK is a language specific Compute@Edge compatible SDK (e.g.
-	// @fastly/js-compute, compute-sdk-go).
-	SDK string
-
-	// Toolchain is a language specific executable responsible for managing
-	// dependencies (e.g. npm, cargo, go).
-	Toolchain string
-}
 
 // Flags represents the flags defined for the command.
 type Flags struct {
@@ -162,13 +126,14 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	case "assemblyscript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
-			SourceDirectory: ASSourceDirectory,
+			SourceDirectory: AsSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewAssemblyScript(
 				name,
 				c.Manifest.File.Scripts,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
+				progress,
 			),
 		})
 	case "go":
@@ -182,18 +147,20 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				c.Globals.File.Language.Go,
+				progress,
 			),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
-			SourceDirectory: JSSourceDirectory,
+			SourceDirectory: JsSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewJavaScript(
 				name,
 				c.Manifest.File.Scripts,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
+				progress,
 			),
 		})
 	case "rust":
@@ -205,15 +172,16 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				name,
 				c.Manifest.File.Scripts,
 				c.Globals.ErrLog,
-				c.Globals.HTTPClient,
 				c.Flags.Timeout,
 				c.Globals.File.Language.Rust,
+				progress,
 			),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{
 			Name: "other",
 			Toolchain: NewOther(
+				name,
 				c.Manifest.File.Scripts,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
@@ -223,17 +191,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("unsupported language %s", toolchain)
 	}
 
-	// NOTE: If there is a custom build script defined, then we set the toolchain
-	// to be "custom" as it means the CLI is no longer responsible for verifying
-	// the user's environment and isn't directly executing its own build process.
-	if c.Manifest.File.Scripts.Build != "" {
-		toolchain = "custom"
-	}
-
-	// NOTE: When we find a custom build script, we don't verify the local
-	// environment (it's up to the user to ensure they have all the tools
-	// necessary to run their custom build script).
-	if c.Manifest.File.Scripts.Build == "" && !c.Flags.SkipVerification {
+	if !c.Flags.SkipVerification {
 		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", toolchain))
 
 		err = language.Verify(progress)
@@ -251,10 +209,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if toolchain == "custom" {
 		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
-			// NOTE: A third-party could share a project with a build command for a
-			// language that wouldn't normally require one (e.g. Rust), and do evil
-			// things. So we should notify the user and confirm they would like to
-			// continue with the build.
+			// Although not a security prevention method. If we are able to detect a
+			// custom build script (due to the fastly.toml defined with "custom" for
+			// its language choice), then we'll at least display a message to the user
+			// informing them, as "custom" indicates a non-official build script.
 			err := promptForBuildContinue(CustomBuildScriptMessage, c.Manifest.File.Scripts.Build, out, in, c.Globals.Verbose())
 			if err != nil {
 				return err
