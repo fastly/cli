@@ -99,6 +99,7 @@ func NewGo(
 			Output:                   out,
 			SDK:                      GoSDK,
 			Toolchain:                GoToolchain,
+			ToolchainLanguage:        "Go",
 			ToolchainVersionCommand:  GoToolchainVersionCommand,
 			ToolchainVersionPattern:  regexp.MustCompile(`go version go(?P<version>\d[^\s]+)`),
 			ToolchainURL:             GoToolchainURL,

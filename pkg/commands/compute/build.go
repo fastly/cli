@@ -208,7 +208,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	progress = text.ResetProgress(out, c.Globals.Verbose())
-	progress.Step(fmt.Sprintf("Building package using %s toolchain...", toolchain))
+	progress.Step("Running [scripts.build]...")
 
 	postBuildCallback := func() error {
 		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {

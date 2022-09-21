@@ -112,6 +112,7 @@ func NewRust(
 			SDKCustomValidator:            validateRustSDK,
 			Toolchain:                     RustToolchain,
 			ToolchainCommandRemediation:   RustToolchainCommandRemediation,
+			ToolchainLanguage:             "Rust",
 			ToolchainVersionCommand:       RustToolchainVersionCommand,
 			ToolchainVersionPattern:       regexp.MustCompile(`cargo (?P<version>\d[^\s]+)`),
 			ToolchainURL:                  RustToolchainURL,

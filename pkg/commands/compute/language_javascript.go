@@ -95,6 +95,7 @@ func NewJavaScript(
 			SDK:                           JsSDK,
 			SDKCustomValidator:            validateJsSDK,
 			Toolchain:                     JsToolchain,
+			ToolchainLanguage:             "JavaScript",
 			ToolchainSkipVersion:          true,
 			ToolchainURL:                  JsToolchainURL,
 		},

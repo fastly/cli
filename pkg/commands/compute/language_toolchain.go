@@ -126,6 +126,10 @@ type ToolchainValidator struct {
 	// can execute to fix the missing compilation target.
 	ToolchainCommandRemediation string
 
+	// ToolchainLanguage is the language of the Compute@Edge project.
+	// This is used for displaying debug information.
+	ToolchainLanguage string
+
 	// ToolchainSkipVersion is a language specific indicator that the
 	// toolchain does not need to have its version checked against a constraint
 	// defined in the CLI's application configuration.
@@ -512,7 +516,7 @@ func (tv ToolchainValidator) buildScript() error {
 		}
 	}
 
-	fmt.Fprintf(tv.Output, "Found default [scripts.build] '%s'\n", tv.DefaultBuildCommand)
+	fmt.Fprintf(tv.Output, "No build command found. Patching fastly.toml with the default build command for %s: %s\n", tv.ToolchainLanguage, tv.DefaultBuildCommand)
 	return nil
 }
 

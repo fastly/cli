@@ -72,6 +72,7 @@ func NewAssemblyScript(
 				SDK:                           AsSDK,
 				SDKCustomValidator:            validateJsSDK,
 				Toolchain:                     JsToolchain,
+				ToolchainLanguage:             "AssemblyScript",
 				ToolchainSkipVersion:          true,
 				ToolchainURL:                  JsToolchainURL,
 			},
