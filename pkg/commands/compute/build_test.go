@@ -690,7 +690,7 @@ func TestOtherBuild(t *testing.T) {
 			wantOutput: []string{
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
-				"Building package using other toolchain",
+				"Running [scripts.build]",
 				"Built package 'test'",
 			},
 		},
@@ -708,7 +708,7 @@ func TestOtherBuild(t *testing.T) {
 			wantOutput: []string{
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
-				"Building package using other toolchain",
+				"Running [scripts.build]",
 				"Built package 'test'",
 			},
 		},
@@ -722,7 +722,7 @@ func TestOtherBuild(t *testing.T) {
 			[scripts]
 			build = "echo custom build"`,
 			wantOutput: []string{
-				"Building package using other toolchain",
+				"Running [scripts.build]",
 				"Built package 'test'",
 			},
 			dontWantOutput: []string{
@@ -874,7 +874,7 @@ func TestCustomPostBuild(t *testing.T) {
 				compute.CustomPostBuildScriptMessage,
 				"echo custom post_build",
 				"Are you sure you want to continue with the post build step?",
-				"Building package using rust toolchain",
+				"Running [scripts.build]",
 				"Built package 'test'",
 			},
 		},
@@ -904,7 +904,7 @@ func TestCustomPostBuild(t *testing.T) {
 			[dependencies]
 			fastly = "=0.6.0"`,
 			wantOutput: []string{
-				"Building package using rust toolchain",
+				"Running [scripts.build]",
 				"Built package 'test'",
 			},
 			dontWantOutput: []string{
