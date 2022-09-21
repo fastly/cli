@@ -117,6 +117,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	name = sanitize.BaseName(name)
 
+	// ch is used to identify if the fastly.toml manifest has been patched with a
+	// language specific default build command (because one was missing).
+	ch := make(chan string)
+
 	var language *Language
 	switch toolchain {
 	case "assemblyscript":
@@ -130,6 +134,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				progress,
+				ch,
 			),
 		})
 	case "go":
@@ -144,6 +149,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				c.Flags.Timeout,
 				c.Globals.File.Language.Go,
 				progress,
+				ch,
 			),
 		})
 	case "javascript":
@@ -157,6 +163,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				progress,
+				ch,
 			),
 		})
 	case "rust":
@@ -171,6 +178,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				c.Flags.Timeout,
 				c.Globals.File.Language.Rust,
 				progress,
+				ch,
 			),
 		})
 	case "other":
@@ -278,6 +286,20 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	progress.Done()
+
+	// When patching fastly.toml with a default build command, in --verbose mode
+	// that information is already printed to the screen, but in standard output
+	// mode we need to ensure it's visible so users know the fastly.toml has been
+	// updated.
+	if !c.Globals.Verbose() {
+		select {
+		case msg := <-ch:
+			text.Info(out, msg)
+		default:
+			// no message, so moving on to prevent deadlock
+		}
+		close(ch)
+	}
 
 	text.Success(out, "Built package '%s' (%s)", name, dest)
 	return nil

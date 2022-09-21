@@ -107,6 +107,13 @@ type ToolchainValidator struct {
 	// ManifestRemediation is a language specific error remediation.
 	ManifestRemediation string
 
+	// PatchedManifestNotifier allows the caller to be notified of when the
+	// fastly.toml manifest has been patched with a default build command.
+	//
+	// WARNING: This is an unbuffered channel and should only receive one message.
+	// We should only be sending a message to it once from buildScript().
+	PatchedManifestNotifier chan<- string
+
 	// Output is the output buffer to write messages to (typically io.Stdout)
 	Output io.Writer
 
@@ -517,6 +524,12 @@ func (tv ToolchainValidator) buildScript() error {
 	}
 
 	fmt.Fprintf(tv.Output, "No build command found. Patching fastly.toml with the default build command for %s: %s\n", tv.ToolchainLanguage, tv.DefaultBuildCommand)
+
+	if tv.PatchedManifestNotifier != nil {
+		go func() {
+			tv.PatchedManifestNotifier <- fmt.Sprintf("No build command was found in fastly.toml. A default build command for %s has been added to fastly.toml", tv.ToolchainLanguage)
+		}()
+	}
 	return nil
 }
 

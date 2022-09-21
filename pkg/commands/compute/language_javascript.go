@@ -60,6 +60,7 @@ func NewJavaScript(
 	errlog fsterr.LogInterface,
 	timeout int,
 	out io.Writer,
+	ch chan string,
 ) *JavaScript {
 	return &JavaScript{
 		Shell:     Shell{},
@@ -92,6 +93,7 @@ func NewJavaScript(
 			Manifest:                      JsManifest,
 			ManifestRemediation:           JsManifestRemediation,
 			Output:                        out,
+			PatchedManifestNotifier:       ch,
 			SDK:                           JsSDK,
 			SDKCustomValidator:            validateJsSDK,
 			Toolchain:                     JsToolchain,

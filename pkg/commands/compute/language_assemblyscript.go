@@ -38,6 +38,7 @@ func NewAssemblyScript(
 	errlog fsterr.LogInterface,
 	timeout int,
 	out io.Writer,
+	ch chan string,
 ) *AssemblyScript {
 	return &AssemblyScript{
 		JavaScript: JavaScript{
@@ -69,6 +70,7 @@ func NewAssemblyScript(
 				Manifest:                      JsManifest,
 				ManifestRemediation:           JsManifestRemediation,
 				Output:                        out,
+				PatchedManifestNotifier:       ch,
 				SDK:                           AsSDK,
 				SDKCustomValidator:            validateJsSDK,
 				Toolchain:                     JsToolchain,

@@ -17,6 +17,12 @@ import (
 // only useful during the `compute build` phase and is expected to be
 // provided by the user via a flag on the build command.
 func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName string, fastlyManifest manifest.File, out io.Writer) []*Language {
+	// WARNING: Do not reorder these options as they affect the rendered output.
+	// They are placed in order of language maturity/importance.
+	//
+	// A change to this order will also break the tests, as the logic defaults to
+	// the first language in the list if nothing entered at the relevant language
+	// prompt.
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
@@ -29,6 +35,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 				0,
 				d.File.Language.Rust,
 				out,
+				nil,
 			),
 		}),
 		NewLanguage(&LanguageOptions{
@@ -41,6 +48,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 				d.ErrLog,
 				0,
 				out,
+				nil,
 			),
 		}),
 		NewLanguage(&LanguageOptions{
@@ -54,6 +62,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 				0,
 				d.File.Language.Go,
 				out,
+				nil,
 			),
 		}),
 		NewLanguage(&LanguageOptions{
@@ -66,6 +75,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 				d.ErrLog,
 				0,
 				out,
+				nil,
 			),
 		}),
 		NewLanguage(&LanguageOptions{

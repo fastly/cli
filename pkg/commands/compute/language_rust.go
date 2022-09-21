@@ -84,6 +84,7 @@ func NewRust(
 	timeout int,
 	cfg config.Rust,
 	out io.Writer,
+	ch chan string,
 ) *Rust {
 	RustConstraints["toolchain"] = cfg.ToolchainConstraint
 
@@ -108,6 +109,7 @@ func NewRust(
 			Manifest:                      RustManifest,
 			ManifestRemediation:           RustManifestRemediation,
 			Output:                        out,
+			PatchedManifestNotifier:       ch,
 			SDK:                           RustSDK,
 			SDKCustomValidator:            validateRustSDK,
 			Toolchain:                     RustToolchain,

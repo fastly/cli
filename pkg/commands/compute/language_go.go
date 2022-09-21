@@ -74,6 +74,7 @@ func NewGo(
 	timeout int,
 	cfg config.Go,
 	out io.Writer,
+	ch chan string,
 ) *Go {
 	GoConstraints["toolchain"] = cfg.ToolchainConstraint
 	GoConstraints["compilation"] = cfg.TinyGoConstraint
@@ -97,6 +98,7 @@ func NewGo(
 			Manifest:                 GoManifest,
 			ManifestRemediation:      GoManifestRemediation,
 			Output:                   out,
+			PatchedManifestNotifier:  ch,
 			SDK:                      GoSDK,
 			Toolchain:                GoToolchain,
 			ToolchainLanguage:        "Go",
