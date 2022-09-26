@@ -60,14 +60,6 @@ func TestBuildRust(t *testing.T) {
 			wantError: "language cannot be empty, please provide a language",
 		},
 		{
-			name: "empty name",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			language = "rust"`,
-			wantError: "name cannot be empty, please provide a name",
-		},
-		{
 			name: "unknown language",
 			args: args("compute build"),
 			fastlyManifest: `
@@ -144,12 +136,12 @@ func TestBuildRust(t *testing.T) {
 			},
 			cargoManifest: `
 			[package]
-			name = "test"
+			name = "compute-starter-kit-rust"
 			version = "0.1.0"
 
 			[dependencies]
 			fastly = "0.6.0"`,
-			wantOutputContains: "Built package 'test'",
+			wantOutputContains: "Built package (pkg/package.tar.gz)",
 		},
 		{
 			name: "successful build",
@@ -171,12 +163,12 @@ func TestBuildRust(t *testing.T) {
       build = "%s"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
-			name = "test"
+			name = "compute-starter-kit-rust"
 			version = "0.1.0"
 
 			[dependencies]
 			fastly = "=0.6.0"`,
-			wantOutputContains: "Built package 'test'",
+			wantOutputContains: "Built package (pkg/package.tar.gz)",
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -258,14 +250,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 			wantError: "language cannot be empty, please provide a language",
 		},
 		{
-			name: "empty name",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			language = "assemblyscript"`,
-			wantError: "name cannot be empty, please provide a name",
-		},
-		{
 			name: "unknown language",
 			args: args("compute build"),
 			fastlyManifest: `
@@ -284,7 +268,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.AsDefaultBuildCommand),
-			wantOutputContains: "Built package 'test'",
+			wantOutputContains: "Built package (pkg/package.tar.gz)",
 			skipWindows:        true,
 		},
 	} {
@@ -393,14 +377,6 @@ func TestBuildJavaScript(t *testing.T) {
 			wantError: "language cannot be empty, please provide a language",
 		},
 		{
-			name: "empty name",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			language = "javascript"`,
-			wantError: "name cannot be empty, please provide a name",
-		},
-		{
 			name: "compilation error",
 			args: args("compute build --verbose"),
 			fastlyManifest: fmt.Sprintf(`
@@ -425,7 +401,7 @@ func TestBuildJavaScript(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.JsDefaultBuildCommand),
-			wantOutputContains: "Built package 'test'",
+			wantOutputContains: "Built package (pkg/package.tar.gz)",
 			skipWindows:        true,
 		},
 	} {
@@ -531,14 +507,6 @@ func TestBuildGo(t *testing.T) {
 			wantError: "language cannot be empty, please provide a language",
 		},
 		{
-			name: "empty name",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			language = "go"`,
-			wantError: "name cannot be empty, please provide a name",
-		},
-		{
 			name: "syntax error",
 			args: args("compute build --verbose"),
 			fastlyManifest: fmt.Sprintf(`
@@ -563,7 +531,7 @@ func TestBuildGo(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.GoDefaultBuildCommand),
-			wantOutputContains: "Built package 'test'",
+			wantOutputContains: "Built package (pkg/package.tar.gz)",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -691,7 +659,7 @@ func TestOtherBuild(t *testing.T) {
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
 				"Running [scripts.build]",
-				"Built package 'test'",
+				"Built package (pkg/package.tar.gz)",
 			},
 		},
 		{
@@ -709,7 +677,7 @@ func TestOtherBuild(t *testing.T) {
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
 				"Running [scripts.build]",
-				"Built package 'test'",
+				"Built package (pkg/package.tar.gz)",
 			},
 		},
 		{
@@ -723,7 +691,7 @@ func TestOtherBuild(t *testing.T) {
 			build = "echo custom build"`,
 			wantOutput: []string{
 				"Running [scripts.build]",
-				"Built package 'test'",
+				"Built package (pkg/package.tar.gz)",
 			},
 			dontWantOutput: []string{
 				"Are you sure you want to continue with the build step?",
@@ -831,7 +799,7 @@ func TestCustomPostBuild(t *testing.T) {
 			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
-			name = "test"
+			name = "compute-starter-kit-rust"
 			version = "0.1.0"
 
 			[dependencies]
@@ -864,7 +832,7 @@ func TestCustomPostBuild(t *testing.T) {
 			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
-			name = "test"
+			name = "compute-starter-kit-rust"
 			version = "0.1.0"
 
 			[dependencies]
@@ -875,7 +843,7 @@ func TestCustomPostBuild(t *testing.T) {
 				"echo custom post_build",
 				"Are you sure you want to continue with the post build step?",
 				"Running [scripts.build]",
-				"Built package 'test'",
+				"Built package (pkg/package.tar.gz)",
 			},
 		},
 		{
@@ -898,14 +866,14 @@ func TestCustomPostBuild(t *testing.T) {
 			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
-			name = "test"
+			name = "compute-starter-kit-rust"
 			version = "0.1.0"
 
 			[dependencies]
 			fastly = "=0.6.0"`,
 			wantOutput: []string{
 				"Running [scripts.build]",
-				"Built package 'test'",
+				"Built package (pkg/package.tar.gz)",
 			},
 			dontWantOutput: []string{
 				compute.CustomPostBuildScriptMessage,

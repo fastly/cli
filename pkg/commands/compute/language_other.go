@@ -9,13 +9,12 @@ import (
 )
 
 // NewOther constructs a new unsupported language instance.
-func NewOther(name string, scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int) *Other {
+func NewOther(scripts manifest.Scripts, errlog fsterr.LogInterface, timeout int) *Other {
 	return &Other{
 		Shell: Shell{},
 
 		build:     scripts.Build,
 		errlog:    errlog,
-		pkgName:   name,
 		postBuild: scripts.PostBuild,
 		timeout:   timeout,
 	}
@@ -29,8 +28,6 @@ type Other struct {
 	build string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
-	// pkgName is the name of the package (also used as the module name).
-	pkgName string
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
@@ -55,7 +52,6 @@ func (o Other) Build(out io.Writer, progress text.Progress, verbose bool, callba
 		buildScript: o.build,
 		buildFn:     o.Shell.Build,
 		errlog:      o.errlog,
-		pkgName:     o.pkgName,
 		postBuild:   o.postBuild,
 		timeout:     o.timeout,
 	}, out, progress, verbose, nil, callback)

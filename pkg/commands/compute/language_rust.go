@@ -47,7 +47,7 @@ var RustConstraints = make(map[string]string)
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
-const RustDefaultBuildCommand = "cargo build --bin {name} --release --target wasm32-wasi --color always"
+const RustDefaultBuildCommand = "cargo build --bin compute-starter-kit-rust --release --target wasm32-wasi --color always"
 
 // RustManifest is the manifest file for defining project configuration.
 const RustManifest = "Cargo.toml"
@@ -78,7 +78,6 @@ const RustToolchainVersionCommand = "cargo version"
 
 // NewRust constructs a new Rust toolchain.
 func NewRust(
-	pkgName string,
 	fastlyManifest *manifest.File,
 	errlog fsterr.LogInterface,
 	timeout int,
@@ -92,7 +91,6 @@ func NewRust(
 		Shell:     Shell{},
 		config:    cfg,
 		errlog:    errlog,
-		pkgName:   pkgName,
 		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
 		validator: ToolchainValidator{
@@ -130,8 +128,6 @@ type Rust struct {
 	config config.Rust
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
-	// pkgName is the name of the package (also used as the module name).
-	pkgName string
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
@@ -144,11 +140,6 @@ type Rust struct {
 // Initialize implements the Toolchain interface and initializes a newly cloned
 // package. It is a noop for Rust as the Cargo toolchain handles these steps.
 func (r Rust) Initialize(_ io.Writer) error {
-	var m CargoManifest
-	if err := m.SetPackageName(r.pkgName, RustManifest); err != nil {
-		r.errlog.Add(err)
-		return fmt.Errorf("error updating %s manifest: %w", RustManifest, err)
-	}
 	return nil
 }
 
@@ -168,7 +159,6 @@ func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callba
 		buildScript: r.validator.FastlyManifestFile.Scripts.Build,
 		buildFn:     r.Shell.Build,
 		errlog:      r.errlog,
-		pkgName:     r.pkgName,
 		postBuild:   r.postBuild,
 		timeout:     r.timeout,
 	}, out, progress, verbose, r.ProcessLocation, callback)
@@ -187,7 +177,11 @@ func (r *Rust) ProcessLocation() error {
 		r.errlog.Add(err)
 		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
-	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", r.pkgName))
+	var m CargoManifest
+	if err := m.Read("Cargo.toml"); err != nil {
+		return fmt.Errorf("error reading Cargo.toml manifest: %w", err)
+	}
+	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", m.Package.Name))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 
 	err = filesystem.CopyFile(src, dst)
@@ -254,28 +248,6 @@ func (m *CargoManifest) Read(path string) error {
 	}
 	err = toml.Unmarshal(data, m)
 	return err
-}
-
-// SetPackageName into Cargo.toml manifest.
-func (m *CargoManifest) SetPackageName(name, path string) error {
-	if err := m.Read("Cargo.toml"); err != nil {
-		return fmt.Errorf("error reading Cargo.toml manifest: %w", err)
-	}
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable.
-	// Disabling as we need to load the Cargo.toml from the user's file system.
-	// This file is read, and the content is written back with the package
-	// name updated.
-	/* #nosec */
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("error reading Cargo.toml file: %w", err)
-	}
-	data = bytes.ReplaceAll(data, []byte(m.Package.Name), []byte(name))
-	if err := os.WriteFile(path, data, 0o600); err != nil {
-		return fmt.Errorf("error updating Cargo manifest file: %w", err)
-	}
-	return nil
 }
 
 // CargoMetadataPackage models the package structure returned when executing

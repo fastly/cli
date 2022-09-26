@@ -68,7 +68,6 @@ const GoToolchainVersionCommand = "go version"
 
 // NewGo constructs a new Go toolchain.
 func NewGo(
-	pkgName string,
 	fastlyManifest *manifest.File,
 	errlog fsterr.LogInterface,
 	timeout int,
@@ -82,7 +81,6 @@ func NewGo(
 	return &Go{
 		Shell:     Shell{},
 		errlog:    errlog,
-		pkgName:   pkgName,
 		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
 		validator: ToolchainValidator{
@@ -156,7 +154,6 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 		buildScript: g.validator.FastlyManifestFile.Scripts.Build,
 		buildFn:     g.Shell.Build,
 		errlog:      g.errlog,
-		pkgName:     g.pkgName,
 		postBuild:   g.postBuild,
 		timeout:     g.timeout,
 	}, out, progress, verbose, nil, callback)

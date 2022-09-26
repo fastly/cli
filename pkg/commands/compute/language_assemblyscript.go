@@ -33,7 +33,6 @@ const AsSourceDirectory = "assembly"
 
 // NewAssemblyScript constructs a new AssemblyScript toolchain.
 func NewAssemblyScript(
-	pkgName string,
 	fastlyManifest *manifest.File,
 	errlog fsterr.LogInterface,
 	timeout int,
@@ -43,7 +42,6 @@ func NewAssemblyScript(
 	return &AssemblyScript{
 		JavaScript: JavaScript{
 			errlog:  errlog,
-			pkgName: pkgName,
 			timeout: timeout,
 			validator: ToolchainValidator{
 				Compilation: AsCompilation,
@@ -113,7 +111,6 @@ func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose boo
 		buildScript: a.validator.FastlyManifestFile.Scripts.Build,
 		buildFn:     a.Shell.Build,
 		errlog:      a.errlog,
-		pkgName:     a.pkgName,
 		postBuild:   a.postBuild,
 		timeout:     a.timeout,
 	}, out, progress, verbose, nil, callback)

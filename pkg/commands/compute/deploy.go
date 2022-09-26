@@ -79,7 +79,6 @@ func NewDeployCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
-	c.CmdClause.Flag("name", "Package name").StringVar(&c.Manifest.Flag.Name)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
 	return &c
 }
@@ -103,7 +102,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// VALIDATE PACKAGE...
 
-	pkgName, pkgPath, hashSum, err := validatePackage(c.Manifest, c.Package, errLog, out)
+	pkgName, pkgPath, hashSum, err := validatePackage(c.ServiceName.Value, c.Manifest, c.Package, errLog, out)
 	if err != nil {
 		return err
 	}
@@ -241,7 +240,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// provider type they should be. The reason we don't implement logic for
 			// creating logging objects is because the API input fields vary
 			// significantly between providers.
-			loggers.Configure()
+			_ = loggers.Configure()
 		}
 	}
 
@@ -378,7 +377,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 //
 // NOTE: It also validates if the package size exceeds limit:
 // https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogInterface, out io.Writer) (pkgName, pkgPath, hashSum string, err error) {
+func validatePackage(
+	serviceName string,
+	data manifest.Data,
+	packageFlag string,
+	errLog fsterr.LogInterface,
+	out io.Writer,
+) (pkgName, pkgPath, hashSum string, err error) {
 	err = data.File.ReadError()
 	if err != nil {
 		if packageFlag == "" {
@@ -396,7 +401,15 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 		}
 	}
 
-	pkgName, source := data.Name()
+	// Default the package name to the --service-name flag value.
+	source := manifest.SourceFlag
+	pkgName = serviceName
+
+	// If --service-name isn't set, then lookup name in the manifest file.
+	if pkgName == "" {
+		pkgName, source = data.Name()
+	}
+
 	pkgPath, err = packagePath(packageFlag, pkgName, source)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]any{
@@ -406,6 +419,7 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 		})
 		return pkgName, pkgPath, hashSum, err
 	}
+
 	pkgSize, err := packageSize(pkgPath)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]any{
@@ -413,12 +427,14 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 		})
 		return pkgName, pkgPath, hashSum, err
 	}
+
 	if pkgSize > PackageSizeLimit {
 		return pkgName, pkgPath, hashSum, fsterr.RemediationError{
 			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
 			Remediation: fsterr.PackageSizeRemediation,
 		}
 	}
+
 	contents := map[string]*bytes.Buffer{
 		"fastly.toml": {},
 		"main.wasm":   {},
@@ -438,10 +454,12 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 		})
 		return pkgName, pkgPath, hashSum, err
 	}
+
 	hashSum, err = getHashSum(contents)
 	if err != nil {
 		return pkgName, pkgPath, hashSum, err
 	}
+
 	return pkgName, pkgPath, hashSum, nil
 }
 
@@ -594,6 +612,13 @@ func manageNoServiceIDFlow(
 		}
 
 		text.Break(out)
+	}
+
+	if pkgName == "" {
+		pkgName, err = text.Input(out, "Service name: ", in)
+		if err != nil || pkgName == "" {
+			return serviceID, serviceVersion, fmt.Errorf("error reading input: %w", err)
+		}
 	}
 
 	progress := text.NewProgress(out, verbose)

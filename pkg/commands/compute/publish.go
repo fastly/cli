@@ -19,7 +19,6 @@ type PublishCommand struct {
 	// Build fields
 	includeSrc       cmd.OptionalBool
 	lang             cmd.OptionalString
-	name             cmd.OptionalString
 	skipVerification cmd.OptionalBool
 	timeout          cmd.OptionalInt
 
@@ -44,7 +43,6 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
-	c.CmdClause.Flag("name", "Package name").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.pkg.Set).StringVar(&c.pkg.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
@@ -85,9 +83,6 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.lang.WasSet {
 		c.build.Flags.Lang = c.lang.Value
 	}
-	if c.name.WasSet {
-		c.build.Flags.PackageName = c.name.Value
-	}
 	if c.skipVerification.WasSet {
 		c.build.Flags.SkipVerification = c.skipVerification.Value
 	}
@@ -105,9 +100,6 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 
 	// Reset the fields on the DeployCommand based on PublishCommand values.
-	if c.name.WasSet {
-		c.manifest.Flag.Name = c.name.Value
-	}
 	if c.pkg.WasSet {
 		c.deploy.Package = c.pkg.Value
 	}

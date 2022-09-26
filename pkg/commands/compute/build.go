@@ -16,7 +16,6 @@ import (
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 )
 
@@ -31,7 +30,6 @@ const CustomPostBuildScriptMessage = "This project has a custom post build scrip
 type Flags struct {
 	IncludeSrc       bool
 	Lang             string
-	PackageName      string
 	SkipVerification bool
 	Timeout          int
 }
@@ -57,7 +55,6 @@ func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 	// `compute publish` and `compute serve`.
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
-	c.CmdClause.Flag("name", "Package name").StringVar(&c.Flags.PackageName)
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.Flags.SkipVerification)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
@@ -101,22 +98,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	toolchain = strings.ToLower(strings.TrimSpace(toolchain))
 
-	// Name from flag takes priority, otherwise infer from manifest
-	// error if neither are provided. Sanitize value to ensure it is a safe
-	// filepath, replacing spaces with hyphens etc.
-	var name string
-
-	switch {
-	case c.Flags.PackageName != "":
-		name = c.Flags.PackageName
-	case c.Manifest.File.Name != "":
-		name = c.Manifest.File.Name
-	default:
-		return fmt.Errorf("name cannot be empty, please provide a name")
-	}
-
-	name = sanitize.BaseName(name)
-
 	// ch is used to identify if the fastly.toml manifest has been patched with a
 	// language specific default build command (because one was missing).
 	ch := make(chan string)
@@ -129,7 +110,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			SourceDirectory: AsSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewAssemblyScript(
-				name,
 				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
@@ -143,7 +123,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			SourceDirectory: GoSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewGo(
-				name,
 				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
@@ -158,7 +137,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			SourceDirectory: JsSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewJavaScript(
-				name,
 				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
@@ -172,7 +150,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			SourceDirectory: RustSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewRust(
-				name,
 				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
@@ -185,7 +162,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		language = NewLanguage(&LanguageOptions{
 			Name: "other",
 			Toolchain: NewOther(
-				name,
 				c.Manifest.File.Scripts,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
@@ -242,7 +218,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress = text.ResetProgress(out, c.Globals.Verbose())
 	progress.Step("Creating package archive...")
 
-	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", name))
+	dest := filepath.Join("pkg", "package.tar.gz")
 
 	files := []string{
 		manifest.Filename,
@@ -301,7 +277,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		close(ch)
 	}
 
-	text.Success(out, "Built package '%s' (%s)", name, dest)
+	text.Success(out, "Built package (%s)", dest)
 	return nil
 }
 

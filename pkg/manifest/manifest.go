@@ -67,10 +67,6 @@ type Data struct {
 
 // Name yields a Name.
 func (d *Data) Name() (string, Source) {
-	if d.Flag.Name != "" {
-		return d.Flag.Name, SourceFlag
-	}
-
 	if d.File.Name != "" {
 		return d.File.Name, SourceFile
 	}
@@ -97,10 +93,6 @@ func (d *Data) ServiceID() (string, Source) {
 
 // Description yields a Description.
 func (d *Data) Description() (string, Source) {
-	if d.Flag.Description != "" {
-		return d.Flag.Description, SourceFlag
-	}
-
 	if d.File.Description != "" {
 		return d.File.Description, SourceFile
 	}
@@ -462,8 +454,6 @@ func (f *File) Read(path string) (err error) {
 		return fsterr.ErrParsingManifest
 	}
 
-	f.exists = true
-
 	if f.ManifestVersion == 0 {
 		f.ManifestVersion = ManifestLatestVersion
 
@@ -477,6 +467,8 @@ func (f *File) Read(path string) (err error) {
 			return fmt.Errorf("unable to save fastly.toml manifest change: %w", err)
 		}
 	}
+
+	f.exists = true
 
 	return nil
 }

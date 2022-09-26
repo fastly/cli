@@ -615,7 +615,6 @@ type language struct {
 	buildScript string
 	buildFn     func(string) (string, []string)
 	errlog      fsterr.LogInterface
-	pkgName     string
 	postBuild   string
 	timeout     int
 }
@@ -629,8 +628,7 @@ func build(
 	optionalLocationProcess func() error,
 	postBuildCallback func() error,
 ) error {
-	buildScript := strings.ReplaceAll(l.buildScript, "{name}", l.pkgName)
-	cmd, args := l.buildFn(buildScript)
+	cmd, args := l.buildFn(l.buildScript)
 
 	err := execCommand(cmd, args, out, progress, verbose, l.timeout, l.errlog)
 	if err != nil {

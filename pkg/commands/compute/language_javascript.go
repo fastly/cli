@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -55,7 +54,6 @@ const JsToolchainURL = "https://nodejs.org/"
 
 // NewJavaScript constructs a new JavaScript toolchain.
 func NewJavaScript(
-	pkgName string,
 	fastlyManifest *manifest.File,
 	errlog fsterr.LogInterface,
 	timeout int,
@@ -65,7 +63,6 @@ func NewJavaScript(
 	return &JavaScript{
 		Shell:     Shell{},
 		errlog:    errlog,
-		pkgName:   pkgName,
 		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
 		validator: ToolchainValidator{
@@ -110,8 +107,6 @@ type JavaScript struct {
 
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
-	// pkgName is the name of the package (also used as the module name).
-	pkgName string
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
@@ -123,10 +118,6 @@ type JavaScript struct {
 
 // Initialize handles any non-build related set-up.
 func (j JavaScript) Initialize(out io.Writer) error {
-	if err := j.setPackageName(JsManifest); err != nil {
-		j.errlog.Add(err)
-		return fmt.Errorf("error updating %s manifest: %w", JsManifest, err)
-	}
 	return nil
 }
 
@@ -146,51 +137,9 @@ func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, c
 		buildScript: j.validator.FastlyManifestFile.Scripts.Build,
 		buildFn:     j.Shell.Build,
 		errlog:      j.errlog,
-		pkgName:     j.pkgName,
 		postBuild:   j.postBuild,
 		timeout:     j.timeout,
 	}, out, progress, verbose, nil, callback)
-}
-
-// setPackageName into package.json manifest.
-//
-// NOTE: We can't presume to know the structure of the package.json manifest,
-// and so we use the json package to unmarshal the entire file into a generic
-// map data structure before updating the name field and marshalling it back to
-// json afterwards.
-func (j JavaScript) setPackageName(path string) error {
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	//
-	// Disabling as we require a user to configure their own environment.
-	/* #nosec */
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("failed to get '%s' path: %w", path, err)
-	}
-
-	var i any
-	if err = json.Unmarshal(data, &i); err != nil {
-		return err
-	}
-
-	mp, ok := i.(map[string]any)
-	if !ok {
-		return err
-	}
-	if _, ok := mp["name"]; ok {
-		mp["name"] = j.pkgName
-	}
-
-	data, err = json.MarshalIndent(mp, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	if err := os.WriteFile(path, data, 0o600); err != nil {
-		return fmt.Errorf("error updating %s manifest file: %w", JsManifest, err)
-	}
-	return nil
 }
 
 // JsPackage represents a package.json manifest.
