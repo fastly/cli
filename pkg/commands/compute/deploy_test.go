@@ -780,7 +780,8 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			stdin: []string{
-				"Y", // when prompted to create a new service
+				"Y",      // when prompted to create a new service
+				"foobar", // when prompted for service name
 				"fastly.com",
 				"443",
 				"my_backend_name",
@@ -810,7 +811,8 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			stdin: []string{
-				"Y", // when prompted to create a new service
+				"Y",      // when prompted to create a new service
+				"foobar", // when prompted for service name
 				"fastly.com",
 				"443",
 				"", // this is so we generate a backend name using a built-in formula
@@ -844,8 +846,9 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			stdin: []string{
-				"Y", // when prompted to create a new service
-				"",  // this stops prompting for backends
+				"Y",      // when prompted to create a new service
+				"foobar", // when prompted for service name
+				"",       // this stops prompting for backends
 			},
 			wantOutput: []string{
 				"Backend (hostname or IP address, or leave blank to stop adding backends):",

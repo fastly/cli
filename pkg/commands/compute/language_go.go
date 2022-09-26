@@ -1,13 +1,8 @@
 package compute
 
 import (
-	"bufio"
-	"bytes"
-	"fmt"
 	"io"
-	"os"
 	"regexp"
-	"strings"
 
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -118,8 +113,6 @@ type Go struct {
 
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
-	// pkgName is the name of the package (also used as the module name).
-	pkgName string
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
@@ -131,10 +124,6 @@ type Go struct {
 
 // Initialize handles any non-build related set-up.
 func (g Go) Initialize(_ io.Writer) error {
-	if err := g.setPackageName(GoManifest); err != nil {
-		g.errlog.Add(err)
-		return fmt.Errorf("error updating %s manifest: %w", GoManifest, err)
-	}
 	return nil
 }
 
@@ -157,46 +146,4 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 		postBuild:   g.postBuild,
 		timeout:     g.timeout,
 	}, out, progress, verbose, nil, callback)
-}
-
-// setPackageName into go.mod manifest.
-//
-// NOTE: The implementation scans the go.mod line-by-line looking for the
-// module directive (typically the first line, but not guaranteed) and replaces
-// the module path with the user's configured package name.
-func (g Go) setPackageName(path string) (err error) {
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	//
-	// Disabling as we require a user to configure their own environment.
-	/* #nosec */
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	fi, err := f.Stat()
-	if err != nil {
-		return err
-	}
-
-	var b bytes.Buffer
-
-	s := bufio.NewScanner(f)
-	for s.Scan() {
-		line := s.Text()
-		if strings.HasPrefix(line, "module ") {
-			line = fmt.Sprintf("module %s", g.pkgName)
-		}
-		b.WriteString(line + "\n")
-	}
-	if err := s.Err(); err != nil {
-		return err
-	}
-
-	err = os.WriteFile(path, b.Bytes(), fi.Mode())
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

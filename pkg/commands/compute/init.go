@@ -229,7 +229,7 @@ func verifyDirectory(flags config.Flag, dir string, skipVerification bool, out i
 		return false, err
 	}
 
-	if len(files) > 0 && !flags.AcceptDefaults && !flags.NonInteractive {
+	if len(files) > 0 && !flags.AutoYes && !flags.NonInteractive {
 		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
 		result, err := text.AskYesNo(out, label, in)
 		if err != nil {
@@ -882,7 +882,7 @@ func initializeLanguage(progress text.Progress, language *Language, languages []
 		}
 	}
 
-	if language.Name != "other" && build == "" {
+	if language.Name != "other" {
 		if err := language.Initialize(progress); err != nil {
 			return nil, err
 		}
