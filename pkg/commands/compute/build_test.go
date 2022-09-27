@@ -113,7 +113,7 @@ func TestBuildRust(t *testing.T) {
 					},
 				},
 			},
-			wantError:            "toolchain version 1.63.0 didn't meet the constraint >= 1.0.0 < 1.40.0",
+			wantError:            "didn't meet the constraint >= 1.0.0 < 1.40.0",
 			wantRemediationError: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`).",
 		},
 		{
