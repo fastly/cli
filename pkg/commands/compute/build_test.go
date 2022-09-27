@@ -141,7 +141,7 @@ func TestBuildRust(t *testing.T) {
 
 			[dependencies]
 			fastly = "0.6.0"`,
-			wantOutputContains: "Built package (pkg/package.tar.gz)",
+			wantOutputContains: "Built package",
 		},
 		{
 			name: "successful build",
@@ -168,7 +168,7 @@ func TestBuildRust(t *testing.T) {
 
 			[dependencies]
 			fastly = "=0.6.0"`,
-			wantOutputContains: "Built package (pkg/package.tar.gz)",
+			wantOutputContains: "Built package",
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -268,7 +268,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.AsDefaultBuildCommand),
-			wantOutputContains: "Built package (pkg/package.tar.gz)",
+			wantOutputContains: "Built package",
 			skipWindows:        true,
 		},
 	} {
@@ -401,7 +401,7 @@ func TestBuildJavaScript(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.JsDefaultBuildCommand),
-			wantOutputContains: "Built package (pkg/package.tar.gz)",
+			wantOutputContains: "Built package",
 			skipWindows:        true,
 		},
 	} {
@@ -531,7 +531,7 @@ func TestBuildGo(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.GoDefaultBuildCommand),
-			wantOutputContains: "Built package (pkg/package.tar.gz)",
+			wantOutputContains: "Built package",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -659,7 +659,7 @@ func TestOtherBuild(t *testing.T) {
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
 				"Running [scripts.build]",
-				"Built package (pkg/package.tar.gz)",
+				"Built package",
 			},
 		},
 		{
@@ -677,7 +677,7 @@ func TestOtherBuild(t *testing.T) {
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
 				"Running [scripts.build]",
-				"Built package (pkg/package.tar.gz)",
+				"Built package",
 			},
 		},
 		{
@@ -691,7 +691,7 @@ func TestOtherBuild(t *testing.T) {
 			build = "echo custom build"`,
 			wantOutput: []string{
 				"Running [scripts.build]",
-				"Built package (pkg/package.tar.gz)",
+				"Built package",
 			},
 			dontWantOutput: []string{
 				"Are you sure you want to continue with the build step?",
@@ -843,7 +843,7 @@ func TestCustomPostBuild(t *testing.T) {
 				"echo custom post_build",
 				"Are you sure you want to continue with the post build step?",
 				"Running [scripts.build]",
-				"Built package (pkg/package.tar.gz)",
+				"Built package",
 			},
 		},
 		{
@@ -873,7 +873,7 @@ func TestCustomPostBuild(t *testing.T) {
 			fastly = "=0.6.0"`,
 			wantOutput: []string{
 				"Running [scripts.build]",
-				"Built package (pkg/package.tar.gz)",
+				"Built package",
 			},
 			dontWantOutput: []string{
 				compute.CustomPostBuildScriptMessage,
