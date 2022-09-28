@@ -15,22 +15,33 @@ import (
 type HashsumCommand struct {
 	cmd.Base
 
-	Manifest manifest.Data
-	Package  string
+	buildCmd  *BuildCommand
+	Manifest  manifest.Data
+	Package   string
+	SkipBuild bool
 }
 
 // NewHashsumCommand returns a usable command registered under the parent.
-func NewHashsumCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *HashsumCommand {
+func NewHashsumCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, data manifest.Data) *HashsumCommand {
 	var c HashsumCommand
+	c.buildCmd = build
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("hashsum", "Generate a SHA512 digest from a Compute@Edge package")
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
+	c.CmdClause.Flag("skip-build", "Skip the build step (presumes a successful prior build)").BoolVar(&c.SkipBuild)
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	if !c.SkipBuild {
+		err = c.Build(in, out)
+		if err != nil {
+			return err
+		}
+	}
+
 	_, _, hashSum, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
 	if err != nil {
 		return fsterr.RemediationError{
@@ -39,5 +50,14 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 	text.Output(out, hashSum)
+	return nil
+}
+
+// Build constructs and executes the build logic.
+func (c *HashsumCommand) Build(in io.Reader, out io.Writer) error {
+	err := c.buildCmd.Exec(in, io.Discard)
+	if err != nil {
+		return err
+	}
 	return nil
 }
