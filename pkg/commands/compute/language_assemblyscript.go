@@ -102,12 +102,12 @@ type AssemblyScript struct {
 
 // Build compiles the user's source code into a Wasm binary.
 func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	// NOTE: We purposes reference the validator pointer to the fastly.toml file.
+	// NOTE: We deliberately reference the validator pointer to the fastly.toml
 	// This is because the manifest.File might be updated when migrating a
 	// pre-existing project to use the CLI v4.0.0 (as prior to this version the
-	// manifest would not require [script.build] to be defined. As of v4.0.0 if no
-	// value is set, then we provide a default.
-	return build(language{
+	// manifest would not require [script.build] to be defined).
+	// As of v4.0.0 if no value is set, then we provide a default.
+	return build(buildOpts{
 		buildScript: a.validator.FastlyManifestFile.Scripts.Build,
 		buildFn:     a.Shell.Build,
 		errlog:      a.errlog,

@@ -607,11 +607,11 @@ func execCommand(cmd string, args []string, out, progress io.Writer, verbose boo
 	return nil
 }
 
-// language enables reducing the number of arguments passed to `build()`.
+// buildOpts enables reducing the number of arguments passed to `build()`.
 //
 // NOTE: We're unable to make the build function generic.
 // The generics support in Go1.18 doesn't include accessing struct fields.
-type language struct {
+type buildOpts struct {
 	buildScript string
 	buildFn     func(string) (string, []string)
 	errlog      fsterr.LogInterface
@@ -621,7 +621,7 @@ type language struct {
 
 // build compiles the user's source code into a Wasm binary.
 func build(
-	l language,
+	l buildOpts,
 	out io.Writer,
 	progress text.Progress,
 	verbose bool,

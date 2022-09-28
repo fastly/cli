@@ -48,7 +48,7 @@ func (o Other) Verify(_ io.Writer) error {
 // Build implements the Toolchain interface and attempts to compile the package
 // source to a Wasm binary.
 func (o Other) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	return build(language{
+	return build(buildOpts{
 		buildScript: o.build,
 		buildFn:     o.Shell.Build,
 		errlog:      o.errlog,
