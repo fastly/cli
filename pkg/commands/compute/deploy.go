@@ -101,7 +101,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// VALIDATE PACKAGE...
 
-	pkgPath, hashSum, err := validatePackage(c.Manifest, c.Package, errLog, out)
+	pkgPath, hashSum, err := validatePackage(c.Manifest, c.Package, verbose, errLog, out)
 	if err != nil {
 		return err
 	}
@@ -379,6 +379,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 func validatePackage(
 	data manifest.Data,
 	packageFlag string,
+	verbose bool,
 	errLog fsterr.LogInterface,
 	out io.Writer,
 ) (pkgPath, hashSum string, err error) {
@@ -393,7 +394,7 @@ func validatePackage(
 
 		// NOTE: Before returning the manifest read error, we'll attempt to read
 		// the manifest from within the given package archive.
-		err := readManifestFromPackageArchive(&data, packageFlag, out)
+		err := readManifestFromPackageArchive(&data, packageFlag, verbose, out)
 		if err != nil {
 			return pkgPath, hashSum, err
 		}
@@ -452,7 +453,7 @@ func validatePackage(
 
 // readManifestFromPackageArchive extracts the manifest file from the given
 // package archive file and reads it into memory.
-func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, out io.Writer) error {
+func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, verbose bool, out io.Writer) error {
 	dst, err := os.MkdirTemp("", fmt.Sprintf("%s-*", manifest.Filename))
 	if err != nil {
 		return err
@@ -479,7 +480,9 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, out
 		return err
 	}
 
-	text.Info(out, "Using fastly.toml within --package archive:\n\t%s", packageFlag)
+	if verbose {
+		text.Info(out, "Using fastly.toml within --package archive:\n\t%s", packageFlag)
+	}
 
 	return nil
 }
@@ -646,11 +649,11 @@ func manageNoServiceIDFlow(
 //
 // NOTE: If the creation of the service fails because the user has not
 // activated a free trial, then we'll trigger the trial for their account.
-func createService(pkgName string, apiClient api.Interface, activateTrial activator, progress text.Progress, errLog fsterr.LogInterface) (serviceID string, serviceVersion *fastly.Version, err error) {
+func createService(serviceName string, apiClient api.Interface, activateTrial activator, progress text.Progress, errLog fsterr.LogInterface) (serviceID string, serviceVersion *fastly.Version, err error) {
 	progress.Step("Creating service...")
 
 	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
-		Name: pkgName,
+		Name: serviceName,
 		Type: "wasm",
 	})
 	if err != nil {
@@ -672,14 +675,14 @@ func createService(pkgName string, apiClient api.Interface, activateTrial activa
 			}
 
 			errLog.AddWithContext(err, map[string]any{
-				"Package Name": pkgName,
+				"Service Name": serviceName,
 				"Customer ID":  user.CustomerID,
 			})
-			return createService(pkgName, apiClient, activateTrial, progress, errLog)
+			return createService(serviceName, apiClient, activateTrial, progress, errLog)
 		}
 
 		errLog.AddWithContext(err, map[string]any{
-			"Package Name": pkgName,
+			"Service Name": serviceName,
 		})
 		return serviceID, serviceVersion, fmt.Errorf("error creating service: %w", err)
 	}

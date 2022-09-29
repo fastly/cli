@@ -102,6 +102,7 @@ func defineCommands(
 	computeCmdRoot := compute.NewRootCommand(app, globals)
 	computeBuild := compute.NewBuildCommand(computeCmdRoot.CmdClause, globals, data)
 	computeDeploy := compute.NewDeployCommand(computeCmdRoot.CmdClause, globals, data)
+	computeHashsum := compute.NewHashsumCommand(computeCmdRoot.CmdClause, globals, data)
 	computeInit := compute.NewInitCommand(computeCmdRoot.CmdClause, globals, data)
 	computePack := compute.NewPackCommand(computeCmdRoot.CmdClause, globals, data)
 	computePublish := compute.NewPublishCommand(computeCmdRoot.CmdClause, globals, computeBuild, computeDeploy, data)
@@ -407,6 +408,7 @@ func defineCommands(
 		computeBuild,
 		computeCmdRoot,
 		computeDeploy,
+		computeHashsum,
 		computeInit,
 		computePack,
 		computePublish,
