@@ -23,10 +23,6 @@ import (
 // IgnoreFilePath is the filepath name of the Fastly ignore file.
 const IgnoreFilePath = ".fastlyignore"
 
-// CustomBuildScriptMessage is the message displayed to the user so they can see what
-// the build script will execute.
-const CustomBuildScriptMessage = "This project has a custom build script defined in the fastly.toml manifest"
-
 // CustomPostBuildScriptMessage is the message displayed to a user when there is a
 // custom post build script.
 const CustomPostBuildScriptMessage = "This project has a custom post build script defined in the fastly.toml manifest"

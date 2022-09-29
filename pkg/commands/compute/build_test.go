@@ -668,16 +668,14 @@ func TestOtherBuild(t *testing.T) {
 			name = "test"
 			language = "other"
 			[scripts]
-			build = "echo custom build"`,
+			build = "echo custom build"
+      post_build = "echo doing a post build"`,
 			stdin: "N",
 			wantOutput: []string{
-				compute.CustomBuildScriptMessage,
-				"echo custom build",
-				"Are you sure you want to continue with the build step?",
-				"Stopping the build process",
+				"echo doing a post build",
+				"Are you sure you want to continue with the post build step?",
+				"Stopping the post build process",
 			},
-			wantError:            "build process stopped by user",
-			wantRemediationError: "Check the [scripts.build] in the fastly.toml manifest is safe to execute or skip this prompt using either `--auto-yes` or `--non-interactive`.",
 		},
 		{
 			name: "allow build process",
@@ -687,12 +685,12 @@ func TestOtherBuild(t *testing.T) {
 			name = "test"
 			language = "other"
 			[scripts]
-			build = "echo custom build"`,
+			build = "echo custom build"
+      post_build = "echo doing a post build"`,
 			stdin: "Y",
 			wantOutput: []string{
-				compute.CustomBuildScriptMessage,
-				"echo custom build",
-				"Are you sure you want to continue with the build step?",
+				"echo doing a post build",
+				"Are you sure you want to continue with the post build step?",
 				"Building package using other toolchain",
 				"Built package 'test'",
 			},
@@ -705,12 +703,12 @@ func TestOtherBuild(t *testing.T) {
 			name = "test"
 			language = "other"
 			[scripts]
-			build = "echo custom build"`,
+			build = "echo custom build"
+      post_build = "echo doing a post build"`,
 			stdin: "Y",
 			wantOutput: []string{
-				compute.CustomBuildScriptMessage,
-				"echo custom build",
-				"Are you sure you want to continue with the build step?",
+				"echo doing a post build",
+				"Are you sure you want to continue with the post build step?",
 				"Building package using other toolchain",
 				"Built package 'test'",
 			},
@@ -729,7 +727,6 @@ func TestOtherBuild(t *testing.T) {
 				"Built package 'test'",
 			},
 			dontWantOutput: []string{
-				compute.CustomBuildScriptMessage,
 				"Are you sure you want to continue with the build step?",
 			},
 		},
