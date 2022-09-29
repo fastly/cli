@@ -49,13 +49,23 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
 		}
 	}
+
+	if c.Globals.Verbose() {
+		text.Break(out)
+	}
+
 	text.Output(out, hashSum)
 	return nil
 }
 
 // Build constructs and executes the build logic.
 func (c *HashsumCommand) Build(in io.Reader, out io.Writer) error {
-	err := c.buildCmd.Exec(in, io.Discard)
+	output := out
+	if !c.Globals.Verbose() {
+		output = io.Discard
+	}
+
+	err := c.buildCmd.Exec(in, output)
 	if err != nil {
 		return err
 	}
