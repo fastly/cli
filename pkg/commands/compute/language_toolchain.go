@@ -165,7 +165,7 @@ func (tv ToolchainValidator) Validate() error {
 	if err := tv.sdk(); err != nil {
 		return err
 	}
-	if err := tv.dependencies(); err != nil {
+	if err := tv.installDependencies(); err != nil {
 		return err
 	}
 	if err := tv.compilation(); err != nil {
@@ -328,8 +328,9 @@ func (tv ToolchainValidator) sdk() error {
 	return nil
 }
 
-// dependencies will download the language dependencies if a command is provided.
-func (tv ToolchainValidator) dependencies() error {
+// installDependencies will download the language dependencies if a command is
+// provided (e.g. `npm install`, `go mod download` etc).
+func (tv ToolchainValidator) installDependencies() error {
 	if tv.Installer != "" {
 		fmt.Fprintf(tv.Output, "\nInstalling package dependencies...\n")
 		installer := strings.Split(tv.Installer, " ")
