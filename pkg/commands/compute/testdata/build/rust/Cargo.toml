@@ -1,5 +1,5 @@
 [package]
-name = "edge-compute-default-rust-template"
+name = "compute-starter-kit-rust"
 version = "0.1.0"
 authors = ["phamann <patrick@fastly.com>"]
 edition = "2018"

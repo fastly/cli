@@ -1,6 +1,6 @@
 module github.com/fastly/cli
 
-go 1.19
+go 1.18
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
@@ -8,7 +8,7 @@ require (
 	github.com/bep/debounce v1.2.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
-	github.com/fastly/go-fastly/v6 v6.5.1
+	github.com/fastly/go-fastly/v6 v6.5.2
 	github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible
 	github.com/fatih/color v1.13.0
 	github.com/frankban/quicktest v1.13.1 // indirect

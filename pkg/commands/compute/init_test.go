@@ -62,23 +62,24 @@ func TestInit(t *testing.T) {
 			wantError: "failed to get package: 404 Not Found",
 		},
 		{
-			name: "with name",
-			args: args("compute init --name test"),
+			name: "name prompt",
+			args: args("compute init"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: skRust,
 				},
 			},
+			stdin: "foobar", // expect the first prompt to be for the package name.
 			wantOutput: []string{
 				"Initializing...",
 				"Fetching package template...",
 				"Updating package manifest...",
 			},
-			manifestIncludes: `name = "test"`,
+			manifestIncludes: `name = "foobar"`,
 		},
 		{
-			name: "with description",
-			args: args("compute init --description test"),
+			name: "description prompt empty",
+			args: args("compute init"),
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: skRust,
@@ -89,7 +90,7 @@ func TestInit(t *testing.T) {
 				"Fetching package template...",
 				"Updating package manifest...",
 			},
-			manifestIncludes: `description = "test"`,
+			manifestIncludes: `description = ""`, // expect this to be empty
 		},
 		{
 			name: "with author",

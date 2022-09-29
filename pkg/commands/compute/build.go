@@ -16,33 +16,20 @@ import (
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 )
 
 // IgnoreFilePath is the filepath name of the Fastly ignore file.
 const IgnoreFilePath = ".fastlyignore"
 
-// CustomBuildScriptMessage is the message displayed to a user when there is a
-// custom build script.
-const CustomBuildScriptMessage = "This project has a custom build script defined in the fastly.toml manifest"
-
 // CustomPostBuildScriptMessage is the message displayed to a user when there is a
 // custom post build script.
 const CustomPostBuildScriptMessage = "This project has a custom post build script defined in the fastly.toml manifest"
-
-// Toolchain abstracts a Compute@Edge source language toolchain.
-type Toolchain interface {
-	Initialize(out io.Writer) error
-	Verify(out io.Writer) error
-	Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error
-}
 
 // Flags represents the flags defined for the command.
 type Flags struct {
 	IncludeSrc       bool
 	Lang             string
-	PackageName      string
 	SkipVerification bool
 	Timeout          int
 }
@@ -68,7 +55,6 @@ func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 	// `compute publish` and `compute serve`.
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
-	c.CmdClause.Flag("name", "Package name").StringVar(&c.Flags.PackageName)
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.Flags.SkipVerification)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
@@ -112,34 +98,23 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	toolchain = strings.ToLower(strings.TrimSpace(toolchain))
 
-	// Name from flag takes priority, otherwise infer from manifest
-	// error if neither are provided. Sanitize value to ensure it is a safe
-	// filepath, replacing spaces with hyphens etc.
-	var name string
-
-	switch {
-	case c.Flags.PackageName != "":
-		name = c.Flags.PackageName
-	case c.Manifest.File.Name != "":
-		name = c.Manifest.File.Name
-	default:
-		return fmt.Errorf("name cannot be empty, please provide a name")
-	}
-
-	name = sanitize.BaseName(name)
+	// ch is used to identify if the fastly.toml manifest has been patched with a
+	// language specific default build command (because one was missing).
+	ch := make(chan string)
 
 	var language *Language
 	switch toolchain {
 	case "assemblyscript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
-			SourceDirectory: ASSourceDirectory,
+			SourceDirectory: AsSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewAssemblyScript(
-				name,
-				c.Manifest.File.Scripts,
+				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
+				progress,
+				ch,
 			),
 		})
 	case "go":
@@ -148,23 +123,25 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			SourceDirectory: GoSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewGo(
-				name,
-				c.Manifest.File.Scripts,
+				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				c.Globals.File.Language.Go,
+				progress,
+				ch,
 			),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
-			SourceDirectory: JSSourceDirectory,
+			SourceDirectory: JsSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewJavaScript(
-				name,
-				c.Manifest.File.Scripts,
+				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
+				progress,
+				ch,
 			),
 		})
 	case "rust":
@@ -173,12 +150,12 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			SourceDirectory: RustSourceDirectory,
 			IncludeFiles:    []string{},
 			Toolchain: NewRust(
-				name,
-				c.Manifest.File.Scripts,
+				&c.Manifest.File,
 				c.Globals.ErrLog,
-				c.Globals.HTTPClient,
 				c.Flags.Timeout,
 				c.Globals.File.Language.Rust,
+				progress,
+				ch,
 			),
 		})
 	case "other":
@@ -194,17 +171,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("unsupported language %s", toolchain)
 	}
 
-	// NOTE: If there is a custom build script defined, then we set the toolchain
-	// to be "custom" as it means the CLI is no longer responsible for verifying
-	// the user's environment and isn't directly executing its own build process.
-	if c.Manifest.File.Scripts.Build != "" {
-		toolchain = "custom"
-	}
-
-	// NOTE: When we find a custom build script, we don't verify the local
-	// environment (it's up to the user to ensure they have all the tools
-	// necessary to run their custom build script).
-	if c.Manifest.File.Scripts.Build == "" && !c.Flags.SkipVerification {
+	if !c.Flags.SkipVerification {
 		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", toolchain))
 
 		err = language.Verify(progress)
@@ -220,25 +187,12 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// print doesn't get hidden by the progress status.
 	progress.Done()
 
-	if toolchain == "custom" {
-		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
-			// NOTE: A third-party could share a project with a build command for a
-			// language that wouldn't normally require one (e.g. Rust), and do evil
-			// things. So we should notify the user and confirm they would like to
-			// continue with the build.
-			err := promptForBuildContinue(CustomBuildScriptMessage, c.Manifest.File.Scripts.Build, out, in, c.Globals.Verbose())
-			if err != nil {
-				return err
-			}
-		}
-	}
-
 	if c.Globals.Verbose() {
 		text.Break(out)
 	}
 
 	progress = text.ResetProgress(out, c.Globals.Verbose())
-	progress.Step(fmt.Sprintf("Building package using %s toolchain...", toolchain))
+	progress.Step("Running [scripts.build]...")
 
 	postBuildCallback := func() error {
 		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
@@ -264,7 +218,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress = text.ResetProgress(out, c.Globals.Verbose())
 	progress.Step("Creating package archive...")
 
-	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", name))
+	dest := filepath.Join("pkg", "package.tar.gz")
 
 	files := []string{
 		manifest.Filename,
@@ -309,7 +263,21 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Done()
 
-	text.Success(out, "Built package '%s' (%s)", name, dest)
+	// When patching fastly.toml with a default build command, in --verbose mode
+	// that information is already printed to the screen, but in standard output
+	// mode we need to ensure it's visible so users know the fastly.toml has been
+	// updated.
+	if !c.Globals.Verbose() {
+		select {
+		case msg := <-ch:
+			text.Info(out, msg)
+		default:
+			// no message, so moving on to prevent deadlock
+		}
+		close(ch)
+	}
+
+	text.Success(out, "Built package (%s)", dest)
 	return nil
 }
 

@@ -144,7 +144,7 @@ var ComputeServeRemediation = strings.Join([]string{
 // ComputeBuildRemediation suggests configuring a `[scripts.build]` setting in
 // the fastly.toml manifest.
 var ComputeBuildRemediation = strings.Join([]string{
-	"Add a [scripts.build] setting for your custom build process.",
+	"Add a [scripts] section with `build = \"%s\"`.",
 	"See more at https://developer.fastly.com/reference/fastly-toml/",
 }, " ")
 

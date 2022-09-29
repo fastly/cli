@@ -5,11 +5,6 @@ package compute_test
 // also a mocked HTTP client).
 
 import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
@@ -84,33 +79,4 @@ func getServiceDetailsWasm(i *fastly.GetServiceInput) (*fastly.ServiceDetail, er
 	return &fastly.ServiceDetail{
 		Type: "wasm",
 	}, nil
-}
-
-type versionClient struct {
-	fastlyVersions    []string
-	fastlySysVersions []string
-}
-
-func (v versionClient) Do(req *http.Request) (*http.Response, error) {
-	var vs []string
-
-	if strings.Contains(req.URL.String(), "crates/fastly-sys/") {
-		vs = v.fastlySysVersions
-	}
-	if strings.Contains(req.URL.String(), "crates/fastly/") {
-		vs = v.fastlyVersions
-	}
-
-	rec := httptest.NewRecorder()
-
-	var versions []string
-	for _, vv := range vs {
-		versions = append(versions, fmt.Sprintf(`{"num":"%s"}`, vv))
-	}
-
-	_, err := fmt.Fprintf(rec, `{"versions":[%s]}`, strings.Join(versions, ","))
-	if err != nil {
-		return nil, err
-	}
-	return rec.Result(), nil
 }

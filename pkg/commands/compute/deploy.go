@@ -23,7 +23,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/undo"
 	"github.com/fastly/go-fastly/v6/fastly"
-	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 )
 
@@ -79,7 +78,6 @@ func NewDeployCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
-	c.CmdClause.Flag("name", "Package name").StringVar(&c.Manifest.Flag.Name)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
 	return &c
 }
@@ -103,7 +101,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// VALIDATE PACKAGE...
 
-	pkgName, pkgPath, hashSum, err := validatePackage(c.Manifest, c.Package, errLog, out)
+	pkgPath, hashSum, err := validatePackage(c.Manifest, c.Package, errLog, out)
 	if err != nil {
 		return err
 	}
@@ -122,7 +120,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if source == manifest.SourceUndefined {
 		newService = true
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.Globals.Flag, in, out, verbose, apiClient, pkgName, c.Package, errLog, &c.Manifest.File, activateTrial)
+		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.Globals.Flag, in, out, verbose, apiClient, c.Package, errLog, &c.Manifest.File, activateTrial)
 		if err != nil {
 			return err
 		}
@@ -241,7 +239,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// provider type they should be. The reason we don't implement logic for
 			// creating logging objects is because the API input fields vary
 			// significantly between providers.
-			loggers.Configure()
+			_ = loggers.Configure()
 		}
 	}
 
@@ -378,47 +376,52 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 //
 // NOTE: It also validates if the package size exceeds limit:
 // https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogInterface, out io.Writer) (pkgName, pkgPath, hashSum string, err error) {
+func validatePackage(
+	data manifest.Data,
+	packageFlag string,
+	errLog fsterr.LogInterface,
+	out io.Writer,
+) (pkgPath, hashSum string, err error) {
 	err = data.File.ReadError()
 	if err != nil {
 		if packageFlag == "" {
 			if errors.Is(err, os.ErrNotExist) {
 				err = fsterr.ErrReadingManifest
 			}
-			return pkgName, pkgPath, hashSum, err
+			return pkgPath, hashSum, err
 		}
 
 		// NOTE: Before returning the manifest read error, we'll attempt to read
 		// the manifest from within the given package archive.
 		err := readManifestFromPackageArchive(&data, packageFlag, out)
 		if err != nil {
-			return pkgName, pkgPath, hashSum, err
+			return pkgPath, hashSum, err
 		}
 	}
 
-	pkgName, source := data.Name()
-	pkgPath, err = packagePath(packageFlag, pkgName, source)
+	pkgPath, err = packagePath(packageFlag)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": packageFlag,
-			"Package name": pkgName,
-			"Source":       source,
 		})
-		return pkgName, pkgPath, hashSum, err
+		return pkgPath, hashSum, err
 	}
+
 	pkgSize, err := packageSize(pkgPath)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": pkgPath,
 		})
-		return pkgName, pkgPath, hashSum, err
+		return pkgPath, hashSum, err
 	}
+
 	if pkgSize > PackageSizeLimit {
-		return pkgName, pkgPath, hashSum, fsterr.RemediationError{
+		return pkgPath, hashSum, fsterr.RemediationError{
 			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
 			Remediation: fsterr.PackageSizeRemediation,
 		}
 	}
+
 	contents := map[string]*bytes.Buffer{
 		"fastly.toml": {},
 		"main.wasm":   {},
@@ -436,13 +439,15 @@ func validatePackage(data manifest.Data, packageFlag string, errLog fsterr.LogIn
 			"Package path": pkgPath,
 			"Package size": pkgSize,
 		})
-		return pkgName, pkgPath, hashSum, err
+		return pkgPath, hashSum, err
 	}
+
 	hashSum, err = getHashSum(contents)
 	if err != nil {
-		return pkgName, pkgPath, hashSum, err
+		return pkgPath, hashSum, err
 	}
-	return pkgName, pkgPath, hashSum, nil
+
+	return pkgPath, hashSum, nil
 }
 
 // readManifestFromPackageArchive extracts the manifest file from the given
@@ -515,16 +520,11 @@ func locateManifest(path string) (string, error) {
 
 // packagePath generates a path that points to a package tar inside the pkg
 // directory if the `path` flag was not set by the user.
-func packagePath(path string, name string, source manifest.Source) (string, error) {
+func packagePath(path string) (string, error) {
 	if path == "" {
-		if source == manifest.SourceUndefined {
-			return "", fsterr.ErrReadingManifest
-		}
-
-		path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(name)))
+		path = filepath.Join("pkg", "package.tar.gz")
 		return path, nil
 	}
-
 	return path, nil
 }
 
@@ -573,7 +573,7 @@ func manageNoServiceIDFlow(
 	out io.Writer,
 	verbose bool,
 	apiClient api.Interface,
-	pkgName, packageFlag string,
+	packageFlag string,
 	errLog fsterr.LogInterface,
 	manifestFile *manifest.File,
 	activateTrial activator,
@@ -596,16 +596,28 @@ func manageNoServiceIDFlow(
 		text.Break(out)
 	}
 
+	defaultServiceName := manifestFile.Name
+	var serviceName string
+
+	if !globalFlags.AcceptDefaults && !globalFlags.NonInteractive {
+		serviceName, err = text.Input(out, text.BoldYellow(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
+		if err != nil || serviceName == "" {
+			serviceName = defaultServiceName
+		}
+	} else {
+		serviceName = defaultServiceName
+	}
+
 	progress := text.NewProgress(out, verbose)
 
 	// There is no service and so we'll do a one time creation of the service
 	//
 	// NOTE: we're shadowing the `serviceVersion` and `serviceID` variables.
-	serviceID, serviceVersion, err = createService(pkgName, apiClient, activateTrial, progress, errLog)
+	serviceID, serviceVersion, err = createService(serviceName, apiClient, activateTrial, progress, errLog)
 	if err != nil {
 		progress.Fail()
 		errLog.AddWithContext(err, map[string]any{
-			"Package name": pkgName,
+			"Service name": serviceName,
 		})
 		return serviceID, serviceVersion, err
 	}

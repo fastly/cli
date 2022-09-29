@@ -222,26 +222,12 @@ type Go struct {
 
 // Rust represents Rust C@E language specific configuration.
 type Rust struct {
-	// ToolchainVersion is the `rustup` toolchain string for the compiler that we
-	// support
-	//
-	// Deprecated: Use ToolchainConstraint instead
-	ToolchainVersion string `toml:"toolchain_version"`
-
 	// ToolchainConstraint is the `rustup` toolchain constraint for the compiler
 	// that we support (a range is expected, e.g. >= 1.49.0 < 2.0.0).
 	ToolchainConstraint string `toml:"toolchain_constraint"`
 
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
 	WasmWasiTarget string `toml:"wasm_wasi_target"`
-
-	// FastlySysConstraint is a free-form semver constraint for the internal Rust
-	// ABI version that should be supported.
-	FastlySysConstraint string `toml:"fastly_sys_constraint"`
-
-	// RustupConstraint is a free-form semver constraint for the rustup version
-	// that should be installed.
-	RustupConstraint string `toml:"rustup_constraint"`
 }
 
 // Profiles represents multiple profile accounts.

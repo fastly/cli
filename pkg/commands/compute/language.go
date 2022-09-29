@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+	"io"
 	"runtime"
 	"sort"
 	"strings"
@@ -15,19 +16,25 @@ import (
 // NOTE: The 'timeout' value zero is passed into each New<Language> call as it's
 // only useful during the `compute build` phase and is expected to be
 // provided by the user via a flag on the build command.
-func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName string, scripts manifest.Scripts) []*Language {
+func NewLanguages(kits config.StarterKitLanguages, d *config.Data, fastlyManifest manifest.File, out io.Writer) []*Language {
+	// WARNING: Do not reorder these options as they affect the rendered output.
+	// They are placed in order of language maturity/importance.
+	//
+	// A change to this order will also break the tests, as the logic defaults to
+	// the first language in the list if nothing entered at the relevant language
+	// prompt.
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
 			DisplayName: "Rust (limited availability)",
 			StarterKits: kits.Rust,
 			Toolchain: NewRust(
-				pkgName,
-				scripts,
+				&fastlyManifest,
 				d.ErrLog,
-				d.HTTPClient,
 				0,
 				d.File.Language.Rust,
+				out,
+				nil,
 			),
 		}),
 		NewLanguage(&LanguageOptions{
@@ -35,10 +42,11 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 			DisplayName: "JavaScript (limited availability)",
 			StarterKits: kits.JavaScript,
 			Toolchain: NewJavaScript(
-				pkgName,
-				scripts,
+				&fastlyManifest,
 				d.ErrLog,
 				0,
+				out,
+				nil,
 			),
 		}),
 		NewLanguage(&LanguageOptions{
@@ -46,11 +54,12 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 			DisplayName: "Go (beta)",
 			StarterKits: kits.Go,
 			Toolchain: NewGo(
-				pkgName,
-				scripts,
+				&fastlyManifest,
 				d.ErrLog,
 				0,
 				d.File.Language.Go,
+				out,
+				nil,
 			),
 		}),
 		NewLanguage(&LanguageOptions{
@@ -58,10 +67,11 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, pkgName strin
 			DisplayName: "AssemblyScript (beta)",
 			StarterKits: kits.AssemblyScript,
 			Toolchain: NewAssemblyScript(
-				pkgName,
-				scripts,
+				&fastlyManifest,
 				d.ErrLog,
 				0,
+				out,
+				nil,
 			),
 		}),
 		NewLanguage(&LanguageOptions{

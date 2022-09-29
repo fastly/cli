@@ -370,6 +370,10 @@ func processCommandInput(
 	return command, cmdName, nil
 }
 
+// metadata is combined into the usage output so the Developer Hub can display
+// additional information about how to use the commands and what APIs they call.
+// e.g. https://developer.fastly.com/reference/cli/vcl/snippet/create/
+//
 //go:embed metadata.json
 var metadata []byte
 

@@ -16,6 +16,7 @@
 - [Commands](https://developer.fastly.com/reference/cli/#command-groups)
 - [Development](DEVELOP.md)
 - [Testing](TESTING.md)
+- [Documentation](DOCUMENTATION.md)
 
 ## Contributing
 

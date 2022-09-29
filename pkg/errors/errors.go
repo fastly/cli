@@ -104,7 +104,7 @@ var ErrInvalidArchive = RemediationError{
 // with the custom build defined in the fastly.toml manifest file.
 var ErrBuildStopped = RemediationError{
 	Inner:       fmt.Errorf("build process stopped by user"),
-	Remediation: "Remove or update the custom [scripts.build] in the fastly.toml manifest.",
+	Remediation: "Check the [scripts.build] in the fastly.toml manifest is safe to execute or skip this prompt using either `--auto-yes` or `--non-interactive`.",
 }
 
 // ErrInvalidVerboseJSONCombo means the user provided both a --verbose and
