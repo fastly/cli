@@ -29,7 +29,7 @@ func NewHashsumCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.Manifest = data
 	c.CmdClause = parent.Command("hashsum", "Generate a SHA512 digest from a Compute@Edge package")
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
-	c.CmdClause.Flag("skip-build", "Skip the build step (presumes a successful prior build)").BoolVar(&c.SkipBuild)
+	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.SkipBuild)
 	return &c
 }
 
