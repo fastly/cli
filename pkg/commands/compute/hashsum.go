@@ -42,7 +42,7 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	_, _, hashSum, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	_, hashSum, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
 	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to validate package: %w", err),
