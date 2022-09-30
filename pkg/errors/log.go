@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -183,10 +184,16 @@ func instrument(l LogEntries, cmd string) {
 		if v, ok := entry.Caller["LINE"]; ok {
 			line, _ = v.(int)
 		}
+
+		err := errors.New("unknown").Error()
+		if entry.Err != nil {
+			err = entry.Err.Error()
+		}
+
 		// https://docs.sentry.io/product/issues/issue-details/breadcrumbs/
 		b := sentry.Breadcrumb{
 			Data:      entry.Context,
-			Message:   fmt.Sprintf("%s (file: %s, line: %d)", entry.Err.Error(), file, line),
+			Message:   fmt.Sprintf("%s (file: %s, line: %d)", err, file, line),
 			Timestamp: entry.Time,
 			Type:      "error",
 		}
