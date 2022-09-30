@@ -1,6 +1,6 @@
 ## Development
 
-The Fastly CLI requires [Go 1.19 or above](https://golang.org). Clone this repo
+The Fastly CLI requires [Go 1.18](https://golang.org). Clone this repo
 to any path and type `make` to run all of the tests and generate a development
 build locally.
 
