@@ -446,7 +446,7 @@ func updateDictionaryError(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary,
 }
 
 var (
-	errTest = errors.New("an expected error ocurred")
+	errTest = errors.New("an expected error occurred")
 	errFail = errors.New("this error should not be returned and indicates a failure in the code")
 )
 

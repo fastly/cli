@@ -123,7 +123,7 @@ func validateTokenNotEmpty(s string) error {
 	return nil
 }
 
-// ErrEmptyToken is returned when a user tries to supply an emtpy string as a
+// ErrEmptyToken is returned when a user tries to supply an empty string as a
 // token in the terminal prompt.
 var ErrEmptyToken = errors.New("token cannot be empty")
 
