@@ -27,6 +27,7 @@ type CreateCommand struct {
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
 	Path              cmd.OptionalString
 	Period            cmd.OptionalUint
@@ -82,6 +83,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	common.Placement(c.CmdClause, &c.Placement)
 	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials (default none)").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
 	return &c
 }
 
@@ -140,6 +142,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = c.CompressionCodec.Value
+	}
+
+	if c.AccountName.WasSet {
+		input.AccountName = c.AccountName.Value
 	}
 
 	return &input, nil

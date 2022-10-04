@@ -27,6 +27,7 @@ type UpdateCommand struct {
 	NewName           cmd.OptionalString
 	Bucket            cmd.OptionalString
 	User              cmd.OptionalString
+	AccountName       cmd.OptionalString
 	SecretKey         cmd.OptionalString
 	Path              cmd.OptionalString
 	Period            cmd.OptionalUint
@@ -72,6 +73,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("new-name", "New name of the GCS logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("bucket", "The bucket of the GCS bucket").Action(c.Bucket.Set).StringVar(&c.Bucket.Value)
 	c.CmdClause.Flag("user", "Your GCS service account email address. The client_email field in your service account authentication JSON").Action(c.User.Set).StringVar(&c.User.Value)
+	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
 	c.CmdClause.Flag("secret-key", "Your GCS account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to (default '/')").Action(c.Path.Set).StringVar(&c.Path.Value)
 	common.Period(c.CmdClause, &c.Period)
@@ -105,6 +107,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.User.WasSet {
 		input.User = fastly.String(c.User.Value)
+	}
+
+	if c.AccountName.WasSet {
+		input.AccountName = fastly.String(c.AccountName.Value)
 	}
 
 	if c.SecretKey.WasSet {

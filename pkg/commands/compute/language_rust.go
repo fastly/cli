@@ -47,7 +47,7 @@ var RustConstraints = make(map[string]string)
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
-const RustDefaultBuildCommand = "cargo build --bin compute-starter-kit-rust --release --target wasm32-wasi --color always"
+const RustDefaultBuildCommand = "cargo build --bin fastly-compute-project --release --target wasm32-wasi --color always"
 
 // RustManifest is the manifest file for defining project configuration.
 const RustManifest = "Cargo.toml"
