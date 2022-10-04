@@ -119,6 +119,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tName: %s\n", gcs.Name)
 		fmt.Fprintf(out, "\t\tBucket: %s\n", gcs.Bucket)
 		fmt.Fprintf(out, "\t\tUser: %s\n", gcs.User)
+		fmt.Fprintf(out, "\t\tAccount name: %s\n", gcs.AccountName)
 		fmt.Fprintf(out, "\t\tSecret key: %s\n", gcs.SecretKey)
 		fmt.Fprintf(out, "\t\tPath: %s\n", gcs.Path)
 		fmt.Fprintf(out, "\t\tPeriod: %d\n", gcs.Period)

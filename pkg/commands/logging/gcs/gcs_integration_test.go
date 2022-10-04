@@ -306,6 +306,7 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			Name:              "logs",
 			Bucket:            "my-logs",
 			User:              "foo@example.com",
+			AccountName:       "none",
 			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
 			Path:              "logs/",
 			Period:            3600,
@@ -324,6 +325,7 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			Name:              "analytics",
 			Bucket:            "analytics",
 			User:              "foo@example.com",
+			AccountName:       "me@fastly.com",
 			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
 			Path:              "logs/",
 			Period:            86400,
@@ -361,6 +363,7 @@ Version: 1
 		Name: logs
 		Bucket: my-logs
 		User: foo@example.com
+		Account name: none
 		Secret key: -----BEGIN RSA PRIVATE KEY-----foo
 		Path: logs/
 		Period: 3600
@@ -378,6 +381,7 @@ Version: 1
 		Name: analytics
 		Bucket: analytics
 		User: foo@example.com
+		Account name: me@fastly.com
 		Secret key: -----BEGIN RSA PRIVATE KEY-----foo
 		Path: logs/
 		Period: 86400
@@ -399,6 +403,7 @@ func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 		Bucket:            "my-logs",
 		User:              "foo@example.com",
 		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
+		AccountName:       "none",
 		Path:              "logs/",
 		Period:            3600,
 		GzipLevel:         0,
@@ -423,6 +428,7 @@ Name: logs
 Bucket: my-logs
 User: foo@example.com
 Secret key: -----BEGIN RSA PRIVATE KEY-----foo
+Account name: none
 Path: logs/
 Period: 3600
 GZip level: 0
