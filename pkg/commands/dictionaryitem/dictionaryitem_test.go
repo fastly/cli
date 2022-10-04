@@ -314,7 +314,7 @@ func TestDictionaryItemDelete(t *testing.T) {
 		{
 			args:       args("dictionary-item delete --service-id 123 --dictionary-id 456 --key foo"),
 			api:        mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
-			wantOutput: "\nSUCCESS: Deleted dictionary item foo (service 123, dicitonary 456)\n",
+			wantOutput: "\nSUCCESS: Deleted dictionary item foo (service 123, dictionary 456)\n",
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -479,4 +479,4 @@ func batchModifyDictionaryItemsError(i *fastly.BatchModifyDictionaryItemsInput) 
 	return errTest
 }
 
-var errTest = errors.New("an expected error ocurred")
+var errTest = errors.New("an expected error occurred")

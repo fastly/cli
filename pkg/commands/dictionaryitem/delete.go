@@ -61,6 +61,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted dictionary item %s (service %s, dicitonary %s)", c.Input.ItemKey, c.Input.ServiceID, c.Input.DictionaryID)
+	text.Success(out, "Deleted dictionary item %s (service %s, dictionary %s)", c.Input.ItemKey, c.Input.ServiceID, c.Input.DictionaryID)
 	return nil
 }

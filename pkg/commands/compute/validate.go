@@ -52,7 +52,7 @@ type ValidateCommand struct {
 type FileValidator func(archiver.File) error
 
 // validate is a utility function to determine whether a package is valid.
-// It attemptes to unarchive and read a tar.gz file from a specfic path,
+// It attempts to unarchive and read a tar.gz file from a specific path,
 // if successful, it then iterates through (streams) each file in the archive
 // checking the filename against a list of required files. If one of the files
 // doesn't exist it returns an error.

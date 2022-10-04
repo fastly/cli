@@ -88,7 +88,7 @@ type ToolchainValidator struct {
 	DefaultBuildCommand string
 
 	// ErrLog is used to log any errors to the user's local error log file, which
-	// is also persisted to Sentry for Fastly error tracking/managment.
+	// is also persisted to Sentry for Fastly error tracking/management.
 	ErrLog fsterr.LogInterface
 
 	// FastlyManifestFile is a reference to the in-memory manifest.File data

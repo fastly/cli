@@ -101,20 +101,20 @@ type VerifyResponse struct {
 	Token    Token             `json:"token"`
 }
 
-// Customer is part of the Fastly API repsonse for the whoami command.
+// Customer is part of the Fastly API response for the whoami command.
 type Customer struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-// User is part of the Fastly API repsonse for the whoami command.
+// User is part of the Fastly API response for the whoami command.
 type User struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Login string `json:"login"`
 }
 
-// Token is part of the Fastly API repsonse for the whoami command.
+// Token is part of the Fastly API response for the whoami command.
 type Token struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`

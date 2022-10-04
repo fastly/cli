@@ -118,7 +118,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceVersion = serviceVersion.Number
 
 	// Sadly, go-fastly uses custom a `Compatibool` type as a boolean value that
-	// marshalls to 0/1 instead of true/false for compatability with the API.
+	// marshalls to 0/1 instead of true/false for compatibility with the API.
 	// Therefore, we need to cast our real flag bool to a fastly.Compatibool.
 	c.input.AutoLoadbalance = fastly.Compatibool(c.autoLoadBalance)
 	c.input.UseSSL = fastly.Compatibool(c.useSSL)
