@@ -136,7 +136,7 @@ func TestBuildRust(t *testing.T) {
 			},
 			cargoManifest: `
 			[package]
-			name = "compute-starter-kit-rust"
+			name = "fastly-compute-project"
 			version = "0.1.0"
 
 			[dependencies]
@@ -163,7 +163,7 @@ func TestBuildRust(t *testing.T) {
       build = "%s"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
-			name = "compute-starter-kit-rust"
+			name = "fastly-compute-project"
 			version = "0.1.0"
 
 			[dependencies]
@@ -799,7 +799,7 @@ func TestCustomPostBuild(t *testing.T) {
 			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
-			name = "compute-starter-kit-rust"
+			name = "fastly-compute-project"
 			version = "0.1.0"
 
 			[dependencies]
@@ -832,7 +832,7 @@ func TestCustomPostBuild(t *testing.T) {
 			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
-			name = "compute-starter-kit-rust"
+			name = "fastly-compute-project"
 			version = "0.1.0"
 
 			[dependencies]
@@ -866,7 +866,7 @@ func TestCustomPostBuild(t *testing.T) {
 			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
 			cargoManifest: `
 			[package]
-			name = "compute-starter-kit-rust"
+			name = "fastly-compute-project"
 			version = "0.1.0"
 
 			[dependencies]
