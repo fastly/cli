@@ -42,6 +42,8 @@ github.com/etcd-io/bbolt v1.3.3/go.mod h1:ZF2nL25h33cCyBtcyWeZ2/I3HQOfTP+0PIEvHj
 github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072/go.mod h1:duJ4Jxv5lDcvg4QuQr0oowTf7dz4/CR8NtyCooz9HL8=
 github.com/fastly/go-fastly/v6 v6.5.2 h1:oeHoRoddStqHn1Ukyz+oVxPjvYDBARNr+hP6+HAt4TY=
 github.com/fastly/go-fastly/v6 v6.5.2/go.mod h1:NrIbx45etTFv35rgfRe+eQY+8kA47arWABIkOaQ+roY=
+github.com/fastly/go-fastly/v6 v6.6.0 h1:H+KpD/K2FlhB6JHFxXIUst7aJRyF3r0Ro0uMdSX85AI=
+github.com/fastly/go-fastly/v6 v6.6.0/go.mod h1:NrIbx45etTFv35rgfRe+eQY+8kA47arWABIkOaQ+roY=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible h1:FhrXlfhgGCS+uc6YwyiFUt04alnjpoX7vgDKJxS6Qbk=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible/go.mod h1:U8UynVoU1SQaqD2I4ZqgYd5lx3A1ipQYn4aSt2Y5h6c=
 github.com/fatih/color v1.13.0 h1:8LOYc1KYPPmyKMuN8QV2DNRWNbLo6LZ0iLs8+mlH53w=
