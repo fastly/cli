@@ -149,16 +149,13 @@ func (r Rust) Initialize(_ io.Writer) error {
 // Verify ensures the user's environment has all the required resources/tools.
 func (r *Rust) Verify(_ io.Writer) error {
 	// NOTE: Validate whether the --bin flag matches the Cargo.toml package name.
-	// If it doesn't match, update the package name automatically.
+	// If it doesn't match, update the default build script to match.
 	var m CargoManifest
 	if err := m.Read(RustManifest); err != nil {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
 	if m.Package.Name != RustPackageName {
-		err := m.SetPackageName(RustPackageName, RustManifest)
-		if err != nil {
-			return err
-		}
+		r.validator.DefaultBuildCommand = fmt.Sprintf(RustDefaultBuildCommand, m.Package.Name)
 	}
 
 	return r.validator.Validate()
@@ -264,25 +261,6 @@ func (m *CargoManifest) Read(path string) error {
 	}
 	err = toml.Unmarshal(data, m)
 	return err
-}
-
-// SetPackageName updates the [package.name] in the Cargo.toml manifest.
-func (m *CargoManifest) SetPackageName(name, path string) error {
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable.
-	// Disabling as we need to load the Cargo.toml from the user's file system.
-	// This file is read, and the content is written back with the package
-	// name updated.
-	/* #nosec */
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("error reading %s: %w", path, err)
-	}
-	data = bytes.ReplaceAll(data, []byte(m.Package.Name), []byte(name))
-	if err := os.WriteFile(path, data, 0o600); err != nil {
-		return fmt.Errorf("error updating %s manifest file: %w", path, err)
-	}
-	return nil
 }
 
 // CargoMetadataPackage models the package structure returned when executing
