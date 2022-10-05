@@ -144,7 +144,8 @@ func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, c
 
 // JsPackage represents a package.json manifest.
 type JsPackage struct {
-	Dependencies map[string]string
+	Dependencies    map[string]string `json:"dependencies"`
+	DevDependencies map[string]string `json:"devDependencies"`
 }
 
 // validateJsSDK marshals the JS manifest into JSON to check if the dependency
@@ -156,10 +157,18 @@ func validateJsSDK(name string, bs []byte) error {
 
 	err := json.Unmarshal(bs, &p)
 	if err != nil {
-		return e
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("failed to unmarshal package.json: %w", err),
+			Remediation: fmt.Sprintf("Ensure your package.json is valid and contains the '%s' dependency.", name),
+		}
 	}
 
 	for k := range p.Dependencies {
+		if k == name {
+			return nil
+		}
+	}
+	for k := range p.DevDependencies {
 		if k == name {
 			return nil
 		}
