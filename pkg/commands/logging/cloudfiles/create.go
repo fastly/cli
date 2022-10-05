@@ -75,8 +75,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.Path(c.CmdClause, &c.Path)
 	c.CmdClause.Flag("region", "The region to stream logs to. One of: DFW-Dallas, ORD-Chicago, IAD-Northern Virginia, LON-London, SYD-Sydney, HKG-Hong Kong").Action(c.Region.Set).StringVar(&c.Region.Value)
+	common.Path(c.CmdClause, &c.Path)
 	common.Placement(c.CmdClause, &c.Placement)
 	common.Period(c.CmdClause, &c.Period)
 	common.GzipLevel(c.CmdClause, &c.GzipLevel)

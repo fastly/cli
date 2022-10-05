@@ -1,7 +1,6 @@
 package syslog
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -147,7 +146,6 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	fmt.Println("here")
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
