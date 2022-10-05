@@ -74,7 +74,6 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:         &c.ServiceName.Value,
 	})
 	common.Period(c.CmdClause, &c.Period)
-	c.CmdClause.Flag("path", "The path to upload logs to (default '/')").Action(c.Path.Set).StringVar(&c.Path.Value)
 	common.GzipLevel(c.CmdClause, &c.GzipLevel)
 	common.Path(c.CmdClause, &c.Path)
 	common.Format(c.CmdClause, &c.Format)
