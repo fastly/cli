@@ -125,7 +125,7 @@ func TestBuildRust(t *testing.T) {
 			language = "rust"
 
       [scripts]
-      build = "%s"`, compute.RustDefaultBuildCommand),
+      build = "%s"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustPackageName)),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -160,7 +160,7 @@ func TestBuildRust(t *testing.T) {
 			language = "rust"
 
       [scripts]
-      build = "%s"`, compute.RustDefaultBuildCommand),
+      build = "%s"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustPackageName)),
 			cargoManifest: `
 			[package]
 			name = "fastly-compute-project"
@@ -796,7 +796,7 @@ func TestCustomPostBuild(t *testing.T) {
 			language = "rust"
 			[scripts]
       build = "%s"
-			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
+			post_build = "echo custom post_build"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustPackageName)),
 			cargoManifest: `
 			[package]
 			name = "fastly-compute-project"
@@ -829,7 +829,7 @@ func TestCustomPostBuild(t *testing.T) {
 			language = "rust"
 			[scripts]
       build = "%s"
-			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
+			post_build = "echo custom post_build"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustPackageName)),
 			cargoManifest: `
 			[package]
 			name = "fastly-compute-project"
@@ -863,7 +863,7 @@ func TestCustomPostBuild(t *testing.T) {
 			language = "rust"
 			[scripts]
       build = "%s"
-			post_build = "echo custom post_build"`, compute.RustDefaultBuildCommand),
+			post_build = "echo custom post_build"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustPackageName)),
 			cargoManifest: `
 			[package]
 			name = "fastly-compute-project"
