@@ -65,7 +65,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("new-name", "New name of the Datadog logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("auth-token", "The API key from your Datadog account").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US, US3, US5, or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
-	c.CmdClause.Flag("format", "Apache style log formatting. For details on the default value refer to the documentation (https://developer.fastly.com/reference/api/logging/datadog/)").Action(c.Format.Set).StringVar(&c.Format.Value)
+	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	common.Placement(c.CmdClause, &c.Placement)

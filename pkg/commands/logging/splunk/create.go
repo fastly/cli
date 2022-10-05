@@ -68,7 +68,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:         &c.ServiceName.Value,
 	})
 	common.TLSCACert(c.CmdClause, &c.TLSCACert)
-	common.TLSHostname(c.CmdClause, &c.TLSClientKey)
+	common.TLSHostname(c.CmdClause, &c.TLSHostname)
 	common.TLSClientCert(c.CmdClause, &c.TLSClientCert)
 	common.TLSClientKey(c.CmdClause, &c.TLSClientKey)
 	common.Format(c.CmdClause, &c.Format)

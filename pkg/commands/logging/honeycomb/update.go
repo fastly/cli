@@ -63,7 +63,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("new-name", "New name of the Honeycomb logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	c.CmdClause.Flag("format", "Apache style log formatting. Your log must produce valid JSON that Honeycomb can ingest").Action(c.Format.Set).StringVar(&c.Format.Value)
+	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("dataset", "The Honeycomb Dataset you want to log to").Action(c.Dataset.Set).StringVar(&c.Dataset.Value)
 	c.CmdClause.Flag("auth-token", "The Write Key from the Account page of your Honeycomb account").Action(c.Token.Set).StringVar(&c.Token.Value)

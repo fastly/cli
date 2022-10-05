@@ -63,7 +63,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("format", "Apache style log formatting. Your log must produce valid JSON that Honeycomb can ingest").Action(c.Format.Set).StringVar(&c.Format.Value)
+	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	common.Placement(c.CmdClause, &c.Placement)

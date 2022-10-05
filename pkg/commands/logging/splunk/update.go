@@ -69,7 +69,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("new-name", "New name of the Splunk logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("url", "The URL to POST to.").Action(c.URL.Set).StringVar(&c.URL.Value)
 	common.TLSCACert(c.CmdClause, &c.TLSCACert)
-	common.TLSHostname(c.CmdClause, &c.TLSClientKey)
+	common.TLSHostname(c.CmdClause, &c.TLSHostname)
 	common.TLSClientCert(c.CmdClause, &c.TLSClientCert)
 	common.TLSClientKey(c.CmdClause, &c.TLSClientKey)
 	common.Format(c.CmdClause, &c.Format)

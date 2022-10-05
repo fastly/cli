@@ -63,7 +63,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US, US3, US5, or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
-	c.CmdClause.Flag("format", "Apache style log formatting. For details on the default value refer to the documentation (https://developer.fastly.com/reference/api/logging/datadog/)").Action(c.Format.Set).StringVar(&c.Format.Value)
+	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	common.Placement(c.CmdClause, &c.Placement)
