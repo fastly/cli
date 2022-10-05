@@ -47,13 +47,16 @@ var RustConstraints = make(map[string]string)
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
-const RustDefaultBuildCommand = "cargo build --bin fastly-compute-project --release --target wasm32-wasi --color always"
+const RustDefaultBuildCommand = "cargo build --bin %s --release --target wasm32-wasi --color always"
 
 // RustManifest is the manifest file for defining project configuration.
 const RustManifest = "Cargo.toml"
 
 // RustManifestRemediation is a error remediation message for a missing manifest.
 const RustManifestRemediation = "cargo new $NAME --bin"
+
+// RustPackageName is the expected binary crate/package name to be built.
+const RustPackageName = "fastly-compute-project"
 
 // RustSDK is the required Compute@Edge SDK.
 // https://crates.io/crates/fastly
@@ -101,7 +104,7 @@ func NewRust(
 			CompilationTargetPattern:      regexp.MustCompile(fmt.Sprintf(`(?P<version>)%s`, RustCompilation)),
 			CompilationURL:                RustCompilationURL,
 			Constraints:                   RustConstraints,
-			DefaultBuildCommand:           RustDefaultBuildCommand,
+			DefaultBuildCommand:           fmt.Sprintf(RustDefaultBuildCommand, RustPackageName),
 			ErrLog:                        errlog,
 			FastlyManifestFile:            fastlyManifest,
 			Manifest:                      RustManifest,
@@ -145,6 +148,16 @@ func (r Rust) Initialize(_ io.Writer) error {
 
 // Verify ensures the user's environment has all the required resources/tools.
 func (r *Rust) Verify(_ io.Writer) error {
+	// NOTE: Validate whether the --bin flag matches the Cargo.toml package name.
+	// If it doesn't match, update the default build script to match.
+	var m CargoManifest
+	if err := m.Read(RustManifest); err != nil {
+		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
+	}
+	if m.Package.Name != RustPackageName {
+		r.validator.DefaultBuildCommand = fmt.Sprintf(RustDefaultBuildCommand, m.Package.Name)
+	}
+
 	return r.validator.Validate()
 }
 
@@ -178,8 +191,8 @@ func (r *Rust) ProcessLocation() error {
 		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
 	var m CargoManifest
-	if err := m.Read("Cargo.toml"); err != nil {
-		return fmt.Errorf("error reading Cargo.toml manifest: %w", err)
+	if err := m.Read(RustManifest); err != nil {
+		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
 	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", m.Package.Name))
 	dst := filepath.Join(dir, "bin", "main.wasm")
