@@ -203,11 +203,20 @@ func rustupToolchain() string {
 		return stable
 	}
 
-	reader := bufio.NewReader(bytes.NewReader(stdoutStderr))
-	line, err := reader.ReadString('\n')
-	if err != nil {
+	// WARNING: Reading the first line might result in an unexpected error.
+	// This is because rustup might display 'sync' output.
+	// e.g. info: syncing channel updates for 'stable-aarch64-apple-darwin'
+	// The solution is to get the last line of output instead.
+	scanner := bufio.NewScanner(bytes.NewReader(stdoutStderr))
+	line := ""
+	for scanner.Scan() {
+		line = scanner.Text()
+	}
+	err = scanner.Err()
+	if line == "" || err != nil {
 		return stable
 	}
+	line = strings.TrimSpace(line)
 
 	// Example outputs:
 	// stable-x86_64-apple-darwin (default)
