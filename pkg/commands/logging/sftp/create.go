@@ -36,7 +36,7 @@ type CreateCommand struct {
 	Period            cmd.OptionalUint
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint
+	GzipLevel         cmd.OptionalUint8
 	MessageType       cmd.OptionalString
 	ResponseCondition cmd.OptionalString
 	TimestampFormat   cmd.OptionalString

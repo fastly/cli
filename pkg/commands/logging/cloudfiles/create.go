@@ -33,7 +33,7 @@ type CreateCommand struct {
 	Region            cmd.OptionalString
 	PublicKey         cmd.OptionalString
 	Period            cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint
+	GzipLevel         cmd.OptionalUint8
 	MessageType       cmd.OptionalString
 	TimestampFormat   cmd.OptionalString
 	Format            cmd.OptionalString

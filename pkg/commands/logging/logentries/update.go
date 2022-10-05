@@ -71,7 +71,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
+	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.Region.Set).StringVar(&c.Region.Value)
 	return &c
 }

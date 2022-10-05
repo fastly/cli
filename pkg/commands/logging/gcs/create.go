@@ -75,7 +75,10 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	common.Period(c.CmdClause, &c.Period)
 	c.CmdClause.Flag("path", "The path to upload logs to (default '/')").Action(c.Path.Set).StringVar(&c.Path.Value)
-	c.CmdClause.Flag("gzip-level", "What level of GZIP encoding to have when dumping logs (default 0, no compression)").Action(c.GzipLevel.Set).Uint8Var(&c.GzipLevel.Value)
+	common.GzipLevel(c.CmdClause, &c.GzipLevel)
+	common.Path(c.CmdClause, &c.Path)
+	common.GzipLevel(c.CmdClause, &c.GzipLevel)
+
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.MessageType(c.CmdClause, &c.MessageType)

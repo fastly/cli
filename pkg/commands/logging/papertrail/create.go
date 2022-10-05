@@ -66,7 +66,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.Format(c.CmdClause, &c.Format)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
+	common.Placement(c.CmdClause, &c.Placement)
 	return &c
 }
 

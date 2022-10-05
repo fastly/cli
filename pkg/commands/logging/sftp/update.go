@@ -35,7 +35,7 @@ type UpdateCommand struct {
 	Path              cmd.OptionalString
 	Period            cmd.OptionalUint
 	FormatVersion     cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint
+	GzipLevel         cmd.OptionalUint8
 	Format            cmd.OptionalString
 	MessageType       cmd.OptionalString
 	ResponseCondition cmd.OptionalString
@@ -151,7 +151,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = fastly.Uint(c.GzipLevel.Value)
+		input.GzipLevel = fastly.Uint8(c.GzipLevel.Value)
 	}
 
 	if c.MessageType.WasSet {

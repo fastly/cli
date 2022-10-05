@@ -11,8 +11,8 @@ func Format(cmd *kingpin.CmdClause, c *cmd.OptionalString) {
 }
 
 // Gziplevel defines the gzip flag
-func GzipLevel(cmd *kingpin.CmdClause, c *cmd.OptionalUint) {
-	cmd.Flag("gzip-level", "What level of GZIP encoding to have when dumping logs (default 0, no compression)").Action(c.Set).UintVar(&c.Value)
+func GzipLevel(cmd *kingpin.CmdClause, c *cmd.OptionalUint8) {
+	cmd.Flag("gzip-level", "What level of GZIP encoding to have when dumping logs (default 0, no compression)").Action(c.Set).Uint8Var(&c.Value)
 }
 
 // Path defines the path flag
@@ -42,7 +42,7 @@ func CompressionCodec(cmd *kingpin.CmdClause, c *cmd.OptionalString) {
 
 // Placement defines the placement flag
 func Placement(cmd *kingpin.CmdClause, c *cmd.OptionalString) {
-	cmd.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug").Action(c.Set).StringVar(&c.Value)
+	cmd.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Set).StringVar(&c.Value)
 }
 
 // ResponseCondition defines the response-condition flag

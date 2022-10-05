@@ -31,7 +31,7 @@ type CreateCommand struct {
 	Domain            cmd.OptionalString
 	Path              cmd.OptionalString
 	Period            cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint
+	GzipLevel         cmd.OptionalUint8
 	MessageType       cmd.OptionalString
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalUint
