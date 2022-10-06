@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
@@ -66,10 +67,10 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("format", "Apache style log formatting").Action(c.Format.Set).StringVar(&c.Format.Value)
-	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (default) or 1").Action(c.FormatVersion.Set).UintVar(&c.FormatVersion.Value)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
-	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.ResponseCondition.Set).StringVar(&c.ResponseCondition.Value)
+	common.Format(c.CmdClause, &c.Format)
+	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.Placement(c.CmdClause, &c.Placement)
+	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	return &c
 }
 
