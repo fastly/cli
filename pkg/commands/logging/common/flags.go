@@ -10,7 +10,7 @@ func Format(cmd *kingpin.CmdClause, c *cmd.OptionalString) {
 	cmd.Flag("format", "Apache style log formatting. Your log must produce valid JSON").Action(c.Set).StringVar(&c.Value)
 }
 
-// Gziplevel defines the gzip flag
+// GzipLevel defines the gzip flag
 func GzipLevel(cmd *kingpin.CmdClause, c *cmd.OptionalUint8) {
 	cmd.Flag("gzip-level", "What level of GZIP encoding to have when dumping logs (default 0, no compression)").Action(c.Set).Uint8Var(&c.Value)
 }
