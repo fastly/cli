@@ -317,7 +317,9 @@ func validateRustSDK(name string, bs []byte) error {
 	}
 
 	if v, ok := tree.GetArray("dependencies").(*toml.Tree); ok {
-		if dependency, ok := v.Get("fastly").(string); ok && dependency != "" {
+		if _, ok := v.Get("fastly").(*toml.Tree); ok {
+			return nil
+		} else if dependency, ok := v.Get("fastly").(string); ok && dependency != "" {
 			return nil
 		}
 	}
