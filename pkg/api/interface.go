@@ -321,6 +321,12 @@ type Interface interface {
 	GetTLSSubscription(i *fastly.GetTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 	ListTLSSubscriptions(i *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error)
 	UpdateTLSSubscription(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
+
+	ListServiceAuthorizations(i *fastly.ListServiceAuthorizationsInput) (*fastly.SAResponse, error)
+	GetServiceAuthorization(i *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
+	CreateServiceAuthorization(i *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
+	UpdateServiceAuthorization(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
+	DeleteServiceAuthorization(i *fastly.DeleteServiceAuthorizationInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

@@ -74,6 +74,7 @@ pops
 profile
 purge
 service
+service-auth
 service-version
 stats
 tls-config
