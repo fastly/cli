@@ -3,6 +3,7 @@ package compute
 import (
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -38,6 +39,8 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	progress := text.NewProgress(out, c.Globals.Verbose())
 
 	defer func(errLog fsterr.LogInterface) {
+		os.RemoveAll("pkg/package")
+
 		if err != nil {
 			errLog.Add(err)
 			progress.Fail()
@@ -47,12 +50,12 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if err = c.manifest.File.ReadError(); err != nil {
 		return err
 	}
-	pkg := "pkg/package/bin/main.wasm"
-	dir := filepath.Dir(pkg)
-	err = filesystem.MakeDirectoryIfNotExists(dir)
+	bin := "pkg/package/bin/main.wasm"
+	bindir := filepath.Dir(bin)
+	err = filesystem.MakeDirectoryIfNotExists(bindir)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Wasm directory (relative)": dir,
+			"Wasm directory (relative)": bindir,
 		})
 		return err
 	}
@@ -64,10 +67,10 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		})
 		return err
 	}
-	dst, err := filepath.Abs(pkg)
+	dst, err := filepath.Abs(bin)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Wasm destination (relative)": pkg,
+			"Wasm destination (relative)": bin,
 		})
 		return err
 	}
@@ -80,7 +83,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
 	}
 
-	if !filesystem.FileExists(pkg) {
+	if !filesystem.FileExists(bin) {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("no wasm binary found"),
 			Remediation: "Run `fastly compute pack --path </path/to/wasm/binary>` to copy your wasm binary to the required location",
