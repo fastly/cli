@@ -914,3 +914,105 @@ func TestCustomPostBuild(t *testing.T) {
 		})
 	}
 }
+
+// TestBuildBinDirectory validates that the bin directory is created before
+// trying to execute the specific build script (e.g. [scripts.build]).
+//
+// If in the future the ./bin directory isn't created by the CLI, then this test
+// will fail to build successfully and we'll get an error indicating the
+// directory is missing.
+func TestBuildBinDirectory(t *testing.T) {
+	args := testutil.Args
+	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
+	}
+
+	// We're going to chdir to a build environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{Src: filepath.Join("testdata", "build", "go", "go.mod"), Dst: "go.mod"},
+			{Src: filepath.Join("testdata", "build", "go", "main.go"), Dst: "main.go"},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// Before running the test, chdir into the build environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(pwd)
+
+	for _, testcase := range []struct {
+		name           string
+		args           []string
+		fastlyManifest string
+		sourceOverride string
+		wantOutput     string
+	}{
+		{
+			name: "successful build",
+			args: args("compute build --skip-verification --verbose"),
+			fastlyManifest: fmt.Sprintf(`
+			manifest_version = 2
+			name = "test"
+			language = "go"
+
+      [scripts]
+      build = "%s"`, compute.GoDefaultBuildCommand),
+			wantOutput: "Built package",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.fastlyManifest != "" {
+				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			// We want to ensure the original `main.go` is put back in case of a test
+			// case overriding its content using `sourceOverride`.
+			src := filepath.Join(rootdir, "main.go")
+			b, err := os.ReadFile(src)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func(src string, b []byte) {
+				err := os.WriteFile(src, b, 0o644)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}(src, b)
+
+			if testcase.sourceOverride != "" {
+				if err := os.WriteFile(src, []byte(testcase.sourceOverride), 0o777); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			var stdout threadsafe.Buffer
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+
+			// NOTE: The following constraints should be kept in-sync with
+			// ./pkg/config/config.toml
+			opts.ConfigFile.Language.Go.TinyGoConstraint = ">= 0.24.0-0" // NOTE: -0 is to allow prereleases.
+			opts.ConfigFile.Language.Go.ToolchainConstraint = ">= 1.17 < 1.19"
+
+			err = app.Run(opts)
+
+			t.Log(stdout.String())
+
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
+		})
+	}
+}
