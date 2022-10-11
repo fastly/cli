@@ -1,5 +1,20 @@
 # Changelog
 
+## [v4.1.0](https://github.com/fastly/cli/releases/tag/v4.1.0) (2022-10-11)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v4.0.1...v4.1.0)
+
+**Bug fixes:**
+
+* Fix Rust validation step for fastly crate dependency [#661](https://github.com/fastly/cli/pull/661)
+* Fix `compute build --first-byte-timeout` [#667](https://github.com/fastly/cli/pull/667)
+* Ensure the ./bin directory is present even with `--skip-verification` [#665](https://github.com/fastly/cli/pull/665)
+
+**Enhancements:**
+
+* Reduce duplication of strings in logging package [#653](https://github.com/fastly/cli/pull/653)
+* Support `cert_host` and `use_sni` Viceroy properties [#663](https://github.com/fastly/cli/pull/663)
+
 ## [v4.0.1](https://github.com/fastly/cli/releases/tag/v4.0.1) (2022-10-05)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.0.0...v4.0.1)
