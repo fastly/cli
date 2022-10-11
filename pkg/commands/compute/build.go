@@ -310,8 +310,8 @@ func promptForBuildContinue(msg, script string, out io.Writer, in io.Reader, ver
 	return nil
 }
 
-// CreatePackageArchive packages build artifacts as a Fastly package, which
-// must be a GZipped Tar archive such as: package-name.tar.gz.
+// CreatePackageArchive packages build artifacts as a Fastly package.
+// The package must be a GZipped Tar archive.
 //
 // Due to a behavior of archiver.Archive() which recursively writes all files in
 // a provided directory to the archive we first copy our input files to a

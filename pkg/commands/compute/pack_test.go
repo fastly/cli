@@ -36,9 +36,9 @@ func TestPack(t *testing.T) {
 				"Creating .tar.gz file...",
 			},
 			expectedFiles: [][]string{
-				{"pkg", "mypackagename", "bin", "main.wasm"},
-				{"pkg", "mypackagename", "fastly.toml"},
-				{"pkg", "mypackagename.tar.gz"},
+				{"pkg", "package", "bin", "main.wasm"},
+				{"pkg", "package", "fastly.toml"},
+				{"pkg", "package.tar.gz"},
 			},
 		},
 		// The following test validates that the expected directory structure was
@@ -56,9 +56,9 @@ func TestPack(t *testing.T) {
 				"Creating .tar.gz file...",
 			},
 			expectedFiles: [][]string{
-				{"pkg", "another-name", "bin", "main.wasm"},
-				{"pkg", "another-name", "fastly.toml"},
-				{"pkg", "another-name.tar.gz"},
+				{"pkg", "package", "bin", "main.wasm"},
+				{"pkg", "package", "fastly.toml"},
+				{"pkg", "package.tar.gz"},
 			},
 		},
 		// The following tests validate that a valid path flag value should be

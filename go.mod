@@ -16,9 +16,7 @@ require (
 	github.com/getsentry/sentry-go v0.12.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v38 v38.1.0
-	github.com/kennygrant/sanitize v1.2.4
 	github.com/mattn/go-isatty v0.0.14
-	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/mholt/archiver/v3 v3.5.0
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/mitchellh/mapstructure v1.4.3
@@ -33,6 +31,7 @@ require (
 )
 
 require (
+	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/otiai10/copy v1.7.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/tcnksm/go-gitconfig v0.1.2
@@ -55,6 +54,5 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
