@@ -531,25 +531,6 @@ func (tv ToolchainValidator) buildScript() error {
 	return nil
 }
 
-// binDir validates a bin directory is available.
-func (tv ToolchainValidator) binDir() error {
-	dir, err := os.Getwd()
-	if err != nil {
-		err = fmt.Errorf("failed to identify the current working directory: %w", err)
-		tv.ErrLog.Add(err)
-		return err
-	}
-
-	binDir := filepath.Join(dir, "bin")
-	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
-		err = fmt.Errorf("failed to create 'bin' directory: %w", err)
-		tv.ErrLog.Add(err)
-		return err
-	}
-
-	return nil
-}
-
 // visitURLRemediation returns a remediation error that suggests visiting the
 // official resource URL.
 func (tv ToolchainValidator) visitURLRemediation(resource, resourceURL string) string {
