@@ -171,10 +171,7 @@ func (tv ToolchainValidator) Validate() error {
 	if err := tv.compilation(); err != nil {
 		return err
 	}
-	if err := tv.buildScript(); err != nil {
-		return err
-	}
-	return tv.binDir()
+	return tv.buildScript()
 }
 
 // toolchain validates the toolchain is installed.
