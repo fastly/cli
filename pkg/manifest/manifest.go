@@ -253,7 +253,7 @@ type LocalBackend struct {
 	URL          string `toml:"url"`
 	OverrideHost string `toml:"override_host,omitempty"`
 	CertHost     string `toml:"cert_host,omitempty"`
-	UseSNI       string `toml:"use_sni,omitempty"`
+	UseSNI       bool   `toml:"use_sni,omitempty"`
 }
 
 // LocalDictionary represents a dictionary to be mocked by the local testing server.
