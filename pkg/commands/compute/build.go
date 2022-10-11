@@ -204,6 +204,18 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
+	// NOTE: A ./bin directory is required for the main.wasm to be placed inside.
+	dir, err := os.Getwd()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to identify the current working directory: %w", err)
+	}
+	binDir := filepath.Join(dir, "bin")
+	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to create bin directory: %w", err)
+	}
+
 	if err := language.Build(out, progress, c.Globals.Flag.Verbose, postBuildCallback); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Language": language.Name,
