@@ -2,7 +2,7 @@
 
 ## [v4.0.1](https://github.com/fastly/cli/releases/tag/v4.0.1) (2022-10-05)
 
-[Full Changelog](https://github.com/fastly/cli/releases/tag/v4.0.0...v4.0.1)
+[Full Changelog](https://github.com/fastly/cli/compare/v4.0.0...v4.0.1)
 
 **Bug fixes:**
 
@@ -12,7 +12,7 @@
 
 ## [v4.0.0](https://github.com/fastly/cli/releases/tag/v4.0.0) (2022-10-04)
 
-[Full Changelog](https://github.com/fastly/cli/releases/tag/v3.3.0...v4.0.0)
+[Full Changelog](https://github.com/fastly/cli/compare/v3.3.0...v4.0.0)
 
 **Enhancements:**
 
@@ -38,7 +38,7 @@
 
 ## [v3.3.0](https://github.com/fastly/cli/releases/tag/v3.3.0) (2022-09-05)
 
-[Full Changelog](https://github.com/fastly/cli/releases/tag/v3.2.5...v3.3.0)
+[Full Changelog](https://github.com/fastly/cli/compare/v3.2.5...v3.3.0)
 
 **Enhancements:**
 
@@ -51,7 +51,7 @@
 
 ## [v3.2.5](https://github.com/fastly/cli/releases/tag/v3.2.5) (2022-08-10)
 
-[Full Changelog](https://github.com/fastly/cli/releases/tag/v3.2.4...v3.2.5)
+[Full Changelog](https://github.com/fastly/cli/compare/v3.2.4...v3.2.5)
 
 **Enhancements:**
 
@@ -65,7 +65,7 @@
 
 ## [v3.2.4](https://github.com/fastly/cli/releases/tag/v3.2.4) (2022-07-28)
 
-[Full Changelog](https://github.com/fastly/cli/releases/tag/v3.2.3...v3.2.4)
+[Full Changelog](https://github.com/fastly/cli/compare/v3.2.3...v3.2.4)
 
 **Bug fixes:**
 
@@ -81,7 +81,7 @@
 
 ## [v3.2.2](https://github.com/fastly/cli/releases/tag/v3.2.2) (2022-07-28)
 
-[Full Changelog](https://github.com/fastly/cli/releases/tag/v3.2.1...v3.2.2)
+[Full Changelog](https://github.com/fastly/cli/compare/v3.2.1...v3.2.2)
 
 **Bug fixes:**
 
