@@ -83,7 +83,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.OverrideHost.Set).StringVar(&c.OverrideHost.Value)
 	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").Action(c.ConnectTimeout.Set).UintVar(&c.ConnectTimeout.Value)
 	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.MaxConn.Set).UintVar(&c.MaxConn.Value)
-	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.FirstByteTimeout.Set).UintVar(&c.MaxConn.Value)
+	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.FirstByteTimeout.Set).UintVar(&c.FirstByteTimeout.Value)
 	c.CmdClause.Flag("between-bytes-timeout", "How long to wait between bytes in milliseconds").Action(c.BetweenBytesTimeout.Set).UintVar(&c.BetweenBytesTimeout.Value)
 	c.CmdClause.Flag("auto-loadbalance", "Whether or not this backend should be automatically load balanced").Action(c.AutoLoadbalance.Set).BoolVar(&c.AutoLoadbalance.Value)
 	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.Weight.Set).UintVar(&c.Weight.Value)
