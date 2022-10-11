@@ -1008,7 +1008,7 @@ func TestBuildBinDirectory(t *testing.T) {
 			opts.ConfigFile.Language.Go.TinyGoConstraint = ">= 0.24.0-0" // NOTE: -0 is to allow prereleases.
 			opts.ConfigFile.Language.Go.ToolchainConstraint = ">= 1.17 < 1.19"
 
-			err = app.Run(opts)
+			_ = app.Run(opts)
 
 			t.Log(stdout.String())
 
