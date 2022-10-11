@@ -171,10 +171,7 @@ func (tv ToolchainValidator) Validate() error {
 	if err := tv.compilation(); err != nil {
 		return err
 	}
-	if err := tv.buildScript(); err != nil {
-		return err
-	}
-	return tv.binDir()
+	return tv.buildScript()
 }
 
 // toolchain validates the toolchain is installed.
@@ -531,25 +528,6 @@ func (tv ToolchainValidator) buildScript() error {
 			tv.PatchedManifestNotifier <- fmt.Sprintf("No build command was found in fastly.toml. A default build command for %s has been added to fastly.toml", tv.ToolchainLanguage)
 		}()
 	}
-	return nil
-}
-
-// binDir validates a bin directory is available.
-func (tv ToolchainValidator) binDir() error {
-	dir, err := os.Getwd()
-	if err != nil {
-		err = fmt.Errorf("failed to identify the current working directory: %w", err)
-		tv.ErrLog.Add(err)
-		return err
-	}
-
-	binDir := filepath.Join(dir, "bin")
-	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
-		err = fmt.Errorf("failed to create 'bin' directory: %w", err)
-		tv.ErrLog.Add(err)
-		return err
-	}
-
 	return nil
 }
 

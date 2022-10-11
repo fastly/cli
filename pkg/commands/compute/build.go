@@ -171,6 +171,18 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("unsupported language %s", toolchain)
 	}
 
+	// NOTE: A ./bin directory is required for the main.wasm to be placed inside.
+	dir, err := os.Getwd()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to identify the current working directory: %w", err)
+	}
+	binDir := filepath.Join(dir, "bin")
+	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to create bin directory: %w", err)
+	}
+
 	if !c.Flags.SkipVerification {
 		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", toolchain))
 
