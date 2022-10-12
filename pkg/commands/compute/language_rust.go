@@ -178,7 +178,7 @@ func (r *Rust) Verify(_ io.Writer) error {
 	var cp *CargoLocateProject
 	err = json.Unmarshal(stdoutStderr, &cp)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal manifest metadata: %w", err)
+		return fmt.Errorf("failed to unmarshal manifest project root metadata: %w", err)
 	}
 
 	r.projectRoot = cp.Root
