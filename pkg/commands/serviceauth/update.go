@@ -25,7 +25,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 	c.CmdClause = parent.Command("update", "Update service authorization")
 	c.CmdClause.Flag("id", "ID of the service authorization to delete").Required().StringVar(&c.input.ID)
-	c.CmdClause.Flag("permissions", "The permission the user has in relation to the service").Required().HintOptions(Permissions...).Short('p').EnumVar(&c.input.Permissions, Permissions...)
+	c.CmdClause.Flag("permission", "The permission the user has in relation to the service").Required().HintOptions(Permissions...).Short('p').EnumVar(&c.input.Permissions, Permissions...)
 	return &c
 }
 

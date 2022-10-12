@@ -32,7 +32,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 	// NOTE: We default to 'read_only' for security reasons.
 	// The API otherwise defaults to 'full' permissions!
-	c.CmdClause.Flag("permissions", "The permission the user has in relation to the service (default: read_only)").HintOptions(Permissions...).Default("read_only").Short('p').EnumVar(&c.input.Permission, Permissions...)
+	c.CmdClause.Flag("permission", "The permission the user has in relation to the service (default: read_only)").HintOptions(Permissions...).Default("read_only").Short('p').EnumVar(&c.input.Permission, Permissions...)
 
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,

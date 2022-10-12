@@ -139,6 +139,46 @@ func TestServiceAuthDescribe(t *testing.T) {
 	}
 }
 
+func TestServiceAuthUpdate(t *testing.T) {
+	args := testutil.Args
+	scenarios := []struct {
+		args       []string
+		api        mock.API
+		wantError  string
+		wantOutput string
+	}{
+		{
+			args:      args("service-auth update --permission full"),
+			wantError: "error parsing arguments: required flag --id not provided",
+		},
+		{
+			args:      args("service-auth update --id 123"),
+			wantError: "error parsing arguments: required flag --permission not provided",
+		},
+		{
+			args:      args("service-auth update --id 123 --permission full"),
+			api:       mock.API{UpdateServiceAuthorizationFn: updateServiceAuthError},
+			wantError: errTest.Error(),
+		},
+		{
+			args:       args("service-auth update --id 123 --permission full"),
+			api:        mock.API{UpdateServiceAuthorizationFn: updateServiceAuthOK},
+			wantOutput: "Updated service authorization 123",
+		},
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
+		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
+		})
+	}
+}
+
 var errTest = errors.New("fixture error")
 
 func createServiceAuthError(*fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
@@ -186,5 +226,15 @@ func describeServiceAuthOK(i *fastly.GetServiceAuthorizationInput) (*fastly.Serv
 			ID: "789",
 		},
 		Permission: "read_only",
+	}, nil
+}
+
+func updateServiceAuthError(*fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+	return nil, errTest
+}
+
+func updateServiceAuthOK(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+	return &fastly.ServiceAuthorization{
+		ID: "12345",
 	}, nil
 }
