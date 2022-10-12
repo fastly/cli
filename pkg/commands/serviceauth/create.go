@@ -31,7 +31,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause = parent.Command("create", "Create service authorization").Alias("add")
 
 	// NOTE: We default to 'read_only' for security reasons.
-	// The API otherwise defaultd to 'full' permissions!
+	// The API otherwise defaults to 'full' permissions!
 	c.CmdClause.Flag("permissions", "The permission the user has in relation to the service (default: read_only)").HintOptions(Permissions...).Default("read_only").Short('p').EnumVar(&c.input.Permission, Permissions...)
 
 	c.RegisterFlag(cmd.StringFlagOpts{
