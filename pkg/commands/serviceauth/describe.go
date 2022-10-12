@@ -72,7 +72,7 @@ func (c *DescribeCommand) print(s *fastly.ServiceAuthorization, out io.Writer) e
 		return nil
 	}
 
-	fmt.Fprintf(out, "ID: %s\n", s.ID)
+	fmt.Fprintf(out, "Auth ID: %s\n", s.ID)
 	fmt.Fprintf(out, "User ID: %s\n", s.User.ID)
 	fmt.Fprintf(out, "Service ID: %s\n", s.Service.ID)
 	fmt.Fprintf(out, "Permission: %s\n", s.Permission)
