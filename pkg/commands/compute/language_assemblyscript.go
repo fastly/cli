@@ -66,6 +66,7 @@ func NewAssemblyScript(
 				FastlyManifestFile:            fastlyManifest,
 				Installer:                     JsInstaller,
 				Manifest:                      JsManifest,
+				ManifestCommand:               JsManifestCommand,
 				ManifestRemediation:           JsManifestRemediation,
 				Output:                        out,
 				PatchedManifestNotifier:       ch,

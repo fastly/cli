@@ -1,6 +1,9 @@
 package compute
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"regexp"
 
@@ -42,12 +45,16 @@ const GoInstaller = "go mod download"
 // GoManifest is the manifest file for defining project configuration.
 const GoManifest = "go.mod"
 
+// GoManifestCommand is the toolchain command to validate the manifest exists,
+// and also enables parsing of the project's dependencies.
+const GoManifestCommand = "go mod edit -json"
+
 // GoManifestRemediation is a error remediation message for a missing manifest.
 const GoManifestRemediation = "go mod init"
 
 // GoSDK is the required Compute@Edge SDK.
 // https://pkg.go.dev/github.com/fastly/compute-sdk-go
-const GoSDK = "fastly/compute-sdk-go"
+const GoSDK = "github.com/fastly/compute-sdk-go"
 
 // GoSourceDirectory represents the source code directory.                                               │                                                           │
 const GoSourceDirectory = "."
@@ -89,10 +96,12 @@ func NewGo(
 			FastlyManifestFile:       fastlyManifest,
 			Installer:                GoInstaller,
 			Manifest:                 GoManifest,
+			ManifestCommand:          GoManifestCommand,
 			ManifestRemediation:      GoManifestRemediation,
 			Output:                   out,
 			PatchedManifestNotifier:  ch,
 			SDK:                      GoSDK,
+			SDKCustomValidator:       validateGoSDK,
 			Toolchain:                GoToolchain,
 			ToolchainLanguage:        "Go",
 			ToolchainVersionCommand:  GoToolchainVersionCommand,
@@ -146,4 +155,46 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 		postBuild:   g.postBuild,
 		timeout:     g.timeout,
 	}, out, progress, verbose, nil, callback)
+}
+
+// GoDependency represents the project's SDK and version.
+type GoDependency struct {
+	Path    string
+	Version string
+}
+
+// GoMod represents the project's go.mod manifest.
+type GoMod struct {
+	Require []GoDependency
+}
+
+// validateGoSDK uses the Go toolchain to identify if the required SDK
+// dependency is installed.
+func validateGoSDK(sdk string, manifestCommandOutput []byte) error {
+	var gm GoMod
+
+	err := json.Unmarshal(manifestCommandOutput, &gm)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal manifest metadata: %w", err)
+	}
+
+	remediation := fmt.Sprintf("Ensure your %s is valid and contains the '%s' dependency.", GoManifest, sdk)
+
+	if len(gm.Require) < 1 {
+		return fsterr.RemediationError{
+			Inner:       errors.New("no dependencies declared"),
+			Remediation: remediation,
+		}
+	}
+
+	for _, gd := range gm.Require {
+		if gd.Path == sdk {
+			return nil
+		}
+	}
+
+	return fsterr.RemediationError{
+		Inner:       errors.New("required dependency missing"),
+		Remediation: remediation,
+	}
 }

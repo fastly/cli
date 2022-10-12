@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -51,6 +52,10 @@ const RustDefaultBuildCommand = "cargo build --bin %s --release --target wasm32-
 
 // RustManifest is the manifest file for defining project configuration.
 const RustManifest = "Cargo.toml"
+
+// RustManifestCommand is the toolchain command to validate the manifest exists,
+// and also enables parsing of the project's dependencies.
+const RustManifestCommand = "cargo metadata --format-version 1"
 
 // RustManifestRemediation is a error remediation message for a missing manifest.
 const RustManifestRemediation = "cargo new $NAME --bin"
@@ -108,6 +113,7 @@ func NewRust(
 			ErrLog:                        errlog,
 			FastlyManifestFile:            fastlyManifest,
 			Manifest:                      RustManifest,
+			ManifestCommand:               RustManifestCommand,
 			ManifestRemediation:           RustManifestRemediation,
 			Output:                        out,
 			PatchedManifestNotifier:       ch,
@@ -134,6 +140,8 @@ type Rust struct {
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
+	// projectRoot is the root directory where the Cargo.toml is located.
+	projectRoot string
 	// timeout is the build execution threshold.
 	timeout int
 	// validator is an abstraction to validate required resources are installed.
@@ -150,10 +158,36 @@ func (r Rust) Initialize(_ io.Writer) error {
 func (r *Rust) Verify(_ io.Writer) error {
 	// NOTE: Validate whether the --bin flag matches the Cargo.toml package name.
 	// If it doesn't match, update the default build script to match.
+
+	s := "cargo locate-project"
+	args := strings.Split(s, " ")
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as we control this command.
+	/* #nosec */
+	cmd := exec.Command(args[0], args[1:]...)
+
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		if len(stdoutStderr) > 0 {
+			err = fmt.Errorf("%w: %s", err, strings.TrimSpace(string(stdoutStderr)))
+		}
+		return fmt.Errorf("failed to execute command '%s': %w", s, err)
+	}
+
+	var cp *CargoLocateProject
+	err = json.Unmarshal(stdoutStderr, &cp)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal manifest metadata: %w", err)
+	}
+
+	r.projectRoot = cp.Root
+
 	var m CargoManifest
-	if err := m.Read(RustManifest); err != nil {
+	if err := m.Read(cp.Root); err != nil {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
+
 	if m.Package.Name != RustPackageName {
 		r.validator.DefaultBuildCommand = fmt.Sprintf(RustDefaultBuildCommand, m.Package.Name)
 	}
@@ -191,7 +225,7 @@ func (r *Rust) ProcessLocation() error {
 		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
 	var m CargoManifest
-	if err := m.Read(RustManifest); err != nil {
+	if err := m.Read(r.projectRoot); err != nil {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
 	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", m.Package.Name))
@@ -203,6 +237,12 @@ func (r *Rust) ProcessLocation() error {
 		return fmt.Errorf("copying wasm binary: %w", err)
 	}
 	return nil
+}
+
+// CargoLocateProject represents the metadata for where to find the project's
+// Cargo.toml manifest file.
+type CargoLocateProject struct {
+	Root string `json:"root"`
 }
 
 // rustupToolchain returns the active rustup toolchain and falls back to stable
@@ -308,21 +348,31 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 
 // validateRustSDK marshals the Rust manifest into toml to check if the
 // dependency has been defined in the Cargo.toml manifest.
-func validateRustSDK(name string, bs []byte) error {
-	e := fmt.Errorf(SDKErrMessageFormat, name, RustManifest)
+func validateRustSDK(sdk string, manifestCommandOutput []byte) error {
+	var cm *CargoMetadata
 
-	tree, err := toml.LoadBytes(bs)
+	err := json.Unmarshal(manifestCommandOutput, &cm)
 	if err != nil {
-		return e
+		return fmt.Errorf("failed to unmarshal manifest metadata: %w", err)
 	}
 
-	if v, ok := tree.GetArray("dependencies").(*toml.Tree); ok {
-		if _, ok := v.Get("fastly").(*toml.Tree); ok {
-			return nil
-		} else if dependency, ok := v.Get("fastly").(string); ok && dependency != "" {
+	remediation := fmt.Sprintf("Ensure your %s is valid and contains the '%s' dependency.", RustManifest, sdk)
+
+	if len(cm.Package) < 1 {
+		return fsterr.RemediationError{
+			Inner:       errors.New("no dependencies declared"),
+			Remediation: remediation,
+		}
+	}
+
+	for _, cp := range cm.Package {
+		if cp.Name == sdk {
 			return nil
 		}
 	}
 
-	return e
+	return fsterr.RemediationError{
+		Inner:       errors.New("required dependency missing"),
+		Remediation: remediation,
+	}
 }

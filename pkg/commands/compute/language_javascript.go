@@ -36,6 +36,15 @@ const JsInstaller = "npm install"
 // JsManifest is the manifest file for defining project configuration.
 const JsManifest = "package.json"
 
+// JsManifestCommand is the toolchain command to validate the manifest exists,
+// and also enables parsing of the project's dependencies.
+//
+// NOTE: JavaScript's toolchain isn't as forgiving as Go/Rust etc.
+// If you run `npm list` and there are missing dependencies, you'll get errors.
+// So we must first call `npm install` to generate node_modules.
+// Only then can we safely call `npm list` to search for the SDK.
+const JsManifestCommand = "npm install && npm list --json --depth 0"
+
 // JsManifestRemediation is a error remediation message for a missing manifest.
 const JsManifestRemediation = "npm init"
 
@@ -88,6 +97,7 @@ func NewJavaScript(
 			FastlyManifestFile:            fastlyManifest,
 			Installer:                     JsInstaller,
 			Manifest:                      JsManifest,
+			ManifestCommand:               JsManifestCommand,
 			ManifestRemediation:           JsManifestRemediation,
 			Output:                        out,
 			PatchedManifestNotifier:       ch,
@@ -142,34 +152,40 @@ func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, c
 	}, out, progress, verbose, nil, callback)
 }
 
+// JsDependency represents the project's SDK and version.
+type JsDependency struct {
+	Version  string `json:"version"`
+	Resolved string `json:"resolved"`
+}
+
 // JsPackage represents a package.json manifest.
 type JsPackage struct {
-	Dependencies    map[string]string `json:"dependencies"`
-	DevDependencies map[string]string `json:"devDependencies"`
+	Dependencies    map[string]JsDependency `json:"dependencies"`
+	DevDependencies map[string]JsDependency `json:"devDependencies"`
 }
 
 // validateJsSDK marshals the JS manifest into JSON to check if the dependency
 // has been defined in the package.json manifest.
-func validateJsSDK(name string, bs []byte) error {
-	e := fmt.Errorf(SDKErrMessageFormat, name, JsManifest)
+func validateJsSDK(sdk string, manifestCommandOutput []byte) error {
+	e := fmt.Errorf(SDKErrMessageFormat, sdk, JsManifest)
 
 	var p JsPackage
 
-	err := json.Unmarshal(bs, &p)
+	err := json.Unmarshal(manifestCommandOutput, &p)
 	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to unmarshal package.json: %w", err),
-			Remediation: fmt.Sprintf("Ensure your package.json is valid and contains the '%s' dependency.", name),
+			Remediation: fmt.Sprintf("Ensure your package.json is valid and contains the '%s' dependency.", sdk),
 		}
 	}
 
 	for k := range p.Dependencies {
-		if k == name {
+		if k == sdk {
 			return nil
 		}
 	}
 	for k := range p.DevDependencies {
-		if k == name {
+		if k == sdk {
 			return nil
 		}
 	}

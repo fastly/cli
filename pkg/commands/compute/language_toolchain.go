@@ -1,7 +1,6 @@
 package compute
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -14,11 +13,14 @@ import (
 	"github.com/Masterminds/semver/v3"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
-	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
 )
+
+// commandPairs is used by the manifestFile() validation method to store indexes
+// for the start/end of a command provided by each language toolchain.
+type commandPairs []int
 
 // SDKErrMessageFormat is a format string that can be used by the
 // ToolchainValidator and any other language files that need to implement custom
@@ -104,6 +106,11 @@ type ToolchainValidator struct {
 	// configuration (e.g. package.json, Cargo.toml, go.mod).
 	Manifest string
 
+	// ManifestCommand is a language specific shell command using the language
+	// specific toolchain to both enable parsing of the project dependencies as
+	// well as confirming if the manifest itself exists.
+	ManifestCommand string
+
 	// ManifestRemediation is a language specific error remediation.
 	ManifestRemediation string
 
@@ -123,7 +130,7 @@ type ToolchainValidator struct {
 
 	// SDKCustomValidator allows a supported language to define their own method
 	// for how to validate if their manifest contains the required SDK dependency.
-	SDKCustomValidator func(name string, bs []byte) error
+	SDKCustomValidator func(sdk string, manifestCommandOutput []byte) error
 
 	// Toolchain is a language specific executable responsible for managing
 	// dependencies (e.g. npm, cargo, go).
@@ -160,9 +167,6 @@ func (tv ToolchainValidator) Validate() error {
 		return err
 	}
 	if err := tv.manifestFile(); err != nil {
-		return err
-	}
-	if err := tv.sdk(); err != nil {
 		return err
 	}
 	if err := tv.installDependencies(); err != nil {
@@ -267,67 +271,68 @@ func (tv ToolchainValidator) toolchainVersion() error {
 func (tv ToolchainValidator) manifestFile() error {
 	fmt.Fprintf(tv.Output, "\nChecking if manifest '%s' exists...\n", tv.Manifest)
 
-	m, err := filepath.Abs(tv.Manifest)
-	if err != nil {
-		tv.ErrLog.Add(err)
-		return fmt.Errorf("failed to construct path to '%s': %w", tv.Manifest, err)
-	}
+	msg := "The language toolchain is unable to validate %s. If there are any errors building this project, check you have the appropriate manifest available and configured with the expected language SDK."
 
-	if !filesystem.FileExists(m) {
-		msg := fmt.Sprintf(fsterr.FormatTemplate, text.Bold(tv.ManifestRemediation))
-		remediation := fmt.Sprintf("%s\n\nThen execute:\n\n\t$ fastly compute build", msg)
-		err := fsterr.RemediationError{
-			Inner:       fmt.Errorf("%s not found", tv.Manifest),
-			Remediation: remediation,
-		}
-		tv.ErrLog.Add(err)
-		return err
-	}
-
-	fmt.Fprintf(tv.Output, "Found '%s' at %s\n", tv.Manifest, m)
-
-	return nil
-}
-
-// sdk validates the relevant Compute@Edge SDK is defined in the language
-// specific manifest.
-func (tv ToolchainValidator) sdk() error {
-	fmt.Fprintf(tv.Output, "\nChecking if '%s' is defined in '%s'...\n", tv.SDK, tv.Manifest)
-
-	m, err := filepath.Abs(tv.Manifest)
-	if err != nil {
-		tv.ErrLog.Add(err)
-		return fmt.Errorf("failed to construct path to '%s': %w", tv.Manifest, err)
-	}
-
-	// gosec flagged this:
-	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
-	// Disabling as we trust the source of the variable.
-	/* #nosec */
-	bs, err := os.ReadFile(m)
-	if err != nil {
-		err = fmt.Errorf("failed to read file '%s': %w", m, err)
-		tv.ErrLog.Add(err)
-		return err
-	}
-
-	success := fmt.Sprintf("Found '%s' in '%s'\n", tv.SDK, tv.Manifest)
-
-	if tv.SDKCustomValidator != nil {
-		if err := tv.SDKCustomValidator(tv.SDK, bs); err != nil {
-			return err
-		}
-		fmt.Fprint(tv.Output, success)
+	// NOTE: We expect each language to have a toolchain command to validate with.
+	// But if that's not possible, we'll skip this validation step and inform the
+	// user of what is required.
+	if tv.ManifestCommand == "" {
+		text.Info(tv.Output, fmt.Sprintf(msg, "the existence of a %s"), tv.Manifest)
 		return nil
 	}
 
-	if !bytes.Contains(bs, []byte(tv.SDK)) {
-		err = fmt.Errorf(SDKErrMessageFormat, tv.SDK, m)
-		tv.ErrLog.Add(err)
-		return err
+	args := strings.Split(tv.ManifestCommand, " ")
+
+	// NOTE: We check for an `&&` in the provided command.
+	// As some languages need to execute multiple commands (e.g. Js toolchain).
+	//
+	// Demo of the following code can be found here:
+	// https://go.dev/play/p/7Cg6_qdsSk-
+
+	// The data structure is a slice of slices, and each nested slice will contain
+	// two indexes. The first is the command start, and the other is the end of
+	// the command.
+	indexes := []commandPairs{}
+
+	// Calculate all the start/end indexes for N number of commands to execute.
+	start := -1
+	for i, a := range args {
+		if a == "&&" {
+			end := i
+			indexes = append(indexes, commandPairs{start + 1, end})
+			start = end
+		}
+	}
+	indexes = append(indexes, commandPairs{start + 1, len(args)})
+
+	var (
+		err          error
+		stdoutStderr []byte
+	)
+
+	if len(indexes) > 0 {
+		for _, i := range indexes {
+			stdoutStderr, err = execManifestCommand(args[i[0]:i[1]], tv.ErrLog, tv.ManifestCommand)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		stdoutStderr, err = execManifestCommand(args, tv.ErrLog, tv.ManifestCommand)
+		if err != nil {
+			return err
+		}
 	}
 
-	fmt.Fprint(tv.Output, success)
+	if tv.SDKCustomValidator != nil {
+		if err := tv.SDKCustomValidator(tv.SDK, stdoutStderr); err != nil {
+			return err
+		}
+		fmt.Fprintf(tv.Output, "Found '%s' in '%s'\n", tv.SDK, tv.Manifest)
+		return nil
+	}
+
+	text.Info(tv.Output, fmt.Sprintf(msg, "the required language SDK '%s' is installed"), tv.SDK)
 	return nil
 }
 
@@ -570,6 +575,27 @@ func getJsToolchainBinPath(bin string) (string, error) {
 		return "", err
 	}
 	return strings.TrimSpace(string(path)), nil
+}
+
+// execManifestCommand opens a sub shell to execute the language toolchain
+// command responsible for producing dependency metadata.
+func execManifestCommand(args []string, errLog fsterr.LogInterface, manifestCommand string) (stdoutStderr []byte, err error) {
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as we control this command.
+	/* #nosec */
+	cmd := exec.Command(args[0], args[1:]...)
+
+	stdoutStderr, err = cmd.CombinedOutput()
+	if err != nil {
+		if len(stdoutStderr) > 0 {
+			err = fmt.Errorf("%w: %s", err, strings.TrimSpace(string(stdoutStderr)))
+		}
+		errLog.Add(err)
+		return stdoutStderr, fmt.Errorf("failed to execute command '%s': %w", manifestCommand, err)
+	}
+
+	return stdoutStderr, nil
 }
 
 // execCommand opens a sub shell to execute the language build script.
