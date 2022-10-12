@@ -179,6 +179,42 @@ func TestServiceAuthUpdate(t *testing.T) {
 	}
 }
 
+func TestServiceAuthDelete(t *testing.T) {
+	args := testutil.Args
+	scenarios := []struct {
+		args       []string
+		api        mock.API
+		wantError  string
+		wantOutput string
+	}{
+		{
+			args:      args("service-auth delete"),
+			wantError: "error parsing arguments: required flag --id not provided",
+		},
+		{
+			args:      args("service-auth delete --id 123"),
+			api:       mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthError},
+			wantError: errTest.Error(),
+		},
+		{
+			args:       args("service-auth delete --id 123"),
+			api:        mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthOK},
+			wantOutput: "Deleted service authorization 123",
+		},
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
+		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.APIClient = mock.APIClient(testcase.api)
+			err := app.Run(opts)
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
+		})
+	}
+}
+
 var errTest = errors.New("fixture error")
 
 func createServiceAuthError(*fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
@@ -237,4 +273,12 @@ func updateServiceAuthOK(i *fastly.UpdateServiceAuthorizationInput) (*fastly.Ser
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 	}, nil
+}
+
+func deleteServiceAuthError(*fastly.DeleteServiceAuthorizationInput) error {
+	return errTest
+}
+
+func deleteServiceAuthOK(i *fastly.DeleteServiceAuthorizationInput) error {
+	return nil
 }
