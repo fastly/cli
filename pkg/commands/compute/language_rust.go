@@ -159,7 +159,7 @@ func (r *Rust) Verify(_ io.Writer) error {
 	// NOTE: Validate whether the --bin flag matches the Cargo.toml package name.
 	// If it doesn't match, update the default build script to match.
 
-	s := "cargo locate-project"
+	s := "cargo locate-project --quiet"
 	args := strings.Split(s, " ")
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
