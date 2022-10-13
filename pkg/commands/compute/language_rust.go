@@ -95,7 +95,7 @@ func NewRust(
 ) *Rust {
 	RustConstraints["toolchain"] = cfg.ToolchainConstraint
 
-	return &Rust{
+	r := &Rust{
 		Shell:     Shell{},
 		config:    cfg,
 		errlog:    errlog,
@@ -127,6 +127,10 @@ func NewRust(
 			ToolchainURL:                  RustToolchainURL,
 		},
 	}
+
+	r.validator.ToolchainPostHook = r.ToolchainPostHook
+
+	return r
 }
 
 // Rust implements a Toolchain for the Rust language.
@@ -154,12 +158,9 @@ func (r Rust) Initialize(_ io.Writer) error {
 	return nil
 }
 
-// Verify ensures the user's environment has all the required resources/tools.
-func (r *Rust) Verify(_ io.Writer) error {
-	// FIXME: The following checks should happen AFTER the RustToolchain check.
-	// NOTE: Validate whether the --bin flag matches the Cargo.toml package name.
-	// If it doesn't match, update the default build script to match.
-
+// ToolchainPostHook validates whether the --bin flag matches the Cargo.toml
+// package name. If it doesn't match, update the default build script to match.
+func (r *Rust) ToolchainPostHook() error {
 	s := "cargo locate-project --quiet"
 	args := strings.Split(s, " ")
 	// gosec flagged this:
@@ -193,6 +194,11 @@ func (r *Rust) Verify(_ io.Writer) error {
 		r.validator.DefaultBuildCommand = fmt.Sprintf(RustDefaultBuildCommand, m.Package.Name)
 	}
 
+	return nil
+}
+
+// Verify ensures the user's environment has all the required resources/tools.
+func (r *Rust) Verify(_ io.Writer) error {
 	return r.validator.Validate()
 }
 

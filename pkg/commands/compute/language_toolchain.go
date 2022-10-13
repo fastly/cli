@@ -144,6 +144,10 @@ type ToolchainValidator struct {
 	// This is used for displaying debug information.
 	ToolchainLanguage string
 
+	// ToolchainPostHook enables a language to execute code after the relevant
+	// toolchain validation step has completed.
+	ToolchainPostHook func() error
+
 	// ToolchainSkipVersion is a language specific indicator that the
 	// toolchain does not need to have its version checked against a constraint
 	// defined in the CLI's application configuration.
@@ -165,6 +169,11 @@ type ToolchainValidator struct {
 func (tv ToolchainValidator) Validate() error {
 	if err := tv.toolchain(); err != nil {
 		return err
+	}
+	if tv.ToolchainPostHook != nil {
+		if err := tv.ToolchainPostHook(); err != nil {
+			return err
+		}
 	}
 	if err := tv.manifestFile(); err != nil {
 		return err
@@ -419,9 +428,19 @@ func (tv ToolchainValidator) compilation() error {
 
 	match := tv.CompilationTargetPattern.FindStringSubmatch(output)
 	if len(match) < 2 { // We expect a pattern with one capture group.
+		remediation := tv.visitURLRemediation(tv.Compilation, tv.CompilationURL)
+
+		if tv.CompilationCommandRemediation != "" {
+			remediation = tv.commandRemediation(tv.Compilation, tv.CompilationURL, tv.CompilationCommandRemediation)
+		}
+
 		err := fmt.Errorf("failed to find '%s' with the pattern '%s'", tv.Compilation, tv.CompilationTargetPattern)
 		tv.ErrLog.Add(err)
-		return err
+
+		return fsterr.RemediationError{
+			Inner:       err,
+			Remediation: remediation,
+		}
 	}
 
 	if tv.CompilationIntegrated {
