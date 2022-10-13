@@ -55,7 +55,7 @@ const RustManifest = "Cargo.toml"
 
 // RustManifestCommand is the toolchain command to validate the manifest exists,
 // and also enables parsing of the project's dependencies.
-const RustManifestCommand = "cargo metadata --format-version 1"
+const RustManifestCommand = "cargo metadata --format-version 1 --quiet"
 
 // RustManifestRemediation is a error remediation message for a missing manifest.
 const RustManifestRemediation = "cargo new $NAME --bin"
@@ -82,7 +82,7 @@ const RustToolchainURL = "https://doc.rust-lang.org/stable/cargo/"
 
 // RustToolchainVersionCommand is the shell command for returning the Rust
 // version.
-const RustToolchainVersionCommand = "cargo version"
+const RustToolchainVersionCommand = "cargo version --quiet"
 
 // NewRust constructs a new Rust toolchain.
 func NewRust(
@@ -156,6 +156,7 @@ func (r Rust) Initialize(_ io.Writer) error {
 
 // Verify ensures the user's environment has all the required resources/tools.
 func (r *Rust) Verify(_ io.Writer) error {
+	// FIXME: The following checks should happen AFTER the RustToolchain check.
 	// NOTE: Validate whether the --bin flag matches the Cargo.toml package name.
 	// If it doesn't match, update the default build script to match.
 

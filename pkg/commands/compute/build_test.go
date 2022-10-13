@@ -118,33 +118,6 @@ func TestBuildRust(t *testing.T) {
 			wantRemediationError: "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`).",
 		},
 		{
-			name: "fastly crate prerelease",
-			args: args("compute build"),
-			fastlyManifest: fmt.Sprintf(`
-			manifest_version = 2
-			name = "test"
-			language = "rust"
-
-      [scripts]
-      build = "%s"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustPackageName)),
-			applicationConfig: config.File{
-				Language: config.Language{
-					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.54.0",
-						WasmWasiTarget:      "wasm32-wasi",
-					},
-				},
-			},
-			cargoManifest: `
-			[package]
-			name = "fastly-compute-project"
-			version = "0.1.0"
-
-			[dependencies]
-			fastly = "0.6.0"`,
-			wantOutputContains: "Built package",
-		},
-		{
 			name: "successful build",
 			args: args("compute build"),
 			applicationConfig: config.File{
