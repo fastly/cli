@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -17,10 +18,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
 )
-
-// commandPairs is used by the manifestFile() validation method to store indexes
-// for the start/end of a command provided by each language toolchain.
-type commandPairs []int
 
 // SDKErrMessageFormat is a format string that can be used by the
 // ToolchainValidator and any other language files that need to implement custom
@@ -110,6 +107,17 @@ type ToolchainValidator struct {
 	// specific toolchain to both enable parsing of the project dependencies as
 	// well as confirming if the manifest itself exists.
 	ManifestCommand string
+
+	// ManifestCommandSkipError allows a language to skip handling an error. This
+	// will result in the stdout output to be returned for parsing.
+	//
+	// NOTE: This exists because JavaScript's npm toolchain will still produce
+	// valid JSON that can be parsed to be sure the user has specified the
+	// required SDK. It will error though at the stage we call the ManifestCommand
+	// because `npm install` hasn't yet been called (that happens after we
+	// validate there is a package.json) and so there will be missing
+	// sub-dependencies (which is why npm errors, to tell you to `npm install`).
+	ManifestCommandSkipError bool
 
 	// ManifestRemediation is a language specific error remediation.
 	ManifestRemediation string
@@ -292,49 +300,13 @@ func (tv ToolchainValidator) manifestFile() error {
 
 	args := strings.Split(tv.ManifestCommand, " ")
 
-	// NOTE: We check for an `&&` in the provided command.
-	// As some languages need to execute multiple commands (e.g. Js toolchain).
-	//
-	// Demo of the following code can be found here:
-	// https://go.dev/play/p/7Cg6_qdsSk-
-
-	// The data structure is a slice of slices, and each nested slice will contain
-	// two indexes. The first is the command start, and the other is the end of
-	// the command.
-	indexes := []commandPairs{}
-
-	// Calculate all the start/end indexes for N number of commands to execute.
-	start := -1
-	for i, a := range args {
-		if a == "&&" {
-			end := i
-			indexes = append(indexes, commandPairs{start + 1, end})
-			start = end
-		}
-	}
-	indexes = append(indexes, commandPairs{start + 1, len(args)})
-
-	var (
-		err          error
-		stdoutStderr []byte
-	)
-
-	if len(indexes) > 0 {
-		for _, i := range indexes {
-			stdoutStderr, err = execManifestCommand(args[i[0]:i[1]], tv.ErrLog, tv.ManifestCommand)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		stdoutStderr, err = execManifestCommand(args, tv.ErrLog, tv.ManifestCommand)
-		if err != nil {
-			return err
-		}
+	output, err := execManifestCommand(args, tv.ErrLog, tv.ManifestCommand, tv.ManifestCommandSkipError)
+	if err != nil {
+		return err
 	}
 
 	if tv.SDKCustomValidator != nil {
-		if err := tv.SDKCustomValidator(tv.SDK, stdoutStderr); err != nil {
+		if err := tv.SDKCustomValidator(tv.SDK, output); err != nil {
 			return err
 		}
 		fmt.Fprintf(tv.Output, "Found '%s' in '%s'\n", tv.SDK, tv.Manifest)
@@ -598,23 +570,24 @@ func getJsToolchainBinPath(bin string) (string, error) {
 
 // execManifestCommand opens a sub shell to execute the language toolchain
 // command responsible for producing dependency metadata.
-func execManifestCommand(args []string, errLog fsterr.LogInterface, manifestCommand string) (stdoutStderr []byte, err error) {
+func execManifestCommand(args []string, errLog fsterr.LogInterface, manifestCommand string, skipError bool) (output []byte, err error) {
+	var out bytes.Buffer
+
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as we control this command.
 	/* #nosec */
 	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdout = &out
 
-	stdoutStderr, err = cmd.CombinedOutput()
-	if err != nil {
-		if len(stdoutStderr) > 0 {
-			err = fmt.Errorf("%w: %s", err, strings.TrimSpace(string(stdoutStderr)))
-		}
+	err = cmd.Run()
+
+	if err != nil && !skipError {
 		errLog.Add(err)
-		return stdoutStderr, fmt.Errorf("failed to execute command '%s': %w", manifestCommand, err)
+		return out.Bytes(), fmt.Errorf("failed to execute command '%s': %w", manifestCommand, err)
 	}
 
-	return stdoutStderr, nil
+	return out.Bytes(), nil
 }
 
 // execCommand opens a sub shell to execute the language build script.
