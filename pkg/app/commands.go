@@ -45,6 +45,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
 	"github.com/fastly/cli/pkg/commands/service"
+	"github.com/fastly/cli/pkg/commands/serviceauth"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/stats"
@@ -310,6 +311,12 @@ func defineCommands(
 	serviceList := service.NewListCommand(serviceCmdRoot.CmdClause, globals)
 	serviceSearch := service.NewSearchCommand(serviceCmdRoot.CmdClause, globals, data)
 	serviceUpdate := service.NewUpdateCommand(serviceCmdRoot.CmdClause, globals, data)
+	serviceauthCmdRoot := serviceauth.NewRootCommand(app, globals)
+	serviceauthCreate := serviceauth.NewCreateCommand(serviceauthCmdRoot.CmdClause, globals, data)
+	serviceauthDelete := serviceauth.NewDeleteCommand(serviceauthCmdRoot.CmdClause, globals, data)
+	serviceauthDescribe := serviceauth.NewDescribeCommand(serviceauthCmdRoot.CmdClause, globals, data)
+	serviceauthList := serviceauth.NewListCommand(serviceauthCmdRoot.CmdClause, globals)
+	serviceauthUpdate := serviceauth.NewUpdateCommand(serviceauthCmdRoot.CmdClause, globals, data)
 	serviceVersionCmdRoot := serviceversion.NewRootCommand(app, globals)
 	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionCmdRoot.CmdClause, globals, data)
 	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionCmdRoot.CmdClause, globals, data)
@@ -616,6 +623,12 @@ func defineCommands(
 		serviceList,
 		serviceSearch,
 		serviceUpdate,
+		serviceauthCmdRoot,
+		serviceauthCreate,
+		serviceauthDelete,
+		serviceauthDescribe,
+		serviceauthList,
+		serviceauthUpdate,
 		serviceVersionActivate,
 		serviceVersionClone,
 		serviceVersionCmdRoot,

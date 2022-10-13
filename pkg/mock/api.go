@@ -312,6 +312,12 @@ type API struct {
 	GetTLSSubscriptionFn    func(i *fastly.GetTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 	ListTLSSubscriptionsFn  func(i *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error)
 	UpdateTLSSubscriptionFn func(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
+
+	ListServiceAuthorizationsFn  func(i *fastly.ListServiceAuthorizationsInput) (*fastly.SAResponse, error)
+	GetServiceAuthorizationFn    func(i *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
+	CreateServiceAuthorizationFn func(i *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
+	UpdateServiceAuthorizationFn func(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
+	DeleteServiceAuthorizationFn func(i *fastly.DeleteServiceAuthorizationInput) error
 }
 
 // AllDatacenters implements Interface.
@@ -1577,4 +1583,29 @@ func (m API) ListTLSSubscriptions(i *fastly.ListTLSSubscriptionsInput) ([]*fastl
 // UpdateTLSSubscription implements Interface.
 func (m API) UpdateTLSSubscription(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 	return m.UpdateTLSSubscriptionFn(i)
+}
+
+// ListServiceAuthorizations implements Interface.
+func (m API) ListServiceAuthorizations(i *fastly.ListServiceAuthorizationsInput) (*fastly.SAResponse, error) {
+	return m.ListServiceAuthorizationsFn(i)
+}
+
+// GetServiceAuthorization implements Interface.
+func (m API) GetServiceAuthorization(i *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+	return m.GetServiceAuthorizationFn(i)
+}
+
+// CreateServiceAuthorization implements Interface.
+func (m API) CreateServiceAuthorization(i *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+	return m.CreateServiceAuthorizationFn(i)
+}
+
+// UpdateServiceAuthorization implements Interface.
+func (m API) UpdateServiceAuthorization(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+	return m.UpdateServiceAuthorizationFn(i)
+}
+
+// DeleteServiceAuthorization implements Interface.
+func (m API) DeleteServiceAuthorization(i *fastly.DeleteServiceAuthorizationInput) error {
+	return m.DeleteServiceAuthorizationFn(i)
 }
