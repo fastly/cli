@@ -1,8 +1,10 @@
 package compute
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"os/exec"
 	"runtime"
 	"sort"
 	"strings"
@@ -151,9 +153,36 @@ func (s Shell) Build(command string) (cmd string, args []string) {
 	if runtime.GOOS == "windows" {
 		cmd = "cmd.exe"
 		args = []string{"/C"}
+		command = flattenNPMBinSubshell(command)
 	}
 
 	args = append(args, command)
 
 	return cmd, args
+}
+
+// flattenNPMBinSubshell parses the command for the string $(npm bin) or the
+// older backtick command substitution `npm bin`, and executes a subshell to
+// acquire the value (rather than letting the user's shell identify the value).
+//
+// NOTE: This function should only be called when running on Windows.
+// The default Windows 'Command Prompt' (cmd.exe) can't parse the POSIX command
+// substitution syntax. Refer to https://github.com/fastly/cli/issues/675 for
+// the full details.
+func flattenNPMBinSubshell(command string) string {
+	var buf bytes.Buffer
+
+	cmd := "cmd.exe"
+	args := []string{"/C", "npm bin"}
+
+	c := exec.Command(cmd, args...)
+	c.Stdout = &buf
+
+	if err := c.Run(); err == nil {
+		result := strings.TrimSpace(buf.String())
+		command = strings.ReplaceAll(command, "$(npm bin)", result)
+		command = strings.ReplaceAll(command, "`npm bin`", result)
+	}
+
+	return command
 }
