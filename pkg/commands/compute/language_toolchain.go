@@ -592,7 +592,7 @@ func execCommand(cmd string, args []string, out, progress io.Writer, verbose boo
 // The generics support in Go1.18 doesn't include accessing struct fields.
 type buildOpts struct {
 	buildScript string
-	buildFn     func(string) (string, []string)
+	buildFn     func(string, io.Writer) (string, []string)
 	errlog      fsterr.LogInterface
 	postBuild   string
 	timeout     int
@@ -607,7 +607,7 @@ func build(
 	optionalLocationProcess func() error,
 	postBuildCallback func() error,
 ) error {
-	cmd, args := l.buildFn(l.buildScript)
+	cmd, args := l.buildFn(l.buildScript, out)
 
 	err := execCommand(cmd, args, out, progress, verbose, l.timeout, l.errlog)
 	if err != nil {
@@ -628,7 +628,7 @@ func build(
 
 	if l.postBuild != "" {
 		if err = postBuildCallback(); err == nil {
-			cmd, args := l.buildFn(l.postBuild)
+			cmd, args := l.buildFn(l.postBuild, out)
 			err := execCommand(cmd, args, out, progress, verbose, l.timeout, l.errlog)
 			if err != nil {
 				return err

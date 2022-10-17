@@ -11,6 +11,7 @@ import (
 
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // NewLanguages returns a list of supported programming languages.
@@ -146,14 +147,14 @@ type Shell struct{}
 //
 // Should be converted into a command such as (on unix):
 // sh -c "yarn install && yarn build"
-func (s Shell) Build(command string) (cmd string, args []string) {
+func (s Shell) Build(command string, out io.Writer) (cmd string, args []string) {
 	cmd = "sh"
 	args = []string{"-c"}
 
 	if runtime.GOOS == "windows" {
 		cmd = "cmd.exe"
 		args = []string{"/C"}
-		command = flattenNPMBinSubshell(command)
+		command = flattenNPMBinSubshell(command, out)
 	}
 
 	args = append(args, command)
@@ -169,7 +170,7 @@ func (s Shell) Build(command string) (cmd string, args []string) {
 // The default Windows 'Command Prompt' (cmd.exe) can't parse the POSIX command
 // substitution syntax. Refer to https://github.com/fastly/cli/issues/675 for
 // the full details.
-func flattenNPMBinSubshell(command string) string {
+func flattenNPMBinSubshell(command string, out io.Writer) string {
 	var buf bytes.Buffer
 
 	cmd := "cmd.exe"
@@ -182,6 +183,8 @@ func flattenNPMBinSubshell(command string) string {
 		result := strings.TrimSpace(buf.String())
 		command = strings.ReplaceAll(command, "$(npm bin)", result)
 		command = strings.ReplaceAll(command, "`npm bin`", result)
+
+		text.Info(out, "The [scripts.build] command contains command substitution syntax not supported by cmd.exe command prompt. This has been evaluated at runtime to avoid incompatibility.")
 	}
 
 	return command
