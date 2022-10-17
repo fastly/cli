@@ -3,6 +3,7 @@ package compute
 import (
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -11,7 +12,6 @@ import (
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 )
 
@@ -39,6 +39,8 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	progress := text.NewProgress(out, c.Globals.Verbose())
 
 	defer func(errLog fsterr.LogInterface) {
+		os.RemoveAll("pkg/package")
+
 		if err != nil {
 			errLog.Add(err)
 			progress.Fail()
@@ -48,13 +50,12 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if err = c.manifest.File.ReadError(); err != nil {
 		return err
 	}
-	name := sanitize.BaseName(c.manifest.File.Name)
-	pkg := fmt.Sprintf("pkg/%s/bin/main.wasm", name)
-	dir := filepath.Dir(pkg)
-	err = filesystem.MakeDirectoryIfNotExists(dir)
+	bin := "pkg/package/bin/main.wasm"
+	bindir := filepath.Dir(bin)
+	err = filesystem.MakeDirectoryIfNotExists(bindir)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Wasm directory (relative)": dir,
+			"Wasm directory (relative)": bindir,
 		})
 		return err
 	}
@@ -66,10 +67,10 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		})
 		return err
 	}
-	dst, err := filepath.Abs(pkg)
+	dst, err := filepath.Abs(bin)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Wasm destination (relative)": pkg,
+			"Wasm destination (relative)": bin,
 		})
 		return err
 	}
@@ -82,7 +83,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
 	}
 
-	if !filesystem.FileExists(pkg) {
+	if !filesystem.FileExists(bin) {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("no wasm binary found"),
 			Remediation: "Run `fastly compute pack --path </path/to/wasm/binary>` to copy your wasm binary to the required location",
@@ -91,7 +92,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 
 	progress.Step("Copying manifest...")
 	src = manifest.Filename
-	dst = fmt.Sprintf("pkg/%s/%s", name, manifest.Filename)
+	dst = fmt.Sprintf("pkg/package/%s", manifest.Filename)
 	if err := filesystem.CopyFile(src, dst); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Manifest (destination)": dst,
@@ -104,7 +105,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	tar := archiver.NewTarGz()
 	tar.OverwriteExisting = true
 	{
-		dir := fmt.Sprintf("pkg/%s", name)
+		dir := "pkg/package"
 		src := []string{dir}
 		dst := fmt.Sprintf("%s.tar.gz", dir)
 		if err = tar.Archive(src, dst); err != nil {

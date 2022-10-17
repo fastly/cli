@@ -21,10 +21,8 @@ func TestPack(t *testing.T) {
 		wantOutput    []string
 		expectedFiles [][]string
 	}{
-		// The following test validates that the expected directory structure was
-		// created successfully.
 		{
-			name: "success for directory structure",
+			name: "success",
 			args: args("compute pack --wasm-binary ./main.wasm"),
 			manifest: `
 			manifest_version = 2
@@ -36,41 +34,17 @@ func TestPack(t *testing.T) {
 				"Creating .tar.gz file...",
 			},
 			expectedFiles: [][]string{
-				{"pkg", "mypackagename", "bin", "main.wasm"},
-				{"pkg", "mypackagename", "fastly.toml"},
-				{"pkg", "mypackagename.tar.gz"},
+				{"pkg", "package.tar.gz"},
 			},
 		},
-		// The following test validates that the expected directory structure was
-		// created successfully when `name` contains whitespace.
 		{
-			name: "success with name containing whitespace",
-			args: args("compute pack --wasm-binary ./main.wasm"),
-			manifest: `
-			manifest_version = 2
-			name = "another name"`,
-			wantOutput: []string{
-				"Initializing...",
-				"Copying wasm binary...",
-				"Copying manifest...",
-				"Creating .tar.gz file...",
-			},
-			expectedFiles: [][]string{
-				{"pkg", "another-name", "bin", "main.wasm"},
-				{"pkg", "another-name", "fastly.toml"},
-				{"pkg", "another-name.tar.gz"},
-			},
-		},
-		// The following tests validate that a valid path flag value should be
-		// provided.
-		{
-			name:      "error no path flag",
+			name:      "no wasm binary path flag",
 			args:      args("compute pack"),
 			manifest:  `name = "precompiled"`,
 			wantError: "error parsing arguments: required flag --wasm-binary not provided",
 		},
 		{
-			name: "error no path flag value provided",
+			name: "no wasm binary path flag value",
 			args: args("compute pack --wasm-binary "),
 			manifest: `
 			manifest_version = 2
