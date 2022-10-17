@@ -246,6 +246,10 @@ func processCommandInput(
 	// But it's useful to have it implemented so it's ready to roll when we do.
 	var vars map[string]any
 
+	if cmd.IsHelpFlagOnly(opts.Args) && len(opts.Args) == 1 {
+		return command, cmdName, help(vars, nil)
+	}
+
 	// NOTE: We call two similar methods below: ParseContext() and Parse().
 	//
 	// We call Parse() because we want the high-level side effect of processing
