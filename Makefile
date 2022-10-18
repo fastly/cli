@@ -15,13 +15,21 @@ GO_BIN ?= go
 TEST_COMMAND ?= $(GO_BIN) test
 
 # The compute tests can sometimes exceed the default 10m limit.
-TEST_ARGS ?= -timeout 15m ./{cmd,pkg}/...
+TEST_ARGS ?= -timeout 15m ./...
 
 CLI_ENV ?= "development"
 
 GOHOSTOS ?= $(shell go env GOHOSTOS || echo unknown)
 GOHOSTARCH ?= $(shell go env GOHOSTARCH || echo unknown)
-GO_FILES = $(shell find cmd pkg -type f -name '*.go')
+
+ifeq ($(OS), Windows_NT)
+	SHELL = cmd.exe
+	.SHELLFLAGS = /c
+	GO_FILES = $(shell where /r pkg *.go)
+	GO_FILES += $(shell where /r cmd *.go)
+else
+	GO_FILES = $(shell find cmd pkg -type f -name '*.go')
+endif
 
 # You can pass flags to goreleaser via GORELEASER_ARGS
 # --skip-validate will skip the checks
