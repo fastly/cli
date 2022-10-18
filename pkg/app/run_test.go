@@ -70,6 +70,7 @@ healthcheck
 ip-list
 log-tail
 logging
+objectstore
 pops
 profile
 purge

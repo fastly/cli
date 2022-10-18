@@ -318,6 +318,13 @@ type API struct {
 	CreateServiceAuthorizationFn func(i *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	UpdateServiceAuthorizationFn func(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	DeleteServiceAuthorizationFn func(i *fastly.DeleteServiceAuthorizationInput) error
+
+	CreateObjectStoreFn    func(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error)
+	ListObjectStoresFn     func(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error)
+	DeleteObjectStoreFn    func(i *fastly.DeleteObjectStoreInput) error
+	ListObjectStoreKeysFn  func(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error)
+	GetObjectStoreKeyFn    func(i *fastly.GetObjectStoreKeyInput) (string, error)
+	InsertObjectStoreKeyFn func(i *fastly.InsertObjectStoreKeyInput) error
 }
 
 // AllDatacenters implements Interface.
@@ -1608,4 +1615,34 @@ func (m API) UpdateServiceAuthorization(i *fastly.UpdateServiceAuthorizationInpu
 // DeleteServiceAuthorization implements Interface.
 func (m API) DeleteServiceAuthorization(i *fastly.DeleteServiceAuthorizationInput) error {
 	return m.DeleteServiceAuthorizationFn(i)
+}
+
+// CreateObjectStore implements Interface.
+func (m API) CreateObjectStore(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error) {
+	return m.CreateObjectStoreFn(i)
+}
+
+// ListObjectStores implements Interface.
+func (m API) ListObjectStores(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error) {
+	return m.ListObjectStoresFn(i)
+}
+
+// DeleteObjectStore implements Interface.
+func (m API) DeleteObjectStore(i *fastly.DeleteObjectStoreInput) error {
+	return m.DeleteObjectStoreFn(i)
+}
+
+// ListObjectStoreKeys implements Interface.
+func (m API) ListObjectStoreKeys(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error) {
+	return m.ListObjectStoreKeysFn(i)
+}
+
+// GetObjectStoreKey implements Interface.
+func (m API) GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error) {
+	return m.GetObjectStoreKeyFn(i)
+}
+
+// InsertObjectStoreKey implements Interface.
+func (m API) InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error {
+	return m.InsertObjectStoreKeyFn(i)
 }

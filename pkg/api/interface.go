@@ -327,6 +327,13 @@ type Interface interface {
 	CreateServiceAuthorization(i *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	UpdateServiceAuthorization(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	DeleteServiceAuthorization(i *fastly.DeleteServiceAuthorizationInput) error
+
+	CreateObjectStore(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error)
+	ListObjectStores(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error)
+	DeleteObjectStore(i *fastly.DeleteObjectStoreInput) error
+	ListObjectStoreKeys(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error)
+	GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error)
+	InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

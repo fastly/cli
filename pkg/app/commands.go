@@ -41,6 +41,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/sumologic"
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
+	"github.com/fastly/cli/pkg/commands/objectstore"
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
@@ -295,6 +296,13 @@ func defineCommands(
 	loggingSyslogDescribe := syslog.NewDescribeCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
+	objectstoreCmdRoot := objectstore.NewRootCommand(app, globals)
+	objectstoreCreate := objectstore.NewCreateCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreList := objectstore.NewListCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreDelete := objectstore.NewDeleteCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreKeys := objectstore.NewKeysCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreInsertKey := objectstore.NewInsertKeyCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreGetKey := objectstore.NewGetKeyCommand(objectstoreCmdRoot.CmdClause, globals, data)
 	popCmdRoot := pop.NewRootCommand(app, globals)
 	profileCmdRoot := profile.NewRootCommand(app, globals)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
@@ -607,6 +615,12 @@ func defineCommands(
 		loggingSyslogDescribe,
 		loggingSyslogList,
 		loggingSyslogUpdate,
+		objectstoreCreate,
+		objectstoreList,
+		objectstoreDelete,
+		objectstoreKeys,
+		objectstoreInsertKey,
+		objectstoreGetKey,
 		popCmdRoot,
 		profileCmdRoot,
 		profileCreate,
