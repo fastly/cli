@@ -29,6 +29,8 @@ using the bug report template.
 
 [bug]: https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md
 
+Please also check the [CHANGELOG](./CHANGELOG.md) for any breaking-changes or migration guidance.
+
 ### Security issues
 
 Please see our [SECURITY.md](SECURITY.md) for guidance on reporting security-related issues.
