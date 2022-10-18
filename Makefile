@@ -98,3 +98,5 @@ scaffold:
 .PHONY: scaffold-category
 scaffold-category:
 	@$(shell pwd)/scripts/scaffold-category.sh $(CLI_CATEGORY) $(CLI_CATEGORY_COMMAND) $(CLI_PACKAGE) $(CLI_COMMAND) $(CLI_API)
+
+.PHONY: clean
