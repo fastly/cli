@@ -27,7 +27,7 @@ const JsCompilationURL = "https://www.npmjs.com/package/@fastly/js-compute"
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
-const JsDefaultBuildCommand = "$(npm bin)/webpack && $(npm bin)/js-compute-runtime ./bin/index.js ./bin/main.wasm"
+const JsDefaultBuildCommand = "npm exec webpack && npm exec js-compute-runtime ./bin/index.js ./bin/main.wasm"
 
 // JsInstaller is the command used to install the dependencies defined within
 // the Js language manifest.
