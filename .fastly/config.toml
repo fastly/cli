@@ -3,10 +3,6 @@ config_version = 2
 [fastly]
 api_endpoint = "https://api.fastly.com"
 
-[cli]
-remote_config = "https://developer.fastly.com/api/internal/cli-config"
-ttl = "5m"
-
 [language]
   [language.go]
     tinygo_constraint = ">= 0.24.0-0" # NOTE -0 indicates to the CLI's semver package that we accept pre-releases (TinyGo users commonly use pre-releases).
