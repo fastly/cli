@@ -246,9 +246,15 @@ func (tv ToolchainValidator) toolchainVersion() error {
 	}
 
 	if !c.Check(v) {
+		remediation := tv.visitURLRemediation(tv.Toolchain, tv.ToolchainURL)
+
+		if tv.ToolchainCommandRemediation != "" {
+			remediation = tv.commandRemediation(tv.Toolchain, tv.ToolchainURL, tv.ToolchainCommandRemediation)
+		}
+
 		err := fsterr.RemediationError{
 			Inner:       fmt.Errorf("toolchain version %s didn't meet the constraint %s", version, constraint),
-			Remediation: tv.commandRemediation(tv.Toolchain, tv.ToolchainURL, tv.ToolchainCommandRemediation),
+			Remediation: remediation,
 		}
 		tv.ErrLog.Add(err)
 		return err
