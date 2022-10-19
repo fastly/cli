@@ -19,6 +19,7 @@ type PublishCommand struct {
 	// Build fields
 	includeSrc       cmd.OptionalBool
 	lang             cmd.OptionalString
+	packageName      cmd.OptionalString
 	skipVerification cmd.OptionalBool
 	timeout          cmd.OptionalInt
 
@@ -44,6 +45,7 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.pkg.Set).StringVar(&c.pkg.Value)
+	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -82,6 +84,9 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.lang.WasSet {
 		c.build.Flags.Lang = c.lang.Value
+	}
+	if c.packageName.WasSet {
+		c.build.Flags.PackageName = c.packageName.Value
 	}
 	if c.skipVerification.WasSet {
 		c.build.Flags.SkipVerification = c.skipVerification.Value

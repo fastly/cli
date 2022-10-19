@@ -16,6 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 )
 
@@ -30,6 +31,7 @@ const CustomPostBuildScriptMessage = "This project has a custom post build scrip
 type Flags struct {
 	IncludeSrc       bool
 	Lang             string
+	PackageName      string
 	SkipVerification bool
 	Timeout          int
 }
@@ -55,6 +57,7 @@ func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 	// `compute publish` and `compute serve`.
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
+	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.Flags.SkipVerification)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
@@ -82,6 +85,22 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
+
+	var packageName string
+
+	switch {
+	case c.Flags.PackageName != "":
+		packageName = c.Flags.PackageName
+	case c.Manifest.File.Name != "":
+		packageName = c.Manifest.File.Name // use the project name as a fallback
+	default:
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("package name is missing"),
+			Remediation: "Add a name to the fastly.toml 'name' field. Reference: https://developer.fastly.com/reference/compute/fastly-toml/",
+		}
+	}
+
+	packageName = sanitize.BaseName(packageName)
 
 	// Language from flag takes priority, otherwise infer from manifest and
 	// error if neither are provided. Sanitize by trim and lowercase.
@@ -230,7 +249,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress = text.ResetProgress(out, c.Globals.Verbose())
 	progress.Step("Creating package archive...")
 
-	dest := filepath.Join("pkg", "package.tar.gz")
+	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", packageName))
 
 	files := []string{
 		manifest.Filename,

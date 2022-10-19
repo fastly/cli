@@ -44,9 +44,13 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	_, hashSum, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
 	if err != nil {
+		var skipBuildMsg string
+		if c.SkipBuild {
+			skipBuildMsg = " avoid using --skip-build, or"
+		}
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to validate package: %w", err),
-			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+			Remediation: fmt.Sprintf("Run `fastly compute build` to produce a Compute@Edge package, alternatively%s use the --package flag to reference a package outside of the current project.", skipBuildMsg),
 		}
 	}
 
