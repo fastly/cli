@@ -52,7 +52,7 @@ type RunOpts struct {
 // The Run helper should NOT output any error-related information to the out
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
-func Run(opts RunOpts) error {
+func Run(opts RunOpts) (exitCode int, err error) {
 	var md manifest.Data
 	md.File.SetErrLog(opts.ErrLog)
 	md.File.SetOutput(opts.Stdout)
@@ -106,9 +106,9 @@ func Run(opts RunOpts) error {
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 
 	commands := defineCommands(app, &globals, md, opts)
-	command, name, err := processCommandInput(opts, app, &globals, commands)
+	command, name, exitCode, err := processCommandInput(opts, app, &globals, commands)
 	if err != nil {
-		return err
+		return exitCode, err
 	}
 	// We short-circuit the execution for specific cases:
 	//
@@ -120,7 +120,7 @@ func Run(opts RunOpts) error {
 	case "help--formatjson":
 		fallthrough
 	case "shell-autocomplete":
-		return nil
+		return exitCode, nil
 	}
 
 	token, source := globals.Token()
@@ -136,7 +136,7 @@ func Run(opts RunOpts) error {
 
 	token, err = profile.Init(token, &md, &globals, opts.Stdin, opts.Stdout)
 	if err != nil {
-		return err
+		return exitCode, err
 	}
 
 	// If we are using the token from config file, check the files permissions
@@ -169,13 +169,13 @@ func Run(opts RunOpts) error {
 	globals.APIClient, err = opts.APIClient(token, endpoint)
 	if err != nil {
 		globals.ErrLog.Add(err)
-		return fmt.Errorf("error constructing Fastly API client: %w", err)
+		return exitCode, fmt.Errorf("error constructing Fastly API client: %w", err)
 	}
 
 	globals.RTSClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
 	if err != nil {
 		globals.ErrLog.Add(err)
-		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
+		return exitCode, fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
 	}
 
 	if opts.Versioners.CLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
@@ -189,7 +189,12 @@ func Run(opts RunOpts) error {
 		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}
 
-	return command.Exec(opts.Stdin, opts.Stdout)
+	err = command.Exec(opts.Stdin, opts.Stdout)
+	if err != nil {
+		exitCode = 1
+	}
+
+	return exitCode, err
 }
 
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)

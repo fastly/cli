@@ -129,7 +129,7 @@ func main() {
 			Viceroy: versionerViceroy,
 		},
 	}
-	err = app.Run(opts)
+	exitCode, err := app.Run(opts)
 
 	// NOTE: We persist any error log entries to disk before attempting to handle
 	// a possible error response from app.Run as there could be errors recorded
@@ -148,7 +148,9 @@ func main() {
 		// flush the Sentry buffer here (as well as the deferred call at the top of
 		// the main function).
 		sentry.Flush(sentryTimeout)
-		os.Exit(1)
+		if exitCode > 0 {
+			os.Exit(exitCode)
+		}
 	}
 }
 

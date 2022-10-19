@@ -17,6 +17,9 @@ import (
 	"github.com/fastly/kingpin"
 )
 
+// exitCodeErr represents a generic error exit code.
+const exitCodeErr = 1
+
 // Usage returns a contextual usage string for the application. In order to deal
 // with Kingpin's annoying love of side effects, we have to swap the app.Writers
 // to capture output; the out and err parameters, therefore, are the io.Writers
@@ -208,7 +211,14 @@ func processCommandInput(
 	app *kingpin.Application,
 	globals *config.Data,
 	commands []cmd.Command,
-) (command cmd.Command, cmdName string, err error) {
+) (command cmd.Command, cmdName string, exitCodeZero int, err error) {
+	// NOTE: exitCodeZero returned unless exitCodeErr needed (for error handling).
+	//
+	// We use exitCodeZero for situations where we want to render help output
+	// (hence we have to return an error to the caller) but we want to circumvent
+	// the side-effect of the CLI returning an exit code of 1 (because asking for
+	// help shouldn't be considered an error!)
+
 	// As the `help` command model gets privately added as a side-effect of
 	// kingpin.Parse, we cannot add the `--format json` flag to the model.
 	// Therefore, we have to manually parse the args slice here to check for the
@@ -218,10 +228,10 @@ func processCommandInput(
 		j, err := UsageJSON(app)
 		if err != nil {
 			globals.ErrLog.Add(err)
-			return command, cmdName, err
+			return command, cmdName, exitCodeErr, err
 		}
 		fmt.Fprintf(opts.Stdout, "%s", j)
-		return command, strings.Join(opts.Args, ""), nil
+		return command, strings.Join(opts.Args, ""), exitCodeZero, nil
 	}
 
 	// Use partial application to generate help output function.
@@ -247,7 +257,7 @@ func processCommandInput(
 	var vars map[string]any
 
 	if cmd.IsHelpFlagOnly(opts.Args) && len(opts.Args) == 1 {
-		return command, cmdName, help(vars, nil)
+		return command, cmdName, exitCodeZero, help(vars, nil)
 	}
 
 	// NOTE: We call two similar methods below: ParseContext() and Parse().
@@ -277,11 +287,12 @@ func processCommandInput(
 		if noargs || globalFlagsOnly {
 			err = fmt.Errorf("command not specified")
 		}
-		return command, cmdName, help(vars, err)
+		return command, cmdName, exitCodeErr, help(vars, err)
 	}
 
-	// NOTE: The `fastly help` and `fastly --help` behaviours need to avoid
-	// trying to call cmd.Select() as the context object will not return a useful
+	// NOTE: `fastly help`/`fastly --help` need to avoid cmd.Select()
+	//
+	// Calling cmd.Select() in these circumstances will not return a useful
 	// value for FullCommand(). The former will fail to find a match as it will
 	// be set to `help [<command>...]` as it's a built-in command that we don't
 	// control, and the latter --help flag variation will be an empty string as
@@ -294,12 +305,12 @@ func processCommandInput(
 	if !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) && !cmd.IsCompletion(opts.Args) && !cmd.IsCompletionScript(opts.Args) {
 		command, found = cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
 		if !found {
-			return command, cmdName, help(vars, err)
+			return command, cmdName, exitCodeErr, help(vars, err)
 		}
 	}
 
 	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(opts.Args) {
-		return command, cmdName, help(vars, nil)
+		return command, cmdName, exitCodeZero, help(vars, nil)
 	}
 
 	// NOTE: app.Parse() resets the default values for app.Writers() from
@@ -328,7 +339,7 @@ func processCommandInput(
 
 	cmdName, err = app.Parse(opts.Args)
 	if err != nil {
-		return command, cmdName, help(vars, err)
+		return command, cmdName, exitCodeErr, help(vars, err)
 	}
 
 	// Restore output writers
@@ -338,7 +349,7 @@ func processCommandInput(
 	// we allow it to call os.Exit, only if a completion flag is present.
 	if cmd.IsCompletion(opts.Args) || cmd.IsCompletionScript(opts.Args) {
 		app.Terminate(os.Exit)
-		return command, "shell-autocomplete", nil
+		return command, "shell-autocomplete", exitCodeZero, nil
 	}
 
 	// A side-effect of suppressing app.Parse from writing output is the usage
@@ -362,16 +373,16 @@ func processCommandInput(
 			fmt.Fprintln(&buf, "")
 		}
 
-		return command, cmdName, fsterr.RemediationError{Prefix: buf.String()}
+		return command, cmdName, exitCodeZero, fsterr.RemediationError{Prefix: buf.String()}
 	}
 
 	// Catch scenario where user wants to view help with the following format:
 	// fastly --help <command>
 	if cmd.IsHelpFlagOnly(opts.Args) {
-		return command, cmdName, help(vars, nil)
+		return command, cmdName, exitCodeZero, help(vars, nil)
 	}
 
-	return command, cmdName, nil
+	return command, cmdName, exitCodeZero, nil
 }
 
 // metadata is combined into the usage output so the Developer Hub can display
