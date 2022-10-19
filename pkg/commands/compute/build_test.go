@@ -208,7 +208,7 @@ func TestBuildRust(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.ConfigFile = testcase.applicationConfig
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
@@ -308,7 +308,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {
@@ -438,7 +438,7 @@ func TestBuildJavaScript(t *testing.T) {
 
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 
@@ -569,7 +569,7 @@ func TestBuildGo(t *testing.T) {
 			opts.ConfigFile.Language.Go.TinyGoConstraint = ">= 0.24.0-0" // NOTE: -0 is to allow prereleases.
 			opts.ConfigFile.Language.Go.ToolchainConstraint = ">= 1.17 < 1.19"
 
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 
@@ -708,7 +708,7 @@ func TestOtherBuild(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 
@@ -899,7 +899,7 @@ func TestCustomPostBuild(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.ConfigFile = testcase.applicationConfig
 			opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 
@@ -1008,7 +1008,7 @@ func TestBuildBinDirectory(t *testing.T) {
 			opts.ConfigFile.Language.Go.TinyGoConstraint = ">= 0.24.0-0" // NOTE: -0 is to allow prereleases.
 			opts.ConfigFile.Language.Go.ToolchainConstraint = ">= 1.17 < 1.19"
 
-			_ = app.Run(opts)
+			_, _ = app.Run(opts)
 
 			t.Log(stdout.String())
 

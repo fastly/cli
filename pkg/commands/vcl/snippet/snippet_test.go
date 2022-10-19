@@ -173,7 +173,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			testutil.AssertPathContentFlag("content", testcase.WantError, testcase.Args, "snippet.vcl", content, t)
@@ -249,7 +249,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -331,7 +331,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -397,7 +397,7 @@ func TestVCLSnippetList(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -538,7 +538,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			testutil.AssertPathContentFlag("content", testcase.WantError, testcase.Args, "snippet.vcl", content, t)

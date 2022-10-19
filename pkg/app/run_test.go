@@ -114,7 +114,7 @@ whoami
 			}()
 
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}

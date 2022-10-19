@@ -1334,7 +1334,7 @@ func TestDeploy(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					_, err = app.Run(opts)
 					done <- true
 				}()
 
@@ -1359,7 +1359,7 @@ func TestDeploy(t *testing.T) {
 					stdin = testcase.stdin[0]
 				}
 				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				_, err = app.Run(opts)
 			}
 
 			t.Log(stdout.String())

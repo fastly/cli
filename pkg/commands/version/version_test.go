@@ -73,7 +73,7 @@ func TestVersion(t *testing.T) {
 			Binary: "viceroy",
 		}),
 	}
-	err = app.Run(opts)
+	_, err = app.Run(opts)
 
 	t.Log(stdout.String())
 

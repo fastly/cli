@@ -81,7 +81,7 @@ func TestPack(t *testing.T) {
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 

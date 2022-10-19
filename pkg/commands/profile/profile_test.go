@@ -143,7 +143,7 @@ func TestCreate(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					_, err = app.Run(opts)
 					done <- true
 				}()
 
@@ -168,7 +168,7 @@ func TestCreate(t *testing.T) {
 					stdin = testcase.Stdin[0]
 				}
 				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				_, err = app.Run(opts)
 			}
 
 			t.Log(stdout.String())
@@ -265,7 +265,7 @@ func TestDelete(t *testing.T) {
 			// an in-memory representation of the config file we want to be using.
 			opts.ConfigFile = testcase.ConfigFile
 
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 
@@ -454,7 +454,7 @@ func TestList(t *testing.T) {
 			// an in-memory representation of the config file we want to be using.
 			opts.ConfigFile = testcase.ConfigFile
 
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 
@@ -555,7 +555,7 @@ func TestSwitch(t *testing.T) {
 			// an in-memory representation of the config file we want to be using.
 			opts.ConfigFile = testcase.ConfigFile
 
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 
@@ -677,7 +677,7 @@ func TestToken(t *testing.T) {
 			// an in-memory representation of the config file we want to be using.
 			opts.ConfigFile = testcase.ConfigFile
 
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 
@@ -805,7 +805,7 @@ func TestUpdate(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					_, err = app.Run(opts)
 					done <- true
 				}()
 
@@ -830,7 +830,7 @@ func TestUpdate(t *testing.T) {
 					stdin = testcase.Stdin[0]
 				}
 				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				_, err = app.Run(opts)
 			}
 
 			t.Log(stdout.String())

@@ -119,7 +119,7 @@ func TestBackendCreate(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -200,7 +200,7 @@ func TestBackendList(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			if testcase.WantError == "" {
 				testutil.AssertString(t, testcase.WantOutput, stdout.String())
@@ -239,7 +239,7 @@ func TestBackendDescribe(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -280,7 +280,7 @@ func TestBackendUpdate(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -319,7 +319,7 @@ func TestBackendDelete(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

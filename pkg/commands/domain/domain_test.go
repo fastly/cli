@@ -46,7 +46,7 @@ func TestDomainCreate(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -111,7 +111,7 @@ func TestDomainList(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -148,7 +148,7 @@ func TestDomainDescribe(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -196,7 +196,7 @@ func TestDomainUpdate(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -235,7 +235,7 @@ func TestDomainDelete(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -325,7 +325,7 @@ func TestDomainValidate(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

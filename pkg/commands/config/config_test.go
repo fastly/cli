@@ -71,7 +71,7 @@ func TestConfig(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
 			opts.ConfigPath = configPath
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

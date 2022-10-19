@@ -42,7 +42,7 @@ func TestHistorical(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})

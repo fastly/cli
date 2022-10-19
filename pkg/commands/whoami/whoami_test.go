@@ -83,7 +83,7 @@ func TestWhoami(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.Env = testcase.env
 			opts.HTTPClient = testcase.client
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})

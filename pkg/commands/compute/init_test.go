@@ -402,7 +402,7 @@ func TestInit(t *testing.T) {
 			// fallback to default values if the input is unrecognised.
 			opts.Stdin = strings.NewReader(testcase.stdin)
 
-			err = app.Run(opts)
+			_, err = app.Run(opts)
 
 			t.Log(stdout.String())
 

@@ -61,7 +61,7 @@ func TestHerokuCreate(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -131,7 +131,7 @@ func TestHerokuList(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -173,7 +173,7 @@ func TestHerokuDescribe(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -217,7 +217,7 @@ func TestHerokuUpdate(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -261,7 +261,7 @@ func TestHerokuDelete(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			_, err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})

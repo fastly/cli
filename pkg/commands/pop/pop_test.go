@@ -33,7 +33,7 @@ func TestAllDatacenters(t *testing.T) {
 	}
 	opts := testutil.NewRunOpts(args, &stdout)
 	opts.APIClient = mock.APIClient(api)
-	err := app.Run(opts)
+	_, err := app.Run(opts)
 	testutil.AssertNoError(t, err)
 	testutil.AssertString(t, "\nNAME    CODE  GROUP  SHIELD  COORDINATES\nFoobar  FBR   Bar    Baz     {Latitude:1 Longtitude:2 X:3 Y:4}\n", stdout.String())
 }
