@@ -12,9 +12,6 @@ api_endpoint = "https://api.fastly.com"
   toolchain_constraint = ">= 1.56.1"
   wasm_wasi_target = "wasm32-wasi"
 
-[viceroy]
-ttl = "24h"
-
 [starter-kits]
 
 [[starter-kits.assemblyscript]]

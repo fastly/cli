@@ -198,7 +198,10 @@ func TestUseStatic(t *testing.T) {
 	// Validate that legacy configuration can be migrated to the static one
 	// embedded in the CLI binary.
 	f := config.File{}
-	f.Read(legacyUserConfigPath, strings.NewReader(""), &out, fsterr.MockLog{}, false)
+	err = f.Read(legacyUserConfigPath, strings.NewReader(""), &out, fsterr.MockLog{}, false)
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
 
 	if f.CLI.Version == "" {
 		t.Fatalf("expected CLI.Version to be set: %+v", f)
