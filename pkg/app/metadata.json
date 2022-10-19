@@ -188,7 +188,7 @@
         "title": "Initialize a new Compute@Edge package locally"
       },
       {
-        "cmd": "fastly compute init --from=https://fiddle.fastlydemo.net/fiddle/0220c0d2",
+        "cmd": "fastly compute init --from=https://fiddle.fastly.dev/fiddle/0220c0d2",
         "description": "Any [Compute@Edge examples](https://developer.fastly.com/solutions/examples/) can be used as a source template for your new package.",
         "title": "Initialize a new Compute@Edge package locally using a remote package template"
       },
