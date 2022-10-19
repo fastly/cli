@@ -220,12 +220,12 @@ func ArgsIsHelpJSON(args []string) bool {
 
 // IsHelpOnly indicates if the user called `fastly help [...]`.
 func IsHelpOnly(args []string) bool {
-	return args[0] == "help"
+	return len(args) > 0 && args[0] == "help"
 }
 
 // IsHelpFlagOnly indicates if the user called `fastly --help [...]`.
 func IsHelpFlagOnly(args []string) bool {
-	return args[0] == "--help"
+	return len(args) > 0 && args[0] == "--help"
 }
 
 // IsGlobalFlagsOnly indicates if the user called the binary with any
