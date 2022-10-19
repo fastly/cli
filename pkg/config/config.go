@@ -189,6 +189,12 @@ type CLI struct {
 	Version string `toml:"version"`
 }
 
+// User represents user specific configuration.
+type User struct {
+	Token string `toml:"token"`
+	Email string `toml:"email"`
+}
+
 // Viceroy represents viceroy specific configuration.
 type Viceroy struct {
 	LastChecked   string `toml:"last_checked"`
@@ -262,7 +268,7 @@ func createConfigDir(path string) error {
 	return nil
 }
 
-// File represents our application toml configuration.
+// File represents our dynamic application toml configuration.
 type File struct {
 	CLI           CLI                 `toml:"cli"`
 	ConfigVersion int                 `toml:"config_version"`
