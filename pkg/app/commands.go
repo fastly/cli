@@ -110,7 +110,7 @@ func defineCommands(
 	computePublish := compute.NewPublishCommand(computeCmdRoot.CmdClause, globals, computeBuild, computeDeploy, data)
 	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, globals, computeBuild, opts.Versioners.Viceroy, data)
 	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, globals, data)
-	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, globals)
+	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, globals, data)
 	configCmdRoot := config.NewRootCommand(app, globals)
 	dictionaryCmdRoot := dictionary.NewRootCommand(app, globals)
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, globals, data)

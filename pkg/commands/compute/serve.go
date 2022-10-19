@@ -41,6 +41,7 @@ type ServeCommand struct {
 	// Build fields
 	includeSrc       cmd.OptionalBool
 	lang             cmd.OptionalString
+	packageName      cmd.OptionalString
 	skipVerification cmd.OptionalBool
 	timeout          cmd.OptionalInt
 
@@ -70,6 +71,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
+	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
@@ -132,6 +134,9 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	}
 	if c.lang.WasSet {
 		c.build.Flags.Lang = c.lang.Value
+	}
+	if c.packageName.WasSet {
+		c.build.Flags.PackageName = c.packageName.Value
 	}
 	if c.skipVerification.WasSet {
 		c.build.Flags.SkipVerification = c.skipVerification.Value

@@ -8,22 +8,38 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
+	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent cmd.Registerer, globals *config.Data) *ValidateCommand {
+func NewValidateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ValidateCommand {
 	var c ValidateCommand
 	c.Globals = globals
+	c.manifest = data
 	c.CmdClause = parent.Command("validate", "Validate a Compute@Edge package")
-	c.CmdClause.Flag("package", "Path to a package tar.gz").Required().Short('p').StringVar(&c.path)
+	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.path)
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
-	p, err := filepath.Abs(c.path)
+	packagePath := c.path
+	if packagePath == "" {
+		projectName, source := c.manifest.Name()
+		if source == manifest.SourceUndefined {
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("failed to read project name: %w", fsterr.ErrReadingManifest),
+				Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+			}
+		}
+		packagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
+	}
+
+	p, err := filepath.Abs(packagePath)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Path": c.path,
@@ -35,7 +51,10 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Path": c.path,
 		})
-		return err
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("failed to validate package: %w", err),
+			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+		}
 	}
 
 	text.Success(out, "Validated package %s", p)
@@ -45,7 +64,8 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 // ValidateCommand validates a package archive.
 type ValidateCommand struct {
 	cmd.Base
-	path string
+	manifest manifest.Data
+	path     string
 }
 
 // FileValidator validates a file.

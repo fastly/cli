@@ -310,7 +310,13 @@ func verifyDestination(path string, progress text.Progress) (dst string, err err
 // promptOrReturn will prompt the user for information missing from the
 // fastly.toml manifest file, otherwise if it already exists then the value is
 // returned as is.
-func promptOrReturn(flags config.Flag, m manifest.Data, path, email string, in io.Reader, out io.Writer) (name, description string, authors []string, err error) {
+func promptOrReturn(
+	flags config.Flag,
+	m manifest.Data,
+	path, email string,
+	in io.Reader,
+	out io.Writer,
+) (name, description string, authors []string, err error) {
 	name, _ = m.Name()
 	name, err = packageName(flags, name, path, in, out)
 	if err != nil {

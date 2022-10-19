@@ -23,6 +23,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/undo"
 	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 )
 
@@ -400,7 +401,8 @@ func validatePackage(
 		}
 	}
 
-	pkgPath, err = packagePath(packageFlag)
+	projectName, source := data.Name()
+	pkgPath, err = packagePath(packageFlag, projectName, source)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": packageFlag,
@@ -413,7 +415,10 @@ func validatePackage(
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": pkgPath,
 		})
-		return pkgPath, hashSum, err
+		return pkgPath, hashSum, fsterr.RemediationError{
+			Inner:       fmt.Errorf("error reading package size: %w", err),
+			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+		}
 	}
 
 	if pkgSize > PackageSizeLimit {
@@ -522,11 +527,13 @@ func locateManifest(path string) (string, error) {
 }
 
 // packagePath generates a path that points to a package tar inside the pkg
-// directory if the `path` flag was not set by the user.
-func packagePath(path string) (string, error) {
+// directory if the package path flag was not set by the user.
+func packagePath(path, projectName string, source manifest.Source) (string, error) {
 	if path == "" {
-		path = filepath.Join("pkg", "package.tar.gz")
-		return path, nil
+		if source == manifest.SourceUndefined {
+			return "", fsterr.ErrReadingManifest
+		}
+		path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
 	}
 	return path, nil
 }
