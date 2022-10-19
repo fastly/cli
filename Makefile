@@ -40,14 +40,14 @@ endif
 fastly: dependencies $(GO_FILES)
 	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
 
-# useful for attaching a debugger such as https://github.com/go-delve/delve
-debug: config
+# Useful for attaching a debugger such as https://github.com/go-delve/delve
+debug:
 	@$(GO_BIN) build -gcflags="all=-N -l" $(GO_ARGS) -o "fastly" ./cmd/fastly
 
 .PHONY: all
-all: dependencies config tidy fmt vet staticcheck gosec test build install
+all: dependencies tidy fmt vet staticcheck gosec test build install
 
-# update goreleaser inline with the release GHA workflow
+# Update CI tools used by ./.github/workflows/pr_test.yml
 .PHONY: dependencies
 dependencies:
 	$(GO_BIN) install github.com/securego/gosec/v2/cmd/gosec@latest
@@ -55,54 +55,63 @@ dependencies:
 	$(GO_BIN) install github.com/mgechev/revive@latest
 	$(GO_BIN) install github.com/goreleaser/goreleaser@v1.9.2
 
+# Clean up Go modules file.
 .PHONY: tidy
 tidy:
 	$(GO_BIN) mod tidy
 
+# Run formatter.
 .PHONY: fmt
 fmt:
 	@echo gofmt -l ./{cmd,pkg}
 	@eval "bash -c 'F=\$$(gofmt -l ./{cmd,pkg}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
 
+# Run static analysis.
 .PHONY: vet
 vet:
 	$(GO_BIN) vet ./{cmd,pkg}/...
 
+# Run linter.
 .PHONY: revive
 revive:
 	revive ./...
 
+# Run security vulnerability checker.
 .PHONY: gosec
 gosec:
 	gosec -quiet -exclude=G104 ./{cmd,pkg}/...
 
+# Run third-party static analysis.
 .PHONY: staticcheck
 staticcheck:
 	staticcheck ./{cmd,pkg}/...
 
+# Run tests
 .PHONY: test
-test: config
+test:
 	@$(TEST_COMMAND) -race $(TEST_ARGS)
 
-# GO_ARGS allows for passing additional args to the build e.g.
-# make build GO_ARGS='--ldflags "-s -w"'
+# Compile program.
+#
+# GO_ARGS allows for passing additional arguments.
+# e.g. make build GO_ARGS='--ldflags "-s -w"'
 .PHONY: build
-build: config
+build:
 	$(GO_BIN) build $(GO_ARGS) ./cmd/fastly
 
-# GO_ARGS allows for passing additional args to the build e.g.
+# Compile and install program.
+#
+# GO_ARGS allows for passing additional arguments.
 .PHONY: install
-install: config
+install:
 	$(GO_BIN) install $(GO_ARGS) ./cmd/fastly
 
-.PHONY: config
-config:
-	@curl -so pkg/config/config.toml https://developer.fastly.com/api/internal/cli-config
-
+# Scaffold a new CLI command from template files.
 .PHONY: scaffold
 scaffold:
 	@$(shell pwd)/scripts/scaffold.sh $(CLI_PACKAGE) $(CLI_COMMAND) $(CLI_API)
 
+# Scaffold a new CLI 'category' command from template files.
 .PHONY: scaffold-category
 scaffold-category:
 	@$(shell pwd)/scripts/scaffold-category.sh $(CLI_CATEGORY) $(CLI_CATEGORY_COMMAND) $(CLI_PACKAGE) $(CLI_COMMAND) $(CLI_API)
