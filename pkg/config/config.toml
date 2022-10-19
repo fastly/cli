@@ -1,0 +1,96 @@
+config_version = 2
+
+[fastly]
+api_endpoint = "https://api.fastly.com"
+
+[language]
+  [language.go]
+    tinygo_constraint = ">= 0.24.0-0" # NOTE -0 indicates to the CLI's semver package that we accept pre-releases (TinyGo users commonly use pre-releases).
+    toolchain_constraint = ">= 1.17"
+
+  [language.rust]
+  toolchain_constraint = ">= 1.56.1"
+  wasm_wasi_target = "wasm32-wasi"
+
+[viceroy]
+ttl = "24h"
+
+[starter-kits]
+
+[[starter-kits.assemblyscript]]
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+name = "Default starter for AssemblyScript"
+path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
+
+[[starter-kits.go]]
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+name = "Default starter for Go"
+path = "https://github.com/fastly/compute-starter-kit-go-default"
+
+[[starter-kits.javascript]]
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+name = "Default starter for JavaScript"
+path = "https://github.com/fastly/compute-starter-kit-javascript-default"
+
+[[starter-kits.javascript]]
+description = "An empty application template for the Fastly Compute@Edge environment which simply returns a 200 OK response."
+name = "Empty starter for JavaScript"
+path = "https://github.com/fastly/compute-starter-kit-javascript-empty"
+
+[[starter-kits.javascript]]
+description = "Application template for validating requests against an OpenAPI document."
+name = "OpenAPI Validation (JS)"
+path = "https://github.com/fastly/compute-starter-kit-javascript-openapi-validation"
+
+[[starter-kits.javascript]]
+description = "Park your users in a virtual queue to reduce the demand on your origins during peak times."
+name = "Queuing / Waiting room (JS)"
+path = "https://github.com/fastly/compute-starter-kit-javascript-queue"
+
+[[starter-kits.rust]]
+description = "Connect to an identity provider such as Auth0 using OAuth 2.0 and validate authentication status at the Edge, to authorize access to your edge or origin hosted applications."
+name = "Authenticate at edge with OAuth"
+path = "https://github.com/fastly/compute-rust-auth"
+
+[[starter-kits.rust]]
+description = "Capture beacon data from the browser, divert beacon request payloads to a log endpoint, and avoid putting load on your own infrastructure."
+name = "Beacon termination"
+path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination"
+
+[[starter-kits.rust]]
+description = "Starter kit for Google Bigquery Connector."
+name = "Connect to Google Bigquery for Rust"
+path = "https://github.com/fastly/compute-starter-kit-rust-connect-google-bigquery"
+
+[[starter-kits.rust]]
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+name = "Default starter for Rust"
+path = "https://github.com/fastly/compute-starter-kit-rust-default"
+
+[[starter-kits.rust]]
+description = "An empty starter kit project template."
+name = "Empty starter for Rust"
+path = "https://github.com/fastly/compute-starter-kit-rust-empty"
+
+[[starter-kits.rust]]
+description = "Implements Fanout handlers for WebSockets, SSE, etc."
+name = "Fanout starter for Rust"
+path = "https://github.com/fastly/compute-starter-kit-rust-fanout"
+
+[[starter-kits.rust]]
+description = "Enables Fanout on a service, forwarding to a backend."
+name = "Fanout forwarding starter for Rust"
+path = "https://github.com/fastly/compute-starter-kit-rust-fanout-forward"
+
+[[starter-kits.rust]]
+description = "Apply performance, security and usability upgrades to static bucket services such as Google Cloud Storage or AWS S3."
+name = "Static content"
+path = "https://github.com/fastly/compute-starter-kit-rust-static-content"
+
+[[starter-kits.rust]]
+description = "Implements WebSocket passthrough."
+name = "WebSockets starter for Rust"
+path = "https://github.com/fastly/compute-starter-kit-rust-websockets"
+
+[viceroy]
+ttl = "24h"
