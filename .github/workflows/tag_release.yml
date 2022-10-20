@@ -18,6 +18,12 @@ jobs:
         go-version: '1.18.x'
     - name: "Set GOHOSTOS and GOHOSTARCH"
       run: echo "GOHOSTOS=$(go env GOHOSTOS)" >> $GITHUB_ENV && echo "GOHOSTARCH=$(go env GOHOSTARCH)" >> $GITHUB_ENV
+    - name: "Install Rust"
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - name: "Install tomlq for generating the app config"
+      run: cargo install tomlq
     - name: "Generate static app config"
       run: make config
     - name: "Display app config"
