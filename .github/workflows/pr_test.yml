@@ -37,6 +37,8 @@ jobs:
       if: steps.go-bin-cache.outputs.cache-hit != 'true'
       run: make dependencies
       shell: bash
+    - name: "Generate static app config"
+      run: make config
     - name: "Run go mod tidy"
       run: make tidy
     - name: "Run go fmt"

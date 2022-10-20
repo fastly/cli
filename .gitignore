@@ -61,3 +61,4 @@ vendor/
 
 # Ignore generated file for AUR_KEY which is passed to goreleaser as an environment variable.
 aur_key
+pkg/config/config.toml

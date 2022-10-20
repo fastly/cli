@@ -44,8 +44,12 @@ fastly: dependencies $(GO_FILES)
 debug:
 	@$(GO_BIN) build -gcflags="all=-N -l" $(GO_ARGS) -o "fastly" ./cmd/fastly
 
+.PHONY: config
+config:
+	@./scripts/config.sh
+
 .PHONY: all
-all: dependencies tidy fmt vet staticcheck gosec test build install
+all: config dependencies tidy fmt vet staticcheck gosec test build install
 
 # Update CI tools used by ./.github/workflows/pr_test.yml
 .PHONY: dependencies
@@ -88,7 +92,7 @@ staticcheck:
 
 # Run tests
 .PHONY: test
-test:
+test: config
 	@$(TEST_COMMAND) -race $(TEST_ARGS)
 
 # Compile program.
@@ -96,14 +100,14 @@ test:
 # GO_ARGS allows for passing additional arguments.
 # e.g. make build GO_ARGS='--ldflags "-s -w"'
 .PHONY: build
-build:
+build: config
 	$(GO_BIN) build $(GO_ARGS) ./cmd/fastly
 
 # Compile and install program.
 #
 # GO_ARGS allows for passing additional arguments.
 .PHONY: install
-install:
+install: config
 	$(GO_BIN) install $(GO_ARGS) ./cmd/fastly
 
 # Scaffold a new CLI command from template files.
