@@ -247,7 +247,10 @@ func processCommandInput(
 	var vars map[string]any
 
 	if cmd.IsHelpFlagOnly(opts.Args) && len(opts.Args) == 1 {
-		return command, cmdName, help(vars, nil)
+		return command, cmdName, fsterr.ExitError{
+			Skip: true,
+			Err:  help(vars, nil),
+		}
 	}
 
 	// NOTE: We call two similar methods below: ParseContext() and Parse().
@@ -299,7 +302,10 @@ func processCommandInput(
 	}
 
 	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(opts.Args) {
-		return command, cmdName, help(vars, nil)
+		return command, cmdName, fsterr.ExitError{
+			Skip: true,
+			Err:  help(vars, nil),
+		}
 	}
 
 	// NOTE: app.Parse() resets the default values for app.Writers() from
@@ -348,7 +354,7 @@ func processCommandInput(
 	if cmdName == "help" {
 		var buf bytes.Buffer
 		app.Writers(&buf, io.Discard)
-		app.Parse(opts.Args)
+		_, _ = app.Parse(opts.Args)
 		app.Writers(opts.Stdout, io.Discard)
 
 		// The full-fat output of `fastly help` should have a hint at the bottom
@@ -362,13 +368,21 @@ func processCommandInput(
 			fmt.Fprintln(&buf, "")
 		}
 
-		return command, cmdName, fsterr.RemediationError{Prefix: buf.String()}
+		return command, cmdName, fsterr.ExitError{
+			Skip: true,
+			Err: fsterr.RemediationError{
+				Prefix: buf.String(),
+			},
+		}
 	}
 
 	// Catch scenario where user wants to view help with the following format:
 	// fastly --help <command>
 	if cmd.IsHelpFlagOnly(opts.Args) {
-		return command, cmdName, help(vars, nil)
+		return command, cmdName, fsterr.ExitError{
+			Skip: true,
+			Err:  help(vars, nil),
+		}
 	}
 
 	return command, cmdName, nil

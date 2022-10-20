@@ -2,6 +2,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -142,12 +143,20 @@ func main() {
 	}
 
 	if err != nil {
-		fsterr.Deduce(err).Print(color.Error)
-
 		// NOTE: os.Exit doesn't honour any deferred calls so we have to manually
 		// flush the Sentry buffer here (as well as the deferred call at the top of
 		// the main function).
 		sentry.Flush(sentryTimeout)
+
+		fsterr.Deduce(err).Print(color.Error)
+
+		exitError := fsterr.ExitError{}
+		if errors.As(err, &exitError) {
+			if exitError.Skip {
+				return // skip returning an error for 'help' output
+			}
+		}
+
 		os.Exit(1)
 	}
 }
