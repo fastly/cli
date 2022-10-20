@@ -247,7 +247,7 @@ func processCommandInput(
 	var vars map[string]any
 
 	if cmd.IsHelpFlagOnly(opts.Args) && len(opts.Args) == 1 {
-		return command, cmdName, fsterr.ExitError{
+		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err:  help(vars, nil),
 		}
@@ -302,7 +302,7 @@ func processCommandInput(
 	}
 
 	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(opts.Args) {
-		return command, cmdName, fsterr.ExitError{
+		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err:  help(vars, nil),
 		}
@@ -368,7 +368,7 @@ func processCommandInput(
 			fmt.Fprintln(&buf, "")
 		}
 
-		return command, cmdName, fsterr.ExitError{
+		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err: fsterr.RemediationError{
 				Prefix: buf.String(),
@@ -379,7 +379,7 @@ func processCommandInput(
 	// Catch scenario where user wants to view help with the following format:
 	// fastly --help <command>
 	if cmd.IsHelpFlagOnly(opts.Args) {
-		return command, cmdName, fsterr.ExitError{
+		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err:  help(vars, nil),
 		}

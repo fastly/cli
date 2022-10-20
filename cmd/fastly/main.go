@@ -150,7 +150,7 @@ func main() {
 
 		fsterr.Deduce(err).Print(color.Error)
 
-		exitError := fsterr.ExitError{}
+		exitError := fsterr.SkipExitError{}
 		if errors.As(err, &exitError) {
 			if exitError.Skip {
 				return // skip returning an error for 'help' output
