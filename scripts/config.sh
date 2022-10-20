@@ -16,13 +16,10 @@ kits=(
   compute-starter-kit-go-default
 )
 
-# The last line of the template file is still used by DevHub process
+# The last line of the template file is still used by an internal DevHub process
 # but should be removed for the CLI's CI process.
-#
-# As this script will be run on both macOS and Linux (CI) we use a
-# cross-platform solution for removing the last line from the template file.
-# e.g. BSD sed is a different beast on macOS to the gnu version on Linux.
-cat ./.fastly/config.toml | tail -r | tail -n +2 | tail -r > ./pkg/config/config.toml
+cp ./.fastly/config.toml ./pkg/config/config.toml
+sed -i '' -e '$ d' ./pkg/config/config.toml
 
 function parse() {
   tomlq -f "./$k.toml" $1
