@@ -139,15 +139,18 @@ func Init(token string, data *manifest.Data, globals *config.Data, in io.Reader,
 	msg = fmt.Sprintf("%s%s. ", bytes.ToUpper([]byte(msg[:1])), msg[1:])
 
 	msg = fmt.Sprintf("%sThe default profile '%s' (%s) will be used.", msg, name, p.Email)
-	text.Warning(out, msg)
 
-	label := "\nWould you like to continue? [y/N] "
-	cont, err := text.AskYesNo(out, label, in)
-	if err != nil {
-		return token, err
-	}
-	if !cont {
-		return token, errors.New("command execution cancelled")
+	if !globals.Flag.AutoYes {
+		text.Warning(out, msg)
+
+		label := "\nWould you like to continue? [y/N] "
+		cont, err := text.AskYesNo(out, label, in)
+		if err != nil {
+			return token, err
+		}
+		if !cont {
+			return token, errors.New("command execution cancelled")
+		}
 	}
 
 	text.Break(out)
