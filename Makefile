@@ -27,8 +27,10 @@ ifeq ($(OS), Windows_NT)
 	.SHELLFLAGS = /c
 	GO_FILES = $(shell where /r pkg *.go)
 	GO_FILES += $(shell where /r cmd *.go)
+	CONFIG_SCRIPT = scripts\config.sh
 else
 	GO_FILES = $(shell find cmd pkg -type f -name '*.go')
+	CONFIG_SCRIPT = scripts/config.sh
 endif
 
 # You can pass flags to goreleaser via GORELEASER_ARGS
@@ -46,7 +48,7 @@ debug:
 
 .PHONY: config
 config:
-	@scripts/config.sh
+	@$(CONFIG_SCRIPT)
 
 .PHONY: all
 all: config dependencies tidy fmt vet staticcheck gosec test build install
