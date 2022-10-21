@@ -14,5 +14,3 @@ api_endpoint = "https://api.fastly.com"
 
 [viceroy]
 ttl = "24h"
-
-# starter kits will be appended by devhub build process

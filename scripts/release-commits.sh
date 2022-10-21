@@ -34,8 +34,8 @@ arr+="]"
 #
 # so we do that using sed...
 
-echo "::set-output name=commits::$(echo $arr | sed 's/},]/}]/')"
+echo "commits=$(echo $arr | sed 's/},]/}]/')" >> $GITHUB_OUTPUT
 
 # example output:
 #
-# ::set-output name=commits::[{"id":"afe0311974601664933a37391a9f78e8e2ee320b"},{"id":"2fc2c62f9a4851a7a54af9c6fe1946f8df0a77a7"},{"id":"151c6edfff93560bcaab28acc0757a01e1eb916f"},]
+# commits=[{"id":"afe0311974601664933a37391a9f78e8e2ee320b"},{"id":"2fc2c62f9a4851a7a54af9c6fe1946f8df0a77a7"},{"id":"151c6edfff93560bcaab28acc0757a01e1eb916f"},]

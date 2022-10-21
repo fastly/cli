@@ -7,25 +7,45 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+      - name: "Install Rust"
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable # to install tomlq via `make config`
+      - name: "Generate static app config"
+        run: make config
+      - name: "Config Artifact"
+        uses: actions/upload-artifact@v3
+        with:
+          name: config-artifact-${{ github.sha }}
+          path: pkg/config/config.toml
   lint:
     runs-on: ubuntu-latest
     steps:
     - name: "Checkout code"
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+    - name: "Install Rust"
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable # to install tomlq via `make vet` pre-requisite
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: 1.18.x
     - name: "Restore golang bin cache"
       id: go-bin-cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/go/bin
         key: ${{ runner.os }}-go-bin-${{ hashFiles('~/go/bin') }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-bin-
     - name: "Restore golang mod cache"
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/Library/Caches/go-build
@@ -37,13 +57,13 @@ jobs:
       if: steps.go-bin-cache.outputs.cache-hit != 'true'
       run: make dependencies
       shell: bash
-    - name: "Download latest app config"
-      run: |
-        make config
     - name: "Run go mod tidy"
       run: make tidy
     - name: "Run go fmt"
       run: make fmt
+    # NOTE: We don't download the config artifact in this job.
+    # This is because we know Linux is able to generate the configuration file.
+    # Which is triggered by the `make vet` pre-requisite target `config`.
     - name: "Run go vet"
       run: make vet
       shell: bash
@@ -57,60 +77,70 @@ jobs:
       run:  make gosec
       shell: bash
   test:
+    needs: config
     strategy:
       matrix:
-        tinygo-version: [0.24.0]
+        tinygo-version: [0.26.0]
         go-version: [1.18.x]
         node-version: [18]
         rust-toolchain: [stable]
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-    - name: "Checkout code"
-      uses: actions/checkout@v2
-    - name: "Install Go"
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ matrix.go-version }}
-    - uses: Integralist/setup-tinygo@v1.0.0
-      with:
-        tinygo-version: ${{ matrix.tinygo-version }}
-    - name: "Restore golang bin cache"
-      uses: actions/cache@v2
-      with:
-        path: ~/go/bin
-        key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-bin-
-    - name: "Restore golang mod cache"
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/Library/Caches/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-mod-
-    - name: "Install Rust"
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ matrix.rust-toolchain }}
-    - name: "Add wasm32-wasi Rust target"
-      run: rustup target add wasm32-wasi --toolchain ${{ matrix.rust-toolchain }}
-    - name: "Validate Rust toolchain"
-      run: rustup show && rustup target list --installed --toolchain stable
-      shell: bash
-    - name: "Install Node"
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: "Download latest app config"
-      run: |
-        make config
-    - name: "Test suite"
-      run: make test
-      shell: bash
-      env:
-        TEST_COMPUTE_INIT: true
-        TEST_COMPUTE_BUILD: true
-        TEST_COMPUTE_DEPLOY: true
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+      - name: "Install Go"
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+      - uses: Integralist/setup-tinygo@v1.0.0
+        with:
+          tinygo-version: ${{ matrix.tinygo-version }}
+      - name: "Restore golang bin cache"
+        uses: actions/cache@v3
+        with:
+          path: ~/go/bin
+          key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-bin-
+      - name: "Restore golang mod cache"
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/Library/Caches/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-
+      - name: "Install Rust"
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust-toolchain }}
+      - name: "Add wasm32-wasi Rust target"
+        run: rustup target add wasm32-wasi --toolchain ${{ matrix.rust-toolchain }}
+      - name: "Validate Rust toolchain"
+        run: rustup show && rustup target list --installed --toolchain stable
+        shell: bash
+      - name: "Install Node"
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: "Config Artifact"
+        uses: actions/download-artifact@v3
+        with:
+          name: config-artifact-${{ github.sha }}
+      - name: "Move Config"
+        run: mv config.toml pkg/config/config.toml
+      # NOTE: Windows should fail quietly for 'test' pre-requisite target.
+      # On Windows, executing `make config` works fine.
+      # But via GitHub Actions the ../../scripts/config.sh isn't run.
+      # This is because you can't nest PowerShell instances.
+      # Each GitHub Action 'run' step is a PowerShell instance.
+      # And each instance is run as: powershell.exe -command ". '...'"
+      - name: "Test suite"
+        run: make test
+        shell: bash
+        env:
+          TEST_COMPUTE_INIT: true
+          TEST_COMPUTE_BUILD: true
+          TEST_COMPUTE_DEPLOY: true

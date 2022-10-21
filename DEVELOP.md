@@ -55,18 +55,12 @@ CLI_CATEGORY=logging CLI_CATEGORY_COMMAND=logging CLI_PACKAGE=foobar CLI_COMMAND
 
 > **NOTE**: Within the generated files, keep an eye out for any `<...>` references that need to be manually updated.
 
-### config.toml
+### `.fastly/config.toml`
 
-When compiling the CLI for a new release, it will pull the required configuration data from the following API endpoint:
+The CLI dynamically generates the `./pkg/config/config.toml` within the CI release process so it can be embedded into the CLI binary. 
 
-```
-https://developer.fastly.com/api/internal/cli-config
-```
+The file is added to `.gitignore` to avoid it being added to the git repository.
 
-The config served from that endpoint is the result of an internal Fastly build process that uses the `.fastly/config.toml` file in the CLI repo as a template, and then dynamically adds in any available Starter Kits.
+When compiling the CLI for a new release, it will execute [`./scripts/config.sh`](./scripts/config.sh). The script uses [`./.fastly/config.toml`](./.fastly/config.toml) as a template file to then dynamically inject a list of starter kits (pulling their data from their public repositories).
 
-The configuration is then saved to disk (at the following location) and embedded into the CLI when compiled.
-
-```
-./pkg/config/config.toml
-```
+The resulting configuration is then saved to disk at `./pkg/config/config.toml` and embedded into the CLI when compiled.

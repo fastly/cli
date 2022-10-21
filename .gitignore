@@ -63,5 +63,5 @@ vendor/
 aur_key
 
 # Ignore static config that is embedded into the CLI
-# All Makefile targets use the 'config' as a prerequisite (which downloads the config)
+# All Makefile targets use the 'config' as a prerequisite (which generates the config)
 pkg/config/config.toml
