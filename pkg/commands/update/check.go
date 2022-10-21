@@ -54,6 +54,7 @@ func CheckAsync(
 	ctx context.Context,
 	currentVersion string,
 	cliVersioner Versioner,
+	quietMode bool,
 ) (printResults func(io.Writer)) {
 	results := make(chan checkResult, 1)
 	go func() {
@@ -63,7 +64,7 @@ func CheckAsync(
 
 	return func(w io.Writer) {
 		result := <-results
-		if result.shouldUpdate {
+		if result.shouldUpdate && !quietMode {
 			fmt.Fprintf(w, "\n")
 			fmt.Fprintf(w, "A new version of the Fastly CLI is available.\n")
 			fmt.Fprintf(w, "Current version: %s\n", result.current)

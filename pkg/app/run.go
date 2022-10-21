@@ -186,6 +186,7 @@ func Run(opts RunOpts) error {
 			ctx,
 			revision.AppVersion,
 			opts.Versioners.CLI,
+			globals.Flag.Quiet,
 		)
 		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}
