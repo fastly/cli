@@ -56,7 +56,7 @@ func Run(opts RunOpts) error {
 	var md manifest.Data
 	md.File.SetErrLog(opts.ErrLog)
 	md.File.SetOutput(opts.Stdout)
-	md.File.Read(manifest.Filename)
+	_ = md.File.Read(manifest.Filename)
 
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
