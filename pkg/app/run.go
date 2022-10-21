@@ -102,7 +102,7 @@ func Run(opts RunOpts) error {
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&globals.Flag.NonInteractive)
 	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
-	app.Flag("quiet", "Silence all output except direct command output (e.g. don't tell me about new CLI versions)").Short('q').BoolVar(&globals.Flag.Quiet)
+	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&globals.Flag.Quiet)
 	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 
