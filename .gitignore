@@ -61,4 +61,7 @@ vendor/
 
 # Ignore generated file for AUR_KEY which is passed to goreleaser as an environment variable.
 aur_key
+
+# Ignore static config that is embedded into the CLI
+# All Makefile targets use the 'config' as a prerequisite (which generates the config)
 pkg/config/config.toml

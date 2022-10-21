@@ -24,8 +24,6 @@ jobs:
         toolchain: stable
     - name: "Generate static app config"
       run: make config
-    - name: "Display app config"
-      run: cat pkg/config/config.toml
     # Passing the raw SSH private key causes an error:
     # Load key "/tmp/id_*": invalid format
     #

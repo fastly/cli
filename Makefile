@@ -28,9 +28,11 @@ ifeq ($(OS), Windows_NT)
 	GO_FILES = $(shell where /r pkg *.go)
 	GO_FILES += $(shell where /r cmd *.go)
 	CONFIG_SCRIPT = scripts\config.sh
+	CONFIG_FILE = pkg\config\config.toml
 else
 	GO_FILES = $(shell find cmd pkg -type f -name '*.go')
-	CONFIG_SCRIPT = scripts/config.sh
+	CONFIG_SCRIPT = ./scripts/config.sh
+	CONFIG_FILE = pkg/config/config.toml
 endif
 
 # You can pass flags to goreleaser via GORELEASER_ARGS
@@ -49,6 +51,7 @@ debug:
 .PHONY: config
 config:
 	@$(CONFIG_SCRIPT)
+	@cat $(CONFIG_FILE)
 
 .PHONY: all
 all: config dependencies tidy fmt vet staticcheck gosec test build install
@@ -74,7 +77,7 @@ fmt:
 
 # Run static analysis.
 .PHONY: vet
-vet:
+vet: config
 	$(GO_BIN) vet ./{cmd,pkg}/...
 
 # Run linter.
