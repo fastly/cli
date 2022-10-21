@@ -16,16 +16,6 @@ kits=(
   compute-starter-kit-go-default
 )
 
-# The last line of the template file is still used by an internal DevHub process
-# but should be removed for the CLI's CI process.
-cp ./.fastly/config.toml ./pkg/config/config.toml
-
-if [[ $(uname) == "Darwin" ]]; then
-  sed -i '' -e '$ d' ./pkg/config/config.toml
-else
-  sed -i '$ d' ./pkg/config/config.toml
-fi
-
 function parse() {
   tomlq -f "./$k.toml" $1
 }
