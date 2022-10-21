@@ -147,10 +147,12 @@ func Run(opts RunOpts) error {
 	if source == config.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
-				text.Warning(opts.Stdout, "Unprotected configuration file.")
-				fmt.Fprintf(opts.Stdout, "Permissions for '%s' are too open\n", config.FilePath)
-				fmt.Fprintf(opts.Stdout, "It is recommended that your configuration file is NOT accessible by others.\n")
-				fmt.Fprintln(opts.Stdout)
+				if !globals.Flag.Quiet {
+					text.Warning(opts.Stdout, "Unprotected configuration file.")
+					fmt.Fprintf(opts.Stdout, "Permissions for '%s' are too open\n", config.FilePath)
+					fmt.Fprintf(opts.Stdout, "It is recommended that your configuration file is NOT accessible by others.\n")
+					fmt.Fprintln(opts.Stdout)
+				}
 			}
 		}
 	}
