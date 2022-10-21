@@ -228,6 +228,18 @@ func IsHelpFlagOnly(args []string) bool {
 	return len(args) > 0 && args[0] == "--help"
 }
 
+// IsVerboseAndQuiet indicates if the user called `fastly --verbose --quiet`.
+// These flags are mutually exclusive.
+func IsVerboseAndQuiet(args []string) bool {
+	matches := []bool{}
+	for _, a := range args {
+		if a == "--verbose" || a == "-v" || a == "--quiet" || a == "-q" {
+			matches = append(matches, true)
+		}
+	}
+	return len(matches) > 1
+}
+
 // IsGlobalFlagsOnly indicates if the user called the binary with any
 // permutation order of the globally defined flags.
 //

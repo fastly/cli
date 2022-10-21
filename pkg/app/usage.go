@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -246,6 +247,13 @@ func processCommandInput(
 	// We don't initialise the map currently as there are no variables to expose.
 	// But it's useful to have it implemented so it's ready to roll when we do.
 	var vars map[string]any
+
+	if cmd.IsVerboseAndQuiet(opts.Args) {
+		return command, cmdName, fsterr.RemediationError{
+			Inner:       errors.New("--verbose and --quiet flag provided"),
+			Remediation: "Either remove both --verbose and --quiet flags, or one of them.",
+		}
+	}
 
 	if cmd.IsHelpFlagOnly(opts.Args) && len(opts.Args) == 1 {
 		return command, cmdName, fsterr.SkipExitError{
