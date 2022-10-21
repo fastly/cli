@@ -22,8 +22,6 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-    - name: "Install tomlq for generating the app config"
-      run: cargo install tomlq
     - name: "Generate static app config"
       run: make config
     - name: "Display app config"

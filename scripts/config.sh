@@ -1,9 +1,11 @@
 #!/bin/bash
-#
-# DEPENDENCIES:
-# cargo install tomlq
 
 set -e
+
+if ! command -v tomlq &> /dev/null
+then
+  cargo install tomlq
+fi
 
 cp ./.fastly/config.toml ./pkg/config/config.toml
 

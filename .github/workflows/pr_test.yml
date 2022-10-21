@@ -41,8 +41,6 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-    - name: "Install tomlq for generating the app config"
-      run: cargo install tomlq
     - name: "Generate static app config"
       run: make config
     - name: "Run go mod tidy"
@@ -109,10 +107,6 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - name: "Install tomlq for generating the app config"
-      run: cargo install tomlq
-    - name: "Generate static app config"
-      run: make config
     - name: "Test suite"
       run: make test
       shell: bash
