@@ -5,6 +5,8 @@
 
 set -e
 
+cp ./.fastly/config.toml ./pkg/config/config.toml
+
 kits=(
   compute-starter-kit-rust-default
   compute-starter-kit-rust-empty

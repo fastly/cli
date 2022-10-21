@@ -46,7 +46,7 @@ debug:
 
 .PHONY: config
 config:
-	@./scripts/config.sh
+	@scripts/config.sh
 
 .PHONY: all
 all: config dependencies tidy fmt vet staticcheck gosec test build install
