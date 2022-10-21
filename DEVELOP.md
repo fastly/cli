@@ -61,6 +61,6 @@ The CLI dynamically generates the `./pkg/config/config.toml` within the CI relea
 
 The file is added to `.gitignore` to avoid it being added to the git repository.
 
-When compiling the CLI for a new release, it will pull execute [`./scripts/config.sh`](./scripts/config.sh). The script uses [`./.fastly/config.toml`](./.fastly/config.toml) as a template file to then dynamically inject a list of starter kits (pulling their data from their public repositories).
+When compiling the CLI for a new release, it will execute [`./scripts/config.sh`](./scripts/config.sh). The script uses [`./.fastly/config.toml`](./.fastly/config.toml) as a template file to then dynamically inject a list of starter kits (pulling their data from their public repositories).
 
 The resulting configuration is then saved to disk at `./pkg/config/config.toml` and embedded into the CLI when compiled.
