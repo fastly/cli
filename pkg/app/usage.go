@@ -149,6 +149,7 @@ var globalFlags = map[string]bool{
 	"help":            true,
 	"non-interactive": true,
 	"profile":         true,
+	"quiet":           true,
 	"token":           true,
 	"verbose":         true,
 }

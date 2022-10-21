@@ -527,6 +527,7 @@ type Flag struct {
 	Endpoint       string
 	NonInteractive bool
 	Profile        string
+	Quiet          bool
 	Token          string
 	Verbose        bool
 }
