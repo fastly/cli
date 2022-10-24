@@ -32,9 +32,9 @@ func PrintObjectStoreKeys(out io.Writer, prefix string, keys []string) {
 	}
 }
 
-// PrintObjectStoreKeyValue pretty prints a value from an object store to a given
-// Consumers can provide a prefix string which
-// will be used as a prefix to each line, useful for indentation.
+// PrintObjectStoreKeyValue pretty prints a value from an object store to a
+// given io.Writer. Consumers can provide a prefix string which will be used as
+// a prefix to each line, useful for indentation.
 func PrintObjectStoreKeyValue(out io.Writer, prefix string, key, value string) {
 	out = textio.NewPrefixWriter(out, prefix)
 

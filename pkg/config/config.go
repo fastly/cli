@@ -355,19 +355,21 @@ func (f *File) Read(
 
 		text.Break(out)
 
-		replacement := "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
-		label := fmt.Sprintf("Your configuration file (%s) is invalid. %s", path, replacement)
-		cont, err := text.AskYesNo(out, label, in)
-		if err != nil {
-			return fmt.Errorf("error reading input: %w", err)
-		}
-		if !cont {
-			err := fsterr.RemediationError{
-				Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, unmarshalErr),
-				Remediation: RemediationManualFix,
+		if !f.autoYes {
+			replacement := "Replace it with a valid version? (any existing email/token data will be lost) [y/N] "
+			label := fmt.Sprintf("Your configuration file (%s) is invalid. %s", path, replacement)
+			cont, err := text.AskYesNo(out, label, in)
+			if err != nil {
+				return fmt.Errorf("error reading input: %w", err)
 			}
-			errLog.Add(err)
-			return err
+			if !cont {
+				err := fsterr.RemediationError{
+					Inner:       fmt.Errorf("%v: %v", ErrInvalidConfig, unmarshalErr),
+					Remediation: RemediationManualFix,
+				}
+				errLog.Add(err)
+				return err
+			}
 		}
 		f = &staticConfig
 	}

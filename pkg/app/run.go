@@ -124,6 +124,10 @@ func Run(opts RunOpts) error {
 		return nil
 	}
 
+	if globals.Flag.Quiet {
+		md.File.SetQuiet(true)
+	}
+
 	token, source := globals.Token()
 
 	if globals.Verbose() {

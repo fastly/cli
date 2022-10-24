@@ -57,15 +57,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.input.ServiceID = serviceID
 
-	// TODO(integralist):
-	// Validation such as this should become redundant once Go-Fastly is
-	// consistently implementing validation (which itself should be redundant
-	// once each backend API is 100% confirmed as validating client inputs).
-	//
-	// As it stands we have multiple clients duplicating logic which should exist
-	// (and thus be relied upon) at the API layer.
-	//
-	// If neither arguments are provided, error with useful message.
 	if !c.name.WasSet && !c.comment.WasSet {
 		return fmt.Errorf("error parsing arguments: must provide either --name or --comment to update service")
 	}

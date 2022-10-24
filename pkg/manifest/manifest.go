@@ -197,10 +197,16 @@ type File struct {
 	ServiceID       string      `toml:"service_id"`
 	Setup           Setup       `toml:"setup,omitempty"`
 
+	quiet     bool
 	errLog    fsterr.LogInterface
 	exists    bool
 	output    io.Writer
 	readError error
+}
+
+// SetQuiet sets the associated flag value.
+func (f *File) SetQuiet(v bool) {
+	f.quiet = v
 }
 
 // Scripts represents build configuration.
@@ -467,10 +473,12 @@ func (f *File) Read(path string) (err error) {
 	if f.ManifestVersion == 0 {
 		f.ManifestVersion = ManifestLatestVersion
 
-		text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
-		text.Break(f.output)
-		text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
-		text.Break(f.output)
+		if !f.quiet {
+			text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
+			text.Break(f.output)
+			text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
+			text.Break(f.output)
+		}
 		err = f.Write(path)
 		if err != nil {
 			f.errLog.Add(err)
