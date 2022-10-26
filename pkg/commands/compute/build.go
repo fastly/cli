@@ -66,6 +66,12 @@ func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 
 // Exec implements the command interface.
 func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	// We'll restore this at the end to print a final successful build output.
+	originalOut := out
+
+	if c.Globals.Flag.Quiet {
+		out = io.Discard
+	}
 	progress := text.NewProgress(out, c.Globals.Verbose())
 
 	defer func(errLog fsterr.LogInterface) {
@@ -308,6 +314,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		close(ch)
 	}
 
+	out = originalOut
 	text.Success(out, "Built package (%s)", dest)
 	return nil
 }
