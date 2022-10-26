@@ -51,7 +51,6 @@ debug:
 .PHONY: config
 config:
 	@$(CONFIG_SCRIPT)
-	@cat $(CONFIG_FILE)
 
 .PHONY: all
 all: config dependencies tidy fmt vet staticcheck gosec test build install
