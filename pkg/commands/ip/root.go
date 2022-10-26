@@ -37,6 +37,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	// TODO: Implement --json support.
+
 	text.Break(out)
 	fmt.Fprintf(out, "%s\n", text.Bold("IPv4"))
 	for _, ip := range ipv4 {

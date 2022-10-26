@@ -105,6 +105,7 @@ func TestCheckAsync(t *testing.T) {
 				ctx,
 				testcase.currentVersion,
 				testcase.cliVersioner,
+				false,
 			)
 			f(&buf)
 

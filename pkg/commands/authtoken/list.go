@@ -60,7 +60,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	)
 
 	if err = c.customerID.Parse(); err == nil {
-		if !c.customerID.WasSet {
+		if !c.customerID.WasSet && !c.Globals.Flag.Quiet {
 			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable")
 			text.Break(out)
 		}

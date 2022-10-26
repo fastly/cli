@@ -56,7 +56,7 @@ func Run(opts RunOpts) error {
 	var md manifest.Data
 	md.File.SetErrLog(opts.ErrLog)
 	md.File.SetOutput(opts.Stdout)
-	md.File.Read(manifest.Filename)
+	_ = md.File.Read(manifest.Filename)
 
 	// The globals will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
@@ -102,6 +102,7 @@ func Run(opts RunOpts) error {
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
 	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&globals.Flag.NonInteractive)
 	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
+	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&globals.Flag.Quiet)
 	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
 
@@ -121,6 +122,10 @@ func Run(opts RunOpts) error {
 		fallthrough
 	case "shell-autocomplete":
 		return nil
+	}
+
+	if globals.Flag.Quiet {
+		md.File.SetQuiet(true)
 	}
 
 	token, source := globals.Token()
@@ -146,10 +151,12 @@ func Run(opts RunOpts) error {
 	if source == config.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
-				text.Warning(opts.Stdout, "Unprotected configuration file.")
-				fmt.Fprintf(opts.Stdout, "Permissions for '%s' are too open\n", config.FilePath)
-				fmt.Fprintf(opts.Stdout, "It is recommended that your configuration file is NOT accessible by others.\n")
-				fmt.Fprintln(opts.Stdout)
+				if !globals.Flag.Quiet {
+					text.Warning(opts.Stdout, "Unprotected configuration file.")
+					fmt.Fprintf(opts.Stdout, "Permissions for '%s' are too open\n", config.FilePath)
+					fmt.Fprintf(opts.Stdout, "It is recommended that your configuration file is NOT accessible by others.\n")
+					fmt.Fprintln(opts.Stdout)
+				}
 			}
 		}
 	}
@@ -185,6 +192,7 @@ func Run(opts RunOpts) error {
 			ctx,
 			revision.AppVersion,
 			opts.Versioners.CLI,
+			globals.Flag.Quiet,
 		)
 		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}

@@ -31,11 +31,11 @@ function append() {
 for k in ${kits[@]}; do
   curl -s "https://raw.githubusercontent.com/fastly/$k/main/fastly.toml" -o "$k.toml"
 
+  append ''
   append "[[starter-kits.$(parse language)]]"
   append "description = \"$(parse description)\""
   append "name = \"$(parse name)\""
   append "path = \"https://github.com/fastly/$k\""
-  append ''
 
   rm "$k.toml"
 done
