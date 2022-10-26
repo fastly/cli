@@ -301,7 +301,7 @@ func processCommandInput(
 	// completion flag, as that depends on kingpin.Parse() being called, and so
 	// the `ctx` is otherwise empty.
 	var found bool
-	if !noargs || !globalFlagsOnly || !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) && !cmd.IsCompletion(opts.Args) && !cmd.IsCompletionScript(opts.Args) {
+	if !noargs && !globalFlagsOnly && !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) && !cmd.IsCompletion(opts.Args) && !cmd.IsCompletionScript(opts.Args) {
 		command, found = cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
 		if !found {
 			return command, cmdName, help(vars, err)
