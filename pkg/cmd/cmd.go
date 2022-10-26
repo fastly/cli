@@ -259,13 +259,23 @@ func IsVerboseAndQuiet(args []string) bool {
 // args: [--verbose -v --endpoint ... --token ... -t ... --endpoint ...] 10
 // total: 10
 func IsGlobalFlagsOnly(args []string) bool {
-	// Global flags are defined in pkg/app/run.go#84
+	// Global flags are defined in ../app/run.go
 	globals := map[string]int{
-		"--verbose":  0,
-		"-v":         0,
-		"--token":    1,
-		"-t":         1,
-		"--endpoint": 1,
+		"--accept-defaults": 0,
+		"-d":                0,
+		"--auto-yes":        0,
+		"-y":                0,
+		"--endpoint":        1,
+		"--non-interactive": 0,
+		"-i":                0,
+		"--profile":         1,
+		"-o":                1,
+		"--quiet":           0,
+		"-q":                0,
+		"--token":           1,
+		"-t":                1,
+		"--verbose":         0,
+		"-v":                0,
 	}
 	var total int
 	for _, a := range args {

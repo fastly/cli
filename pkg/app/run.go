@@ -89,6 +89,7 @@ func Run(opts RunOpts) error {
 	// WARNING: kingpin has no way of decorating flags as being "global"
 	// therefore if you add/remove a global flag you will also need to update
 	// the globalFlags map in pkg/app/usage.go which is used for usage rendering.
+	// You should also update `IsGlobalFlagsOnly` in ../cmd/cmd.go
 	//
 	// NOTE: Global flags, unlike command flags, must be unique. This means BOTH
 	// the long flag and the short flag identifiers must be unique. If you try to

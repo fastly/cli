@@ -292,18 +292,16 @@ func processCommandInput(
 		return command, cmdName, help(vars, err)
 	}
 
-	// NOTE: The `fastly help` and `fastly --help` behaviours need to avoid
-	// trying to call cmd.Select() as the context object will not return a useful
-	// value for FullCommand(). The former will fail to find a match as it will
-	// be set to `help [<command>...]` as it's a built-in command that we don't
-	// control, and the latter --help flag variation will be an empty string as
-	// there were no actual 'command' specified.
+	// NOTE: `fastly help`, no flags, or only globals, should skip conditional.
+	//
+	// This is because the `ctx` variable will be assigned a
+	// `kingpin.ParseContext` whose `SelectedCommand` will be nil.
 	//
 	// Additionally we don't want to use the ctx if dealing with a shell
 	// completion flag, as that depends on kingpin.Parse() being called, and so
-	// the ctx is otherwise empty.
+	// the `ctx` is otherwise empty.
 	var found bool
-	if !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) && !cmd.IsCompletion(opts.Args) && !cmd.IsCompletionScript(opts.Args) {
+	if !noargs && !globalFlagsOnly && !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) && !cmd.IsCompletion(opts.Args) && !cmd.IsCompletionScript(opts.Args) {
 		command, found = cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
 		if !found {
 			return command, cmdName, help(vars, err)
