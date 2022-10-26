@@ -231,10 +231,13 @@ func IsHelpFlagOnly(args []string) bool {
 // IsVerboseAndQuiet indicates if the user called `fastly --verbose --quiet`.
 // These flags are mutually exclusive.
 func IsVerboseAndQuiet(args []string) bool {
-	matches := []bool{}
+	matches := map[string]bool{}
 	for _, a := range args {
-		if a == "--verbose" || a == "-v" || a == "--quiet" || a == "-q" {
-			matches = append(matches, true)
+		if a == "--verbose" || a == "-v" {
+			matches["--verbose"] = true
+		}
+		if a == "--quiet" || a == "-q" {
+			matches["--quiet"] = true
 		}
 	}
 	return len(matches) > 1
