@@ -1,5 +1,25 @@
 # Changelog
 
+## [v4.3.0](https://github.com/fastly/cli/releases/tag/v4.3.0) (2022-10-26)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v4.2.0...v4.3.0)
+
+**Enhancements:**
+
+* Fix release process to not use external config [#688](https://github.com/fastly/cli/pull/688)
+* Skip exit code 1 for 'help' output [#689](https://github.com/fastly/cli/pull/689)
+* Implement dynamic package name [#686](https://github.com/fastly/cli/pull/686)
+* Replace fiddle.fastly.dev with fiddle.fastlydemo.net [#687](https://github.com/fastly/cli/pull/687)
+* Code clean-up [#685](https://github.com/fastly/cli/pull/685)
+* Implement --quiet flag [#690](https://github.com/fastly/cli/pull/690)
+* Make `compute build` respect `--quiet` [#694](https://github.com/fastly/cli/pull/694)
+
+**Bug fixes:**
+
+* Fix runtime panic [#683](https://github.com/fastly/cli/pull/683)
+* Fix runtime panic caused by outdated global flags [#693](https://github.com/fastly/cli/pull/693)
+* Correct installation instructions for Go [#682](https://github.com/fastly/cli/pull/682)
+
 ## [v4.2.0](https://github.com/fastly/cli/releases/tag/v4.2.0) (2022-10-18)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.1.0...v4.2.0)
