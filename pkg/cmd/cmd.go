@@ -266,6 +266,7 @@ func IsGlobalFlagsOnly(args []string) bool {
 		"--auto-yes":        0,
 		"-y":                0,
 		"--endpoint":        1,
+		"--help":            0,
 		"--non-interactive": 0,
 		"-i":                0,
 		"--profile":         1,
