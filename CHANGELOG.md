@@ -18,6 +18,8 @@
 
 * Fix runtime panic [#683](https://github.com/fastly/cli/pull/683)
 * Fix runtime panic caused by outdated global flags [#693](https://github.com/fastly/cli/pull/693)
+* Fix runtime panic caused by missing `--help` global flag [#695](https://github.com/fastly/cli/pull/695)
+* Fix check for mutual exclusion flags[#696](https://github.com/fastly/cli/pull/696)
 * Correct installation instructions for Go [#682](https://github.com/fastly/cli/pull/682)
 
 ## [v4.2.0](https://github.com/fastly/cli/releases/tag/v4.2.0) (2022-10-18)
