@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -104,26 +105,29 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", azureblob.ServiceID)
+	lines := text.Lines{
+		"Version":            azureblob.ServiceVersion,
+		"Name":               azureblob.Name,
+		"Container":          azureblob.Container,
+		"Account name":       azureblob.AccountName,
+		"SAS token":          azureblob.SASToken,
+		"Path":               azureblob.Path,
+		"Period":             azureblob.Period,
+		"GZip level":         azureblob.GzipLevel,
+		"Format":             azureblob.Format,
+		"Format version":     azureblob.FormatVersion,
+		"Response condition": azureblob.ResponseCondition,
+		"Message type":       azureblob.MessageType,
+		"Timestamp format":   azureblob.TimestampFormat,
+		"Placement":          azureblob.Placement,
+		"Public key":         azureblob.PublicKey,
+		"File max bytes":     azureblob.FileMaxBytes,
+		"Compression codec":  azureblob.CompressionCodec,
 	}
-	fmt.Fprintf(out, "Version: %d\n", azureblob.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", azureblob.Name)
-	fmt.Fprintf(out, "Container: %s\n", azureblob.Container)
-	fmt.Fprintf(out, "Account name: %s\n", azureblob.AccountName)
-	fmt.Fprintf(out, "SAS token: %s\n", azureblob.SASToken)
-	fmt.Fprintf(out, "Path: %s\n", azureblob.Path)
-	fmt.Fprintf(out, "Period: %d\n", azureblob.Period)
-	fmt.Fprintf(out, "GZip level: %d\n", azureblob.GzipLevel)
-	fmt.Fprintf(out, "Format: %s\n", azureblob.Format)
-	fmt.Fprintf(out, "Format version: %d\n", azureblob.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", azureblob.ResponseCondition)
-	fmt.Fprintf(out, "Message type: %s\n", azureblob.MessageType)
-	fmt.Fprintf(out, "Timestamp format: %s\n", azureblob.TimestampFormat)
-	fmt.Fprintf(out, "Placement: %s\n", azureblob.Placement)
-	fmt.Fprintf(out, "Public key: %s\n", azureblob.PublicKey)
-	fmt.Fprintf(out, "File max bytes: %d\n", azureblob.FileMaxBytes)
-	fmt.Fprintf(out, "Compression codec: %s\n", azureblob.CompressionCodec)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = azureblob.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }
