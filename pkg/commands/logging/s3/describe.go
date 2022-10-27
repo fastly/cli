@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,33 +102,36 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", s3.ServiceID)
+	lines := text.Lines{
+		"Version":                           s3.ServiceVersion,
+		"Name":                              s3.Name,
+		"Bucket":                            s3.BucketName,
+		"Path":                              s3.Path,
+		"Period":                            s3.Period,
+		"GZip level":                        s3.GzipLevel,
+		"Format":                            s3.Format,
+		"Format version":                    s3.FormatVersion,
+		"Response condition":                s3.ResponseCondition,
+		"Message type":                      s3.MessageType,
+		"Timestamp format":                  s3.TimestampFormat,
+		"Placement":                         s3.Placement,
+		"Public key":                        s3.PublicKey,
+		"Redundancy":                        s3.Redundancy,
+		"Server-side encryption":            s3.ServerSideEncryption,
+		"Server-side encryption KMS key ID": s3.ServerSideEncryption,
+		"Compression codec":                 s3.CompressionCodec,
 	}
-	fmt.Fprintf(out, "Version: %d\n", s3.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", s3.Name)
-	fmt.Fprintf(out, "Bucket: %s\n", s3.BucketName)
 	if s3.AccessKey != "" || s3.SecretKey != "" {
-		fmt.Fprintf(out, "Access key: %s\n", s3.AccessKey)
-		fmt.Fprintf(out, "Secret key: %s\n", s3.SecretKey)
+		lines["Access key"] = s3.AccessKey
+		lines["Secret key"] = s3.SecretKey
 	}
 	if s3.IAMRole != "" {
-		fmt.Fprintf(out, "IAM role: %s\n", s3.IAMRole)
+		lines["IAM role"] = s3.IAMRole
 	}
-	fmt.Fprintf(out, "Path: %s\n", s3.Path)
-	fmt.Fprintf(out, "Period: %d\n", s3.Period)
-	fmt.Fprintf(out, "GZip level: %d\n", s3.GzipLevel)
-	fmt.Fprintf(out, "Format: %s\n", s3.Format)
-	fmt.Fprintf(out, "Format version: %d\n", s3.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", s3.ResponseCondition)
-	fmt.Fprintf(out, "Message type: %s\n", s3.MessageType)
-	fmt.Fprintf(out, "Timestamp format: %s\n", s3.TimestampFormat)
-	fmt.Fprintf(out, "Placement: %s\n", s3.Placement)
-	fmt.Fprintf(out, "Public key: %s\n", s3.PublicKey)
-	fmt.Fprintf(out, "Redundancy: %s\n", s3.Redundancy)
-	fmt.Fprintf(out, "Server-side encryption: %s\n", s3.ServerSideEncryption)
-	fmt.Fprintf(out, "Server-side encryption KMS key ID: %s\n", s3.ServerSideEncryption)
-	fmt.Fprintf(out, "Compression codec: %s\n", s3.CompressionCodec)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = s3.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

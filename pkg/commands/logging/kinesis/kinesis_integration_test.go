@@ -426,17 +426,17 @@ func getKinesisError(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 }
 
 var describeKinesisOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Stream name: my-logs
-Region: us-east-1
 Access key: 1234
-Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Region: us-east-1
+Response condition: Prevent default logging
+Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
+Service ID: 123
+Stream name: my-logs
+Version: 1
 `) + "\n"
 
 func updateKinesisOK(i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {

@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,28 +102,31 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", https.ServiceID)
+	lines := text.Lines{
+		"Version":                https.ServiceVersion,
+		"Name":                   https.Name,
+		"URL":                    https.URL,
+		"Content type":           https.ContentType,
+		"Header name":            https.HeaderName,
+		"Header value":           https.HeaderValue,
+		"Method":                 https.Method,
+		"JSON format":            https.JSONFormat,
+		"TLS CA certificate":     https.TLSCACert,
+		"TLS client certificate": https.TLSClientCert,
+		"TLS client key":         https.TLSClientKey,
+		"TLS hostname":           https.TLSHostname,
+		"Request max entries":    https.RequestMaxEntries,
+		"Request max bytes":      https.RequestMaxBytes,
+		"Message type":           https.MessageType,
+		"Format":                 https.Format,
+		"Format version":         https.FormatVersion,
+		"Response condition":     https.ResponseCondition,
+		"Placement":              https.Placement,
 	}
-	fmt.Fprintf(out, "Version: %d\n", https.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", https.Name)
-	fmt.Fprintf(out, "URL: %s\n", https.URL)
-	fmt.Fprintf(out, "Content type: %s\n", https.ContentType)
-	fmt.Fprintf(out, "Header name: %s\n", https.HeaderName)
-	fmt.Fprintf(out, "Header value: %s\n", https.HeaderValue)
-	fmt.Fprintf(out, "Method: %s\n", https.Method)
-	fmt.Fprintf(out, "JSON format: %s\n", https.JSONFormat)
-	fmt.Fprintf(out, "TLS CA certificate: %s\n", https.TLSCACert)
-	fmt.Fprintf(out, "TLS client certificate: %s\n", https.TLSClientCert)
-	fmt.Fprintf(out, "TLS client key: %s\n", https.TLSClientKey)
-	fmt.Fprintf(out, "TLS hostname: %s\n", https.TLSHostname)
-	fmt.Fprintf(out, "Request max entries: %d\n", https.RequestMaxEntries)
-	fmt.Fprintf(out, "Request max bytes: %d\n", https.RequestMaxBytes)
-	fmt.Fprintf(out, "Message type: %s\n", https.MessageType)
-	fmt.Fprintf(out, "Format: %s\n", https.Format)
-	fmt.Fprintf(out, "Format version: %d\n", https.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", https.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", https.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = https.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

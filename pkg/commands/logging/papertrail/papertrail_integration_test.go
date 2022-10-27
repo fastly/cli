@@ -358,15 +358,15 @@ func getPapertrailError(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error
 }
 
 var describePapertrailOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
 Address: example.com:123
-Port: 123
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Port: 123
+Response condition: Prevent default logging
+Service ID: 123
+Version: 1
 `) + "\n"
 
 func updatePapertrailOK(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {

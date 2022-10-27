@@ -360,17 +360,17 @@ func getLogentriesError(i *fastly.GetLogentriesInput) (*fastly.Logentries, error
 }
 
 var describeLogentriesOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Port: 20000
-Use TLS: true
-Token: tkn
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Port: 20000
 Region: us
+Response condition: Prevent default logging
+Service ID: 123
+Token: tkn
+Use TLS: true
+Version: 1
 `) + "\n"
 
 func updateLogentriesOK(i *fastly.UpdateLogentriesInput) (*fastly.Logentries, error) {

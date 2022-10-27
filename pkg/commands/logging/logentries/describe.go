@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,19 +102,22 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", logentries.ServiceID)
+	lines := text.Lines{
+		"Version":            logentries.ServiceVersion,
+		"Name":               logentries.Name,
+		"Port":               logentries.Port,
+		"Use TLS":            logentries.UseTLS,
+		"Token":              logentries.Token,
+		"Format":             logentries.Format,
+		"Format version":     logentries.FormatVersion,
+		"Response condition": logentries.ResponseCondition,
+		"Placement":          logentries.Placement,
+		"Region":             logentries.Region,
 	}
-	fmt.Fprintf(out, "Version: %d\n", logentries.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", logentries.Name)
-	fmt.Fprintf(out, "Port: %d\n", logentries.Port)
-	fmt.Fprintf(out, "Use TLS: %t\n", logentries.UseTLS)
-	fmt.Fprintf(out, "Token: %s\n", logentries.Token)
-	fmt.Fprintf(out, "Format: %s\n", logentries.Format)
-	fmt.Fprintf(out, "Format version: %d\n", logentries.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", logentries.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", logentries.Placement)
-	fmt.Fprintf(out, "Region: %s\n", logentries.Region)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = logentries.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

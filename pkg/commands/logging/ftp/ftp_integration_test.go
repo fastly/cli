@@ -423,23 +423,23 @@ func getFTPError(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 }
 
 var describeFTPOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
 Address: example.com
-Port: 123
-Username: anonymous
-Password: foo@example.com
-Public key: `+pgpPublicKey()+`
-Path: logs/
-Period: 3600
-GZip level: 9
+Compression codec: zstd
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
-Timestamp format: %Y-%m-%dT%H:%M:%S.000
+GZip level: 9
+Name: logs
+Password: foo@example.com
+Path: logs/
+Period: 3600
 Placement: none
-Compression codec: zstd
+Port: 123
+Public key: `+pgpPublicKey()+`
+Response condition: Prevent default logging
+Service ID: 123
+Timestamp format: %Y-%m-%dT%H:%M:%S.000
+Username: anonymous
+Version: 1
 `) + "\n"
 
 func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {

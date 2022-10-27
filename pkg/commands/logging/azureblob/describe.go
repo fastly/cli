@@ -104,7 +104,6 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 		return nil
 	}
-
 	lines := text.Lines{
 		"Version":            azureblob.ServiceVersion,
 		"Name":               azureblob.Name,

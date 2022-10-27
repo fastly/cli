@@ -209,7 +209,7 @@ func TestNewRelicDescribe(t *testing.T) {
 				GetNewRelicFn:  getNewRelic,
 			},
 			Args:       args("logging newrelic describe --name foobar --service-id 123 --version 3"),
-			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nToken: abc\nFormat: \nFormat Version: 0\nPlacement: \nRegion: \nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nPlacement: \nRegion: \nResponse Condition: \nService ID: 123\nService Version: 3\nToken: abc\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
@@ -218,7 +218,7 @@ func TestNewRelicDescribe(t *testing.T) {
 				GetNewRelicFn:  getNewRelic,
 			},
 			Args:       args("logging newrelic describe --name foobar --service-id 123 --version 1"),
-			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nToken: abc\nFormat: \nFormat Version: 0\nPlacement: \nRegion: \nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nPlacement: \nRegion: \nResponse Condition: \nService ID: 123\nService Version: 1\nToken: abc\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 

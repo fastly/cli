@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,21 +102,24 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", splunk.ServiceID)
+	lines := text.Lines{
+		"Version":                splunk.ServiceVersion,
+		"Name":                   splunk.Name,
+		"URL":                    splunk.URL,
+		"Token":                  splunk.Token,
+		"TLS CA certificate":     splunk.TLSCACert,
+		"TLS hostname":           splunk.TLSHostname,
+		"TLS client certificate": splunk.TLSClientCert,
+		"TLS client key":         splunk.TLSClientKey,
+		"Format":                 splunk.Format,
+		"Format version":         splunk.FormatVersion,
+		"Response condition":     splunk.ResponseCondition,
+		"Placement":              splunk.Placement,
 	}
-	fmt.Fprintf(out, "Version: %d\n", splunk.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", splunk.Name)
-	fmt.Fprintf(out, "URL: %s\n", splunk.URL)
-	fmt.Fprintf(out, "Token: %s\n", splunk.Token)
-	fmt.Fprintf(out, "TLS CA certificate: %s\n", splunk.TLSCACert)
-	fmt.Fprintf(out, "TLS hostname: %s\n", splunk.TLSHostname)
-	fmt.Fprintf(out, "TLS client certificate: %s\n", splunk.TLSClientCert)
-	fmt.Fprintf(out, "TLS client key: %s\n", splunk.TLSClientKey)
-	fmt.Fprintf(out, "Format: %s\n", splunk.Format)
-	fmt.Fprintf(out, "Format version: %d\n", splunk.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", splunk.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", splunk.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = splunk.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

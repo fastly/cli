@@ -402,26 +402,26 @@ func getSyslogError(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
-var describeSyslogOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
+var describeSyslogOutput = `
 Address: example.com
-Hostname: example.com
-Port: 514
-Use TLS: true
-IPV4: 
-TLS CA certificate: -----BEGIN CERTIFICATE-----foo
-TLS hostname: example.com
-TLS client certificate: -----BEGIN CERTIFICATE-----bar
-TLS client key: -----BEGIN PRIVATE KEY-----bar
-Token: tkn
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
+Hostname: example.com
+IPV4: ` + `
 Message type: classic
-Response condition: Prevent default logging
+Name: logs
 Placement: none
-`) + "\n"
+Port: 514
+Response condition: Prevent default logging
+Service ID: 123
+TLS CA certificate: -----BEGIN CERTIFICATE-----foo
+TLS client certificate: -----BEGIN CERTIFICATE-----bar
+TLS client key: -----BEGIN PRIVATE KEY-----bar
+TLS hostname: example.com
+Token: tkn
+Use TLS: true
+Version: 1
+`
 
 func updateSyslogOK(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{

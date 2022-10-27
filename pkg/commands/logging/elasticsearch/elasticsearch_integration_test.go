@@ -422,22 +422,22 @@ func getElasticsearchError(i *fastly.GetElasticsearchInput) (*fastly.Elasticsear
 }
 
 var describeElasticsearchOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
+Format: %h %l %u %t "%r" %>s %b
+Format version: 2
 Index: logs
-URL: example.com
+Name: logs
+Password: password
 Pipeline: logs
+Placement: none
+Response condition: Prevent default logging
+Service ID: 123
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo
 TLS client certificate: -----BEGIN CERTIFICATE-----bar
 TLS client key: -----BEGIN PRIVATE KEY-----bar
 TLS hostname: example.com
+URL: example.com
 User: user
-Password: password
-Format: %h %l %u %t "%r" %>s %b
-Format version: 2
-Response condition: Prevent default logging
-Placement: none
+Version: 1
 `) + "\n"
 
 func updateElasticsearchOK(i *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {

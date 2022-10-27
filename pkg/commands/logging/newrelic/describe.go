@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -125,26 +126,30 @@ func (c *DescribeCommand) print(out io.Writer, nr *fastly.NewRelic) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", nr.ServiceID)
+	lines := text.Lines{
+		"Service Version":    nr.ServiceVersion,
+		"Name":               nr.Name,
+		"Token":              nr.Token,
+		"Format":             nr.Format,
+		"Format Version":     nr.FormatVersion,
+		"Placement":          nr.Placement,
+		"Region":             nr.Region,
+		"Response Condition": nr.ResponseCondition,
 	}
-	fmt.Fprintf(out, "Service Version: %d\n\n", nr.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", nr.Name)
-	fmt.Fprintf(out, "Token: %s\n", nr.Token)
-	fmt.Fprintf(out, "Format: %s\n", nr.Format)
-	fmt.Fprintf(out, "Format Version: %d\n", nr.FormatVersion)
-	fmt.Fprintf(out, "Placement: %s\n", nr.Placement)
-	fmt.Fprintf(out, "Region: %s\n", nr.Region)
-	fmt.Fprintf(out, "Response Condition: %s\n\n", nr.ResponseCondition)
-
 	if nr.CreatedAt != nil {
-		fmt.Fprintf(out, "Created at: %s\n", nr.CreatedAt)
+		lines["Created at"] = nr.CreatedAt
 	}
 	if nr.UpdatedAt != nil {
-		fmt.Fprintf(out, "Updated at: %s\n", nr.UpdatedAt)
+		lines["Updated at"] = nr.UpdatedAt
 	}
 	if nr.DeletedAt != nil {
-		fmt.Fprintf(out, "Deleted at: %s\n", nr.DeletedAt)
+		lines["Deleted at"] = nr.DeletedAt
 	}
+
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = nr.ServiceID
+	}
+	text.PrintLines(out, lines)
+
 	return nil
 }

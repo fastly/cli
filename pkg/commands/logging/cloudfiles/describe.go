@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -103,26 +104,28 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 		return nil
 	}
-
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", cloudfiles.ServiceID)
+	lines := text.Lines{
+		"Version":            cloudfiles.ServiceVersion,
+		"Name":               cloudfiles.Name,
+		"User":               cloudfiles.User,
+		"Access key":         cloudfiles.AccessKey,
+		"Bucket":             cloudfiles.BucketName,
+		"Path":               cloudfiles.Path,
+		"Region":             cloudfiles.Region,
+		"Placement":          cloudfiles.Placement,
+		"Period":             cloudfiles.Period,
+		"GZip level":         cloudfiles.GzipLevel,
+		"Format":             cloudfiles.Format,
+		"Format version":     cloudfiles.FormatVersion,
+		"Response condition": cloudfiles.ResponseCondition,
+		"Message type":       cloudfiles.MessageType,
+		"Timestamp format":   cloudfiles.TimestampFormat,
+		"Public key":         cloudfiles.PublicKey,
 	}
-	fmt.Fprintf(out, "Version: %d\n", cloudfiles.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", cloudfiles.Name)
-	fmt.Fprintf(out, "User: %s\n", cloudfiles.User)
-	fmt.Fprintf(out, "Access key: %s\n", cloudfiles.AccessKey)
-	fmt.Fprintf(out, "Bucket: %s\n", cloudfiles.BucketName)
-	fmt.Fprintf(out, "Path: %s\n", cloudfiles.Path)
-	fmt.Fprintf(out, "Region: %s\n", cloudfiles.Region)
-	fmt.Fprintf(out, "Placement: %s\n", cloudfiles.Placement)
-	fmt.Fprintf(out, "Period: %d\n", cloudfiles.Period)
-	fmt.Fprintf(out, "GZip level: %d\n", cloudfiles.GzipLevel)
-	fmt.Fprintf(out, "Format: %s\n", cloudfiles.Format)
-	fmt.Fprintf(out, "Format version: %d\n", cloudfiles.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", cloudfiles.ResponseCondition)
-	fmt.Fprintf(out, "Message type: %s\n", cloudfiles.MessageType)
-	fmt.Fprintf(out, "Timestamp format: %s\n", cloudfiles.TimestampFormat)
-	fmt.Fprintf(out, "Public key: %s\n", cloudfiles.PublicKey)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = cloudfiles.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

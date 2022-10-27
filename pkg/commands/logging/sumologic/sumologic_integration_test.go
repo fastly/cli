@@ -358,15 +358,15 @@ func getSumologicError(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 }
 
 var describeSumologicOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-URL: example.com
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
 Message type: classic
+Name: logs
 Placement: none
+Response condition: Prevent default logging
+Service ID: 123
+URL: example.com
+Version: 1
 `) + "\n"
 
 func updateSumologicOK(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {

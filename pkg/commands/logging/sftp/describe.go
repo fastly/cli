@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,28 +102,31 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", sftp.ServiceID)
+	lines := text.Lines{
+		"Version":            sftp.ServiceVersion,
+		"Name":               sftp.Name,
+		"Address":            sftp.Address,
+		"Port":               sftp.Port,
+		"User":               sftp.User,
+		"Password":           sftp.Password,
+		"Public key":         sftp.PublicKey,
+		"Secret key":         sftp.SecretKey,
+		"SSH known hosts":    sftp.SSHKnownHosts,
+		"Path":               sftp.Path,
+		"Period":             sftp.Period,
+		"GZip level":         sftp.GzipLevel,
+		"Format":             sftp.Format,
+		"Format version":     sftp.FormatVersion,
+		"Message type":       sftp.MessageType,
+		"Response condition": sftp.ResponseCondition,
+		"Timestamp format":   sftp.TimestampFormat,
+		"Placement":          sftp.Placement,
+		"Compression codec":  sftp.CompressionCodec,
 	}
-	fmt.Fprintf(out, "Version: %d\n", sftp.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", sftp.Name)
-	fmt.Fprintf(out, "Address: %s\n", sftp.Address)
-	fmt.Fprintf(out, "Port: %d\n", sftp.Port)
-	fmt.Fprintf(out, "User: %s\n", sftp.User)
-	fmt.Fprintf(out, "Password: %s\n", sftp.Password)
-	fmt.Fprintf(out, "Public key: %s\n", sftp.PublicKey)
-	fmt.Fprintf(out, "Secret key: %s\n", sftp.SecretKey)
-	fmt.Fprintf(out, "SSH known hosts: %s\n", sftp.SSHKnownHosts)
-	fmt.Fprintf(out, "Path: %s\n", sftp.Path)
-	fmt.Fprintf(out, "Period: %d\n", sftp.Period)
-	fmt.Fprintf(out, "GZip level: %d\n", sftp.GzipLevel)
-	fmt.Fprintf(out, "Format: %s\n", sftp.Format)
-	fmt.Fprintf(out, "Format version: %d\n", sftp.FormatVersion)
-	fmt.Fprintf(out, "Message type: %s\n", sftp.MessageType)
-	fmt.Fprintf(out, "Response condition: %s\n", sftp.ResponseCondition)
-	fmt.Fprintf(out, "Timestamp format: %s\n", sftp.TimestampFormat)
-	fmt.Fprintf(out, "Placement: %s\n", sftp.Placement)
-	fmt.Fprintf(out, "Compression codec: %s\n", sftp.CompressionCodec)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = sftp.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

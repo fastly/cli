@@ -400,17 +400,17 @@ func getGooglePubSubError(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 }
 
 var describeGooglePubSubOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-User: user@example.com
-Secret key: secret
-Project ID: project
-Topic: topic
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Project ID: project
+Response condition: Prevent default logging
+Secret key: secret
+Service ID: 123
+Topic: topic
+User: user@example.com
+Version: 1
 `) + "\n"
 
 func updateGooglePubSubOK(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {

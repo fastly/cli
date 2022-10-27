@@ -24,6 +24,11 @@ func TestPrintLines(t *testing.T) {
 			mapItem:    text.Lines{"number": 2},
 			wantOutput: "number: 2\n",
 		},
+		{
+			name:       "sort",
+			mapItem:    text.Lines{"b": 2, "a": 1, "c": 3},
+			wantOutput: "a: 1\nb: 2\nc: 3\n",
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var buf bytes.Buffer

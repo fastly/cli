@@ -371,15 +371,15 @@ func getHerokuError(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 }
 
 var describeHerokuOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-URL: example.com
-Token: abc
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Response condition: Prevent default logging
+Service ID: 123
+Token: abc
+URL: example.com
+Version: 1
 `) + "\n"
 
 func updateHerokuOK(i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {

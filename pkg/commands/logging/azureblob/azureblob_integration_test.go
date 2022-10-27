@@ -431,24 +431,24 @@ func getBlobStorageError(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, er
 }
 
 var describeBlobStorageOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Container: container
 Account name: account
-SAS token: token
-Path: /logs
-Period: 3600
-GZip level: 0
+Compression codec: zstd
+Container: container
+File max bytes: 0
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+GZip level: 0
 Message type: classic
-Timestamp format: %Y-%m-%dT%H:%M:%S.000
+Name: logs
+Path: /logs
+Period: 3600
 Placement: none
 Public key: `+pgpPublicKey()+`
-File max bytes: 0
-Compression codec: zstd
+Response condition: Prevent default logging
+SAS token: token
+Service ID: 123
+Timestamp format: %Y-%m-%dT%H:%M:%S.000
+Version: 1
 `) + "\n"
 
 func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {

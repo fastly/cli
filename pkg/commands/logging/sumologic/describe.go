@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,17 +102,20 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", sumologic.ServiceID)
+	lines := text.Lines{
+		"Version":            sumologic.ServiceVersion,
+		"Name":               sumologic.Name,
+		"URL":                sumologic.URL,
+		"Format":             sumologic.Format,
+		"Format version":     sumologic.FormatVersion,
+		"Response condition": sumologic.ResponseCondition,
+		"Message type":       sumologic.MessageType,
+		"Placement":          sumologic.Placement,
 	}
-	fmt.Fprintf(out, "Version: %d\n", sumologic.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", sumologic.Name)
-	fmt.Fprintf(out, "URL: %s\n", sumologic.URL)
-	fmt.Fprintf(out, "Format: %s\n", sumologic.Format)
-	fmt.Fprintf(out, "Format version: %d\n", sumologic.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", sumologic.ResponseCondition)
-	fmt.Fprintf(out, "Message type: %s\n", sumologic.MessageType)
-	fmt.Fprintf(out, "Placement: %s\n", sumologic.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = sumologic.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

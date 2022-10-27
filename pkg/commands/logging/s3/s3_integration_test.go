@@ -490,26 +490,26 @@ func getS3Error(i *fastly.GetS3Input) (*fastly.S3, error) {
 }
 
 var describeS3Output = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Bucket: my-logs
 Access key: 1234
-Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
-Path: logs/
-Period: 3600
-GZip level: 0
+Bucket: my-logs
+Compression codec: zstd
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+GZip level: 0
 Message type: classic
-Timestamp format: %Y-%m-%dT%H:%M:%S.000
+Name: logs
+Path: logs/
+Period: 3600
 Placement: none
 Public key: `+pgpPublicKey()+`
 Redundancy: standard
+Response condition: Prevent default logging
+Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
 Server-side encryption: aws:kms
 Server-side encryption KMS key ID: aws:kms
-Compression codec: zstd
+Service ID: 123
+Timestamp format: %Y-%m-%dT%H:%M:%S.000
+Version: 1
 `) + "\n"
 
 func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {

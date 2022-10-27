@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,24 +102,28 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", kinesis.ServiceID)
+	lines := text.Lines{
+		"Version":            kinesis.ServiceVersion,
+		"Name":               kinesis.Name,
+		"Stream name":        kinesis.StreamName,
+		"Region":             kinesis.Region,
+		"Format":             kinesis.Format,
+		"Format version":     kinesis.FormatVersion,
+		"Response condition": kinesis.ResponseCondition,
+		"Placement":          kinesis.Placement,
 	}
-	fmt.Fprintf(out, "Version: %d\n", kinesis.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", kinesis.Name)
-	fmt.Fprintf(out, "Stream name: %s\n", kinesis.StreamName)
-	fmt.Fprintf(out, "Region: %s\n", kinesis.Region)
+
 	if kinesis.AccessKey != "" || kinesis.SecretKey != "" {
-		fmt.Fprintf(out, "Access key: %s\n", kinesis.AccessKey)
-		fmt.Fprintf(out, "Secret key: %s\n", kinesis.SecretKey)
+		lines["Access key"] = kinesis.AccessKey
+		lines["Secret key"] = kinesis.SecretKey
 	}
 	if kinesis.IAMRole != "" {
-		fmt.Fprintf(out, "IAM role: %s\n", kinesis.IAMRole)
+		lines["IAM role"] = kinesis.IAMRole
 	}
-	fmt.Fprintf(out, "Format: %s\n", kinesis.Format)
-	fmt.Fprintf(out, "Format version: %d\n", kinesis.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", kinesis.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", kinesis.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = kinesis.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }
