@@ -103,14 +103,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            sumologic.ServiceVersion,
-		"Name":               sumologic.Name,
-		"URL":                sumologic.URL,
-		"Format":             sumologic.Format,
 		"Format version":     sumologic.FormatVersion,
-		"Response condition": sumologic.ResponseCondition,
+		"Format":             sumologic.Format,
 		"Message type":       sumologic.MessageType,
+		"Name":               sumologic.Name,
 		"Placement":          sumologic.Placement,
+		"Response condition": sumologic.ResponseCondition,
+		"URL":                sumologic.URL,
+		"Version":            sumologic.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = sumologic.ServiceID

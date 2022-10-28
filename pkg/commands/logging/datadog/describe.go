@@ -102,14 +102,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 	lines := text.Lines{
-		"Version":            datadog.ServiceVersion,
-		"Name":               datadog.Name,
-		"Token":              datadog.Token,
-		"Region":             datadog.Region,
-		"Format":             datadog.Format,
 		"Format version":     datadog.FormatVersion,
-		"Response condition": datadog.ResponseCondition,
+		"Format":             datadog.Format,
+		"Name":               datadog.Name,
 		"Placement":          datadog.Placement,
+		"Region":             datadog.Region,
+		"Response condition": datadog.ResponseCondition,
+		"Token":              datadog.Token,
+		"Version":            datadog.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = datadog.ServiceID

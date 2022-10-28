@@ -103,14 +103,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            scalyr.ServiceVersion,
-		"Name":               scalyr.Name,
-		"Token":              scalyr.Token,
-		"Region":             scalyr.Region,
-		"Format":             scalyr.Format,
 		"Format version":     scalyr.FormatVersion,
-		"Response condition": scalyr.ResponseCondition,
+		"Format":             scalyr.Format,
+		"Name":               scalyr.Name,
 		"Placement":          scalyr.Placement,
+		"Region":             scalyr.Region,
+		"Response condition": scalyr.ResponseCondition,
+		"Token":              scalyr.Token,
+		"Version":            scalyr.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = scalyr.ServiceID

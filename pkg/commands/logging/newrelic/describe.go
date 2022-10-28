@@ -127,14 +127,14 @@ func (c *DescribeCommand) print(out io.Writer, nr *fastly.NewRelic) error {
 	}
 
 	lines := text.Lines{
-		"Service Version":    nr.ServiceVersion,
-		"Name":               nr.Name,
-		"Token":              nr.Token,
-		"Format":             nr.Format,
 		"Format Version":     nr.FormatVersion,
+		"Format":             nr.Format,
+		"Name":               nr.Name,
 		"Placement":          nr.Placement,
 		"Region":             nr.Region,
 		"Response Condition": nr.ResponseCondition,
+		"Service Version":    nr.ServiceVersion,
+		"Token":              nr.Token,
 	}
 	if nr.CreatedAt != nil {
 		lines["Created at"] = nr.CreatedAt

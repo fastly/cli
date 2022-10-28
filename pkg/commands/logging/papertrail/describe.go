@@ -103,14 +103,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            papertrail.ServiceVersion,
-		"Name":               papertrail.Name,
 		"Address":            papertrail.Address,
-		"Port":               papertrail.Port,
-		"Format":             papertrail.Format,
 		"Format version":     papertrail.FormatVersion,
-		"Response condition": papertrail.ResponseCondition,
+		"Format":             papertrail.Format,
+		"Name":               papertrail.Name,
 		"Placement":          papertrail.Placement,
+		"Port":               papertrail.Port,
+		"Response condition": papertrail.ResponseCondition,
+		"Version":            papertrail.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = papertrail.ServiceID

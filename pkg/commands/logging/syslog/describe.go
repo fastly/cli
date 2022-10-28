@@ -103,23 +103,23 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":                syslog.ServiceVersion,
-		"Name":                   syslog.Name,
 		"Address":                syslog.Address,
+		"Format version":         syslog.FormatVersion,
+		"Format":                 syslog.Format,
 		"Hostname":               syslog.Hostname,
-		"Port":                   syslog.Port,
-		"Use TLS":                syslog.UseTLS,
 		"IPV4":                   syslog.IPV4,
+		"Message type":           syslog.MessageType,
+		"Name":                   syslog.Name,
+		"Placement":              syslog.Placement,
+		"Port":                   syslog.Port,
+		"Response condition":     syslog.ResponseCondition,
 		"TLS CA certificate":     syslog.TLSCACert,
-		"TLS hostname":           syslog.TLSHostname,
 		"TLS client certificate": syslog.TLSClientCert,
 		"TLS client key":         syslog.TLSClientKey,
+		"TLS hostname":           syslog.TLSHostname,
 		"Token":                  syslog.Token,
-		"Format":                 syslog.Format,
-		"Format version":         syslog.FormatVersion,
-		"Message type":           syslog.MessageType,
-		"Response condition":     syslog.ResponseCondition,
-		"Placement":              syslog.Placement,
+		"Use TLS":                syslog.UseTLS,
+		"Version":                syslog.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = syslog.ServiceID

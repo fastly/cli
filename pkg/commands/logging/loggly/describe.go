@@ -103,13 +103,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            loggly.ServiceVersion,
-		"Name":               loggly.Name,
-		"Token":              loggly.Token,
-		"Format":             loggly.Format,
 		"Format version":     loggly.FormatVersion,
-		"Response condition": loggly.ResponseCondition,
+		"Format":             loggly.Format,
+		"Name":               loggly.Name,
 		"Placement":          loggly.Placement,
+		"Response condition": loggly.ResponseCondition,
+		"Token":              loggly.Token,
+		"Version":            loggly.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = loggly.ServiceID

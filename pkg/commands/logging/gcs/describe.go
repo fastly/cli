@@ -103,22 +103,22 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            gcs.ServiceVersion,
-		"Name":               gcs.Name,
-		"Bucket":             gcs.Bucket,
-		"User":               gcs.User,
-		"Secret key":         gcs.SecretKey,
 		"Account name":       gcs.AccountName,
+		"Bucket":             gcs.Bucket,
+		"Compression codec":  gcs.CompressionCodec,
+		"Format version":     gcs.FormatVersion,
+		"Format":             gcs.Format,
+		"GZip level":         gcs.GzipLevel,
+		"Message type":       gcs.MessageType,
+		"Name":               gcs.Name,
 		"Path":               gcs.Path,
 		"Period":             gcs.Period,
-		"GZip level":         gcs.GzipLevel,
-		"Format":             gcs.Format,
-		"Format version":     gcs.FormatVersion,
-		"Response condition": gcs.ResponseCondition,
-		"Message type":       gcs.MessageType,
-		"Timestamp format":   gcs.TimestampFormat,
 		"Placement":          gcs.Placement,
-		"Compression codec":  gcs.CompressionCodec,
+		"Response condition": gcs.ResponseCondition,
+		"Secret key":         gcs.SecretKey,
+		"Timestamp format":   gcs.TimestampFormat,
+		"User":               gcs.User,
+		"Version":            gcs.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = gcs.ServiceID

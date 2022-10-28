@@ -103,23 +103,23 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            openstack.ServiceVersion,
-		"Name":               openstack.Name,
-		"Bucket":             openstack.BucketName,
 		"Access key":         openstack.AccessKey,
-		"User":               openstack.User,
-		"URL":                openstack.URL,
+		"Bucket":             openstack.BucketName,
+		"Compression codec":  openstack.CompressionCodec,
+		"Format version":     openstack.FormatVersion,
+		"Format":             openstack.Format,
+		"GZip level":         openstack.GzipLevel,
+		"Message type":       openstack.MessageType,
+		"Name":               openstack.Name,
 		"Path":               openstack.Path,
 		"Period":             openstack.Period,
-		"GZip level":         openstack.GzipLevel,
-		"Format":             openstack.Format,
-		"Format version":     openstack.FormatVersion,
-		"Response condition": openstack.ResponseCondition,
-		"Message type":       openstack.MessageType,
-		"Timestamp format":   openstack.TimestampFormat,
 		"Placement":          openstack.Placement,
 		"Public key":         openstack.PublicKey,
-		"Compression codec":  openstack.CompressionCodec,
+		"Response condition": openstack.ResponseCondition,
+		"Timestamp format":   openstack.TimestampFormat,
+		"URL":                openstack.URL,
+		"User":               openstack.User,
+		"Version":            openstack.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = openstack.ServiceID

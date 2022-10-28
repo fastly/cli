@@ -105,22 +105,22 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 	lines := text.Lines{
-		"Version":            cloudfiles.ServiceVersion,
-		"Name":               cloudfiles.Name,
-		"User":               cloudfiles.User,
 		"Access key":         cloudfiles.AccessKey,
 		"Bucket":             cloudfiles.BucketName,
-		"Path":               cloudfiles.Path,
-		"Region":             cloudfiles.Region,
-		"Placement":          cloudfiles.Placement,
-		"Period":             cloudfiles.Period,
-		"GZip level":         cloudfiles.GzipLevel,
-		"Format":             cloudfiles.Format,
 		"Format version":     cloudfiles.FormatVersion,
-		"Response condition": cloudfiles.ResponseCondition,
+		"Format":             cloudfiles.Format,
+		"GZip level":         cloudfiles.GzipLevel,
 		"Message type":       cloudfiles.MessageType,
-		"Timestamp format":   cloudfiles.TimestampFormat,
+		"Name":               cloudfiles.Name,
+		"Path":               cloudfiles.Path,
+		"Period":             cloudfiles.Period,
+		"Placement":          cloudfiles.Placement,
 		"Public key":         cloudfiles.PublicKey,
+		"Region":             cloudfiles.Region,
+		"Response condition": cloudfiles.ResponseCondition,
+		"Timestamp format":   cloudfiles.TimestampFormat,
+		"User":               cloudfiles.User,
+		"Version":            cloudfiles.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = cloudfiles.ServiceID

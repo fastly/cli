@@ -105,23 +105,23 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 	lines := text.Lines{
-		"Version":            azureblob.ServiceVersion,
-		"Name":               azureblob.Name,
-		"Container":          azureblob.Container,
 		"Account name":       azureblob.AccountName,
-		"SAS token":          azureblob.SASToken,
+		"Compression codec":  azureblob.CompressionCodec,
+		"Container":          azureblob.Container,
+		"File max bytes":     azureblob.FileMaxBytes,
+		"Format version":     azureblob.FormatVersion,
+		"Format":             azureblob.Format,
+		"GZip level":         azureblob.GzipLevel,
+		"Message type":       azureblob.MessageType,
+		"Name":               azureblob.Name,
 		"Path":               azureblob.Path,
 		"Period":             azureblob.Period,
-		"GZip level":         azureblob.GzipLevel,
-		"Format":             azureblob.Format,
-		"Format version":     azureblob.FormatVersion,
-		"Response condition": azureblob.ResponseCondition,
-		"Message type":       azureblob.MessageType,
-		"Timestamp format":   azureblob.TimestampFormat,
 		"Placement":          azureblob.Placement,
 		"Public key":         azureblob.PublicKey,
-		"File max bytes":     azureblob.FileMaxBytes,
-		"Compression codec":  azureblob.CompressionCodec,
+		"Response condition": azureblob.ResponseCondition,
+		"SAS token":          azureblob.SASToken,
+		"Timestamp format":   azureblob.TimestampFormat,
+		"Version":            azureblob.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = azureblob.ServiceID

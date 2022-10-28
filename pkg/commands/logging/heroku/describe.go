@@ -103,14 +103,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            heroku.ServiceVersion,
-		"Name":               heroku.Name,
-		"URL":                heroku.URL,
-		"Token":              heroku.Token,
-		"Format":             heroku.Format,
 		"Format version":     heroku.FormatVersion,
-		"Response condition": heroku.ResponseCondition,
+		"Format":             heroku.Format,
+		"Name":               heroku.Name,
 		"Placement":          heroku.Placement,
+		"Response condition": heroku.ResponseCondition,
+		"Token":              heroku.Token,
+		"URL":                heroku.URL,
+		"Version":            heroku.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = heroku.ServiceID

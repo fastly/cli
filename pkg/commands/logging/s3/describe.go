@@ -103,23 +103,23 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":                           s3.ServiceVersion,
-		"Name":                              s3.Name,
 		"Bucket":                            s3.BucketName,
+		"Compression codec":                 s3.CompressionCodec,
+		"Format version":                    s3.FormatVersion,
+		"Format":                            s3.Format,
+		"GZip level":                        s3.GzipLevel,
+		"Message type":                      s3.MessageType,
+		"Name":                              s3.Name,
 		"Path":                              s3.Path,
 		"Period":                            s3.Period,
-		"GZip level":                        s3.GzipLevel,
-		"Format":                            s3.Format,
-		"Format version":                    s3.FormatVersion,
-		"Response condition":                s3.ResponseCondition,
-		"Message type":                      s3.MessageType,
-		"Timestamp format":                  s3.TimestampFormat,
 		"Placement":                         s3.Placement,
 		"Public key":                        s3.PublicKey,
 		"Redundancy":                        s3.Redundancy,
-		"Server-side encryption":            s3.ServerSideEncryption,
+		"Response condition":                s3.ResponseCondition,
 		"Server-side encryption KMS key ID": s3.ServerSideEncryption,
-		"Compression codec":                 s3.CompressionCodec,
+		"Server-side encryption":            s3.ServerSideEncryption,
+		"Timestamp format":                  s3.TimestampFormat,
+		"Version":                           s3.ServiceVersion,
 	}
 	if s3.AccessKey != "" || s3.SecretKey != "" {
 		lines["Access key"] = s3.AccessKey

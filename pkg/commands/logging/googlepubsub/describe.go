@@ -103,16 +103,16 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            googlepubsub.ServiceVersion,
-		"Name":               googlepubsub.Name,
-		"User":               googlepubsub.User,
-		"Secret key":         googlepubsub.SecretKey,
-		"Project ID":         googlepubsub.ProjectID,
-		"Topic":              googlepubsub.Topic,
-		"Format":             googlepubsub.Format,
 		"Format version":     googlepubsub.FormatVersion,
-		"Response condition": googlepubsub.ResponseCondition,
+		"Format":             googlepubsub.Format,
+		"Name":               googlepubsub.Name,
 		"Placement":          googlepubsub.Placement,
+		"Project ID":         googlepubsub.ProjectID,
+		"Response condition": googlepubsub.ResponseCondition,
+		"Secret key":         googlepubsub.SecretKey,
+		"Topic":              googlepubsub.Topic,
+		"User":               googlepubsub.User,
+		"Version":            googlepubsub.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = googlepubsub.ServiceID

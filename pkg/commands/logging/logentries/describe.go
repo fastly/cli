@@ -103,16 +103,16 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            logentries.ServiceVersion,
-		"Name":               logentries.Name,
-		"Port":               logentries.Port,
-		"Use TLS":            logentries.UseTLS,
-		"Token":              logentries.Token,
-		"Format":             logentries.Format,
 		"Format version":     logentries.FormatVersion,
-		"Response condition": logentries.ResponseCondition,
+		"Format":             logentries.Format,
+		"Name":               logentries.Name,
 		"Placement":          logentries.Placement,
+		"Port":               logentries.Port,
 		"Region":             logentries.Region,
+		"Response condition": logentries.ResponseCondition,
+		"Token":              logentries.Token,
+		"Use TLS":            logentries.UseTLS,
+		"Version":            logentries.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = logentries.ServiceID

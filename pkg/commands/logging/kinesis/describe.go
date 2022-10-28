@@ -103,14 +103,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            kinesis.ServiceVersion,
-		"Name":               kinesis.Name,
-		"Stream name":        kinesis.StreamName,
-		"Region":             kinesis.Region,
-		"Format":             kinesis.Format,
 		"Format version":     kinesis.FormatVersion,
-		"Response condition": kinesis.ResponseCondition,
+		"Format":             kinesis.Format,
+		"Name":               kinesis.Name,
 		"Placement":          kinesis.Placement,
+		"Region":             kinesis.Region,
+		"Response condition": kinesis.ResponseCondition,
+		"Stream name":        kinesis.StreamName,
+		"Version":            kinesis.ServiceVersion,
 	}
 
 	if kinesis.AccessKey != "" || kinesis.SecretKey != "" {

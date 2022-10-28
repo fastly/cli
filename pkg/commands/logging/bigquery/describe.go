@@ -106,18 +106,18 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            bq.ServiceVersion,
-		"Name":               bq.Name,
-		"Format":             bq.Format,
-		"User":               bq.User,
-		"Project ID":         bq.ProjectID,
 		"Dataset":            bq.Dataset,
+		"Format version":     bq.FormatVersion,
+		"Format":             bq.Format,
+		"Name":               bq.Name,
+		"Placement":          bq.Placement,
+		"Project ID":         bq.ProjectID,
+		"Response condition": bq.ResponseCondition,
+		"Secret key":         bq.SecretKey,
 		"Table":              bq.Table,
 		"Template suffix":    bq.Template,
-		"Secret key":         bq.SecretKey,
-		"Response condition": bq.ResponseCondition,
-		"Placement":          bq.Placement,
-		"Format version":     bq.FormatVersion,
+		"User":               bq.User,
+		"Version":            bq.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = bq.ServiceID

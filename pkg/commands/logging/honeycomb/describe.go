@@ -103,14 +103,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            honeycomb.ServiceVersion,
-		"Name":               honeycomb.Name,
 		"Dataset":            honeycomb.Dataset,
-		"Token":              honeycomb.Token,
-		"Format":             honeycomb.Format,
 		"Format version":     honeycomb.FormatVersion,
-		"Response condition": honeycomb.ResponseCondition,
+		"Format":             honeycomb.Format,
+		"Name":               honeycomb.Name,
 		"Placement":          honeycomb.Placement,
+		"Response condition": honeycomb.ResponseCondition,
+		"Token":              honeycomb.Token,
+		"Version":            honeycomb.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = honeycomb.ServiceID

@@ -103,14 +103,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            logshuttle.ServiceVersion,
-		"Name":               logshuttle.Name,
-		"URL":                logshuttle.URL,
-		"Token":              logshuttle.Token,
-		"Format":             logshuttle.Format,
 		"Format version":     logshuttle.FormatVersion,
-		"Response condition": logshuttle.ResponseCondition,
+		"Format":             logshuttle.Format,
+		"Name":               logshuttle.Name,
 		"Placement":          logshuttle.Placement,
+		"Response condition": logshuttle.ResponseCondition,
+		"Token":              logshuttle.Token,
+		"URL":                logshuttle.URL,
+		"Version":            logshuttle.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = logshuttle.ServiceID

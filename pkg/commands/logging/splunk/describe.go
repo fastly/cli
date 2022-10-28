@@ -103,18 +103,18 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":                splunk.ServiceVersion,
+		"Format version":         splunk.FormatVersion,
+		"Format":                 splunk.Format,
 		"Name":                   splunk.Name,
-		"URL":                    splunk.URL,
-		"Token":                  splunk.Token,
+		"Placement":              splunk.Placement,
+		"Response condition":     splunk.ResponseCondition,
 		"TLS CA certificate":     splunk.TLSCACert,
-		"TLS hostname":           splunk.TLSHostname,
 		"TLS client certificate": splunk.TLSClientCert,
 		"TLS client key":         splunk.TLSClientKey,
-		"Format":                 splunk.Format,
-		"Format version":         splunk.FormatVersion,
-		"Response condition":     splunk.ResponseCondition,
-		"Placement":              splunk.Placement,
+		"TLS hostname":           splunk.TLSHostname,
+		"Token":                  splunk.Token,
+		"URL":                    splunk.URL,
+		"Version":                splunk.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = splunk.ServiceID

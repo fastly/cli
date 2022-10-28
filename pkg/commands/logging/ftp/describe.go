@@ -103,22 +103,22 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            ftp.ServiceVersion,
-		"Name":               ftp.Name,
 		"Address":            ftp.Address,
-		"Port":               ftp.Port,
-		"Username":           ftp.Username,
+		"Compression codec":  ftp.CompressionCodec,
+		"Format version":     ftp.FormatVersion,
+		"Format":             ftp.Format,
+		"GZip level":         ftp.GzipLevel,
+		"Name":               ftp.Name,
 		"Password":           ftp.Password,
-		"Public key":         ftp.PublicKey,
 		"Path":               ftp.Path,
 		"Period":             ftp.Period,
-		"GZip level":         ftp.GzipLevel,
-		"Format":             ftp.Format,
-		"Format version":     ftp.FormatVersion,
+		"Placement":          ftp.Placement,
+		"Port":               ftp.Port,
+		"Public key":         ftp.PublicKey,
 		"Response condition": ftp.ResponseCondition,
 		"Timestamp format":   ftp.TimestampFormat,
-		"Placement":          ftp.Placement,
-		"Compression codec":  ftp.CompressionCodec,
+		"Username":           ftp.Username,
+		"Version":            ftp.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = ftp.ServiceID

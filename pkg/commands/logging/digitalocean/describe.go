@@ -103,22 +103,22 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":            digitalocean.ServiceVersion,
-		"Name":               digitalocean.Name,
+		"Access key":         digitalocean.AccessKey,
 		"Bucket":             digitalocean.BucketName,
 		"Domain":             digitalocean.Domain,
-		"Access key":         digitalocean.AccessKey,
-		"Secret key":         digitalocean.SecretKey,
+		"Format version":     digitalocean.FormatVersion,
+		"Format":             digitalocean.Format,
+		"GZip level":         digitalocean.GzipLevel,
+		"Message type":       digitalocean.MessageType,
+		"Name":               digitalocean.Name,
 		"Path":               digitalocean.Path,
 		"Period":             digitalocean.Period,
-		"GZip level":         digitalocean.GzipLevel,
-		"Format":             digitalocean.Format,
-		"Format version":     digitalocean.FormatVersion,
-		"Response condition": digitalocean.ResponseCondition,
-		"Message type":       digitalocean.MessageType,
-		"Timestamp format":   digitalocean.TimestampFormat,
 		"Placement":          digitalocean.Placement,
 		"Public key":         digitalocean.PublicKey,
+		"Response condition": digitalocean.ResponseCondition,
+		"Secret key":         digitalocean.SecretKey,
+		"Timestamp format":   digitalocean.TimestampFormat,
+		"Version":            digitalocean.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = digitalocean.ServiceID

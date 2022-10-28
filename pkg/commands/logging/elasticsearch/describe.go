@@ -102,21 +102,21 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 	lines := text.Lines{
-		"Version":                elasticsearch.ServiceVersion,
-		"Name":                   elasticsearch.Name,
+		"Format version":         elasticsearch.FormatVersion,
+		"Format":                 elasticsearch.Format,
 		"Index":                  elasticsearch.Index,
-		"URL":                    elasticsearch.URL,
+		"Name":                   elasticsearch.Name,
+		"Password":               elasticsearch.Password,
 		"Pipeline":               elasticsearch.Pipeline,
+		"Placement":              elasticsearch.Placement,
+		"Response condition":     elasticsearch.ResponseCondition,
 		"TLS CA certificate":     elasticsearch.TLSCACert,
 		"TLS client certificate": elasticsearch.TLSClientCert,
 		"TLS client key":         elasticsearch.TLSClientKey,
 		"TLS hostname":           elasticsearch.TLSHostname,
+		"URL":                    elasticsearch.URL,
 		"User":                   elasticsearch.User,
-		"Password":               elasticsearch.Password,
-		"Format":                 elasticsearch.Format,
-		"Format version":         elasticsearch.FormatVersion,
-		"Response condition":     elasticsearch.ResponseCondition,
-		"Placement":              elasticsearch.Placement,
+		"Version":                elasticsearch.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = elasticsearch.ServiceID

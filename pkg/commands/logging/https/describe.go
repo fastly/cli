@@ -103,25 +103,25 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Version":                https.ServiceVersion,
-		"Name":                   https.Name,
-		"URL":                    https.URL,
 		"Content type":           https.ContentType,
+		"Format version":         https.FormatVersion,
+		"Format":                 https.Format,
 		"Header name":            https.HeaderName,
 		"Header value":           https.HeaderValue,
-		"Method":                 https.Method,
 		"JSON format":            https.JSONFormat,
+		"Message type":           https.MessageType,
+		"Method":                 https.Method,
+		"Name":                   https.Name,
+		"Placement":              https.Placement,
+		"Request max bytes":      https.RequestMaxBytes,
+		"Request max entries":    https.RequestMaxEntries,
+		"Response condition":     https.ResponseCondition,
 		"TLS CA certificate":     https.TLSCACert,
 		"TLS client certificate": https.TLSClientCert,
 		"TLS client key":         https.TLSClientKey,
 		"TLS hostname":           https.TLSHostname,
-		"Request max entries":    https.RequestMaxEntries,
-		"Request max bytes":      https.RequestMaxBytes,
-		"Message type":           https.MessageType,
-		"Format":                 https.Format,
-		"Format version":         https.FormatVersion,
-		"Response condition":     https.ResponseCondition,
-		"Placement":              https.Placement,
+		"URL":                    https.URL,
+		"Version":                https.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
 		lines["Service ID"] = https.ServiceID
