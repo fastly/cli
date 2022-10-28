@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,26 +102,29 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", syslog.ServiceID)
+	lines := text.Lines{
+		"Address":                syslog.Address,
+		"Format version":         syslog.FormatVersion,
+		"Format":                 syslog.Format,
+		"Hostname":               syslog.Hostname,
+		"IPV4":                   syslog.IPV4,
+		"Message type":           syslog.MessageType,
+		"Name":                   syslog.Name,
+		"Placement":              syslog.Placement,
+		"Port":                   syslog.Port,
+		"Response condition":     syslog.ResponseCondition,
+		"TLS CA certificate":     syslog.TLSCACert,
+		"TLS client certificate": syslog.TLSClientCert,
+		"TLS client key":         syslog.TLSClientKey,
+		"TLS hostname":           syslog.TLSHostname,
+		"Token":                  syslog.Token,
+		"Use TLS":                syslog.UseTLS,
+		"Version":                syslog.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", syslog.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", syslog.Name)
-	fmt.Fprintf(out, "Address: %s\n", syslog.Address)
-	fmt.Fprintf(out, "Hostname: %s\n", syslog.Hostname)
-	fmt.Fprintf(out, "Port: %d\n", syslog.Port)
-	fmt.Fprintf(out, "Use TLS: %t\n", syslog.UseTLS)
-	fmt.Fprintf(out, "IPV4: %s\n", syslog.IPV4)
-	fmt.Fprintf(out, "TLS CA certificate: %s\n", syslog.TLSCACert)
-	fmt.Fprintf(out, "TLS hostname: %s\n", syslog.TLSHostname)
-	fmt.Fprintf(out, "TLS client certificate: %s\n", syslog.TLSClientCert)
-	fmt.Fprintf(out, "TLS client key: %s\n", syslog.TLSClientKey)
-	fmt.Fprintf(out, "Token: %s\n", syslog.Token)
-	fmt.Fprintf(out, "Format: %s\n", syslog.Format)
-	fmt.Fprintf(out, "Format version: %d\n", syslog.FormatVersion)
-	fmt.Fprintf(out, "Message type: %s\n", syslog.MessageType)
-	fmt.Fprintf(out, "Response condition: %s\n", syslog.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", syslog.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = syslog.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

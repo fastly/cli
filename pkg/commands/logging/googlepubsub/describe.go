@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,19 +102,22 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", googlepubsub.ServiceID)
+	lines := text.Lines{
+		"Format version":     googlepubsub.FormatVersion,
+		"Format":             googlepubsub.Format,
+		"Name":               googlepubsub.Name,
+		"Placement":          googlepubsub.Placement,
+		"Project ID":         googlepubsub.ProjectID,
+		"Response condition": googlepubsub.ResponseCondition,
+		"Secret key":         googlepubsub.SecretKey,
+		"Topic":              googlepubsub.Topic,
+		"User":               googlepubsub.User,
+		"Version":            googlepubsub.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", googlepubsub.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", googlepubsub.Name)
-	fmt.Fprintf(out, "User: %s\n", googlepubsub.User)
-	fmt.Fprintf(out, "Secret key: %s\n", googlepubsub.SecretKey)
-	fmt.Fprintf(out, "Project ID: %s\n", googlepubsub.ProjectID)
-	fmt.Fprintf(out, "Topic: %s\n", googlepubsub.Topic)
-	fmt.Fprintf(out, "Format: %s\n", googlepubsub.Format)
-	fmt.Fprintf(out, "Format version: %d\n", googlepubsub.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", googlepubsub.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", googlepubsub.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = googlepubsub.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,29 +102,32 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", kafka.ServiceID)
+	lines := text.Lines{
+		"Brokers":                      kafka.Brokers,
+		"Compression codec":            kafka.CompressionCodec,
+		"Format version":               kafka.FormatVersion,
+		"Format":                       kafka.Format,
+		"Max batch size":               kafka.RequestMaxBytes,
+		"Name":                         kafka.Name,
+		"Parse log key-values":         kafka.ParseLogKeyvals,
+		"Placement":                    kafka.Placement,
+		"Required acks":                kafka.RequiredACKs,
+		"Response condition":           kafka.ResponseCondition,
+		"SASL authentication method":   kafka.AuthMethod,
+		"SASL authentication password": kafka.Password,
+		"SASL authentication username": kafka.User,
+		"TLS CA certificate":           kafka.TLSCACert,
+		"TLS client certificate":       kafka.TLSClientCert,
+		"TLS client key":               kafka.TLSClientKey,
+		"TLS hostname":                 kafka.TLSHostname,
+		"Topic":                        kafka.Topic,
+		"Use TLS":                      kafka.UseTLS,
+		"Version":                      kafka.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", kafka.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", kafka.Name)
-	fmt.Fprintf(out, "Topic: %s\n", kafka.Topic)
-	fmt.Fprintf(out, "Brokers: %s\n", kafka.Brokers)
-	fmt.Fprintf(out, "Required acks: %s\n", kafka.RequiredACKs)
-	fmt.Fprintf(out, "Compression codec: %s\n", kafka.CompressionCodec)
-	fmt.Fprintf(out, "Use TLS: %t\n", kafka.UseTLS)
-	fmt.Fprintf(out, "TLS CA certificate: %s\n", kafka.TLSCACert)
-	fmt.Fprintf(out, "TLS client certificate: %s\n", kafka.TLSClientCert)
-	fmt.Fprintf(out, "TLS client key: %s\n", kafka.TLSClientKey)
-	fmt.Fprintf(out, "TLS hostname: %s\n", kafka.TLSHostname)
-	fmt.Fprintf(out, "Format: %s\n", kafka.Format)
-	fmt.Fprintf(out, "Format version: %d\n", kafka.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", kafka.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", kafka.Placement)
-	fmt.Fprintf(out, "Parse log key-values: %t\n", kafka.ParseLogKeyvals)
-	fmt.Fprintf(out, "Max batch size: %d\n", kafka.RequestMaxBytes)
-	fmt.Fprintf(out, "SASL authentication method: %s\n", kafka.AuthMethod)
-	fmt.Fprintf(out, "SASL authentication username: %s\n", kafka.User)
-	fmt.Fprintf(out, "SASL authentication password: %s\n", kafka.Password)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = kafka.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

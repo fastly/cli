@@ -422,23 +422,23 @@ func getGCSError(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 }
 
 var describeGCSOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Bucket: my-logs
-User: foo@example.com
-Secret key: -----BEGIN RSA PRIVATE KEY-----foo
 Account name: none
-Path: logs/
-Period: 3600
-GZip level: 0
+Bucket: my-logs
+Compression codec: zstd
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+GZip level: 0
 Message type: classic
-Timestamp format: %Y-%m-%dT%H:%M:%S.000
+Name: logs
+Path: logs/
+Period: 3600
 Placement: none
-Compression codec: zstd
+Response condition: Prevent default logging
+Secret key: -----BEGIN RSA PRIVATE KEY-----foo
+Service ID: 123
+Timestamp format: %Y-%m-%dT%H:%M:%S.000
+User: foo@example.com
+Version: 1
 `) + "\n"
 
 func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {

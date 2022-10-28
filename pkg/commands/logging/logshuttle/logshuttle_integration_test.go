@@ -371,15 +371,15 @@ func getLogshuttleError(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error
 }
 
 var describeLogshuttleOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-URL: example.com
-Token: abc
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Response condition: Prevent default logging
+Service ID: 123
+Token: abc
+URL: example.com
+Version: 1
 `) + "\n"
 
 func updateLogshuttleOK(i *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error) {

@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -100,25 +101,27 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 		return nil
 	}
-
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", elasticsearch.ServiceID)
+	lines := text.Lines{
+		"Format version":         elasticsearch.FormatVersion,
+		"Format":                 elasticsearch.Format,
+		"Index":                  elasticsearch.Index,
+		"Name":                   elasticsearch.Name,
+		"Password":               elasticsearch.Password,
+		"Pipeline":               elasticsearch.Pipeline,
+		"Placement":              elasticsearch.Placement,
+		"Response condition":     elasticsearch.ResponseCondition,
+		"TLS CA certificate":     elasticsearch.TLSCACert,
+		"TLS client certificate": elasticsearch.TLSClientCert,
+		"TLS client key":         elasticsearch.TLSClientKey,
+		"TLS hostname":           elasticsearch.TLSHostname,
+		"URL":                    elasticsearch.URL,
+		"User":                   elasticsearch.User,
+		"Version":                elasticsearch.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", elasticsearch.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", elasticsearch.Name)
-	fmt.Fprintf(out, "Index: %s\n", elasticsearch.Index)
-	fmt.Fprintf(out, "URL: %s\n", elasticsearch.URL)
-	fmt.Fprintf(out, "Pipeline: %s\n", elasticsearch.Pipeline)
-	fmt.Fprintf(out, "TLS CA certificate: %s\n", elasticsearch.TLSCACert)
-	fmt.Fprintf(out, "TLS client certificate: %s\n", elasticsearch.TLSClientCert)
-	fmt.Fprintf(out, "TLS client key: %s\n", elasticsearch.TLSClientKey)
-	fmt.Fprintf(out, "TLS hostname: %s\n", elasticsearch.TLSHostname)
-	fmt.Fprintf(out, "User: %s\n", elasticsearch.User)
-	fmt.Fprintf(out, "Password: %s\n", elasticsearch.Password)
-	fmt.Fprintf(out, "Format: %s\n", elasticsearch.Format)
-	fmt.Fprintf(out, "Format version: %d\n", elasticsearch.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", elasticsearch.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", elasticsearch.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = elasticsearch.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

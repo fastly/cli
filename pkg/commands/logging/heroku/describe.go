@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,17 +102,20 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", heroku.ServiceID)
+	lines := text.Lines{
+		"Format version":     heroku.FormatVersion,
+		"Format":             heroku.Format,
+		"Name":               heroku.Name,
+		"Placement":          heroku.Placement,
+		"Response condition": heroku.ResponseCondition,
+		"Token":              heroku.Token,
+		"URL":                heroku.URL,
+		"Version":            heroku.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", heroku.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", heroku.Name)
-	fmt.Fprintf(out, "URL: %s\n", heroku.URL)
-	fmt.Fprintf(out, "Token: %s\n", heroku.Token)
-	fmt.Fprintf(out, "Format: %s\n", heroku.Format)
-	fmt.Fprintf(out, "Format version: %d\n", heroku.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", heroku.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", heroku.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = heroku.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

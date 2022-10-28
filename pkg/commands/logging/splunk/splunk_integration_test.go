@@ -378,19 +378,19 @@ func getSplunkError(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 }
 
 var describeSplunkOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-URL: example.com
-Token: tkn
-TLS CA certificate: -----BEGIN CERTIFICATE-----foo
-TLS hostname: example.com
-TLS client certificate: -----BEGIN CERTIFICATE-----bar
-TLS client key: -----BEGIN PRIVATE KEY-----bar
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Response condition: Prevent default logging
+Service ID: 123
+TLS CA certificate: -----BEGIN CERTIFICATE-----foo
+TLS client certificate: -----BEGIN CERTIFICATE-----bar
+TLS client key: -----BEGIN PRIVATE KEY-----bar
+TLS hostname: example.com
+Token: tkn
+URL: example.com
+Version: 1
 `) + "\n"
 
 func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {

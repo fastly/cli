@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,25 +102,28 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", gcs.ServiceID)
+	lines := text.Lines{
+		"Account name":       gcs.AccountName,
+		"Bucket":             gcs.Bucket,
+		"Compression codec":  gcs.CompressionCodec,
+		"Format version":     gcs.FormatVersion,
+		"Format":             gcs.Format,
+		"GZip level":         gcs.GzipLevel,
+		"Message type":       gcs.MessageType,
+		"Name":               gcs.Name,
+		"Path":               gcs.Path,
+		"Period":             gcs.Period,
+		"Placement":          gcs.Placement,
+		"Response condition": gcs.ResponseCondition,
+		"Secret key":         gcs.SecretKey,
+		"Timestamp format":   gcs.TimestampFormat,
+		"User":               gcs.User,
+		"Version":            gcs.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", gcs.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", gcs.Name)
-	fmt.Fprintf(out, "Bucket: %s\n", gcs.Bucket)
-	fmt.Fprintf(out, "User: %s\n", gcs.User)
-	fmt.Fprintf(out, "Secret key: %s\n", gcs.SecretKey)
-	fmt.Fprintf(out, "Account name: %s\n", gcs.AccountName)
-	fmt.Fprintf(out, "Path: %s\n", gcs.Path)
-	fmt.Fprintf(out, "Period: %d\n", gcs.Period)
-	fmt.Fprintf(out, "GZip level: %d\n", gcs.GzipLevel)
-	fmt.Fprintf(out, "Format: %s\n", gcs.Format)
-	fmt.Fprintf(out, "Format version: %d\n", gcs.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", gcs.ResponseCondition)
-	fmt.Fprintf(out, "Message type: %s\n", gcs.MessageType)
-	fmt.Fprintf(out, "Timestamp format: %s\n", gcs.TimestampFormat)
-	fmt.Fprintf(out, "Placement: %s\n", gcs.Placement)
-	fmt.Fprintf(out, "Compression codec: %s\n", gcs.CompressionCodec)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = gcs.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

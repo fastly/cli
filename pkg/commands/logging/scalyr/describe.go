@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,17 +102,20 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", scalyr.ServiceID)
+	lines := text.Lines{
+		"Format version":     scalyr.FormatVersion,
+		"Format":             scalyr.Format,
+		"Name":               scalyr.Name,
+		"Placement":          scalyr.Placement,
+		"Region":             scalyr.Region,
+		"Response condition": scalyr.ResponseCondition,
+		"Token":              scalyr.Token,
+		"Version":            scalyr.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", scalyr.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", scalyr.Name)
-	fmt.Fprintf(out, "Token: %s\n", scalyr.Token)
-	fmt.Fprintf(out, "Region: %s\n", scalyr.Region)
-	fmt.Fprintf(out, "Format: %s\n", scalyr.Format)
-	fmt.Fprintf(out, "Format version: %d\n", scalyr.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", scalyr.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", scalyr.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = scalyr.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

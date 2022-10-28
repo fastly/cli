@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,16 +102,19 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", loggly.ServiceID)
+	lines := text.Lines{
+		"Format version":     loggly.FormatVersion,
+		"Format":             loggly.Format,
+		"Name":               loggly.Name,
+		"Placement":          loggly.Placement,
+		"Response condition": loggly.ResponseCondition,
+		"Token":              loggly.Token,
+		"Version":            loggly.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", loggly.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", loggly.Name)
-	fmt.Fprintf(out, "Token: %s\n", loggly.Token)
-	fmt.Fprintf(out, "Format: %s\n", loggly.Format)
-	fmt.Fprintf(out, "Format version: %d\n", loggly.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", loggly.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", loggly.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = loggly.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

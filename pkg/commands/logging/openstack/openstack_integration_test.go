@@ -440,24 +440,24 @@ func getOpenstackError(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 }
 
 var describeOpenstackOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Bucket: my-logs
 Access key: 1234
-User: user
-URL: https://example.com
-Path: logs/
-Period: 3600
-GZip level: 0
+Bucket: my-logs
+Compression codec: zstd
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+GZip level: 0
 Message type: classic
-Timestamp format: %Y-%m-%dT%H:%M:%S.000
+Name: logs
+Path: logs/
+Period: 3600
 Placement: none
 Public key: `+pgpPublicKey()+`
-Compression codec: zstd
+Response condition: Prevent default logging
+Service ID: 123
+Timestamp format: %Y-%m-%dT%H:%M:%S.000
+URL: https://example.com
+User: user
+Version: 1
 `) + "\n"
 
 func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {

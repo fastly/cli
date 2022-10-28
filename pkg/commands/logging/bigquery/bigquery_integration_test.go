@@ -371,19 +371,19 @@ func getBigQueryError(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 }
 
 var describeBigQueryOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Format: %h %l %u %t "%r" %>s %b
-User: service-account@domain.com
-Project ID: my-project
 Dataset: raw-logs
+Format: %h %l %u %t "%r" %>s %b
+Format version: 0
+Name: logs
+Placement: none
+Project ID: my-project
+Response condition: Prevent default logging
+Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
+Service ID: 123
 Table: logs
 Template suffix: %Y%m%d
-Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
-Response condition: Prevent default logging
-Placement: none
-Format version: 0
+User: service-account@domain.com
+Version: 1
 `) + "\n"
 
 func updateBigQueryOK(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {

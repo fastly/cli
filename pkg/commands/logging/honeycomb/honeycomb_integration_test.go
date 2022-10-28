@@ -371,15 +371,15 @@ func getHoneycombError(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 }
 
 var describeHoneycombOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
 Dataset: log
-Token: tkn
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Response condition: Prevent default logging
+Service ID: 123
+Token: tkn
+Version: 1
 `) + "\n"
 
 func updateHoneycombOK(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {

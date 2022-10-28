@@ -358,14 +358,14 @@ func getLogglyError(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 }
 
 var describeLogglyOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Token: abc
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Response condition: Prevent default logging
+Service ID: 123
+Token: abc
+Version: 1
 `) + "\n"
 
 func updateLogglyOK(i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {

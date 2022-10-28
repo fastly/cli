@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,17 +102,20 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", logshuttle.ServiceID)
+	lines := text.Lines{
+		"Format version":     logshuttle.FormatVersion,
+		"Format":             logshuttle.Format,
+		"Name":               logshuttle.Name,
+		"Placement":          logshuttle.Placement,
+		"Response condition": logshuttle.ResponseCondition,
+		"Token":              logshuttle.Token,
+		"URL":                logshuttle.URL,
+		"Version":            logshuttle.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", logshuttle.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", logshuttle.Name)
-	fmt.Fprintf(out, "URL: %s\n", logshuttle.URL)
-	fmt.Fprintf(out, "Token: %s\n", logshuttle.Token)
-	fmt.Fprintf(out, "Format: %s\n", logshuttle.Format)
-	fmt.Fprintf(out, "Format version: %d\n", logshuttle.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", logshuttle.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", logshuttle.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = logshuttle.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

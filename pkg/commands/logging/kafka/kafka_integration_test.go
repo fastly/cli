@@ -447,29 +447,29 @@ func getKafkaError(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
-var describeKafkaOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: log
-Topic: logs
+var describeKafkaOutput = `
 Brokers: 127.0.0.1,127.0.0.2
-Required acks: -1
 Compression codec: zippy
-Use TLS: true
+Format: %h %l %u %t "%r" %>s %b
+Format version: 2
+Max batch size: 0
+Name: log
+Parse log key-values: false
+Placement: none
+Required acks: -1
+Response condition: Prevent default logging
+SASL authentication method: ` + `
+SASL authentication password: ` + `
+SASL authentication username: ` + `
+Service ID: 123
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo
 TLS client certificate: -----BEGIN CERTIFICATE-----bar
 TLS client key: -----BEGIN PRIVATE KEY-----bar
 TLS hostname: 127.0.0.1,127.0.0.2
-Format: %h %l %u %t "%r" %>s %b
-Format version: 2
-Response condition: Prevent default logging
-Placement: none
-Parse log key-values: false
-Max batch size: 0
-SASL authentication method: 
-SASL authentication username: 
-SASL authentication password: 
-`) + " \n"
+Topic: logs
+Use TLS: true
+Version: 1
+`
 
 func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{

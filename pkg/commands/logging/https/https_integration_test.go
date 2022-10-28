@@ -430,26 +430,26 @@ func getHTTPSError(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 }
 
 var describeHTTPSOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: log
-URL: example.com
 Content type: application/json
+Format: %h %l %u %t "%r" %>s %b
+Format version: 2
 Header name: name
 Header value: value
-Method: GET
 JSON format: 1
+Message type: classic
+Method: GET
+Name: log
+Placement: none
+Request max bytes: 2
+Request max entries: 2
+Response condition: Prevent default logging
+Service ID: 123
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo
 TLS client certificate: -----BEGIN CERTIFICATE-----bar
 TLS client key: -----BEGIN PRIVATE KEY-----bar
 TLS hostname: example.com
-Request max entries: 2
-Request max bytes: 2
-Message type: classic
-Format: %h %l %u %t "%r" %>s %b
-Format version: 2
-Response condition: Prevent default logging
-Placement: none
+URL: example.com
+Version: 1
 `) + "\n"
 
 func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {

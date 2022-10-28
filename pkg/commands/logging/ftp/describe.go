@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,25 +102,28 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", ftp.ServiceID)
+	lines := text.Lines{
+		"Address":            ftp.Address,
+		"Compression codec":  ftp.CompressionCodec,
+		"Format version":     ftp.FormatVersion,
+		"Format":             ftp.Format,
+		"GZip level":         ftp.GzipLevel,
+		"Name":               ftp.Name,
+		"Password":           ftp.Password,
+		"Path":               ftp.Path,
+		"Period":             ftp.Period,
+		"Placement":          ftp.Placement,
+		"Port":               ftp.Port,
+		"Public key":         ftp.PublicKey,
+		"Response condition": ftp.ResponseCondition,
+		"Timestamp format":   ftp.TimestampFormat,
+		"Username":           ftp.Username,
+		"Version":            ftp.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", ftp.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", ftp.Name)
-	fmt.Fprintf(out, "Address: %s\n", ftp.Address)
-	fmt.Fprintf(out, "Port: %d\n", ftp.Port)
-	fmt.Fprintf(out, "Username: %s\n", ftp.Username)
-	fmt.Fprintf(out, "Password: %s\n", ftp.Password)
-	fmt.Fprintf(out, "Public key: %s\n", ftp.PublicKey)
-	fmt.Fprintf(out, "Path: %s\n", ftp.Path)
-	fmt.Fprintf(out, "Period: %d\n", ftp.Period)
-	fmt.Fprintf(out, "GZip level: %d\n", ftp.GzipLevel)
-	fmt.Fprintf(out, "Format: %s\n", ftp.Format)
-	fmt.Fprintf(out, "Format version: %d\n", ftp.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", ftp.ResponseCondition)
-	fmt.Fprintf(out, "Timestamp format: %s\n", ftp.TimestampFormat)
-	fmt.Fprintf(out, "Placement: %s\n", ftp.Placement)
-	fmt.Fprintf(out, "Compression codec: %s\n", ftp.CompressionCodec)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = ftp.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

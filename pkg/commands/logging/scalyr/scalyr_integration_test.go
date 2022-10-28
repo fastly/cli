@@ -402,15 +402,15 @@ func getScalyrError(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 }
 
 var describeScalyrOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-Token: abc
-Region: US
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+Name: logs
 Placement: none
+Region: US
+Response condition: Prevent default logging
+Service ID: 123
+Token: abc
+Version: 1
 `) + "\n"
 
 func updateScalyrOK(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {

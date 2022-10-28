@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,17 +102,20 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", papertrail.ServiceID)
+	lines := text.Lines{
+		"Address":            papertrail.Address,
+		"Format version":     papertrail.FormatVersion,
+		"Format":             papertrail.Format,
+		"Name":               papertrail.Name,
+		"Placement":          papertrail.Placement,
+		"Port":               papertrail.Port,
+		"Response condition": papertrail.ResponseCondition,
+		"Version":            papertrail.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", papertrail.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", papertrail.Name)
-	fmt.Fprintf(out, "Address: %s\n", papertrail.Address)
-	fmt.Fprintf(out, "Port: %d\n", papertrail.Port)
-	fmt.Fprintf(out, "Format: %s\n", papertrail.Format)
-	fmt.Fprintf(out, "Format version: %d\n", papertrail.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", papertrail.ResponseCondition)
-	fmt.Fprintf(out, "Placement: %s\n", papertrail.Placement)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = papertrail.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

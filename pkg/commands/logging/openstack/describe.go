@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,26 +102,29 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", openstack.ServiceID)
+	lines := text.Lines{
+		"Access key":         openstack.AccessKey,
+		"Bucket":             openstack.BucketName,
+		"Compression codec":  openstack.CompressionCodec,
+		"Format version":     openstack.FormatVersion,
+		"Format":             openstack.Format,
+		"GZip level":         openstack.GzipLevel,
+		"Message type":       openstack.MessageType,
+		"Name":               openstack.Name,
+		"Path":               openstack.Path,
+		"Period":             openstack.Period,
+		"Placement":          openstack.Placement,
+		"Public key":         openstack.PublicKey,
+		"Response condition": openstack.ResponseCondition,
+		"Timestamp format":   openstack.TimestampFormat,
+		"URL":                openstack.URL,
+		"User":               openstack.User,
+		"Version":            openstack.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", openstack.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", openstack.Name)
-	fmt.Fprintf(out, "Bucket: %s\n", openstack.BucketName)
-	fmt.Fprintf(out, "Access key: %s\n", openstack.AccessKey)
-	fmt.Fprintf(out, "User: %s\n", openstack.User)
-	fmt.Fprintf(out, "URL: %s\n", openstack.URL)
-	fmt.Fprintf(out, "Path: %s\n", openstack.Path)
-	fmt.Fprintf(out, "Period: %d\n", openstack.Period)
-	fmt.Fprintf(out, "GZip level: %d\n", openstack.GzipLevel)
-	fmt.Fprintf(out, "Format: %s\n", openstack.Format)
-	fmt.Fprintf(out, "Format version: %d\n", openstack.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", openstack.ResponseCondition)
-	fmt.Fprintf(out, "Message type: %s\n", openstack.MessageType)
-	fmt.Fprintf(out, "Timestamp format: %s\n", openstack.TimestampFormat)
-	fmt.Fprintf(out, "Placement: %s\n", openstack.Placement)
-	fmt.Fprintf(out, "Public key: %s\n", openstack.PublicKey)
-	fmt.Fprintf(out, "Compression codec: %s\n", openstack.CompressionCodec)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = openstack.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }

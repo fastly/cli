@@ -415,23 +415,23 @@ func getCloudfilesError(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error
 }
 
 var describeCloudfilesOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Version: 1
-Name: logs
-User: username
 Access key: 1234
 Bucket: my-logs
-Path: logs/
-Region: ORD
-Placement: none
-Period: 3600
-GZip level: 9
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
-Response condition: Prevent default logging
+GZip level: 9
 Message type: classic
-Timestamp format: %Y-%m-%dT%H:%M:%S.000
+Name: logs
+Path: logs/
+Period: 3600
+Placement: none
 Public key: `+pgpPublicKey()+`
+Region: ORD
+Response condition: Prevent default logging
+Service ID: 123
+Timestamp format: %Y-%m-%dT%H:%M:%S.000
+User: username
+Version: 1
 `) + "\n"
 
 func updateCloudfilesOK(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {

@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v6/fastly"
 )
 
@@ -101,25 +102,28 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", digitalocean.ServiceID)
+	lines := text.Lines{
+		"Access key":         digitalocean.AccessKey,
+		"Bucket":             digitalocean.BucketName,
+		"Domain":             digitalocean.Domain,
+		"Format version":     digitalocean.FormatVersion,
+		"Format":             digitalocean.Format,
+		"GZip level":         digitalocean.GzipLevel,
+		"Message type":       digitalocean.MessageType,
+		"Name":               digitalocean.Name,
+		"Path":               digitalocean.Path,
+		"Period":             digitalocean.Period,
+		"Placement":          digitalocean.Placement,
+		"Public key":         digitalocean.PublicKey,
+		"Response condition": digitalocean.ResponseCondition,
+		"Secret key":         digitalocean.SecretKey,
+		"Timestamp format":   digitalocean.TimestampFormat,
+		"Version":            digitalocean.ServiceVersion,
 	}
-	fmt.Fprintf(out, "Version: %d\n", digitalocean.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", digitalocean.Name)
-	fmt.Fprintf(out, "Bucket: %s\n", digitalocean.BucketName)
-	fmt.Fprintf(out, "Domain: %s\n", digitalocean.Domain)
-	fmt.Fprintf(out, "Access key: %s\n", digitalocean.AccessKey)
-	fmt.Fprintf(out, "Secret key: %s\n", digitalocean.SecretKey)
-	fmt.Fprintf(out, "Path: %s\n", digitalocean.Path)
-	fmt.Fprintf(out, "Period: %d\n", digitalocean.Period)
-	fmt.Fprintf(out, "GZip level: %d\n", digitalocean.GzipLevel)
-	fmt.Fprintf(out, "Format: %s\n", digitalocean.Format)
-	fmt.Fprintf(out, "Format version: %d\n", digitalocean.FormatVersion)
-	fmt.Fprintf(out, "Response condition: %s\n", digitalocean.ResponseCondition)
-	fmt.Fprintf(out, "Message type: %s\n", digitalocean.MessageType)
-	fmt.Fprintf(out, "Timestamp format: %s\n", digitalocean.TimestampFormat)
-	fmt.Fprintf(out, "Placement: %s\n", digitalocean.Placement)
-	fmt.Fprintf(out, "Public key: %s\n", digitalocean.PublicKey)
+	if !c.Globals.Verbose() {
+		lines["Service ID"] = digitalocean.ServiceID
+	}
+	text.PrintLines(out, lines)
 
 	return nil
 }
