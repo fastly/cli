@@ -23,22 +23,22 @@ type UpdateCommand struct {
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
-	AutoClone         cmd.OptionalAutoClone
-	NewName           cmd.OptionalString
-	Bucket            cmd.OptionalString
-	User              cmd.OptionalString
 	AccountName       cmd.OptionalString
-	SecretKey         cmd.OptionalString
-	Path              cmd.OptionalString
-	Period            cmd.OptionalInt
+	AutoClone         cmd.OptionalAutoClone
+	Bucket            cmd.OptionalString
+	CompressionCodec  cmd.OptionalString
+	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalInt
 	GzipLevel         cmd.OptionalInt
-	Format            cmd.OptionalString
-	ResponseCondition cmd.OptionalString
-	TimestampFormat   cmd.OptionalString
 	MessageType       cmd.OptionalString
+	NewName           cmd.OptionalString
+	Path              cmd.OptionalString
+	Period            cmd.OptionalInt
 	Placement         cmd.OptionalString
-	CompressionCodec  cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	SecretKey         cmd.OptionalString
+	TimestampFormat   cmd.OptionalString
+	User              cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.

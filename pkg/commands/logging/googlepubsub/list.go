@@ -125,6 +125,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tVersion: %d\n", googlepubsub.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", googlepubsub.Name)
 		fmt.Fprintf(out, "\t\tUser: %s\n", googlepubsub.User)
+		fmt.Fprintf(out, "\t\tAccount name: %s\n", googlepubsub.AccountName)
 		fmt.Fprintf(out, "\t\tSecret key: %s\n", googlepubsub.SecretKey)
 		fmt.Fprintf(out, "\t\tProject ID: %s\n", googlepubsub.ProjectID)
 		fmt.Fprintf(out, "\t\tTopic: %s\n", googlepubsub.Topic)

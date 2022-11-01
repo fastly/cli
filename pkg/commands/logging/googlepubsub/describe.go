@@ -110,6 +110,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
+		"Account name":       googlepubsub.AccountName,
 		"Format version":     googlepubsub.FormatVersion,
 		"Format":             googlepubsub.Format,
 		"Name":               googlepubsub.Name,

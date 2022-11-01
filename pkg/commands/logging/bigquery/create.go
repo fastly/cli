@@ -22,6 +22,7 @@ type CreateCommand struct {
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
 	Dataset           cmd.OptionalString
 	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
@@ -55,6 +56,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 
 	// optional
+	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials (default none)").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
@@ -130,6 +132,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
+	if c.AccountName.WasSet {
+		input.AccountName = &c.AccountName.Value
+	}
 	return &input, nil
 }
 

@@ -22,6 +22,7 @@ type CreateCommand struct {
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
 	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
@@ -54,6 +55,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 
 	// optional
+	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials (default none)").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
@@ -76,8 +78,10 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("topic", "The Google Cloud Pub/Sub topic to which logs will be published").Action(c.Topic.Set).StringVar(&c.Topic.Value)
-	c.CmdClause.Flag("user", "Your Google Cloud Platform service account email address. The client_email field in your service account authentication JSON").Action(c.User.Set).StringVar(&c.User.Value)
+	common.Format(c.CmdClause, &c.Format)
+	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.Placement(c.CmdClause, &c.Placement)
+	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	return &c
 }
 
@@ -117,6 +121,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.AccountName.WasSet {
+		input.AccountName = &c.AccountName.Value
 	}
 
 	return &input, nil

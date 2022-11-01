@@ -23,16 +23,17 @@ type UpdateCommand struct {
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
-	NewName           cmd.OptionalString
-	User              cmd.OptionalString
-	SecretKey         cmd.OptionalString
-	ProjectID         cmd.OptionalString
-	Topic             cmd.OptionalString
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalInt
+	NewName           cmd.OptionalString
 	Placement         cmd.OptionalString
+	ProjectID         cmd.OptionalString
 	ResponseCondition cmd.OptionalString
+	SecretKey         cmd.OptionalString
+	Topic             cmd.OptionalString
+	User              cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -55,6 +56,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 
 	// optional
+	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
@@ -97,6 +99,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.User.WasSet {
 		input.User = &c.User.Value
+	}
+
+	if c.AccountName.WasSet {
+		input.AccountName = fastly.String(c.AccountName.Value)
 	}
 
 	if c.SecretKey.WasSet {
