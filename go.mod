@@ -16,7 +16,7 @@ require (
 	github.com/getsentry/sentry-go v0.12.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v38 v38.1.0
-	github.com/mattn/go-isatty v0.0.14
+	github.com/mattn/go-isatty v0.0.16
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/mitchellh/mapstructure v1.4.3
@@ -25,7 +25,7 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
