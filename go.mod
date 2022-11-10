@@ -25,7 +25,7 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
-	golang.org/x/sys v0.0.0-20220327210214-530d0810a4d0 // indirect
+	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
@@ -33,7 +33,7 @@ require (
 require (
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
-	github.com/otiai10/copy v1.7.0
+	github.com/otiai10/copy v1.9.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/tcnksm/go-gitconfig v0.1.2
 )
