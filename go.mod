@@ -17,7 +17,7 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v38 v38.1.0
 	github.com/mattn/go-isatty v0.0.14
-	github.com/mholt/archiver/v3 v3.5.0
+	github.com/mholt/archiver/v3 v3.5.1
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/nicksnyder/go-i18n v1.10.1 // indirect
@@ -40,7 +40,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
-	github.com/dsnet/compress v0.0.1 // indirect
+	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/jsonapi v1.0.0 // indirect
