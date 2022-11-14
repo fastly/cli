@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // CreateCommand calls the Fastly API to create a BigQuery logging endpoint.
@@ -84,31 +84,32 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.ProjectID = c.ProjectID
-	input.Dataset = c.Dataset
-	input.User = c.User
-	input.Table = c.Table
-	input.SecretKey = c.SecretKey
+	input.Name = &c.EndpointName
+	input.ProjectID = &c.ProjectID
+	input.Dataset = &c.Dataset
+	input.User = &c.User
+	input.Table = &c.Table
+	input.SecretKey = &c.SecretKey
 
 	if c.Template.WasSet {
-		input.Template = c.Template.Value
+		input.Template = &c.Template.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		v := int(c.FormatVersion.Value)
+		input.FormatVersion = &v
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	return &input, nil

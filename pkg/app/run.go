@@ -18,7 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 	"github.com/fastly/kingpin"
 )
 

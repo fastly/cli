@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.
