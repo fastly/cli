@@ -276,8 +276,8 @@ func createLogshuttleOK(i *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, er
 		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != "" {
-		s.Name = i.Name
+	if *i.Name != "" {
+		s.Name = *i.Name
 	}
 
 	return &s, nil

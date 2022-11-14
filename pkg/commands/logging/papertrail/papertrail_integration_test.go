@@ -266,7 +266,7 @@ func createPapertrailOK(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, er
 	return &fastly.Papertrail{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

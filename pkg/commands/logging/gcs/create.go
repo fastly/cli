@@ -30,10 +30,10 @@ type CreateCommand struct {
 	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
 	Path              cmd.OptionalString
-	Period            cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint8
+	Period            cmd.OptionalInt
+	GzipLevel         cmd.OptionalInt
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	MessageType       cmd.OptionalString
 	ResponseCondition cmd.OptionalString
 	TimestampFormat   cmd.OptionalString
@@ -93,10 +93,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.Bucket = c.Bucket
-	input.User = c.User
-	input.SecretKey = c.SecretKey
+	input.Name = &c.EndpointName
+	input.Bucket = fastly.String(c.Bucket)
+	input.User = fastly.String(c.User)
+	input.SecretKey = fastly.String(c.SecretKey)
 
 	// The following blocks enforces the mutual exclusivity of the
 	// CompressionCodec and GzipLevel flags.
@@ -105,47 +105,47 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Path.WasSet {
-		input.Path = c.Path.Value
+		input.Path = &c.Path.Value
 	}
 
 	if c.Period.WasSet {
-		input.Period = c.Period.Value
+		input.Period = &c.Period.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = c.GzipLevel.Value
+		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = c.TimestampFormat.Value
+		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = c.CompressionCodec.Value
+		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
 	}
 
 	if c.AccountName.WasSet {
-		input.AccountName = c.AccountName.Value
+		input.AccountName = &c.AccountName.Value
 	}
 
 	return &input, nil

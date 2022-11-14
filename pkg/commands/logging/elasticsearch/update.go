@@ -28,8 +28,8 @@ type UpdateCommand struct {
 	Index             cmd.OptionalString
 	URL               cmd.OptionalString
 	Pipeline          cmd.OptionalString
-	RequestMaxEntries cmd.OptionalUint
-	RequestMaxBytes   cmd.OptionalUint
+	RequestMaxEntries cmd.OptionalInt
+	RequestMaxBytes   cmd.OptionalInt
 	User              cmd.OptionalString
 	Password          cmd.OptionalString
 	TLSCACert         cmd.OptionalString
@@ -37,7 +37,7 @@ type UpdateCommand struct {
 	TLSClientKey      cmd.OptionalString
 	TLSHostname       cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	Placement         cmd.OptionalString
 	ResponseCondition cmd.OptionalString
 }
@@ -83,8 +83,8 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.Placement(c.CmdClause, &c.Placement)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).UintVar(&c.RequestMaxEntries.Value)
-	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).UintVar(&c.RequestMaxBytes.Value)
+	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).IntVar(&c.RequestMaxEntries.Value)
+	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
 	return &c
 }
 
@@ -113,11 +113,11 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.RequestMaxEntries.WasSet {
-		input.RequestMaxEntries = fastly.Uint(c.RequestMaxEntries.Value)
+		input.RequestMaxEntries = fastly.Int(c.RequestMaxEntries.Value)
 	}
 
 	if c.RequestMaxBytes.WasSet {
-		input.RequestMaxBytes = fastly.Uint(c.RequestMaxBytes.Value)
+		input.RequestMaxBytes = fastly.Int(c.RequestMaxBytes.Value)
 	}
 
 	if c.User.WasSet {
@@ -149,7 +149,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.WasSet {

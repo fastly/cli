@@ -1,7 +1,6 @@
 package scalyr
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -127,10 +126,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
-	fmt.Println(*input.Name)
-	fmt.Println(*input.Token)
-	fmt.Println(input.ServiceID)
-	fmt.Println(input.ServiceVersion)
 	d, err := c.Globals.APIClient.CreateScalyr(input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

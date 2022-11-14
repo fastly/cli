@@ -30,11 +30,11 @@ type CreateCommand struct {
 	AutoClone         cmd.OptionalAutoClone
 	Domain            cmd.OptionalString
 	Path              cmd.OptionalString
-	Period            cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint8
+	Period            cmd.OptionalInt
+	GzipLevel         cmd.OptionalInt
 	MessageType       cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	ResponseCondition cmd.OptionalString
 	TimestampFormat   cmd.OptionalString
 	Placement         cmd.OptionalString
@@ -95,10 +95,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.BucketName = c.BucketName
-	input.AccessKey = c.AccessKey
-	input.SecretKey = c.SecretKey
+	input.Name = fastly.String(c.EndpointName)
+	input.BucketName = fastly.String(c.BucketName)
+	input.AccessKey = fastly.String(c.AccessKey)
+	input.SecretKey = fastly.String(c.SecretKey)
 
 	// The following blocks enforces the mutual exclusivity of the
 	// CompressionCodec and GzipLevel flags.
@@ -107,51 +107,51 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Domain.WasSet {
-		input.Domain = c.Domain.Value
+		input.Domain = fastly.String(c.Domain.Value)
 	}
 
 	if c.Path.WasSet {
-		input.Path = c.Path.Value
+		input.Path = fastly.String(c.Path.Value)
 	}
 
 	if c.Period.WasSet {
-		input.Period = c.Period.Value
+		input.Period = fastly.Int(c.Period.Value)
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = c.GzipLevel.Value
+		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = c.TimestampFormat.Value
+		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	if c.PublicKey.WasSet {
-		input.PublicKey = c.PublicKey.Value
+		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = c.CompressionCodec.Value
+		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
 	}
 
 	return &input, nil

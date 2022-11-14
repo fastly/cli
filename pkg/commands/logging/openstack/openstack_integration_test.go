@@ -300,8 +300,8 @@ func createOpenstackOK(i *fastly.CreateOpenstackInput) (*fastly.Openstack, error
 		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != "" {
-		s.Name = i.Name
+	if *i.Name != "" {
+		s.Name = *i.Name
 	}
 
 	return &s, nil

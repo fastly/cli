@@ -268,8 +268,8 @@ func createLogglyOK(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != "" {
-		s.Name = i.Name
+	if *i.Name != "" {
+		s.Name = *i.Name
 	}
 
 	return &s, nil

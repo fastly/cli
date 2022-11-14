@@ -27,7 +27,7 @@ type UpdateCommand struct {
 	NewName           cmd.OptionalString
 	URL               cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	ResponseCondition cmd.OptionalString
 	Placement         cmd.OptionalString
 	Token             cmd.OptionalString
@@ -75,7 +75,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("placement", "	Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
+	c.CmdClause.Flag("placement", "	Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(fastly.String(c.Placement.Value))
 	c.CmdClause.Flag("auth-token", "").Action(c.Token.Set).StringVar(&c.Token.Value)
 	return &c
 }
@@ -102,7 +102,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.WasSet {

@@ -258,7 +258,7 @@ func createLogentriesOK(i *fastly.CreateLogentriesInput) (*fastly.Logentries, er
 	return &fastly.Logentries{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

@@ -341,7 +341,7 @@ func createS3OK(i *fastly.CreateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
 		ServiceID:        i.ServiceID,
 		ServiceVersion:   i.ServiceVersion,
-		Name:             i.Name,
+		Name:             *i.Name,
 		CompressionCodec: "zstd",
 	}, nil
 }

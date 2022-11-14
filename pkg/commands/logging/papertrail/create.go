@@ -25,9 +25,9 @@ type CreateCommand struct {
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
-	Port              cmd.OptionalUint
+	Port              cmd.OptionalInt
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	Placement         cmd.OptionalString
 	ResponseCondition cmd.OptionalString
 }
@@ -62,7 +62,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
+	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.Format(c.CmdClause, &c.Format)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
@@ -75,28 +75,28 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	var input fastly.CreatePapertrailInput
 
 	input.ServiceID = serviceID
-	input.Name = c.EndpointName
+	input.Name = fastly.String(c.EndpointName)
 	input.ServiceVersion = serviceVersion
-	input.Address = c.Address
+	input.Address = fastly.String(c.Address)
 
 	if c.Port.WasSet {
-		input.Port = c.Port.Value
+		input.Port = fastly.Int(c.Port.Value)
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil
