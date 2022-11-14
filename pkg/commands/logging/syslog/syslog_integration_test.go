@@ -266,7 +266,7 @@ func createSyslogOK(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

@@ -26,7 +26,7 @@ type UpdateCommand struct {
 	AutoClone         cmd.OptionalAutoClone
 	NewName           cmd.OptionalString
 	Address           cmd.OptionalString
-	Port              cmd.OptionalUint
+	Port              cmd.OptionalInt
 	UseTLS            cmd.OptionalBool
 	TLSCACert         cmd.OptionalString
 	TLSHostname       cmd.OptionalString
@@ -34,7 +34,7 @@ type UpdateCommand struct {
 	TLSClientKey      cmd.OptionalString
 	Token             cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	MessageType       cmd.OptionalString
 	ResponseCondition cmd.OptionalString
 	Placement         cmd.OptionalString
@@ -71,7 +71,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("new-name", "New name of the Syslog logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("address", "A hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
-	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
+	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
 	common.TLSCACert(c.CmdClause, &c.TLSCACert)
 	common.TLSClientCert(c.CmdClause, &c.TLSClientCert)
@@ -104,7 +104,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Port.WasSet {
-		input.Port = fastly.Uint(c.Port.Value)
+		input.Port = fastly.Int(c.Port.Value)
 	}
 
 	if c.UseTLS.WasSet {
@@ -136,7 +136,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.MessageType.WasSet {

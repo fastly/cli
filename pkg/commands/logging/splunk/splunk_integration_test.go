@@ -266,7 +266,7 @@ func createSplunkOK(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

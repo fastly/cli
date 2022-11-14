@@ -11,8 +11,8 @@ func Format(cmd *kingpin.CmdClause, c *cmd.OptionalString) {
 }
 
 // GzipLevel defines the gzip flag
-func GzipLevel(cmd *kingpin.CmdClause, c *cmd.OptionalUint8) {
-	cmd.Flag("gzip-level", "What level of GZIP encoding to have when dumping logs (default 0, no compression)").Action(c.Set).Uint8Var(&c.Value)
+func GzipLevel(cmd *kingpin.CmdClause, c *cmd.OptionalInt) {
+	cmd.Flag("gzip-level", "What level of GZIP encoding to have when dumping logs (default 0, no compression)").Action(c.Set).IntVar(&c.Value)
 }
 
 // Path defines the path flag
@@ -26,13 +26,13 @@ func MessageType(cmd *kingpin.CmdClause, c *cmd.OptionalString) {
 }
 
 // Period defines the period flag
-func Period(cmd *kingpin.CmdClause, c *cmd.OptionalUint) {
-	cmd.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Set).UintVar(&c.Value)
+func Period(cmd *kingpin.CmdClause, c *cmd.OptionalInt) {
+	cmd.Flag("period", "How frequently log files are finalized so they can be available for reading (in seconds, default 3600)").Action(c.Set).IntVar(&c.Value)
 }
 
 // FormatVersion defines the format-version flag
-func FormatVersion(cmd *kingpin.CmdClause, c *cmd.OptionalUint) {
-	cmd.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.Set).UintVar(&c.Value)
+func FormatVersion(cmd *kingpin.CmdClause, c *cmd.OptionalInt) {
+	cmd.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.Set).IntVar(&c.Value)
 }
 
 // CompressionCodec defines the compression-codec flag

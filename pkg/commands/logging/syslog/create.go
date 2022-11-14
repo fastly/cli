@@ -25,7 +25,7 @@ type CreateCommand struct {
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
-	Port              cmd.OptionalUint
+	Port              cmd.OptionalInt
 	UseTLS            cmd.OptionalBool
 	Token             cmd.OptionalString
 	TLSCACert         cmd.OptionalString
@@ -34,7 +34,7 @@ type CreateCommand struct {
 	TLSHostname       cmd.OptionalString
 	MessageType       cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	Placement         cmd.OptionalString
 	ResponseCondition cmd.OptionalString
 }
@@ -69,7 +69,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
+	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
 	c.CmdClause.Flag("auth-token", "Whether to prepend each message with a specific token").Action(c.Token.Set).StringVar(&c.Token.Value)
 	// c.CmdClause.Flag("tls-hostname", "Used during the TLS handshake to validate the certificate").Action(c.TLSHostname.Set).StringVar(&c.TLSHostname.Value)
@@ -90,56 +90,56 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	var input fastly.CreateSyslogInput
 
 	input.ServiceID = serviceID
-	input.Name = c.EndpointName
+	input.Name = fastly.String(c.EndpointName)
 	input.ServiceVersion = serviceVersion
-	input.Address = c.Address
+	input.Address = fastly.String(c.Address)
 
 	if c.Port.WasSet {
-		input.Port = c.Port.Value
+		input.Port = fastly.Int(c.Port.Value)
 	}
 
 	if c.UseTLS.WasSet {
-		input.UseTLS = fastly.Compatibool(c.UseTLS.Value)
+		input.UseTLS = fastly.CBool(c.UseTLS.Value)
 	}
 
 	if c.TLSCACert.WasSet {
-		input.TLSCACert = c.TLSCACert.Value
+		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
 	if c.TLSHostname.WasSet {
-		input.TLSHostname = c.TLSHostname.Value
+		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
 	if c.TLSClientCert.WasSet {
-		input.TLSClientCert = c.TLSClientCert.Value
+		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
 	}
 
 	if c.TLSClientKey.WasSet {
-		input.TLSClientKey = c.TLSClientKey.Value
+		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
 	}
 
 	if c.Token.WasSet {
-		input.Token = c.Token.Value
+		input.Token = fastly.String(c.Token.Value)
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 	return &input, nil
 }

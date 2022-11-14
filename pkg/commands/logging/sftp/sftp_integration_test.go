@@ -293,8 +293,8 @@ func createSFTPOK(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 		CompressionCodec: "zstd",
 	}
 
-	if i.Name != "" {
-		s.Name = i.Name
+	if *i.Name != "" {
+		s.Name = *i.Name
 	}
 
 	return &s, nil

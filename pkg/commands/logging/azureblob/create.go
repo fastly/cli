@@ -29,16 +29,16 @@ type CreateCommand struct {
 	// optional
 	AutoClone         cmd.OptionalAutoClone
 	Path              cmd.OptionalString
-	Period            cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint8
+	Period            cmd.OptionalInt
+	GzipLevel         cmd.OptionalInt
 	MessageType       cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	ResponseCondition cmd.OptionalString
 	TimestampFormat   cmd.OptionalString
 	Placement         cmd.OptionalString
 	PublicKey         cmd.OptionalString
-	FileMaxBytes      cmd.OptionalUint
+	FileMaxBytes      cmd.OptionalInt
 	CompressionCodec  cmd.OptionalString
 }
 
@@ -84,7 +84,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	common.Placement(c.CmdClause, &c.Placement)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
-	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).UintVar(&c.FileMaxBytes.Value)
+	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).IntVar(fastly.Int(c.FileMaxBytes.Value))
 	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	return &c
 }
@@ -95,10 +95,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.Container = c.Container
-	input.AccountName = c.AccountName
-	input.SASToken = c.SASToken
+	input.Name = &c.EndpointName
+	input.Container = &c.Container
+	input.AccountName = &c.AccountName
+	input.SASToken = &c.SASToken
 
 	// The following blocks enforces the mutual exclusivity of the
 	// CompressionCodec and GzipLevel flags.
@@ -107,51 +107,51 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Path.WasSet {
-		input.Path = c.Path.Value
+		input.Path = &c.Path.Value
 	}
 
 	if c.Period.WasSet {
-		input.Period = c.Period.Value
+		input.Period = &c.Period.Value
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = c.GzipLevel.Value
+		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = c.TimestampFormat.Value
+		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	if c.PublicKey.WasSet {
-		input.PublicKey = c.PublicKey.Value
+		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
 	if c.FileMaxBytes.WasSet {
-		input.FileMaxBytes = c.FileMaxBytes.Value
+		input.FileMaxBytes = fastly.Int(c.FileMaxBytes.Value)
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = c.CompressionCodec.Value
+		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
 	}
 
 	return &input, nil

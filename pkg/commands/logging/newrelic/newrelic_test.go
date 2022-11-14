@@ -58,7 +58,7 @@ func TestNewRelicCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateNewRelicFn: func(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
-						Name:           i.Name,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -74,7 +74,7 @@ func TestNewRelicCreate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateNewRelicFn: func(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
-						Name:           i.Name,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil

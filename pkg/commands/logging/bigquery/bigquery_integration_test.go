@@ -262,7 +262,7 @@ func createBigQueryOK(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

@@ -26,15 +26,15 @@ type UpdateCommand struct {
 	AutoClone         cmd.OptionalAutoClone
 	NewName           cmd.OptionalString
 	Address           cmd.OptionalString
-	Port              cmd.OptionalUint
+	Port              cmd.OptionalInt
 	Username          cmd.OptionalString
 	Password          cmd.OptionalString
 	PublicKey         cmd.OptionalString
 	Path              cmd.OptionalString
-	Period            cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint8
+	Period            cmd.OptionalInt
+	GzipLevel         cmd.OptionalInt
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	ResponseCondition cmd.OptionalString
 	TimestampFormat   cmd.OptionalString
 	Placement         cmd.OptionalString
@@ -72,7 +72,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	c.CmdClause.Flag("new-name", "New name of the FTP logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("address", "An hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
-	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
+	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
 	c.CmdClause.Flag("username", "The username for the server (can be anonymous)").Action(c.Username.Set).StringVar(&c.Username.Value)
 	c.CmdClause.Flag("password", "The password for the server (for anonymous use an email address)").Action(c.Password.Set).StringVar(&c.Password.Value)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
@@ -106,7 +106,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Port.WasSet {
-		input.Port = fastly.Uint(c.Port.Value)
+		input.Port = fastly.Int(c.Port.Value)
 	}
 
 	if c.Username.WasSet {
@@ -126,15 +126,15 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Period.WasSet {
-		input.Period = fastly.Uint(c.Period.Value)
+		input.Period = fastly.Int(c.Period.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = fastly.Uint8(c.GzipLevel.Value)
+		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
 	}
 
 	if c.Format.WasSet {

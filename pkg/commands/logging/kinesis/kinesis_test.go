@@ -27,10 +27,11 @@ func TestCreateKinesisInput(t *testing.T) {
 			want: &fastly.CreateKinesisInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				StreamName:     "stream",
-				AccessKey:      "access",
-				SecretKey:      "secret",
+				Name:           fastly.String("log"),
+				StreamName:     fastly.String("stream"),
+				Region:         fastly.String("us-east-1"),
+				AccessKey:      fastly.String("access"),
+				SecretKey:      fastly.String("secret"),
 			},
 		},
 		{
@@ -39,9 +40,10 @@ func TestCreateKinesisInput(t *testing.T) {
 			want: &fastly.CreateKinesisInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				StreamName:     "stream",
-				IAMRole:        "arn:aws:iam::123456789012:role/KinesisAccess",
+				Name:           fastly.String("log"),
+				Region:         fastly.String("us-east-1"),
+				StreamName:     fastly.String("stream"),
+				IAMRole:        fastly.String("arn:aws:iam::123456789012:role/KinesisAccess"),
 			},
 		},
 		{
@@ -50,15 +52,15 @@ func TestCreateKinesisInput(t *testing.T) {
 			want: &fastly.CreateKinesisInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "logs",
-				StreamName:        "stream",
-				Region:            "us-east-1",
-				AccessKey:         "access",
-				SecretKey:         "secret",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
+				Name:              fastly.String("logs"),
+				StreamName:        fastly.String("stream"),
+				Region:            fastly.String("us-east-1"),
+				AccessKey:         fastly.String("access"),
+				SecretKey:         fastly.String("secret"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Int(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
 			},
 		},
 		{
@@ -133,7 +135,7 @@ func TestUpdateKinesisInput(t *testing.T) {
 			want: &fastly.UpdateKinesisInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
+				Name:              *fastly.String("log"),
 				NewName:           fastly.String("new1"),
 				StreamName:        fastly.String("new2"),
 				AccessKey:         fastly.String("new3"),
@@ -141,7 +143,7 @@ func TestUpdateKinesisInput(t *testing.T) {
 				IAMRole:           fastly.String(""),
 				Region:            fastly.String("new5"),
 				Format:            fastly.String("new7"),
-				FormatVersion:     fastly.Uint(3),
+				FormatVersion:     fastly.Int(3),
 				ResponseCondition: fastly.String("new9"),
 				Placement:         fastly.String("new11"),
 			},
@@ -211,7 +213,7 @@ func createCommandRequired() *kinesis.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -223,6 +225,7 @@ func createCommandRequired() *kinesis.CreateCommand {
 				Value: true,
 			},
 		},
+		Region:     "us-east-1",
 		StreamName: "stream",
 		AccessKey:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
 		SecretKey:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
@@ -251,10 +254,11 @@ func createCommandRequiredIAMRole() *kinesis.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
+		Region: "us-east-1",
 		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
@@ -307,7 +311,7 @@ func createCommandAll() *kinesis.CreateCommand {
 		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
 		Region:            "us-east-1",
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
 	}
@@ -337,7 +341,7 @@ func updateCommandNoUpdates() *kinesis.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -370,7 +374,7 @@ func updateCommandAll() *kinesis.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -389,7 +393,7 @@ func updateCommandAll() *kinesis.UpdateCommand {
 		IAMRole:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: ""},
 		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
 	}

@@ -26,7 +26,7 @@ type UpdateCommand struct {
 	AutoClone         cmd.OptionalAutoClone
 	NewName           cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	Dataset           cmd.OptionalString
 	Token             cmd.OptionalString
 	ResponseCondition cmd.OptionalString
@@ -89,7 +89,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.Token.WasSet {

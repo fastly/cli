@@ -28,15 +28,15 @@ type CreateCommand struct {
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
-	Port              cmd.OptionalUint
+	Port              cmd.OptionalInt
 	Password          cmd.OptionalString
 	PublicKey         cmd.OptionalString
 	SecretKey         cmd.OptionalString
 	Path              cmd.OptionalString
-	Period            cmd.OptionalUint
+	Period            cmd.OptionalInt
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint8
+	FormatVersion     cmd.OptionalInt
+	GzipLevel         cmd.OptionalInt
 	MessageType       cmd.OptionalString
 	ResponseCondition cmd.OptionalString
 	TimestampFormat   cmd.OptionalString
@@ -76,7 +76,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
+	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
 	c.CmdClause.Flag("password", "The password for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.Password.Set).StringVar(&c.Password.Value)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	c.CmdClause.Flag("secret-key", "The SSH private key for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
@@ -99,10 +99,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.Address = c.Address
-	input.User = c.User
-	input.SSHKnownHosts = c.SSHKnownHosts
+	input.Name = fastly.String(c.EndpointName)
+	input.Address = fastly.String(c.Address)
+	input.User = fastly.String(c.User)
+	input.SSHKnownHosts = fastly.String(c.SSHKnownHosts)
 
 	// The following blocks enforces the mutual exclusivity of the
 	// CompressionCodec and GzipLevel flags.
@@ -111,59 +111,59 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Port.WasSet {
-		input.Port = c.Port.Value
+		input.Port = fastly.Int(c.Port.Value)
 	}
 
 	if c.Password.WasSet {
-		input.Password = c.Password.Value
+		input.Password = fastly.String(c.Password.Value)
 	}
 
 	if c.PublicKey.WasSet {
-		input.PublicKey = c.PublicKey.Value
+		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = c.SecretKey.Value
+		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
 	if c.Path.WasSet {
-		input.Path = c.Path.Value
+		input.Path = &c.Path.Value
 	}
 
 	if c.Period.WasSet {
-		input.Period = c.Period.Value
+		input.Period = &c.Period.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = c.GzipLevel.Value
+		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = c.TimestampFormat.Value
+		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = c.CompressionCodec.Value
+		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
 	}
 
 	return &input, nil

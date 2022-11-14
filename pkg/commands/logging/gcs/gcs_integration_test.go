@@ -290,7 +290,7 @@ func createGCSOK(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

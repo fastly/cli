@@ -266,7 +266,7 @@ func createSumologicOK(i *fastly.CreateSumologicInput) (*fastly.Sumologic, error
 	return &fastly.Sumologic{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

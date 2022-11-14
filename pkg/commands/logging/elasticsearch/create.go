@@ -27,8 +27,8 @@ type CreateCommand struct {
 	// optional
 	AutoClone         cmd.OptionalAutoClone
 	Pipeline          cmd.OptionalString
-	RequestMaxEntries cmd.OptionalUint
-	RequestMaxBytes   cmd.OptionalUint
+	RequestMaxEntries cmd.OptionalInt
+	RequestMaxBytes   cmd.OptionalInt
 	User              cmd.OptionalString
 	Password          cmd.OptionalString
 	TLSCACert         cmd.OptionalString
@@ -36,7 +36,7 @@ type CreateCommand struct {
 	TLSClientKey      cmd.OptionalString
 	TLSHostname       cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	Placement         cmd.OptionalString
 	ResponseCondition cmd.OptionalString
 }
@@ -81,8 +81,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.Placement(c.CmdClause, &c.Placement)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).UintVar(&c.RequestMaxEntries.Value)
-	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).UintVar(&c.RequestMaxBytes.Value)
+	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).IntVar(&c.RequestMaxEntries.Value)
+	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
 	return &c
 }
 
@@ -92,60 +92,60 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.Index = c.Index
-	input.URL = c.URL
+	input.Name = fastly.String(c.EndpointName)
+	input.Index = fastly.String(c.Index)
+	input.URL = fastly.String(c.URL)
 
 	if c.Pipeline.WasSet {
-		input.Pipeline = c.Pipeline.Value
+		input.Pipeline = fastly.String(c.Pipeline.Value)
 	}
 
 	if c.RequestMaxEntries.WasSet {
-		input.RequestMaxEntries = c.RequestMaxEntries.Value
+		input.RequestMaxEntries = fastly.Int(c.RequestMaxEntries.Value)
 	}
 
 	if c.RequestMaxBytes.WasSet {
-		input.RequestMaxBytes = c.RequestMaxBytes.Value
+		input.RequestMaxBytes = fastly.Int(c.RequestMaxBytes.Value)
 	}
 
 	if c.User.WasSet {
-		input.User = c.User.Value
+		input.User = fastly.String(c.User.Value)
 	}
 
 	if c.Password.WasSet {
-		input.Password = c.Password.Value
+		input.Password = fastly.String(c.Password.Value)
 	}
 
 	if c.TLSCACert.WasSet {
-		input.TLSCACert = c.TLSCACert.Value
+		input.TLSCACert = fastly.String(c.TLSCACert.Value)
 	}
 
 	if c.TLSClientCert.WasSet {
-		input.TLSClientCert = c.TLSClientCert.Value
+		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
 	}
 
 	if c.TLSClientKey.WasSet {
-		input.TLSClientKey = c.TLSClientKey.Value
+		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
 	}
 
 	if c.TLSHostname.WasSet {
-		input.TLSHostname = c.TLSHostname.Value
+		input.TLSHostname = fastly.String(c.TLSHostname.Value)
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil

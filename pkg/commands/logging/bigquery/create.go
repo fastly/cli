@@ -33,7 +33,7 @@ type CreateCommand struct {
 	Placement         cmd.OptionalString
 	ResponseCondition cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -96,20 +96,19 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Format.WasSet {
-		input.Format = &c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		v := int(c.FormatVersion.Value)
-		input.FormatVersion = &v
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = &c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	return &input, nil

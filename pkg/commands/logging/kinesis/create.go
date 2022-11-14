@@ -34,7 +34,7 @@ type CreateCommand struct {
 	// optional
 	AutoClone         cmd.OptionalAutoClone
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	ResponseCondition cmd.OptionalString
 	Placement         cmd.OptionalString
 }
@@ -92,9 +92,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	var input fastly.CreateKinesisInput
 
 	input.ServiceID = serviceID
-	input.Name = c.EndpointName
-	input.StreamName = c.StreamName
-	input.Region = c.Region
+	input.Name = fastly.String(c.EndpointName)
+	input.StreamName = fastly.String(c.StreamName)
+	input.Region = fastly.String(c.Region)
 	input.ServiceVersion = serviceVersion
 
 	// The following block checks for invalid permutations of the ways in
@@ -115,31 +115,31 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.AccessKey.WasSet {
-		input.AccessKey = c.AccessKey.Value
+		input.AccessKey = fastly.String(c.AccessKey.Value)
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = c.SecretKey.Value
+		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
 	if c.IAMRole.WasSet {
-		input.IAMRole = c.IAMRole.Value
+		input.IAMRole = fastly.String(c.IAMRole.Value)
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil

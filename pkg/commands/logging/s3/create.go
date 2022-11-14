@@ -34,10 +34,10 @@ type CreateCommand struct {
 	AutoClone                    cmd.OptionalAutoClone
 	Domain                       cmd.OptionalString
 	Path                         cmd.OptionalString
-	Period                       cmd.OptionalUint
-	GzipLevel                    cmd.OptionalUint8
+	Period                       cmd.OptionalInt
+	GzipLevel                    cmd.OptionalInt
 	Format                       cmd.OptionalString
-	FormatVersion                cmd.OptionalUint
+	FormatVersion                cmd.OptionalInt
 	MessageType                  cmd.OptionalString
 	ResponseCondition            cmd.OptionalString
 	TimestampFormat              cmd.OptionalString
@@ -106,8 +106,8 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.BucketName = c.BucketName
+	input.Name = fastly.String(c.EndpointName)
+	input.BucketName = fastly.String(c.BucketName)
 
 	// The following block checks for invalid permutations of the ways in
 	// which the AccessKey + SecretKey and IAMRole flags can be
@@ -133,82 +133,84 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.AccessKey.WasSet {
-		input.AccessKey = c.AccessKey.Value
+		input.AccessKey = fastly.String(c.AccessKey.Value)
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = c.SecretKey.Value
+		input.SecretKey = fastly.String(c.SecretKey.Value)
 	}
 
 	if c.IAMRole.WasSet {
-		input.IAMRole = c.IAMRole.Value
+		input.IAMRole = fastly.String(c.IAMRole.Value)
 	}
 
 	if c.Domain.WasSet {
-		input.Domain = c.Domain.Value
+		input.Domain = fastly.String(c.Domain.Value)
 	}
 
 	if c.Path.WasSet {
-		input.Path = c.Path.Value
+		input.Path = fastly.String(c.Path.Value)
 	}
 
 	if c.Period.WasSet {
-		input.Period = c.Period.Value
+		input.Period = fastly.Int(c.Period.Value)
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = c.GzipLevel.Value
+		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = fastly.String(c.MessageType.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = c.TimestampFormat.Value
+		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	if c.PublicKey.WasSet {
-		input.PublicKey = c.PublicKey.Value
+		input.PublicKey = fastly.String(c.PublicKey.Value)
 	}
 
 	if c.ServerSideEncryptionKMSKeyID.WasSet {
-		input.ServerSideEncryptionKMSKeyID = c.ServerSideEncryptionKMSKeyID.Value
+		input.ServerSideEncryptionKMSKeyID = fastly.String(c.ServerSideEncryptionKMSKeyID.Value)
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = c.CompressionCodec.Value
+		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
 	}
 
 	if c.Redundancy.WasSet {
 		redundancy, err := ValidateRedundancy(c.Redundancy.Value)
 		if err == nil {
-			input.Redundancy = redundancy
+			input.Redundancy = &redundancy
 		}
 	}
 
 	if c.ServerSideEncryption.WasSet {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionAES
+			sse := fastly.S3ServerSideEncryptionAES
+			input.ServerSideEncryption = &sse
 		case string(fastly.S3ServerSideEncryptionKMS):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionKMS
+			sse := fastly.S3ServerSideEncryptionKMS
+			input.ServerSideEncryption = &sse
 		}
 	}
 

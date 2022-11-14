@@ -29,16 +29,16 @@ type UpdateCommand struct {
 	Container         cmd.OptionalString
 	SASToken          cmd.OptionalString
 	Path              cmd.OptionalString
-	Period            cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint8
+	Period            cmd.OptionalInt
+	GzipLevel         cmd.OptionalInt
 	MessageType       cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	ResponseCondition cmd.OptionalString
 	TimestampFormat   cmd.OptionalString
 	Placement         cmd.OptionalString
 	PublicKey         cmd.OptionalString
-	FileMaxBytes      cmd.OptionalUint
+	FileMaxBytes      cmd.OptionalInt
 	CompressionCodec  cmd.OptionalString
 }
 
@@ -85,7 +85,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	common.Placement(c.CmdClause, &c.Placement)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
-	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).UintVar(&c.FileMaxBytes.Value)
+	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).IntVar(fastly.Int(c.FileMaxBytes.Value))
 	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	return &c
 }
@@ -120,11 +120,11 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Period.WasSet {
-		input.Period = fastly.Uint(c.Period.Value)
+		input.Period = fastly.Int(c.Period.Value)
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = fastly.Uint8(c.GzipLevel.Value)
+		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
 	}
 
 	if c.Format.WasSet {
@@ -132,7 +132,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Uint(c.FormatVersion.Value)
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
@@ -156,7 +156,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.FileMaxBytes.WasSet {
-		input.FileMaxBytes = fastly.Uint(c.FileMaxBytes.Value)
+		input.FileMaxBytes = fastly.Int(c.FileMaxBytes.Value)
 	}
 
 	if c.CompressionCodec.WasSet {

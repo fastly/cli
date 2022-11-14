@@ -290,8 +290,8 @@ func createFTPOK(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
 		ServiceID:        i.ServiceID,
 		ServiceVersion:   i.ServiceVersion,
-		Name:             i.Name,
-		CompressionCodec: i.CompressionCodec,
+		Name:             *i.Name,
+		CompressionCodec: *i.CompressionCodec,
 	}, nil
 }
 

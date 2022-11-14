@@ -324,7 +324,7 @@ func createKinesisOK(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

@@ -27,8 +27,8 @@ func TestCreateSumologicInput(t *testing.T) {
 			want: &fastly.CreateSumologicInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				URL:            "example.com",
+				Name:           fastly.String("log"),
+				URL:            fastly.String("example.com"),
 			},
 		},
 		{
@@ -37,13 +37,13 @@ func TestCreateSumologicInput(t *testing.T) {
 			want: &fastly.CreateSumologicInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
-				URL:               "example.com",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
-				MessageType:       "classic",
+				Name:              fastly.String("log"),
+				URL:               fastly.String("example.com"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Int(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
+				MessageType:       fastly.String("classic"),
 			},
 		},
 		{
@@ -193,7 +193,7 @@ func createCommandOK() *sumologic.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		URL:          "example.com",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
@@ -236,7 +236,7 @@ func createCommandRequired() *sumologic.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		URL:          "example.com",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
@@ -276,7 +276,7 @@ func updateCommandNoUpdates() *sumologic.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -309,7 +309,7 @@ func updateCommandAll() *sumologic.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

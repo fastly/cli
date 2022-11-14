@@ -23,7 +23,7 @@ type UpdateCommand struct {
 
 	autoClone         cmd.OptionalAutoClone
 	format            cmd.OptionalString
-	formatVersion     cmd.OptionalUint
+	formatVersion     cmd.OptionalInt
 	key               cmd.OptionalString
 	manifest          manifest.Data
 	newName           cmd.OptionalString
@@ -54,12 +54,12 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Dst:    &c.autoClone.Value,
 	})
 	common.Format(c.CmdClause, &c.format)
-	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint").Action(c.formatVersion.Set).UintVar(&c.formatVersion.Value)
+	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint").Action(c.formatVersion.Set).IntVar(fastly.Int(c.formatVersion.Value))
 	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Action(c.key.Set).StringVar(&c.key.Value)
 	c.CmdClause.Flag("new-name", "The name for the real-time logging configuration").Action(c.newName.Set).StringVar(&c.newName.Value)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
+	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(fastly.String(c.placement.Value))
 	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.region.Set).StringVar(&c.region.Value)
-	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
+	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(fastly.String(c.responseCondition.Value))
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -127,7 +127,7 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.Format = fastly.String(c.format.Value)
 	}
 	if c.formatVersion.WasSet {
-		input.FormatVersion = fastly.Uint(c.formatVersion.Value)
+		input.FormatVersion = fastly.Int(c.formatVersion.Value)
 	}
 	if c.key.WasSet {
 		input.Token = fastly.String(c.key.Value)
