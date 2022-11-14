@@ -226,7 +226,7 @@ type Setup struct {
 // SetupBackend represents a '[setup.backends.<T>]' instance.
 type SetupBackend struct {
 	Address     string `toml:"address,omitempty"`
-	Port        uint   `toml:"port,omitempty"`
+	Port        int    `toml:"port,omitempty"`
 	Description string `toml:"description,omitempty"`
 }
 

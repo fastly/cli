@@ -313,7 +313,7 @@ type API struct {
 	ListTLSSubscriptionsFn  func(i *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error)
 	UpdateTLSSubscriptionFn func(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 
-	ListServiceAuthorizationsFn  func(i *fastly.ListServiceAuthorizationsInput) (*fastly.SAResponse, error)
+	ListServiceAuthorizationsFn  func(i *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error)
 	GetServiceAuthorizationFn    func(i *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	CreateServiceAuthorizationFn func(i *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	UpdateServiceAuthorizationFn func(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
@@ -1593,7 +1593,7 @@ func (m API) UpdateTLSSubscription(i *fastly.UpdateTLSSubscriptionInput) (*fastl
 }
 
 // ListServiceAuthorizations implements Interface.
-func (m API) ListServiceAuthorizations(i *fastly.ListServiceAuthorizationsInput) (*fastly.SAResponse, error) {
+func (m API) ListServiceAuthorizations(i *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
 	return m.ListServiceAuthorizationsFn(i)
 }
 
