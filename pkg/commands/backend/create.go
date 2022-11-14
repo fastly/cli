@@ -18,12 +18,12 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	input               fastly.CreateBackendInput
-	port                cmd.OptionalUint
-	connectTimeout      cmd.OptionalUint
-	maxConn             cmd.OptionalUint
-	firstByteTimeout    cmd.OptionalUint
-	betweenBytesTimeout cmd.OptionalUint
-	weight              cmd.OptionalUint
+	port                cmd.OptionalInt
+	connectTimeout      cmd.OptionalInt
+	maxConn             cmd.OptionalInt
+	firstByteTimeout    cmd.OptionalInt
+	betweenBytesTimeout cmd.OptionalInt
+	weight              cmd.OptionalInt
 
 	// We must store all of the boolean flags separately to the input structure
 	// so they can be casted to go-fastly's custom `Compatibool` type later.
@@ -67,30 +67,30 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("name", "Backend name").Short('n').Required().StringVar(&c.input.Name)
-	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Required().StringVar(&c.input.Address)
-	c.CmdClause.Flag("comment", "A descriptive note").StringVar(&c.input.Comment)
-	c.CmdClause.Flag("port", "Port number of the address").Action(c.port.Set).UintVar(&c.port.Value)
+	c.CmdClause.Flag("name", "Backend name").Short('n').Required().StringVar(c.input.Name)
+	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Required().StringVar(c.input.Address)
+	c.CmdClause.Flag("comment", "A descriptive note").StringVar(c.input.Comment)
+	c.CmdClause.Flag("port", "Port number of the address").Action(c.port.Set).IntVar(&c.port.Value)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.overrideHost.Set).StringVar(&c.overrideHost.Value)
-	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").Action(c.connectTimeout.Set).UintVar(&c.connectTimeout.Value)
-	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.maxConn.Set).UintVar(&c.maxConn.Value)
-	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.firstByteTimeout.Set).UintVar(&c.firstByteTimeout.Value)
-	c.CmdClause.Flag("between-bytes-timeout", "How long to wait between bytes in milliseconds").Action(c.betweenBytesTimeout.Set).UintVar(&c.betweenBytesTimeout.Value)
+	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").Action(c.connectTimeout.Set).IntVar(&c.connectTimeout.Value)
+	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.maxConn.Set).IntVar(&c.maxConn.Value)
+	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.firstByteTimeout.Set).IntVar(&c.firstByteTimeout.Value)
+	c.CmdClause.Flag("between-bytes-timeout", "How long to wait between bytes in milliseconds").Action(c.betweenBytesTimeout.Set).IntVar(&c.betweenBytesTimeout.Value)
 	c.CmdClause.Flag("auto-loadbalance", "Whether or not this backend should be automatically load balanced").BoolVar(&c.autoLoadBalance)
-	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.weight.Set).UintVar(&c.weight.Value)
-	c.CmdClause.Flag("request-condition", "Condition, which if met, will select this backend during a request").StringVar(&c.input.RequestCondition)
-	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").StringVar(&c.input.HealthCheck)
-	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").StringVar(&c.input.Shield)
+	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.weight.Set).IntVar(&c.weight.Value)
+	c.CmdClause.Flag("request-condition", "Condition, which if met, will select this backend during a request").StringVar(c.input.RequestCondition)
+	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").StringVar(c.input.HealthCheck)
+	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").StringVar(c.input.Shield)
 	c.CmdClause.Flag("use-ssl", "Whether or not to use SSL to reach the backend").BoolVar(&c.useSSL)
 	c.CmdClause.Flag("ssl-check-cert", "Be strict on checking SSL certs").BoolVar(&c.sslCheckCert)
-	c.CmdClause.Flag("ssl-ca-cert", "CA certificate attached to origin").StringVar(&c.input.SSLCACert)
-	c.CmdClause.Flag("ssl-client-cert", "Client certificate attached to origin").StringVar(&c.input.SSLClientCert)
-	c.CmdClause.Flag("ssl-client-key", "Client key attached to origin").StringVar(&c.input.SSLClientKey)
+	c.CmdClause.Flag("ssl-ca-cert", "CA certificate attached to origin").StringVar(c.input.SSLCACert)
+	c.CmdClause.Flag("ssl-client-cert", "Client certificate attached to origin").StringVar(c.input.SSLClientCert)
+	c.CmdClause.Flag("ssl-client-key", "Client key attached to origin").StringVar(c.input.SSLClientKey)
 	c.CmdClause.Flag("ssl-cert-hostname", "Overrides ssl_hostname, but only for cert verification. Does not affect SNI at all.").Action(c.sslCertHostname.Set).StringVar(&c.sslCertHostname.Value)
 	c.CmdClause.Flag("ssl-sni-hostname", "Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all.").Action(c.sslSNIHostname.Set).StringVar(&c.sslSNIHostname.Value)
-	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").StringVar(&c.input.MinTLSVersion)
-	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").StringVar(&c.input.MaxTLSVersion)
-	c.CmdClause.Flag("ssl-ciphers", "List of OpenSSL ciphers (https://www.openssl.org/docs/man1.0.2/man1/ciphers)").StringVar(&c.input.SSLCiphers)
+	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").StringVar(c.input.MinTLSVersion)
+	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").StringVar(c.input.MaxTLSVersion)
+	c.CmdClause.Flag("ssl-ciphers", "List of OpenSSL ciphers (https://www.openssl.org/docs/man1.0.2/man1/ciphers)").StringVar(c.input.SSLCiphers)
 
 	return &c
 }
@@ -120,50 +120,50 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Sadly, go-fastly uses custom a `Compatibool` type as a boolean value that
 	// marshalls to 0/1 instead of true/false for compatibility with the API.
 	// Therefore, we need to cast our real flag bool to a fastly.Compatibool.
-	c.input.AutoLoadbalance = fastly.Compatibool(c.autoLoadBalance)
-	c.input.UseSSL = fastly.Compatibool(c.useSSL)
-	c.input.SSLCheckCert = fastly.Compatibool(c.sslCheckCert)
+	c.input.AutoLoadbalance = fastly.CBool(c.autoLoadBalance)
+	c.input.UseSSL = fastly.CBool(c.useSSL)
+	c.input.SSLCheckCert = fastly.CBool(c.sslCheckCert)
 
 	switch {
 	case c.port.WasSet:
-		c.input.Port = fastly.Uint(c.port.Value)
+		c.input.Port = fastly.Int(c.port.Value)
 	case c.useSSL:
 		if c.Globals.Flag.Verbose {
 			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443")
 		}
-		c.input.Port = fastly.Uint(443)
+		c.input.Port = fastly.Int(443)
 	}
 
 	if c.connectTimeout.WasSet {
-		c.input.ConnectTimeout = fastly.Uint(c.connectTimeout.Value)
+		c.input.ConnectTimeout = fastly.Int(c.connectTimeout.Value)
 	}
 	if c.maxConn.WasSet {
-		c.input.MaxConn = fastly.Uint(c.maxConn.Value)
+		c.input.MaxConn = fastly.Int(c.maxConn.Value)
 	}
 	if c.firstByteTimeout.WasSet {
-		c.input.FirstByteTimeout = fastly.Uint(c.firstByteTimeout.Value)
+		c.input.FirstByteTimeout = fastly.Int(c.firstByteTimeout.Value)
 	}
 	if c.betweenBytesTimeout.WasSet {
-		c.input.BetweenBytesTimeout = fastly.Uint(c.betweenBytesTimeout.Value)
+		c.input.BetweenBytesTimeout = fastly.Int(c.betweenBytesTimeout.Value)
 	}
 	if c.weight.WasSet {
-		c.input.Weight = fastly.Uint(c.weight.Value)
+		c.input.Weight = fastly.Int(c.weight.Value)
 	}
 
 	if !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {
-		overrideHost, sslSNIHostname, sslCertHostname := SetBackendHostDefaults(c.input.Address)
-		c.input.OverrideHost = overrideHost
-		c.input.SSLSNIHostname = sslSNIHostname
-		c.input.SSLCertHostname = sslCertHostname
+		overrideHost, sslSNIHostname, sslCertHostname := SetBackendHostDefaults(*c.input.Address)
+		c.input.OverrideHost = fastly.String(overrideHost)
+		c.input.SSLSNIHostname = fastly.String(sslSNIHostname)
+		c.input.SSLCertHostname = fastly.String(sslCertHostname)
 	} else {
 		if c.overrideHost.WasSet {
-			c.input.OverrideHost = c.overrideHost.Value
+			c.input.OverrideHost = fastly.String(c.overrideHost.Value)
 		}
 		if c.sslCertHostname.WasSet {
-			c.input.SSLCertHostname = c.sslCertHostname.Value
+			c.input.SSLCertHostname = fastly.String(c.sslCertHostname.Value)
 		}
 		if c.sslSNIHostname.WasSet {
-			c.input.SSLSNIHostname = c.sslSNIHostname.Value
+			c.input.SSLSNIHostname = fastly.String(c.sslSNIHostname.Value)
 		}
 	}
 

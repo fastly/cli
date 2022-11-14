@@ -45,7 +45,7 @@ func TestACLEntryCreate(t *testing.T) {
 					return &fastly.ACLEntry{
 						ACLID:     i.ACLID,
 						ID:        "456",
-						IP:        i.IP,
+						IP:        *i.IP,
 						ServiceID: i.ServiceID,
 					}, nil
 				},
@@ -60,9 +60,9 @@ func TestACLEntryCreate(t *testing.T) {
 					return &fastly.ACLEntry{
 						ACLID:     i.ACLID,
 						ID:        "456",
-						IP:        i.IP,
+						IP:        *i.IP,
 						ServiceID: i.ServiceID,
-						Negated:   bool(i.Negated),
+						Negated:   bool(*i.Negated),
 					}, nil
 				},
 			},
