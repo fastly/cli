@@ -23,14 +23,14 @@ type UpdateCommand struct {
 	NewName             cmd.OptionalString
 	Comment             cmd.OptionalString
 	Address             cmd.OptionalString
-	Port                cmd.OptionalUint
+	Port                cmd.OptionalInt
 	OverrideHost        cmd.OptionalString
-	ConnectTimeout      cmd.OptionalUint
-	MaxConn             cmd.OptionalUint
-	FirstByteTimeout    cmd.OptionalUint
-	BetweenBytesTimeout cmd.OptionalUint
+	ConnectTimeout      cmd.OptionalInt
+	MaxConn             cmd.OptionalInt
+	FirstByteTimeout    cmd.OptionalInt
+	BetweenBytesTimeout cmd.OptionalInt
 	AutoLoadbalance     cmd.OptionalBool
-	Weight              cmd.OptionalUint
+	Weight              cmd.OptionalInt
 	RequestCondition    cmd.OptionalString
 	HealthCheck         cmd.OptionalString
 	Hostname            cmd.OptionalString
@@ -79,14 +79,14 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("new-name", "New backend name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.Address.Set).StringVar(&c.Address.Value)
-	c.CmdClause.Flag("port", "Port number of the address").Action(c.Port.Set).UintVar(&c.Port.Value)
+	c.CmdClause.Flag("port", "Port number of the address").Action(c.Port.Set).IntVar(&c.Port.Value)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.OverrideHost.Set).StringVar(&c.OverrideHost.Value)
-	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").Action(c.ConnectTimeout.Set).UintVar(&c.ConnectTimeout.Value)
-	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.MaxConn.Set).UintVar(&c.MaxConn.Value)
-	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.FirstByteTimeout.Set).UintVar(&c.FirstByteTimeout.Value)
-	c.CmdClause.Flag("between-bytes-timeout", "How long to wait between bytes in milliseconds").Action(c.BetweenBytesTimeout.Set).UintVar(&c.BetweenBytesTimeout.Value)
+	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").Action(c.ConnectTimeout.Set).IntVar(&c.ConnectTimeout.Value)
+	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.MaxConn.Set).IntVar(&c.MaxConn.Value)
+	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.FirstByteTimeout.Set).IntVar(&c.FirstByteTimeout.Value)
+	c.CmdClause.Flag("between-bytes-timeout", "How long to wait between bytes in milliseconds").Action(c.BetweenBytesTimeout.Set).IntVar(&c.BetweenBytesTimeout.Value)
 	c.CmdClause.Flag("auto-loadbalance", "Whether or not this backend should be automatically load balanced").Action(c.AutoLoadbalance.Set).BoolVar(&c.AutoLoadbalance.Value)
-	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.Weight.Set).UintVar(&c.Weight.Value)
+	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.Weight.Set).IntVar(&c.Weight.Value)
 	c.CmdClause.Flag("request-condition", "condition, which if met, will select this backend during a request").Action(c.RequestCondition.Set).StringVar(&c.RequestCondition.Value)
 	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").Action(c.HealthCheck.Set).StringVar(&c.HealthCheck.Value)
 	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").Action(c.Shield.Set).StringVar(&c.Shield.Value)
@@ -141,7 +141,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Port.WasSet {
-		input.Port = fastly.Uint(c.Port.Value)
+		input.Port = fastly.Int(c.Port.Value)
 	}
 
 	if c.OverrideHost.WasSet {
@@ -149,19 +149,19 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.ConnectTimeout.WasSet {
-		input.ConnectTimeout = fastly.Uint(c.ConnectTimeout.Value)
+		input.ConnectTimeout = fastly.Int(c.ConnectTimeout.Value)
 	}
 
 	if c.MaxConn.WasSet {
-		input.MaxConn = fastly.Uint(c.MaxConn.Value)
+		input.MaxConn = fastly.Int(c.MaxConn.Value)
 	}
 
 	if c.FirstByteTimeout.WasSet {
-		input.FirstByteTimeout = fastly.Uint(c.FirstByteTimeout.Value)
+		input.FirstByteTimeout = fastly.Int(c.FirstByteTimeout.Value)
 	}
 
 	if c.BetweenBytesTimeout.WasSet {
-		input.BetweenBytesTimeout = fastly.Uint(c.BetweenBytesTimeout.Value)
+		input.BetweenBytesTimeout = fastly.Int(c.BetweenBytesTimeout.Value)
 	}
 
 	if c.AutoLoadbalance.WasSet {
@@ -169,7 +169,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Weight.WasSet {
-		input.Weight = fastly.Uint(c.Weight.Value)
+		input.Weight = fastly.Int(c.Weight.Value)
 	}
 
 	if c.RequestCondition.WasSet {
@@ -221,7 +221,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.SSLCiphers.WasSet {
-		input.SSLCiphers = c.SSLCiphers.Value
+		input.SSLCiphers = fastly.String(c.SSLCiphers.Value)
 	}
 
 	b, err := c.Globals.APIClient.UpdateBackend(input)

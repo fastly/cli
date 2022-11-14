@@ -100,7 +100,7 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) *fa
 	var input fastly.UpdateACLInput
 
 	input.Name = c.name
-	input.NewName = c.newName
+	input.NewName = fastly.String(c.newName)
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 
