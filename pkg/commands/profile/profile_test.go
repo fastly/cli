@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // Scenario is an extension of the base TestScenario.

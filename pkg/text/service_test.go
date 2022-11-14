@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestPrintService(t *testing.T) {
@@ -32,7 +32,7 @@ func TestPrintService(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			text.PrintService(&buf, testcase.prefix, testcase.service)
-			testutil.AssertString(t, testcase.wantOutput, buf.String())
+			testutil.AssertString(t, testcase.wantOutput, buf.Strioseng())
 		})
 	}
 }

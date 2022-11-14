@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.

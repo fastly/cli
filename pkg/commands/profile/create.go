@@ -14,7 +14,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // CreateCommand represents a Kingpin command.
