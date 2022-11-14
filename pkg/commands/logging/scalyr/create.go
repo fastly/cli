@@ -1,6 +1,7 @@
 package scalyr
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -27,7 +28,7 @@ type CreateCommand struct {
 	AutoClone         cmd.OptionalAutoClone
 	Region            cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	ResponseCondition cmd.OptionalString
 	Placement         cmd.OptionalString
 }
@@ -76,27 +77,27 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.Token = c.Token
+	input.Name = fastly.String(c.EndpointName)
+	input.Token = fastly.String(c.Token)
 
 	if c.Region.WasSet {
-		input.Region = c.Region.Value
+		input.Region = fastly.String(c.Region.Value)
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = fastly.String(c.Format.Value)
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = fastly.String(c.Placement.Value)
 	}
 
 	return &input, nil
@@ -126,7 +127,10 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
-
+	fmt.Println(*input.Name)
+	fmt.Println(*input.Token)
+	fmt.Println(input.ServiceID)
+	fmt.Println(input.ServiceVersion)
 	d, err := c.Globals.APIClient.CreateScalyr(input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
