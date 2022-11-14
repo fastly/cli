@@ -27,8 +27,8 @@ func TestCreateScalyrInput(t *testing.T) {
 			want: &fastly.CreateScalyrInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				Token:          "tkn",
+				Name:           fastly.String("log"),
+				Token:          fastly.String("tkn"),
 			},
 		},
 		{
@@ -37,13 +37,13 @@ func TestCreateScalyrInput(t *testing.T) {
 			want: &fastly.CreateScalyrInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
-				Token:             "tkn",
-				Region:            "US",
-				FormatVersion:     2,
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
+				Name:              fastly.String("log"),
+				Token:             fastly.String("tkn"),
+				Region:            fastly.String("US"),
+				FormatVersion:     fastly.Int(2),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
 			},
 		},
 		{
@@ -118,10 +118,10 @@ func TestUpdateScalyrInput(t *testing.T) {
 			want: &fastly.UpdateScalyrInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
+				Name:              *fastly.String("log"),
 				NewName:           fastly.String("new1"),
 				Token:             fastly.String("new2"),
-				FormatVersion:     fastly.Uint(3),
+				FormatVersion:     fastly.Int(3),
 				Format:            fastly.String("new3"),
 				ResponseCondition: fastly.String("new4"),
 				Placement:         fastly.String("new5"),
@@ -193,7 +193,7 @@ func createCommandRequired() *scalyr.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -231,7 +231,7 @@ func createCommandAll() *scalyr.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -246,7 +246,7 @@ func createCommandAll() *scalyr.CreateCommand {
 		Token:             "tkn",
 		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "US"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
 	}
@@ -276,7 +276,7 @@ func updateCommandNoUpdates() *scalyr.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -309,7 +309,7 @@ func updateCommandAll() *scalyr.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: *fastly.String("log"),
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -324,7 +324,7 @@ func updateCommandAll() *scalyr.UpdateCommand {
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
 		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
