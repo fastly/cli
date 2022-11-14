@@ -322,7 +322,7 @@ type Interface interface {
 	ListTLSSubscriptions(i *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error)
 	UpdateTLSSubscription(i *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error)
 
-	ListServiceAuthorizations(i *fastly.ListServiceAuthorizationsInput) (*fastly.SAResponse, error)
+	ListServiceAuthorizations(i *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error)
 	GetServiceAuthorization(i *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	CreateServiceAuthorization(i *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	UpdateServiceAuthorization(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)

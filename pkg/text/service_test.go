@@ -32,7 +32,7 @@ func TestPrintService(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			text.PrintService(&buf, testcase.prefix, testcase.service)
-			testutil.AssertString(t, testcase.wantOutput, buf.Strioseng())
+			testutil.AssertString(t, testcase.wantOutput, buf.String())
 		})
 	}
 }
