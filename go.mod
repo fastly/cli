@@ -14,7 +14,7 @@ require (
 	github.com/frankban/quicktest v1.13.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/getsentry/sentry-go v0.12.0
-	github.com/google/go-cmp v0.5.6
+	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v38 v38.1.0
 	github.com/mattn/go-isatty v0.0.16
 	github.com/mholt/archiver/v3 v3.5.1
