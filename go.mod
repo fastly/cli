@@ -19,7 +19,7 @@ require (
 	github.com/mattn/go-isatty v0.0.16
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/mitchellh/go-wordwrap v1.0.1
-	github.com/mitchellh/mapstructure v1.4.3
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nicksnyder/go-i18n v1.10.1 // indirect
 	github.com/pelletier/go-toml v1.9.3
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
