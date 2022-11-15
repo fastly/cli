@@ -16,14 +16,14 @@ import (
 func TestBackendCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Args:      args("backend create --version 1 --service-id 123 --address example.com"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		// The following test specifies a service version that's 'active', and
-		// subsequently we expect it to not be cloned as we don't provide the
-		// --autoclone flag and trying to add a backend to an activated service
-		// should cause an error.
+		// {
+		// 	Args:      args("backend create --version 1 --service-id 123 --address example.com"),
+		// 	WantError: "error parsing arguments: required flag --name not provided",
+		// },
+		// // The following test specifies a service version that's 'active', and
+		// // subsequently we expect it to not be cloned as we don't provide the
+		// // --autoclone flag and trying to add a backend to an activated service
+		// // should cause an error.
 		// {
 		// 	Args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com"),
 		// 	API: mock.API{
@@ -53,21 +53,21 @@ func TestBackendCreate(t *testing.T) {
 		// 	},
 		// 	WantError: errTest.Error(),
 		// },
-		// // The following test is the same as above but mocks a successful backend
-		// // creation so we can validate the correct service version was utilised.
-		// //
-		// // NOTE: Added --port flag to validate that a nil pointer dereference is
-		// // not triggered at runtime when parsing the arguments.
-		// {
-		// 	Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080"),
-		// 	API: mock.API{
-		// 		ListVersionsFn:  testutil.ListVersions,
-		// 		CloneVersionFn:  testutil.CloneVersionResult(4),
-		// 		CreateBackendFn: createBackendWithPort(8080),
-		// 	},
-		// 	WantOutput: "Created backend www.test.com (service 123 version 4)",
-		// },
-		// // The following test validates that --service-name can replace --service-id
+		// The following test is the same as above but mocks a successful backend
+		// creation so we can validate the correct service version was utilised.
+		//
+		// NOTE: Added --port flag to validate that a nil pointer dereference is
+		// not triggered at runtime when parsing the arguments.
+		{ // hhhh
+			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080"),
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				CreateBackendFn: createBackendWithPort(8080),
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 4)",
+		},
+		// The following test validates that --service-name can replace --service-id
 		// {
 		// 	Args: args("backend create --service-name Foo --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
 		// 	API: mock.API{
@@ -135,7 +135,7 @@ func TestBackendList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
 			},
-			WantOutput: `[{"ServiceID":"123","ServiceVersion":1,"Name":"test.com","Comment":"test","Address":"www.test.com","Port":80,"OverrideHost":"","ConnectTimeout":0,"MaxConn":0,"ErrorThreshold":0,"FirstByteTimeout":0,"BetweenBytesTimeout":0,"AutoLoadbalance":false,"Weight":0,"RequestCondition":"","HealthCheck":"","Hostname":"","Shield":"","UseSSL":false,"SSLCheckCert":false,"SSLCACert":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLCertHostname":"","SSLSNIHostname":"","MinTLSVersion":"","MaxTLSVersion":"","SSLCiphers":"","CreatedAt":null,"UpdatedAt":null,"DeletedAt":null},{"ServiceID":"123","ServiceVersion":1,"Name":"example.com","Comment":"example","Address":"www.example.com","Port":443,"OverrideHost":"","ConnectTimeout":0,"MaxConn":0,"ErrorThreshold":0,"FirstByteTimeout":0,"BetweenBytesTimeout":0,"AutoLoadbalance":false,"Weight":0,"RequestCondition":"","HealthCheck":"","Hostname":"","Shield":"","UseSSL":false,"SSLCheckCert":false,"SSLCACert":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLCertHostname":"","SSLSNIHostname":"","MinTLSVersion":"","MaxTLSVersion":"","SSLCiphers":"","CreatedAt":null,"UpdatedAt":null,"DeletedAt":null}]`,
+			WantOutput: `[{"Address":"www.test.com","AutoLoadbalance":false,"BetweenBytesTimeout":0,"Comment":"test","ConnectTimeout":0,"CreatedAt":null,"DeletedAt":null,"ErrorThreshold":0,"FirstByteTimeout":0,"HealthCheck":"","Hostname":"","MaxConn":0,"MaxTLSVersion":"","MinTLSVersion":"","Name":"test.com","OverrideHost":"","Port":80,"RequestCondition":"","SSLCACert":"","SSLCertHostname":"","SSLCheckCert":false,"SSLCiphers":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLSNIHostname":"","ServiceID":"123","ServiceVersion":1,"Shield":"","UpdatedAt":null,"UseSSL":false,"Weight":0},{"Address":"www.example.com","AutoLoadbalance":false,"BetweenBytesTimeout":0,"Comment":"example","ConnectTimeout":0,"CreatedAt":null,"DeletedAt":null,"ErrorThreshold":0,"FirstByteTimeout":0,"HealthCheck":"","Hostname":"","MaxConn":0,"MaxTLSVersion":"","MinTLSVersion":"","Name":"example.com","OverrideHost":"","Port":443,"RequestCondition":"","SSLCACert":"","SSLCertHostname":"","SSLCheckCert":false,"SSLCiphers":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLSNIHostname":"","ServiceID":"123","ServiceVersion":1,"Shield":"","UpdatedAt":null,"UseSSL":false,"Weight":0}]`,
 		},
 		{
 			Args: args("backend list --service-id 123 --version 1 --json --verbose"),
@@ -333,7 +333,6 @@ func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
 		Name:           *i.Name,
-		Comment:        *i.Comment,
 	}, nil
 }
 
