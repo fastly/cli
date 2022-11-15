@@ -55,7 +55,6 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// The following test is the same as above but mocks a successful backend
 		// creation so we can validate the correct service version was utilised.
-
 		// NOTE: Added --port flag to validate that a nil pointer dereference is
 		// not triggered at runtime when parsing the arguments.
 		{

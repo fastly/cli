@@ -133,7 +133,7 @@ func TestVCLCustomCreate(t *testing.T) {
 					return &fastly.VCL{
 						Content:        *i.Content,
 						Main:           *i.Main,
-						Name:           *i.Name,
+						Name:           fastly.String(i.Name),
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
