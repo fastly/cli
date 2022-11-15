@@ -94,14 +94,14 @@ func TestDictionaryCreate(t *testing.T) {
 			},
 			wantOutput: createDictionaryOutputWriteOnly,
 		},
-		// {
-		// 	args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only fish --autoclone"),
-		// 	api: mock.API{
-		// 		ListVersionsFn: testutil.ListVersions,
-		// 		CloneVersionFn: testutil.CloneVersionResult(4),
-		// 	},
-		// 	wantError: "strconv.ParseBool: parsing \"fish\": invalid syntax",
-		// },
+		{
+			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only fish --autoclone"),
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+			},
+			wantError: "error parsing arguments: unexpected 'fish'",
+		},
 		{
 			args: args("dictionary create --version 1 --service-id 123 --name denylist --autoclone"),
 			api: mock.API{

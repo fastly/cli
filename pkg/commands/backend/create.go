@@ -160,12 +160,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.overrideHost.WasSet {
 		input.OverrideHost = fastly.String(c.overrideHost.Value)
 	}
-
 	if c.requestCondition.WasSet {
 		input.RequestCondition = fastly.String(c.requestCondition.Value)
-	}
-	if c.serviceName.WasSet {
-		input.Name = fastly.String(c.serviceName.Value)
 	}
 	if c.shield.WasSet {
 		input.Shield = fastly.String(c.shield.Value)
