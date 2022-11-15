@@ -22,7 +22,7 @@ func NewKeysCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	var c KeysCommand
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause = parent.Command("keys", "List Fastly edge config store keys")
+	c.CmdClause = parent.Command("keys", "List Fastly object store keys")
 	c.CmdClause.Flag("id", "ID of object store").Required().StringVar(&c.Input.ID)
 	return &c
 }

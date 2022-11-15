@@ -22,7 +22,7 @@ func NewGetKeyCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	var c GetKeyCommand
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause = parent.Command("get", "Get Fastly edge config store key")
+	c.CmdClause = parent.Command("get", "Get Fastly object store key")
 	c.CmdClause.Flag("id", "ID of object store").Required().StringVar(&c.Input.ID)
 	// FIXME: This should be `--key` with a short `-k` flag.
 	c.CmdClause.Flag("k", "Key to fetch").Required().StringVar(&c.Input.Key)

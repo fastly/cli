@@ -22,7 +22,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	var c ListCommand
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause = parent.Command("list", "List Fastly edge config stores")
+	c.CmdClause = parent.Command("list", "List Fastly object stores")
 	return &c
 }
 
