@@ -272,8 +272,7 @@ func createHealthCheckOK(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck,
 	return &fastly.HealthCheck{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
-		Comment:        i.Comment,
+		Name:           *i.Name,
 		Host:           "www.test.com",
 		Path:           "/health",
 	}, nil

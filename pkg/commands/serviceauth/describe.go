@@ -83,8 +83,8 @@ func (c *DescribeCommand) print(s *fastly.ServiceAuthorization, out io.Writer) e
 	if s.UpdatedAt != nil {
 		fmt.Fprintf(out, "Last edited (UTC): %s\n", s.UpdatedAt.UTC().Format(time.Format))
 	}
-	if s.DeltedAt != nil {
-		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeltedAt.UTC().Format(time.Format))
+	if s.DeletedAt != nil {
+		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
 	}
 
 	return nil

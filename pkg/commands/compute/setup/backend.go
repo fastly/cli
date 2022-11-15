@@ -40,7 +40,7 @@ type Backend struct {
 	Address         string
 	Name            string
 	OverrideHost    string
-	Port            uint
+	Port            int
 	SSLCertHostname string
 	SSLSNIHostname  string
 }
@@ -70,12 +70,12 @@ func (b *Backends) Create() error {
 		_, err := b.APIClient.CreateBackend(&fastly.CreateBackendInput{
 			ServiceID:       b.ServiceID,
 			ServiceVersion:  b.ServiceVersion,
-			Name:            bk.Name,
-			Address:         bk.Address,
-			Port:            fastly.Uint(bk.Port),
-			OverrideHost:    bk.OverrideHost,
-			SSLCertHostname: bk.SSLCertHostname,
-			SSLSNIHostname:  bk.SSLSNIHostname,
+			Name:            fastly.String(bk.Name),
+			Address:         fastly.String(bk.Address),
+			Port:            fastly.Int(bk.Port),
+			OverrideHost:    fastly.String(bk.OverrideHost),
+			SSLCertHostname: fastly.String(bk.SSLCertHostname),
+			SSLSNIHostname:  fastly.String(bk.SSLSNIHostname),
 		})
 		if err != nil {
 			b.Progress.Fail()
@@ -139,7 +139,7 @@ func (b *Backends) checkPredefined() error {
 			addr = defaultAddress
 		}
 
-		port := uint(80)
+		port := int(80)
 		if settings.Port > 0 {
 			port = settings.Port
 		}
@@ -152,7 +152,7 @@ func (b *Backends) checkPredefined() error {
 				if i, err := strconv.Atoi(input); err != nil {
 					text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)", port))
 				} else {
-					port = uint(i)
+					port = int(i)
 				}
 			}
 		}
@@ -199,7 +199,7 @@ func (b *Backends) promptForBackend() error {
 			return nil
 		}
 
-		port := uint(80)
+		port := int(80)
 		input, err := text.Input(b.Stdout, text.BoldYellow(fmt.Sprintf("Backend port number: [%d] ", port)), b.Stdin)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input: %w", err)
@@ -208,7 +208,7 @@ func (b *Backends) promptForBackend() error {
 			if portnumber, err := strconv.Atoi(input); err != nil {
 				text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)", port))
 			} else {
-				port = uint(portnumber)
+				port = int(portnumber)
 			}
 		}
 
@@ -239,7 +239,7 @@ func (b *Backends) createOriginlessBackend() Backend {
 	var bk Backend
 	bk.Name = "originless"
 	bk.Address = "127.0.0.1"
-	bk.Port = uint(80)
+	bk.Port = int(80)
 	return bk
 }
 

@@ -20,7 +20,7 @@ func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 
@@ -28,7 +28,7 @@ func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 
@@ -36,7 +36,7 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 	return &fastly.Dictionary{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

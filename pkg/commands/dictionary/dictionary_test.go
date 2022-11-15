@@ -86,7 +86,7 @@ func TestDictionaryCreate(t *testing.T) {
 			wantOutput: createDictionaryOutput,
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only true --autoclone"),
+			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -94,14 +94,14 @@ func TestDictionaryCreate(t *testing.T) {
 			},
 			wantOutput: createDictionaryOutputWriteOnly,
 		},
-		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only fish --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "strconv.ParseBool: parsing \"fish\": invalid syntax",
-		},
+		// {
+		// 	args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only fish --autoclone"),
+		// 	api: mock.API{
+		// 		ListVersionsFn: testutil.ListVersions,
+		// 		CloneVersionFn: testutil.CloneVersionResult(4),
+		// 	},
+		// 	wantError: "strconv.ParseBool: parsing \"fish\": invalid syntax",
+		// },
 		{
 			args: args("dictionary create --version 1 --service-id 123 --name denylist --autoclone"),
 			api: mock.API{
@@ -324,12 +324,16 @@ func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictiona
 }
 
 func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
+	// This is a bit nastly, but just an artifact of testing- nil is false.
+	if i.WriteOnly == nil {
+		i.WriteOnly = fastly.CBool(false)
+	}
 	return &fastly.Dictionary{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      i.WriteOnly == true,
+		WriteOnly:      *i.WriteOnly == true,
 		ID:             "456",
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil

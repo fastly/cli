@@ -2,7 +2,6 @@ package dictionary
 
 import (
 	"io"
-	"strconv"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
@@ -15,13 +14,14 @@ import (
 // CreateCommand calls the Fastly API to create a service.
 type CreateCommand struct {
 	cmd.Base
-	manifest       manifest.Data
-	Input          fastly.CreateDictionaryInput
-	serviceName    cmd.OptionalServiceNameID
+	manifest manifest.Data
+	// required
+	name           string
 	serviceVersion cmd.OptionalServiceVersion
-	autoClone      cmd.OptionalAutoClone
-
-	writeOnly cmd.OptionalString
+	// optional
+	serviceName cmd.OptionalServiceNameID
+	autoClone   cmd.OptionalAutoClone
+	writeOnly   cmd.OptionalBool
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -52,8 +52,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("name", "Name of Dictionary").Short('n').Required().StringVar(&c.Input.Name)
-	c.CmdClause.Flag("write-only", "Whether to mark this dictionary as write-only. Can be true or false (defaults to false)").Action(c.writeOnly.Set).StringVar(&c.writeOnly.Value)
+	c.CmdClause.Flag("name", "Name of Dictionary").Short('n').Required().StringVar(&c.name)
+	c.CmdClause.Flag("write-only", "Whether to mark this dictionary as write-only").Action(c.writeOnly.Set).BoolVar(&c.writeOnly.Value)
 	return &c
 }
 
@@ -75,23 +75,19 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		})
 		return err
 	}
-
-	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	input := fastly.CreateDictionaryInput{
+		Name:           fastly.String(c.name),
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion.Number,
+	}
+	input.ServiceID = serviceID
+	input.ServiceVersion = serviceVersion.Number
 
 	if c.writeOnly.WasSet {
-		writeOnly, err := strconv.ParseBool(c.writeOnly.Value)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
-			})
-			return err
-		}
-		c.Input.WriteOnly = fastly.Compatibool(writeOnly)
+		input.WriteOnly = fastly.CBool(c.writeOnly.Value)
 	}
 
-	d, err := c.Globals.APIClient.CreateDictionary(&c.Input)
+	d, err := c.Globals.APIClient.CreateDictionary(&input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

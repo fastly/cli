@@ -101,7 +101,7 @@ func (d *Domains) Create() error {
 		_, err := d.APIClient.CreateDomain(&fastly.CreateDomainInput{
 			ServiceID:      d.ServiceID,
 			ServiceVersion: d.ServiceVersion,
-			Name:           domain.Name,
+			Name:           fastly.String(domain.Name),
 		})
 		if err != nil {
 			d.Progress.Fail()

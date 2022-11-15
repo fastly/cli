@@ -501,10 +501,8 @@ var errTest = errors.New("fixture error")
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:      "12345",
-		Name:    i.Name,
-		Type:    i.Type,
-		Comment: i.Comment,
+		ID:   "12345",
+		Name: *i.Name,
 	}, nil
 }
 

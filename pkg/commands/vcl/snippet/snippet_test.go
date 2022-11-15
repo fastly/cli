@@ -64,12 +64,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -85,12 +93,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -106,12 +122,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						Priority:       *i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
@@ -129,12 +153,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -150,12 +182,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",

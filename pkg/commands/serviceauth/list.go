@@ -90,8 +90,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		if s.UpdatedAt != nil {
 			fmt.Fprintf(out, "Last edited (UTC): %s\n", s.UpdatedAt.UTC().Format(time.Format))
 		}
-		if s.DeltedAt != nil {
-			fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeltedAt.UTC().Format(time.Format))
+		if s.DeletedAt != nil {
+			fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
 		}
 	}
 

@@ -45,7 +45,7 @@ func TestCreate(t *testing.T) {
 			API: mock.API{
 				CreateUserFn: func(i *fastly.CreateUserInput) (*fastly.User, error) {
 					return &fastly.User{
-						Name: i.Name,
+						Name: *i.Name,
 						Role: "user",
 					}, nil
 				},

@@ -120,7 +120,7 @@ func (d *Dictionaries) Create() error {
 		dict, err := d.APIClient.CreateDictionary(&fastly.CreateDictionaryInput{
 			ServiceID:      d.ServiceID,
 			ServiceVersion: d.ServiceVersion,
-			Name:           dictionary.Name,
+			Name:           fastly.String(dictionary.Name),
 		})
 		if err != nil {
 			d.Progress.Fail()

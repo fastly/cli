@@ -101,13 +101,13 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateVCLInput {
 	var input fastly.CreateVCLInput
 
-	input.Content = cmd.Content(c.content)
-	input.Name = c.name
+	input.Content = fastly.String(cmd.Content(c.content))
+	input.Name = fastly.String(c.name)
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 
 	if c.main.WasSet {
-		input.Main = c.main.Value
+		input.Main = fastly.Bool(c.main.Value)
 	}
 
 	return &input

@@ -64,10 +64,10 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput() *fastly.CreateUserInput {
 	var input fastly.CreateUserInput
 
-	input.Login = c.login
-	input.Name = c.name
+	input.Login = fastly.String(c.login)
+	input.Name = fastly.String(c.name)
 	if c.role == "" {
-		input.Role = c.role
+		input.Role = fastly.String(c.role)
 	}
 
 	return &input
