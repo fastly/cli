@@ -249,9 +249,9 @@ type SetupLogger struct {
 
 // LocalServer represents a list of mocked Viceroy resources.
 type LocalServer struct {
-	Backends     map[string]LocalBackend     `toml:"backends"`
-	Dictionaries map[string]LocalDictionary  `toml:"dictionaries,omitempty"`
-	ObjectStore  map[string]LocalObjectStore `toml:"object_stores,omitempty"`
+	Backends     map[string]LocalBackend       `toml:"backends"`
+	Dictionaries map[string]LocalDictionary    `toml:"dictionaries,omitempty"`
+	ObjectStore  map[string][]LocalObjectStore `toml:"object_store,omitempty"`
 }
 
 // LocalBackend represents a backend to be mocked by the local testing server.
@@ -272,8 +272,8 @@ type LocalDictionary struct {
 // LocalObjectStore represents an object_store to be mocked by the local testing server.
 type LocalObjectStore struct {
 	Key  string `toml:"key"`
-	Path string `toml:"path"`
-	Data string `toml:"data"`
+	Path string `toml:"path,omitempty"`
+	Data string `toml:"data,omitempty"`
 }
 
 // Exists yields whether the manifest exists.
