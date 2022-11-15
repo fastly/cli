@@ -14,11 +14,14 @@ import (
 // CreateCommand calls the Fastly API to create domains.
 type CreateCommand struct {
 	cmd.Base
-	manifest       manifest.Data
-	Input          fastly.CreateDomainInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	manifest manifest.Data
+	// required
+	name           string
+	ServiceName    cmd.OptionalServiceNameID
+	ServiceVersion cmd.OptionalServiceVersion
 	autoClone      cmd.OptionalAutoClone
+	// optional
+	comment cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -27,8 +30,6 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("create", "Create a domain on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.Input.Name)
-	c.CmdClause.Flag("comment", "A descriptive note").StringVar(&c.Input.Comment)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -36,21 +37,23 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
-		Action:      c.serviceName.Set,
+		Action:      c.ServiceName.Set,
 		Name:        cmd.FlagServiceName,
 		Description: cmd.FlagServiceDesc,
-		Dst:         &c.serviceName.Value,
+		Dst:         &c.ServiceName.Value,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
+		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
+	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.name)
+	c.CmdClause.Flag("comment", "A descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
 	return &c
 }
 
@@ -61,8 +64,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
-		ServiceVersionFlag: c.serviceVersion,
+		ServiceNameFlag:    c.ServiceName,
+		ServiceVersionFlag: c.ServiceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
@@ -72,11 +75,15 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		})
 		return err
 	}
-
-	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
-
-	d, err := c.Globals.APIClient.CreateDomain(&c.Input)
+	input := fastly.CreateDomainInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion.Number,
+		Name:           &c.name,
+	}
+	if c.comment.WasSet {
+		input.Comment = fastly.String(c.comment.Value)
+	}
+	d, err := c.Globals.APIClient.CreateDomain(&input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

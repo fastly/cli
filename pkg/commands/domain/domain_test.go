@@ -338,8 +338,7 @@ func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
-		Comment:        i.Comment,
+		Name:           *i.Name,
 	}, nil
 }
 
