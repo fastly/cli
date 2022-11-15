@@ -109,14 +109,15 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateSnippetInput {
 	var input fastly.CreateSnippetInput
 
-	input.Content = cmd.Content(c.content)
-	input.Name = c.name
+	input.Content = fastly.String(cmd.Content(c.content))
+	input.Name = fastly.String(c.name)
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Type = fastly.SnippetType(c.location)
+	sType := fastly.SnippetType(c.location)
+	input.Type = fastly.SnippetTypePtr(sType)
 
 	if c.dynamic.WasSet {
-		input.Dynamic = 1
+		input.Dynamic = fastly.Int(1)
 	}
 	if c.priority.WasSet {
 		input.Priority = fastly.Int(c.priority.Value)

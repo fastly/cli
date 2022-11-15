@@ -26,12 +26,12 @@ type UpdateCommand struct {
 	Host             cmd.OptionalString
 	Path             cmd.OptionalString
 	HTTPVersion      cmd.OptionalString
-	Timeout          cmd.OptionalUint
-	CheckInterval    cmd.OptionalUint
-	ExpectedResponse cmd.OptionalUint
-	Window           cmd.OptionalUint
-	Threshold        cmd.OptionalUint
-	Initial          cmd.OptionalUint
+	Timeout          cmd.OptionalInt
+	CheckInterval    cmd.OptionalInt
+	ExpectedResponse cmd.OptionalInt
+	Window           cmd.OptionalInt
+	Threshold        cmd.OptionalInt
+	Initial          cmd.OptionalInt
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -69,12 +69,12 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("host", "Which host to check").Action(c.Host.Set).StringVar(&c.Host.Value)
 	c.CmdClause.Flag("path", "The path to check").Action(c.Path.Set).StringVar(&c.Path.Value)
 	c.CmdClause.Flag("http-version", "Whether to use version 1.0 or 1.1 HTTP").Action(c.HTTPVersion.Set).StringVar(&c.HTTPVersion.Value)
-	c.CmdClause.Flag("timeout", "Timeout in milliseconds").Action(c.Timeout.Set).UintVar(&c.Timeout.Value)
-	c.CmdClause.Flag("check-interval", "How often to run the healthcheck in milliseconds").Action(c.CheckInterval.Set).UintVar(&c.CheckInterval.Value)
-	c.CmdClause.Flag("expected-response", "The status code expected from the host").Action(c.ExpectedResponse.Set).UintVar(&c.ExpectedResponse.Value)
-	c.CmdClause.Flag("window", "The number of most recent healthcheck queries to keep for this healthcheck").Action(c.Window.Set).UintVar(&c.Window.Value)
-	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").Action(c.Threshold.Set).UintVar(&c.Threshold.Value)
-	c.CmdClause.Flag("initial", "When loading a config, the initial number of probes to be seen as OK").Action(c.Initial.Set).UintVar(&c.Initial.Value)
+	c.CmdClause.Flag("timeout", "Timeout in milliseconds").Action(c.Timeout.Set).IntVar(&c.Timeout.Value)
+	c.CmdClause.Flag("check-interval", "How often to run the healthcheck in milliseconds").Action(c.CheckInterval.Set).IntVar(&c.CheckInterval.Value)
+	c.CmdClause.Flag("expected-response", "The status code expected from the host").Action(c.ExpectedResponse.Set).IntVar(&c.ExpectedResponse.Value)
+	c.CmdClause.Flag("window", "The number of most recent healthcheck queries to keep for this healthcheck").Action(c.Window.Set).IntVar(&c.Window.Value)
+	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").Action(c.Threshold.Set).IntVar(&c.Threshold.Value)
+	c.CmdClause.Flag("initial", "When loading a config, the initial number of probes to be seen as OK").Action(c.Initial.Set).IntVar(&c.Initial.Value)
 	return &c
 }
 
@@ -125,27 +125,27 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Timeout.WasSet {
-		c.input.Timeout = fastly.Uint(c.Timeout.Value)
+		c.input.Timeout = fastly.Int(c.Timeout.Value)
 	}
 
 	if c.CheckInterval.WasSet {
-		c.input.CheckInterval = fastly.Uint(c.CheckInterval.Value)
+		c.input.CheckInterval = fastly.Int(c.CheckInterval.Value)
 	}
 
 	if c.ExpectedResponse.WasSet {
-		c.input.ExpectedResponse = fastly.Uint(c.ExpectedResponse.Value)
+		c.input.ExpectedResponse = fastly.Int(c.ExpectedResponse.Value)
 	}
 
 	if c.Window.WasSet {
-		c.input.Window = fastly.Uint(c.Window.Value)
+		c.input.Window = fastly.Int(c.Window.Value)
 	}
 
 	if c.Threshold.WasSet {
-		c.input.Threshold = fastly.Uint(c.Threshold.Value)
+		c.input.Threshold = fastly.Int(c.Threshold.Value)
 	}
 
 	if c.Initial.WasSet {
-		c.input.Initial = fastly.Uint(c.Initial.Value)
+		c.input.Initial = fastly.Int(c.Initial.Value)
 	}
 
 	h, err := c.Globals.APIClient.UpdateHealthCheck(&c.input)

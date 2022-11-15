@@ -19,9 +19,9 @@ type CreateCommand struct {
 	name           string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
-	autoClone      cmd.OptionalAutoClone
 	// optional
-	comment cmd.OptionalString
+	autoClone cmd.OptionalAutoClone
+	comment   cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.

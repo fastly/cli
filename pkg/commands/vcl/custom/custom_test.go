@@ -59,12 +59,21 @@ func TestVCLCustomCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Main == nil {
+						b := false
+						i.Main = &b
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.VCL{
-						Content:        i.Content,
-						Main:           i.Main,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Main:           *i.Main,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -79,12 +88,22 @@ func TestVCLCustomCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					// Track the contents parsed
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Main == nil {
+						b := false
+						i.Main = &b
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.VCL{
-						Content:        i.Content,
-						Main:           i.Main,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Main:           *i.Main,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -100,12 +119,21 @@ func TestVCLCustomCreate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Main == nil {
+						b := false
+						i.Main = &b
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.VCL{
-						Content:        i.Content,
-						Main:           i.Main,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Main:           *i.Main,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -120,12 +148,21 @@ func TestVCLCustomCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Main == nil {
+						b := false
+						i.Main = &b
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.VCL{
-						Content:        i.Content,
-						Main:           i.Main,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Main:           *i.Main,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
