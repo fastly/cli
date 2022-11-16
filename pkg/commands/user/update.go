@@ -92,10 +92,10 @@ func (c *UpdateCommand) constructInput() (*fastly.UpdateUserInput, error) {
 	}
 
 	if c.name != "" {
-		input.Name = fastly.String(c.name)
+		input.Name = &c.name
 	}
 	if c.role != "" {
-		input.Role = fastly.String(c.role)
+		input.Role = &c.role
 	}
 
 	return &input, nil

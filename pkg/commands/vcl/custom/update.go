@@ -121,7 +121,7 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		return nil, fmt.Errorf("error parsing arguments: must provide either --new-name or --content to update the VCL")
 	}
 	if c.newName.WasSet {
-		input.NewName = fastly.String(c.newName.Value)
+		input.NewName = &c.newName.Value
 	}
 	if c.content.WasSet {
 		input.Content = fastly.String(cmd.Content(c.content.Value))

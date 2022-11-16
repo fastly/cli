@@ -17,7 +17,6 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	name           string
 	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
@@ -29,6 +28,7 @@ type CreateCommand struct {
 	httpVersion      cmd.OptionalString
 	initial          cmd.OptionalInt
 	method           cmd.OptionalString
+	name             cmd.OptionalString
 	path             cmd.OptionalString
 	serviceName      cmd.OptionalServiceNameID
 	threshold        cmd.OptionalInt
@@ -64,7 +64,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Required().StringVar(&c.name)
+	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("method", "Which HTTP method to use").Action(c.method.Set).StringVar(&c.method.Value)
 	c.CmdClause.Flag("host", "Which host to check").Action(c.host.Set).StringVar(&c.host.Value)
@@ -98,43 +98,45 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 	input := fastly.CreateHealthCheckInput{
-		Name:           fastly.String(c.name),
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
 	}
 
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
 	if c.comment.WasSet {
-		input.Comment = fastly.String(c.comment.Value)
+		input.Comment = &c.comment.Value
 	}
 	if c.method.WasSet {
-		input.Method = fastly.String(c.method.Value)
+		input.Method = &c.method.Value
 	}
 	if c.host.WasSet {
-		input.Host = fastly.String(c.host.Value)
+		input.Host = &c.host.Value
 	}
 	if c.path.WasSet {
-		input.Path = fastly.String(c.path.Value)
+		input.Path = &c.path.Value
 	}
 	if c.httpVersion.WasSet {
-		input.HTTPVersion = fastly.String(c.httpVersion.Value)
+		input.HTTPVersion = &c.httpVersion.Value
 	}
 	if c.timeout.WasSet {
-		input.Timeout = fastly.Int(c.timeout.Value)
+		input.Timeout = &c.timeout.Value
 	}
 	if c.checkInterval.WasSet {
-		input.CheckInterval = fastly.Int(c.checkInterval.Value)
+		input.CheckInterval = &c.checkInterval.Value
 	}
 	if c.expectedResponse.WasSet {
-		input.ExpectedResponse = fastly.Int(c.expectedResponse.Value)
+		input.ExpectedResponse = &c.expectedResponse.Value
 	}
 	if c.window.WasSet {
-		input.Window = fastly.Int(c.window.Value)
+		input.Window = &c.window.Value
 	}
 	if c.threshold.WasSet {
-		input.Threshold = fastly.Int(c.threshold.Value)
+		input.Threshold = &c.threshold.Value
 	}
 	if c.initial.WasSet {
-		input.Initial = fastly.Int(c.initial.Value)
+		input.Initial = &c.initial.Value
 	}
 
 	h, err := c.Globals.APIClient.CreateHealthCheck(&input)

@@ -98,7 +98,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateACLInput {
 	var input fastly.CreateACLInput
 
-	input.Name = fastly.String(c.name)
+	input.Name = &c.name
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 

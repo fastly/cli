@@ -73,8 +73,8 @@ func TestDictionaryCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("dictionary create --version 1 --service-id 123"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			args:      args("dictionary create --version 1"),
+			wantError: "error reading service: no service ID found",
 		},
 		{
 			args: args("dictionary create --version 1 --service-id 123 --name denylist --autoclone"),

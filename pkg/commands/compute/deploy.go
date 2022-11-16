@@ -660,7 +660,7 @@ func createService(serviceName string, apiClient api.Interface, activateTrial ac
 	progress.Step("Creating service...")
 
 	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
-		Name: fastly.String(serviceName),
+		Name: &serviceName,
 		Type: fastly.String("wasm"),
 	})
 	if err != nil {

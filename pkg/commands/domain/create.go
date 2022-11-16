@@ -17,13 +17,13 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	name           string
-	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
-	autoClone cmd.OptionalAutoClone
-	comment   cmd.OptionalString
+	autoClone   cmd.OptionalAutoClone
+	comment     cmd.OptionalString
+	name        cmd.OptionalString
+	serviceName cmd.OptionalServiceNameID
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -54,7 +54,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.name)
+	c.CmdClause.Flag("name", "Domain name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
 	return &c
 }
@@ -80,10 +80,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := fastly.CreateDomainInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
-		Name:           &c.name,
+	}
+	if c.name.WasSet {
+		input.Name = &c.name.Value
 	}
 	if c.comment.WasSet {
-		input.Comment = fastly.String(c.comment.Value)
+		input.Comment = &c.comment.Value
 	}
 	d, err := c.Globals.APIClient.CreateDomain(&input)
 	if err != nil {

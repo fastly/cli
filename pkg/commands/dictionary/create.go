@@ -17,12 +17,12 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	name           string
 	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
-	serviceName cmd.OptionalServiceNameID
 	autoClone   cmd.OptionalAutoClone
+	name        cmd.OptionalString
+	serviceName cmd.OptionalServiceNameID
 	writeOnly   cmd.OptionalBool
 }
 
@@ -54,7 +54,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("name", "Name of Dictionary").Short('n').Required().StringVar(&c.name)
+	c.CmdClause.Flag("name", "Name of Dictionary").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("write-only", "Whether to mark this dictionary as write-only").Action(c.writeOnly.Set).BoolVar(&c.writeOnly.Value)
 	return &c
 }
@@ -77,14 +77,15 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		})
 		return err
 	}
+
 	input := fastly.CreateDictionaryInput{
-		Name:           fastly.String(c.name),
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
 	}
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion.Number
 
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
 	if c.writeOnly.WasSet {
 		input.WriteOnly = fastly.CBool(c.writeOnly.Value)
 	}

@@ -65,7 +65,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause.Flag("new-name", "New name of the Sumologic logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("url", "The URL to POST to").Action(c.URL.Set).StringVar(&c.URL.Value)
 	common.Format(c.CmdClause, &c.Format)
-	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).IntVar(fastly.Int(c.FormatVersion.Value))
+	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).IntVar(&c.FormatVersion.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	common.MessageType(c.CmdClause, &c.MessageType)
 	common.Placement(c.CmdClause, &c.Placement)
@@ -82,31 +82,31 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	// Set new values if set by user.
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.URL.WasSet {
-		input.URL = fastly.String(c.URL.Value)
+		input.URL = &c.URL.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = fastly.String(c.MessageType.Value)
+		input.MessageType = &c.MessageType.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

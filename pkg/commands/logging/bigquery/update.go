@@ -89,47 +89,47 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.ProjectID.WasSet {
-		input.ProjectID = fastly.String(c.ProjectID.Value)
+		input.ProjectID = &c.ProjectID.Value
 	}
 
 	if c.Dataset.WasSet {
-		input.Dataset = fastly.String(c.Dataset.Value)
+		input.Dataset = &c.Dataset.Value
 	}
 
 	if c.Table.WasSet {
-		input.Table = fastly.String(c.Table.Value)
+		input.Table = &c.Table.Value
 	}
 
 	if c.User.WasSet {
-		input.User = fastly.String(c.User.Value)
+		input.User = &c.User.Value
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = fastly.String(c.SecretKey.Value)
+		input.SecretKey = &c.SecretKey.Value
 	}
 
 	if c.Template.WasSet {
-		input.Template = fastly.String(c.Template.Value)
+		input.Template = &c.Template.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

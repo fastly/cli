@@ -92,9 +92,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	var input fastly.CreateKinesisInput
 
 	input.ServiceID = serviceID
-	input.Name = fastly.String(c.EndpointName)
-	input.StreamName = fastly.String(c.StreamName)
-	input.Region = fastly.String(c.Region)
+	input.Name = &c.EndpointName
+	input.StreamName = &c.StreamName
+	input.Region = &c.Region
 	input.ServiceVersion = serviceVersion
 
 	// The following block checks for invalid permutations of the ways in
@@ -115,31 +115,31 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.AccessKey.WasSet {
-		input.AccessKey = fastly.String(c.AccessKey.Value)
+		input.AccessKey = &c.AccessKey.Value
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = fastly.String(c.SecretKey.Value)
+		input.SecretKey = &c.SecretKey.Value
 	}
 
 	if c.IAMRole.WasSet {
-		input.IAMRole = fastly.String(c.IAMRole.Value)
+		input.IAMRole = &c.IAMRole.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

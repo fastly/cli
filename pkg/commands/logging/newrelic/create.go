@@ -54,9 +54,9 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 	common.Format(c.CmdClause, &c.format)
 	common.FormatVersion(c.CmdClause, &c.formatVersion)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(fastly.String(c.placement.Value))
+	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
 	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.region.Set).StringVar(&c.region.Value)
-	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(fastly.String(c.responseCondition.Value))
+	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -111,29 +111,29 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateNewRelicInput {
 	var input fastly.CreateNewRelicInput
 
-	input.Name = fastly.String(c.name)
+	input.Name = &c.name
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Token = fastly.String(c.key)
+	input.Token = &c.key
 
 	if c.format.WasSet {
-		input.Format = fastly.String(c.format.Value)
+		input.Format = &c.format.Value
 	}
 
 	if c.formatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.formatVersion.Value)
+		input.FormatVersion = &c.formatVersion.Value
 	}
 
 	if c.placement.WasSet {
-		input.Placement = fastly.String(c.placement.Value)
+		input.Placement = &c.placement.Value
 	}
 
 	if c.region.WasSet {
-		input.Region = fastly.String(c.region.Value)
+		input.Region = &c.region.Value
 	}
 
 	if c.responseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.responseCondition.Value)
+		input.ResponseCondition = &c.responseCondition.Value
 	}
 
 	return &input

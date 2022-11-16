@@ -98,63 +98,63 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	// Set new values if set by user.
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.Address.WasSet {
-		input.Address = fastly.String(c.Address.Value)
+		input.Address = &c.Address.Value
 	}
 
 	if c.Port.WasSet {
-		input.Port = fastly.Int(c.Port.Value)
+		input.Port = &c.Port.Value
 	}
 
 	if c.Username.WasSet {
-		input.Username = fastly.String(c.Username.Value)
+		input.Username = &c.Username.Value
 	}
 
 	if c.Password.WasSet {
-		input.Password = fastly.String(c.Password.Value)
+		input.Password = &c.Password.Value
 	}
 
 	if c.PublicKey.WasSet {
-		input.PublicKey = fastly.String(c.PublicKey.Value)
+		input.PublicKey = &c.PublicKey.Value
 	}
 
 	if c.Path.WasSet {
-		input.Path = fastly.String(c.Path.Value)
+		input.Path = &c.Path.Value
 	}
 
 	if c.Period.WasSet {
-		input.Period = fastly.Int(c.Period.Value)
+		input.Period = &c.Period.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
+		input.GzipLevel = &c.GzipLevel.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
+		input.TimestampFormat = &c.TimestampFormat.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
 
 	return &input, nil

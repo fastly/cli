@@ -98,63 +98,63 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	// Set new values if set by user.
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.Bucket.WasSet {
-		input.Bucket = fastly.String(c.Bucket.Value)
+		input.Bucket = &c.Bucket.Value
 	}
 
 	if c.User.WasSet {
-		input.User = fastly.String(c.User.Value)
+		input.User = &c.User.Value
 	}
 
 	if c.AccountName.WasSet {
-		input.AccountName = fastly.String(c.AccountName.Value)
+		input.AccountName = &c.AccountName.Value
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = fastly.String(c.SecretKey.Value)
+		input.SecretKey = &c.SecretKey.Value
 	}
 
 	if c.Path.WasSet {
-		input.Path = fastly.String(c.Path.Value)
+		input.Path = &c.Path.Value
 	}
 
 	if c.Period.WasSet {
-		input.Period = fastly.Int(c.Period.Value)
+		input.Period = &c.Period.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
+		input.GzipLevel = &c.GzipLevel.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
+		input.TimestampFormat = &c.TimestampFormat.Value
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = fastly.String(c.MessageType.Value)
+		input.MessageType = &c.MessageType.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
 
 	return &input, nil

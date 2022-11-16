@@ -100,67 +100,67 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	// Set new values if set by user.
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.BucketName.WasSet {
-		input.BucketName = fastly.String(c.BucketName.Value)
+		input.BucketName = &c.BucketName.Value
 	}
 
 	if c.Domain.WasSet {
-		input.Domain = fastly.String(c.Domain.Value)
+		input.Domain = &c.Domain.Value
 	}
 
 	if c.AccessKey.WasSet {
-		input.AccessKey = fastly.String(c.AccessKey.Value)
+		input.AccessKey = &c.AccessKey.Value
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = fastly.String(c.SecretKey.Value)
+		input.SecretKey = &c.SecretKey.Value
 	}
 
 	if c.Path.WasSet {
-		input.Path = fastly.String(c.Path.Value)
+		input.Path = &c.Path.Value
 	}
 
 	if c.Period.WasSet {
-		input.Period = fastly.Int(c.Period.Value)
+		input.Period = &c.Period.Value
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
+		input.GzipLevel = &c.GzipLevel.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = fastly.String(c.MessageType.Value)
+		input.MessageType = &c.MessageType.Value
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
+		input.TimestampFormat = &c.TimestampFormat.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.PublicKey.WasSet {
-		input.PublicKey = fastly.String(c.PublicKey.Value)
+		input.PublicKey = &c.PublicKey.Value
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
 
 	return &input, nil

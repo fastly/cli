@@ -102,7 +102,7 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 	var input fastly.CreateVCLInput
 
 	input.Content = fastly.String(cmd.Content(c.content))
-	input.Name = fastly.String(c.name)
+	input.Name = &c.name
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 

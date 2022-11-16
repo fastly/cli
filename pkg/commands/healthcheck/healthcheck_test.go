@@ -21,8 +21,8 @@ func TestHealthCheckCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("healthcheck create --version 1 --service-id 123"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			args:      args("healthcheck create --version 1"),
+			wantError: "error reading service: no service ID found",
 		},
 		{
 			args: args("healthcheck create --service-id 123 --version 1 --name www.test.com --autoclone"),

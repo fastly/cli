@@ -75,28 +75,28 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	var input fastly.CreatePapertrailInput
 
 	input.ServiceID = serviceID
-	input.Name = fastly.String(c.EndpointName)
+	input.Name = &c.EndpointName
 	input.ServiceVersion = serviceVersion
-	input.Address = fastly.String(c.Address)
+	input.Address = &c.Address
 
 	if c.Port.WasSet {
-		input.Port = fastly.Int(c.Port.Value)
+		input.Port = &c.Port.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

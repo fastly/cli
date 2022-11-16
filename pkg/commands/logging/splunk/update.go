@@ -75,7 +75,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("placement", "	Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(fastly.String(c.Placement.Value))
+	c.CmdClause.Flag("placement", "	Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
 	c.CmdClause.Flag("auth-token", "").Action(c.Token.Set).StringVar(&c.Token.Value)
 	return &c
 }
@@ -90,47 +90,47 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	// Set new values if set by user.
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.URL.WasSet {
-		input.URL = fastly.String(c.URL.Value)
+		input.URL = &c.URL.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.Token.WasSet {
-		input.Token = fastly.String(c.Token.Value)
+		input.Token = &c.Token.Value
 	}
 
 	if c.TLSCACert.WasSet {
-		input.TLSCACert = fastly.String(c.TLSCACert.Value)
+		input.TLSCACert = &c.TLSCACert.Value
 	}
 
 	if c.TLSHostname.WasSet {
-		input.TLSHostname = fastly.String(c.TLSHostname.Value)
+		input.TLSHostname = &c.TLSHostname.Value
 	}
 
 	if c.TLSClientCert.WasSet {
-		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
+		input.TLSClientCert = &c.TLSClientCert.Value
 	}
 
 	if c.TLSClientKey.WasSet {
-		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
+		input.TLSClientKey = &c.TLSClientKey.Value
 	}
 
 	return &input, nil

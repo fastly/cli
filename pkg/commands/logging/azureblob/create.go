@@ -84,7 +84,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	common.Placement(c.CmdClause, &c.Placement)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
-	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).IntVar(fastly.Int(c.FileMaxBytes.Value))
+	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).IntVar(&c.FileMaxBytes.Value)
 	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	return &c
 }
@@ -115,43 +115,43 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
+		input.GzipLevel = &c.GzipLevel.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = fastly.String(c.MessageType.Value)
+		input.MessageType = &c.MessageType.Value
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
+		input.TimestampFormat = &c.TimestampFormat.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.PublicKey.WasSet {
-		input.PublicKey = fastly.String(c.PublicKey.Value)
+		input.PublicKey = &c.PublicKey.Value
 	}
 
 	if c.FileMaxBytes.WasSet {
-		input.FileMaxBytes = fastly.Int(c.FileMaxBytes.Value)
+		input.FileMaxBytes = &c.FileMaxBytes.Value
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
 
 	return &input, nil

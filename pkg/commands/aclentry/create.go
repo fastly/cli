@@ -83,17 +83,17 @@ func (c *CreateCommand) constructInput(serviceID string) *fastly.CreateACLEntryI
 	var input fastly.CreateACLEntryInput
 
 	input.ACLID = c.aclID
-	input.IP = fastly.String(c.ip)
+	input.IP = &c.ip
 	input.ServiceID = serviceID
 
 	if c.comment.WasSet {
-		input.Comment = fastly.String(c.comment.Value)
+		input.Comment = &c.comment.Value
 	}
 	if c.negated.WasSet {
 		input.Negated = fastly.CBool(c.negated.Value)
 	}
 	if c.subnet.WasSet {
-		input.Subnet = fastly.Int(c.subnet.Value)
+		input.Subnet = &c.subnet.Value
 	}
 
 	return &input
