@@ -22,7 +22,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	var c CreateCommand
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause = parent.Command("create", "Create a Fastly edge config store")
+	c.CmdClause = parent.Command("create", "Create a Fastly object store")
 	c.CmdClause.Flag("name", "Name of Object Store").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
 }
