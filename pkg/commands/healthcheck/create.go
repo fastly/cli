@@ -15,9 +15,11 @@ import (
 type CreateCommand struct {
 	cmd.Base
 	manifest manifest.Data
+
 	// required
 	name           string
 	serviceVersion cmd.OptionalServiceVersion
+
 	// optional
 	autoClone        cmd.OptionalAutoClone
 	checkInterval    cmd.OptionalInt

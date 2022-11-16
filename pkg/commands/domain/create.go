@@ -15,10 +15,12 @@ import (
 type CreateCommand struct {
 	cmd.Base
 	manifest manifest.Data
+
 	// required
 	name           string
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	serviceName    cmd.OptionalServiceNameID
+	serviceVersion cmd.OptionalServiceVersion
+
 	// optional
 	autoClone cmd.OptionalAutoClone
 	comment   cmd.OptionalString
@@ -37,15 +39,15 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
-		Action:      c.ServiceName.Set,
+		Action:      c.serviceName.Set,
 		Name:        cmd.FlagServiceName,
 		Description: cmd.FlagServiceDesc,
-		Dst:         &c.ServiceName.Value,
+		Dst:         &c.serviceName.Value,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
-		Dst:         &c.ServiceVersion.Value,
+		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
@@ -64,8 +66,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
-		ServiceNameFlag:    c.ServiceName,
-		ServiceVersionFlag: c.ServiceVersion,
+		ServiceNameFlag:    c.serviceName,
+		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flag.Verbose,
 	})
 	if err != nil {
