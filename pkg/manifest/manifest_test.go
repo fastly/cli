@@ -12,6 +12,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/google/go-cmp/cmp"
 	toml "github.com/pelletier/go-toml"
 )
 
@@ -295,7 +296,8 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 		t.Fatal("expected [local_server] block to exist in fastly.toml but is missing")
 	}
 
-	if lt.(*toml.Tree).String() != ot.(*toml.Tree).String() {
-		t.Fatal("testing section between original and updated fastly.toml do not match")
+	got, want := lt.(*toml.Tree).String(), ot.(*toml.Tree).String()
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatalf("testing section between original and updated fastly.toml do not match (-want +got):\n%s", diff)
 	}
 }

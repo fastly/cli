@@ -34,3 +34,14 @@ name = "Default Rust template"
       foo = "bar"
       baz = """
 qux"""
+
+  [local_server.object_store]
+    store_one = [{key = "first", data = "This is some data"}, {key = "second", path = "strings.json"}]
+
+    [[local_server.object_store.store_two]]
+      key = "first"
+      data = "This is some data"
+
+    [[local_server.object_store.store_two]]
+      key = "second"
+      path = "strings.json"

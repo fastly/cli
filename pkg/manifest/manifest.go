@@ -249,9 +249,9 @@ type SetupLogger struct {
 
 // LocalServer represents a list of mocked Viceroy resources.
 type LocalServer struct {
-	Backends     map[string]LocalBackend     `toml:"backends"`
-	Dictionaries map[string]LocalDictionary  `toml:"dictionaries,omitempty"`
-	ObjectStore  map[string]LocalObjectStore `toml:"object_stores,omitempty"`
+	Backends     map[string]LocalBackend       `toml:"backends"`
+	Dictionaries map[string]LocalDictionary    `toml:"dictionaries,omitempty"`
+	ObjectStore  map[string][]LocalObjectStore `toml:"object_store,omitempty"`
 }
 
 // LocalBackend represents a backend to be mocked by the local testing server.
@@ -272,8 +272,8 @@ type LocalDictionary struct {
 // LocalObjectStore represents an object_store to be mocked by the local testing server.
 type LocalObjectStore struct {
 	Key  string `toml:"key"`
-	Path string `toml:"path"`
-	Data string `toml:"data"`
+	Path string `toml:"path,omitempty"`
+	Data string `toml:"data,omitempty"`
 }
 
 // Exists yields whether the manifest exists.
@@ -305,6 +305,12 @@ func (f *File) SetErrLog(errLog fsterr.LogInterface) {
 // SetOutput sets the output stream for any messages.
 func (f *File) SetOutput(output io.Writer) {
 	f.output = output
+}
+
+func (f *File) logErr(err error) {
+	if f.errLog != nil {
+		f.errLog.Add(err)
+	}
 }
 
 // AutoMigrateVersion updates the manifest_version value to
@@ -427,7 +433,7 @@ func (f *File) Read(path string) (err error) {
 	/* #nosec */
 	data, err := os.ReadFile(path)
 	if err != nil {
-		f.errLog.Add(err)
+		f.logErr(err)
 		return err
 	}
 
@@ -442,14 +448,14 @@ func (f *File) Read(path string) (err error) {
 	// structure otherwise we'll see errors from the toml library.
 	manifestSection, err := containsManifestSection(data)
 	if err != nil {
-		f.errLog.Add(err)
+		f.logErr(err)
 		return fmt.Errorf("failed to parse the fastly.toml manifest: %w", err)
 	}
 
 	if manifestSection {
 		buf, err := stripManifestSection(bytes.NewReader(data), path)
 		if err != nil {
-			f.errLog.Add(err)
+			f.logErr(err)
 			return fsterr.ErrInvalidManifestVersion
 		}
 		data = buf.Bytes()
@@ -460,13 +466,13 @@ func (f *File) Read(path string) (err error) {
 	// version supported by the Fastly CLI.
 	data, err = f.AutoMigrateVersion(data, path)
 	if err != nil {
-		f.errLog.Add(err)
+		f.logErr(err)
 		return err
 	}
 
 	err = toml.Unmarshal(data, f)
 	if err != nil {
-		f.errLog.Add(err)
+		f.logErr(err)
 		return fsterr.ErrParsingManifest
 	}
 
@@ -481,7 +487,7 @@ func (f *File) Read(path string) (err error) {
 		}
 		err = f.Write(path)
 		if err != nil {
-			f.errLog.Add(err)
+			f.logErr(err)
 			return fmt.Errorf("unable to save fastly.toml manifest change: %w", err)
 		}
 	}
