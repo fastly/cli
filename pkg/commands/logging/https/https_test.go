@@ -115,7 +115,7 @@ func TestUpdateHTTPSInput(t *testing.T) {
 			want: &fastly.UpdateHTTPSInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              *fastly.String("log"),
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				ResponseCondition: fastly.String("new2"),
 				Format:            fastly.String("new3"),
@@ -215,7 +215,7 @@ func createCommandRequired() *https.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -309,7 +309,7 @@ func updateCommandNoUpdates() *https.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -342,7 +342,7 @@ func updateCommandAll() *https.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

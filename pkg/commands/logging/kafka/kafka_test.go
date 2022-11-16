@@ -127,7 +127,7 @@ func TestUpdateKafkaInput(t *testing.T) {
 			want: &fastly.UpdateKafkaInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              *fastly.String("log"),
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Topic:             fastly.String("new2"),
 				Brokers:           fastly.String("new3"),
@@ -180,7 +180,7 @@ func TestUpdateKafkaInput(t *testing.T) {
 			want: &fastly.UpdateKafkaInput{
 				ServiceID:       "123",
 				ServiceVersion:  4,
-				Name:            *fastly.String("log"),
+				Name:            "log",
 				Topic:           fastly.String("logs"),
 				Brokers:         fastly.String("127.0.0.1,127.0.0.2"),
 				ParseLogKeyvals: fastly.CBool(true),
@@ -201,7 +201,7 @@ func TestUpdateKafkaInput(t *testing.T) {
 			want: &fastly.UpdateKafkaInput{
 				ServiceID:       "123",
 				ServiceVersion:  4,
-				Name:            *fastly.String("log"),
+				Name:            "log",
 				Topic:           fastly.String("logs"),
 				Brokers:         fastly.String("127.0.0.1,127.0.0.2"),
 				ParseLogKeyvals: fastly.CBool(true),
@@ -270,7 +270,7 @@ func createCommandRequired() *kafka.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -359,7 +359,7 @@ func createCommandSASL(authMethod, user, password string) *kafka.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -406,7 +406,7 @@ func updateCommandNoUpdates() *kafka.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -439,7 +439,7 @@ func updateCommandAll() *kafka.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -492,7 +492,7 @@ func updateCommandSASL(authMethod, user, password string) *kafka.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -533,7 +533,7 @@ func updateCommandNoSASL() *kafka.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -566,7 +566,7 @@ func getKafkaSASL(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
 		ServiceID:         i.ServiceID,
 		ServiceVersion:    i.ServiceVersion,
-		Name:              *fastly.String("log"),
+		Name:              "log",
 		Brokers:           "127.0.0.1,127.0.0.2",
 		Topic:             "logs",
 		RequiredACKs:      "-1",

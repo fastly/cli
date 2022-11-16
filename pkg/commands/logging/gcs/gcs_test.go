@@ -126,7 +126,7 @@ func TestUpdateGCSInput(t *testing.T) {
 			want: &fastly.UpdateGCSInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              *fastly.String("log"),
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Bucket:            fastly.String("new2"),
 				User:              fastly.String("new3"),
@@ -208,7 +208,7 @@ func createCommandRequired() *gcs.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -248,7 +248,7 @@ func createCommandAll() *gcs.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -299,7 +299,7 @@ func updateCommandNoUpdates() *gcs.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -332,7 +332,7 @@ func updateCommandAll() *gcs.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

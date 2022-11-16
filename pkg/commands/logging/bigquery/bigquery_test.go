@@ -126,7 +126,7 @@ func TestUpdateBigQueryInput(t *testing.T) {
 			want: &fastly.UpdateBigQueryInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              *fastly.String("log"),
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				ProjectID:         fastly.String("new2"),
 				Dataset:           fastly.String("new3"),
@@ -205,7 +205,7 @@ func createCommandRequired() *bigquery.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -247,7 +247,7 @@ func createCommandAll() *bigquery.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -296,7 +296,7 @@ func updateCommandNoUpdates() *bigquery.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -329,7 +329,7 @@ func updateCommandAll() *bigquery.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

@@ -119,7 +119,7 @@ func TestUpdateLogshuttleInput(t *testing.T) {
 			want: &fastly.UpdateLogshuttleInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              *fastly.String("log"),
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Format:            fastly.String("new2"),
 				FormatVersion:     fastly.Int(3),
@@ -194,7 +194,7 @@ func createCommandRequired() *logshuttle.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		Token:        "tkn",
 		URL:          "example.com",
 		ServiceVersion: cmd.OptionalServiceVersion{
@@ -233,7 +233,7 @@ func createCommandAll() *logshuttle.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		Token:        "tkn",
 		URL:          "example.com",
 		ServiceVersion: cmd.OptionalServiceVersion{
@@ -278,7 +278,7 @@ func updateCommandNoUpdate() *logshuttle.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -311,7 +311,7 @@ func updateCommandAll() *logshuttle.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

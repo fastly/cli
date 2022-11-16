@@ -144,7 +144,7 @@ func TestUpdateS3Input(t *testing.T) {
 			want: &fastly.UpdateS3Input{
 				ServiceID:                    "123",
 				ServiceVersion:               4,
-				Name:                         *fastly.String("log"),
+				Name:                         "log",
 				NewName:                      fastly.String("new1"),
 				BucketName:                   fastly.String("new2"),
 				AccessKey:                    fastly.String("new3"),
@@ -232,7 +232,7 @@ func createCommandRequired() *s3.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -272,7 +272,7 @@ func createCommandRequiredIAMRole() *s3.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -367,7 +367,7 @@ func updateCommandNoUpdates() *s3.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -400,7 +400,7 @@ func updateCommandAll() *s3.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

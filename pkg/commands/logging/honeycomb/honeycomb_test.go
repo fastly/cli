@@ -119,7 +119,7 @@ func TestUpdateHoneycombInput(t *testing.T) {
 			want: &fastly.UpdateHoneycombInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              *fastly.String("log"),
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Format:            fastly.String("new2"),
 				FormatVersion:     fastly.Int(3),
@@ -194,7 +194,7 @@ func createCommandRequired() *honeycomb.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		Token:        "tkn",
 		Dataset:      "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
@@ -233,7 +233,7 @@ func createCommandAll() *honeycomb.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		Token:        "tkn",
 		Dataset:      "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
@@ -278,7 +278,7 @@ func updateCommandNoUpdates() *honeycomb.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -311,7 +311,7 @@ func updateCommandAll() *honeycomb.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

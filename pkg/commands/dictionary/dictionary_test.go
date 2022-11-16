@@ -324,7 +324,6 @@ func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictiona
 }
 
 func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
-	// This is a bit nastly, but just an artifact of testing- nil is false.
 	if i.WriteOnly == nil {
 		i.WriteOnly = fastly.CBool(false)
 	}

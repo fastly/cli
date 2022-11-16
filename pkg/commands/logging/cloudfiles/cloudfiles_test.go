@@ -128,7 +128,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			want: &fastly.UpdateCloudfilesInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              *fastly.String("log"),
+				Name:              "log",
 				NewName:           fastly.String("new1"),
 				AccessKey:         fastly.String("new2"),
 				BucketName:        fastly.String("new3"),
@@ -212,7 +212,7 @@ func createCommandRequired() *cloudfiles.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -252,7 +252,7 @@ func createCommandAll() *cloudfiles.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -316,7 +316,7 @@ func updateCommandNoUpdate() *cloudfiles.UpdateCommand {
 				Value: true,
 			},
 		},
-		EndpointName: *fastly.String("log"),
+		EndpointName: "log",
 	}
 }
 
@@ -349,7 +349,7 @@ func updateCommandAll() *cloudfiles.UpdateCommand {
 				Value: true,
 			},
 		},
-		EndpointName:      *fastly.String("log"),
+		EndpointName:      "log",
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
 		BucketName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
