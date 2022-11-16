@@ -170,10 +170,10 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		return nil, fmt.Errorf("error parsing arguments: must provide --name to update a versioned VCL snippet")
 	}
 	if c.newName.WasSet {
-		input.NewName = fastly.String(c.newName.Value)
+		input.NewName = &c.newName.Value
 	}
 	if c.priority.WasSet {
-		input.Priority = fastly.Int(c.priority.Value)
+		input.Priority = &c.priority.Value
 	}
 	if c.content.WasSet {
 		input.Content = fastly.String(cmd.Content(c.content.Value))

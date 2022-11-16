@@ -80,26 +80,26 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = fastly.String(c.EndpointName)
-	input.User = fastly.String(c.User)
-	input.SecretKey = fastly.String(c.SecretKey)
-	input.Topic = fastly.String(c.Topic)
-	input.ProjectID = fastly.String(c.ProjectID)
+	input.Name = &c.EndpointName
+	input.User = &c.User
+	input.SecretKey = &c.SecretKey
+	input.Topic = &c.Topic
+	input.ProjectID = &c.ProjectID
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

@@ -18,11 +18,10 @@ type CreateCommand struct {
 	manifest manifest.Data
 
 	// required
-	name           string
-	address        string
 	serviceVersion cmd.OptionalServiceVersion
 
 	// optional
+	address             cmd.OptionalString
 	autoClone           cmd.OptionalAutoClone
 	autoLoadBalance     cmd.OptionalBool
 	betweenBytesTimeout cmd.OptionalInt
@@ -33,6 +32,7 @@ type CreateCommand struct {
 	maxConn             cmd.OptionalInt
 	maxTLSVersion       cmd.OptionalString
 	minTLSVersion       cmd.OptionalString
+	name                cmd.OptionalString
 	overrideHost        cmd.OptionalString
 	port                cmd.OptionalInt
 	requestCondition    cmd.OptionalString
@@ -77,9 +77,9 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.CmdClause.Flag("name", "Backend name").Short('n').Required().StringVar(&c.name)
+	c.CmdClause.Flag("name", "Backend name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("comment", "A descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
-	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Required().StringVar(&c.address)
+	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.address.Set).StringVar(&c.address.Value)
 	c.CmdClause.Flag("port", "Port number of the address").Action(c.port.Set).IntVar(&c.port.Value)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.overrideHost.Set).StringVar(&c.overrideHost.Value)
 	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").Action(c.connectTimeout.Set).IntVar(&c.connectTimeout.Value)
@@ -124,76 +124,80 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 	input := fastly.CreateBackendInput{
-		Address:        fastly.String(c.address),
-		Name:           fastly.String(c.name),
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
 	}
 
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
+	if c.address.WasSet {
+		input.Address = &c.address.Value
+	}
 	if c.autoLoadBalance.WasSet {
 		input.AutoLoadbalance = fastly.CBool(c.autoLoadBalance.Value)
 	}
 	if c.betweenBytesTimeout.WasSet {
-		input.BetweenBytesTimeout = fastly.Int(c.betweenBytesTimeout.Value)
+		input.BetweenBytesTimeout = &c.betweenBytesTimeout.Value
 	}
 	if c.comment.WasSet {
-		input.Comment = fastly.String(c.comment.Value)
+		input.Comment = &c.comment.Value
 	}
 	if c.connectTimeout.WasSet {
-		input.ConnectTimeout = fastly.Int(c.connectTimeout.Value)
+		input.ConnectTimeout = &c.connectTimeout.Value
 	}
 	if c.firstByteTimeout.WasSet {
-		input.FirstByteTimeout = fastly.Int(c.firstByteTimeout.Value)
+		input.FirstByteTimeout = &c.firstByteTimeout.Value
 	}
 	if c.healthCheck.WasSet {
-		input.HealthCheck = fastly.String(c.healthCheck.Value)
+		input.HealthCheck = &c.healthCheck.Value
 	}
 	if c.maxConn.WasSet {
-		input.MaxConn = fastly.Int(c.maxConn.Value)
+		input.MaxConn = &c.maxConn.Value
 	}
 	if c.maxTLSVersion.WasSet {
-		input.MaxTLSVersion = fastly.String(c.maxTLSVersion.Value)
+		input.MaxTLSVersion = &c.maxTLSVersion.Value
 	}
 	if c.minTLSVersion.WasSet {
-		input.MinTLSVersion = fastly.String(c.minTLSVersion.Value)
+		input.MinTLSVersion = &c.minTLSVersion.Value
 	}
 	if c.overrideHost.WasSet {
-		input.OverrideHost = fastly.String(c.overrideHost.Value)
+		input.OverrideHost = &c.overrideHost.Value
 	}
 	if c.requestCondition.WasSet {
-		input.RequestCondition = fastly.String(c.requestCondition.Value)
+		input.RequestCondition = &c.requestCondition.Value
 	}
 	if c.shield.WasSet {
-		input.Shield = fastly.String(c.shield.Value)
+		input.Shield = &c.shield.Value
 	}
 	if c.sslCACert.WasSet {
-		input.SSLCACert = fastly.String(c.sslCACert.Value)
+		input.SSLCACert = &c.sslCACert.Value
 	}
 	if c.sslCertHostname.WasSet {
-		input.SSLCertHostname = fastly.String(c.sslCertHostname.Value)
+		input.SSLCertHostname = &c.sslCertHostname.Value
 	}
 	if c.sslCheckCert.WasSet {
 		input.SSLCheckCert = fastly.CBool(c.sslCheckCert.Value)
 	}
 	if c.sslCiphers.WasSet {
-		input.SSLCiphers = fastly.String(c.sslCiphers.Value)
+		input.SSLCiphers = &c.sslCiphers.Value
 	}
 	if c.sslClientCert.WasSet {
-		input.SSLClientCert = fastly.String(c.sslClientCert.Value)
+		input.SSLClientCert = &c.sslClientCert.Value
 	}
 	if c.sslClientKey.WasSet {
-		input.SSLClientKey = fastly.String(c.sslClientKey.Value)
+		input.SSLClientKey = &c.sslClientKey.Value
 	}
 	if c.sslSNIHostname.WasSet {
-		input.SSLSNIHostname = fastly.String(c.sslSNIHostname.Value)
+		input.SSLSNIHostname = &c.sslSNIHostname.Value
 	}
 	if c.weight.WasSet {
-		input.Weight = fastly.Int(c.weight.Value)
+		input.Weight = &c.weight.Value
 	}
 
 	switch {
 	case c.port.WasSet:
-		input.Port = fastly.Int(c.port.Value)
+		input.Port = &c.port.Value
 	case c.useSSL.WasSet && c.useSSL.Value:
 		if c.Globals.Flag.Verbose {
 			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443")
@@ -203,18 +207,18 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {
 		overrideHost, sslSNIHostname, sslCertHostname := SetBackendHostDefaults(*input.Address)
-		input.OverrideHost = fastly.String(overrideHost)
-		input.SSLSNIHostname = fastly.String(sslSNIHostname)
-		input.SSLCertHostname = fastly.String(sslCertHostname)
+		input.OverrideHost = &overrideHost
+		input.SSLSNIHostname = &sslSNIHostname
+		input.SSLCertHostname = &sslCertHostname
 	} else {
 		if c.overrideHost.WasSet {
-			input.OverrideHost = fastly.String(c.overrideHost.Value)
+			input.OverrideHost = &c.overrideHost.Value
 		}
 		if c.sslCertHostname.WasSet {
-			input.SSLCertHostname = fastly.String(c.sslCertHostname.Value)
+			input.SSLCertHostname = &c.sslCertHostname.Value
 		}
 		if c.sslSNIHostname.WasSet {
-			input.SSLSNIHostname = fastly.String(c.sslSNIHostname.Value)
+			input.SSLSNIHostname = &c.sslSNIHostname.Value
 		}
 	}
 

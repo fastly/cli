@@ -33,13 +33,13 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := fastly.CreateServiceInput{
-		Name: fastly.String(c.name),
+		Name: &c.name,
 	}
 	if c.stype.WasSet {
-		input.Type = fastly.String(c.stype.Value)
+		input.Type = &c.stype.Value
 	}
 	if c.comment.WasSet {
-		input.Type = fastly.String(c.comment.Value)
+		input.Type = &c.comment.Value
 	}
 	s, err := c.Globals.APIClient.CreateService(&input)
 	if err != nil {

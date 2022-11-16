@@ -77,7 +77,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("compression-codec", "The codec used for compression of your logs. One of: gzip, snappy, lz4").Action(c.CompressionCodec.Set).StringVar(fastly.String(c.CompressionCodec.Value))
+	c.CmdClause.Flag("compression-codec", "The codec used for compression of your logs. One of: gzip, snappy, lz4").Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
 	c.CmdClause.Flag("required-acks", "The Number of acknowledgements a leader must receive before a write is considered successful. One of: 1 (default) One server needs to respond. 0	No servers need to respond. -1	Wait for all in-sync replicas to respond").Action(c.RequiredACKs.Set).StringVar(&c.RequiredACKs.Value)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
 	common.TLSCACert(c.CmdClause, &c.TLSCACert)
@@ -111,16 +111,16 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = fastly.String(c.EndpointName)
-	input.Topic = fastly.String(c.Topic)
-	input.Brokers = fastly.String(c.Brokers)
+	input.Name = &c.EndpointName
+	input.Topic = &c.Topic
+	input.Brokers = &c.Brokers
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
 
 	if c.RequiredACKs.WasSet {
-		input.RequiredACKs = fastly.String(c.RequiredACKs.Value)
+		input.RequiredACKs = &c.RequiredACKs.Value
 	}
 
 	if c.UseTLS.WasSet {
@@ -128,35 +128,35 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.TLSCACert.WasSet {
-		input.TLSCACert = fastly.String(c.TLSCACert.Value)
+		input.TLSCACert = &c.TLSCACert.Value
 	}
 
 	if c.TLSClientCert.WasSet {
-		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
+		input.TLSClientCert = &c.TLSClientCert.Value
 	}
 
 	if c.TLSClientKey.WasSet {
-		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
+		input.TLSClientKey = &c.TLSClientKey.Value
 	}
 
 	if c.TLSHostname.WasSet {
-		input.TLSHostname = fastly.String(c.TLSHostname.Value)
+		input.TLSHostname = &c.TLSHostname.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.ParseLogKeyvals.WasSet {
@@ -164,19 +164,19 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.RequestMaxBytes.WasSet {
-		input.RequestMaxBytes = fastly.Int(c.RequestMaxBytes.Value)
+		input.RequestMaxBytes = &c.RequestMaxBytes.Value
 	}
 
 	if c.AuthMethod.WasSet {
-		input.AuthMethod = fastly.String(c.AuthMethod.Value)
+		input.AuthMethod = &c.AuthMethod.Value
 	}
 
 	if c.User.WasSet {
-		input.User = fastly.String(c.User.Value)
+		input.User = &c.User.Value
 	}
 
 	if c.Password.WasSet {
-		input.Password = fastly.String(c.Password.Value)
+		input.Password = &c.Password.Value
 	}
 
 	return &input, nil

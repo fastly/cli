@@ -101,51 +101,51 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceVersion = serviceVersion.Number
 
 	if c.NewName.WasSet {
-		c.input.NewName = fastly.String(c.NewName.Value)
+		c.input.NewName = &c.NewName.Value
 	}
 
 	if c.Comment.WasSet {
-		c.input.Comment = fastly.String(c.Comment.Value)
+		c.input.Comment = &c.Comment.Value
 	}
 
 	if c.Method.WasSet {
-		c.input.Method = fastly.String(c.Method.Value)
+		c.input.Method = &c.Method.Value
 	}
 
 	if c.Host.WasSet {
-		c.input.Host = fastly.String(c.Host.Value)
+		c.input.Host = &c.Host.Value
 	}
 
 	if c.Path.WasSet {
-		c.input.Path = fastly.String(c.Path.Value)
+		c.input.Path = &c.Path.Value
 	}
 
 	if c.HTTPVersion.WasSet {
-		c.input.HTTPVersion = fastly.String(c.HTTPVersion.Value)
+		c.input.HTTPVersion = &c.HTTPVersion.Value
 	}
 
 	if c.Timeout.WasSet {
-		c.input.Timeout = fastly.Int(c.Timeout.Value)
+		c.input.Timeout = &c.Timeout.Value
 	}
 
 	if c.CheckInterval.WasSet {
-		c.input.CheckInterval = fastly.Int(c.CheckInterval.Value)
+		c.input.CheckInterval = &c.CheckInterval.Value
 	}
 
 	if c.ExpectedResponse.WasSet {
-		c.input.ExpectedResponse = fastly.Int(c.ExpectedResponse.Value)
+		c.input.ExpectedResponse = &c.ExpectedResponse.Value
 	}
 
 	if c.Window.WasSet {
-		c.input.Window = fastly.Int(c.Window.Value)
+		c.input.Window = &c.Window.Value
 	}
 
 	if c.Threshold.WasSet {
-		c.input.Threshold = fastly.Int(c.Threshold.Value)
+		c.input.Threshold = &c.Threshold.Value
 	}
 
 	if c.Initial.WasSet {
-		c.input.Initial = fastly.Int(c.Initial.Value)
+		c.input.Initial = &c.Initial.Value
 	}
 
 	h, err := c.Globals.APIClient.UpdateHealthCheck(&c.input)

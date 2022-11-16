@@ -85,39 +85,39 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.User.WasSet {
-		input.User = fastly.String(c.User.Value)
+		input.User = &c.User.Value
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = fastly.String(c.SecretKey.Value)
+		input.SecretKey = &c.SecretKey.Value
 	}
 
 	if c.Topic.WasSet {
-		input.Topic = fastly.String(c.Topic.Value)
+		input.Topic = &c.Topic.Value
 	}
 
 	if c.ProjectID.WasSet {
-		input.ProjectID = fastly.String(c.ProjectID.Value)
+		input.ProjectID = &c.ProjectID.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

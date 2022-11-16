@@ -70,12 +70,12 @@ func (b *Backends) Create() error {
 		_, err := b.APIClient.CreateBackend(&fastly.CreateBackendInput{
 			ServiceID:       b.ServiceID,
 			ServiceVersion:  b.ServiceVersion,
-			Name:            fastly.String(bk.Name),
-			Address:         fastly.String(bk.Address),
-			Port:            fastly.Int(bk.Port),
-			OverrideHost:    fastly.String(bk.OverrideHost),
-			SSLCertHostname: fastly.String(bk.SSLCertHostname),
-			SSLSNIHostname:  fastly.String(bk.SSLSNIHostname),
+			Name:            &bk.Name,
+			Address:         &bk.Address,
+			Port:            &bk.Port,
+			OverrideHost:    &bk.OverrideHost,
+			SSLCertHostname: &bk.SSLCertHostname,
+			SSLSNIHostname:  &bk.SSLSNIHostname,
 		})
 		if err != nil {
 			b.Progress.Fail()

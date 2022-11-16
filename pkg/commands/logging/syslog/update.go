@@ -96,15 +96,15 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	// Set new values if set by user.
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.Address.WasSet {
-		input.Address = fastly.String(c.Address.Value)
+		input.Address = &c.Address.Value
 	}
 
 	if c.Port.WasSet {
-		input.Port = fastly.Int(c.Port.Value)
+		input.Port = &c.Port.Value
 	}
 
 	if c.UseTLS.WasSet {
@@ -112,43 +112,43 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.TLSCACert.WasSet {
-		input.TLSCACert = fastly.String(c.TLSCACert.Value)
+		input.TLSCACert = &c.TLSCACert.Value
 	}
 
 	if c.TLSHostname.WasSet {
-		input.TLSHostname = fastly.String(c.TLSHostname.Value)
+		input.TLSHostname = &c.TLSHostname.Value
 	}
 
 	if c.TLSClientCert.WasSet {
-		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
+		input.TLSClientCert = &c.TLSClientCert.Value
 	}
 
 	if c.TLSClientKey.WasSet {
-		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
+		input.TLSClientKey = &c.TLSClientKey.Value
 	}
 
 	if c.Token.WasSet {
-		input.Token = fastly.String(c.Token.Value)
+		input.Token = &c.Token.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = fastly.String(c.MessageType.Value)
+		input.MessageType = &c.MessageType.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

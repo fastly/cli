@@ -87,10 +87,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.NewName.WasSet {
-		c.input.NewName = fastly.String(c.NewName.Value)
+		c.input.NewName = &c.NewName.Value
 	}
 	if c.Comment.WasSet {
-		c.input.Comment = fastly.String(c.Comment.Value)
+		c.input.Comment = &c.Comment.Value
 	}
 
 	d, err := c.Globals.APIClient.UpdateDomain(&c.input)

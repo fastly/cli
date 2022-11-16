@@ -17,8 +17,8 @@ func TestBackendCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend create --version 1 --service-id 123 --address example.com"),
-			WantError: "error parsing arguments: required flag --name not provided",
+			Args:      args("backend create --version 1"),
+			WantError: "error reading service: no service ID found",
 		},
 		// The following test specifies a service version that's 'active', and
 		// subsequently we expect it to not be cloned as we don't provide the
@@ -329,6 +329,9 @@ func TestBackendDelete(t *testing.T) {
 var errTest = errors.New("fixture error")
 
 func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+	if i.Name == nil {
+		i.Name = fastly.String("")
+	}
 	return &fastly.Backend{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,

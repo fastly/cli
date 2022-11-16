@@ -129,39 +129,39 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.Comment.WasSet {
-		input.Comment = fastly.String(c.Comment.Value)
+		input.Comment = &c.Comment.Value
 	}
 
 	if c.Address.WasSet {
-		input.Address = fastly.String(c.Address.Value)
+		input.Address = &c.Address.Value
 	}
 
 	if c.Port.WasSet {
-		input.Port = fastly.Int(c.Port.Value)
+		input.Port = &c.Port.Value
 	}
 
 	if c.OverrideHost.WasSet {
-		input.OverrideHost = fastly.String(c.OverrideHost.Value)
+		input.OverrideHost = &c.OverrideHost.Value
 	}
 
 	if c.ConnectTimeout.WasSet {
-		input.ConnectTimeout = fastly.Int(c.ConnectTimeout.Value)
+		input.ConnectTimeout = &c.ConnectTimeout.Value
 	}
 
 	if c.MaxConn.WasSet {
-		input.MaxConn = fastly.Int(c.MaxConn.Value)
+		input.MaxConn = &c.MaxConn.Value
 	}
 
 	if c.FirstByteTimeout.WasSet {
-		input.FirstByteTimeout = fastly.Int(c.FirstByteTimeout.Value)
+		input.FirstByteTimeout = &c.FirstByteTimeout.Value
 	}
 
 	if c.BetweenBytesTimeout.WasSet {
-		input.BetweenBytesTimeout = fastly.Int(c.BetweenBytesTimeout.Value)
+		input.BetweenBytesTimeout = &c.BetweenBytesTimeout.Value
 	}
 
 	if c.AutoLoadbalance.WasSet {
@@ -169,19 +169,19 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Weight.WasSet {
-		input.Weight = fastly.Int(c.Weight.Value)
+		input.Weight = &c.Weight.Value
 	}
 
 	if c.RequestCondition.WasSet {
-		input.RequestCondition = fastly.String(c.RequestCondition.Value)
+		input.RequestCondition = &c.RequestCondition.Value
 	}
 
 	if c.HealthCheck.WasSet {
-		input.HealthCheck = fastly.String(c.HealthCheck.Value)
+		input.HealthCheck = &c.HealthCheck.Value
 	}
 
 	if c.Shield.WasSet {
-		input.Shield = fastly.String(c.Shield.Value)
+		input.Shield = &c.Shield.Value
 	}
 
 	if c.UseSSL.WasSet {
@@ -193,35 +193,35 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.SSLCACert.WasSet {
-		input.SSLCACert = fastly.String(c.SSLCACert.Value)
+		input.SSLCACert = &c.SSLCACert.Value
 	}
 
 	if c.SSLClientCert.WasSet {
-		input.SSLClientCert = fastly.String(c.SSLClientCert.Value)
+		input.SSLClientCert = &c.SSLClientCert.Value
 	}
 
 	if c.SSLClientKey.WasSet {
-		input.SSLClientKey = fastly.String(c.SSLClientKey.Value)
+		input.SSLClientKey = &c.SSLClientKey.Value
 	}
 
 	if c.SSLCertHostname.WasSet {
-		input.SSLCertHostname = fastly.String(c.SSLCertHostname.Value)
+		input.SSLCertHostname = &c.SSLCertHostname.Value
 	}
 
 	if c.SSLSNIHostname.WasSet {
-		input.SSLSNIHostname = fastly.String(c.SSLSNIHostname.Value)
+		input.SSLSNIHostname = &c.SSLSNIHostname.Value
 	}
 
 	if c.MinTLSVersion.WasSet {
-		input.MinTLSVersion = fastly.String(c.MinTLSVersion.Value)
+		input.MinTLSVersion = &c.MinTLSVersion.Value
 	}
 
 	if c.MaxTLSVersion.WasSet {
-		input.MaxTLSVersion = fastly.String(c.MaxTLSVersion.Value)
+		input.MaxTLSVersion = &c.MaxTLSVersion.Value
 	}
 
 	if c.SSLCiphers.WasSet {
-		input.SSLCiphers = fastly.String(c.SSLCiphers.Value)
+		input.SSLCiphers = &c.SSLCiphers.Value
 	}
 
 	b, err := c.Globals.APIClient.UpdateBackend(input)

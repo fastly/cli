@@ -62,10 +62,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.name.WasSet {
-		c.input.Name = fastly.String(c.name.Value)
+		c.input.Name = &c.name.Value
 	}
 	if c.comment.WasSet {
-		c.input.Comment = fastly.String(c.comment.Value)
+		c.input.Comment = &c.comment.Value
 	}
 
 	s, err := c.Globals.APIClient.UpdateService(&c.input)

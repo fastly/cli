@@ -80,10 +80,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = fastly.String(c.EndpointName)
+	input.Name = &c.EndpointName
 
 	if c.Port.WasSet {
-		input.Port = fastly.Int(c.Port.Value)
+		input.Port = &c.Port.Value
 	}
 
 	if c.UseTLS.WasSet {
@@ -91,27 +91,27 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Token.WasSet {
-		input.Token = fastly.String(c.Token.Value)
+		input.Token = &c.Token.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.Region.WasSet {
-		input.Region = fastly.String(c.Region.Value)
+		input.Region = &c.Region.Value
 	}
 
 	return &input, nil

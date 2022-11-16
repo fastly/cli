@@ -94,9 +94,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 	input.Name = &c.EndpointName
-	input.Bucket = fastly.String(c.Bucket)
-	input.User = fastly.String(c.User)
-	input.SecretKey = fastly.String(c.SecretKey)
+	input.Bucket = &c.Bucket
+	input.User = &c.User
+	input.SecretKey = &c.SecretKey
 
 	// The following blocks enforces the mutual exclusivity of the
 	// CompressionCodec and GzipLevel flags.
@@ -113,35 +113,35 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = fastly.Int(c.GzipLevel.Value)
+		input.GzipLevel = &c.GzipLevel.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = fastly.String(c.TimestampFormat.Value)
+		input.TimestampFormat = &c.TimestampFormat.Value
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = fastly.String(c.MessageType.Value)
+		input.MessageType = &c.MessageType.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = fastly.String(c.CompressionCodec.Value)
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
 
 	if c.AccountName.WasSet {

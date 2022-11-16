@@ -97,67 +97,67 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.NewName.WasSet {
-		input.NewName = fastly.String(c.NewName.Value)
+		input.NewName = &c.NewName.Value
 	}
 
 	if c.Index.WasSet {
-		input.Index = fastly.String(c.Index.Value)
+		input.Index = &c.Index.Value
 	}
 
 	if c.URL.WasSet {
-		input.URL = fastly.String(c.URL.Value)
+		input.URL = &c.URL.Value
 	}
 
 	if c.Pipeline.WasSet {
-		input.Pipeline = fastly.String(c.Pipeline.Value)
+		input.Pipeline = &c.Pipeline.Value
 	}
 
 	if c.RequestMaxEntries.WasSet {
-		input.RequestMaxEntries = fastly.Int(c.RequestMaxEntries.Value)
+		input.RequestMaxEntries = &c.RequestMaxEntries.Value
 	}
 
 	if c.RequestMaxBytes.WasSet {
-		input.RequestMaxBytes = fastly.Int(c.RequestMaxBytes.Value)
+		input.RequestMaxBytes = &c.RequestMaxBytes.Value
 	}
 
 	if c.User.WasSet {
-		input.User = fastly.String(c.User.Value)
+		input.User = &c.User.Value
 	}
 
 	if c.Password.WasSet {
-		input.Password = fastly.String(c.Password.Value)
+		input.Password = &c.Password.Value
 	}
 
 	if c.TLSCACert.WasSet {
-		input.TLSCACert = fastly.String(c.TLSCACert.Value)
+		input.TLSCACert = &c.TLSCACert.Value
 	}
 
 	if c.TLSClientCert.WasSet {
-		input.TLSClientCert = fastly.String(c.TLSClientCert.Value)
+		input.TLSClientCert = &c.TLSClientCert.Value
 	}
 
 	if c.TLSClientKey.WasSet {
-		input.TLSClientKey = fastly.String(c.TLSClientKey.Value)
+		input.TLSClientKey = &c.TLSClientKey.Value
 	}
 
 	if c.TLSHostname.WasSet {
-		input.TLSHostname = fastly.String(c.TLSHostname.Value)
+		input.TLSHostname = &c.TLSHostname.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.String(c.Format.Value)
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = fastly.Int(c.FormatVersion.Value)
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.ResponseCondition.Value)
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = fastly.String(c.Placement.Value)
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil
