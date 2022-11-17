@@ -12,11 +12,11 @@ import (
 // CreateCommand calls the Fastly API to create services.
 type CreateCommand struct {
 	cmd.Base
-	name string
 
 	// optional
-	stype   cmd.OptionalString
 	comment cmd.OptionalString
+	name    cmd.OptionalString
+	stype   cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -24,7 +24,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 	var c CreateCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("create", "Create a Fastly service").Alias("add")
-	c.CmdClause.Flag("name", "Service name").Short('n').Required().StringVar(&c.name)
+	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("type", `Service type. Can be one of "wasm" or "vcl", defaults to "vcl".`).Default("vcl").Action(c.stype.Set).EnumVar(&c.stype.Value, "wasm", "vcl")
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	return &c
@@ -32,11 +32,13 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateComman
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	input := fastly.CreateServiceInput{
-		Name: &c.name,
+	input := fastly.CreateServiceInput{}
+
+	if c.name.WasSet {
+		input.Name = &c.name.Value
 	}
-	if c.stype.WasSet {
-		input.Type = &c.stype.Value
+	if c.comment.WasSet {
+		input.Comment = &c.comment.Value
 	}
 	if c.comment.WasSet {
 		input.Type = &c.comment.Value

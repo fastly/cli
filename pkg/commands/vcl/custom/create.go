@@ -19,8 +19,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 
 	// Required flags
-	c.CmdClause.Flag("content", "VCL passed as file path or content, e.g. $(< main.vcl)").Required().StringVar(&c.content)
-	c.CmdClause.Flag("name", "The name of the VCL").Required().StringVar(&c.name)
+	c.CmdClause.Flag("content", "VCL passed as file path or content, e.g. $(< main.vcl)").Action(c.content.Set).StringVar(&c.content.Value)
+	c.CmdClause.Flag("name", "The name of the VCL").Action(c.name.Set).StringVar(&c.name.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -55,10 +55,10 @@ type CreateCommand struct {
 	cmd.Base
 
 	autoClone      cmd.OptionalAutoClone
-	content        string
+	content        cmd.OptionalString
 	main           cmd.OptionalBool
 	manifest       manifest.Data
-	name           string
+	name           cmd.OptionalString
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -99,12 +99,16 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateVCLInput {
-	var input fastly.CreateVCLInput
-
-	input.Content = fastly.String(cmd.Content(c.content))
-	input.Name = &c.name
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion
+	input := fastly.CreateVCLInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+	}
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
+	if c.content.WasSet {
+		input.Content = fastly.String(cmd.Content(c.content.Value))
+	}
 
 	if c.main.WasSet {
 		input.Main = fastly.Bool(c.main.Value)

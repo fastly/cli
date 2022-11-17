@@ -15,26 +15,6 @@ func TestVCLCustomCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --content flag",
-			Args:      args("vcl custom create --name foo --version 3"),
-			WantError: "error parsing arguments: required flag --content not provided",
-		},
-		{
-			Name:      "validate missing --name flag",
-			Args:      args("vcl custom create --content /path/to/example.vcl --version 3"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			Name:      "validate missing --version flag",
-			Args:      args("vcl custom create --content /path/to/example.vcl --name foo"),
-			WantError: "error parsing arguments: required flag --version not provided",
-		},
-		{
-			Name:      "validate missing --service-id flag",
-			Args:      args("vcl custom create --content /path/to/example.vcl --name foo --version 3"),
-			WantError: "error reading service: no service ID found",
-		},
-		{
 			Name: "validate missing --autoclone flag",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,

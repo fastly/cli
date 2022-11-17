@@ -19,7 +19,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 
 	// Required flags
-	c.CmdClause.Flag("name", "Name for the ACL. Must start with an alphanumeric character and contain only alphanumeric characters, underscores, and whitespace").Required().StringVar(&c.name)
+	c.CmdClause.Flag("name", "Name for the ACL. Must start with an alphanumeric character and contain only alphanumeric characters, underscores, and whitespace").Action(c.name.Set).StringVar(&c.name.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -54,7 +54,7 @@ type CreateCommand struct {
 
 	autoClone      cmd.OptionalAutoClone
 	manifest       manifest.Data
-	name           string
+	name           cmd.OptionalString
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -96,11 +96,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateACLInput {
-	var input fastly.CreateACLInput
-
-	input.Name = &c.name
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion
-
+	input := fastly.CreateACLInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+	}
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
 	return &input
 }

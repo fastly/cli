@@ -25,11 +25,6 @@ func TestServiceCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service create"),
-			api:       mock.API{CreateServiceFn: createServiceOK},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
 			args:       args("service create --name Foo"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
 			wantOutput: "Created service 12345",

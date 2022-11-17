@@ -19,9 +19,9 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 	// Required flags
 	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
-	c.CmdClause.Flag("ip", "An IP address").Required().StringVar(&c.ip)
 
 	// Optional flags
+	c.CmdClause.Flag("ip", "An IP address").Action(c.ip.Set).StringVar(&c.ip.Value)
 	c.CmdClause.Flag("comment", "A freeform descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("negated", "Whether to negate the match").Action(c.negated.Set).BoolVar(&c.negated.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -47,7 +47,7 @@ type CreateCommand struct {
 
 	aclID       string
 	comment     cmd.OptionalString
-	ip          string
+	ip          cmd.OptionalString
 	manifest    manifest.Data
 	negated     cmd.OptionalBool
 	serviceName cmd.OptionalServiceNameID
@@ -80,12 +80,13 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string) *fastly.CreateACLEntryInput {
-	var input fastly.CreateACLEntryInput
-
-	input.ACLID = c.aclID
-	input.IP = &c.ip
-	input.ServiceID = serviceID
-
+	input := fastly.CreateACLEntryInput{
+		ACLID:     c.aclID,
+		ServiceID: serviceID,
+	}
+	if c.ip.WasSet {
+		input.IP = &c.ip.Value
+	}
 	if c.comment.WasSet {
 		input.Comment = &c.comment.Value
 	}

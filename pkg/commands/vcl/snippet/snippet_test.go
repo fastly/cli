@@ -15,26 +15,6 @@ func TestVCLSnippetCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --content flag",
-			Args:      args("vcl snippet create --name foo --type recv --version 3"),
-			WantError: "error parsing arguments: required flag --content not provided",
-		},
-		{
-			Name:      "validate missing --name flag",
-			Args:      args("vcl snippet create --content /path/to/snippet.vcl --type recv --version 3"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			Name:      "validate missing --type flag",
-			Args:      args("vcl snippet create --content /path/to/snippet.vcl --name foo --version 3"),
-			WantError: "error parsing arguments: required flag --type not provided",
-		},
-		{
-			Name:      "validate missing --version flag",
-			Args:      args("vcl snippet create --content /path/to/snippet.vcl --name foo --type recv"),
-			WantError: "error parsing arguments: required flag --version not provided",
-		},
-		{
 			Name:      "validate missing --service-id flag",
 			Args:      args("vcl snippet create --content /path/to/snippet.vcl --name foo --type recv --version 3"),
 			WantError: "error reading service: no service ID found",

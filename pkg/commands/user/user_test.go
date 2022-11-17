@@ -16,21 +16,6 @@ func TestCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --login flag",
-			Args:      args("user create --name foobar"),
-			WantError: "error parsing arguments: required flag --login not provided",
-		},
-		{
-			Name:      "validate missing --name flag",
-			Args:      args("user create --login foo@example.com"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("user create --login foo@example.com --name foobar"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name: "validate CreateUser API error",
 			API: mock.API{
 				CreateUserFn: func(i *fastly.CreateUserInput) (*fastly.User, error) {

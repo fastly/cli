@@ -22,15 +22,15 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 
 	// Required flags
-	c.CmdClause.Flag("content", "VCL snippet passed as file path or content, e.g. $(< snippet.vcl)").Required().StringVar(&c.content)
-	c.CmdClause.Flag("name", "The name of the VCL snippet").Required().StringVar(&c.name)
+	c.CmdClause.Flag("content", "VCL snippet passed as file path or content, e.g. $(< snippet.vcl)").Action(c.content.Set).StringVar(&c.content.Value)
+	c.CmdClause.Flag("name", "The name of the VCL snippet").Action(c.name.Set).StringVar(&c.name.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
-	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").Required().HintOptions(Locations...).EnumVar(&c.location, Locations...)
+	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").Action(c.location.Set).HintOptions(Locations...).EnumVar(&c.location.Value, Locations...)
 
 	// Optional flags
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
@@ -61,11 +61,11 @@ type CreateCommand struct {
 	cmd.Base
 
 	autoClone      cmd.OptionalAutoClone
-	content        string
+	content        cmd.OptionalString
 	dynamic        cmd.OptionalBool
-	location       string
+	location       cmd.OptionalString
 	manifest       manifest.Data
-	name           string
+	name           cmd.OptionalString
 	priority       cmd.OptionalInt
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
@@ -101,21 +101,26 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, snippet id: %s, type: %s, priority: %d)", v.Name, v.ServiceID, v.ServiceVersion, c.dynamic.WasSet, v.ID, c.location, v.Priority)
+	text.Success(out, "Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, snippet id: %s, type: %s, priority: %d)", v.Name, v.ServiceID, v.ServiceVersion, c.dynamic.WasSet, v.ID, c.location.Value, v.Priority)
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateSnippetInput {
-	var input fastly.CreateSnippetInput
-
-	input.Content = fastly.String(cmd.Content(c.content))
-	input.Name = &c.name
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion
-	sType := fastly.SnippetType(c.location)
-	input.Type = fastly.SnippetTypePtr(sType)
-
+	input := fastly.CreateSnippetInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+	}
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
+	if c.content.WasSet {
+		input.Content = fastly.String(cmd.Content(c.content.Value))
+	}
+	if c.location.WasSet {
+		sType := fastly.SnippetType(c.location.Value)
+		input.Type = &sType
+	}
 	if c.dynamic.WasSet {
 		input.Dynamic = fastly.Int(1)
 	}

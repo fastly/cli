@@ -21,7 +21,7 @@ func TestACLEntryCreate(t *testing.T) {
 		{
 			Name:      "validate missing --ip flag",
 			Args:      args("acl-entry create --acl-id 123"),
-			WantError: "error parsing arguments: required flag --ip not provided",
+			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --service-id flag",
