@@ -21,38 +21,6 @@ func TestOpenstackCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --access-key foo --user user --url https://example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --bucket not provided",
-		},
-		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --user user --url https://example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --access-key not provided",
-		},
-		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --url https://example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --user not provided",
-		},
-		{
-			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --url not provided",
-		},
-		{
 			args: args("logging openstack create --service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,

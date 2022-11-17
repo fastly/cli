@@ -18,18 +18,18 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Token          string
 	ServiceName    cmd.OptionalServiceNameID
+	EndpointName   cmd.OptionalString // Can't shadow cmd.Base method Name().
+	Token          cmd.OptionalString
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
-	Region            cmd.OptionalString
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalInt
-	ResponseCondition cmd.OptionalString
 	Placement         cmd.OptionalString
+	Region            cmd.OptionalString
+	ResponseCondition cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -38,7 +38,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create a Scalyr logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the Scalyr logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the Scalyr logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -49,7 +49,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://www.scalyr.com/keys)").Required().StringVar(&c.Token)
+	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://www.scalyr.com/keys)").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -76,8 +76,12 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = &c.EndpointName
-	input.Token = &c.Token
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Token.WasSet {
+		input.Token = &c.Token.Value
+	}
 
 	if c.Region.WasSet {
 		input.Region = &c.Region.Value

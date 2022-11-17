@@ -208,7 +208,6 @@ func createCommandRequired() *gcs.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -220,9 +219,10 @@ func createCommandRequired() *gcs.CreateCommand {
 				Value: true,
 			},
 		},
-		Bucket:    "bucket",
-		User:      "user",
-		SecretKey: "-----BEGIN PRIVATE KEY-----foo",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Bucket:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
+		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
 	}
 }
 
@@ -248,7 +248,6 @@ func createCommandAll() *gcs.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -260,9 +259,10 @@ func createCommandAll() *gcs.CreateCommand {
 				Value: true,
 			},
 		},
-		Bucket:            "bucket",
-		User:              "user",
-		SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Bucket:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
 		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/logs"},
 		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},

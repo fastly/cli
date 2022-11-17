@@ -193,8 +193,6 @@ func createCommandOK() *datadog.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
-		Token:        "tkn",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -206,6 +204,8 @@ func createCommandOK() *datadog.CreateCommand {
 				Value: true,
 			},
 		},
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
 		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "US"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
@@ -236,8 +236,8 @@ func createCommandRequired() *datadog.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
-		Token:        "tkn",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Token:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

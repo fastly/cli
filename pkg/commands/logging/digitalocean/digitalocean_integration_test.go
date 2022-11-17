@@ -21,30 +21,6 @@ func TestDigitalOceanCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging digitalocean create --service-id 123 --version 1 --name log --access-key foo --secret-key abc --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --bucket not provided",
-		},
-		{
-			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --secret-key abc --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --access-key not provided",
-		},
-		{
-			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --access-key foo --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
 			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn:       testutil.ListVersions,

@@ -191,8 +191,8 @@ func createCommandOK() *loggly.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
-		Token:        "tkn",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Token:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -233,8 +233,8 @@ func createCommandRequired() *loggly.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
-		Token:        "tkn",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Token:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

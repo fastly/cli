@@ -18,29 +18,29 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	URL            string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
-	RequestMaxEntries cmd.OptionalInt
+	ContentType       cmd.OptionalString
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalInt
+	HeaderName        cmd.OptionalString
+	HeaderValue       cmd.OptionalString
+	JSONFormat        cmd.OptionalString
+	MessageType       cmd.OptionalString
+	Method            cmd.OptionalString
+	Placement         cmd.OptionalString
 	RequestMaxBytes   cmd.OptionalInt
+	RequestMaxEntries cmd.OptionalInt
+	ResponseCondition cmd.OptionalString
 	TLSCACert         cmd.OptionalString
 	TLSClientCert     cmd.OptionalString
 	TLSClientKey      cmd.OptionalString
 	TLSHostname       cmd.OptionalString
-	MessageType       cmd.OptionalString
-	ContentType       cmd.OptionalString
-	HeaderName        cmd.OptionalString
-	HeaderValue       cmd.OptionalString
-	Method            cmd.OptionalString
-	JSONFormat        cmd.OptionalString
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	Placement         cmd.OptionalString
-	ResponseCondition cmd.OptionalString
+	URL               cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -49,7 +49,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create an HTTPS logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the HTTPS logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the HTTPS logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -60,7 +60,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("url", "URL that log data will be sent to. Must use the https protocol").Required().StringVar(&c.URL)
+	c.CmdClause.Flag("url", "URL that log data will be sent to. Must use the https protocol").Action(c.URL.Set).StringVar(&c.URL.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -97,8 +97,12 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	var input fastly.CreateHTTPSInput
 
 	input.ServiceID = serviceID
-	input.Name = &c.EndpointName
-	input.URL = &c.URL
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.URL.WasSet {
+		input.URL = &c.URL.Value
+	}
 	input.ServiceVersion = serviceVersion
 
 	if c.ContentType.WasSet {

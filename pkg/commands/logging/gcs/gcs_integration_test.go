@@ -21,30 +21,6 @@ func TestGCSCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --user foo@example.com --secret-key foo --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --bucket not provided",
-		},
-		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --secret-key foo --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --user not provided",
-		},
-		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
 			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,

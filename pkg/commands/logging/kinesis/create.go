@@ -19,9 +19,6 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	StreamName     string
-	Region         string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
@@ -33,10 +30,13 @@ type CreateCommand struct {
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalInt
-	ResponseCondition cmd.OptionalString
 	Placement         cmd.OptionalString
+	Region            cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	StreamName        cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -47,15 +47,15 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.CmdClause = parent.Command("create", "Create an Amazon Kinesis logging endpoint on a Fastly service version").Alias("add")
 
 	// required
-	c.CmdClause.Flag("name", "The name of the Kinesis logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the Kinesis logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
-	c.CmdClause.Flag("stream-name", "The Amazon Kinesis stream to send logs to").Required().StringVar(&c.StreamName)
-	c.CmdClause.Flag("region", "The AWS region where the Kinesis stream exists").Required().StringVar(&c.Region)
+	c.CmdClause.Flag("stream-name", "The Amazon Kinesis stream to send logs to").Action(c.StreamName.Set).StringVar(&c.StreamName.Value)
+	c.CmdClause.Flag("region", "The AWS region where the Kinesis stream exists").Action(c.Region.Set).StringVar(&c.Region.Value)
 
 	// required, but mutually exclusive
 	c.CmdClause.Flag("access-key", "The access key associated with the target Amazon Kinesis stream").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
@@ -92,9 +92,15 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	var input fastly.CreateKinesisInput
 
 	input.ServiceID = serviceID
-	input.Name = &c.EndpointName
-	input.StreamName = &c.StreamName
-	input.Region = &c.Region
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.StreamName.WasSet {
+		input.StreamName = &c.StreamName.Value
+	}
+	if c.Region.WasSet {
+		input.Region = &c.Region.Value
+	}
 	input.ServiceVersion = serviceVersion
 
 	// The following block checks for invalid permutations of the ways in

@@ -21,30 +21,6 @@ func TestKinesisCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --access-key foo --region us-east-1 --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --access-key not provided",
-		},
-		{
 			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,

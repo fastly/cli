@@ -213,7 +213,6 @@ func createCommandRequired() *kinesis.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -225,10 +224,11 @@ func createCommandRequired() *kinesis.CreateCommand {
 				Value: true,
 			},
 		},
-		Region:     "us-east-1",
-		StreamName: "stream",
-		AccessKey:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
-		SecretKey:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Region:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "us-east-1"},
+		StreamName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "stream"},
+		AccessKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
+		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
 	}
 }
 
@@ -254,11 +254,12 @@ func createCommandRequiredIAMRole() *kinesis.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
-		Region: "us-east-1",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Region:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "us-east-1"},
+		StreamName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "stream"},
 		AutoClone: cmd.OptionalAutoClone{
 			OptionalBool: cmd.OptionalBool{
 				Optional: cmd.Optional{
@@ -267,8 +268,7 @@ func createCommandRequiredIAMRole() *kinesis.CreateCommand {
 				Value: true,
 			},
 		},
-		StreamName: "stream",
-		IAMRole:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/KinesisAccess"},
+		IAMRole: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/KinesisAccess"},
 	}
 }
 
@@ -294,7 +294,6 @@ func createCommandAll() *kinesis.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -306,10 +305,11 @@ func createCommandAll() *kinesis.CreateCommand {
 				Value: true,
 			},
 		},
-		StreamName:        "stream",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		StreamName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "stream"},
+		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "us-east-1"},
 		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
 		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
-		Region:            "us-east-1",
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},

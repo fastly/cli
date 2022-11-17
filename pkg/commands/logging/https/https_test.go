@@ -215,7 +215,6 @@ func createCommandRequired() *https.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -227,7 +226,8 @@ func createCommandRequired() *https.CreateCommand {
 				Value: true,
 			},
 		},
-		URL: "example.com",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 	}
 }
 
@@ -253,7 +253,6 @@ func createCommandAll() *https.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -265,7 +264,8 @@ func createCommandAll() *https.CreateCommand {
 				Value: true,
 			},
 		},
-		URL:               "example.com",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 		ContentType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "application/json"},
 		HeaderName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "name"},
 		HeaderValue:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "value"},

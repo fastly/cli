@@ -21,14 +21,6 @@ func TestHTTPSCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging https create --service-id 123 --version 1 --name log --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --url not provided",
-		},
-		{
 			args: args("logging https create --service-id 123 --version 1 --name log --url example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,

@@ -19,26 +19,26 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Bucket         string
-	User           string
-	SecretKey      string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
 	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
-	Path              cmd.OptionalString
-	Period            cmd.OptionalInt
-	GzipLevel         cmd.OptionalInt
+	Bucket            cmd.OptionalString
+	CompressionCodec  cmd.OptionalString
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalInt
+	GzipLevel         cmd.OptionalInt
 	MessageType       cmd.OptionalString
-	ResponseCondition cmd.OptionalString
-	TimestampFormat   cmd.OptionalString
+	Path              cmd.OptionalString
+	Period            cmd.OptionalInt
 	Placement         cmd.OptionalString
-	CompressionCodec  cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	SecretKey         cmd.OptionalString
+	TimestampFormat   cmd.OptionalString
+	User              cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -47,7 +47,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create a GCS logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the GCS logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the GCS logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -58,9 +58,9 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("user", "Your GCS service account email address. The client_email field in your service account authentication JSON").Required().StringVar(&c.User)
-	c.CmdClause.Flag("bucket", "The bucket of the GCS bucket").Required().StringVar(&c.Bucket)
-	c.CmdClause.Flag("secret-key", "Your GCS account secret key. The private_key field in your service account authentication JSON").Required().StringVar(&c.SecretKey)
+	c.CmdClause.Flag("user", "Your GCS service account email address. The client_email field in your service account authentication JSON").Action(c.User.Set).StringVar(&c.User.Value)
+	c.CmdClause.Flag("bucket", "The bucket of the GCS bucket").Action(c.Bucket.Set).StringVar(&c.Bucket.Value)
+	c.CmdClause.Flag("secret-key", "Your GCS account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -93,10 +93,18 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = &c.EndpointName
-	input.Bucket = &c.Bucket
-	input.User = &c.User
-	input.SecretKey = &c.SecretKey
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Bucket.WasSet {
+		input.Bucket = &c.Bucket.Value
+	}
+	if c.User.WasSet {
+		input.User = &c.User.Value
+	}
+	if c.SecretKey.WasSet {
+		input.SecretKey = &c.SecretKey.Value
+	}
 
 	// The following blocks enforces the mutual exclusivity of the
 	// CompressionCodec and GzipLevel flags.

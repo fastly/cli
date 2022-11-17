@@ -18,18 +18,18 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Token          string
-	Dataset        string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
+	Dataset           cmd.OptionalString
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalInt
-	ResponseCondition cmd.OptionalString
 	Placement         cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	Token             cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -38,7 +38,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create a Honeycomb logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the Honeycomb logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the Honeycomb logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -49,8 +49,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("dataset", "The Honeycomb Dataset you want to log to").Required().StringVar(&c.Dataset)
-	c.CmdClause.Flag("auth-token", "The Write Key from the Account page of your Honeycomb account").Required().StringVar(&c.Token)
+	c.CmdClause.Flag("dataset", "The Honeycomb Dataset you want to log to").Action(c.Dataset.Set).StringVar(&c.Dataset.Value)
+	c.CmdClause.Flag("auth-token", "The Write Key from the Account page of your Honeycomb account").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -76,9 +76,15 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = &c.EndpointName
-	input.Token = &c.Token
-	input.Dataset = &c.Dataset
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Token.WasSet {
+		input.Token = &c.Token.Value
+	}
+	if c.Dataset.WasSet {
+		input.Dataset = &c.Dataset.Value
+	}
 
 	if c.Format.WasSet {
 		input.Format = &c.Format.Value

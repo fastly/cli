@@ -212,7 +212,6 @@ func createCommandRequired() *cloudfiles.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -224,9 +223,10 @@ func createCommandRequired() *cloudfiles.CreateCommand {
 				Value: true,
 			},
 		},
-		User:       "user",
-		AccessKey:  "key",
-		BucketName: "bucket",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		AccessKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "key"},
+		BucketName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
 	}
 }
 
@@ -252,7 +252,6 @@ func createCommandAll() *cloudfiles.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -264,9 +263,10 @@ func createCommandAll() *cloudfiles.CreateCommand {
 				Value: true,
 			},
 		},
-		User:              "user",
-		AccessKey:         "key",
-		BucketName:        "bucket",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "key"},
+		BucketName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
 		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/logs"},
 		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "abc"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},

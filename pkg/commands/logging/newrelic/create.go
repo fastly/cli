@@ -15,16 +15,18 @@ import (
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	cmd.Base
+	manifest manifest.Data
 
-	name           string
-	key            string
+	// required
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 
+	// optional
 	autoClone         cmd.OptionalAutoClone
 	format            cmd.OptionalString
 	formatVersion     cmd.OptionalInt
-	manifest          manifest.Data
+	key               cmd.OptionalString
+	name              cmd.OptionalString
 	placement         cmd.OptionalString
 	region            cmd.OptionalString
 	responseCondition cmd.OptionalString
@@ -38,8 +40,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.manifest = data
 
 	// Required flags
-	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Required().StringVar(&c.key)
-	c.CmdClause.Flag("name", "The name for the real-time logging configuration").Required().StringVar(&c.name)
+	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Action(c.key.Set).StringVar(&c.key.Value)
+	c.CmdClause.Flag("name", "The name for the real-time logging configuration").Action(c.name.Set).StringVar(&c.name.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -111,10 +113,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateNewRelicInput {
 	var input fastly.CreateNewRelicInput
 
-	input.Name = &c.name
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Token = &c.key
+	if c.key.WasSet {
+		input.Token = &c.key.Value
+	}
 
 	if c.format.WasSet {
 		input.Format = &c.format.Value

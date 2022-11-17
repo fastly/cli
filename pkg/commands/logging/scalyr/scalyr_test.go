@@ -193,7 +193,6 @@ func createCommandRequired() *scalyr.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -205,7 +204,8 @@ func createCommandRequired() *scalyr.CreateCommand {
 				Value: true,
 			},
 		},
-		Token: "tkn",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Token:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
 	}
 }
 
@@ -231,7 +231,6 @@ func createCommandAll() *scalyr.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -243,7 +242,8 @@ func createCommandAll() *scalyr.CreateCommand {
 				Value: true,
 			},
 		},
-		Token:             "tkn",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
 		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "US"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},

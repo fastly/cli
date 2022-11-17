@@ -19,31 +19,31 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Topic          string
-	Brokers        string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	AuthMethod        cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
-	UseTLS            cmd.OptionalBool
+	Brokers           cmd.OptionalString
 	CompressionCodec  cmd.OptionalString
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalInt
+	ParseLogKeyvals   cmd.OptionalBool
+	Password          cmd.OptionalString
+	Placement         cmd.OptionalString
+	RequestMaxBytes   cmd.OptionalInt
 	RequiredACKs      cmd.OptionalString
+	ResponseCondition cmd.OptionalString
 	TLSCACert         cmd.OptionalString
 	TLSClientCert     cmd.OptionalString
 	TLSClientKey      cmd.OptionalString
 	TLSHostname       cmd.OptionalString
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	Placement         cmd.OptionalString
-	ResponseCondition cmd.OptionalString
-	ParseLogKeyvals   cmd.OptionalBool
-	RequestMaxBytes   cmd.OptionalInt
-	UseSASL           cmd.OptionalBool
-	AuthMethod        cmd.OptionalString
+	Topic             cmd.OptionalString
 	User              cmd.OptionalString
-	Password          cmd.OptionalString
+	UseSASL           cmd.OptionalBool
+	UseTLS            cmd.OptionalBool
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -52,7 +52,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create a Kafka logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the Kafka logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the Kafka logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -63,8 +63,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("topic", "The Kafka topic to send logs to").Required().StringVar(&c.Topic)
-	c.CmdClause.Flag("brokers", "A comma-separated list of IP addresses or hostnames of Kafka brokers").Required().StringVar(&c.Brokers)
+	c.CmdClause.Flag("topic", "The Kafka topic to send logs to").Action(c.Topic.Set).StringVar(&c.Topic.Value)
+	c.CmdClause.Flag("brokers", "A comma-separated list of IP addresses or hostnames of Kafka brokers").Action(c.Brokers.Set).StringVar(&c.Brokers.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -111,9 +111,15 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = &c.EndpointName
-	input.Topic = &c.Topic
-	input.Brokers = &c.Brokers
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Topic.WasSet {
+		input.Topic = &c.Topic.Value
+	}
+	if c.Brokers.WasSet {
+		input.Brokers = &c.Brokers.Value
+	}
 
 	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = &c.CompressionCodec.Value

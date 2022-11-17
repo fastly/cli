@@ -213,7 +213,6 @@ func createCommandRequired() *openstack.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -225,10 +224,11 @@ func createCommandRequired() *openstack.CreateCommand {
 				Value: true,
 			},
 		},
-		BucketName: "bucket",
-		AccessKey:  "access",
-		User:       "user",
-		URL:        "https://example.com",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		BucketName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
+		AccessKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
+		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "https://example.com"},
 	}
 }
 
@@ -254,7 +254,6 @@ func createCommandAll() *openstack.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -266,10 +265,11 @@ func createCommandAll() *openstack.CreateCommand {
 				Value: true,
 			},
 		},
-		BucketName:        "bucket",
-		AccessKey:         "access",
-		User:              "user",
-		URL:               "https://example.com",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		BucketName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
+		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "https://example.com"},
 		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/log"},
 		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},

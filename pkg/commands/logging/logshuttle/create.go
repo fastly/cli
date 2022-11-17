@@ -18,18 +18,18 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Token          string
-	URL            string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalInt
-	ResponseCondition cmd.OptionalString
 	Placement         cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	Token             cmd.OptionalString
+	URL               cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -38,7 +38,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create a Logshuttle logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the Logshuttle logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the Logshuttle logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -49,8 +49,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("url", "Your Log Shuttle endpoint url").Required().StringVar(&c.URL)
-	c.CmdClause.Flag("auth-token", "The data authentication token associated with this endpoint").Required().StringVar(&c.Token)
+	c.CmdClause.Flag("url", "Your Log Shuttle endpoint url").Action(c.URL.Set).StringVar(&c.URL.Value)
+	c.CmdClause.Flag("auth-token", "The data authentication token associated with this endpoint").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -76,9 +76,15 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = &c.EndpointName
-	input.Token = &c.Token
-	input.URL = &c.URL
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Token.WasSet {
+		input.Token = &c.Token.Value
+	}
+	if c.URL.WasSet {
+		input.URL = &c.URL.Value
+	}
 
 	if c.Format.WasSet {
 		input.Format = &c.Format.Value

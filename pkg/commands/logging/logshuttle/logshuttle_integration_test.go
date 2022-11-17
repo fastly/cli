@@ -21,22 +21,6 @@ func TestLogshuttleCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging logshuttle create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --url not provided",
-		},
-		{
-			args: args("logging logshuttle create --service-id 123 --version 1 --name log --url example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --auth-token not provided",
-		},
-		{
 			args: args("logging logshuttle create --service-id 123 --version 1 --name log --url example.com --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,

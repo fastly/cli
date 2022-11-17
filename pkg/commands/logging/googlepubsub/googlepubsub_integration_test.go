@@ -21,38 +21,6 @@ func TestGooglePubSubCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging googlepubsub create --service-id 123 --version 1 --name log --secret-key secret --project-id project --topic topic --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --user not provided",
-		},
-		{
-			args: args("logging googlepubsub create --service-id 123 --version 1 --name log --user user@example.com --project-id project --topic topic --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
-			args: args("logging googlepubsub create --service-id 123 --version 1 --name log --user user@example.com --secret-key secret --topic topic --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --project-id not provided",
-		},
-		{
-			args: args("logging googlepubsub create --service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --topic not provided",
-		},
-		{
 			args: args("logging googlepubsub create --service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,

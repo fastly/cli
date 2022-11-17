@@ -21,18 +21,6 @@ func TestCloudfilesCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging cloudfiles create --service-id 123 --version 1 --name log --bucket log --access-key foo"),
-			wantError: "error parsing arguments: required flag --user not provided",
-		},
-		{
-			args:      args("logging cloudfiles create --service-id 123 --version 1 --name log --user username --access-key foo"),
-			wantError: "error parsing arguments: required flag --bucket not provided",
-		},
-		{
-			args:      args("logging cloudfiles create --service-id 123 --version 1 --name log --user username --bucket log"),
-			wantError: "error parsing arguments: required flag --access-key not provided",
-		},
-		{
 			args: args("logging cloudfiles create --service-id 123 --version 1 --name log --user username --bucket log --access-key foo --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,

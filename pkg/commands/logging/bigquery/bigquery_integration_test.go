@@ -21,10 +21,6 @@ func TestBigQueryCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com"),
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
 			args: args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"` --autoclone"),
 			api: mock.API{
 				ListVersionsFn:   testutil.ListVersions,

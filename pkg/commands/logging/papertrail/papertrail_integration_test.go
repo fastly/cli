@@ -21,14 +21,6 @@ func TestPapertrailCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging papertrail create --service-id 123 --version 1 --name log --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --address not provided",
-		},
-		{
 			args: args("logging papertrail create --service-id 123 --version 1 --name log --address example.com:123 --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,

@@ -19,8 +19,6 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	BucketName     string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
@@ -32,21 +30,23 @@ type CreateCommand struct {
 
 	// optional
 	AutoClone                    cmd.OptionalAutoClone
+	BucketName                   cmd.OptionalString
+	CompressionCodec             cmd.OptionalString
 	Domain                       cmd.OptionalString
-	Path                         cmd.OptionalString
-	Period                       cmd.OptionalInt
-	GzipLevel                    cmd.OptionalInt
+	EndpointName                 cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format                       cmd.OptionalString
 	FormatVersion                cmd.OptionalInt
+	GzipLevel                    cmd.OptionalInt
 	MessageType                  cmd.OptionalString
-	ResponseCondition            cmd.OptionalString
-	TimestampFormat              cmd.OptionalString
+	Path                         cmd.OptionalString
+	Period                       cmd.OptionalInt
 	Placement                    cmd.OptionalString
-	Redundancy                   cmd.OptionalString
 	PublicKey                    cmd.OptionalString
+	Redundancy                   cmd.OptionalString
+	ResponseCondition            cmd.OptionalString
 	ServerSideEncryption         cmd.OptionalString
 	ServerSideEncryptionKMSKeyID cmd.OptionalString
-	CompressionCodec             cmd.OptionalString
+	TimestampFormat              cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -55,7 +55,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create an Amazon S3 logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the S3 logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the S3 logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -66,7 +66,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("bucket", "Your S3 bucket name").Required().StringVar(&c.BucketName)
+	c.CmdClause.Flag("bucket", "Your S3 bucket name").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
 	c.CmdClause.Flag("access-key", "Your S3 account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
 	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
@@ -106,8 +106,12 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = &c.EndpointName
-	input.BucketName = &c.BucketName
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.BucketName.WasSet {
+		input.BucketName = &c.BucketName.Value
+	}
 
 	// The following block checks for invalid permutations of the ways in
 	// which the AccessKey + SecretKey and IAMRole flags can be

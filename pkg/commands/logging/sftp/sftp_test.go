@@ -216,7 +216,6 @@ func createCommandRequired() *sftp.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -228,9 +227,10 @@ func createCommandRequired() *sftp.CreateCommand {
 				Value: true,
 			},
 		},
-		Address:       "127.0.0.1",
-		User:          "user",
-		SSHKnownHosts: knownHosts(),
+		EndpointName:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Address:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1"},
+		User:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		SSHKnownHosts: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: knownHosts()},
 	}
 }
 
@@ -256,7 +256,6 @@ func createCommandAll() *sftp.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -268,9 +267,10 @@ func createCommandAll() *sftp.CreateCommand {
 				Value: true,
 			},
 		},
-		Address:           "127.0.0.1",
-		User:              "user",
-		SSHKnownHosts:     knownHosts(),
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		SSHKnownHosts:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: knownHosts()},
 		Port:              cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 80},
 		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "password"},
 		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: pgpPublicKey()},

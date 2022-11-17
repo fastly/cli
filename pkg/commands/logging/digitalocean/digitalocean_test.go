@@ -212,7 +212,6 @@ func createCommandRequired() *digitalocean.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -224,9 +223,10 @@ func createCommandRequired() *digitalocean.CreateCommand {
 				Value: true,
 			},
 		},
-		BucketName: "bucket",
-		AccessKey:  "access",
-		SecretKey:  "secret",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		BucketName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
+		AccessKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
+		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
 	}
 }
 
@@ -252,7 +252,6 @@ func createCommandAll() *digitalocean.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -264,9 +263,10 @@ func createCommandAll() *digitalocean.CreateCommand {
 				Value: true,
 			},
 		},
-		BucketName:        "bucket",
-		AccessKey:         "access",
-		SecretKey:         "secret",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		BucketName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
+		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
 		Domain:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "nyc3.digitaloceanspaces.com"},
 		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/log"},
 		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},

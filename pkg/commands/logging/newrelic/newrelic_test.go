@@ -14,21 +14,6 @@ func TestNewRelicCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --name flag",
-			Args:      args("logging newrelic create --key abc --version 3"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			Name:      "validate missing --key flag",
-			Args:      args("logging newrelic create --name foo --version 3"),
-			WantError: "error parsing arguments: required flag --key not provided",
-		},
-		{
-			Name:      "validate missing --version flag",
-			Args:      args("logging newrelic create --key abc --name foo"),
-			WantError: "error parsing arguments: required flag --version not provided",
-		},
-		{
 			Name:      "validate missing --service-id flag",
 			Args:      args("logging newrelic create --key abc --name foo --version 3"),
 			WantError: "error reading service: no service ID found",

@@ -200,7 +200,6 @@ func createCommandRequired() *googlepubsub.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -212,10 +211,11 @@ func createCommandRequired() *googlepubsub.CreateCommand {
 				Value: true,
 			},
 		},
-		User:      "user@example.com",
-		SecretKey: "secret",
-		ProjectID: "project",
-		Topic:     "topic",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user@example.com"},
+		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
+		ProjectID:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "project"},
+		Topic:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "topic"},
 	}
 }
 
@@ -241,7 +241,6 @@ func createCommandAll() *googlepubsub.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -253,10 +252,11 @@ func createCommandAll() *googlepubsub.CreateCommand {
 				Value: true,
 			},
 		},
-		User:              "user@example.com",
-		ProjectID:         "project",
-		Topic:             "topic",
-		SecretKey:         "secret",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user@example.com"},
+		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "project"},
+		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "topic"},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},

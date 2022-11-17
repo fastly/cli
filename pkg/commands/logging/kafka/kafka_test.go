@@ -270,7 +270,6 @@ func createCommandRequired() *kafka.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -282,8 +281,9 @@ func createCommandRequired() *kafka.CreateCommand {
 				Value: true,
 			},
 		},
-		Topic:   "logs",
-		Brokers: "127.0.0.1,127.0.0.2",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Topic:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		Brokers:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
 	}
 }
 
@@ -309,7 +309,6 @@ func createCommandAll() *kafka.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -321,8 +320,9 @@ func createCommandAll() *kafka.CreateCommand {
 				Value: true,
 			},
 		},
-		Topic:             "logs",
-		Brokers:           "127.0.0.1,127.0.0.2",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		Brokers:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
 		UseTLS:            cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
 		RequiredACKs:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-1"},
 		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zippy"},
@@ -359,7 +359,6 @@ func createCommandSASL(authMethod, user, password string) *kafka.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -371,8 +370,9 @@ func createCommandSASL(authMethod, user, password string) *kafka.CreateCommand {
 				Value: true,
 			},
 		},
-		Topic:           "logs",
-		Brokers:         "127.0.0.1,127.0.0.2",
+		EndpointName:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Topic:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		Brokers:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
 		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
 		RequestMaxBytes: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 11111},
 		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},

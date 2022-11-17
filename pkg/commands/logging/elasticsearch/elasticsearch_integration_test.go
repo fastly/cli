@@ -21,22 +21,6 @@ func TestElasticsearchCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --index logs --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --url not provided",
-		},
-		{
-			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --url example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --index not provided",
-		},
-		{
 			args: args("logging elasticsearch create --service-id 123 --version 1 --name log --index logs --url example.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn:        testutil.ListVersions,

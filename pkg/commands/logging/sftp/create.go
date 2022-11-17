@@ -19,29 +19,29 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Address        string
-	User           string
-	SSHKnownHosts  string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	Address           cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
-	Port              cmd.OptionalInt
-	Password          cmd.OptionalString
-	PublicKey         cmd.OptionalString
-	SecretKey         cmd.OptionalString
-	Path              cmd.OptionalString
-	Period            cmd.OptionalInt
+	CompressionCodec  cmd.OptionalString
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalInt
 	GzipLevel         cmd.OptionalInt
 	MessageType       cmd.OptionalString
-	ResponseCondition cmd.OptionalString
-	TimestampFormat   cmd.OptionalString
+	Password          cmd.OptionalString
+	Path              cmd.OptionalString
+	Period            cmd.OptionalInt
 	Placement         cmd.OptionalString
-	CompressionCodec  cmd.OptionalString
+	Port              cmd.OptionalInt
+	PublicKey         cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	SecretKey         cmd.OptionalString
+	SSHKnownHosts     cmd.OptionalString
+	TimestampFormat   cmd.OptionalString
+	User              cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -50,7 +50,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create an SFTP logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the SFTP logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the SFTP logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -61,9 +61,9 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("address", "The hostname or IPv4 address").Required().StringVar(&c.Address)
-	c.CmdClause.Flag("user", "The username for the server").Required().StringVar(&c.User)
-	c.CmdClause.Flag("ssh-known-hosts", "A list of host keys for all hosts we can connect to over SFTP").Required().StringVar(&c.SSHKnownHosts)
+	c.CmdClause.Flag("address", "The hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
+	c.CmdClause.Flag("user", "The username for the server").Action(c.User.Set).StringVar(&c.User.Value)
+	c.CmdClause.Flag("ssh-known-hosts", "A list of host keys for all hosts we can connect to over SFTP").Action(c.SSHKnownHosts.Set).StringVar(&c.SSHKnownHosts.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -99,10 +99,18 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = &c.EndpointName
-	input.Address = &c.Address
-	input.User = &c.User
-	input.SSHKnownHosts = &c.SSHKnownHosts
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Address.WasSet {
+		input.Address = &c.Address.Value
+	}
+	if c.User.WasSet {
+		input.User = &c.User.Value
+	}
+	if c.SSHKnownHosts.WasSet {
+		input.SSHKnownHosts = &c.SSHKnownHosts.Value
+	}
 
 	// The following blocks enforces the mutual exclusivity of the
 	// CompressionCodec and GzipLevel flags.

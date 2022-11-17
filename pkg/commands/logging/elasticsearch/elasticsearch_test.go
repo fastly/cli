@@ -212,7 +212,6 @@ func createCommandRequired() *elasticsearch.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -224,8 +223,9 @@ func createCommandRequired() *elasticsearch.CreateCommand {
 				Value: true,
 			},
 		},
-		Index: "logs",
-		URL:   "example.com",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Index:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 	}
 }
 
@@ -251,7 +251,6 @@ func createCommandAll() *elasticsearch.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -263,8 +262,9 @@ func createCommandAll() *elasticsearch.CreateCommand {
 				Value: true,
 			},
 		},
-		Index:             "logs",
-		URL:               "example.com",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		Index:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 		Pipeline:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "my_pipeline_id"},
 		RequestMaxEntries: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		RequestMaxBytes:   cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},

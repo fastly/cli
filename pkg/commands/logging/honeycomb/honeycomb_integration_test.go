@@ -21,22 +21,6 @@ func TestHoneycombCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging honeycomb create --service-id 123 --version 1 --name log --dataset log --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --auth-token not provided",
-		},
-		{
-			args: args("logging honeycomb create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --dataset not provided",
-		},
-		{
 			args: args("logging honeycomb create --service-id 123 --version 1 --name log --auth-token abc --dataset log --autoclone"),
 			api: mock.API{
 				ListVersionsFn:    testutil.ListVersions,

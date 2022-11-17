@@ -18,25 +18,25 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Address        string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	Address           cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalInt
+	MessageType       cmd.OptionalString
+	Placement         cmd.OptionalString
 	Port              cmd.OptionalInt
-	UseTLS            cmd.OptionalBool
-	Token             cmd.OptionalString
+	ResponseCondition cmd.OptionalString
 	TLSCACert         cmd.OptionalString
 	TLSClientCert     cmd.OptionalString
 	TLSClientKey      cmd.OptionalString
 	TLSHostname       cmd.OptionalString
-	MessageType       cmd.OptionalString
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	Placement         cmd.OptionalString
-	ResponseCondition cmd.OptionalString
+	Token             cmd.OptionalString
+	UseTLS            cmd.OptionalBool
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -45,7 +45,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.Manifest = data
 	c.CmdClause = parent.Command("create", "Create a Syslog logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the Syslog logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+	c.CmdClause.Flag("name", "The name of the Syslog logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -56,7 +56,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("address", "A hostname or IPv4 address").Required().StringVar(&c.Address)
+	c.CmdClause.Flag("address", "A hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -90,9 +90,13 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	var input fastly.CreateSyslogInput
 
 	input.ServiceID = serviceID
-	input.Name = &c.EndpointName
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
 	input.ServiceVersion = serviceVersion
-	input.Address = &c.Address
+	if c.Address.WasSet {
+		input.Address = &c.Address.Value
+	}
 
 	if c.Port.WasSet {
 		input.Port = &c.Port.Value

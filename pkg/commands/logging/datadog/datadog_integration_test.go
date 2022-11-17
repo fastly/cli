@@ -21,10 +21,6 @@ func TestDatadogCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("logging datadog create --service-id 123 --version 1 --name log"),
-			wantError: "error parsing arguments: required flag --auth-token not provided",
-		},
-		{
 			args: args("logging datadog create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn:  testutil.ListVersions,

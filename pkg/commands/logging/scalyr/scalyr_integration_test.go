@@ -22,22 +22,6 @@ func TestScalyrCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging scalyr create --service-id 123 --version 1 --auth-token abc --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: args("logging scalyr create --service-id 123 --version 1 --name log --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --auth-token not provided",
-		},
-		{
 			args: args("logging scalyr create --name log --service-id  --version 1 --auth-token abc --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,

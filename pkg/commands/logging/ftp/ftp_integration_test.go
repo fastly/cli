@@ -21,30 +21,6 @@ func TestFTPCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging ftp create --service-id 123 --version 1 --name log --user anonymous --password foo@example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --address not provided",
-		},
-		{
-			args: args("logging ftp create --service-id 123 --version 1 --name log --address example.com --password foo@example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --user not provided",
-		},
-		{
-			args: args("logging ftp create --service-id 123 --version 1 --name log --address example.com --user anonymous --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --password not provided",
-		},
-		{
 			args: args("logging ftp create --service-id 123 --version 1 --name log --address example.com --user anonymous --password foo@example.com --compression-codec zstd --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
