@@ -212,7 +212,6 @@ func createCommandRequired() *azureblob.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -224,9 +223,10 @@ func createCommandRequired() *azureblob.CreateCommand {
 				Value: true,
 			},
 		},
-		Container:   "container",
-		AccountName: "account",
-		SASToken:    "token",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		Container:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "container"},
+		AccountName:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "account"},
+		SASToken:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "token"},
 	}
 }
 
@@ -252,7 +252,6 @@ func createCommandAll() *azureblob.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -264,9 +263,10 @@ func createCommandAll() *azureblob.CreateCommand {
 				Value: true,
 			},
 		},
-		Container:         "container",
-		AccountName:       "account",
-		SASToken:          "token",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		Container:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "container"},
+		AccountName:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "account"},
+		SASToken:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "token"},
 		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/log"},
 		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
