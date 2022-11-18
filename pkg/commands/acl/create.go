@@ -13,13 +13,16 @@ import (
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
-	c.CmdClause = parent.Command("create", "Create a new ACL attached to the specified service version").Alias("add")
-	c.Globals = globals
-	c.manifest = data
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 
-	// Required flags
-	c.CmdClause.Flag("name", "Name for the ACL. Must start with an alphanumeric character and contain only alphanumeric characters, underscores, and whitespace").Action(c.name.Set).StringVar(&c.name.Value)
+	c.CmdClause = parent.Command("create", "Create a new ACL attached to the specified service version").Alias("add")
+
+	// required
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -27,7 +30,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Required:    true,
 	})
 
-	// Optional flags
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
@@ -44,6 +47,8 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
+
+	c.CmdClause.Flag("name", "Name for the ACL. Must start with an alphanumeric character and contain only alphanumeric characters, underscores, and whitespace").Action(c.name.Set).StringVar(&c.name.Value)
 
 	return &c
 }

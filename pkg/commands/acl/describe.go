@@ -14,19 +14,23 @@ import (
 
 // NewDescribeCommand returns a usable command registered under the parent.
 func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
-	var c DescribeCommand
+	c := DescribeCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("describe", "Retrieve a single ACL by name for the version and service").Alias("get")
-	c.Globals = globals
-	c.manifest = data
 
 	// Required flags
-	c.CmdClause.Flag("name", "The name of the ACL").Required().StringVar(&c.name)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
+
+	c.CmdClause.Flag("name", "The name of the ACL").Required().StringVar(&c.name)
 
 	// Optional Flags
 	c.RegisterFlagBool(cmd.BoolFlagOpts{

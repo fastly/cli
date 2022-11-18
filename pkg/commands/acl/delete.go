@@ -14,18 +14,19 @@ import (
 // NewDeleteCommand returns a usable command registered under the parent.
 func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteCommand {
 	var c DeleteCommand
-	c.CmdClause = parent.Command("delete", "Delete an ACL from the specified service version").Alias("remove")
 	c.Globals = globals
 	c.manifest = data
+	c.CmdClause = parent.Command("delete", "Delete an ACL from the specified service version").Alias("remove")
 
 	// Required flags
-	c.CmdClause.Flag("name", "The name of the ACL to delete").Required().StringVar(&c.name)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
+
+	c.CmdClause.Flag("name", "The name of the ACL to delete").Required().StringVar(&c.name)
 
 	// Optional flags
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{

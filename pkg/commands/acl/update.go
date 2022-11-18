@@ -13,20 +13,24 @@ import (
 
 // NewUpdateCommand returns a usable command registered under the parent.
 func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
-	var c UpdateCommand
+	c := UpdateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("update", "Update an ACL for a particular service and version")
-	c.Globals = globals
-	c.manifest = data
 
 	// Required flags
-	c.CmdClause.Flag("name", "The name of the ACL to update").Required().StringVar(&c.name)
-	c.CmdClause.Flag("new-name", "The new name of the ACL").Required().StringVar(&c.newName)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
+
+	c.CmdClause.Flag("name", "The name of the ACL to update").Required().StringVar(&c.name)
+	c.CmdClause.Flag("new-name", "The new name of the ACL").Required().StringVar(&c.newName)
 
 	// Optional flags
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
