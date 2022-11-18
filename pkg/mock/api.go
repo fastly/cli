@@ -326,6 +326,15 @@ type API struct {
 	GetObjectStoreKeyFn    func(i *fastly.GetObjectStoreKeyInput) (string, error)
 	InsertObjectStoreKeyFn func(i *fastly.InsertObjectStoreKeyInput) error
 
+	CreateSecretStoreFn func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error)
+	GetSecretStoreFn    func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error)
+	DeleteSecretStoreFn func(i *fastly.DeleteSecretStoreInput) error
+	ListSecretStoresFn  func(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error)
+	CreateSecretFn      func(i *fastly.CreateSecretInput) (*fastly.Secret, error)
+	GetSecretFn         func(i *fastly.GetSecretInput) (*fastly.Secret, error)
+	DeleteSecretFn      func(i *fastly.DeleteSecretInput) error
+	ListSecretsFn       func(i *fastly.ListSecretsInput) (*fastly.Secrets, error)
+
 	CreateResourceFn func(i *fastly.CreateResourceInput) (*fastly.Resource, error)
 }
 
@@ -1647,6 +1656,46 @@ func (m API) GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error)
 // InsertObjectStoreKey implements Interface.
 func (m API) InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error {
 	return m.InsertObjectStoreKeyFn(i)
+}
+
+// CreateSecretStore implements Interface.
+func (m API) CreateSecretStore(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
+	return m.CreateSecretStoreFn(i)
+}
+
+// GetSecretStore implements Interface.
+func (m API) GetSecretStore(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
+	return m.GetSecretStoreFn(i)
+}
+
+// DeleteSecretStore implements Interface.
+func (m API) DeleteSecretStore(i *fastly.DeleteSecretStoreInput) error {
+	return m.DeleteSecretStoreFn(i)
+}
+
+// ListSecretStores implements Interface.
+func (m API) ListSecretStores(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+	return m.ListSecretStoresFn(i)
+}
+
+// CreateSecret implements Interface.
+func (m API) CreateSecret(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+	return m.CreateSecretFn(i)
+}
+
+// GetSecret implements Interface.
+func (m API) GetSecret(i *fastly.GetSecretInput) (*fastly.Secret, error) {
+	return m.GetSecretFn(i)
+}
+
+// DeleteSecret implements Interface.
+func (m API) DeleteSecret(i *fastly.DeleteSecretInput) error {
+	return m.DeleteSecretFn(i)
+}
+
+// ListSecrets implements Interface.
+func (m API) ListSecrets(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+	return m.ListSecretsFn(i)
 }
 
 // CreateResourceFn implements Interface.

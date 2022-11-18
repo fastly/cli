@@ -74,6 +74,8 @@ objectstore
 pops
 profile
 purge
+secret-store
+secret-store-entry
 service
 service-auth
 service-version

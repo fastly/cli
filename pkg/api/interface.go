@@ -335,6 +335,15 @@ type Interface interface {
 	GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error)
 	InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error
 
+	CreateSecretStore(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error)
+	GetSecretStore(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error)
+	DeleteSecretStore(i *fastly.DeleteSecretStoreInput) error
+	ListSecretStores(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error)
+	CreateSecret(i *fastly.CreateSecretInput) (*fastly.Secret, error)
+	GetSecret(i *fastly.GetSecretInput) (*fastly.Secret, error)
+	DeleteSecret(i *fastly.DeleteSecretInput) error
+	ListSecrets(i *fastly.ListSecretsInput) (*fastly.Secrets, error)
+
 	CreateResource(i *fastly.CreateResourceInput) (*fastly.Resource, error)
 }
 

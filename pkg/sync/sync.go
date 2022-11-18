@@ -8,13 +8,14 @@ import (
 // Writer protects any io.Writer with a mutex.
 type Writer struct {
 	mtx sync.Mutex
-	w   io.Writer
+	// W is public to allow for type checking, but should otherwise not be accessed directly.
+	W io.Writer
 }
 
 // NewWriter wraps an io.Writer with a mutex.
 func NewWriter(w io.Writer) *Writer {
 	return &Writer{
-		w: w,
+		W: w,
 	}
 }
 
@@ -22,5 +23,5 @@ func NewWriter(w io.Writer) *Writer {
 func (w *Writer) Write(p []byte) (int, error) {
 	w.mtx.Lock()
 	defer w.mtx.Unlock()
-	return w.w.Write(p)
+	return w.W.Write(p)
 }

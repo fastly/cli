@@ -8,6 +8,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/fastly/cli/pkg/sync"
 	"github.com/mitchellh/go-wordwrap"
 	"golang.org/x/term"
 )
@@ -99,14 +100,35 @@ outer:
 	}
 }
 
+// IsStdin returns true if r is standard input.
+func IsStdin(r io.Reader) bool {
+	if f, ok := r.(*os.File); ok {
+		return f.Fd() == uintptr(syscall.Stdin)
+	}
+	return false
+}
+
+// IsTTY returns true if fd is a terminal. When used in combination
+// with IsStdin, it can be used to determine whether standard input
+// is being piped data (i.e. IsStdin == true && IsTTY == false).
+// Provide STDOUT as a way to determine whether formating and/or
+// prompting is acceptable output.
+func IsTTY(fd any) bool {
+	if s, ok := fd.(*sync.Writer); ok {
+		// STDOUT is commonly wrapped in a sync.Writer, so here
+		// we unwrap it to gain access to the underlying Writer/STDOUT.
+		fd = s.W
+	}
+	if f, ok := fd.(*os.File); ok {
+		return term.IsTerminal(int(f.Fd()))
+	}
+	return false
+}
+
 // InputSecure is like Input but doesn't echo input back to the terminal,
 // if and only if r is os.Stdin.
 func InputSecure(w io.Writer, prefix string, r io.Reader, validators ...func(string) error) (string, error) {
-	var (
-		f, ok   = r.(*os.File)
-		isStdin = ok && uintptr(f.Fd()) == uintptr(syscall.Stdin)
-	)
-	if !isStdin {
+	if !IsStdin(r) {
 		return Input(w, prefix, r, validators...)
 	}
 
