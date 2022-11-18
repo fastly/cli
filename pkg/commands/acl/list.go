@@ -23,7 +23,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	}
 	c.CmdClause = parent.Command("list", "List ACLs")
 
-	// Required flags
+	// required
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -31,7 +31,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Required:    true,
 	})
 
-	// Optional Flags
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,

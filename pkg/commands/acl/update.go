@@ -21,7 +21,9 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	}
 	c.CmdClause = parent.Command("update", "Update an ACL for a particular service and version")
 
-	// Required flags
+	// required
+	c.CmdClause.Flag("name", "The name of the ACL to update").Required().StringVar(&c.name)
+	c.CmdClause.Flag("new-name", "The new name of the ACL").Required().StringVar(&c.newName)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -29,10 +31,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Required:    true,
 	})
 
-	c.CmdClause.Flag("name", "The name of the ACL to update").Required().StringVar(&c.name)
-	c.CmdClause.Flag("new-name", "The new name of the ACL").Required().StringVar(&c.newName)
-
-	// Optional flags
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,

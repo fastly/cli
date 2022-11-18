@@ -16,10 +16,14 @@ import (
 
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
-	var c ListCommand
+	c := ListCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("list", "List API tokens")
-	c.Globals = globals
-	c.manifest = data
+
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagCustomerIDName,
 		Description: cmd.FlagCustomerIDDesc,

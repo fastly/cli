@@ -17,7 +17,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a private Key").Required().StringVar(&c.id)
 
 	return &c

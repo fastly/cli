@@ -18,7 +18,7 @@ func NewValidateCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.Globals = globals
 	c.manifest = data
 
-	// Required flags
+	// required
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -26,7 +26,7 @@ func NewValidateCommand(parent cmd.Registerer, globals *config.Data, data manife
 		Required:    true,
 	})
 
-	// Optional flags
+	// optional
 	c.CmdClause.Flag("all", "Checks the status of all domains' DNS records for a Service Version").Short('a').BoolVar(&c.all)
 	c.CmdClause.Flag("name", "The name of the domain associated with this service").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{

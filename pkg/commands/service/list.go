@@ -22,9 +22,14 @@ type ListCommand struct {
 
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
-	var c ListCommand
-	c.Globals = globals
+	c := ListCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+	}
 	c.CmdClause = parent.Command("list", "List Fastly services")
+
+	// optional
 	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,

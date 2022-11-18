@@ -21,12 +21,17 @@ type CreateCommand struct {
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
-	var c CreateCommand
-	c.Globals = globals
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+	}
 	c.CmdClause = parent.Command("create", "Create a Fastly service").Alias("add")
+
+	// optional
+	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("type", `Service type. Can be one of "wasm" or "vcl", defaults to "vcl".`).Default("vcl").Action(c.stype.Set).EnumVar(&c.stype.Value, "wasm", "vcl")
-	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	return &c
 }
 

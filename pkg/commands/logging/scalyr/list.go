@@ -25,10 +25,23 @@ type ListCommand struct {
 
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
-	var c ListCommand
-	c.Globals = globals
-	c.manifest = data
+	c := ListCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("list", "List Scalyr endpoints on a Fastly service version")
+
+	// required
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagVersionName,
+		Description: cmd.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
+		Required:    true,
+	})
+
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
@@ -46,12 +59,6 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Name:        cmd.FlagServiceName,
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
-	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
 	})
 	return &c
 }

@@ -20,12 +20,15 @@ var Scopes = []string{"global", "purge_select", "purge_all", "global:read"}
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("create", "Create an API token").Alias("add")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
+	// required
 	//
 	// NOTE: The go-fastly client internally calls `/sudo` before `/tokens` and
 	// the sudo endpoint requires a password to be provided alongside an API
@@ -33,7 +36,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	// being passed as authentication to the API endpoint.
 	c.CmdClause.Flag("password", "User password corresponding with --token or $FASTLY_API_TOKEN").Required().StringVar(&c.password)
 
-	// Optional flags
+	// optional
 	//
 	// NOTE: The API describes 'scope' as being space-delimited but we've opted
 	// for comma-separated as it means users don't have to worry about how best

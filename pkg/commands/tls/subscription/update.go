@@ -17,10 +17,10 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS subscription").Required().StringVar(&c.id)
 
-	// Optional flags
+	// optional
 	c.CmdClause.Flag("common-name", "The domain name associated with the subscription").StringVar(&c.commonName)
 	c.CmdClause.Flag("config", "Alphanumeric string identifying a TLS configuration").StringVar(&c.config)
 	c.CmdClause.Flag("domain", "Domain(s) to add to the TLS certificates generated for the subscription (set flag once per domain)").StringsVar(&c.domains)

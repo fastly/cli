@@ -22,7 +22,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.Globals = globals
 	c.manifest = data
 
-	// Optional Flags
+	// optional
 	c.CmdClause.Flag("filter-cert", "Limit the returned domains to those listed in the given TLS certificate's SAN list").StringVar(&c.filterTLSCertsID)
 	c.CmdClause.Flag("filter-in-use", "Limit the returned domains to those currently using Fastly to terminate TLS with SNI").Action(c.filterInUse.Set).BoolVar(&c.filterInUse.Value)
 	c.CmdClause.Flag("filter-subscription", "Limit the returned domains to those for a given TLS subscription").StringVar(&c.filterTLSSubsID)

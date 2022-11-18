@@ -20,7 +20,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.Globals = globals
 	c.manifest = data
 
-	// Optional Flags
+	// optional
 	c.CmdClause.Flag("filter-domain", "Optionally filter by the bulk attribute").StringVar(&c.filterTLSDomainID)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,

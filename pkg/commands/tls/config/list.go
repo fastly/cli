@@ -21,7 +21,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.Globals = globals
 	c.manifest = data
 
-	// Optional Flags
+	// optional
 	c.CmdClause.Flag("filter-bulk", "Optionally filter by the bulk attribute").Action(c.filterBulk.Set).BoolVar(&c.filterBulk.Value)
 	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include).EnumVar(&c.include, include)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{

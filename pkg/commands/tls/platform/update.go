@@ -21,7 +21,7 @@ func NewUpdateCommand(
 	c.Globals = globals
 	c.manifest = data
 
-	// Required flags
+	// required
 
 	c.CmdClause.Flag(
 		"id", "Alphanumeric string identifying a TLS bulk certificate",
@@ -35,7 +35,7 @@ func NewUpdateCommand(
 		"intermediates-blob", "The PEM-formatted chain of intermediate blobs",
 	).Required().StringVar(&c.intermediatesBlob)
 
-	// Optional flags
+	// optional
 
 	c.CmdClause.Flag(
 		"allow-untrusted", "Allow certificates that chain to untrusted roots",
