@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -19,10 +19,10 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 	c.Globals = globals
 	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.id)
 
-	// Optional Flags
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,

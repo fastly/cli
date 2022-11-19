@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCreateLogentriesInput(t *testing.T) {
@@ -27,7 +27,7 @@ func TestCreateLogentriesInput(t *testing.T) {
 			want: &fastly.CreateLogentriesInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
+				Name:           fastly.String("log"),
 			},
 		},
 		{
@@ -36,15 +36,15 @@ func TestCreateLogentriesInput(t *testing.T) {
 			want: &fastly.CreateLogentriesInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
-				Port:              22,
-				UseTLS:            fastly.Compatibool(true),
-				Token:             "tkn",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
-				Region:            "eu",
+				Name:              fastly.String("log"),
+				Port:              fastly.Int(22),
+				UseTLS:            fastly.CBool(true),
+				Token:             fastly.String("tkn"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Int(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
+				Region:            fastly.String("eu"),
 			},
 		},
 		{
@@ -121,11 +121,11 @@ func TestUpdateLogentriesInput(t *testing.T) {
 				ServiceVersion:    4,
 				Name:              "log",
 				NewName:           fastly.String("new1"),
-				Port:              fastly.Uint(23),
+				Port:              fastly.Int(23),
 				UseTLS:            fastly.CBool(true),
 				Token:             fastly.String("new2"),
 				Format:            fastly.String("new3"),
-				FormatVersion:     fastly.Uint(3),
+				FormatVersion:     fastly.Int(3),
 				ResponseCondition: fastly.String("new4"),
 				Placement:         fastly.String("new5"),
 				Region:            fastly.String("new6"),
@@ -196,7 +196,7 @@ func createCommandOK() *logentries.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -208,11 +208,11 @@ func createCommandOK() *logentries.CreateCommand {
 				Value: true,
 			},
 		},
-		Port:              cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 22},
+		Port:              cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 22},
 		UseTLS:            cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
 		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
 		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "eu"},
@@ -241,7 +241,7 @@ func createCommandRequired() *logentries.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -325,12 +325,12 @@ func updateCommandAll() *logentries.UpdateCommand {
 				Value: true,
 			},
 		},
-		Port:              cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 23},
+		Port:              cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 23},
 		UseTLS:            cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
 		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},

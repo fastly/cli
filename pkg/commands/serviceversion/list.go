@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // ListCommand calls the Fastly API to list services.
@@ -25,9 +25,12 @@ type ListCommand struct {
 
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
-	var c ListCommand
-	c.Globals = globals
-	c.manifest = data
+	c := ListCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("list", "List Fastly service versions")
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,

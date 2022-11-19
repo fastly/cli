@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestACLEntryCreate(t *testing.T) {
@@ -21,7 +21,7 @@ func TestACLEntryCreate(t *testing.T) {
 		{
 			Name:      "validate missing --ip flag",
 			Args:      args("acl-entry create --acl-id 123"),
-			WantError: "error parsing arguments: required flag --ip not provided",
+			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --service-id flag",
@@ -45,7 +45,7 @@ func TestACLEntryCreate(t *testing.T) {
 					return &fastly.ACLEntry{
 						ACLID:     i.ACLID,
 						ID:        "456",
-						IP:        i.IP,
+						IP:        *i.IP,
 						ServiceID: i.ServiceID,
 					}, nil
 				},
@@ -60,9 +60,9 @@ func TestACLEntryCreate(t *testing.T) {
 					return &fastly.ACLEntry{
 						ACLID:     i.ACLID,
 						ID:        "456",
-						IP:        i.IP,
+						IP:        *i.IP,
 						ServiceID: i.ServiceID,
-						Negated:   bool(i.Negated),
+						Negated:   bool(*i.Negated),
 					}, nil
 				},
 			},

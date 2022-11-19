@@ -10,15 +10,15 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestBackendCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend create --version 1 --service-id 123 --address example.com"),
-			WantError: "error parsing arguments: required flag --name not provided",
+			Args:      args("backend create --version 1"),
+			WantError: "error reading service: no service ID found",
 		},
 		// The following test specifies a service version that's 'active', and
 		// subsequently we expect it to not be cloned as we don't provide the
@@ -135,7 +135,7 @@ func TestBackendList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
 			},
-			WantOutput: `[{"ServiceID":"123","ServiceVersion":1,"Name":"test.com","Comment":"test","Address":"www.test.com","Port":80,"OverrideHost":"","ConnectTimeout":0,"MaxConn":0,"ErrorThreshold":0,"FirstByteTimeout":0,"BetweenBytesTimeout":0,"AutoLoadbalance":false,"Weight":0,"RequestCondition":"","HealthCheck":"","Hostname":"","Shield":"","UseSSL":false,"SSLCheckCert":false,"SSLCACert":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLCertHostname":"","SSLSNIHostname":"","MinTLSVersion":"","MaxTLSVersion":"","SSLCiphers":"","CreatedAt":null,"UpdatedAt":null,"DeletedAt":null},{"ServiceID":"123","ServiceVersion":1,"Name":"example.com","Comment":"example","Address":"www.example.com","Port":443,"OverrideHost":"","ConnectTimeout":0,"MaxConn":0,"ErrorThreshold":0,"FirstByteTimeout":0,"BetweenBytesTimeout":0,"AutoLoadbalance":false,"Weight":0,"RequestCondition":"","HealthCheck":"","Hostname":"","Shield":"","UseSSL":false,"SSLCheckCert":false,"SSLCACert":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLCertHostname":"","SSLSNIHostname":"","MinTLSVersion":"","MaxTLSVersion":"","SSLCiphers":"","CreatedAt":null,"UpdatedAt":null,"DeletedAt":null}]`,
+			WantOutput: `[{"Address":"www.test.com","AutoLoadbalance":false,"BetweenBytesTimeout":0,"Comment":"test","ConnectTimeout":0,"CreatedAt":null,"DeletedAt":null,"ErrorThreshold":0,"FirstByteTimeout":0,"HealthCheck":"","Hostname":"","MaxConn":0,"MaxTLSVersion":"","MinTLSVersion":"","Name":"test.com","OverrideHost":"","Port":80,"RequestCondition":"","SSLCACert":"","SSLCertHostname":"","SSLCheckCert":false,"SSLCiphers":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLSNIHostname":"","ServiceID":"123","ServiceVersion":1,"Shield":"","UpdatedAt":null,"UseSSL":false,"Weight":0},{"Address":"www.example.com","AutoLoadbalance":false,"BetweenBytesTimeout":0,"Comment":"example","ConnectTimeout":0,"CreatedAt":null,"DeletedAt":null,"ErrorThreshold":0,"FirstByteTimeout":0,"HealthCheck":"","Hostname":"","MaxConn":0,"MaxTLSVersion":"","MinTLSVersion":"","Name":"example.com","OverrideHost":"","Port":443,"RequestCondition":"","SSLCACert":"","SSLCertHostname":"","SSLCheckCert":false,"SSLCiphers":"","SSLClientCert":"","SSLClientKey":"","SSLHostname":"","SSLSNIHostname":"","ServiceID":"123","ServiceVersion":1,"Shield":"","UpdatedAt":null,"UseSSL":false,"Weight":0}]`,
 		},
 		{
 			Args: args("backend list --service-id 123 --version 1 --json --verbose"),
@@ -329,11 +329,13 @@ func TestBackendDelete(t *testing.T) {
 var errTest = errors.New("fixture error")
 
 func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+	if i.Name == nil {
+		i.Name = fastly.String("")
+	}
 	return &fastly.Backend{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
-		Comment:        i.Comment,
+		Name:           *i.Name,
 	}, nil
 }
 
@@ -341,7 +343,7 @@ func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
-func createBackendWithPort(wantPort uint) func(*fastly.CreateBackendInput) (*fastly.Backend, error) {
+func createBackendWithPort(wantPort int) func(*fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return func(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 		switch {
 		case i.Port != nil && *i.Port == wantPort:

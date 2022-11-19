@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // CreateCommand calls the Fastly API to create a Scalyr logging endpoint.
@@ -18,38 +18,50 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Token          string
 	ServiceName    cmd.OptionalServiceNameID
+	EndpointName   cmd.OptionalString // Can't shadow cmd.Base method Name().
+	Token          cmd.OptionalString
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
-	Region            cmd.OptionalString
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
-	ResponseCondition cmd.OptionalString
+	FormatVersion     cmd.OptionalInt
 	Placement         cmd.OptionalString
+	Region            cmd.OptionalString
+	ResponseCondition cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
-	c.Globals = globals
-	c.Manifest = data
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		Manifest: data,
+	}
 	c.CmdClause = parent.Command("create", "Create a Scalyr logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the Scalyr logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+
+	// required
+	c.CmdClause.Flag("name", "The name of the Scalyr logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
+
+	// optional
+	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://www.scalyr.com/keys)").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://www.scalyr.com/keys)").Required().StringVar(&c.Token)
+	common.Format(c.CmdClause, &c.Format)
+	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.Placement(c.CmdClause, &c.Placement)
+	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
+	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -62,11 +74,6 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	common.Placement(c.CmdClause, &c.Placement)
 	return &c
 }
 
@@ -76,27 +83,31 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.Token = c.Token
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Token.WasSet {
+		input.Token = &c.Token.Value
+	}
 
 	if c.Region.WasSet {
-		input.Region = c.Region.Value
+		input.Region = &c.Region.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil
@@ -126,7 +137,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
-
 	d, err := c.Globals.APIClient.CreateScalyr(input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

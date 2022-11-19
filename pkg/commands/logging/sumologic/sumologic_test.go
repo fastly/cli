@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCreateSumologicInput(t *testing.T) {
@@ -27,8 +27,8 @@ func TestCreateSumologicInput(t *testing.T) {
 			want: &fastly.CreateSumologicInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				URL:            "example.com",
+				Name:           fastly.String("log"),
+				URL:            fastly.String("example.com"),
 			},
 		},
 		{
@@ -37,13 +37,13 @@ func TestCreateSumologicInput(t *testing.T) {
 			want: &fastly.CreateSumologicInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
-				URL:               "example.com",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
-				MessageType:       "classic",
+				Name:              fastly.String("log"),
+				URL:               fastly.String("example.com"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Int(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
+				MessageType:       fastly.String("classic"),
 			},
 		},
 		{
@@ -193,8 +193,8 @@ func createCommandOK() *sumologic.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
-		URL:          "example.com",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -236,8 +236,8 @@ func createCommandRequired() *sumologic.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
-		URL:          "example.com",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},

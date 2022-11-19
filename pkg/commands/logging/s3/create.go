@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // CreateCommand calls the Fastly API to create an Amazon S3 logging endpoint.
@@ -19,8 +19,6 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	BucketName     string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
@@ -32,44 +30,67 @@ type CreateCommand struct {
 
 	// optional
 	AutoClone                    cmd.OptionalAutoClone
+	BucketName                   cmd.OptionalString
+	CompressionCodec             cmd.OptionalString
 	Domain                       cmd.OptionalString
-	Path                         cmd.OptionalString
-	Period                       cmd.OptionalUint
-	GzipLevel                    cmd.OptionalUint8
+	EndpointName                 cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format                       cmd.OptionalString
-	FormatVersion                cmd.OptionalUint
+	FormatVersion                cmd.OptionalInt
+	GzipLevel                    cmd.OptionalInt
 	MessageType                  cmd.OptionalString
-	ResponseCondition            cmd.OptionalString
-	TimestampFormat              cmd.OptionalString
+	Path                         cmd.OptionalString
+	Period                       cmd.OptionalInt
 	Placement                    cmd.OptionalString
-	Redundancy                   cmd.OptionalString
 	PublicKey                    cmd.OptionalString
+	Redundancy                   cmd.OptionalString
+	ResponseCondition            cmd.OptionalString
 	ServerSideEncryption         cmd.OptionalString
 	ServerSideEncryptionKMSKeyID cmd.OptionalString
-	CompressionCodec             cmd.OptionalString
+	TimestampFormat              cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
-	c.Globals = globals
-	c.Manifest = data
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		Manifest: data,
+	}
 	c.CmdClause = parent.Command("create", "Create an Amazon S3 logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the S3 logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+
+	// required
+	c.CmdClause.Flag("name", "The name of the S3 logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
+
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("bucket", "Your S3 bucket name").Required().StringVar(&c.BucketName)
 	c.CmdClause.Flag("access-key", "Your S3 account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
-	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
+	c.CmdClause.Flag("bucket", "Your S3 bucket name").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
+	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	c.CmdClause.Flag("domain", "The domain of the S3 endpoint").Action(c.Domain.Set).StringVar(&c.Domain.Value)
+	common.Format(c.CmdClause, &c.Format)
+	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.GzipLevel(c.CmdClause, &c.GzipLevel)
 	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
+	common.MessageType(c.CmdClause, &c.MessageType)
+	common.Path(c.CmdClause, &c.Path)
+	common.Period(c.CmdClause, &c.Period)
+	common.Placement(c.CmdClause, &c.Placement)
+	common.PublicKey(c.CmdClause, &c.PublicKey)
+	c.CmdClause.Flag("redundancy", "The S3 storage class. One of: standard, intelligent_tiering, standard_ia, onezone_ia, glacier, glacier_ir, deep_archive, or reduced_redundancy").Action(c.Redundancy.Set).EnumVar(&c.Redundancy.Value, string(fastly.S3RedundancyStandard), string(fastly.S3RedundancyIntelligentTiering), string(fastly.S3RedundancyStandardIA), string(fastly.S3RedundancyOneZoneIA), string(fastly.S3RedundancyGlacierFlexibleRetrieval), string(fastly.S3RedundancyGlacierInstantRetrieval), string(fastly.S3RedundancyGlacierDeepArchive), string(fastly.S3RedundancyReduced))
+	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
+	c.CmdClause.Flag("server-side-encryption", "Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms").Action(c.ServerSideEncryption.Set).EnumVar(&c.ServerSideEncryption.Value, string(fastly.S3ServerSideEncryptionAES), string(fastly.S3ServerSideEncryptionKMS))
+	c.CmdClause.Flag("server-side-encryption-kms-key-id", "Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms").Action(c.ServerSideEncryptionKMSKeyID.Set).StringVar(&c.ServerSideEncryptionKMSKeyID.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -82,21 +103,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("domain", "The domain of the S3 endpoint").Action(c.Domain.Set).StringVar(&c.Domain.Value)
-	common.Path(c.CmdClause, &c.Path)
-	common.Period(c.CmdClause, &c.Period)
-	common.GzipLevel(c.CmdClause, &c.GzipLevel)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.MessageType(c.CmdClause, &c.MessageType)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
-	c.CmdClause.Flag("redundancy", "The S3 storage class. One of: standard, intelligent_tiering, standard_ia, onezone_ia, glacier, glacier_ir, deep_archive, or reduced_redundancy").Action(c.Redundancy.Set).EnumVar(&c.Redundancy.Value, string(fastly.S3RedundancyStandard), string(fastly.S3RedundancyIntelligentTiering), string(fastly.S3RedundancyStandardIA), string(fastly.S3RedundancyOneZoneIA), string(fastly.S3RedundancyGlacierFlexibleRetrieval), string(fastly.S3RedundancyGlacierInstantRetrieval), string(fastly.S3RedundancyGlacierDeepArchive), string(fastly.S3RedundancyReduced))
-	common.Placement(c.CmdClause, &c.Placement)
-	common.PublicKey(c.CmdClause, &c.PublicKey)
-	c.CmdClause.Flag("server-side-encryption", "Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms").Action(c.ServerSideEncryption.Set).EnumVar(&c.ServerSideEncryption.Value, string(fastly.S3ServerSideEncryptionAES), string(fastly.S3ServerSideEncryptionKMS))
-	c.CmdClause.Flag("server-side-encryption-kms-key-id", "Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms").Action(c.ServerSideEncryptionKMSKeyID.Set).StringVar(&c.ServerSideEncryptionKMSKeyID.Value)
-	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	return &c
 }
 
@@ -106,8 +113,12 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.BucketName = c.BucketName
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.BucketName.WasSet {
+		input.BucketName = &c.BucketName.Value
+	}
 
 	// The following block checks for invalid permutations of the ways in
 	// which the AccessKey + SecretKey and IAMRole flags can be
@@ -133,82 +144,84 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.AccessKey.WasSet {
-		input.AccessKey = c.AccessKey.Value
+		input.AccessKey = &c.AccessKey.Value
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = c.SecretKey.Value
+		input.SecretKey = &c.SecretKey.Value
 	}
 
 	if c.IAMRole.WasSet {
-		input.IAMRole = c.IAMRole.Value
+		input.IAMRole = &c.IAMRole.Value
 	}
 
 	if c.Domain.WasSet {
-		input.Domain = c.Domain.Value
+		input.Domain = &c.Domain.Value
 	}
 
 	if c.Path.WasSet {
-		input.Path = c.Path.Value
+		input.Path = &c.Path.Value
 	}
 
 	if c.Period.WasSet {
-		input.Period = c.Period.Value
+		input.Period = &c.Period.Value
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = c.GzipLevel.Value
+		input.GzipLevel = &c.GzipLevel.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = &c.MessageType.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = c.TimestampFormat.Value
+		input.TimestampFormat = &c.TimestampFormat.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.PublicKey.WasSet {
-		input.PublicKey = c.PublicKey.Value
+		input.PublicKey = &c.PublicKey.Value
 	}
 
 	if c.ServerSideEncryptionKMSKeyID.WasSet {
-		input.ServerSideEncryptionKMSKeyID = c.ServerSideEncryptionKMSKeyID.Value
+		input.ServerSideEncryptionKMSKeyID = &c.ServerSideEncryptionKMSKeyID.Value
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = c.CompressionCodec.Value
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
 
 	if c.Redundancy.WasSet {
 		redundancy, err := ValidateRedundancy(c.Redundancy.Value)
 		if err == nil {
-			input.Redundancy = redundancy
+			input.Redundancy = &redundancy
 		}
 	}
 
 	if c.ServerSideEncryption.WasSet {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionAES
+			sse := fastly.S3ServerSideEncryptionAES
+			input.ServerSideEncryption = &sse
 		case string(fastly.S3ServerSideEncryptionKMS):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionKMS
+			sse := fastly.S3ServerSideEncryptionKMS
+			input.ServerSideEncryption = &sse
 		}
 	}
 

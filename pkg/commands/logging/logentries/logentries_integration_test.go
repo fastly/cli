@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestLogentriesCreate(t *testing.T) {
@@ -258,7 +258,7 @@ func createLogentriesOK(i *fastly.CreateLogentriesInput) (*fastly.Logentries, er
 	return &fastly.Logentries{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

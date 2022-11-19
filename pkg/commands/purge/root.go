@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewRootCommand returns a new command registered in the parent.
@@ -23,7 +23,7 @@ func NewRootCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.Globals = globals
 	c.manifest = data
 
-	// Optional flags
+	// optional
 	c.CmdClause.Flag("all", "Purge everything from a service").BoolVar(&c.all)
 	c.CmdClause.Flag("file", "Purge a service of a newline delimited list of Surrogate Keys").StringVar(&c.file)
 	c.CmdClause.Flag("key", "Purge a service of objects tagged with a Surrogate Key").StringVar(&c.key)

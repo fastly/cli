@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 const defaultTopLevelDomain = "edgecompute.app"
@@ -101,7 +101,7 @@ func (d *Domains) Create() error {
 		_, err := d.APIClient.CreateDomain(&fastly.CreateDomainInput{
 			ServiceID:      d.ServiceID,
 			ServiceVersion: d.ServiceVersion,
-			Name:           domain.Name,
+			Name:           &domain.Name,
 		})
 		if err != nil {
 			d.Progress.Fail()

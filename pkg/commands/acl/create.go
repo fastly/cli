@@ -8,18 +8,21 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
-	c.CmdClause = parent.Command("create", "Create a new ACL attached to the specified service version").Alias("add")
-	c.Globals = globals
-	c.manifest = data
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 
-	// Required flags
-	c.CmdClause.Flag("name", "Name for the ACL. Must start with an alphanumeric character and contain only alphanumeric characters, underscores, and whitespace").Required().StringVar(&c.name)
+	c.CmdClause = parent.Command("create", "Create a new ACL attached to the specified service version").Alias("add")
+
+	// required
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -27,11 +30,12 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Required:    true,
 	})
 
-	// Optional flags
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
+	c.CmdClause.Flag("name", "Name for the ACL. Must start with an alphanumeric character and contain only alphanumeric characters, underscores, and whitespace").Action(c.name.Set).StringVar(&c.name.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -54,7 +58,7 @@ type CreateCommand struct {
 
 	autoClone      cmd.OptionalAutoClone
 	manifest       manifest.Data
-	name           string
+	name           cmd.OptionalString
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -96,11 +100,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateACLInput {
-	var input fastly.CreateACLInput
-
-	input.Name = c.name
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion
-
+	input := fastly.CreateACLInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+	}
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
 	return &input
 }

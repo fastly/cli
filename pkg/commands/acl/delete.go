@@ -8,17 +8,20 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
 func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteCommand {
-	var c DeleteCommand
+	c := DeleteCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("delete", "Delete an ACL from the specified service version").Alias("remove")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("name", "The name of the ACL to delete").Required().StringVar(&c.name)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -27,7 +30,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Required:    true,
 	})
 
-	// Optional flags
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,

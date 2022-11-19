@@ -19,7 +19,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NOTE: Some tests don't provide a Service ID via any mechanism (e.g. flag
@@ -1381,8 +1381,8 @@ func TestDeploy(t *testing.T) {
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ID:   "12345",
-		Name: i.Name,
-		Type: i.Type,
+		Name: *i.Name,
+		Type: *i.Type,
 	}, nil
 }
 

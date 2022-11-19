@@ -9,17 +9,20 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
 func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
-	var c DescribeCommand
+	c := DescribeCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("describe", "Get the uploaded VCL for a particular service and version").Alias("get")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("name", "The name of the VCL").Required().StringVar(&c.name)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -28,7 +31,7 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 		Required:    true,
 	})
 
-	// Optional Flags
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,

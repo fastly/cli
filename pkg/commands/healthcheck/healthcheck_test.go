@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestHealthCheckCreate(t *testing.T) {
@@ -21,8 +21,8 @@ func TestHealthCheckCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("healthcheck create --version 1 --service-id 123"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			args:      args("healthcheck create --version 1"),
+			wantError: "error reading service: no service ID found",
 		},
 		{
 			args: args("healthcheck create --service-id 123 --version 1 --name www.test.com --autoclone"),
@@ -272,8 +272,7 @@ func createHealthCheckOK(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck,
 	return &fastly.HealthCheck{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
-		Comment:        i.Comment,
+		Name:           *i.Name,
 		Host:           "www.test.com",
 		Path:           "/health",
 	}, nil

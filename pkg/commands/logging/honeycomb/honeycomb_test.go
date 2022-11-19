@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCreateHoneycombInput(t *testing.T) {
@@ -27,9 +27,9 @@ func TestCreateHoneycombInput(t *testing.T) {
 			want: &fastly.CreateHoneycombInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				Token:          "tkn",
-				Dataset:        "logs",
+				Name:           fastly.String("log"),
+				Token:          fastly.String("tkn"),
+				Dataset:        fastly.String("logs"),
 			},
 		},
 		{
@@ -38,13 +38,13 @@ func TestCreateHoneycombInput(t *testing.T) {
 			want: &fastly.CreateHoneycombInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				Token:             "tkn",
-				Dataset:           "logs",
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
+				Name:              fastly.String("log"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Int(2),
+				Token:             fastly.String("tkn"),
+				Dataset:           fastly.String("logs"),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
 			},
 		},
 		{
@@ -122,7 +122,7 @@ func TestUpdateHoneycombInput(t *testing.T) {
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Format:            fastly.String("new2"),
-				FormatVersion:     fastly.Uint(3),
+				FormatVersion:     fastly.Int(3),
 				Token:             fastly.String("new3"),
 				Dataset:           fastly.String("new4"),
 				ResponseCondition: fastly.String("new5"),
@@ -194,9 +194,9 @@ func createCommandRequired() *honeycomb.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
-		Token:        "tkn",
-		Dataset:      "logs",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Token:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
+		Dataset:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -233,9 +233,9 @@ func createCommandAll() *honeycomb.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
-		Token:        "tkn",
-		Dataset:      "logs",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Token:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
+		Dataset:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -248,7 +248,7 @@ func createCommandAll() *honeycomb.CreateCommand {
 			},
 		},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
 	}
@@ -325,7 +325,7 @@ func updateCommandAll() *honeycomb.UpdateCommand {
 		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
 		Dataset:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},

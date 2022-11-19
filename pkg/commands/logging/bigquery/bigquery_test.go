@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCreateBigQueryInput(t *testing.T) {
@@ -27,12 +27,12 @@ func TestCreateBigQueryInput(t *testing.T) {
 			want: &fastly.CreateBigQueryInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				ProjectID:      "123",
-				Dataset:        "dataset",
-				Table:          "table",
-				User:           "user",
-				SecretKey:      "-----BEGIN PRIVATE KEY-----foo",
+				Name:           fastly.String("log"),
+				ProjectID:      fastly.String("123"),
+				Dataset:        fastly.String("dataset"),
+				Table:          fastly.String("table"),
+				User:           fastly.String("user"),
+				SecretKey:      fastly.String("-----BEGIN PRIVATE KEY-----foo"),
 			},
 		},
 		{
@@ -41,17 +41,17 @@ func TestCreateBigQueryInput(t *testing.T) {
 			want: &fastly.CreateBigQueryInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
-				ProjectID:         "123",
-				Dataset:           "dataset",
-				Table:             "table",
-				Template:          "template",
-				User:              "user",
-				SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
-				FormatVersion:     2,
+				Name:              fastly.String("log"),
+				ProjectID:         fastly.String("123"),
+				Dataset:           fastly.String("dataset"),
+				Table:             fastly.String("table"),
+				Template:          fastly.String("template"),
+				User:              fastly.String("user"),
+				SecretKey:         fastly.String("-----BEGIN PRIVATE KEY-----foo"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
+				FormatVersion:     fastly.Int(2),
 			},
 		},
 		{
@@ -137,7 +137,7 @@ func TestUpdateBigQueryInput(t *testing.T) {
 				ResponseCondition: fastly.String("new8"),
 				Placement:         fastly.String("new9"),
 				Format:            fastly.String("new10"),
-				FormatVersion:     fastly.Uint(3),
+				FormatVersion:     fastly.Int(3),
 			},
 		},
 		{
@@ -205,7 +205,6 @@ func createCommandRequired() *bigquery.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -217,11 +216,12 @@ func createCommandRequired() *bigquery.CreateCommand {
 				Value: true,
 			},
 		},
-		ProjectID: "123",
-		Dataset:   "dataset",
-		Table:     "table",
-		User:      "user",
-		SecretKey: "-----BEGIN PRIVATE KEY-----foo",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		ProjectID:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "123"},
+		Dataset:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "dataset"},
+		Table:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "table"},
+		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
 	}
 }
 
@@ -247,7 +247,6 @@ func createCommandAll() *bigquery.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -259,16 +258,17 @@ func createCommandAll() *bigquery.CreateCommand {
 				Value: true,
 			},
 		},
-		ProjectID:         "123",
-		Dataset:           "dataset",
-		Table:             "table",
-		User:              "user",
-		SecretKey:         "-----BEGIN PRIVATE KEY-----foo",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "123"},
+		Dataset:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "dataset"},
+		Table:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "table"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
 		Template:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "template"},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 	}
 }
 
@@ -351,7 +351,7 @@ func updateCommandAll() *bigquery.UpdateCommand {
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 	}
 }
 

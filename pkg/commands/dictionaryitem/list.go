@@ -10,7 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // ListCommand calls the Fastly API to list dictionary items.
@@ -24,11 +24,18 @@ type ListCommand struct {
 
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
-	var c ListCommand
-	c.Globals = globals
-	c.manifest = data
+	c := ListCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("list", "List items in a Fastly edge dictionary")
+
+	// required
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.input.DictionaryID)
+
+	// optional
 	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,

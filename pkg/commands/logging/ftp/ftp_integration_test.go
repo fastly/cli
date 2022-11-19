@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestFTPCreate(t *testing.T) {
@@ -20,30 +20,6 @@ func TestFTPCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args: args("logging ftp create --service-id 123 --version 1 --name log --user anonymous --password foo@example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --address not provided",
-		},
-		{
-			args: args("logging ftp create --service-id 123 --version 1 --name log --address example.com --password foo@example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --user not provided",
-		},
-		{
-			args: args("logging ftp create --service-id 123 --version 1 --name log --address example.com --user anonymous --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --password not provided",
-		},
 		{
 			args: args("logging ftp create --service-id 123 --version 1 --name log --address example.com --user anonymous --password foo@example.com --compression-codec zstd --autoclone"),
 			api: mock.API{
@@ -290,8 +266,8 @@ func createFTPOK(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
 		ServiceID:        i.ServiceID,
 		ServiceVersion:   i.ServiceVersion,
-		Name:             i.Name,
-		CompressionCodec: i.CompressionCodec,
+		Name:             *i.Name,
+		CompressionCodec: *i.CompressionCodec,
 	}, nil
 }
 

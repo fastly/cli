@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // UpdateCommand calls the Fastly API to create services.
@@ -24,10 +24,17 @@ type UpdateCommand struct {
 
 // NewUpdateCommand returns a usable command registered under the parent.
 func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
-	var c UpdateCommand
-	c.Globals = globals
-	c.manifest = data
+	c := UpdateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("update", "Update a Fastly service")
+
+	// optional
+	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
+	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -40,8 +47,6 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
-	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	return &c
 }
 
@@ -62,10 +67,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.name.WasSet {
-		c.input.Name = fastly.String(c.name.Value)
+		c.input.Name = &c.name.Value
 	}
 	if c.comment.WasSet {
-		c.input.Comment = fastly.String(c.comment.Value)
+		c.input.Comment = &c.comment.Value
 	}
 
 	s, err := c.Globals.APIClient.UpdateService(&c.input)

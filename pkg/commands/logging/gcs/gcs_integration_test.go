@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestGCSCreate(t *testing.T) {
@@ -20,30 +20,6 @@ func TestGCSCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --user foo@example.com --secret-key foo --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --bucket not provided",
-		},
-		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --secret-key foo --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --user not provided",
-		},
-		{
-			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
 		{
 			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone"),
 			api: mock.API{
@@ -290,7 +266,7 @@ func createGCSOK(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestDictionaryDescribe(t *testing.T) {
@@ -73,8 +73,8 @@ func TestDictionaryCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("dictionary create --version 1 --service-id 123"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			args:      args("dictionary create --version 1"),
+			wantError: "error reading service: no service ID found",
 		},
 		{
 			args: args("dictionary create --version 1 --service-id 123 --name denylist --autoclone"),
@@ -86,7 +86,7 @@ func TestDictionaryCreate(t *testing.T) {
 			wantOutput: createDictionaryOutput,
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only true --autoclone"),
+			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only --autoclone"),
 			api: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
@@ -100,7 +100,7 @@ func TestDictionaryCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
-			wantError: "strconv.ParseBool: parsing \"fish\": invalid syntax",
+			wantError: "error parsing arguments: unexpected 'fish'",
 		},
 		{
 			args: args("dictionary create --version 1 --service-id 123 --name denylist --autoclone"),
@@ -324,12 +324,15 @@ func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictiona
 }
 
 func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
+	if i.WriteOnly == nil {
+		i.WriteOnly = fastly.CBool(false)
+	}
 	return &fastly.Dictionary{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      i.WriteOnly == true,
+		WriteOnly:      *i.WriteOnly == true,
 		ID:             "456",
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil

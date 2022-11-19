@@ -10,7 +10,7 @@ import (
 	fsterrs "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestScalyrCreate(t *testing.T) {
@@ -21,22 +21,6 @@ func TestScalyrCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args: args("logging scalyr create --service-id 123 --version 1 --auth-token abc --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: args("logging scalyr create --service-id 123 --version 1 --name log --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --auth-token not provided",
-		},
 		{
 			args: args("logging scalyr create --name log --service-id  --version 1 --auth-token abc --autoclone"),
 			api: mock.API{
@@ -287,28 +271,28 @@ func createScalyrOK(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 
 	// Avoids null pointer dereference for test cases with missing required params.
 	// If omitted, tests are guaranteed to panic.
-	if i.Name != "" {
-		s.Name = i.Name
+	if i.Name != nil && *i.Name != "" {
+		s.Name = *i.Name
 	}
 
-	if i.Token != "" {
-		s.Token = i.Token
+	if i.Token != nil && *i.Token != "" {
+		s.Token = *i.Token
 	}
 
-	if i.Format != "" {
-		s.Format = i.Format
+	if i.Format != nil && *i.Format != "" {
+		s.Format = *i.Format
 	}
 
-	if i.FormatVersion != 0 {
-		s.FormatVersion = i.FormatVersion
+	if i.FormatVersion != nil && *i.FormatVersion != 0 {
+		s.FormatVersion = *i.FormatVersion
 	}
 
-	if i.ResponseCondition != "" {
-		s.ResponseCondition = i.ResponseCondition
+	if i.ResponseCondition != nil && *i.ResponseCondition != "" {
+		s.ResponseCondition = *i.ResponseCondition
 	}
 
-	if i.Placement != "" {
-		s.Placement = i.Placement
+	if i.Placement != nil && *i.Placement != "" {
+		s.Placement = *i.Placement
 	}
 
 	return &s, nil

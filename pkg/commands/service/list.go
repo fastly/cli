@@ -10,7 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // ListCommand calls the Fastly API to list services.
@@ -22,9 +22,14 @@ type ListCommand struct {
 
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
-	var c ListCommand
-	c.Globals = globals
+	c := ListCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+	}
 	c.CmdClause = parent.Command("list", "List Fastly services")
+
+	// optional
 	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
@@ -82,7 +87,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 			activeVersion := fmt.Sprint(service.ActiveVersion)
 			for _, v := range service.Versions {
-				if uint(v.Number) == service.ActiveVersion && !v.Active {
+				if int(v.Number) == service.ActiveVersion && !v.Active {
 					activeVersion = "n/a"
 				}
 			}

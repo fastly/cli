@@ -10,20 +10,23 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
 func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
-	var c UpdateCommand
+	c := UpdateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("update", "Update an ACL entry for a specified ACL")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
 
-	// Optional flags
+	// optional
 	c.CmdClause.Flag("comment", "A freeform descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("file", "Batch update json passed as file path or content, e.g. $(< batch.json)").Action(c.file.Set).StringVar(&c.file.Value)
 	c.CmdClause.Flag("id", "Alphanumeric string identifying an ACL Entry").Action(c.id.Set).StringVar(&c.id.Value)
@@ -151,16 +154,16 @@ func (c *UpdateCommand) constructInput(serviceID string) (*fastly.UpdateACLEntry
 	input.ServiceID = serviceID
 
 	if c.comment.WasSet {
-		input.Comment = fastly.String(c.comment.Value)
+		input.Comment = &c.comment.Value
 	}
 	if c.ip.WasSet {
-		input.IP = fastly.String(c.ip.Value)
+		input.IP = &c.ip.Value
 	}
 	if c.negated.WasSet {
 		input.Negated = fastly.CBool(c.negated.Value)
 	}
 	if c.subnet.WasSet {
-		input.Subnet = fastly.Int(c.subnet.Value)
+		input.Subnet = &c.subnet.Value
 	}
 
 	return &input, nil

@@ -8,19 +8,21 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("create", "Upload a VCL for a particular service and version").Alias("add")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
-	c.CmdClause.Flag("content", "VCL passed as file path or content, e.g. $(< main.vcl)").Required().StringVar(&c.content)
-	c.CmdClause.Flag("name", "The name of the VCL").Required().StringVar(&c.name)
+	// required
+	c.CmdClause.Flag("content", "VCL passed as file path or content, e.g. $(< main.vcl)").Action(c.content.Set).StringVar(&c.content.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -28,12 +30,13 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Required:    true,
 	})
 
-	// Optional flags
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("main", "Whether the VCL is the 'main' entrypoint").Action(c.main.Set).BoolVar(&c.main.Value)
+	c.CmdClause.Flag("name", "The name of the VCL").Action(c.name.Set).StringVar(&c.name.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -55,10 +58,10 @@ type CreateCommand struct {
 	cmd.Base
 
 	autoClone      cmd.OptionalAutoClone
-	content        string
+	content        cmd.OptionalString
 	main           cmd.OptionalBool
 	manifest       manifest.Data
-	name           string
+	name           cmd.OptionalString
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -99,15 +102,19 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateVCLInput {
-	var input fastly.CreateVCLInput
-
-	input.Content = cmd.Content(c.content)
-	input.Name = c.name
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion
+	input := fastly.CreateVCLInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+	}
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
+	if c.content.WasSet {
+		input.Content = fastly.String(cmd.Content(c.content.Value))
+	}
 
 	if c.main.WasSet {
-		input.Main = c.main.Value
+		input.Main = fastly.Bool(c.main.Value)
 	}
 
 	return &input

@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // CreateCommand calls the Fastly API to create a Heroku logging endpoint.
@@ -18,39 +18,49 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Token          string
-	URL            string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
-	ResponseCondition cmd.OptionalString
+	FormatVersion     cmd.OptionalInt
 	Placement         cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	Token             cmd.OptionalString
+	URL               cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
-	c.Globals = globals
-	c.Manifest = data
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		Manifest: data,
+	}
 	c.CmdClause = parent.Command("create", "Create a Heroku logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the Heroku logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+
+	// required
+	c.CmdClause.Flag("name", "The name of the Heroku logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
+
+	// optional
+	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://devcenter.heroku.com/articles/add-on-partner-log-integration)").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("url", "The url to stream logs to").Required().StringVar(&c.URL)
-	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://devcenter.heroku.com/articles/add-on-partner-log-integration)").Required().StringVar(&c.Token)
+	common.Format(c.CmdClause, &c.Format)
+	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.Placement(c.CmdClause, &c.Placement)
+	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -63,10 +73,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	common.Placement(c.CmdClause, &c.Placement)
+	c.CmdClause.Flag("url", "The url to stream logs to").Action(c.URL.Set).StringVar(&c.URL.Value)
 	return &c
 }
 
@@ -76,24 +83,30 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.Token = c.Token
-	input.URL = c.URL
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Token.WasSet {
+		input.Token = &c.Token.Value
+	}
+	if c.URL.WasSet {
+		input.URL = &c.URL.Value
+	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

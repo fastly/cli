@@ -6,34 +6,54 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // CreateCommand calls the Fastly API to create services.
 type CreateCommand struct {
 	cmd.Base
-	Input fastly.CreateServiceInput
+
+	// optional
+	comment cmd.OptionalString
+	name    cmd.OptionalString
+	stype   cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data) *CreateCommand {
-	var c CreateCommand
-	c.Globals = globals
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+	}
 	c.CmdClause = parent.Command("create", "Create a Fastly service").Alias("add")
-	c.CmdClause.Flag("name", "Service name").Short('n').Required().StringVar(&c.Input.Name)
-	c.CmdClause.Flag("type", `Service type. Can be one of "wasm" or "vcl", defaults to "vcl".`).Default("vcl").EnumVar(&c.Input.Type, "wasm", "vcl")
-	c.CmdClause.Flag("comment", "Human-readable comment").StringVar(&c.Input.Comment)
+
+	// optional
+	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
+	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
+	c.CmdClause.Flag("type", `Service type. Can be one of "wasm" or "vcl", defaults to "vcl".`).Default("vcl").Action(c.stype.Set).EnumVar(&c.stype.Value, "wasm", "vcl")
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	s, err := c.Globals.APIClient.CreateService(&c.Input)
+	input := fastly.CreateServiceInput{}
+
+	if c.name.WasSet {
+		input.Name = &c.name.Value
+	}
+	if c.comment.WasSet {
+		input.Comment = &c.comment.Value
+	}
+	if c.comment.WasSet {
+		input.Type = &c.comment.Value
+	}
+	s, err := c.Globals.APIClient.CreateService(&input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service Name": c.Input.Name,
-			"Type":         c.Input.Type,
-			"Comment":      c.Input.Comment,
+			"Service Name": input.Name,
+			"Type":         input.Type,
+			"Comment":      input.Comment,
 		})
 		return err
 	}

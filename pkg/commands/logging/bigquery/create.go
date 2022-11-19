@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // CreateCommand calls the Fastly API to create a BigQuery logging endpoint.
@@ -18,46 +18,55 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	ProjectID      string
-	Dataset        string
-	Table          string
-	User           string
-	SecretKey      string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
 	AutoClone         cmd.OptionalAutoClone
-	Template          cmd.OptionalString
-	Placement         cmd.OptionalString
-	ResponseCondition cmd.OptionalString
+	Dataset           cmd.OptionalString
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
+	Placement         cmd.OptionalString
+	ProjectID         cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	SecretKey         cmd.OptionalString
+	Table             cmd.OptionalString
+	Template          cmd.OptionalString
+	User              cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
-	c.Globals = globals
-	c.Manifest = data
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		Manifest: data,
+	}
 	c.CmdClause = parent.Command("create", "Create a BigQuery logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the BigQuery logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+
+	// required
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
+
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("project-id", "Your Google Cloud Platform project ID").Required().StringVar(&c.ProjectID)
-	c.CmdClause.Flag("dataset", "Your BigQuery dataset").Required().StringVar(&c.Dataset)
-	c.CmdClause.Flag("table", "Your BigQuery table").Required().StringVar(&c.Table)
-	c.CmdClause.Flag("user", "Your Google Cloud Platform service account email address. The client_email field in your service account authentication JSON.").Required().StringVar(&c.User)
-	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON.").Required().StringVar(&c.SecretKey)
+	c.CmdClause.Flag("dataset", "Your BigQuery dataset").Action(c.Dataset.Set).StringVar(&c.Dataset.Value)
+	common.Format(c.CmdClause, &c.Format)
+	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	c.CmdClause.Flag("name", "The name of the BigQuery logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
+	common.Placement(c.CmdClause, &c.Placement)
+	c.CmdClause.Flag("project-id", "Your Google Cloud Platform project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
+	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON.").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -70,11 +79,9 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
+	c.CmdClause.Flag("table", "Your BigQuery table").Action(c.Table.Set).StringVar(&c.Table.Value)
 	c.CmdClause.Flag("template-suffix", "BigQuery table name suffix template").Action(c.Template.Set).StringVar(&c.Template.Value)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	c.CmdClause.Flag("user", "Your Google Cloud Platform service account email address. The client_email field in your service account authentication JSON.").Action(c.User.Set).StringVar(&c.User.Value)
 	return &c
 }
 
@@ -84,31 +91,43 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.ProjectID = c.ProjectID
-	input.Dataset = c.Dataset
-	input.User = c.User
-	input.Table = c.Table
-	input.SecretKey = c.SecretKey
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.ProjectID.WasSet {
+		input.ProjectID = &c.ProjectID.Value
+	}
+	if c.Dataset.WasSet {
+		input.Dataset = &c.Dataset.Value
+	}
+	if c.User.WasSet {
+		input.User = &c.User.Value
+	}
+	if c.Table.WasSet {
+		input.Table = &c.Table.Value
+	}
+	if c.SecretKey.WasSet {
+		input.SecretKey = &c.SecretKey.Value
+	}
 
 	if c.Template.WasSet {
-		input.Template = c.Template.Value
+		input.Template = &c.Template.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	return &input, nil

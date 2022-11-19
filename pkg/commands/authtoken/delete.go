@@ -12,15 +12,19 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
 func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteCommand {
-	var c DeleteCommand
+	c := DeleteCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("delete", "Revoke an API token").Alias("remove")
-	c.Globals = globals
-	c.manifest = data
+
 	c.CmdClause.Flag("current", "Revoke the token used to authenticate the request").BoolVar(&c.current)
 	c.CmdClause.Flag("file", "Revoke tokens in bulk from a newline delimited list of tokens").StringVar(&c.file)
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a token").StringVar(&c.id)

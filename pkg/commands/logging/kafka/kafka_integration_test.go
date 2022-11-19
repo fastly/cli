@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestKafkaCreate(t *testing.T) {
@@ -20,22 +20,6 @@ func TestKafkaCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args: args("logging kafka create --service-id 123 --version 1 --name log --brokers 127.0.0.1127.0.0.2 --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --topic not provided",
-		},
-		{
-			args: args("logging kafka create --service-id 123 --version 1 --name log --topic logs --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --brokers not provided",
-		},
 		{
 			args: args("logging kafka create --service-id 123 --version 1 --name log --topic logs --brokers 127.0.0.1127.0.0.2 --parse-log-keyvals --max-batch-size 1024 --use-sasl --auth-method plain --username user --password password --autoclone"),
 			api: mock.API{

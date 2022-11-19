@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestACLCreate(t *testing.T) {
@@ -16,7 +16,7 @@ func TestACLCreate(t *testing.T) {
 		{
 			Name:      "validate missing --name flag",
 			Args:      args("acl create --version 3"),
-			WantError: "error parsing arguments: required flag --name not provided",
+			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --version flag",
@@ -54,7 +54,7 @@ func TestACLCreate(t *testing.T) {
 				CreateACLFn: func(i *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
 						ID:             "456",
-						Name:           i.Name,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -71,7 +71,7 @@ func TestACLCreate(t *testing.T) {
 				CreateACLFn: func(i *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
 						ID:             "456",
-						Name:           i.Name,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -347,7 +347,7 @@ func TestACLUpdate(t *testing.T) {
 				UpdateACLFn: func(i *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
 						ID:             "456",
-						Name:           i.NewName,
+						Name:           *i.NewName,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -364,7 +364,7 @@ func TestACLUpdate(t *testing.T) {
 				UpdateACLFn: func(i *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
 						ID:             "456",
-						Name:           i.NewName,
+						Name:           *i.NewName,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil

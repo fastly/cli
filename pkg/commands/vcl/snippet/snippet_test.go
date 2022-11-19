@@ -7,33 +7,13 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestVCLSnippetCreate(t *testing.T) {
 	var content string
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --content flag",
-			Args:      args("vcl snippet create --name foo --type recv --version 3"),
-			WantError: "error parsing arguments: required flag --content not provided",
-		},
-		{
-			Name:      "validate missing --name flag",
-			Args:      args("vcl snippet create --content /path/to/snippet.vcl --type recv --version 3"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			Name:      "validate missing --type flag",
-			Args:      args("vcl snippet create --content /path/to/snippet.vcl --name foo --version 3"),
-			WantError: "error parsing arguments: required flag --type not provided",
-		},
-		{
-			Name:      "validate missing --version flag",
-			Args:      args("vcl snippet create --content /path/to/snippet.vcl --name foo --type recv"),
-			WantError: "error parsing arguments: required flag --version not provided",
-		},
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      args("vcl snippet create --content /path/to/snippet.vcl --name foo --type recv --version 3"),
@@ -64,12 +44,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -85,12 +73,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -106,12 +102,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						Priority:       *i.Priority,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
@@ -129,12 +133,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",
@@ -150,12 +162,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Dynamic == nil {
+						i.Dynamic = fastly.Int(0)
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.Snippet{
-						Content:        i.Content,
-						Dynamic:        i.Dynamic,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Dynamic:        *i.Dynamic,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 						ID:             "123",

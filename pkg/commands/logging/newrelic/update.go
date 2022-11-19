@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
@@ -23,7 +23,7 @@ type UpdateCommand struct {
 
 	autoClone         cmd.OptionalAutoClone
 	format            cmd.OptionalString
-	formatVersion     cmd.OptionalUint
+	formatVersion     cmd.OptionalInt
 	key               cmd.OptionalString
 	manifest          manifest.Data
 	newName           cmd.OptionalString
@@ -34,12 +34,15 @@ type UpdateCommand struct {
 
 // NewUpdateCommand returns a usable command registered under the parent.
 func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
-	var c UpdateCommand
+	c := UpdateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("update", "Update a New Relic Logs logging object for a particular service and version")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("name", "The name for the real-time logging configuration to update").Required().StringVar(&c.endpointName)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -48,13 +51,13 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Required:    true,
 	})
 
-	// Optional flags
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
 	common.Format(c.CmdClause, &c.format)
-	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint").Action(c.formatVersion.Set).UintVar(&c.formatVersion.Value)
+	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint").Action(c.formatVersion.Set).IntVar(&c.formatVersion.Value)
 	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Action(c.key.Set).StringVar(&c.key.Value)
 	c.CmdClause.Flag("new-name", "The name for the real-time logging configuration").Action(c.newName.Set).StringVar(&c.newName.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
@@ -124,25 +127,25 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) *fa
 	input.ServiceVersion = serviceVersion
 
 	if c.format.WasSet {
-		input.Format = fastly.String(c.format.Value)
+		input.Format = &c.format.Value
 	}
 	if c.formatVersion.WasSet {
-		input.FormatVersion = fastly.Uint(c.formatVersion.Value)
+		input.FormatVersion = &c.formatVersion.Value
 	}
 	if c.key.WasSet {
-		input.Token = fastly.String(c.key.Value)
+		input.Token = &c.key.Value
 	}
 	if c.newName.WasSet {
-		input.NewName = fastly.String(c.newName.Value)
+		input.NewName = &c.newName.Value
 	}
 	if c.placement.WasSet {
-		input.Placement = fastly.String(c.placement.Value)
+		input.Placement = &c.placement.Value
 	}
 	if c.region.WasSet {
-		input.Region = fastly.String(c.region.Value)
+		input.Region = &c.region.Value
 	}
 	if c.responseCondition.WasSet {
-		input.ResponseCondition = fastly.String(c.responseCondition.Value)
+		input.ResponseCondition = &c.responseCondition.Value
 	}
 
 	return &input

@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestDigitalOceanCreate(t *testing.T) {
@@ -20,30 +20,6 @@ func TestDigitalOceanCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args: args("logging digitalocean create --service-id 123 --version 1 --name log --access-key foo --secret-key abc --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --bucket not provided",
-		},
-		{
-			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --secret-key abc --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --access-key not provided",
-		},
-		{
-			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --access-key foo --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
 		{
 			args: args("logging digitalocean create --service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --autoclone"),
 			api: mock.API{
@@ -292,8 +268,8 @@ func createDigitalOceanOK(i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOce
 		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != "" {
-		s.Name = i.Name
+	if *i.Name != "" {
+		s.Name = *i.Name
 	}
 
 	return &s, nil

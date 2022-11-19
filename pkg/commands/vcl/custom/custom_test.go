@@ -7,33 +7,13 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestVCLCustomCreate(t *testing.T) {
 	var content string
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --content flag",
-			Args:      args("vcl custom create --name foo --version 3"),
-			WantError: "error parsing arguments: required flag --content not provided",
-		},
-		{
-			Name:      "validate missing --name flag",
-			Args:      args("vcl custom create --content /path/to/example.vcl --version 3"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			Name:      "validate missing --version flag",
-			Args:      args("vcl custom create --content /path/to/example.vcl --name foo"),
-			WantError: "error parsing arguments: required flag --version not provided",
-		},
-		{
-			Name:      "validate missing --service-id flag",
-			Args:      args("vcl custom create --content /path/to/example.vcl --name foo --version 3"),
-			WantError: "error reading service: no service ID found",
-		},
 		{
 			Name: "validate missing --autoclone flag",
 			API: mock.API{
@@ -59,12 +39,21 @@ func TestVCLCustomCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Main == nil {
+						b := false
+						i.Main = &b
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.VCL{
-						Content:        i.Content,
-						Main:           i.Main,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Main:           *i.Main,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -79,12 +68,22 @@ func TestVCLCustomCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					// Track the contents parsed
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Main == nil {
+						b := false
+						i.Main = &b
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.VCL{
-						Content:        i.Content,
-						Main:           i.Main,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Main:           *i.Main,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -100,12 +99,21 @@ func TestVCLCustomCreate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Main == nil {
+						b := false
+						i.Main = &b
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.VCL{
-						Content:        i.Content,
-						Main:           i.Main,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Main:           *i.Main,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -120,12 +128,21 @@ func TestVCLCustomCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
-					content = i.Content
-
+					content = *i.Content
+					if i.Content == nil {
+						i.Content = fastly.String("")
+					}
+					if i.Main == nil {
+						b := false
+						i.Main = &b
+					}
+					if i.Name == nil {
+						i.Name = fastly.String("")
+					}
 					return &fastly.VCL{
-						Content:        i.Content,
-						Main:           i.Main,
-						Name:           i.Name,
+						Content:        *i.Content,
+						Main:           *i.Main,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil

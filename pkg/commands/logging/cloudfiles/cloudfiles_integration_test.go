@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCloudfilesCreate(t *testing.T) {
@@ -20,18 +20,6 @@ func TestCloudfilesCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args:      args("logging cloudfiles create --service-id 123 --version 1 --name log --bucket log --access-key foo"),
-			wantError: "error parsing arguments: required flag --user not provided",
-		},
-		{
-			args:      args("logging cloudfiles create --service-id 123 --version 1 --name log --user username --access-key foo"),
-			wantError: "error parsing arguments: required flag --bucket not provided",
-		},
-		{
-			args:      args("logging cloudfiles create --service-id 123 --version 1 --name log --user username --bucket log"),
-			wantError: "error parsing arguments: required flag --access-key not provided",
-		},
 		{
 			args: args("logging cloudfiles create --service-id 123 --version 1 --name log --user username --bucket log --access-key foo --autoclone"),
 			api: mock.API{
@@ -280,8 +268,8 @@ func createCloudfilesOK(i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, er
 		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != "" {
-		s.Name = i.Name
+	if *i.Name != "" {
+		s.Name = *i.Name
 	}
 
 	return &s, nil

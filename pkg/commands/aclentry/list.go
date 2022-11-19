@@ -10,29 +10,29 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
-	var c ListCommand
+	c := ListCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("list", "List ACLs")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
 
-	// Optional Flags
-	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.direction, cmd.PaginationDirection...)
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
 		Dst:         &c.json,
 		Short:       'j',
 	})
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -45,6 +45,10 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
+
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.direction, cmd.PaginationDirection...)
+	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
+	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)
 	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.sort)
 
 	return &c

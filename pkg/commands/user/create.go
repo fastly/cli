@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -18,12 +18,12 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.manifest = data
 
-	// Required flags
-	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").Required().StringVar(&c.login)
-	c.CmdClause.Flag("name", "The real life name of the user").Required().StringVar(&c.name)
+	// required
+	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").Action(c.login.Set).StringVar(&c.login.Value)
+	c.CmdClause.Flag("name", "The real life name of the user").Action(c.name.Set).StringVar(&c.name.Value)
 
-	// Optional flags
-	c.CmdClause.Flag("role", "The permissions role assigned to the user. Can be user, billing, engineer, or superuser").EnumVar(&c.role, "user", "billing", "engineer", "superuser")
+	// optional
+	c.CmdClause.Flag("role", "The permissions role assigned to the user. Can be user, billing, engineer, or superuser").Action(c.role.Set).EnumVar(&c.role.Value, "user", "billing", "engineer", "superuser")
 
 	return &c
 }
@@ -31,11 +31,11 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	cmd.Base
-
-	login    string
 	manifest manifest.Data
-	name     string
-	role     string
+
+	login cmd.OptionalString
+	name  cmd.OptionalString
+	role  cmd.OptionalString
 }
 
 // Exec invokes the application logic for the command.
@@ -63,11 +63,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput() *fastly.CreateUserInput {
 	var input fastly.CreateUserInput
-
-	input.Login = c.login
-	input.Name = c.name
-	if c.role == "" {
-		input.Role = c.role
+	if c.login.WasSet {
+		input.Login = &c.login.Value
+	}
+	if c.role.WasSet {
+		input.Role = &c.role.Value
+	}
+	if c.name.WasSet {
+		input.Name = &c.name.Value
 	}
 
 	return &input

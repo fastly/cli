@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // CreateCommand calls the Fastly API to create a Papertrail logging endpoint.
@@ -18,38 +18,50 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Address        string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	Address           cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
-	Port              cmd.OptionalUint
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
+	FormatVersion     cmd.OptionalInt
 	Placement         cmd.OptionalString
+	Port              cmd.OptionalInt
 	ResponseCondition cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
-	c.Globals = globals
-	c.Manifest = data
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		Manifest: data,
+	}
 	c.CmdClause = parent.Command("create", "Create a Papertrail logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the Papertrail logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+
+	// required
+	c.CmdClause.Flag("name", "The name of the Papertrail logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
+
+	// optional
+	c.CmdClause.Flag("address", "A hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("address", "A hostname or IPv4 address").Required().StringVar(&c.Address)
+	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.Format(c.CmdClause, &c.Format)
+	common.Placement(c.CmdClause, &c.Placement)
+	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
+	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -62,11 +74,6 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.Format(c.CmdClause, &c.Format)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	common.Placement(c.CmdClause, &c.Placement)
 	return &c
 }
 
@@ -75,28 +82,32 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	var input fastly.CreatePapertrailInput
 
 	input.ServiceID = serviceID
-	input.Name = c.EndpointName
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
 	input.ServiceVersion = serviceVersion
-	input.Address = c.Address
+	if c.Address.WasSet {
+		input.Address = &c.Address.Value
+	}
 
 	if c.Port.WasSet {
-		input.Port = c.Port.Value
+		input.Port = &c.Port.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

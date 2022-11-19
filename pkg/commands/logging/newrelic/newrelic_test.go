@@ -7,27 +7,12 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestNewRelicCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --name flag",
-			Args:      args("logging newrelic create --key abc --version 3"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			Name:      "validate missing --key flag",
-			Args:      args("logging newrelic create --name foo --version 3"),
-			WantError: "error parsing arguments: required flag --key not provided",
-		},
-		{
-			Name:      "validate missing --version flag",
-			Args:      args("logging newrelic create --key abc --name foo"),
-			WantError: "error parsing arguments: required flag --version not provided",
-		},
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      args("logging newrelic create --key abc --name foo --version 3"),
@@ -58,7 +43,7 @@ func TestNewRelicCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateNewRelicFn: func(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
-						Name:           i.Name,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil
@@ -74,7 +59,7 @@ func TestNewRelicCreate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateNewRelicFn: func(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
-						Name:           i.Name,
+						Name:           *i.Name,
 						ServiceID:      i.ServiceID,
 						ServiceVersion: i.ServiceVersion,
 					}, nil

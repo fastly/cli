@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // SearchCommand calls the Fastly API to describe a service.
@@ -19,11 +19,16 @@ type SearchCommand struct {
 
 // NewSearchCommand returns a usable command registered under the parent.
 func NewSearchCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *SearchCommand {
-	var c SearchCommand
-	c.Globals = globals
-	c.manifest = data
+	c := SearchCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("search", "Search for a Fastly service by name")
+	// required
 	c.CmdClause.Flag("name", "Service name").Short('n').Required().StringVar(&c.Input.Name)
+
 	return &c
 }
 

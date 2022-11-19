@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCreatePapertrailInput(t *testing.T) {
@@ -27,8 +27,8 @@ func TestCreatePapertrailInput(t *testing.T) {
 			want: &fastly.CreatePapertrailInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				Address:        "example.com",
+				Name:           fastly.String("log"),
+				Address:        fastly.String("example.com"),
 			},
 		},
 		{
@@ -37,13 +37,13 @@ func TestCreatePapertrailInput(t *testing.T) {
 			want: &fastly.CreatePapertrailInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
-				Address:           "example.com",
-				Port:              22,
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
+				Name:              fastly.String("log"),
+				Address:           fastly.String("example.com"),
+				Port:              fastly.Int(22),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Int(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
 			},
 		},
 		{
@@ -121,9 +121,9 @@ func TestUpdatePapertrailInput(t *testing.T) {
 				Name:              "log",
 				NewName:           fastly.String("new1"),
 				Address:           fastly.String("new2"),
-				Port:              fastly.Uint(23),
+				Port:              fastly.Int(23),
 				Format:            fastly.String("new3"),
-				FormatVersion:     fastly.Uint(3),
+				FormatVersion:     fastly.Int(3),
 				ResponseCondition: fastly.String("new4"),
 				Placement:         fastly.String("new5"),
 			},
@@ -193,8 +193,8 @@ func createCommandRequired() *papertrail.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
-		Address:      "example.com",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Address:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -231,7 +231,6 @@ func createCommandAll() *papertrail.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -243,12 +242,13 @@ func createCommandAll() *papertrail.CreateCommand {
 				Value: true,
 			},
 		},
-		Address:           "example.com",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		Port:              cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 22},
+		Port:              cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 22},
 	}
 }
 
@@ -323,9 +323,9 @@ func updateCommandAll() *papertrail.UpdateCommand {
 		},
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		Port:              cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 23},
+		Port:              cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 23},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
 	}

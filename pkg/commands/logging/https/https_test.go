@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCreateHTTPSInput(t *testing.T) {
@@ -27,8 +27,8 @@ func TestCreateHTTPSInput(t *testing.T) {
 			want: &fastly.CreateHTTPSInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				URL:            "example.com",
+				Name:           fastly.String("log"),
+				URL:            fastly.String("example.com"),
 			},
 		},
 		{
@@ -37,24 +37,24 @@ func TestCreateHTTPSInput(t *testing.T) {
 			want: &fastly.CreateHTTPSInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "logs",
-				ResponseCondition: "Prevent default logging",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				URL:               "example.com",
-				RequestMaxEntries: 2,
-				RequestMaxBytes:   2,
-				ContentType:       "application/json",
-				HeaderName:        "name",
-				HeaderValue:       "value",
-				Method:            "GET",
-				JSONFormat:        "1",
-				Placement:         "none",
-				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-				TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-				TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-				TLSHostname:       "example.com",
-				MessageType:       "classic",
-				FormatVersion:     2,
+				Name:              fastly.String("logs"),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				URL:               fastly.String("example.com"),
+				RequestMaxEntries: fastly.Int(2),
+				RequestMaxBytes:   fastly.Int(2),
+				ContentType:       fastly.String("application/json"),
+				HeaderName:        fastly.String("name"),
+				HeaderValue:       fastly.String("value"),
+				Method:            fastly.String("GET"),
+				JSONFormat:        fastly.String("1"),
+				Placement:         fastly.String("none"),
+				TLSCACert:         fastly.String("-----BEGIN CERTIFICATE-----foo"),
+				TLSClientCert:     fastly.String("-----BEGIN CERTIFICATE-----bar"),
+				TLSClientKey:      fastly.String("-----BEGIN PRIVATE KEY-----bar"),
+				TLSHostname:       fastly.String("example.com"),
+				MessageType:       fastly.String("classic"),
+				FormatVersion:     fastly.Int(2),
 			},
 		},
 		{
@@ -120,8 +120,8 @@ func TestUpdateHTTPSInput(t *testing.T) {
 				ResponseCondition: fastly.String("new2"),
 				Format:            fastly.String("new3"),
 				URL:               fastly.String("new4"),
-				RequestMaxEntries: fastly.Uint(3),
-				RequestMaxBytes:   fastly.Uint(3),
+				RequestMaxEntries: fastly.Int(3),
+				RequestMaxBytes:   fastly.Int(3),
 				ContentType:       fastly.String("new5"),
 				HeaderName:        fastly.String("new6"),
 				HeaderValue:       fastly.String("new7"),
@@ -133,7 +133,7 @@ func TestUpdateHTTPSInput(t *testing.T) {
 				TLSClientKey:      fastly.String("new13"),
 				TLSHostname:       fastly.String("new14"),
 				MessageType:       fastly.String("new15"),
-				FormatVersion:     fastly.Uint(3),
+				FormatVersion:     fastly.Int(3),
 			},
 		},
 		{
@@ -215,7 +215,6 @@ func createCommandRequired() *https.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -227,7 +226,8 @@ func createCommandRequired() *https.CreateCommand {
 				Value: true,
 			},
 		},
-		URL: "example.com",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 	}
 }
 
@@ -253,7 +253,6 @@ func createCommandAll() *https.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -265,17 +264,18 @@ func createCommandAll() *https.CreateCommand {
 				Value: true,
 			},
 		},
-		URL:               "example.com",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 		ContentType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "application/json"},
 		HeaderName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "name"},
 		HeaderValue:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "value"},
 		Method:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "GET"},
 		JSONFormat:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "1"},
 		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
-		RequestMaxEntries: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		RequestMaxBytes:   cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		RequestMaxEntries: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		RequestMaxBytes:   cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
 		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
@@ -364,14 +364,14 @@ func updateCommandAll() *https.UpdateCommand {
 		Method:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
 		JSONFormat:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		RequestMaxEntries: cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		RequestMaxBytes:   cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		RequestMaxEntries: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		RequestMaxBytes:   cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
 		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
 		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
 		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new14"},
 		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new15"},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 	}
 }
 

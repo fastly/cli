@@ -10,7 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 	"github.com/fastly/kingpin"
 )
 
@@ -90,18 +90,6 @@ type OptionalStringSlice struct {
 type OptionalBool struct {
 	Optional
 	Value bool
-}
-
-// OptionalUint models an optional uint flag value.
-type OptionalUint struct {
-	Optional
-	Value uint
-}
-
-// OptionalUint8 models an optional unit8 flag value.
-type OptionalUint8 struct {
-	Optional
-	Value uint8
 }
 
 // OptionalInt models an optional int flag value.

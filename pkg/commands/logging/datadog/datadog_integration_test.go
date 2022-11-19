@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestDatadogCreate(t *testing.T) {
@@ -20,10 +20,6 @@ func TestDatadogCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args:      args("logging datadog create --service-id 123 --version 1 --name log"),
-			wantError: "error parsing arguments: required flag --auth-token not provided",
-		},
 		{
 			args: args("logging datadog create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
 			api: mock.API{
@@ -264,8 +260,8 @@ func createDatadogOK(i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
 		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != "" {
-		s.Name = i.Name
+	if *i.Name != "" {
+		s.Name = *i.Name
 	}
 
 	return &s, nil

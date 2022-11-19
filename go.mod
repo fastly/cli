@@ -8,7 +8,6 @@ require (
 	github.com/bep/debounce v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
-	github.com/fastly/go-fastly/v6 v6.8.0
 	github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible
 	github.com/fatih/color v1.13.0
 	github.com/frankban/quicktest v1.13.1 // indirect
@@ -31,6 +30,7 @@ require (
 )
 
 require (
+	github.com/fastly/go-fastly/v7 v7.0.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/otiai10/copy v1.9.0

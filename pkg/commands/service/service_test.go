@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestServiceCreate(t *testing.T) {
@@ -24,11 +24,6 @@ func TestServiceCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args:      args("service create"),
-			api:       mock.API{CreateServiceFn: createServiceOK},
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
 		{
 			args:       args("service create --name Foo"),
 			api:        mock.API{CreateServiceFn: createServiceOK},
@@ -501,10 +496,8 @@ var errTest = errors.New("fixture error")
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:      "12345",
-		Name:    i.Name,
-		Type:    i.Type,
-		Comment: i.Comment,
+		ID:   "12345",
+		Name: *i.Name,
 	}, nil
 }
 

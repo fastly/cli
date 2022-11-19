@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestServiceAuthCreate(t *testing.T) {
@@ -73,7 +73,7 @@ func TestServiceAuthList(t *testing.T) {
 		{
 			args:       args("service-auth list --json"),
 			api:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
-			wantOutput: "{\"Items\":[{\"ID\":\"123\",\"Permission\":\"read_only\",\"CreatedAt\":null,\"UpdatedAt\":null,\"DeltedAt\":null,\"User\":{\"ID\":\"456\"},\"Service\":{\"ID\":\"789\"}}],\"Info\":{\"links\":{},\"meta\":{}}}",
+			wantOutput: "{\"Info\":{\"links\":{},\"meta\":{}},\"Items\":[{\"CreatedAt\":null,\"DeletedAt\":null,\"ID\":\"123\",\"Permission\":\"read_only\",\"Service\":{\"ID\":\"789\"},\"UpdatedAt\":null,\"User\":{\"ID\":\"456\"}}]}",
 		},
 		{
 			args:       args("service-auth list --verbose"),
@@ -123,7 +123,7 @@ func TestServiceAuthDescribe(t *testing.T) {
 		{
 			args:       args("service-auth describe --id 123 --json"),
 			api:        mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
-			wantOutput: "{\"ID\":\"12345\",\"Permission\":\"read_only\",\"CreatedAt\":null,\"UpdatedAt\":null,\"DeltedAt\":null,\"User\":{\"ID\":\"456\"},\"Service\":{\"ID\":\"789\"}}",
+			wantOutput: "{\"CreatedAt\":null,\"DeletedAt\":null,\"ID\":\"12345\",\"Permission\":\"read_only\",\"Service\":{\"ID\":\"789\"},\"UpdatedAt\":null,\"User\":{\"ID\":\"456\"}}",
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -227,12 +227,12 @@ func createServiceAuthOK(i *fastly.CreateServiceAuthorizationInput) (*fastly.Ser
 	}, nil
 }
 
-func listServiceAuthError(*fastly.ListServiceAuthorizationsInput) (*fastly.SAResponse, error) {
+func listServiceAuthError(*fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
 	return nil, errTest
 }
 
-func listServiceAuthOK(i *fastly.ListServiceAuthorizationsInput) (*fastly.SAResponse, error) {
-	return &fastly.SAResponse{
+func listServiceAuthOK(i *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
+	return &fastly.ServiceAuthorizations{
 		Items: []*fastly.ServiceAuthorization{
 			{
 				ID: "123",

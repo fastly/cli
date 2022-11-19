@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCreateGooglePubSubInput(t *testing.T) {
@@ -27,11 +27,11 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 			want: &fastly.CreatePubsubInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				User:           "user@example.com",
-				SecretKey:      "secret",
-				ProjectID:      "project",
-				Topic:          "topic",
+				Name:           fastly.String("log"),
+				User:           fastly.String("user@example.com"),
+				SecretKey:      fastly.String("secret"),
+				ProjectID:      fastly.String("project"),
+				Topic:          fastly.String("topic"),
 			},
 		},
 		{
@@ -40,15 +40,15 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 			want: &fastly.CreatePubsubInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "logs",
-				Topic:             "topic",
-				User:              "user@example.com",
-				SecretKey:         "secret",
-				ProjectID:         "project",
-				FormatVersion:     2,
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
+				Name:              fastly.String("logs"),
+				Topic:             fastly.String("topic"),
+				User:              fastly.String("user@example.com"),
+				SecretKey:         fastly.String("secret"),
+				ProjectID:         fastly.String("project"),
+				FormatVersion:     fastly.Int(2),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
 			},
 		},
 		{
@@ -117,7 +117,7 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 				Topic:             fastly.String("new5"),
 				Placement:         fastly.String("new6"),
 				Format:            fastly.String("new7"),
-				FormatVersion:     fastly.Uint(3),
+				FormatVersion:     fastly.Int(3),
 				ResponseCondition: fastly.String("new8"),
 			},
 		},
@@ -200,7 +200,6 @@ func createCommandRequired() *googlepubsub.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -212,10 +211,11 @@ func createCommandRequired() *googlepubsub.CreateCommand {
 				Value: true,
 			},
 		},
-		User:      "user@example.com",
-		SecretKey: "secret",
-		ProjectID: "project",
-		Topic:     "topic",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user@example.com"},
+		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
+		ProjectID:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "project"},
+		Topic:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "topic"},
 	}
 }
 
@@ -241,7 +241,6 @@ func createCommandAll() *googlepubsub.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "logs",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -253,12 +252,13 @@ func createCommandAll() *googlepubsub.CreateCommand {
 				Value: true,
 			},
 		},
-		User:              "user@example.com",
-		ProjectID:         "project",
-		Topic:             "topic",
-		SecretKey:         "secret",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
+		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user@example.com"},
+		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "project"},
+		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "topic"},
+		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
 	}
@@ -340,7 +340,7 @@ func updateCommandAll() *googlepubsub.UpdateCommand {
 		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
 	}
 }

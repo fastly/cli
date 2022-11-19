@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestLogglyCreate(t *testing.T) {
@@ -20,14 +20,6 @@ func TestLogglyCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args: args("logging loggly create --service-id 123 --version 1 --name log --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --auth-token not provided",
-		},
 		{
 			args: args("logging loggly create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
 			api: mock.API{
@@ -268,8 +260,8 @@ func createLogglyOK(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 		ServiceVersion: i.ServiceVersion,
 	}
 
-	if i.Name != "" {
-		s.Name = i.Name
+	if *i.Name != "" {
+		s.Name = *i.Name
 	}
 
 	return &s, nil

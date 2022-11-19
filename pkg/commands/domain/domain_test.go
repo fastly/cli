@@ -11,15 +11,15 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestDomainCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("domain create --version 1 --service-id 123"),
-			WantError: "error parsing arguments: required flag --name not provided",
+			Args:      args("domain create --version 1"),
+			WantError: "error reading service: no service ID found",
 		},
 		{
 			Args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
@@ -338,8 +338,7 @@ func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
-		Comment:        i.Comment,
+		Name:           *i.Name,
 	}, nil
 }
 

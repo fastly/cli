@@ -9,17 +9,20 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
 func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
-	var c UpdateCommand
+	c := UpdateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("update", "Update the uploaded VCL for a particular service and version")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("name", "The name of the VCL to update").Required().StringVar(&c.name)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -28,7 +31,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Required:    true,
 	})
 
-	// Optional flags
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
@@ -121,7 +124,7 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		return nil, fmt.Errorf("error parsing arguments: must provide either --new-name or --content to update the VCL")
 	}
 	if c.newName.WasSet {
-		input.NewName = fastly.String(c.newName.Value)
+		input.NewName = &c.newName.Value
 	}
 	if c.content.WasSet {
 		input.Content = fastly.String(cmd.Content(c.content.Value))

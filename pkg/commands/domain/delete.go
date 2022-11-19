@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // DeleteCommand calls the Fastly API to delete domains.
@@ -23,11 +23,28 @@ type DeleteCommand struct {
 
 // NewDeleteCommand returns a usable command registered under the parent.
 func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteCommand {
-	var c DeleteCommand
-	c.Globals = globals
-	c.manifest = data
+	c := DeleteCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("delete", "Delete a domain on a Fastly service version").Alias("remove")
+
+	// required
 	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.Input.Name)
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagVersionName,
+		Description: cmd.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
+		Required:    true,
+	})
+
+	// optional
+	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -39,16 +56,6 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Name:        cmd.FlagServiceName,
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
-	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
 	})
 	return &c
 }

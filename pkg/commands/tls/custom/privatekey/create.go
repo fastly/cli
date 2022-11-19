@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -17,7 +17,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("key", "The contents of the private key. Must be a PEM-formatted key").Required().StringVar(&c.key)
 	c.CmdClause.Flag("name", "A customizable name for your private key").Required().StringVar(&c.name)
 

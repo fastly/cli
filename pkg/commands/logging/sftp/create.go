@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // CreateCommand calls the Fastly API to create an SFTP logging endpoint.
@@ -19,51 +19,69 @@ type CreateCommand struct {
 	Manifest manifest.Data
 
 	// required
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	Address        string
-	User           string
-	SSHKnownHosts  string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	Address           cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
-	Port              cmd.OptionalUint
-	Password          cmd.OptionalString
-	PublicKey         cmd.OptionalString
-	SecretKey         cmd.OptionalString
-	Path              cmd.OptionalString
-	Period            cmd.OptionalUint
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalUint
-	GzipLevel         cmd.OptionalUint8
-	MessageType       cmd.OptionalString
-	ResponseCondition cmd.OptionalString
-	TimestampFormat   cmd.OptionalString
-	Placement         cmd.OptionalString
 	CompressionCodec  cmd.OptionalString
+	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
+	Format            cmd.OptionalString
+	FormatVersion     cmd.OptionalInt
+	GzipLevel         cmd.OptionalInt
+	MessageType       cmd.OptionalString
+	Password          cmd.OptionalString
+	Path              cmd.OptionalString
+	Period            cmd.OptionalInt
+	Placement         cmd.OptionalString
+	Port              cmd.OptionalInt
+	PublicKey         cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	SecretKey         cmd.OptionalString
+	SSHKnownHosts     cmd.OptionalString
+	TimestampFormat   cmd.OptionalString
+	User              cmd.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	var c CreateCommand
-	c.Globals = globals
-	c.Manifest = data
+	c := CreateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		Manifest: data,
+	}
 	c.CmdClause = parent.Command("create", "Create an SFTP logging endpoint on a Fastly service version").Alias("add")
-	c.CmdClause.Flag("name", "The name of the SFTP logging object. Used as a primary key for API access").Short('n').Required().StringVar(&c.EndpointName)
+
+	// required
+	c.CmdClause.Flag("name", "The name of the SFTP logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
+
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("address", "The hostname or IPv4 address").Required().StringVar(&c.Address)
-	c.CmdClause.Flag("user", "The username for the server").Required().StringVar(&c.User)
-	c.CmdClause.Flag("ssh-known-hosts", "A list of host keys for all hosts we can connect to over SFTP").Required().StringVar(&c.SSHKnownHosts)
+	c.CmdClause.Flag("address", "The hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
+	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	common.Format(c.CmdClause, &c.Format)
+	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.GzipLevel(c.CmdClause, &c.GzipLevel)
+	common.MessageType(c.CmdClause, &c.MessageType)
+	c.CmdClause.Flag("password", "The password for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.Password.Set).StringVar(&c.Password.Value)
+	c.CmdClause.Flag("path", "The path to upload logs to. The directory must exist on the SFTP server before logs can be saved to it").Action(c.Path.Set).StringVar(&c.Path.Value)
+	common.Period(c.CmdClause, &c.Period)
+	common.Placement(c.CmdClause, &c.Placement)
+	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
+	common.PublicKey(c.CmdClause, &c.PublicKey)
+	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	c.CmdClause.Flag("secret-key", "The SSH private key for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -76,20 +94,9 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).UintVar(&c.Port.Value)
-	c.CmdClause.Flag("password", "The password for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.Password.Set).StringVar(&c.Password.Value)
-	common.PublicKey(c.CmdClause, &c.PublicKey)
-	c.CmdClause.Flag("secret-key", "The SSH private key for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
-	c.CmdClause.Flag("path", "The path to upload logs to. The directory must exist on the SFTP server before logs can be saved to it").Action(c.Path.Set).StringVar(&c.Path.Value)
-	common.Period(c.CmdClause, &c.Period)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.GzipLevel(c.CmdClause, &c.GzipLevel)
-	common.MessageType(c.CmdClause, &c.MessageType)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	c.CmdClause.Flag("ssh-known-hosts", "A list of host keys for all hosts we can connect to over SFTP").Action(c.SSHKnownHosts.Set).StringVar(&c.SSHKnownHosts.Value)
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	c.CmdClause.Flag("user", "The username for the server").Action(c.User.Set).StringVar(&c.User.Value)
 	return &c
 }
 
@@ -99,10 +106,18 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	input.Name = c.EndpointName
-	input.Address = c.Address
-	input.User = c.User
-	input.SSHKnownHosts = c.SSHKnownHosts
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Address.WasSet {
+		input.Address = &c.Address.Value
+	}
+	if c.User.WasSet {
+		input.User = &c.User.Value
+	}
+	if c.SSHKnownHosts.WasSet {
+		input.SSHKnownHosts = &c.SSHKnownHosts.Value
+	}
 
 	// The following blocks enforces the mutual exclusivity of the
 	// CompressionCodec and GzipLevel flags.
@@ -111,59 +126,59 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Port.WasSet {
-		input.Port = c.Port.Value
+		input.Port = &c.Port.Value
 	}
 
 	if c.Password.WasSet {
-		input.Password = c.Password.Value
+		input.Password = &c.Password.Value
 	}
 
 	if c.PublicKey.WasSet {
-		input.PublicKey = c.PublicKey.Value
+		input.PublicKey = &c.PublicKey.Value
 	}
 
 	if c.SecretKey.WasSet {
-		input.SecretKey = c.SecretKey.Value
+		input.SecretKey = &c.SecretKey.Value
 	}
 
 	if c.Path.WasSet {
-		input.Path = c.Path.Value
+		input.Path = &c.Path.Value
 	}
 
 	if c.Period.WasSet {
-		input.Period = c.Period.Value
+		input.Period = &c.Period.Value
 	}
 
 	if c.Format.WasSet {
-		input.Format = c.Format.Value
+		input.Format = &c.Format.Value
 	}
 
 	if c.FormatVersion.WasSet {
-		input.FormatVersion = c.FormatVersion.Value
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
 	if c.GzipLevel.WasSet {
-		input.GzipLevel = c.GzipLevel.Value
+		input.GzipLevel = &c.GzipLevel.Value
 	}
 
 	if c.MessageType.WasSet {
-		input.MessageType = c.MessageType.Value
+		input.MessageType = &c.MessageType.Value
 	}
 
 	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = c.ResponseCondition.Value
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
 	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = c.TimestampFormat.Value
+		input.TimestampFormat = &c.TimestampFormat.Value
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = c.Placement.Value
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = c.CompressionCodec.Value
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
 
 	return &input, nil

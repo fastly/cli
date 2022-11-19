@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestSyslogCreate(t *testing.T) {
@@ -20,14 +20,6 @@ func TestSyslogCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args: args("logging syslog create --service-id 123 --version 1 --name log --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --address not provided",
-		},
 		{
 			args: args("logging syslog create --service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone"),
 			api: mock.API{
@@ -266,7 +258,7 @@ func createSyslogOK(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

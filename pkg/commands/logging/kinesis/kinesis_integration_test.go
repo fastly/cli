@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestKinesisCreate(t *testing.T) {
@@ -20,30 +20,6 @@ func TestKinesisCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --access-key foo --region us-east-1 --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
-			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --access-key not provided",
-		},
 		{
 			args: args("logging kinesis create --service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone"),
 			api: mock.API{
@@ -324,7 +300,7 @@ func createKinesisOK(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

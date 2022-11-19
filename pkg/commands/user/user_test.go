@@ -9,27 +9,12 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --login flag",
-			Args:      args("user create --name foobar"),
-			WantError: "error parsing arguments: required flag --login not provided",
-		},
-		{
-			Name:      "validate missing --name flag",
-			Args:      args("user create --login foo@example.com"),
-			WantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("user create --login foo@example.com --name foobar"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
 		{
 			Name: "validate CreateUser API error",
 			API: mock.API{
@@ -45,7 +30,7 @@ func TestCreate(t *testing.T) {
 			API: mock.API{
 				CreateUserFn: func(i *fastly.CreateUserInput) (*fastly.User, error) {
 					return &fastly.User{
-						Name: i.Name,
+						Name: *i.Name,
 						Role: "user",
 					}, nil
 				},

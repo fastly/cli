@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestBlobStorageCreate(t *testing.T) {
@@ -20,23 +20,6 @@ func TestBlobStorageCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args:      args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --sas-token abc"),
-			wantError: "error parsing arguments: required flag --container not provided",
-		},
-		{
-			args:      args("logging azureblob create --service-id 123 --version 1 --name log --container log --sas-token abc"),
-			wantError: "error parsing arguments: required flag --account-name not provided",
-		},
-		{
-			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --autoclone"),
-			api: mock.API{
-				ListVersionsFn:      testutil.ListVersions,
-				CloneVersionFn:      testutil.CloneVersionResult(4),
-				CreateBlobStorageFn: createBlobStorageError,
-			},
-			wantError: "error parsing arguments: required flag --sas-token not provided",
-		},
 		{
 			args: args("logging azureblob create --service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --autoclone"),
 			api: mock.API{

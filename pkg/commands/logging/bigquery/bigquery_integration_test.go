@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestBigQueryCreate(t *testing.T) {
@@ -20,10 +20,6 @@ func TestBigQueryCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args:      args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com"),
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
 		{
 			args: args("logging bigquery create --service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"` --autoclone"),
 			api: mock.API{
@@ -262,7 +258,7 @@ func createBigQueryOK(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

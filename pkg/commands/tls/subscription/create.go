@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 const emptyString = ""
@@ -21,10 +21,10 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	c.Globals = globals
 	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("domain", "Domain(s) to add to the TLS certificates generated for the subscription (set flag once per domain)").Required().StringsVar(&c.domains)
 
-	// Optional flags
+	// optional
 	c.CmdClause.Flag("cert-auth", "The entity that issues and certifies the TLS certificates for your subscription. Valid values are lets-encrypt or globalsign").HintOptions(certAuth...).EnumVar(&c.certAuth, certAuth...)
 	c.CmdClause.Flag("common-name", "The domain name associated with the subscription. Default to the first domain specified by --domain").StringVar(&c.commonName)
 	c.CmdClause.Flag("config", "Alphanumeric string identifying a TLS configuration").StringVar(&c.config)

@@ -10,7 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 var states = []string{"pending", "processing", "issued", "renewing"}
@@ -22,7 +22,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.Globals = globals
 	c.manifest = data
 
-	// Optional Flags
+	// optional
 	c.CmdClause.Flag("filter-active", "Limit the returned subscriptions to those that have currently active orders").BoolVar(&c.filterHasActiveOrder)
 	c.CmdClause.Flag("filter-domain", "Limit the returned subscriptions to those that include the specific domain").StringVar(&c.filterTLSDomainID)
 	c.CmdClause.Flag("filter-state", "Limit the returned subscriptions by state").HintOptions(states...).EnumVar(&c.filterState, states...)

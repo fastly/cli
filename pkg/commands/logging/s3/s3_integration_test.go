@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestS3Create(t *testing.T) {
@@ -27,22 +27,6 @@ func TestS3Create(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			wantError: "error parsing arguments: the --access-key and --secret-key flags or the --iam-role flag must be provided",
-		},
-		{
-			args: args("logging s3 create --service-id 123 --version 1 --name log --bucket log --access-key foo --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --secret-key not provided",
-		},
-		{
-			args: args("logging s3 create --service-id 123 --version 1 --name log --bucket log --secret-key bar --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --access-key not provided",
 		},
 		{
 			args: args("logging s3 create --service-id 123 --version 1 --name log --bucket log --secret-key bar --iam-role arn:aws:iam::123456789012:role/S3Access --autoclone"),
@@ -341,7 +325,7 @@ func createS3OK(i *fastly.CreateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
 		ServiceID:        i.ServiceID,
 		ServiceVersion:   i.ServiceVersion,
-		Name:             i.Name,
+		Name:             *i.Name,
 		CompressionCodec: "zstd",
 	}, nil
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestPapertrailCreate(t *testing.T) {
@@ -20,14 +20,6 @@ func TestPapertrailCreate(t *testing.T) {
 		wantError  string
 		wantOutput string
 	}{
-		{
-			args: args("logging papertrail create --service-id 123 --version 1 --name log --autoclone"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				CloneVersionFn: testutil.CloneVersionResult(4),
-			},
-			wantError: "error parsing arguments: required flag --address not provided",
-		},
 		{
 			args: args("logging papertrail create --service-id 123 --version 1 --name log --address example.com:123 --autoclone"),
 			api: mock.API{
@@ -266,7 +258,7 @@ func createPapertrailOK(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, er
 	return &fastly.Papertrail{
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		Name:           *i.Name,
 	}, nil
 }
 

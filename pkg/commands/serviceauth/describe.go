@@ -10,7 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // DescribeCommand calls the Fastly API to describe a service authorization.
@@ -23,11 +23,18 @@ type DescribeCommand struct {
 
 // NewDescribeCommand returns a usable command registered under the parent.
 func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
-	var c DescribeCommand
-	c.Globals = globals
-	c.manifest = data
+	c := DescribeCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("describe", "Show service authorization").Alias("get")
+
+	// required
 	c.CmdClause.Flag("id", "ID of the service authorization to retrieve").Required().StringVar(&c.Input.ID)
+
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
@@ -83,8 +90,8 @@ func (c *DescribeCommand) print(s *fastly.ServiceAuthorization, out io.Writer) e
 	if s.UpdatedAt != nil {
 		fmt.Fprintf(out, "Last edited (UTC): %s\n", s.UpdatedAt.UTC().Format(time.Format))
 	}
-	if s.DeltedAt != nil {
-		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeltedAt.UTC().Format(time.Format))
+	if s.DeletedAt != nil {
+		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
 	}
 
 	return nil

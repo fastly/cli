@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 func TestCreateSplunkInput(t *testing.T) {
@@ -27,8 +27,8 @@ func TestCreateSplunkInput(t *testing.T) {
 			want: &fastly.CreateSplunkInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           "log",
-				URL:            "example.com",
+				Name:           fastly.String("log"),
+				URL:            fastly.String("example.com"),
 			},
 		},
 		{
@@ -37,17 +37,17 @@ func TestCreateSplunkInput(t *testing.T) {
 			want: &fastly.CreateSplunkInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              "log",
-				URL:               "example.com",
-				Format:            `%h %l %u %t "%r" %>s %b`,
-				FormatVersion:     2,
-				ResponseCondition: "Prevent default logging",
-				Placement:         "none",
-				Token:             "tkn",
-				TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-				TLSHostname:       "example.com",
-				TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-				TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
+				Name:              fastly.String("log"),
+				URL:               fastly.String("example.com"),
+				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.Int(2),
+				ResponseCondition: fastly.String("Prevent default logging"),
+				Placement:         fastly.String("none"),
+				Token:             fastly.String("tkn"),
+				TLSCACert:         fastly.String("-----BEGIN CERTIFICATE-----foo"),
+				TLSHostname:       fastly.String("example.com"),
+				TLSClientCert:     fastly.String("-----BEGIN CERTIFICATE-----bar"),
+				TLSClientKey:      fastly.String("-----BEGIN PRIVATE KEY-----bar"),
 			},
 		},
 		{
@@ -126,7 +126,7 @@ func TestUpdateSplunkInput(t *testing.T) {
 				NewName:           fastly.String("new1"),
 				URL:               fastly.String("new2"),
 				Format:            fastly.String("new3"),
-				FormatVersion:     fastly.Uint(3),
+				FormatVersion:     fastly.Int(3),
 				ResponseCondition: fastly.String("new4"),
 				Placement:         fastly.String("new5"),
 				Token:             fastly.String("new6"),
@@ -201,7 +201,6 @@ func createCommandRequired() *splunk.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -213,7 +212,8 @@ func createCommandRequired() *splunk.CreateCommand {
 				Value: true,
 			},
 		},
-		URL: "example.com",
+		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 	}
 }
 
@@ -239,7 +239,6 @@ func createCommandAll() *splunk.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: "log",
 		ServiceVersion: cmd.OptionalServiceVersion{
 			OptionalString: cmd.OptionalString{Value: "1"},
 		},
@@ -251,9 +250,10 @@ func createCommandAll() *splunk.CreateCommand {
 				Value: true,
 			},
 		},
-		URL:               "example.com",
+		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
+		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
 		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
@@ -337,7 +337,7 @@ func updateCommandAll() *splunk.UpdateCommand {
 		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
 		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
 		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		FormatVersion:     cmd.OptionalUint{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
 		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
 		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},

@@ -10,7 +10,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // ListCommand calls the Fastly API to list service authorizations.
@@ -25,6 +25,8 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("list", "List service authorizations")
+
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
@@ -90,8 +92,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		if s.UpdatedAt != nil {
 			fmt.Fprintf(out, "Last edited (UTC): %s\n", s.UpdatedAt.UTC().Format(time.Format))
 		}
-		if s.DeltedAt != nil {
-			fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeltedAt.UTC().Format(time.Format))
+		if s.DeletedAt != nil {
+			fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
 		}
 	}
 

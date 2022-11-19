@@ -10,17 +10,20 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
-	var c ListCommand
+	c := ListCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("list", "List the uploaded VCLs for a particular service and version")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
+	// required
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -28,7 +31,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		Required:    true,
 	})
 
-	// Optional Flags
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,

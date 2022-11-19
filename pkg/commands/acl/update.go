@@ -8,17 +8,20 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v6/fastly"
+	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
 func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
-	var c UpdateCommand
+	c := UpdateCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
 	c.CmdClause = parent.Command("update", "Update an ACL for a particular service and version")
-	c.Globals = globals
-	c.manifest = data
 
-	// Required flags
+	// required
 	c.CmdClause.Flag("name", "The name of the ACL to update").Required().StringVar(&c.name)
 	c.CmdClause.Flag("new-name", "The new name of the ACL").Required().StringVar(&c.newName)
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -28,7 +31,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		Required:    true,
 	})
 
-	// Optional flags
+	// optional
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
@@ -100,7 +103,7 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) *fa
 	var input fastly.UpdateACLInput
 
 	input.Name = c.name
-	input.NewName = c.newName
+	input.NewName = &c.newName
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 
