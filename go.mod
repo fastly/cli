@@ -11,7 +11,7 @@ require (
 	github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible
 	github.com/fatih/color v1.13.0
 	github.com/frankban/quicktest v1.13.1 // indirect
-	github.com/fsnotify/fsnotify v1.5.1
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/getsentry/sentry-go v0.15.0
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v38 v38.1.0
