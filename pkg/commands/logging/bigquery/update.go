@@ -97,52 +97,41 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		Name:           c.EndpointName,
 	}
 
-	if c.NewName.WasSet {
-		input.NewName = &c.NewName.Value
+	if c.AccountName.WasSet {
+		input.AccountName = &c.AccountName.Value
 	}
-
-	if c.ProjectID.WasSet {
-		input.ProjectID = &c.ProjectID.Value
-	}
-
 	if c.Dataset.WasSet {
 		input.Dataset = &c.Dataset.Value
 	}
-
-	if c.Table.WasSet {
-		input.Table = &c.Table.Value
-	}
-
-	if c.User.WasSet {
-		input.User = &c.User.Value
-	}
-
-	if c.AccountName.WasSet {
-		input.AccountName = fastly.String(c.AccountName.Value)
-	}
-
-	if c.SecretKey.WasSet {
-		input.SecretKey = &c.SecretKey.Value
-	}
-
-	if c.Template.WasSet {
-		input.Template = &c.Template.Value
-	}
-
 	if c.Format.WasSet {
 		input.Format = &c.Format.Value
 	}
-
 	if c.FormatVersion.WasSet {
 		input.FormatVersion = &c.FormatVersion.Value
 	}
-
+	if c.NewName.WasSet {
+		input.NewName = &c.NewName.Value
+	}
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
+	}
+	if c.ProjectID.WasSet {
+		input.ProjectID = &c.ProjectID.Value
+	}
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
 	}
-
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
+	if c.SecretKey.WasSet {
+		input.SecretKey = &c.SecretKey.Value
+	}
+	if c.Table.WasSet {
+		input.Table = &c.Table.Value
+	}
+	if c.Template.WasSet {
+		input.Template = &c.Template.Value
+	}
+	if c.User.WasSet {
+		input.User = &c.User.Value
 	}
 
 	return &input, nil

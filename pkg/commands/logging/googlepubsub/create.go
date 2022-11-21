@@ -83,15 +83,31 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.CreatePubsubInput, error) {
-	var input fastly.CreatePubsubInput
+	input := fastly.CreatePubsubInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+	}
 
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion
+	if c.AccountName.WasSet {
+		input.AccountName = &c.AccountName.Value
+	}
 	if c.EndpointName.WasSet {
 		input.Name = &c.EndpointName.Value
 	}
-	if c.User.WasSet {
-		input.User = &c.User.Value
+	if c.Format.WasSet {
+		input.Format = &c.Format.Value
+	}
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = &c.FormatVersion.Value
+	}
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
+	}
+	if c.ProjectID.WasSet {
+		input.ProjectID = &c.ProjectID.Value
+	}
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 	if c.SecretKey.WasSet {
 		input.SecretKey = &c.SecretKey.Value
@@ -99,28 +115,8 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	if c.Topic.WasSet {
 		input.Topic = &c.Topic.Value
 	}
-	if c.ProjectID.WasSet {
-		input.ProjectID = &c.ProjectID.Value
-	}
-
-	if c.Format.WasSet {
-		input.Format = &c.Format.Value
-	}
-
-	if c.FormatVersion.WasSet {
-		input.FormatVersion = &c.FormatVersion.Value
-	}
-
-	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = &c.ResponseCondition.Value
-	}
-
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
-	}
-
-	if c.AccountName.WasSet {
-		input.AccountName = &c.AccountName.Value
+	if c.User.WasSet {
+		input.User = &c.User.Value
 	}
 
 	return &input, nil

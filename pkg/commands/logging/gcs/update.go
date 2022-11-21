@@ -103,65 +103,50 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		Name:           c.EndpointName,
 	}
 
-	// Set new values if set by user.
-	if c.NewName.WasSet {
-		input.NewName = &c.NewName.Value
-	}
-
-	if c.Bucket.WasSet {
-		input.Bucket = &c.Bucket.Value
-	}
-
-	if c.User.WasSet {
-		input.User = &c.User.Value
-	}
-
 	if c.AccountName.WasSet {
 		input.AccountName = &c.AccountName.Value
 	}
-
-	if c.SecretKey.WasSet {
-		input.SecretKey = &c.SecretKey.Value
+	if c.Bucket.WasSet {
+		input.Bucket = &c.Bucket.Value
 	}
-
-	if c.Path.WasSet {
-		input.Path = &c.Path.Value
+	if c.CompressionCodec.WasSet {
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
-
-	if c.Period.WasSet {
-		input.Period = &c.Period.Value
-	}
-
-	if c.FormatVersion.WasSet {
-		input.FormatVersion = &c.FormatVersion.Value
-	}
-
-	if c.GzipLevel.WasSet {
-		input.GzipLevel = &c.GzipLevel.Value
-	}
-
 	if c.Format.WasSet {
 		input.Format = &c.Format.Value
 	}
-
-	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = &c.ResponseCondition.Value
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = &c.FormatVersion.Value
 	}
-
-	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = &c.TimestampFormat.Value
+	if c.GzipLevel.WasSet {
+		input.GzipLevel = &c.GzipLevel.Value
 	}
-
 	if c.MessageType.WasSet {
 		input.MessageType = &c.MessageType.Value
 	}
-
+	if c.NewName.WasSet {
+		input.NewName = &c.NewName.Value
+	}
+	if c.Path.WasSet {
+		input.Path = &c.Path.Value
+	}
+	if c.Period.WasSet {
+		input.Period = &c.Period.Value
+	}
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
 	}
-
-	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = &c.CompressionCodec.Value
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = &c.ResponseCondition.Value
+	}
+	if c.SecretKey.WasSet {
+		input.SecretKey = &c.SecretKey.Value
+	}
+	if c.TimestampFormat.WasSet {
+		input.TimestampFormat = &c.TimestampFormat.Value
+	}
+	if c.User.WasSet {
+		input.User = &c.User.Value
 	}
 
 	return &input, nil
