@@ -276,6 +276,7 @@ func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 			Dataset:           "raw-logs",
 			Table:             "logs",
 			User:              "service-account@domain.com",
+			AccountName:       "none",
 			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			Template:          "%Y%m%d",
@@ -290,6 +291,7 @@ func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 			Dataset:           "analytics",
 			Table:             "logs",
 			User:              "service-account@domain.com",
+			AccountName:       "none",
 			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
 			Format:            `%h %l %u %t "%r" %>s %b`,
 			Template:          "%Y%m%d",
@@ -321,6 +323,7 @@ Version: 1
 		Name: logs
 		Format: %h %l %u %t "%r" %>s %b
 		User: service-account@domain.com
+		Account name: none
 		Project ID: my-project
 		Dataset: raw-logs
 		Table: logs
@@ -335,6 +338,7 @@ Version: 1
 		Name: analytics
 		Format: %h %l %u %t "%r" %>s %b
 		User: service-account@domain.com
+		Account name: none
 		Project ID: my-project
 		Dataset: analytics
 		Table: logs
@@ -366,7 +370,7 @@ func getBigQueryError(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
-var describeBigQueryOutput = "\n" + strings.TrimSpace(`
+var describeBigQueryOutput = "\n" + strings.TrimSpace(`Account name: `+`
 Dataset: raw-logs
 Format: %h %l %u %t "%r" %>s %b
 Format version: 0

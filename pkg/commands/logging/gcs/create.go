@@ -104,7 +104,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	// The following blocks enforces the mutual exclusivity of the
 	// CompressionCodec and GzipLevel flags.
 	if c.CompressionCodec.WasSet && c.GzipLevel.WasSet {
-		return nil, fmt.Errorf("error parsing arguments: the --compression-codec lag is mutually exclusive with the --gzip-level flag")
+		return nil, fmt.Errorf("error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag")
 	}
 
 	if c.AccountName.WasSet {
