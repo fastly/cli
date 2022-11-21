@@ -358,6 +358,7 @@ func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 		Dataset:           "raw-logs",
 		Table:             "logs",
 		User:              "service-account@domain.com",
+		AccountName:       "none",
 		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		Template:          "%Y%m%d",
@@ -370,7 +371,8 @@ func getBigQueryError(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
-var describeBigQueryOutput = "\n" + strings.TrimSpace(`Account name: `+`
+var describeBigQueryOutput = "\n" + strings.TrimSpace(`
+Account name: none
 Dataset: raw-logs
 Format: %h %l %u %t "%r" %>s %b
 Format version: 0
