@@ -61,11 +61,11 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 
 	// optional
+	common.AccountName(c.CmdClause, &c.AccountName)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
 	c.CmdClause.Flag("bucket", "The bucket of the GCS bucket").Action(c.Bucket.Set).StringVar(&c.Bucket.Value)
 	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	common.Format(c.CmdClause, &c.Format)

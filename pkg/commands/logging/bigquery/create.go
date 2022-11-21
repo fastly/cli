@@ -56,7 +56,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 
 	// optional
-	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials (default none)").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
+	common.AccountName(c.CmdClause, &c.AccountName)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
