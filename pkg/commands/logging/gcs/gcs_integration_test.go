@@ -282,7 +282,7 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			Name:              "logs",
 			Bucket:            "my-logs",
 			User:              "foo@example.com",
-			AccountName:       "none",
+			AccountName:       "me@fastly.com",
 			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
 			Path:              "logs/",
 			Period:            3600,
@@ -339,7 +339,7 @@ Version: 1
 		Name: logs
 		Bucket: my-logs
 		User: foo@example.com
-		Account name: none
+		Account name: me@fastly.com
 		Secret key: -----BEGIN RSA PRIVATE KEY-----foo
 		Path: logs/
 		Period: 3600
@@ -379,7 +379,7 @@ func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 		Bucket:            "my-logs",
 		User:              "foo@example.com",
 		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
-		AccountName:       "none",
+		AccountName:       "me@fastly.com",
 		Path:              "logs/",
 		Period:            3600,
 		GzipLevel:         0,
@@ -398,7 +398,7 @@ func getGCSError(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 }
 
 var describeGCSOutput = "\n" + strings.TrimSpace(`
-Account name: none
+Account name: me@fastly.com
 Bucket: my-logs
 Compression codec: zstd
 Format: %h %l %u %t "%r" %>s %b

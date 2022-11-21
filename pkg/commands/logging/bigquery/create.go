@@ -22,6 +22,7 @@ type CreateCommand struct {
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
+	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
 	Dataset           cmd.OptionalString
 	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
@@ -55,6 +56,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 
 	// optional
+	common.AccountName(c.CmdClause, &c.AccountName)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
@@ -87,47 +89,46 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.CreateBigQueryInput, error) {
-	var input fastly.CreateBigQueryInput
-
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion
-	if c.EndpointName.WasSet {
-		input.Name = &c.EndpointName.Value
+	input := fastly.CreateBigQueryInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
 	}
-	if c.ProjectID.WasSet {
-		input.ProjectID = &c.ProjectID.Value
+
+	if c.AccountName.WasSet {
+		input.AccountName = &c.AccountName.Value
 	}
 	if c.Dataset.WasSet {
 		input.Dataset = &c.Dataset.Value
 	}
-	if c.User.WasSet {
-		input.User = &c.User.Value
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
 	}
-	if c.Table.WasSet {
-		input.Table = &c.Table.Value
+	if c.Format.WasSet {
+		input.Format = &c.Format.Value
+	}
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = &c.FormatVersion.Value
+	}
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
+	}
+	if c.ProjectID.WasSet {
+		input.ProjectID = &c.ProjectID.Value
+	}
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 	if c.SecretKey.WasSet {
 		input.SecretKey = &c.SecretKey.Value
 	}
-
+	if c.Table.WasSet {
+		input.Table = &c.Table.Value
+	}
 	if c.Template.WasSet {
 		input.Template = &c.Template.Value
 	}
-
-	if c.Format.WasSet {
-		input.Format = &c.Format.Value
-	}
-
-	if c.FormatVersion.WasSet {
-		input.FormatVersion = &c.FormatVersion.Value
-	}
-
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
-	}
-
-	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = &c.ResponseCondition.Value
+	if c.User.WasSet {
+		input.User = &c.User.Value
 	}
 
 	return &input, nil

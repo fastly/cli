@@ -61,7 +61,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 
 	// optional
-	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials (default none)").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
+	common.AccountName(c.CmdClause, &c.AccountName)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
@@ -96,21 +96,9 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.CreateGCSInput, error) {
-	var input fastly.CreateGCSInput
-
-	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion
-	if c.EndpointName.WasSet {
-		input.Name = &c.EndpointName.Value
-	}
-	if c.Bucket.WasSet {
-		input.Bucket = &c.Bucket.Value
-	}
-	if c.User.WasSet {
-		input.User = &c.User.Value
-	}
-	if c.SecretKey.WasSet {
-		input.SecretKey = &c.SecretKey.Value
+	input := fastly.CreateGCSInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
 	}
 
 	// The following blocks enforces the mutual exclusivity of the
@@ -119,48 +107,50 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		return nil, fmt.Errorf("error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag")
 	}
 
-	if c.Path.WasSet {
-		input.Path = &c.Path.Value
+	if c.AccountName.WasSet {
+		input.AccountName = &c.AccountName.Value
 	}
-
-	if c.Period.WasSet {
-		input.Period = &c.Period.Value
+	if c.Bucket.WasSet {
+		input.Bucket = &c.Bucket.Value
 	}
-
-	if c.Format.WasSet {
-		input.Format = &c.Format.Value
-	}
-
-	if c.FormatVersion.WasSet {
-		input.FormatVersion = &c.FormatVersion.Value
-	}
-
-	if c.GzipLevel.WasSet {
-		input.GzipLevel = &c.GzipLevel.Value
-	}
-
-	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = &c.ResponseCondition.Value
-	}
-
-	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = &c.TimestampFormat.Value
-	}
-
-	if c.MessageType.WasSet {
-		input.MessageType = &c.MessageType.Value
-	}
-
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
-	}
-
 	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = &c.CompressionCodec.Value
 	}
-
-	if c.AccountName.WasSet {
-		input.AccountName = &c.AccountName.Value
+	if c.EndpointName.WasSet {
+		input.Name = &c.EndpointName.Value
+	}
+	if c.Format.WasSet {
+		input.Format = &c.Format.Value
+	}
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = &c.FormatVersion.Value
+	}
+	if c.GzipLevel.WasSet {
+		input.GzipLevel = &c.GzipLevel.Value
+	}
+	if c.MessageType.WasSet {
+		input.MessageType = &c.MessageType.Value
+	}
+	if c.Path.WasSet {
+		input.Path = &c.Path.Value
+	}
+	if c.Period.WasSet {
+		input.Period = &c.Period.Value
+	}
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
+	}
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = &c.ResponseCondition.Value
+	}
+	if c.SecretKey.WasSet {
+		input.SecretKey = &c.SecretKey.Value
+	}
+	if c.TimestampFormat.WasSet {
+		input.TimestampFormat = &c.TimestampFormat.Value
+	}
+	if c.User.WasSet {
+		input.User = &c.User.Value
 	}
 
 	return &input, nil

@@ -21,7 +21,7 @@ func TestGooglePubSubCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args: args("logging googlepubsub create --service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --autoclone"),
+			args: args("logging googlepubsub create --service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --account-name=me@fastly.com --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -263,6 +263,7 @@ func createGooglePubSubOK(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 		User:              "user",
 		SecretKey:         "secret",
 		ProjectID:         "project",
+		AccountName:       "me@fastly.com",
 		Format:            `%h %l %u %t "%r" %>s %b`,
 		FormatVersion:     2,
 		ResponseCondition: "Prevent default logging",
@@ -281,6 +282,7 @@ func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			User:              "user@example.com",
+			AccountName:       "none",
 			SecretKey:         "secret",
 			ProjectID:         "project",
 			Topic:             "topic",
@@ -294,6 +296,7 @@ func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 			ServiceVersion:    i.ServiceVersion,
 			Name:              "analytics",
 			User:              "user@example.com",
+			AccountName:       "none",
 			SecretKey:         "secret",
 			ProjectID:         "project",
 			Topic:             "analytics",
@@ -326,6 +329,7 @@ Version: 1
 		Version: 1
 		Name: logs
 		User: user@example.com
+		Account name: none
 		Secret key: secret
 		Project ID: project
 		Topic: topic
@@ -338,6 +342,7 @@ Version: 1
 		Version: 1
 		Name: analytics
 		User: user@example.com
+		Account name: none
 		Secret key: secret
 		Project ID: project
 		Topic: analytics
@@ -354,6 +359,7 @@ func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 		Name:              "logs",
 		Topic:             "topic",
 		User:              "user@example.com",
+		AccountName:       "none",
 		SecretKey:         "secret",
 		ProjectID:         "project",
 		Format:            `%h %l %u %t "%r" %>s %b`,
@@ -368,6 +374,7 @@ func getGooglePubSubError(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 }
 
 var describeGooglePubSubOutput = "\n" + strings.TrimSpace(`
+Account name: none
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs

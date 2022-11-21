@@ -113,6 +113,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
+		"Account name":       bq.AccountName,
 		"Dataset":            bq.Dataset,
 		"Format version":     bq.FormatVersion,
 		"Format":             bq.Format,

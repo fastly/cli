@@ -129,6 +129,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tName: %s\n", bq.Name)
 		fmt.Fprintf(out, "\t\tFormat: %s\n", bq.Format)
 		fmt.Fprintf(out, "\t\tUser: %s\n", bq.User)
+		fmt.Fprintf(out, "\t\tAccount name: %s\n", bq.AccountName)
 		fmt.Fprintf(out, "\t\tProject ID: %s\n", bq.ProjectID)
 		fmt.Fprintf(out, "\t\tDataset: %s\n", bq.Dataset)
 		fmt.Fprintf(out, "\t\tTable: %s\n", bq.Table)

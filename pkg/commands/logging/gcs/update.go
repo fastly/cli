@@ -23,22 +23,22 @@ type UpdateCommand struct {
 	ServiceVersion cmd.OptionalServiceVersion
 
 	// optional
-	AutoClone         cmd.OptionalAutoClone
-	NewName           cmd.OptionalString
-	Bucket            cmd.OptionalString
-	User              cmd.OptionalString
 	AccountName       cmd.OptionalString
-	SecretKey         cmd.OptionalString
-	Path              cmd.OptionalString
-	Period            cmd.OptionalInt
+	AutoClone         cmd.OptionalAutoClone
+	Bucket            cmd.OptionalString
+	CompressionCodec  cmd.OptionalString
+	Format            cmd.OptionalString
 	FormatVersion     cmd.OptionalInt
 	GzipLevel         cmd.OptionalInt
-	Format            cmd.OptionalString
-	ResponseCondition cmd.OptionalString
-	TimestampFormat   cmd.OptionalString
 	MessageType       cmd.OptionalString
+	NewName           cmd.OptionalString
+	Path              cmd.OptionalString
+	Period            cmd.OptionalInt
 	Placement         cmd.OptionalString
-	CompressionCodec  cmd.OptionalString
+	ResponseCondition cmd.OptionalString
+	SecretKey         cmd.OptionalString
+	TimestampFormat   cmd.OptionalString
+	User              cmd.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -61,11 +61,11 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 	})
 
 	// optional
+	common.AccountName(c.CmdClause, &c.AccountName)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	c.CmdClause.Flag("account-name", "The google account name used to obtain temporary credentials").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
 	c.CmdClause.Flag("bucket", "The bucket of the GCS bucket").Action(c.Bucket.Set).StringVar(&c.Bucket.Value)
 	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	common.Format(c.CmdClause, &c.Format)
@@ -103,65 +103,50 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		Name:           c.EndpointName,
 	}
 
-	// Set new values if set by user.
-	if c.NewName.WasSet {
-		input.NewName = &c.NewName.Value
-	}
-
-	if c.Bucket.WasSet {
-		input.Bucket = &c.Bucket.Value
-	}
-
-	if c.User.WasSet {
-		input.User = &c.User.Value
-	}
-
 	if c.AccountName.WasSet {
 		input.AccountName = &c.AccountName.Value
 	}
-
-	if c.SecretKey.WasSet {
-		input.SecretKey = &c.SecretKey.Value
+	if c.Bucket.WasSet {
+		input.Bucket = &c.Bucket.Value
 	}
-
-	if c.Path.WasSet {
-		input.Path = &c.Path.Value
+	if c.CompressionCodec.WasSet {
+		input.CompressionCodec = &c.CompressionCodec.Value
 	}
-
-	if c.Period.WasSet {
-		input.Period = &c.Period.Value
-	}
-
-	if c.FormatVersion.WasSet {
-		input.FormatVersion = &c.FormatVersion.Value
-	}
-
-	if c.GzipLevel.WasSet {
-		input.GzipLevel = &c.GzipLevel.Value
-	}
-
 	if c.Format.WasSet {
 		input.Format = &c.Format.Value
 	}
-
-	if c.ResponseCondition.WasSet {
-		input.ResponseCondition = &c.ResponseCondition.Value
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = &c.FormatVersion.Value
 	}
-
-	if c.TimestampFormat.WasSet {
-		input.TimestampFormat = &c.TimestampFormat.Value
+	if c.GzipLevel.WasSet {
+		input.GzipLevel = &c.GzipLevel.Value
 	}
-
 	if c.MessageType.WasSet {
 		input.MessageType = &c.MessageType.Value
 	}
-
+	if c.NewName.WasSet {
+		input.NewName = &c.NewName.Value
+	}
+	if c.Path.WasSet {
+		input.Path = &c.Path.Value
+	}
+	if c.Period.WasSet {
+		input.Period = &c.Period.Value
+	}
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
 	}
-
-	if c.CompressionCodec.WasSet {
-		input.CompressionCodec = &c.CompressionCodec.Value
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = &c.ResponseCondition.Value
+	}
+	if c.SecretKey.WasSet {
+		input.SecretKey = &c.SecretKey.Value
+	}
+	if c.TimestampFormat.WasSet {
+		input.TimestampFormat = &c.TimestampFormat.Value
+	}
+	if c.User.WasSet {
+		input.User = &c.User.Value
 	}
 
 	return &input, nil

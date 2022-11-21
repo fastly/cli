@@ -5,6 +5,11 @@ import (
 	"github.com/fastly/kingpin"
 )
 
+// AccountName defines the account-name flag.
+func AccountName(cmd *kingpin.CmdClause, c *cmd.OptionalString) {
+	cmd.Flag("account-name", "The google account name used to obtain temporary credentials (default none)").Action(c.Set).StringVar(&c.Value)
+}
+
 // Format defines the format flag
 func Format(cmd *kingpin.CmdClause, c *cmd.OptionalString) {
 	cmd.Flag("format", "Apache style log formatting. Your log must produce valid JSON").Action(c.Set).StringVar(&c.Value)
