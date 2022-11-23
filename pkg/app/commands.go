@@ -4,6 +4,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
+	"github.com/fastly/cli/pkg/commands/authenticate"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -90,6 +91,7 @@ func defineCommands(
 	aclEntryDescribe := aclentry.NewDescribeCommand(aclEntryCmdRoot.CmdClause, globals, data)
 	aclEntryList := aclentry.NewListCommand(aclEntryCmdRoot.CmdClause, globals, data)
 	aclEntryUpdate := aclentry.NewUpdateCommand(aclEntryCmdRoot.CmdClause, globals, data)
+	authenticateCmdRoot := authenticate.NewRootCommand(app, globals)
 	authtokenCmdRoot := authtoken.NewRootCommand(app, globals)
 	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, globals, data)
 	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, globals, data)
@@ -409,6 +411,7 @@ func defineCommands(
 		aclEntryDescribe,
 		aclEntryList,
 		aclEntryUpdate,
+		authenticateCmdRoot,
 		authtokenCmdRoot,
 		authtokenCreate,
 		authtokenDelete,
