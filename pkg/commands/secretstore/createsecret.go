@@ -111,6 +111,7 @@ func (cmd *CreateSecretCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
+	// TODO: Use this approach across the code base.
 	if ok, err := cmd.WriteJSON(out, o); ok {
 		return err
 	}
