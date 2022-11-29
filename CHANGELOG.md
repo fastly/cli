@@ -1,5 +1,35 @@
 # Changelog
 
+## [v4.4.0](https://github.com/fastly/cli/releases/tag/v4.4.0) (2022-11-29)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v4.3.0...v4.4.0)
+
+**Enhancements:**
+
+* Add `PrintLines` to `text` package and use in logging [#698](https://github.com/fastly/cli/pull/698)
+* Add dependabot workflow automation for updating dependency [#701](https://github.com/fastly/cli/pull/701)
+* Add account name to pubsub and bigquery [#699](https://github.com/fastly/cli/pull/699)
+
+**Bug fixes:**
+
+* Add missing `--help` flag to globals [#695](https://github.com/fastly/cli/pull/695)
+* Fix check for mutual exclusion flags [#696](https://github.com/fastly/cli/pull/696)
+* Fix object store TOML definitions, add test data [#715](https://github.com/fastly/cli/pull/715)
+
+**Dependencies:**
+
+* Bump github.com/otiai10/copy from 1.7.0 to 1.9.0 [#706](https://github.com/fastly/cli/pull/706)
+* Bump github.com/mholt/archiver/v3 from 3.5.0 to 3.5.1 [#703](https://github.com/fastly/cli/pull/703)
+* Bump github.com/fastly/go-fastly/v6 from 6.6.0 to 6.8.0 [#704](https://github.com/fastly/cli/pull/704)
+* Bump github.com/mattn/go-isatty from 0.0.14 to 0.0.16 [#702](https://github.com/fastly/cli/pull/702)
+* Bump github.com/google/go-cmp from 0.5.6 to 0.5.9 [#708](https://github.com/fastly/cli/pull/708)
+* Bump github.com/mitchellh/mapstructure from 1.4.3 to 1.5.0 [#709](https://github.com/fastly/cli/pull/709)
+* Bump github.com/bep/debounce from 1.2.0 to 1.2.1 [#711](https://github.com/fastly/cli/pull/711)
+* Bump github.com/getsentry/sentry-go from 0.12.0 to 0.15.0 [#712](https://github.com/fastly/cli/pull/712)
+* Bump github.com/pelletier/go-toml from 1.9.3 to 1.9.5 [#710](https://github.com/fastly/cli/pull/710)
+* Bump go-fastly to v7 [#707](https://github.com/fastly/cli/pull/707)
+* Bump github.com/fsnotify/fsnotify from 1.5.1 to 1.6.0 [#716](https://github.com/fastly/cli/pull/716)
+
 ## [v4.3.0](https://github.com/fastly/cli/releases/tag/v4.3.0) (2022-10-26)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.2.0...v4.3.0)
