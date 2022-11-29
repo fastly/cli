@@ -5,8 +5,6 @@ import (
 	"github.com/fastly/kingpin"
 )
 
-// Secret Store flags.
-
 func storeIDFlag(dst *string) cmd.StringFlagOpts {
 	return cmd.StringFlagOpts{
 		Name:        "store-id",
