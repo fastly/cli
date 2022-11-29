@@ -38,11 +38,12 @@ func NewCreateSecretCommand(parent cmd.Registerer, globals *config.Data, data ma
 // CreateSecretCommand calls the Fastly API to create a secret.
 type CreateSecretCommand struct {
 	cmd.Base
-	manifest    manifest.Data
+	jsonOutput
+	
 	Input       fastly.CreateSecretInput
+	manifest    manifest.Data
 	secretFile  string
 	secretSTDIN bool
-	jsonOutput
 }
 
 var errMultipleSecretValue = fsterr.RemediationError{
