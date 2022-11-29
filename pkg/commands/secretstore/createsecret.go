@@ -23,9 +23,13 @@ const (
 
 // NewCreateSecretCommand returns a usable command registered under the parent.
 func NewCreateSecretCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateSecretCommand {
-	var c CreateSecretCommand
-	c.Globals = globals
-	c.manifest = data
+	c := CreateSecretCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+	
 	c.CmdClause = parent.Command("create", "Create secret")
 	c.RegisterFlag(storeIDFlag(&c.Input.ID))
 	c.RegisterFlag(secretNameFlag(&c.Input.Name))
