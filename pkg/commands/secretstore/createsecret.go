@@ -56,7 +56,7 @@ type CreateSecretCommand struct {
 }
 
 var errMultipleSecretValue = fsterr.RemediationError{
-	Inner:       fmt.Errorf("invalid flag combination, --secret-file and --secret-stdin"),
+	Inner:       fmt.Errorf("invalid flag combination, --file and --stdin"),
 	Remediation: "Use one of --file or --stdin flag",
 }
 
