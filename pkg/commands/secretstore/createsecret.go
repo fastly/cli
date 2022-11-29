@@ -78,15 +78,14 @@ func (cmd *CreateSecretCommand) Exec(in io.Reader, out io.Writer) error {
 	switch {
 	case cmd.secretSTDIN:
 		// Determine if 'in' has data available.
-		if in != nil && !text.IsTTY(in) {
-			var buf bytes.Buffer
-			if _, err := buf.ReadFrom(in); err != nil {
-				return err
-			}
-			cmd.Input.Secret = buf.Bytes()
-		} else {
+		if in == nil || text.IsTTY(in) {
 			return errNoSTDINData
 		}
+		var buf bytes.Buffer
+		if _, err := buf.ReadFrom(in); err != nil {
+			return err
+		}		
+		cmd.Input.Secret = buf.Bytes()
 
 	case cmd.secretFile != "":
 		var err error
