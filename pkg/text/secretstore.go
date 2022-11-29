@@ -9,6 +9,7 @@ import (
 	"github.com/segmentio/textio"
 )
 
+// PrintSecretStoresTbl displays store data in a table format.
 func PrintSecretStoresTbl(out io.Writer, stores *fastly.SecretStores) {
 	tbl := NewTable(out)
 	tbl.AddHeader("Name", "ID")
@@ -30,6 +31,7 @@ func PrintSecretStoresTbl(out io.Writer, stores *fastly.SecretStores) {
 	}
 }
 
+// PrintSecretsTbl displays secrets data in a table format.
 func PrintSecretsTbl(out io.Writer, secrets *fastly.Secrets) {
 	tbl := NewTable(out)
 	tbl.AddHeader("Name", "Digest")
@@ -51,6 +53,7 @@ func PrintSecretsTbl(out io.Writer, secrets *fastly.Secrets) {
 	}
 }
 
+// PrintSecretStore displays store data.
 func PrintSecretStore(out io.Writer, prefix string, s *fastly.SecretStore) {
 	out = textio.NewPrefixWriter(out, prefix)
 
@@ -58,6 +61,7 @@ func PrintSecretStore(out io.Writer, prefix string, s *fastly.SecretStore) {
 	fmt.Fprintf(out, "ID: %s\n", s.ID)
 }
 
+// PrintSecret displays store data.
 func PrintSecret(out io.Writer, prefix string, s *fastly.Secret) {
 	out = textio.NewPrefixWriter(out, prefix)
 
