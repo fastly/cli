@@ -13,21 +13,31 @@ import (
 
 // NewCreateStoreCommand returns a usable command registered under the parent.
 func NewCreateStoreCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateStoreCommand {
-	var c CreateStoreCommand
-	c.Globals = globals
-	c.manifest = data
+	c := CreateStoreCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+
 	c.CmdClause = parent.Command("create", "Create secret store")
-	c.RegisterFlag(storeNameFlag(&c.Input.Name))
-	c.RegisterFlagBool(c.jsonFlag())
+
+	// Required.
+	c.RegisterFlag(storeNameFlag(&c.Input.Name)) // --name
+
+	// Optional.
+	c.RegisterFlagBool(c.jsonFlag()) // --json
+
 	return &c
 }
 
-// CreateStoreCommand calls the Fastly API to create a secret store.
+// CreateStoreCommand calls the Fastly API to create an appropriate resource.
 type CreateStoreCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.CreateSecretStoreInput
 	jsonOutput
+
+	Input    fastly.CreateSecretStoreInput
+	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.

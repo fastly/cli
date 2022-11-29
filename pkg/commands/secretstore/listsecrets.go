@@ -13,23 +13,33 @@ import (
 
 // NewListSecretsCommand returns a usable command registered under the parent.
 func NewListSecretsCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListSecretsCommand {
-	var c ListSecretsCommand
-	c.Globals = globals
-	c.manifest = data
+	c := ListSecretsCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+
 	c.CmdClause = parent.Command("list", "List secrets")
-	c.RegisterFlag(storeIDFlag(&c.Input.ID))
-	c.RegisterFlag(cursorFlag(&c.Input.Cursor))
-	limitFlag(c.CmdClause, &c.Input.Limit)
-	c.RegisterFlagBool(c.jsonFlag())
+
+	// Required.
+	c.RegisterFlag(storeIDFlag(&c.Input.ID)) // --store-id
+
+	// Optional.
+	c.RegisterFlag(cursorFlag(&c.Input.Cursor)) // --cursor
+	c.RegisterFlagBool(c.jsonFlag())            // --json
+	limitFlag(c.CmdClause, &c.Input.Limit)      // --limit
+
 	return &c
 }
 
-// ListSecretsCommand calls the Fastly API to list the available secret stores.
+// ListSecretsCommand calls the Fastly API to list appropriate resources.
 type ListSecretsCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.ListSecretsInput
 	jsonOutput
+
+	Input    fastly.ListSecretsInput
+	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.

@@ -13,22 +13,32 @@ import (
 
 // NewGetSecretCommand returns a usable command registered under the parent.
 func NewGetSecretCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *GetSecretCommand {
-	var c GetSecretCommand
-	c.Globals = globals
-	c.manifest = data
+	c := GetSecretCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+
 	c.CmdClause = parent.Command("get", "Get secret")
-	c.RegisterFlag(storeIDFlag(&c.Input.ID))
-	c.RegisterFlag(secretNameFlag(&c.Input.Name))
-	c.RegisterFlagBool(c.jsonFlag())
+
+	// Required.
+	c.RegisterFlag(secretNameFlag(&c.Input.Name)) // --name
+	c.RegisterFlag(storeIDFlag(&c.Input.ID))      // --store-id
+
+	// Optional.
+	c.RegisterFlagBool(c.jsonFlag()) // --json
+
 	return &c
 }
 
 // GetSecretCommand calls the Fastly API to list the available secret stores.
 type GetSecretCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.GetSecretInput
 	jsonOutput
+
+	Input    fastly.GetSecretInput
+	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.

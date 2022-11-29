@@ -13,22 +13,32 @@ import (
 
 // NewDeleteSecretCommand returns a usable command registered under the parent.
 func NewDeleteSecretCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteSecretCommand {
-	var c DeleteSecretCommand
-	c.Globals = globals
-	c.manifest = data
+	c := DeleteSecretCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+
 	c.CmdClause = parent.Command("delete", "Delete secret")
-	c.RegisterFlag(storeIDFlag(&c.Input.ID))
-	c.RegisterFlag(secretNameFlag(&c.Input.Name))
-	c.RegisterFlagBool(c.jsonFlag())
+
+	// Required.
+	c.RegisterFlag(secretNameFlag(&c.Input.Name)) // --name
+	c.RegisterFlag(storeIDFlag(&c.Input.ID))      // --store-id
+
+	// Optional.
+	c.RegisterFlagBool(c.jsonFlag()) // --json
+
 	return &c
 }
 
-// DeleteSecretCommand calls the Fastly API to delete a secret.
+// DeleteSecretCommand calls the Fastly API to delete an appropriate resource.
 type DeleteSecretCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.DeleteSecretInput
 	jsonOutput
+
+	Input    fastly.DeleteSecretInput
+	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.

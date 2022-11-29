@@ -29,21 +29,26 @@ func NewCreateSecretCommand(parent cmd.Registerer, globals *config.Data, data ma
 		},
 		manifest: data,
 	}
-	
+
 	c.CmdClause = parent.Command("create", "Create secret")
-	c.RegisterFlag(storeIDFlag(&c.Input.ID))
-	c.RegisterFlag(secretNameFlag(&c.Input.Name))
-	c.RegisterFlag(secretFileFlag(&c.secretFile))
-	c.RegisterFlagBool(secretStdinFlag(&c.secretSTDIN))
-	c.RegisterFlagBool(c.jsonFlag())
+
+	// Required.
+	c.RegisterFlag(secretNameFlag(&c.Input.Name)) // --name
+	c.RegisterFlag(storeIDFlag(&c.Input.ID))      // --store-id
+
+	// Optional.
+	c.RegisterFlag(secretFileFlag(&c.secretFile))       // --file
+	c.RegisterFlagBool(c.jsonFlag())                    // --json
+	c.RegisterFlagBool(secretStdinFlag(&c.secretSTDIN)) // --stdin
+
 	return &c
 }
 
-// CreateSecretCommand calls the Fastly API to create a secret.
+// CreateSecretCommand calls the Fastly API to create an appropriate resource.
 type CreateSecretCommand struct {
 	cmd.Base
 	jsonOutput
-	
+
 	Input       fastly.CreateSecretInput
 	manifest    manifest.Data
 	secretFile  string
@@ -84,7 +89,7 @@ func (cmd *CreateSecretCommand) Exec(in io.Reader, out io.Writer) error {
 		var buf bytes.Buffer
 		if _, err := buf.ReadFrom(in); err != nil {
 			return err
-		}		
+		}
 		cmd.Input.Secret = buf.Bytes()
 
 	case cmd.secretFile != "":

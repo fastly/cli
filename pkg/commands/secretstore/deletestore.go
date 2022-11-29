@@ -13,21 +13,31 @@ import (
 
 // NewDeleteStoreCommand returns a usable command registered under the parent.
 func NewDeleteStoreCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteStoreCommand {
-	var c DeleteStoreCommand
-	c.Globals = globals
-	c.manifest = data
+	c := DeleteStoreCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+
 	c.CmdClause = parent.Command("delete", "Delete secret store")
-	c.RegisterFlag(storeIDFlag(&c.Input.ID))
-	c.RegisterFlagBool(c.jsonFlag())
+
+	// Required.
+	c.RegisterFlag(storeIDFlag(&c.Input.ID)) // --store-id
+
+	// Optional.
+	c.RegisterFlagBool(c.jsonFlag()) // --json
+
 	return &c
 }
 
-// DeleteStoreCommand calls the Fastly API to delete a secret store.
+// DeleteStoreCommand calls the Fastly API to delete an appropriate resource.
 type DeleteStoreCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.DeleteSecretStoreInput
 	jsonOutput
+
+	Input    fastly.DeleteSecretStoreInput
+	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.

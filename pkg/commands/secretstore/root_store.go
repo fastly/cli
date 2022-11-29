@@ -12,9 +12,14 @@ const RootNameStore = "secret-store"
 
 // NewStoreRootCommand returns a new command registered in the parent.
 func NewStoreRootCommand(parent cmd.Registerer, globals *config.Data) *StoreRootCommand {
-	var c StoreRootCommand
-	c.Globals = globals
-	c.CmdClause = parent.Command(RootNameStore, "Manipulate Fastly secret stores")
+	c := StoreRootCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+	}
+
+	c.CmdClause = parent.Command(RootNameStore, "Manipulate Fastly Secret Stores")
+
 	return &c
 }
 
