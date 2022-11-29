@@ -20,7 +20,7 @@ func NewListSecretsCommand(parent cmd.Registerer, globals *config.Data, data man
 		manifest: data,
 	}
 
-	c.CmdClause = parent.Command("list", "List secrets")
+	c.CmdClause = parent.Command("list", "List secrets within a specified store")
 
 	// Required.
 	c.RegisterFlag(storeIDFlag(&c.Input.ID)) // --store-id

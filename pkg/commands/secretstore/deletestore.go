@@ -20,7 +20,7 @@ func NewDeleteStoreCommand(parent cmd.Registerer, globals *config.Data, data man
 		manifest: data,
 	}
 
-	c.CmdClause = parent.Command("delete", "Delete secret store")
+	c.CmdClause = parent.Command("delete", "Delete a secret store")
 
 	// Required.
 	c.RegisterFlag(storeIDFlag(&c.Input.ID)) // --store-id

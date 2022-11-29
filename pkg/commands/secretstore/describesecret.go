@@ -11,16 +11,16 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// NewGetSecretCommand returns a usable command registered under the parent.
-func NewGetSecretCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *GetSecretCommand {
-	c := GetSecretCommand{
+// NewDescribeSecretCommand returns a usable command registered under the parent.
+func NewDescribeSecretCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeSecretCommand {
+	c := DescribeSecretCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
 		manifest: data,
 	}
 
-	c.CmdClause = parent.Command("get", "Get secret")
+	c.CmdClause = parent.Command("describe", "Retrieve a single secret").Alias("get")
 
 	// Required.
 	c.RegisterFlag(secretNameFlag(&c.Input.Name)) // --name
@@ -32,8 +32,8 @@ func NewGetSecretCommand(parent cmd.Registerer, globals *config.Data, data manif
 	return &c
 }
 
-// GetSecretCommand calls the Fastly API to list the available secret stores.
-type GetSecretCommand struct {
+// DescribeSecretCommand calls the Fastly API to describe an appropriate resource.
+type DescribeSecretCommand struct {
 	cmd.Base
 	jsonOutput
 
@@ -42,7 +42,7 @@ type GetSecretCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *GetSecretCommand) Exec(_ io.Reader, out io.Writer) error {
+func (cmd *DescribeSecretCommand) Exec(_ io.Reader, out io.Writer) error {
 	if cmd.Globals.Verbose() && cmd.jsonOutput.enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}

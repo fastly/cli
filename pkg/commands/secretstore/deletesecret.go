@@ -20,7 +20,7 @@ func NewDeleteSecretCommand(parent cmd.Registerer, globals *config.Data, data ma
 		manifest: data,
 	}
 
-	c.CmdClause = parent.Command("delete", "Delete secret")
+	c.CmdClause = parent.Command("delete", "Delete a secret")
 
 	// Required.
 	c.RegisterFlag(secretNameFlag(&c.Input.Name)) // --name

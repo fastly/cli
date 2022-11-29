@@ -20,7 +20,7 @@ func NewCreateStoreCommand(parent cmd.Registerer, globals *config.Data, data man
 		manifest: data,
 	}
 
-	c.CmdClause = parent.Command("create", "Create secret store")
+	c.CmdClause = parent.Command("create", "Create a new secret store")
 
 	// Required.
 	c.RegisterFlag(storeNameFlag(&c.Input.Name)) // --name
