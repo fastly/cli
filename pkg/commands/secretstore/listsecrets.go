@@ -26,9 +26,9 @@ func NewListSecretsCommand(parent cmd.Registerer, globals *config.Data, data man
 	c.RegisterFlag(storeIDFlag(&c.Input.ID)) // --store-id
 
 	// Optional.
-	c.RegisterFlag(cursorFlag(&c.Input.Cursor)) // --cursor
-	c.RegisterFlagBool(c.jsonFlag())            // --json
-	limitFlag(c.CmdClause, &c.Input.Limit)      // --limit
+	c.RegisterFlag(cursorFlag(&c.Input.Cursor))  // --cursor
+	c.RegisterFlagBool(c.jsonFlag())             // --json
+	c.RegisterFlagInt(limitFlag(&c.Input.Limit)) // --limit
 
 	return &c
 }
@@ -64,7 +64,7 @@ func (cmd *ListSecretsCommand) Exec(in io.Reader, out io.Writer) error {
 
 		if o != nil && o.Meta.NextCursor != "" {
 			// Check if 'out' is interactive before prompting.
-			if !cmd.Globals.Flag.NonInteractive && text.IsTTY(out) {
+			if !cmd.Globals.Flag.NonInteractive && !cmd.Globals.Flag.AutoYes && text.IsTTY(out) {
 				printNext, err := text.AskYesNo(out, "Print next page [yes/no]: ", in)
 				if err != nil {
 					return err

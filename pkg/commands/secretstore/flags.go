@@ -2,7 +2,6 @@ package secretstore
 
 import (
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/kingpin"
 )
 
 func storeIDFlag(dst *string) cmd.StringFlagOpts {
@@ -63,9 +62,12 @@ func cursorFlag(dst *string) cmd.StringFlagOpts {
 	}
 }
 
-func limitFlag(cmd *kingpin.CmdClause, dst *int) {
-	limit := cmd.Flag("limit", "Maxiumum number of items to list")
-	limit = limit.Default("50")
-	limit = limit.Short('l')
-	limit.IntVar(dst)
+func limitFlag(dst *int) cmd.IntFlagOpts {
+	return cmd.IntFlagOpts{
+		Name:        "limit",
+		Short:       'l',
+		Description: "Maxiumum number of items to list",
+		Default:     50,
+		Dst:         dst,
+	}
 }
