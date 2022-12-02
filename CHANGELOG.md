@@ -1,5 +1,13 @@
 # Changelog
 
+## [v4.4.1](https://github.com/fastly/cli/releases/tag/v4.4.1) (2022-12-02)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v4.4.0...v4.4.1)
+
+**Bug fixes:**
+
+* Avoid sending empty string to Backend create API [#720](https://github.com/fastly/cli/pull/720)
+
 ## [v4.4.0](https://github.com/fastly/cli/releases/tag/v4.4.0) (2022-11-29)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.3.0...v4.4.0)
