@@ -144,3 +144,12 @@ jobs:
           TEST_COMPUTE_INIT: true
           TEST_COMPUTE_BUILD: true
           TEST_COMPUTE_DEPLOY: true
+  docker-builds:
+    runs-on: ubuntu-latest
+    steps:
+    - name: "Checkout code"
+      uses: actions/checkout@v3
+    - name: Build docker images
+        run: |
+          for dockerFile in Dockerfile*; do docker build -f $dockerFile . ; done
+          
