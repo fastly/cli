@@ -63,20 +63,32 @@ func (b *Backends) Create() error {
 	}
 
 	for _, bk := range b.required {
+		// Avoids range-loop variable issue (i.e. var is reused across iterations).
+		bk := bk
+
 		if !b.isOriginless() {
 			b.Progress.Step(fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", bk.Name, bk.Address, bk.Port))
 		}
 
-		_, err := b.APIClient.CreateBackend(&fastly.CreateBackendInput{
-			ServiceID:       b.ServiceID,
-			ServiceVersion:  b.ServiceVersion,
-			Name:            &bk.Name,
-			Address:         &bk.Address,
-			Port:            &bk.Port,
-			OverrideHost:    &bk.OverrideHost,
-			SSLCertHostname: &bk.SSLCertHostname,
-			SSLSNIHostname:  &bk.SSLSNIHostname,
-		})
+		opts := &fastly.CreateBackendInput{
+			ServiceID:      b.ServiceID,
+			ServiceVersion: b.ServiceVersion,
+			Name:           &bk.Name,
+			Address:        &bk.Address,
+			Port:           &bk.Port,
+		}
+
+		if bk.OverrideHost != "" {
+			opts.OverrideHost = &bk.OverrideHost
+		}
+		if bk.SSLCertHostname != "" {
+			opts.SSLCertHostname = &bk.SSLCertHostname
+		}
+		if bk.SSLSNIHostname != "" {
+			opts.SSLSNIHostname = &bk.SSLSNIHostname
+		}
+
+		_, err := b.APIClient.CreateBackend(opts)
 		if err != nil {
 			b.Progress.Fail()
 			if b.isOriginless() {
