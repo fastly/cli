@@ -33,7 +33,7 @@ var GoConstraints = make(map[string]string)
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
-const GoDefaultBuildCommand = "tinygo build -target=wasi -wasm-abi=generic -gc=conservative -o bin/main.wasm ./"
+const GoDefaultBuildCommand = "tinygo build -target=wasi -gc=conservative -o bin/main.wasm ./"
 
 // GoInstaller is the command used to install the dependencies defined within
 // the Go language manifest.
