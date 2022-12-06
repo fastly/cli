@@ -45,3 +45,14 @@ qux"""
     [[local_server.object_store.store_two]]
       key = "second"
       path = "strings.json"
+
+  [local_server.secret_store]
+    store_one = [{key = "first", data = "This is some secret data"}, {key = "second", path = "/path/to/secret.json"}]
+
+    [[local_server.secret_store.store_two]]
+      key = "first"
+      data = "This is also some secret data"
+
+    [[local_server.secret_store.store_two]]
+      key = "second"
+      path = "/path/to/other/secret.json"

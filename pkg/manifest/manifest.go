@@ -252,6 +252,7 @@ type LocalServer struct {
 	Backends     map[string]LocalBackend       `toml:"backends"`
 	Dictionaries map[string]LocalDictionary    `toml:"dictionaries,omitempty"`
 	ObjectStore  map[string][]LocalObjectStore `toml:"object_store,omitempty"`
+	SecretStore  map[string][]LocalSecretStore `toml:"secret_store,omitempty"`
 }
 
 // LocalBackend represents a backend to be mocked by the local testing server.
@@ -271,6 +272,13 @@ type LocalDictionary struct {
 
 // LocalObjectStore represents an object_store to be mocked by the local testing server.
 type LocalObjectStore struct {
+	Key  string `toml:"key"`
+	Path string `toml:"path,omitempty"`
+	Data string `toml:"data,omitempty"`
+}
+
+// LocalSecretStore represents a secret_store to be mocked by the local testing server.
+type LocalSecretStore struct {
 	Key  string `toml:"key"`
 	Path string `toml:"path,omitempty"`
 	Data string `toml:"data,omitempty"`
