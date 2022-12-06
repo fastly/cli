@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
@@ -27,7 +28,18 @@ const JsCompilationURL = "https://www.npmjs.com/package/@fastly/js-compute"
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
-const JsDefaultBuildCommand = "npm exec webpack && npm exec js-compute-runtime ./bin/index.js ./bin/main.wasm"
+const JsDefaultBuildCommand = "npm exec js-compute-runtime ./src/index.js ./bin/main.wasm"
+
+// JsDefaultBuildCommandForWebpack is a build command compiled into the CLI
+// binary so it can be used as a fallback for customer's who have an existing
+// C@E project using the 'default' JS Starter Kit, and are simply upgrading
+// their CLI version and might not be familiar with the changes in the 4.0.0
+// release with regards to how build logic has moved to the fastly.toml manifest.
+//
+// NOTE: For this variation of the build script to be added to the user's
+// fastly.toml will require a successful check for the npm task:
+// `prebuild: webpack` in the user's package.json manifest.
+const JsDefaultBuildCommandForWebpack = "npm exec webpack && npm exec js-compute-runtime ./bin/index.js ./bin/main.wasm"
 
 // JsInstaller is the command used to install the dependencies defined within
 // the Js language manifest.
@@ -117,7 +129,7 @@ type JavaScript struct {
 }
 
 // Initialize handles any non-build related set-up.
-func (j JavaScript) Initialize(out io.Writer) error {
+func (j JavaScript) Initialize(_ io.Writer) error {
 	return nil
 }
 
@@ -146,11 +158,15 @@ func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, c
 type JsPackage struct {
 	Dependencies    map[string]string `json:"dependencies"`
 	DevDependencies map[string]string `json:"devDependencies"`
+	Scripts         map[string]string `json:"scripts"`
 }
 
 // validateJsSDK marshals the JS manifest into JSON to check if the dependency
 // has been defined in the package.json manifest.
-func validateJsSDK(name string, bs []byte) error {
+//
+// NOTE: This function also causes a side-effect of modifying the default build
+// script based on the user's project context (e.g does it require webpack).
+func validateJsSDK(name string, bs []byte, notifier chan string) error {
 	e := fmt.Errorf(SDKErrMessageFormat, name, JsManifest)
 
 	var p JsPackage
@@ -162,6 +178,22 @@ func validateJsSDK(name string, bs []byte) error {
 			Remediation: fmt.Sprintf("Ensure your package.json is valid and contains the '%s' dependency.", name),
 		}
 	}
+
+	var needsWebpack bool
+	for k, v := range p.Scripts {
+		if k == "prebuild" && strings.Contains(v, "webpack") {
+			needsWebpack = true
+			break
+		}
+	}
+
+	go func() {
+		if needsWebpack {
+			notifier <- JsDefaultBuildCommandForWebpack
+		} else {
+			notifier <- JsDefaultBuildCommand
+		}
+	}()
 
 	for k := range p.Dependencies {
 		if k == name {

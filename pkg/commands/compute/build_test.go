@@ -385,7 +385,7 @@ func TestBuildJavaScript(t *testing.T) {
 			language = "javascript"
 
       [scripts]
-      build = "%s"`, compute.JsDefaultBuildCommand),
+      build = "%s"`, compute.JsDefaultBuildCommandForWebpack),
 			sourceOverride: `D"F;
 			'GREGERgregeg '
 			ERG`,
