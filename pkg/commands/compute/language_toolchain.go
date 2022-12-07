@@ -87,6 +87,13 @@ type ToolchainValidator struct {
 	// fastly.toml manifest.
 	DefaultBuildCommand string
 
+	// DefaultBuildCommandNotifier allows the language to change the default build
+	// script based on the user's project requirements (e.g. was webpack needed).
+	//
+	// WARNING: This is an unbuffered channel and should only receive one message.
+	// We should only be sending a message to it once from the SDKCustomValidator.
+	DefaultBuildCommandNotifier chan string
+
 	// ErrLog is used to log any errors to the user's local error log file, which
 	// is also persisted to Sentry for Fastly error tracking/management.
 	ErrLog fsterr.LogInterface
@@ -123,7 +130,7 @@ type ToolchainValidator struct {
 
 	// SDKCustomValidator allows a supported language to define their own method
 	// for how to validate if their manifest contains the required SDK dependency.
-	SDKCustomValidator func(name string, bs []byte) error
+	SDKCustomValidator func(name string, bs []byte, notifier chan string) error
 
 	// Toolchain is a language specific executable responsible for managing
 	// dependencies (e.g. npm, cargo, go).
@@ -155,7 +162,9 @@ type ToolchainValidator struct {
 }
 
 // Validate ensures the user's local environment has all required resources.
-func (tv ToolchainValidator) Validate() error {
+func (tv *ToolchainValidator) Validate() error {
+	tv.DefaultBuildCommandNotifier = make(chan string)
+
 	if err := tv.toolchain(); err != nil {
 		return err
 	}
@@ -314,7 +323,7 @@ func (tv ToolchainValidator) sdk() error {
 	success := fmt.Sprintf("Found '%s' in '%s'\n", tv.SDK, tv.Manifest)
 
 	if tv.SDKCustomValidator != nil {
-		if err := tv.SDKCustomValidator(tv.SDK, bs); err != nil {
+		if err := tv.SDKCustomValidator(tv.SDK, bs, tv.DefaultBuildCommandNotifier); err != nil {
 			return err
 		}
 		fmt.Fprint(tv.Output, success)
@@ -510,9 +519,18 @@ func (tv ToolchainValidator) buildScript() error {
 	err = fmt.Errorf("failed to find a [scripts] section with a 'build' property in the '%s' manifest", m)
 	tv.ErrLog.Add(err)
 
+	defaultBuildCommand := tv.DefaultBuildCommand
+	select {
+	case s := <-tv.DefaultBuildCommandNotifier:
+		defaultBuildCommand = s
+	default:
+		// no message, so moving on to prevent deadlock
+	}
+	close(tv.DefaultBuildCommandNotifier)
+
 	// We failed to find a [scripts.build] which is required, so we'll set a
 	// default value for the user.
-	tree.Set("scripts.build", tv.DefaultBuildCommand)
+	tree.Set("scripts.build", defaultBuildCommand)
 
 	data, err := tree.Marshal()
 	if err != nil {
@@ -523,11 +541,11 @@ func (tv ToolchainValidator) buildScript() error {
 	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       err,
-			Remediation: fmt.Sprintf(fsterr.ComputeBuildRemediation, tv.DefaultBuildCommand),
+			Remediation: fmt.Sprintf(fsterr.ComputeBuildRemediation, defaultBuildCommand),
 		}
 	}
 
-	fmt.Fprintf(tv.Output, "No build command found. Patching fastly.toml with the default build command for %s: %s\n", tv.ToolchainLanguage, tv.DefaultBuildCommand)
+	fmt.Fprintf(tv.Output, "No build command found. Patching fastly.toml with the default build command for %s: %s\n", tv.ToolchainLanguage, defaultBuildCommand)
 
 	if tv.PatchedManifestNotifier != nil {
 		go func() {

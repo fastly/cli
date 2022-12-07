@@ -308,7 +308,7 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 
 // validateRustSDK marshals the Rust manifest into toml to check if the
 // dependency has been defined in the Cargo.toml manifest.
-func validateRustSDK(name string, bs []byte) error {
+func validateRustSDK(name string, bs []byte, _ chan string) error {
 	e := fmt.Errorf(SDKErrMessageFormat, name, RustManifest)
 
 	tree, err := toml.LoadBytes(bs)
