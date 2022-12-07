@@ -1,4 +1,4 @@
-on: [push, pull_request]
+on: pull_request
 name: Test
 
 # Stop any in-flight CI jobs when a new commit is pushed.
