@@ -513,6 +513,10 @@ func promptForStarterKit(flags config.Flag, kits []config.StarterKit, in io.Read
 			fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
 			text.Indent(out, 4, "%s\n%s", kit.Description, kit.Path)
 		}
+
+		text.Info(out, "For a complete list of Starter Kits:\n\thttps://developer.fastly.com/solutions/starters/")
+		text.Break(out)
+
 		option, err = text.Input(out, "Choose option or paste git URL: [1] ", in, validateTemplateOptionOrURL(kits))
 		if err != nil {
 			return "", "", "", fmt.Errorf("error reading input: %w", err)
