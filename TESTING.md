@@ -44,3 +44,11 @@ TEST_COMPUTE_BUILD_RUST=1 make test TEST_ARGS="-run TestBuildRust/fastly_crate_p
 When running the tests locally, if you don't have the relevant language ecosystems set-up properly then the tests will fail to run and you'll need to review the code to see what the remediation steps are, as that output doesn't get shown when running the test suite.
 
 > **NOTE**: you might notice a discrepancy between CI and your local environment which is caused by the difference in Rust toolchain versions as defined in .github/workflows/pr_test.yml which specifies the version required to be tested for in CI. Running `rustup toolchain install <version>` and `rustup target add wasm32-wasi --toolchain <version>` will resolve any failing integration tests you may be running locally.
+
+To the run the full test suite:
+
+```sh
+TEST_COMPUTE_INIT=1 TEST_COMPUTE_BUILD=1 TEST_COMPUTE_DEPLOY=1 TEST_COMMAND=gotest make all
+```
+
+> **NOTE**: `TEST_COMMAND` is optional and allows the use of https://github.com/rakyll/gotest to improve test output.
