@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"path/filepath"
 	"strings"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -78,37 +77,24 @@ func NewJavaScript(
 		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
 		validator: ToolchainValidator{
-			Compilation: JsCompilation,
-			CompilationDirectPath: func() (string, error) {
-				p, err := getJsToolchainBinPath(JsToolchain)
-				if err != nil {
-					errlog.Add(err)
-					remediation := "npm install --global npm@latest"
-					return "", fsterr.RemediationError{
-						Inner:       fmt.Errorf("could not determine %s bin path", JsToolchain),
-						Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
-					}
-				}
-
-				return filepath.Join(p, JsCompilation), nil
-			},
-			CompilationCommandRemediation: fmt.Sprintf(JsCompilationCommandRemediation, JsSDK),
-			CompilationSkipVersion:        true,
-			CompilationURL:                JsCompilationURL,
-			DefaultBuildCommand:           JsDefaultBuildCommand,
-			ErrLog:                        errlog,
-			FastlyManifestFile:            fastlyManifest,
-			Installer:                     JsInstaller,
-			Manifest:                      JsManifest,
-			ManifestRemediation:           JsManifestRemediation,
-			Output:                        out,
-			PatchedManifestNotifier:       ch,
-			SDK:                           JsSDK,
-			SDKCustomValidator:            validateJsSDK,
-			Toolchain:                     JsToolchain,
-			ToolchainLanguage:             "JavaScript",
-			ToolchainSkipVersion:          true,
-			ToolchainURL:                  JsToolchainURL,
+			Compilation:             JsCompilation,
+			CompilationIntegrated:   true,
+			CompilationSkipVersion:  true,
+			CompilationURL:          JsCompilationURL,
+			DefaultBuildCommand:     JsDefaultBuildCommand,
+			ErrLog:                  errlog,
+			FastlyManifestFile:      fastlyManifest,
+			Installer:               JsInstaller,
+			Manifest:                JsManifest,
+			ManifestRemediation:     JsManifestRemediation,
+			Output:                  out,
+			PatchedManifestNotifier: ch,
+			SDK:                     JsSDK,
+			SDKCustomValidator:      validateJsSDK,
+			Toolchain:               JsToolchain,
+			ToolchainLanguage:       "JavaScript",
+			ToolchainSkipVersion:    true,
+			ToolchainURL:            JsToolchainURL,
 		},
 	}
 }

@@ -365,7 +365,13 @@ func (tv ToolchainValidator) installDependencies() error {
 // toolchain. If an external command, we lookup the command on the $PATH and
 // check its version meets any defined constraints.
 func (tv ToolchainValidator) compilation() error {
-	fmt.Fprintf(tv.Output, "\nChecking if '%s' is installed...\n", tv.Compilation)
+	if !tv.CompilationIntegrated && !tv.CompilationSkipVersion {
+		// For example JavaScript's SDK js-compute has an integrated runtime
+		// js-compute-runtime binary that is installed via the prior
+		// `installDependencies` step and so we don't want to display a message to
+		// say we're checking for it, nor will we check its version.
+		fmt.Fprintf(tv.Output, "\nChecking if '%s' is installed...\n", tv.Compilation)
+	}
 
 	// Lookup the compilation target as an executable binary.
 	if !tv.CompilationIntegrated {
