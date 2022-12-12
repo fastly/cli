@@ -12,7 +12,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/frankban/quicktest v1.13.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0
-	github.com/getsentry/sentry-go v0.15.0
+	github.com/getsentry/sentry-go v0.16.0
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v38 v38.1.0
 	github.com/mattn/go-isatty v0.0.16
