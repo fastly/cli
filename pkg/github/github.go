@@ -182,7 +182,7 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 
 	defer func(name string) {
 		if err != nil {
-			os.Remove(name)
+			_ = os.Remove(name)
 		}
 	}(bin.Name())
 
