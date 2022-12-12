@@ -16,49 +16,6 @@ import (
 	"github.com/mholt/archiver"
 )
 
-// DefaultAssetFormat represents the standard GitHub release asset name format.
-//
-// Interpolation placeholders:
-// - binary name
-// - semantic version
-// - os
-// - arch
-// - archive file extension (e.g. ".tar.gz" or ".zip")
-const DefaultAssetFormat = "%s_v%s_%s-%s%s"
-
-// Versioner describes a source of CLI release artifacts.
-type Versioner interface {
-	Binary() string
-	BinaryName() string
-	Download(context.Context, semver.Version) (filename string, err error)
-	LatestVersion(context.Context) (semver.Version, error)
-	SetAsset(name string)
-}
-
-// RepoClient describes the GitHub client behaviours we need.
-type RepoClient interface {
-	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
-	GetRelease(ctx context.Context, owner, repo string, id int64) (*github.RepositoryRelease, *github.Response, error)
-	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
-	ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
-}
-
-// GitHub is a /* versioner */ that uses GitHub releases.
-type GitHub struct {
-	client       RepoClient
-	org          string
-	repo         string
-	binary       string // name of compiled binary
-	releaseAsset string // name of the release asset file to download
-}
-
-// Opts represents options to be passed to NewGitHub.
-type Opts struct {
-	Org    string
-	Repo   string
-	Binary string
-}
-
 // New returns a usable GitHub versioner utilizing the provided token.
 func New(opts Opts) *GitHub {
 	binary := opts.Binary
@@ -74,37 +31,33 @@ func New(opts Opts) *GitHub {
 	}
 }
 
+// Opts represents options to be passed to NewGitHub.
+type Opts struct {
+	Org    string
+	Repo   string
+	Binary string
+}
+
+// GitHub is a /* versioner */ that uses GitHub releases.
+type GitHub struct {
+	client       RepoClient
+	org          string
+	repo         string
+	binary       string // name of compiled binary
+	releaseAsset string // name of the release asset file to download
+}
+
 // Binary returns the configured binary output name.
 //
 // NOTE: For some operating systems this might include a file extension, such
 // as .exe for Windows.
-func (g *GitHub) Binary() string {
+func (g GitHub) Binary() string {
 	return g.binary
 }
 
 // BinaryName returns the binary name minus any extensions.
-func (g *GitHub) BinaryName() string {
+func (g GitHub) BinaryName() string {
 	return strings.Split(g.binary, ".")[0]
-}
-
-// SetAsset allows configuring the release asset format.
-//
-// NOTE: This existed because the CLI project was originally using a different
-// release asset name format to the Viceroy project. Although the two projects
-// are now aligned we've kept this feature in case there are any changes
-// between the two projects in the future, or if we have to call out to more
-// external binaries from within the CLI.
-func (g *GitHub) SetAsset(name string) {
-	g.releaseAsset = name
-}
-
-// LatestVersion calls the GitHub API to return the latest release as a semver.
-func (g GitHub) LatestVersion(ctx context.Context) (semver.Version, error) {
-	release, _, err := g.client.GetLatestRelease(ctx, g.org, g.repo)
-	if err != nil {
-		return semver.Version{}, err
-	}
-	return semver.Parse(strings.TrimPrefix(release.GetName(), "v"))
 }
 
 // Download implements the Versioner interface.
@@ -197,6 +150,19 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 	return bin.Name(), nil
 }
 
+// GetAssetID returns the asset ID.
+func (g GitHub) GetAssetID(assets []*github.ReleaseAsset) (id int64, err error) {
+	if g.releaseAsset == "" {
+		return id, fmt.Errorf("no release asset specified")
+	}
+	for _, asset := range assets {
+		if asset.GetName() == g.releaseAsset {
+			return asset.GetID(), nil
+		}
+	}
+	return id, fmt.Errorf("no asset found for your OS (%s) and architecture (%s)", runtime.GOOS, runtime.GOARCH)
+}
+
 // GetReleaseID returns the release ID.
 func (g GitHub) GetReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
 	var (
@@ -225,15 +191,49 @@ func (g GitHub) GetReleaseID(ctx context.Context, version semver.Version) (id in
 	return id, fmt.Errorf("no matching release found")
 }
 
-// GetAssetID returns the asset ID.
-func (g GitHub) GetAssetID(assets []*github.ReleaseAsset) (id int64, err error) {
-	if g.releaseAsset == "" {
-		return id, fmt.Errorf("no release asset specified")
+// LatestVersion calls the GitHub API to return the latest release as a semver.
+func (g GitHub) LatestVersion(ctx context.Context) (semver.Version, error) {
+	release, _, err := g.client.GetLatestRelease(ctx, g.org, g.repo)
+	if err != nil {
+		return semver.Version{}, err
 	}
-	for _, asset := range assets {
-		if asset.GetName() == g.releaseAsset {
-			return asset.GetID(), nil
-		}
-	}
-	return id, fmt.Errorf("no asset found for your OS (%s) and architecture (%s)", runtime.GOOS, runtime.GOARCH)
+	return semver.Parse(strings.TrimPrefix(release.GetName(), "v"))
 }
+
+// SetAsset allows configuring the release asset format.
+//
+// NOTE: This existed because the CLI project was originally using a different
+// release asset name format to the Viceroy project. Although the two projects
+// are now aligned we've kept this feature in case there are any changes
+// between the two projects in the future, or if we have to call out to more
+// external binaries from within the CLI.
+func (g *GitHub) SetAsset(name string) {
+	g.releaseAsset = name
+}
+
+// RepoClient describes the GitHub client behaviours we need.
+type RepoClient interface {
+	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
+	GetRelease(ctx context.Context, owner, repo string, id int64) (*github.RepositoryRelease, *github.Response, error)
+	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
+	ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
+}
+
+// Versioner describes a source of CLI release artifacts.
+type Versioner interface {
+	Binary() string
+	BinaryName() string
+	Download(context.Context, semver.Version) (filename string, err error)
+	LatestVersion(context.Context) (semver.Version, error)
+	SetAsset(name string)
+}
+
+// DefaultAssetFormat represents the standard GitHub release asset name format.
+//
+// Interpolation placeholders:
+// - binary name
+// - semantic version
+// - os
+// - arch
+// - archive file extension (e.g. ".tar.gz" or ".zip")
+const DefaultAssetFormat = "%s_v%s_%s-%s%s"
