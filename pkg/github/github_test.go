@@ -68,6 +68,11 @@ func TestDownloadArchiveExtract(t *testing.T) {
 	}{
 		{
 			Platform: "darwin",
+			Arch:     "arm64",
+			Ext:      ".tar.gz",
+		},
+		{
+			Platform: "darwin",
 			Arch:     "amd64",
 			Ext:      ".tar.gz",
 		},
@@ -89,7 +94,7 @@ func TestDownloadArchiveExtract(t *testing.T) {
 				t.Skip()
 			}
 
-			latest, err := semver.Parse("0.41.0")
+			latest, err := semver.Parse("0.0.1")
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
