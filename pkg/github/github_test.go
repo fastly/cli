@@ -22,7 +22,7 @@ func TestName(t *testing.T) {
 		want = want + ".exe"
 	}
 
-	gh := NewGitHub(GitHubOpts{"org", "repo", "fastly"})
+	gh := New(Opts{"org", "repo", "fastly"})
 
 	if have := gh.Binary(); have != want {
 		t.Fatalf("want: %s, have: %s", want, have)

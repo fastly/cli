@@ -66,7 +66,7 @@ func TestServeFlagDivergence(t *testing.T) {
 		cfg  config.Data
 		data manifest.Data
 	)
-	versioner := github.NewGitHub(github.GitHubOpts{
+	versioner := github.New(github.Opts{
 		Org:    "fastly",
 		Repo:   "viceroy",
 		Binary: "viceroy",

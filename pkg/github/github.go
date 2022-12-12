@@ -35,8 +35,8 @@ type Versioner interface {
 	SetAsset(name string)
 }
 
-// GitHubRepoClient describes the GitHub client behaviours we need.
-type GitHubRepoClient interface {
+// RepoClient describes the GitHub client behaviours we need.
+type RepoClient interface {
 	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
 	GetRelease(ctx context.Context, owner, repo string, id int64) (*github.RepositoryRelease, *github.Response, error)
 	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
@@ -45,22 +45,22 @@ type GitHubRepoClient interface {
 
 // GitHub is a /* versioner */ that uses GitHub releases.
 type GitHub struct {
-	client       GitHubRepoClient
+	client       RepoClient
 	org          string
 	repo         string
 	binary       string // name of compiled binary
 	releaseAsset string // name of the release asset file to download
 }
 
-// GitHubOpts represents options to be passed to NewGitHub.
-type GitHubOpts struct {
+// Opts represents options to be passed to NewGitHub.
+type Opts struct {
 	Org    string
 	Repo   string
 	Binary string
 }
 
-// NewGitHub returns a usable GitHub versioner utilizing the provided token.
-func NewGitHub(opts GitHubOpts) *GitHub {
+// New returns a usable GitHub versioner utilizing the provided token.
+func New(opts Opts) *GitHub {
 	binary := opts.Binary
 	if fstruntime.Windows && filepath.Ext(binary) == "" {
 		binary = binary + ".exe"

@@ -67,7 +67,7 @@ func TestVersion(t *testing.T) {
 	args := testutil.Args("version")
 	opts := testutil.NewRunOpts(args, &stdout)
 	opts.Versioners = app.Versioners{
-		Viceroy: github.NewGitHub(github.GitHubOpts{
+		Viceroy: github.New(github.Opts{
 			Org:    "fastly",
 			Repo:   "viceroy",
 			Binary: "viceroy",
