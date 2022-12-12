@@ -12,7 +12,7 @@ import (
 
 	"github.com/blang/semver"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
-	"github.com/google/go-github/v38/github"
+	"github.com/google/go-github/v48/github"
 )
 
 // TestBinary validates that the Binary method returns the expected binary name.

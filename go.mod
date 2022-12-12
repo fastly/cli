@@ -14,7 +14,6 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/getsentry/sentry-go v0.15.0
 	github.com/google/go-cmp v0.5.9
-	github.com/google/go-github/v38 v38.1.0
 	github.com/mattn/go-isatty v0.0.16
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/mitchellh/go-wordwrap v1.0.1
@@ -31,6 +30,7 @@ require (
 
 require (
 	github.com/fastly/go-fastly/v7 v7.0.0
+	github.com/google/go-github/v48 v48.2.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/otiai10/copy v1.9.0
