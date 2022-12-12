@@ -1,4 +1,4 @@
-package update
+package github
 
 import (
 	"context"
@@ -43,7 +43,7 @@ type GitHubRepoClient interface {
 	ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
 }
 
-// GitHub is a versioner that uses GitHub releases.
+// GitHub is a /* versioner */ that uses GitHub releases.
 type GitHub struct {
 	client       GitHubRepoClient
 	org          string

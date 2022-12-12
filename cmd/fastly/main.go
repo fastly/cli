@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fatih/color"
@@ -66,12 +66,12 @@ func main() {
 		httpClient              = &http.Client{Timeout: time.Second * 5}
 		in            io.Reader = os.Stdin
 		out           io.Writer = sync.NewWriter(color.Output)
-		versionerCLI            = update.NewGitHub(update.GitHubOpts{
+		versionerCLI            = github.NewGitHub(github.GitHubOpts{
 			Org:    "fastly",
 			Repo:   "cli",
 			Binary: "fastly",
 		})
-		versionerViceroy = update.NewGitHub(update.GitHubOpts{
+		versionerViceroy = github.NewGitHub(github.GitHubOpts{
 			Org:    "fastly",
 			Repo:   "viceroy",
 			Binary: "viceroy",

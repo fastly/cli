@@ -8,11 +8,12 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/fastly/cli/pkg/github"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
 )
 
 // Check if the CLI can be updated.
-func Check(ctx context.Context, currentVersion string, cliVersioner Versioner) (current, latest semver.Version, shouldUpdate bool) {
+func Check(ctx context.Context, currentVersion string, cliVersioner github.Versioner) (current, latest semver.Version, shouldUpdate bool) {
 	current, err := semver.Parse(strings.TrimPrefix(currentVersion, "v"))
 	if err != nil {
 		return current, latest, false
@@ -28,7 +29,7 @@ func Check(ctx context.Context, currentVersion string, cliVersioner Versioner) (
 	if fstruntime.Windows {
 		archiveFormat = ".zip"
 	}
-	asset := fmt.Sprintf(DefaultAssetFormat, cliVersioner.BinaryName(), latest, runtime.GOOS, runtime.GOARCH, archiveFormat)
+	asset := fmt.Sprintf(github.DefaultAssetFormat, cliVersioner.BinaryName(), latest, runtime.GOOS, runtime.GOARCH, archiveFormat)
 	cliVersioner.SetAsset(asset)
 
 	return current, latest, latest.GT(current)
@@ -53,7 +54,7 @@ type checkResult struct {
 func CheckAsync(
 	ctx context.Context,
 	currentVersion string,
-	cliVersioner Versioner,
+	cliVersioner github.Versioner,
 	quietMode bool,
 ) (printResults func(io.Writer)) {
 	results := make(chan checkResult, 1)

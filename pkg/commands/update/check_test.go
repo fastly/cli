@@ -12,6 +12,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/google/go-cmp/cmp"
 )
@@ -20,7 +21,7 @@ func TestCheck(t *testing.T) {
 	for _, testcase := range []struct {
 		name        string
 		current     string
-		latest      update.Versioner
+		latest      github.Versioner
 		wantCurrent semver.Version
 		wantLatest  semver.Version
 		wantUpdate  bool
@@ -72,7 +73,7 @@ func TestCheckAsync(t *testing.T) {
 		name           string
 		file           config.File
 		currentVersion string
-		cliVersioner   update.Versioner
+		cliVersioner   github.Versioner
 		wantOutput     string
 	}{
 		{

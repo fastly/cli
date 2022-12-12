@@ -8,7 +8,7 @@ import (
 	"github.com/blang/semver"
 )
 
-// Versioner mocks the update.Versioner interface.
+// Versioner mocks the github.Versioner interface.
 type Versioner struct {
 	Version        string
 	Error          error

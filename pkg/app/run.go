@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/revision"
@@ -24,8 +25,8 @@ import (
 
 // Versioners represents all supported versioner types.
 type Versioners struct {
-	CLI     update.Versioner
-	Viceroy update.Versioner
+	CLI     github.Versioner
+	Viceroy github.Versioner
 }
 
 // RunOpts represent arguments to Run()
