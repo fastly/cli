@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/revision"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/text"
@@ -19,12 +20,12 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	cliVersioner   Versioner
+	cliVersioner   github.Versioner
 	configFilePath string
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner Versioner, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner github.Versioner, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")

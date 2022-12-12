@@ -9,7 +9,7 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/commands/update"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/useragent"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -27,11 +27,11 @@ func init() {
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	viceroyVersioner update.Versioner
+	viceroyVersioner github.Versioner
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, viceroyVersioner update.Versioner) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, viceroyVersioner github.Versioner) *RootCommand {
 	var c RootCommand
 	c.viceroyVersioner = viceroyVersioner
 	c.CmdClause = parent.Command("version", "Display version information for the Fastly CLI")

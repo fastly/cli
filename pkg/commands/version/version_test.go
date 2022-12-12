@@ -11,7 +11,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/commands/update"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -67,7 +67,7 @@ func TestVersion(t *testing.T) {
 	args := testutil.Args("version")
 	opts := testutil.NewRunOpts(args, &stdout)
 	opts.Versioners = app.Versioners{
-		Viceroy: update.NewGitHub(update.GitHubOpts{
+		Viceroy: github.New(github.Opts{
 			Org:    "fastly",
 			Repo:   "viceroy",
 			Binary: "viceroy",

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
@@ -61,7 +62,7 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 		Env:        config.Environment{},
 		ErrLog:     errors.Log,
 		ConfigFile: config.File{},
-		HTTPClient: http.DefaultClient,
+		HTTPClient: &http.Client{Timeout: time.Second * 5},
 		Stdout:     stdout,
 	}
 }

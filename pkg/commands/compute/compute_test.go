@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/kingpin"
@@ -66,7 +66,7 @@ func TestServeFlagDivergence(t *testing.T) {
 		cfg  config.Data
 		data manifest.Data
 	)
-	versioner := update.NewGitHub(update.GitHubOpts{
+	versioner := github.New(github.Opts{
 		Org:    "fastly",
 		Repo:   "viceroy",
 		Binary: "viceroy",

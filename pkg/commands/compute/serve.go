@@ -18,11 +18,11 @@ import (
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fatih/color"
@@ -36,7 +36,7 @@ type ServeCommand struct {
 	cmd.Base
 	manifest         manifest.Data
 	build            *BuildCommand
-	viceroyVersioner update.Versioner
+	viceroyVersioner github.Versioner
 
 	// Build fields
 	includeSrc       cmd.OptionalBool
@@ -55,7 +55,7 @@ type ServeCommand struct {
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, viceroyVersioner update.Versioner, data manifest.Data) *ServeCommand {
+func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, viceroyVersioner github.Versioner, data manifest.Data) *ServeCommand {
 	var c ServeCommand
 
 	c.build = build
@@ -163,7 +163,7 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func GetViceroy(progress text.Progress, out io.Writer, versioner update.Versioner, cfg *config.Data) (bin string, err error) {
+func GetViceroy(progress text.Progress, out io.Writer, versioner github.Versioner, cfg *config.Data) (bin string, err error) {
 	defer func() {
 		if err != nil {
 			progress.Fail()
@@ -243,7 +243,7 @@ func GetViceroy(progress text.Progress, out io.Writer, versioner update.Versione
 	}
 
 	archiveFormat := ".tar.gz"
-	asset := fmt.Sprintf(update.DefaultAssetFormat, versioner.BinaryName(), latest, runtime.GOOS, runtime.GOARCH, archiveFormat)
+	asset := fmt.Sprintf(github.DefaultAssetFormat, versioner.BinaryName(), latest, runtime.GOOS, runtime.GOARCH, archiveFormat)
 	versioner.SetAsset(asset)
 
 	if install {
@@ -286,7 +286,7 @@ var InstallDir = func() string {
 }()
 
 // installViceroy downloads the latest release from GitHub.
-func installViceroy(progress text.Progress, versioner update.Versioner, latest semver.Version, bin string) error {
+func installViceroy(progress text.Progress, versioner github.Versioner, latest semver.Version, bin string) error {
 	progress.Step("Fetching latest Viceroy release...")
 
 	tmp, err := versioner.Download(context.Background(), latest)
@@ -308,7 +308,7 @@ func installViceroy(progress text.Progress, versioner update.Versioner, latest s
 
 // updateViceroy checks if the currently installed version is out-of-date and
 // downloads the latest release from GitHub.
-func updateViceroy(progress text.Progress, version string, out io.Writer, versioner update.Versioner, latest semver.Version, bin string) error {
+func updateViceroy(progress text.Progress, version string, out io.Writer, versioner github.Versioner, latest semver.Version, bin string) error {
 	progress.Step("Checking installed Viceroy version...")
 
 	var installedViceroyVersion string
