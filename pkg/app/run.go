@@ -162,12 +162,16 @@ func Run(opts RunOpts) error {
 		}
 	}
 
+	// NOTE: We return error immediately so there's no issue assigning to global.
+	// nosemgrep
 	globals.APIClient, err = opts.APIClient(token, endpoint)
 	if err != nil {
 		globals.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly API client: %w", err)
 	}
 
+	// NOTE: We return error immediately so there's no issue assigning to global.
+	// nosemgrep
 	globals.RTSClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
 	if err != nil {
 		globals.ErrLog.Add(err)
