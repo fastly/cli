@@ -23,24 +23,11 @@ import (
 	"github.com/fastly/kingpin"
 )
 
-// Versioners represents all supported versioner types.
-type Versioners struct {
-	CLI     github.Versioner
-	Viceroy github.Versioner
-}
-
-// RunOpts represent arguments to Run()
-type RunOpts struct {
-	APIClient  APIClientFactory
-	Args       []string
-	ConfigFile config.File
-	ConfigPath string
-	Env        config.Environment
-	ErrLog     fsterr.LogInterface
-	HTTPClient api.HTTPClient
-	Stdin      io.Reader
-	Stdout     io.Writer
-	Versioners Versioners
+// FastlyAPIClient is a ClientFactory that returns a real Fastly API client
+// using the provided token and endpoint.
+func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
+	client, err := fastly.NewClientForEndpoint(token, endpoint)
+	return client, err
 }
 
 // Run constructs the application including all of the subcommands, parses the
@@ -202,6 +189,20 @@ func Run(opts RunOpts) error {
 	return command.Exec(opts.Stdin, opts.Stdout)
 }
 
+// RunOpts represent arguments to Run()
+type RunOpts struct {
+	APIClient  APIClientFactory
+	Args       []string
+	ConfigFile config.File
+	ConfigPath string
+	Env        config.Environment
+	ErrLog     fsterr.LogInterface
+	HTTPClient api.HTTPClient
+	Stdin      io.Reader
+	Stdout     io.Writer
+	Versioners Versioners
+}
+
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)
 // from a user-provided API token. It exists as a type in order to parameterize
 // the Run helper with it: in the real CLI, we can use NewClient from the Fastly
@@ -209,11 +210,10 @@ func Run(opts RunOpts) error {
 // interface via MockClient.
 type APIClientFactory func(token, endpoint string) (api.Interface, error)
 
-// FastlyAPIClient is a ClientFactory that returns a real Fastly API client
-// using the provided token and endpoint.
-func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
-	client, err := fastly.NewClientForEndpoint(token, endpoint)
-	return client, err
+// Versioners represents all supported versioner types.
+type Versioners struct {
+	CLI     github.Versioner
+	Viceroy github.Versioner
 }
 
 // displayTokenSource prints the token source.
