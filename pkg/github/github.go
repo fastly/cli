@@ -221,10 +221,15 @@ type RepoClient interface {
 
 // Versioner describes a source of CLI release artifacts.
 type Versioner interface {
+	// Binary returns the configured binary output name.
 	Binary() string
+	// BinaryName returns the binary name minus any extensions.
 	BinaryName() string
+	// Download implements the Versioner interface.
 	Download(context.Context, semver.Version) (filename string, err error)
+	// LatestVersion calls the GitHub API to return the latest release as a semver.
 	LatestVersion(context.Context) (semver.Version, error)
+	// SetAsset allows configuring the release asset format.
 	SetAsset(name string)
 }
 
