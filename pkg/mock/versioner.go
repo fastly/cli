@@ -1,50 +1,39 @@
 package mock
 
 import (
-	"context"
 	"fmt"
-	"strings"
-
-	"github.com/blang/semver"
 )
 
 // Versioner mocks the github.Versioner interface.
 type Versioner struct {
-	Version        string
-	Error          error
+	AssetURL       string
+	AssetVersion   string
 	BinaryFilename string // name of compiled binary
-	Local          string // name to use for binary once extracted
 	DownloadOK     bool
 	DownloadedFile string
+	Error          error
+	Local          string // name to use for binary once extracted
 }
 
-// LatestVersion returns the parsed version field, or error if it's non-nil.
-func (v Versioner) LatestVersion(context.Context) (semver.Version, error) {
-	if v.Error != nil {
-		return semver.Version{}, v.Error
-	}
-	return semver.Parse(strings.TrimPrefix(v.Version, "v"))
-}
-
-// Download is a no-op.
-func (v Versioner) Download(context.Context, semver.Version) (filename string, err error) {
-	if v.DownloadOK {
-		return v.DownloadedFile, nil
-	}
-	return filename, fmt.Errorf("not implemented")
-}
-
-// Binary will return the configured name of the binary.
+// Binary implements github.Versioner interface.
 func (v Versioner) Binary() string {
 	return v.BinaryFilename
 }
 
-// BinaryName will return the binary name minus any extension.
-func (v Versioner) BinaryName() string {
-	return strings.Split(v.BinaryFilename, ".")[0]
+// Download implements github.Versioner interface.
+func (v Versioner) Download() (bin string, err error) {
+	if v.DownloadOK {
+		return v.DownloadedFile, nil
+	}
+	return bin, fmt.Errorf("not implemented")
 }
 
-// SetAsset allows configuring the release asset format.
-func (v Versioner) SetAsset(_ string) {
-	// NoOp
+// URL implements github.Versioner interface.
+func (v Versioner) URL() (string, error) {
+	return v.AssetURL, nil
+}
+
+// Version implements github.Versioner interface.
+func (v Versioner) Version() (string, error) {
+	return v.AssetVersion, nil
 }

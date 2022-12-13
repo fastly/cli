@@ -2,7 +2,6 @@ package update_test
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -39,7 +38,7 @@ func TestCheck(t *testing.T) {
 		{
 			name:        "same version",
 			current:     "v1.2.3",
-			latest:      mock.Versioner{Version: "v1.2.3"},
+			latest:      mock.Versioner{AssetVersion: "1.2.3"},
 			wantCurrent: semver.MustParse("1.2.3"),
 			wantLatest:  semver.MustParse("1.2.3"),
 			wantUpdate:  false,
@@ -47,14 +46,14 @@ func TestCheck(t *testing.T) {
 		{
 			name:        "new version",
 			current:     "v1.2.3",
-			latest:      mock.Versioner{Version: "v1.2.4"},
+			latest:      mock.Versioner{AssetVersion: "1.2.4"},
 			wantCurrent: semver.MustParse("1.2.3"),
 			wantLatest:  semver.MustParse("1.2.4"),
 			wantUpdate:  true,
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			current, latest, shouldUpdate := update.Check(context.Background(), testcase.current, testcase.latest)
+			current, latest, shouldUpdate := update.Check(testcase.current, testcase.latest)
 			if want, have := testcase.wantCurrent, current; !want.Equals(have) {
 				t.Fatalf("current version: want %s, have %s", want, have)
 			}
@@ -79,18 +78,18 @@ func TestCheckAsync(t *testing.T) {
 		{
 			name:           "no last_check same version",
 			currentVersion: "0.0.1",
-			cliVersioner:   mock.Versioner{Version: "0.0.1"},
+			cliVersioner:   mock.Versioner{AssetVersion: "0.0.1"},
 		},
 		{
 			name:           "no last_check new version",
 			currentVersion: "0.0.1",
-			cliVersioner:   mock.Versioner{Version: "0.0.2"},
+			cliVersioner:   mock.Versioner{AssetVersion: "0.0.2"},
 			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",
 		},
 		{
 			name:           "recent last_check new version",
 			currentVersion: "0.0.1",
-			cliVersioner:   mock.Versioner{Version: "0.0.2"},
+			cliVersioner:   mock.Versioner{AssetVersion: "0.0.2"},
 			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",
 		},
 	} {
@@ -98,12 +97,8 @@ func TestCheckAsync(t *testing.T) {
 			configFilePath := filepath.Join(os.TempDir(), fmt.Sprintf("fastly_TestCheckAsync_%d", time.Now().UnixNano()))
 			defer os.RemoveAll(configFilePath)
 
-			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-			defer cancel()
-
 			var buf bytes.Buffer
 			f := update.CheckAsync(
-				ctx,
 				testcase.currentVersion,
 				testcase.cliVersioner,
 				false,

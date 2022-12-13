@@ -1,7 +1,6 @@
 package update
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -36,7 +35,7 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner g
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	current, latest, shouldUpdate := Check(context.Background(), revision.AppVersion, c.cliVersioner)
+	current, latest, shouldUpdate := Check(revision.AppVersion, c.cliVersioner)
 
 	text.Break(out)
 	text.Output(out, "Current version: %s", current)
@@ -53,7 +52,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	progress.Step("Fetching latest release...")
-	latestPath, err := c.cliVersioner.Download(context.Background(), latest)
+	latestPath, err := c.cliVersioner.Download()
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Current CLI version": current,

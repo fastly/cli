@@ -67,14 +67,16 @@ func main() {
 		in            io.Reader = os.Stdin
 		out           io.Writer = sync.NewWriter(color.Output)
 		versionerCLI            = github.New(github.Opts{
-			Org:    "fastly",
-			Repo:   "cli",
-			Binary: "fastly",
+			HTTPClient: httpClient,
+			Org:        "fastly",
+			Repo:       "cli",
+			Binary:     "fastly",
 		})
 		versionerViceroy = github.New(github.Opts{
-			Org:    "fastly",
-			Repo:   "viceroy",
-			Binary: "viceroy",
+			HTTPClient: httpClient,
+			Org:        "fastly",
+			Repo:       "viceroy",
+			Binary:     "viceroy",
 		})
 	)
 

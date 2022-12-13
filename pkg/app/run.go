@@ -1,12 +1,10 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/update"
@@ -179,10 +177,7 @@ func Run(opts RunOpts) error {
 	}
 
 	if opts.Versioners.CLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel() // push cancel on the defer stack first...
 		f := update.CheckAsync(
-			ctx,
 			revision.AppVersion,
 			opts.Versioners.CLI,
 			globals.Flag.Quiet,
