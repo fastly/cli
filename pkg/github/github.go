@@ -130,62 +130,17 @@ func (g *Asset) Download() (bin string, err error) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	assetBase := filepath.Base(endpoint)
-
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	//
-	// Disabling as the inputs need to be dynamically determined.
-	/* #nosec */
-	archive, err := os.Create(filepath.Join(tmpDir, assetBase))
+	archive, err := createArchive(filepath.Base(endpoint), tmpDir, res.Body)
 	if err != nil {
-		return bin, fmt.Errorf("error creating release asset file: %w", err)
+		return bin, err
 	}
 
-	_, err = io.Copy(archive, res.Body)
+	extractedBinary, err := extractBinary(archive, g.binary, tmpDir)
 	if err != nil {
-		return bin, fmt.Errorf("error downloading release asset: %w", err)
+		return bin, err
 	}
 
-	if err := archive.Close(); err != nil {
-		return bin, fmt.Errorf("error closing release asset file: %w", err)
-	}
-
-	if err := archiver.Extract(archive.Name(), g.binary, tmpDir); err != nil {
-		return bin, fmt.Errorf("error extracting binary: %w", err)
-	}
-	extractedBinary := filepath.Join(tmpDir, g.binary)
-
-	// G302 (CWE-276): Expect file permissions to be 0600 or less
-	// gosec flagged this:
-	// Disabling as the file was not executable without it and we need all users
-	// to be able to execute the binary.
-	/* #nosec */
-	err = os.Chmod(extractedBinary, 0o777)
-	if err != nil {
-		return "", err
-	}
-
-	tmpBin, err := os.CreateTemp("", g.binary)
-	if err != nil {
-		return "", fmt.Errorf("error creating temp file: %w", err)
-	}
-
-	defer func(name string) {
-		if err != nil {
-			_ = os.Remove(name)
-		}
-	}(tmpBin.Name())
-
-	if err := tmpBin.Close(); err != nil {
-		return "", fmt.Errorf("error closing temp file: %w", err)
-	}
-
-	if err := os.Rename(extractedBinary, tmpBin.Name()); err != nil {
-		return "", fmt.Errorf("error renaming release asset file: %w", err)
-	}
-
-	return tmpBin.Name(), nil
+	return moveExtractedBinary(g.binary, extractedBinary)
 }
 
 // metadata acquires GitHub metadata and stores the asset URL and Version.
@@ -243,4 +198,69 @@ type AssetVersioner interface {
 	URL() (url string, err error)
 	// Version returns the asset Version if set, otherwise calls the API metadata endpoint.
 	Version() (version string, err error)
+}
+
+func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, err error) {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as the inputs need to be dynamically determined.
+	/* #nosec */
+	archive, err := os.Create(filepath.Join(tmpDir, assetBase))
+	if err != nil {
+		return path, fmt.Errorf("error creating release asset file: %w", err)
+	}
+
+	_, err = io.Copy(archive, data)
+	if err != nil {
+		return path, fmt.Errorf("error downloading release asset: %w", err)
+	}
+
+	if err := archive.Close(); err != nil {
+		return path, fmt.Errorf("error closing release asset file: %w", err)
+	}
+
+	return archive.Name(), nil
+}
+
+func extractBinary(archive, filename, dst string) (bin string, err error) {
+	if err := archiver.Extract(archive, filename, dst); err != nil {
+		return bin, fmt.Errorf("error extracting binary: %w", err)
+	}
+	extractedBinary := filepath.Join(dst, filename)
+
+	// G302 (CWE-276): Expect file permissions to be 0600 or less
+	// gosec flagged this:
+	// Disabling as the file was not executable without it and we need all users
+	// to be able to execute the binary.
+	/* #nosec */
+	err = os.Chmod(extractedBinary, 0o777)
+	if err != nil {
+		return bin, err
+	}
+
+	return extractedBinary, nil
+}
+
+func moveExtractedBinary(binName, oldpath string) (path string, err error) {
+	tmpBin, err := os.CreateTemp("", binName)
+	if err != nil {
+		return path, fmt.Errorf("error creating temp file: %w", err)
+	}
+
+	defer func(name string) {
+		if err != nil {
+			_ = os.Remove(name)
+		}
+	}(tmpBin.Name())
+
+	if err := tmpBin.Close(); err != nil {
+		return path, fmt.Errorf("error closing temp file: %w", err)
+	}
+
+	if err := os.Rename(oldpath, tmpBin.Name()); err != nil {
+		return path, fmt.Errorf("error renaming release asset file: %w", err)
+	}
+
+	return tmpBin.Name(), nil
 }
