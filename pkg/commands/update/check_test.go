@@ -72,24 +72,24 @@ func TestCheckAsync(t *testing.T) {
 		name           string
 		file           config.File
 		currentVersion string
-		cliVersioner   github.Versioner
+		v              github.Versioner
 		wantOutput     string
 	}{
 		{
 			name:           "no last_check same version",
 			currentVersion: "0.0.1",
-			cliVersioner:   mock.Versioner{AssetVersion: "0.0.1"},
+			v:              mock.Versioner{AssetVersion: "0.0.1"},
 		},
 		{
 			name:           "no last_check new version",
 			currentVersion: "0.0.1",
-			cliVersioner:   mock.Versioner{AssetVersion: "0.0.2"},
+			v:              mock.Versioner{AssetVersion: "0.0.2"},
 			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",
 		},
 		{
 			name:           "recent last_check new version",
 			currentVersion: "0.0.1",
-			cliVersioner:   mock.Versioner{AssetVersion: "0.0.2"},
+			v:              mock.Versioner{AssetVersion: "0.0.2"},
 			wantOutput:     "\nA new version of the Fastly CLI is available.\nCurrent version: 0.0.1\nLatest version: 0.0.2\nRun `fastly update` to get the latest version.\n\n",
 		},
 	} {
@@ -100,7 +100,7 @@ func TestCheckAsync(t *testing.T) {
 			var buf bytes.Buffer
 			f := update.CheckAsync(
 				testcase.currentVersion,
-				testcase.cliVersioner,
+				testcase.v,
 				false,
 			)
 			f(&buf)

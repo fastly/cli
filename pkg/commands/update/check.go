@@ -10,13 +10,13 @@ import (
 )
 
 // Check if the CLI can be updated.
-func Check(currentVersion string, cliVersioner github.Versioner) (current, latest semver.Version, shouldUpdate bool) {
+func Check(currentVersion string, v github.Versioner) (current, latest semver.Version, shouldUpdate bool) {
 	current, err := semver.Parse(strings.TrimPrefix(currentVersion, "v"))
 	if err != nil {
 		return current, latest, false
 	}
 
-	s, err := cliVersioner.Version()
+	s, err := v.Version()
 	if err != nil {
 		return current, latest, false
 	}
@@ -47,12 +47,12 @@ type checkResult struct {
 //	defer f()
 func CheckAsync(
 	currentVersion string,
-	cliVersioner github.Versioner,
+	v github.Versioner,
 	quietMode bool,
 ) (printResults func(io.Writer)) {
 	results := make(chan checkResult, 1)
 	go func() {
-		current, latest, shouldUpdate := Check(currentVersion, cliVersioner)
+		current, latest, shouldUpdate := Check(currentVersion, v)
 		results <- checkResult{current, latest, shouldUpdate}
 	}()
 
