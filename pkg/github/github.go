@@ -79,7 +79,7 @@ func (g Asset) URL() (url string, err error) {
 	// The metadata method mutates the instance `url` field.
 	_, err = g.metadata()
 	if err != nil {
-		return url, err
+		return "", err
 	}
 
 	return g.url, nil
@@ -94,7 +94,7 @@ func (g Asset) Version() (version string, err error) {
 	// The metadata method mutates the instance `url` field.
 	_, err = g.metadata()
 	if err != nil {
-		return version, err
+		return "", err
 	}
 
 	return g.version, nil
@@ -104,12 +104,12 @@ func (g Asset) Version() (version string, err error) {
 func (g *Asset) Download() (bin string, err error) {
 	endpoint, err := g.URL()
 	if err != nil {
-		return bin, err
+		return "", err
 	}
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
-		return bin, err
+		return "", err
 	}
 
 	if g.httpClient == nil {
@@ -117,27 +117,27 @@ func (g *Asset) Download() (bin string, err error) {
 	}
 	res, err := g.httpClient.Do(req)
 	if err != nil {
-		return bin, err
+		return "", err
 	}
 	if res.StatusCode != http.StatusOK {
-		return bin, fmt.Errorf("unsuccessful status: %s", res.Status)
+		return "", fmt.Errorf("unsuccessful status: %s", res.Status)
 	}
 	defer res.Body.Close()
 
 	tmpDir, err := os.MkdirTemp("", "fastly-download")
 	if err != nil {
-		return bin, fmt.Errorf("error creating temp release directory: %w", err)
+		return "", fmt.Errorf("error creating temp release directory: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
 	archive, err := createArchive(filepath.Base(endpoint), tmpDir, res.Body)
 	if err != nil {
-		return bin, err
+		return "", err
 	}
 
 	extractedBinary, err := extractBinary(archive, g.binary, tmpDir)
 	if err != nil {
-		return bin, err
+		return "", err
 	}
 
 	return moveExtractedBinary(g.binary, extractedBinary)
@@ -210,16 +210,16 @@ func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, e
 	/* #nosec */
 	archive, err := os.Create(filepath.Join(tmpDir, assetBase))
 	if err != nil {
-		return path, fmt.Errorf("error creating release asset file: %w", err)
+		return "", fmt.Errorf("error creating release asset file: %w", err)
 	}
 
 	_, err = io.Copy(archive, data)
 	if err != nil {
-		return path, fmt.Errorf("error downloading release asset: %w", err)
+		return "", fmt.Errorf("error downloading release asset: %w", err)
 	}
 
 	if err := archive.Close(); err != nil {
-		return path, fmt.Errorf("error closing release asset file: %w", err)
+		return "", fmt.Errorf("error closing release asset file: %w", err)
 	}
 
 	return archive.Name(), nil
@@ -229,7 +229,7 @@ func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, e
 // the specified archive file, modifies its permissions and returns the path.
 func extractBinary(archive, filename, dst string) (bin string, err error) {
 	if err := archiver.Extract(archive, filename, dst); err != nil {
-		return bin, fmt.Errorf("error extracting binary: %w", err)
+		return "", fmt.Errorf("error extracting binary: %w", err)
 	}
 	extractedBinary := filepath.Join(dst, filename)
 
@@ -240,7 +240,7 @@ func extractBinary(archive, filename, dst string) (bin string, err error) {
 	/* #nosec */
 	err = os.Chmod(extractedBinary, 0o777)
 	if err != nil {
-		return bin, err
+		return "", err
 	}
 
 	return extractedBinary, nil
@@ -251,7 +251,7 @@ func extractBinary(archive, filename, dst string) (bin string, err error) {
 func moveExtractedBinary(binName, oldpath string) (path string, err error) {
 	tmpBin, err := os.CreateTemp("", binName)
 	if err != nil {
-		return path, fmt.Errorf("error creating temp file: %w", err)
+		return "", fmt.Errorf("error creating temp file: %w", err)
 	}
 
 	defer func(name string) {
@@ -261,11 +261,11 @@ func moveExtractedBinary(binName, oldpath string) (path string, err error) {
 	}(tmpBin.Name())
 
 	if err := tmpBin.Close(); err != nil {
-		return path, fmt.Errorf("error closing temp file: %w", err)
+		return "", fmt.Errorf("error closing temp file: %w", err)
 	}
 
 	if err := os.Rename(oldpath, tmpBin.Name()); err != nil {
-		return path, fmt.Errorf("error renaming release asset file: %w", err)
+		return "", fmt.Errorf("error renaming release asset file: %w", err)
 	}
 
 	return tmpBin.Name(), nil
