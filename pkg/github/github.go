@@ -200,6 +200,8 @@ type AssetVersioner interface {
 	Version() (version string, err error)
 }
 
+// createArchive copies the DevHub response body data into a temporary archive
+// file and returns the path to the file.
 func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, err error) {
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
@@ -223,6 +225,8 @@ func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, e
 	return archive.Name(), nil
 }
 
+// extractBinary extracts the executable binary (e.g. fastly or viceroy) from
+// the specified archive file, modifies its permissions and returns the path.
 func extractBinary(archive, filename, dst string) (bin string, err error) {
 	if err := archiver.Extract(archive, filename, dst); err != nil {
 		return bin, fmt.Errorf("error extracting binary: %w", err)
@@ -242,6 +246,8 @@ func extractBinary(archive, filename, dst string) (bin string, err error) {
 	return extractedBinary, nil
 }
 
+// moveExtractedBinary creates a temporary file (representing the final
+// executable binary) and moves the oldpath to it and returns its path.
 func moveExtractedBinary(binName, oldpath string) (path string, err error) {
 	tmpBin, err := os.CreateTemp("", binName)
 	if err != nil {
