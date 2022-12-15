@@ -19,14 +19,14 @@ const (
 	metadataURL = "https://developer.fastly.com/api/internal/releases/meta/%s/%s/%s"
 )
 
-// New returns a usable GitHub versioner.
-func New(opts Opts) *GitHub {
+// New returns a usable asset.
+func New(opts Opts) *Asset {
 	binary := opts.Binary
 	if fstruntime.Windows && filepath.Ext(binary) == "" {
 		binary = binary + ".exe"
 	}
 
-	return &GitHub{
+	return &Asset{
 		httpClient: opts.HTTPClient,
 		org:        opts.Org,
 		repo:       opts.Repo,
@@ -46,8 +46,8 @@ type Opts struct {
 	Repo string
 }
 
-// GitHub is a versioner that uses GitHub releases.
-type GitHub struct {
+// Asset is a versioner that uses Asset releases.
+type Asset struct {
 	// binary is the name of the executable binary.
 	binary string
 	// httpClient is able to make HTTP requests.
@@ -66,12 +66,12 @@ type GitHub struct {
 //
 // NOTE: For some operating systems this might include a file extension, such
 // as .exe for Windows.
-func (g GitHub) Binary() string {
+func (g Asset) Binary() string {
 	return g.binary
 }
 
 // URL returns the downloadable asset URL if set, otherwise calls the API metadata endpoint.
-func (g GitHub) URL() (url string, err error) {
+func (g Asset) URL() (url string, err error) {
 	if g.url != "" {
 		return g.url, nil
 	}
@@ -86,7 +86,7 @@ func (g GitHub) URL() (url string, err error) {
 }
 
 // Version returns the asset Version if set, otherwise calls the API metadata endpoint.
-func (g GitHub) Version() (version string, err error) {
+func (g Asset) Version() (version string, err error) {
 	if g.version != "" {
 		return g.version, nil
 	}
@@ -101,7 +101,7 @@ func (g GitHub) Version() (version string, err error) {
 }
 
 // Download retrieves the binary archive format from GitHub.
-func (g *GitHub) Download() (bin string, err error) {
+func (g *Asset) Download() (bin string, err error) {
 	endpoint, err := g.URL()
 	if err != nil {
 		return bin, err
@@ -189,7 +189,7 @@ func (g *GitHub) Download() (bin string, err error) {
 }
 
 // metadata acquires GitHub metadata and stores the asset URL and Version.
-func (g *GitHub) metadata() (Metadata, error) {
+func (g *Asset) metadata() (Metadata, error) {
 	var m Metadata
 	endpoint := fmt.Sprintf(metadataURL, g.repo, runtime.GOOS, runtime.GOARCH)
 

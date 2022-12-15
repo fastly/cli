@@ -49,13 +49,13 @@ func TestDownloadArchiveExtract(t *testing.T) {
 				binary = binary + ".exe"
 			}
 
-			gh := GitHub{
+			a := Asset{
 				binary: binary,
 				org:    "fastly",
 				repo:   "cli",
 			}
 
-			bin, err := gh.Download()
+			bin, err := a.Download()
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
