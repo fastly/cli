@@ -2,10 +2,10 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
@@ -20,8 +20,12 @@ import (
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
-	"github.com/fastly/kingpin"
+	"github.com/fatih/color"
+	"github.com/getsentry/sentry-go"
+	"github.com/urfave/cli/v2"
 )
+
+const sentryTimeout = 2 * time.Second
 
 // Versioners represents all supported versioner types.
 type Versioners struct {
@@ -76,16 +80,31 @@ func Run(opts RunOpts) error {
 	// advanced features of the kingpin.Application flags, like env var
 	// bindings, because we need to do things like track where a config
 	// parameter came from.
-	app := kingpin.New("fastly", "A tool to interact with the Fastly API")
-	app.Writers(opts.Stdout, io.Discard) // don't let kingpin write error output
-	app.UsageContext(&kingpin.UsageContext{
-		Template: VerboseUsageTemplate,
-		Funcs:    UsageTemplateFuncs,
-	})
+	// app := kingpin.New("fastly", "A tool to interact with the Fastly API")
+	app := cli.App{
+		Name:         "fastly",
+		HelpName:     "fastly",
+		Usage:        "A tool to interact with the Fastly API",
+		UsageText:    "",
+		BashComplete: cli.DefaultAppComplete,
+		// Action:       helpCommand.Action,
+		// Compiled:     compileTime(),
+		Writer:         opts.Stdout,
+		ErrWriter:      opts.Stdout,
+		Reader:         opts.Stdin,
+		ExitErrHandler: ExitErrorHandler,
+		After:          after,
+	}
+
+	// app.Writers(opts.Stdout, io.Discard) // don't let kingpin write error output
+	// app.UsageContext(&kingpin.UsageContext{
+	// 	Template: VerboseUsageTemplate,
+	// 	Funcs:    UsageTemplateFuncs,
+	// })
 
 	// Prevent kingpin from calling os.Exit, this gives us greater control over
 	// error states and output control flow.
-	app.Terminate(nil)
+	// app.Terminate(nil)
 
 	// WARNING: kingpin has no way of decorating flags as being "global"
 	// therefore if you add/remove a global flag you will also need to update
@@ -98,33 +117,80 @@ func Run(opts RunOpts) error {
 	// panic 🎉
 	//
 	// NOTE: Short flags CAN be safely reused across commands.
-	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
-	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&globals.Flag.AcceptDefaults)
-	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&globals.Flag.AutoYes)
-	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
-	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&globals.Flag.NonInteractive)
-	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
-	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&globals.Flag.Quiet)
-	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
-	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
+	globalFlags := []cli.Flag{
+		&cli.BoolFlag{
+			Name:    "accept-defaults",
+			Usage:   "Accept default options for all interactive prompts apart from Yes/No confirmations",
+			Aliases: []string{"d"},
+			Value:   globals.Flag.AcceptDefaults,
+		},
+		&cli.BoolFlag{
+			Name:    "auto-yes",
+			Usage:   "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings",
+			Aliases: []string{"y"},
+			Value:   globals.Flag.AutoYes,
+		},
+		&cli.BoolFlag{
+			Name:    "non-interactive",
+			Usage:   "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes",
+			Aliases: []string{"i"},
+			Value:   globals.Flag.NonInteractive,
+		},
+		&cli.BoolFlag{
+			Name:    "quiet",
+			Usage:   "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)",
+			Aliases: []string{"q"},
+			Value:   globals.Flag.Quiet,
+		},
+		&cli.BoolFlag{
+			Name:    "verbose",
+			Usage:   "Verbose logging",
+			Aliases: []string{"v"},
+			Value:   globals.Flag.Verbose,
+		},
+		&cli.StringFlag{
+			Name:    "endpoint",
+			Usage:   "Fastly API endpoint",
+			Aliases: []string{},
+			Value:   globals.Flag.Endpoint,
+			Hidden:  true,
+		},
+		&cli.StringFlag{
+			Name:    "profile",
+			Usage:   "Switch account profile for single command execution (see also: 'fastly profile switch')",
+			Aliases: []string{},
+			Value:   globals.Flag.Profile,
+		},
+		&cli.StringFlag{
+			Name:    "token",
+			Usage:   fmt.Sprintf("Fastly API token (or via %s)", env.Token),
+			Aliases: []string{},
+			Value:   globals.Flag.Token,
+		},
+	}
+	app.Flags = append(app.Flags, globalFlags...)
 
-	commands := defineCommands(app, &globals, md, opts)
-	command, name, err := processCommandInput(opts, app, &globals, commands)
-	if err != nil {
-		return err
-	}
-	// We short-circuit the execution for specific cases:
-	//
-	// - cmd.ArgsIsHelpJSON() == true
-	// - shell autocompletion flag provided
-	switch name {
-	case "help--format=json":
-		fallthrough
-	case "help--formatjson":
-		fallthrough
-	case "shell-autocomplete":
-		return nil
-	}
+	// app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
+	// app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
+	// app.Flag("token", fmt.Sprintf("Fastly API token (or via %s)", env.Token)).Short('t').StringVar(&globals.Flag.Token)
+
+	app.Commands = defineCommands(&globals, md, opts)
+	// command, name, err := processCommandInput(opts, app, &globals, commands)
+	// if err != nil {
+	// 	return err
+	// }
+	// // We short-circuit the execution for specific cases:
+	// //
+	// // - cmd.ArgsIsHelpJSON() == true
+	// // - shell autocompletion flag provided
+	// switch name {
+	// case "help--format=json":
+	// 	fallthrough
+	// case "help--formatjson":
+	// 	fallthrough
+	// case "shell-autocomplete":
+	// 	return nil
+	// }
 
 	if globals.Flag.Quiet {
 		md.File.SetQuiet(true)
@@ -141,7 +207,7 @@ func Run(opts RunOpts) error {
 		)
 	}
 
-	token, err = profile.Init(token, &md, &globals, opts.Stdin, opts.Stdout)
+	token, err := profile.Init(token, &md, &globals, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return err
 	}
@@ -149,8 +215,8 @@ func Run(opts RunOpts) error {
 	// If we are using the token from config file, check the files permissions
 	// to assert if they are not too open or have been altered outside of the
 	// application and warn if so.
-	segs := strings.Split(name, " ")
-	if source == config.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
+	// segs := strings.Split(opts.Args, " ")
+	if source == config.SourceFile && (len(opts.Args) > 1 && opts.Args[1] != "profile") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
 				if !globals.Flag.Quiet {
@@ -187,7 +253,7 @@ func Run(opts RunOpts) error {
 		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
 	}
 
-	if opts.Versioners.CLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
+	if opts.Versioners.CLI != nil && len(opts.Args) > 1 && opts.Args[1] != "update" && !version.IsPreRelease(revision.AppVersion) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel() // push cancel on the defer stack first...
 		f := update.CheckAsync(
@@ -199,7 +265,7 @@ func Run(opts RunOpts) error {
 		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}
 
-	return command.Exec(opts.Stdin, opts.Stdout)
+	return app.Run(opts.Args)
 }
 
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)
@@ -242,4 +308,32 @@ func determineProfile(manifestValue, flagValue string, profiles config.Profiles)
 	}
 	name, _ := profile.Default(profiles)
 	return name
+}
+
+func after(ctx *cli.Context) error {
+	logErr := fsterr.Log.Persist(fsterr.LogPath, ctx.Args().Slice())
+	if logErr != nil {
+		fsterr.Deduce(logErr).Print(color.Error)
+	}
+	return nil
+}
+
+func ExitErrorHandler(context *cli.Context, err error) {
+	if err != nil {
+		// NOTE: os.Exit doesn't honour any deferred calls so we have to manually
+		// flush the Sentry buffer here (as well as the deferred call at the top of
+		// the main function).
+		sentry.Flush(sentryTimeout)
+
+		fsterr.Deduce(err).Print(color.Error)
+
+		exitError := fsterr.SkipExitError{}
+		if errors.As(err, &exitError) {
+			if exitError.Skip {
+				return // skip returning an error for 'help' output
+			}
+		}
+
+		os.Exit(1)
+	}
 }

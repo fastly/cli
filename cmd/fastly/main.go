@@ -61,7 +61,7 @@ func main() {
 	// the "real" versions that pull e.g. actual commandline arguments, the
 	// user's real environment, etc.
 	var (
-		args                    = os.Args[1:]
+		args                    = os.Args[0:]
 		clientFactory           = app.FastlyAPIClient
 		httpClient              = &http.Client{Timeout: time.Second * 5}
 		in            io.Reader = os.Stdin

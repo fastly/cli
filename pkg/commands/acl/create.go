@@ -9,45 +9,65 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/urfave/cli/v2"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: cmd.Base{
-			Globals: globals,
+func NewCreateCommand(globals *config.Data, data manifest.Data) *cli.Command {
+	// c := CreateCommand{
+	// 	Base: cmd.Base{
+	// 		Globals: globals,
+	// 	},
+	// 	manifest: data,
+	// }
+	c := cli.Command{
+		Name:  "create",
+		Usage: "Create a new ACL attached to the specified service version",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     cmd.FlagVersionName,
+				Usage:    cmd.FlagVersionDesc,
+				Aliases:  []string{},
+				Value:    globals.Flag.Profile,
+				Required: true,
+			},
+			&cli.BoolFlag{
+				Name:  "autoclone",
+				Usage: "If the selected service version is not editable, clone it and use the clone.",
+				// Aliases: []string{"q"},
+				// Value:   globals.Flag.Quiet,
+			},
 		},
-		manifest: data,
 	}
 
-	c.CmdClause = parent.Command("create", "Create a new ACL attached to the specified service version").Alias("add")
+	// c.CmdClause = parent.Command("create", "Create a new ACL attached to the specified service version").Alias("add")
 
-	// required
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	// // required
+	// c.RegisterFlag(cmd.StringFlagOpts{
+	// 	Name:        cmd.FlagVersionName,
+	// 	Description: cmd.FlagVersionDesc,
+	// 	Dst:         &c.serviceVersion.Value,
+	// 	Required:    true,
+	// })
 
-	// optional
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("name", "Name for the ACL. Must start with an alphanumeric character and contain only alphanumeric characters, underscores, and whitespace").Action(c.name.Set).StringVar(&c.name.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
-		Dst:         &c.serviceName.Value,
-	})
+	// // optional
+	// c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	// 	Action: c.autoClone.Set,
+	// 	Dst:    &c.autoClone.Value,
+	// })
+	// c.CmdClause.Flag("name", "Name for the ACL. Must start with an alphanumeric character and contain only alphanumeric characters, underscores, and whitespace").Action(c.name.Set).StringVar(&c.name.Value)
+	// c.RegisterFlag(cmd.StringFlagOpts{
+	// 	Name:        cmd.FlagServiceIDName,
+	// 	Description: cmd.FlagServiceIDDesc,
+	// 	Dst:         &c.manifest.Flag.ServiceID,
+	// 	Short:       's',
+	// })
+	// c.RegisterFlag(cmd.StringFlagOpts{
+	// 	Action:      c.serviceName.Set,
+	// 	Name:        cmd.FlagServiceName,
+	// 	Description: cmd.FlagServiceDesc,
+	// 	Dst:         &c.serviceName.Value,
+	// })
 
 	return &c
 }

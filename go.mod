@@ -36,10 +36,12 @@ require (
 	github.com/otiai10/copy v1.9.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/tcnksm/go-gitconfig v0.1.2
+	github.com/urfave/cli/v2 v2.23.7
 )
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -53,8 +55,10 @@ require (
 	github.com/peterhellberg/link v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.8 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be // indirect
 	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
