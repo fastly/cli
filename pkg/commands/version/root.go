@@ -50,6 +50,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	// concern the user would need to have an already compromised system where an
 	// attacker could swap the actual viceroy executable for something malicious.
 	/* #nosec */
+	// nosemgrep
 	command := exec.Command(viceroy, "--version")
 	if stdoutStderr, err := command.CombinedOutput(); err == nil {
 		fmt.Fprintf(out, "Viceroy version: %s", stdoutStderr)
