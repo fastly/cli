@@ -55,6 +55,8 @@ func TestDownloadArchiveExtract(t *testing.T) {
 				repo:   "cli",
 			}
 
+			// IMPORTANT: This is a real network end-to-end integration test.
+			// Meaning, we are making a real request to the DevHub endpoint.
 			bin, err := a.Download()
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
