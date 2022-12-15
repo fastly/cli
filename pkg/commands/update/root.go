@@ -52,7 +52,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	progress.Step("Fetching latest release...")
-	latestPath, err := c.av.Download()
+	tmpBin, err := c.av.Download()
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Current CLI version": current,
@@ -61,7 +61,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		progress.Fail()
 		return fmt.Errorf("error downloading latest release: %w", err)
 	}
-	defer os.RemoveAll(latestPath)
+	defer os.RemoveAll(tmpBin)
 
 	progress.Step("Replacing binary...")
 	execPath, err := os.Executable()
@@ -97,10 +97,10 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	if err := os.Rename(latestPath, currentPath); err != nil {
-		if err := filesystem.CopyFile(latestPath, currentPath); err != nil {
+	if err := os.Rename(tmpBin, currentPath); err != nil {
+		if err := filesystem.CopyFile(tmpBin, currentPath); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Executable (source)":      latestPath,
+				"Executable (source)":      tmpBin,
 				"Executable (destination)": currentPath,
 			})
 			progress.Fail()
