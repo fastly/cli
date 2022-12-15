@@ -2,8 +2,8 @@ package mock
 
 import "fmt"
 
-// Versioner mocks the github.Versioner interface.
-type Versioner struct {
+// AssetVersioner mocks the github.AssetVersioner interface.
+type AssetVersioner struct {
 	AssetVersion   string
 	BinaryFilename string
 	DownloadOK     bool
@@ -11,24 +11,24 @@ type Versioner struct {
 }
 
 // BinaryName implements github.Versioner interface.
-func (v Versioner) BinaryName() string {
-	return v.BinaryFilename
+func (av AssetVersioner) BinaryName() string {
+	return av.BinaryFilename
 }
 
 // Download implements github.Versioner interface.
-func (v Versioner) Download() (string, error) {
-	if v.DownloadOK {
-		return v.DownloadedFile, nil
+func (av AssetVersioner) Download() (string, error) {
+	if av.DownloadOK {
+		return av.DownloadedFile, nil
 	}
 	return "", fmt.Errorf("not implemented")
 }
 
 // URL implements github.Versioner interface.
-func (v Versioner) URL() (string, error) {
+func (av AssetVersioner) URL() (string, error) {
 	return "", nil
 }
 
 // Version implements github.Versioner interface.
-func (v Versioner) Version() (string, error) {
-	return v.AssetVersion, nil
+func (av AssetVersioner) Version() (string, error) {
+	return av.AssetVersion, nil
 }

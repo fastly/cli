@@ -233,8 +233,8 @@ type Metadata struct {
 	Version string `json:"version"`
 }
 
-// Versioner describes a source of CLI release artifacts.
-type Versioner interface {
+// AssetVersioner describes a source of CLI release artifacts.
+type AssetVersioner interface {
 	// BinaryName returns the configured binary output name.
 	BinaryName() string
 	// Download implements the Versioner interface.

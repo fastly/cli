@@ -19,23 +19,23 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	v              github.Versioner
+	av             github.AssetVersioner
 	configFilePath string
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, configFilePath string, v github.Versioner, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, configFilePath string, av github.AssetVersioner, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")
-	c.v = v
+	c.av = av
 	c.configFilePath = configFilePath
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	current, latest, shouldUpdate := Check(revision.AppVersion, c.v)
+	current, latest, shouldUpdate := Check(revision.AppVersion, c.av)
 
 	text.Break(out)
 	text.Output(out, "Current version: %s", current)
@@ -52,7 +52,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	progress.Step("Fetching latest release...")
-	latestPath, err := c.v.Download()
+	latestPath, err := c.av.Download()
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Current CLI version": current,

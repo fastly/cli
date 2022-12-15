@@ -211,8 +211,8 @@ type APIClientFactory func(token, endpoint string) (api.Interface, error)
 
 // Versioners represents all supported versioner types.
 type Versioners struct {
-	CLI     github.Versioner
-	Viceroy github.Versioner
+	CLI     github.AssetVersioner
+	Viceroy github.AssetVersioner
 }
 
 // displayTokenSource prints the token source.
