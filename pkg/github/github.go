@@ -177,9 +177,6 @@ func (g *Asset) metadata() (m Metadata, err error) {
 		return m, err
 	}
 
-	g.url = m.URL
-	g.version = m.Version
-
 	return m, nil
 }
 
