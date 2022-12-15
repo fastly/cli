@@ -26,7 +26,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, fastlyManifes
 	return []*Language{
 		NewLanguage(&LanguageOptions{
 			Name:        "rust",
-			DisplayName: "Rust (limited availability)",
+			DisplayName: "Rust",
 			StarterKits: kits.Rust,
 			Toolchain: NewRust(
 				&fastlyManifest,
@@ -39,7 +39,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, fastlyManifes
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "javascript",
-			DisplayName: "JavaScript (limited availability)",
+			DisplayName: "JavaScript",
 			StarterKits: kits.JavaScript,
 			Toolchain: NewJavaScript(
 				&fastlyManifest,
@@ -51,7 +51,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, fastlyManifes
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "go",
-			DisplayName: "Go (beta)",
+			DisplayName: "Go",
 			StarterKits: kits.Go,
 			Toolchain: NewGo(
 				&fastlyManifest,
@@ -64,7 +64,7 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, fastlyManifes
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
-			DisplayName: "AssemblyScript (beta)",
+			DisplayName: "AssemblyScript",
 			StarterKits: kits.AssemblyScript,
 			Toolchain: NewAssemblyScript(
 				&fastlyManifest,
