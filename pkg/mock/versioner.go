@@ -1,18 +1,13 @@
 package mock
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // Versioner mocks the github.Versioner interface.
 type Versioner struct {
-	AssetURL       string
 	AssetVersion   string
-	BinaryFilename string // name of compiled binary
+	BinaryFilename string
 	DownloadOK     bool
 	DownloadedFile string
-	Error          error
-	Local          string // name to use for binary once extracted
 }
 
 // Binary implements github.Versioner interface.
@@ -21,16 +16,16 @@ func (v Versioner) Binary() string {
 }
 
 // Download implements github.Versioner interface.
-func (v Versioner) Download() (bin string, err error) {
+func (v Versioner) Download() (string, error) {
 	if v.DownloadOK {
 		return v.DownloadedFile, nil
 	}
-	return bin, fmt.Errorf("not implemented")
+	return "", fmt.Errorf("not implemented")
 }
 
 // URL implements github.Versioner interface.
 func (v Versioner) URL() (string, error) {
-	return v.AssetURL, nil
+	return "", nil
 }
 
 // Version implements github.Versioner interface.
