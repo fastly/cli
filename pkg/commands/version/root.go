@@ -43,7 +43,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Fastly CLI version %s (%s)\n", revision.AppVersion, revision.GitCommit)
 	fmt.Fprintf(out, "Built with %s\n", revision.GoVersion)
 
-	viceroy := filepath.Join(compute.InstallDir, c.v.Binary())
+	viceroy := filepath.Join(compute.InstallDir, c.v.BinaryName())
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as we lookup the binary in a trusted location. For this to be a

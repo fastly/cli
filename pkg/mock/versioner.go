@@ -10,8 +10,8 @@ type Versioner struct {
 	DownloadedFile string
 }
 
-// Binary implements github.Versioner interface.
-func (v Versioner) Binary() string {
+// BinaryName implements github.Versioner interface.
+func (v Versioner) BinaryName() string {
 	return v.BinaryFilename
 }
 

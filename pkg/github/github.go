@@ -62,11 +62,11 @@ type Asset struct {
 	version string
 }
 
-// Binary returns the configured binary output name.
+// BinaryName returns the configured binary output name.
 //
 // NOTE: For some operating systems this might include a file extension, such
 // as .exe for Windows.
-func (g Asset) Binary() string {
+func (g Asset) BinaryName() string {
 	return g.binary
 }
 
@@ -235,8 +235,8 @@ type Metadata struct {
 
 // Versioner describes a source of CLI release artifacts.
 type Versioner interface {
-	// Binary returns the configured binary output name.
-	Binary() string
+	// BinaryName returns the configured binary output name.
+	BinaryName() string
 	// Download implements the Versioner interface.
 	Download() (bin string, err error)
 	// URL returns the asset URL if set, otherwise calls the API metadata endpoint.

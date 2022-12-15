@@ -168,7 +168,7 @@ func GetViceroy(progress text.Progress, out io.Writer, versioner github.Versione
 		}
 	}()
 
-	bin = filepath.Join(InstallDir, versioner.Binary())
+	bin = filepath.Join(InstallDir, versioner.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
 	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
