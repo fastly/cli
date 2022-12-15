@@ -66,18 +66,6 @@ func main() {
 		httpClient              = &http.Client{Timeout: time.Second * 5}
 		in            io.Reader = os.Stdin
 		out           io.Writer = sync.NewWriter(color.Output)
-		versionerCLI            = github.New(github.Opts{
-			HTTPClient: httpClient,
-			Org:        "fastly",
-			Repo:       "cli",
-			Binary:     "fastly",
-		})
-		versionerViceroy = github.New(github.Opts{
-			HTTPClient: httpClient,
-			Org:        "fastly",
-			Repo:       "viceroy",
-			Binary:     "viceroy",
-		})
 	)
 
 	// We have to manually handle the inclusion of the verbose flag here because
@@ -128,8 +116,18 @@ func main() {
 		Stdin:      in,
 		Stdout:     out,
 		Versioners: app.Versioners{
-			CLI:     versionerCLI,
-			Viceroy: versionerViceroy,
+			CLI: github.New(github.Opts{
+				HTTPClient: httpClient,
+				Org:        "fastly",
+				Repo:       "cli",
+				Binary:     "fastly",
+			}),
+			Viceroy: github.New(github.Opts{
+				HTTPClient: httpClient,
+				Org:        "fastly",
+				Repo:       "viceroy",
+				Binary:     "viceroy",
+			}),
 		},
 	}
 	err = app.Run(opts)
