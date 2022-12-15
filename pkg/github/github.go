@@ -124,11 +124,11 @@ func (g *Asset) Download() (bin string, err error) {
 	}
 	defer res.Body.Close()
 
-	dir, err := os.MkdirTemp("", "fastly-download")
+	tmpDir, err := os.MkdirTemp("", "fastly-download")
 	if err != nil {
 		return bin, fmt.Errorf("error creating temp release directory: %w", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(tmpDir)
 
 	assetBase := filepath.Base(endpoint)
 
@@ -137,7 +137,7 @@ func (g *Asset) Download() (bin string, err error) {
 	//
 	// Disabling as the inputs need to be dynamically determined.
 	/* #nosec */
-	archive, err := os.Create(filepath.Join(dir, assetBase))
+	archive, err := os.Create(filepath.Join(tmpDir, assetBase))
 	if err != nil {
 		return bin, fmt.Errorf("error creating release asset file: %w", err)
 	}
@@ -151,10 +151,10 @@ func (g *Asset) Download() (bin string, err error) {
 		return bin, fmt.Errorf("error closing release asset file: %w", err)
 	}
 
-	if err := archiver.Extract(archive.Name(), g.binary, dir); err != nil {
+	if err := archiver.Extract(archive.Name(), g.binary, tmpDir); err != nil {
 		return bin, fmt.Errorf("error extracting binary: %w", err)
 	}
-	extractedBinary := filepath.Join(dir, g.binary)
+	extractedBinary := filepath.Join(tmpDir, g.binary)
 
 	// G302 (CWE-276): Expect file permissions to be 0600 or less
 	// gosec flagged this:
