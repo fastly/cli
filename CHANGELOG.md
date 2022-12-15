@@ -1,5 +1,29 @@
 # Changelog
 
+## [v4.5.0](https://github.com/fastly/cli/releases/tag/v4.5.0) (2022-12-15)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v4.4.1...v4.5.0)
+
+**Documentation:**
+
+* docs(pkg/compute): remove PLC labels from supported languages [#740](https://github.com/fastly/cli/pull/740)
+
+**Enhancements:**
+
+* refactor(pkg/commands/update): move versioner logic to separate package [#735](https://github.com/fastly/cli/pull/735)
+* fix(compute): don't validate js-compute-runtime binary location [#731](https://github.com/fastly/cli/pull/731)
+* Link to Starter Kits during compute init [#730](https://github.com/fastly/cli/pull/730)
+* Update tinygo default build command [#727](https://github.com/fastly/cli/pull/727)
+* CI/Dockerfiles: minor dockerfiles improvements [#722](https://github.com/fastly/cli/pull/722)
+* Switch JavaScript build script based on webpack in package.json prebuild [#728](https://github.com/fastly/cli/pull/728)
+* Add support for TOML secret_store section [#726](https://github.com/fastly/cli/pull/726)
+
+**Dependencies:** 
+
+* Bump golang.org/x/term from 0.2.0 to 0.3.0 [#733](https://github.com/fastly/cli/pull/733)
+* Bump github.com/getsentry/sentry-go from 0.15.0 to 0.16.0 [#734](https://github.com/fastly/cli/pull/734)
+* Bump github.com/Masterminds/semver/v3 from 3.1.1 to 3.2.0 [#724](https://github.com/fastly/cli/pull/724)
+
 ## [v4.4.1](https://github.com/fastly/cli/releases/tag/v4.4.1) (2022-12-02)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.4.0...v4.4.1)
