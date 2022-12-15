@@ -32,9 +32,9 @@ import (
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
 	cmd.Base
-	manifest         manifest.Data
-	build            *BuildCommand
-	viceroyVersioner github.Versioner
+	manifest manifest.Data
+	build    *BuildCommand
+	v        github.Versioner
 
 	// Build fields
 	includeSrc       cmd.OptionalBool
@@ -53,11 +53,11 @@ type ServeCommand struct {
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, viceroyVersioner github.Versioner, data manifest.Data) *ServeCommand {
+func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, v github.Versioner, data manifest.Data) *ServeCommand {
 	var c ServeCommand
 
 	c.build = build
-	c.viceroyVersioner = viceroyVersioner
+	c.v = v
 
 	c.Globals = globals
 	c.CmdClause = parent.Command("serve", "Build and run a Compute@Edge package locally")
@@ -93,7 +93,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress := text.ResetProgress(out, c.Globals.Verbose())
 
-	bin, err := GetViceroy(progress, out, c.viceroyVersioner, c.Globals)
+	bin, err := GetViceroy(progress, out, c.v, c.Globals)
 	if err != nil {
 		return err
 	}
