@@ -451,6 +451,7 @@ func promptForLanguage(flags config.Flag, languages []*Language, in io.Reader, o
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Output(out, "%s", text.Bold("Language:"))
+		text.Output(out, "(Find out more about language support at https://developer.fastly.com/learning/compute)")
 		for i, lang := range languages {
 			text.Output(out, "[%d] %s", i+1, lang.DisplayName)
 		}
