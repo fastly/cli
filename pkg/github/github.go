@@ -70,36 +70,6 @@ func (g Asset) BinaryName() string {
 	return g.binary
 }
 
-// URL returns the downloadable asset URL if set, otherwise calls the API metadata endpoint.
-func (g Asset) URL() (url string, err error) {
-	if g.url != "" {
-		return g.url, nil
-	}
-
-	// The metadata method mutates the instance `url` field.
-	_, err = g.metadata()
-	if err != nil {
-		return "", err
-	}
-
-	return g.url, nil
-}
-
-// Version returns the asset Version if set, otherwise calls the API metadata endpoint.
-func (g Asset) Version() (version string, err error) {
-	if g.version != "" {
-		return g.version, nil
-	}
-
-	// The metadata method mutates the instance `url` field.
-	_, err = g.metadata()
-	if err != nil {
-		return "", err
-	}
-
-	return g.version, nil
-}
-
 // Download retrieves the binary archive format from GitHub.
 func (g *Asset) Download() (bin string, err error) {
 	endpoint, err := g.URL()
@@ -143,9 +113,42 @@ func (g *Asset) Download() (bin string, err error) {
 	return moveExtractedBinary(g.binary, extractedBinary)
 }
 
-// metadata acquires GitHub metadata and stores the asset URL and Version.
-func (g *Asset) metadata() (Metadata, error) {
-	var m Metadata
+// URL returns the downloadable asset URL if set, otherwise calls the API metadata endpoint.
+func (g *Asset) URL() (url string, err error) {
+	if g.url != "" {
+		return g.url, nil
+	}
+
+	m, err := g.metadata()
+	if err != nil {
+		return "", err
+	}
+
+	g.url = m.URL
+	g.version = m.Version
+
+	return g.url, nil
+}
+
+// Version returns the asset Version if set, otherwise calls the API metadata endpoint.
+func (g *Asset) Version() (version string, err error) {
+	if g.version != "" {
+		return g.version, nil
+	}
+
+	m, err := g.metadata()
+	if err != nil {
+		return "", err
+	}
+
+	g.url = m.URL
+	g.version = m.Version
+
+	return g.version, nil
+}
+
+// metadata acquires GitHub metadata.
+func (g *Asset) metadata() (m Metadata, err error) {
 	endpoint := fmt.Sprintf(metadataURL, g.repo, runtime.GOOS, runtime.GOARCH)
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
