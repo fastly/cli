@@ -49,12 +49,12 @@ type checkResult struct {
 //	defer f()
 func CheckAsync(
 	currentVersion string,
-	v github.AssetVersioner,
+	av github.AssetVersioner,
 	quietMode bool,
 ) (printResults func(io.Writer)) {
 	results := make(chan checkResult, 1)
 	go func() {
-		current, latest, shouldUpdate := Check(currentVersion, v)
+		current, latest, shouldUpdate := Check(currentVersion, av)
 		results <- checkResult{current, latest, shouldUpdate}
 	}()
 
