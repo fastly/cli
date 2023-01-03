@@ -1,5 +1,21 @@
 # Changelog
 
+## [v4.6.0](https://github.com/fastly/cli/releases/tag/v4.6.0) (2023-01-03)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v4.5.0...v4.6.0)
+
+**Bug fixes:**
+
+* vcl/snippet: pass AllowActiveLocked if --dynamic was passed [#742](https://github.com/fastly/cli/pull/742)
+
+**Dependencies:** 
+
+* Bump goreleaser/goreleaser-action from 3 to 4 [#746](https://github.com/fastly/cli/pull/746)
+
+**Enhancements:**
+
+* Use DevHub endpoint for acquiring CLI/Viceroy metadata [#739](https://github.com/fastly/cli/pull/739)
+
 ## [v4.5.0](https://github.com/fastly/cli/releases/tag/v4.5.0) (2022-12-15)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.4.1...v4.5.0)
