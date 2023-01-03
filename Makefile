@@ -124,4 +124,20 @@ scaffold:
 scaffold-category:
 	@$(shell pwd)/scripts/scaffold-category.sh $(CLI_CATEGORY) $(CLI_CATEGORY_COMMAND) $(CLI_PACKAGE) $(CLI_COMMAND) $(CLI_API)
 
+goreleaser-bin:
+	go install github.com/goreleaser/goreleaser@latest
+
+# Build executables using goreleaser (useful for local testing purposes).
+#
+# You can pass flags to goreleaser via GORELEASER_ARGS
+# --skip-validate will skip the checks (e.g. git tag checks which result in a 'dirty git state' error)
+# --skip-post-hooks which prevents errors such as trying to execute the binary for each OS (e.g. we call scripts/documentation.sh and we can't run Windows exe on a Mac).
+# --rm-dist will save you deleting the dist dir
+# --single-target will be quicker and only build for your os & architecture
+#
+# EXAMPLE:
+# make goreleaser GORELEASER_ARGS="--skip-validate --skip-post-hooks --rm-dist"
+goreleaser: goreleaser-bin
+	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
+
 .PHONY: clean
