@@ -1,7 +1,6 @@
 package update
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -20,23 +19,23 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	cliVersioner   github.Versioner
+	av             github.AssetVersioner
 	configFilePath string
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, configFilePath string, cliVersioner github.Versioner, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, configFilePath string, av github.AssetVersioner, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")
-	c.cliVersioner = cliVersioner
+	c.av = av
 	c.configFilePath = configFilePath
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	current, latest, shouldUpdate := Check(context.Background(), revision.AppVersion, c.cliVersioner)
+	current, latest, shouldUpdate := Check(revision.AppVersion, c.av)
 
 	text.Break(out)
 	text.Output(out, "Current version: %s", current)
@@ -53,7 +52,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	progress.Step("Fetching latest release...")
-	latestPath, err := c.cliVersioner.Download(context.Background(), latest)
+	tmpBin, err := c.av.Download()
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Current CLI version": current,
@@ -62,7 +61,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		progress.Fail()
 		return fmt.Errorf("error downloading latest release: %w", err)
 	}
-	defer os.RemoveAll(latestPath)
+	defer os.RemoveAll(tmpBin)
 
 	progress.Step("Replacing binary...")
 	execPath, err := os.Executable()
@@ -98,10 +97,10 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	if err := os.Rename(latestPath, currentPath); err != nil {
-		if err := filesystem.CopyFile(latestPath, currentPath); err != nil {
+	if err := os.Rename(tmpBin, currentPath); err != nil {
+		if err := filesystem.CopyFile(tmpBin, currentPath); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Executable (source)":      latestPath,
+				"Executable (source)":      tmpBin,
 				"Executable (destination)": currentPath,
 			})
 			progress.Fail()

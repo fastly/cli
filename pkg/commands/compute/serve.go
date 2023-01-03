@@ -1,7 +1,6 @@
 package compute
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"io/fs"
@@ -9,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -34,9 +32,9 @@ import (
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
 	cmd.Base
-	manifest         manifest.Data
-	build            *BuildCommand
-	viceroyVersioner github.Versioner
+	manifest manifest.Data
+	build    *BuildCommand
+	av       github.AssetVersioner
 
 	// Build fields
 	includeSrc       cmd.OptionalBool
@@ -55,11 +53,11 @@ type ServeCommand struct {
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, viceroyVersioner github.Versioner, data manifest.Data) *ServeCommand {
+func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, av github.AssetVersioner, data manifest.Data) *ServeCommand {
 	var c ServeCommand
 
 	c.build = build
-	c.viceroyVersioner = viceroyVersioner
+	c.av = av
 
 	c.Globals = globals
 	c.CmdClause = parent.Command("serve", "Build and run a Compute@Edge package locally")
@@ -95,7 +93,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress := text.ResetProgress(out, c.Globals.Verbose())
 
-	bin, err := GetViceroy(progress, out, c.viceroyVersioner, c.Globals)
+	bin, err := GetViceroy(progress, out, c.av, c.Globals)
 	if err != nil {
 		return err
 	}
@@ -163,14 +161,14 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func GetViceroy(progress text.Progress, out io.Writer, versioner github.Versioner, cfg *config.Data) (bin string, err error) {
+func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner, cfg *config.Data) (bin string, err error) {
 	defer func() {
 		if err != nil {
 			progress.Fail()
 		}
 	}()
 
-	bin = filepath.Join(InstallDir, versioner.Binary())
+	bin = filepath.Join(InstallDir, av.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
 	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
@@ -183,6 +181,7 @@ func GetViceroy(progress text.Progress, out io.Writer, versioner github.Versione
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as the variables come from trusted sources.
 	/* #nosec */
+	// nosemgrep
 	c := exec.Command(bin, "--version")
 
 	var install, checkUpdate bool
@@ -211,7 +210,7 @@ func GetViceroy(progress text.Progress, out io.Writer, versioner github.Versione
 	if latest.String() == "0.0.0" {
 		progress.Step("Checking latest Viceroy release...")
 
-		latest, err = versioner.LatestVersion(context.Background())
+		v, err := av.Version()
 		if err != nil {
 			cfg.ErrLog.Add(err)
 
@@ -227,6 +226,12 @@ func GetViceroy(progress text.Progress, out io.Writer, versioner github.Versione
 			return bin, nil
 		}
 
+		// WARNING: This variable MUST shadow the parent scoped variable.
+		latest, err = semver.Parse(v)
+		if err != nil {
+			return bin, err
+		}
+
 		viceroy.LatestVersion = latest.String()
 		viceroy.LastChecked = time.Now().Format(time.RFC3339)
 
@@ -234,7 +239,7 @@ func GetViceroy(progress text.Progress, out io.Writer, versioner github.Versione
 		// ensure we reassign the modified struct which is a copy (not reference).
 		cfg.File.Viceroy = viceroy
 
-		err := cfg.File.Write(cfg.Path)
+		err = cfg.File.Write(cfg.Path)
 		if err != nil {
 			return bin, err
 		}
@@ -242,19 +247,15 @@ func GetViceroy(progress text.Progress, out io.Writer, versioner github.Versione
 		checkUpdate = true
 	}
 
-	archiveFormat := ".tar.gz"
-	asset := fmt.Sprintf(github.DefaultAssetFormat, versioner.BinaryName(), latest, runtime.GOOS, runtime.GOARCH, archiveFormat)
-	versioner.SetAsset(asset)
-
 	if install {
-		err := installViceroy(progress, versioner, latest, bin)
+		err := installViceroy(progress, av, bin)
 		if err != nil {
 			cfg.ErrLog.Add(err)
 			return bin, err
 		}
 	} else if checkUpdate {
 		version := strings.TrimSpace(string(stdoutStderr))
-		err := updateViceroy(progress, version, out, versioner, latest, bin)
+		err := updateViceroy(progress, version, out, av, latest, bin)
 		if err != nil {
 			cfg.ErrLog.Add(err)
 			return bin, err
@@ -286,18 +287,18 @@ var InstallDir = func() string {
 }()
 
 // installViceroy downloads the latest release from GitHub.
-func installViceroy(progress text.Progress, versioner github.Versioner, latest semver.Version, bin string) error {
+func installViceroy(progress text.Progress, av github.AssetVersioner, bin string) error {
 	progress.Step("Fetching latest Viceroy release...")
 
-	tmp, err := versioner.Download(context.Background(), latest)
+	tmpBin, err := av.Download()
 	if err != nil {
 		progress.Fail()
 		return fmt.Errorf("error downloading latest Viceroy release: %w", err)
 	}
-	defer os.RemoveAll(tmp)
+	defer os.RemoveAll(tmpBin)
 
-	if err := os.Rename(tmp, bin); err != nil {
-		if err := filesystem.CopyFile(tmp, bin); err != nil {
+	if err := os.Rename(tmpBin, bin); err != nil {
+		if err := filesystem.CopyFile(tmpBin, bin); err != nil {
 			progress.Fail()
 			return fmt.Errorf("error moving latest Viceroy binary in place: %w", err)
 		}
@@ -308,10 +309,15 @@ func installViceroy(progress text.Progress, versioner github.Versioner, latest s
 
 // updateViceroy checks if the currently installed version is out-of-date and
 // downloads the latest release from GitHub.
-func updateViceroy(progress text.Progress, version string, out io.Writer, versioner github.Versioner, latest semver.Version, bin string) error {
+func updateViceroy(
+	progress text.Progress,
+	version string,
+	out io.Writer,
+	av github.AssetVersioner,
+	latest semver.Version,
+	bin string,
+) error {
 	progress.Step("Checking installed Viceroy version...")
-
-	var installedViceroyVersion string
 
 	viceroyError := fsterr.RemediationError{
 		Inner:       fmt.Errorf("a Viceroy version was not found"),
@@ -326,8 +332,7 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 		return viceroyError
 	}
 
-	installedViceroyVersion = segs[1]
-
+	installedViceroyVersion := segs[1]
 	if installedViceroyVersion == "" {
 		progress.Fail()
 		return viceroyError
@@ -350,18 +355,18 @@ func updateViceroy(progress text.Progress, version string, out io.Writer, versio
 		text.Output(out, "Latest Viceroy version: %s", latest)
 		text.Break(out)
 
-		tmp, err := versioner.Download(context.Background(), latest)
+		tmpBin, err := av.Download()
 		progress.Step("Fetching latest Viceroy release...")
 		if err != nil {
 			progress.Fail()
 			return fmt.Errorf("error downloading latest Viceroy release: %w", err)
 		}
-		defer os.RemoveAll(tmp)
+		defer os.RemoveAll(tmpBin)
 
 		progress.Step("Replacing Viceroy binary...")
 
-		if err := os.Rename(tmp, bin); err != nil {
-			if err := filesystem.CopyFile(tmp, bin); err != nil {
+		if err := os.Rename(tmpBin, bin); err != nil {
+			if err := filesystem.CopyFile(tmpBin, bin); err != nil {
 				progress.Fail()
 				return fmt.Errorf("error moving latest Viceroy binary in place: %w", err)
 			}

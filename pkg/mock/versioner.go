@@ -1,50 +1,34 @@
 package mock
 
-import (
-	"context"
-	"fmt"
-	"strings"
+import "fmt"
 
-	"github.com/blang/semver"
-)
-
-// Versioner mocks the github.Versioner interface.
-type Versioner struct {
-	Version        string
-	Error          error
-	BinaryFilename string // name of compiled binary
-	Local          string // name to use for binary once extracted
+// AssetVersioner mocks the github.AssetVersioner interface.
+type AssetVersioner struct {
+	AssetVersion   string
+	BinaryFilename string
 	DownloadOK     bool
 	DownloadedFile string
 }
 
-// LatestVersion returns the parsed version field, or error if it's non-nil.
-func (v Versioner) LatestVersion(context.Context) (semver.Version, error) {
-	if v.Error != nil {
-		return semver.Version{}, v.Error
+// BinaryName implements github.Versioner interface.
+func (av AssetVersioner) BinaryName() string {
+	return av.BinaryFilename
+}
+
+// Download implements github.Versioner interface.
+func (av AssetVersioner) Download() (string, error) {
+	if av.DownloadOK {
+		return av.DownloadedFile, nil
 	}
-	return semver.Parse(strings.TrimPrefix(v.Version, "v"))
+	return "", fmt.Errorf("not implemented")
 }
 
-// Download is a no-op.
-func (v Versioner) Download(context.Context, semver.Version) (filename string, err error) {
-	if v.DownloadOK {
-		return v.DownloadedFile, nil
-	}
-	return filename, fmt.Errorf("not implemented")
+// URL implements github.Versioner interface.
+func (av AssetVersioner) URL() (string, error) {
+	return "", nil
 }
 
-// Binary will return the configured name of the binary.
-func (v Versioner) Binary() string {
-	return v.BinaryFilename
-}
-
-// BinaryName will return the binary name minus any extension.
-func (v Versioner) BinaryName() string {
-	return strings.Split(v.BinaryFilename, ".")[0]
-}
-
-// SetAsset allows configuring the release asset format.
-func (v Versioner) SetAsset(_ string) {
-	// NoOp
+// Version implements github.Versioner interface.
+func (av AssetVersioner) Version() (string, error) {
+	return av.AssetVersion, nil
 }

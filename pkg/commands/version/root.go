@@ -27,13 +27,13 @@ func init() {
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	viceroyVersioner github.Versioner
+	av github.AssetVersioner
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, viceroyVersioner github.Versioner) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, av github.AssetVersioner) *RootCommand {
 	var c RootCommand
-	c.viceroyVersioner = viceroyVersioner
+	c.av = av
 	c.CmdClause = parent.Command("version", "Display version information for the Fastly CLI")
 	return &c
 }
@@ -43,13 +43,14 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Fastly CLI version %s (%s)\n", revision.AppVersion, revision.GitCommit)
 	fmt.Fprintf(out, "Built with %s\n", revision.GoVersion)
 
-	viceroy := filepath.Join(compute.InstallDir, c.viceroyVersioner.Binary())
+	viceroy := filepath.Join(compute.InstallDir, c.av.BinaryName())
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as we lookup the binary in a trusted location. For this to be a
 	// concern the user would need to have an already compromised system where an
 	// attacker could swap the actual viceroy executable for something malicious.
 	/* #nosec */
+	// nosemgrep
 	command := exec.Command(viceroy, "--version")
 	if stdoutStderr, err := command.CombinedOutput(); err == nil {
 		fmt.Fprintf(out, "Viceroy version: %s", stdoutStderr)

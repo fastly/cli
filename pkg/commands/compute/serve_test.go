@@ -67,8 +67,8 @@ func TestGetViceroy(t *testing.T) {
 	var out bytes.Buffer
 
 	progress := text.NewQuietProgress(&out)
-	versioner := mock.Versioner{
-		Version:        "v1.2.3",
+	av := mock.AssetVersioner{
+		AssetVersion:   "1.2.3",
 		BinaryFilename: viceroyBinName,
 		DownloadOK:     true,
 		DownloadedFile: binPath,
@@ -91,7 +91,7 @@ func TestGetViceroy(t *testing.T) {
 		ErrLog: fsterr.MockLog{},
 	}
 
-	_, err = compute.GetViceroy(progress, &out, versioner, &data)
+	_, err = compute.GetViceroy(progress, &out, av, &data)
 	if err != nil {
 		t.Fatal(err)
 	}

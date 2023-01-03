@@ -1,122 +1,237 @@
 package github
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 
-	"github.com/blang/semver"
+	"github.com/fastly/cli/pkg/api"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
-	"github.com/google/go-github/v38/github"
 	"github.com/mholt/archiver"
 )
 
-// New returns a usable GitHub versioner utilizing the provided token.
-func New(opts Opts) *GitHub {
+const (
+	// metadataURL takes a GitHub repo (e.g. cli or viceroy), an OS (e.g. darwin or linux), and an arch (e.g. amd64 or arm64).
+	metadataURL = "https://developer.fastly.com/api/internal/releases/meta/%s/%s/%s"
+)
+
+// New returns a usable asset.
+func New(opts Opts) *Asset {
 	binary := opts.Binary
 	if fstruntime.Windows && filepath.Ext(binary) == "" {
 		binary = binary + ".exe"
 	}
 
-	return &GitHub{
-		client: github.NewClient(nil).Repositories,
-		org:    opts.Org,
-		repo:   opts.Repo,
-		binary: binary,
+	return &Asset{
+		httpClient: opts.HTTPClient,
+		org:        opts.Org,
+		repo:       opts.Repo,
+		binary:     binary,
 	}
 }
 
 // Opts represents options to be passed to NewGitHub.
 type Opts struct {
-	Org    string
-	Repo   string
+	// Binary is the name of the executable binary.
 	Binary string
+	// HTTPClient is able to make HTTP requests.
+	HTTPClient api.HTTPClient
+	// Org is a GitHub organisation.
+	Org string
+	// Repo is a GitHub repository.
+	Repo string
 }
 
-// GitHub is a /* versioner */ that uses GitHub releases.
-type GitHub struct {
-	client       RepoClient
-	org          string
-	repo         string
-	binary       string // name of compiled binary
-	releaseAsset string // name of the release asset file to download
+// Asset is a versioner that uses Asset releases.
+type Asset struct {
+	// binary is the name of the executable binary.
+	binary string
+	// httpClient is able to make HTTP requests.
+	httpClient api.HTTPClient
+	// org is a GitHub organisation.
+	org string
+	// repo is a GitHub repository.
+	repo string
+	// url is the endpoint for downloading the release asset.
+	url string
+	// version is the release version of the asset.
+	version string
 }
 
-// Binary returns the configured binary output name.
+// BinaryName returns the configured binary output name.
 //
 // NOTE: For some operating systems this might include a file extension, such
 // as .exe for Windows.
-func (g GitHub) Binary() string {
+func (g Asset) BinaryName() string {
 	return g.binary
 }
 
-// BinaryName returns the binary name minus any extensions.
-func (g GitHub) BinaryName() string {
-	return strings.Split(g.binary, ".")[0]
+// Download retrieves the binary archive format from GitHub.
+func (g *Asset) Download() (bin string, err error) {
+	endpoint, err := g.URL()
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create a HTTP request: %w", err)
+	}
+
+	if g.httpClient == nil {
+		g.httpClient = http.DefaultClient
+	}
+	res, err := g.httpClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to request GitHub release asset: %w", err)
+	}
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to request GitHub release asset: %s", res.Status)
+	}
+	defer res.Body.Close()
+
+	tmpDir, err := os.MkdirTemp("", "fastly-download")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp release directory: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	archive, err := createArchive(filepath.Base(endpoint), tmpDir, res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	extractedBinary, err := extractBinary(archive, g.binary, tmpDir)
+	if err != nil {
+		return "", err
+	}
+
+	return moveExtractedBinary(g.binary, extractedBinary)
 }
 
-// Download implements the Versioner interface.
-//
-// Downloading, unarchiving and changing the file modes is done inside a temporary
-// directory within $TMPDIR.
-// On success, the resulting file is renamed to a temporary one within $TMPDIR, and
-// returned. The temporary directory and its content are always removed.
-func (g GitHub) Download(ctx context.Context, version semver.Version) (string, error) {
-	releaseID, err := g.GetReleaseID(ctx, version)
+// URL returns the downloadable asset URL if set, otherwise calls the API metadata endpoint.
+func (g *Asset) URL() (url string, err error) {
+	if g.url != "" {
+		return g.url, nil
+	}
+
+	m, err := g.metadata()
 	if err != nil {
 		return "", err
 	}
 
-	release, _, err := g.client.GetRelease(ctx, g.org, g.repo, releaseID)
-	if err != nil {
-		return "", fmt.Errorf("error fetching release: %w", err)
+	g.url = m.URL
+	g.version = m.Version
+
+	return g.url, nil
+}
+
+// Version returns the asset Version if set, otherwise calls the API metadata endpoint.
+func (g *Asset) Version() (version string, err error) {
+	if g.version != "" {
+		return g.version, nil
 	}
 
-	assetID, err := g.GetAssetID(release.Assets)
+	m, err := g.metadata()
 	if err != nil {
 		return "", err
 	}
 
-	asset, _, err := g.client.DownloadReleaseAsset(ctx, g.org, g.repo, assetID, http.DefaultClient)
-	if err != nil {
-		return "", err
-	}
-	defer asset.Close()
+	g.url = m.URL
+	g.version = m.Version
 
-	dir, err := os.MkdirTemp("", "fastly-download")
-	if err != nil {
-		return "", fmt.Errorf("error creating temp release directory: %w", err)
-	}
-	defer os.RemoveAll(dir)
+	return g.version, nil
+}
 
+// metadata acquires GitHub metadata.
+func (g *Asset) metadata() (m Metadata, err error) {
+	endpoint := fmt.Sprintf(metadataURL, g.repo, runtime.GOOS, runtime.GOARCH)
+
+	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
+	if err != nil {
+		return m, fmt.Errorf("failed to create a HTTP request: %w", err)
+	}
+
+	if g.httpClient == nil {
+		g.httpClient = http.DefaultClient
+	}
+	res, err := g.httpClient.Do(req)
+	if err != nil {
+		return m, fmt.Errorf("failed to request GitHub metadata: %w", err)
+	}
+	if res.StatusCode != http.StatusOK {
+		return m, fmt.Errorf("failed to request GitHub metadata: %s", res.Status)
+	}
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return m, fmt.Errorf("failed to read GitHub's metadata response: %w", err)
+	}
+
+	err = json.Unmarshal(data, &m)
+	if err != nil {
+		return m, fmt.Errorf("failed to parse GitHub's metadata: %w", err)
+	}
+
+	return m, nil
+}
+
+// Metadata represents the DevHub API response for software metadata.
+type Metadata struct {
+	// URL is the endpoint for downloading the release asset.
+	URL string `json:"url"`
+	// Version is the release version of the asset.
+	Version string `json:"version"`
+}
+
+// AssetVersioner describes a source of CLI release artifacts.
+type AssetVersioner interface {
+	// BinaryName returns the configured binary output name.
+	BinaryName() string
+	// Download implements the Versioner interface.
+	Download() (bin string, err error)
+	// URL returns the asset URL if set, otherwise calls the API metadata endpoint.
+	URL() (url string, err error)
+	// Version returns the asset Version if set, otherwise calls the API metadata endpoint.
+	Version() (version string, err error)
+}
+
+// createArchive copies the DevHub response body data into a temporary archive
+// file and returns the path to the file.
+func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, err error) {
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
 	//
 	// Disabling as the inputs need to be dynamically determined.
 	/* #nosec */
-	archive, err := os.Create(filepath.Join(dir, g.releaseAsset))
+	archive, err := os.Create(filepath.Join(tmpDir, assetBase))
 	if err != nil {
-		return "", fmt.Errorf("error creating release asset file: %w", err)
+		return "", fmt.Errorf("failed to create a temporary file: %w", err)
 	}
 
-	_, err = io.Copy(archive, asset)
+	_, err = io.Copy(archive, data)
 	if err != nil {
-		return "", fmt.Errorf("error downloading release asset: %w", err)
+		return "", fmt.Errorf("failed to download release asset: %w", err)
 	}
 
 	if err := archive.Close(); err != nil {
-		return "", fmt.Errorf("error closing release asset file: %w", err)
+		return "", fmt.Errorf("failed to close release asset file: %w", err)
 	}
 
-	if err := archiver.Extract(archive.Name(), g.binary, dir); err != nil {
-		return "", fmt.Errorf("error extracting binary: %w", err)
+	return archive.Name(), nil
+}
+
+// extractBinary extracts the executable binary (e.g. fastly or viceroy) from
+// the specified archive file, modifies its permissions and returns the path.
+func extractBinary(archive, filename, dst string) (bin string, err error) {
+	if err := archiver.Extract(archive, filename, dst); err != nil {
+		return "", fmt.Errorf("failed to extract binary: %w", err)
 	}
-	extractedBinary := filepath.Join(dir, g.binary)
+	extractedBinary := filepath.Join(dst, filename)
 
 	// G302 (CWE-276): Expect file permissions to be 0600 or less
 	// gosec flagged this:
@@ -125,115 +240,33 @@ func (g GitHub) Download(ctx context.Context, version semver.Version) (string, e
 	/* #nosec */
 	err = os.Chmod(extractedBinary, 0o777)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to modify permissions on extracted binary: %w", err)
 	}
 
-	bin, err := os.CreateTemp("", g.binary)
+	return extractedBinary, nil
+}
+
+// moveExtractedBinary creates a temporary file (representing the final
+// executable binary) and moves the oldpath to it and returns its path.
+func moveExtractedBinary(binName, oldpath string) (path string, err error) {
+	tmpBin, err := os.CreateTemp("", binName)
 	if err != nil {
-		return "", fmt.Errorf("error creating temp file: %w", err)
+		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
 
 	defer func(name string) {
 		if err != nil {
 			_ = os.Remove(name)
 		}
-	}(bin.Name())
+	}(tmpBin.Name())
 
-	if err := bin.Close(); err != nil {
-		return "", fmt.Errorf("error closing temp file: %w", err)
+	if err := tmpBin.Close(); err != nil {
+		return "", fmt.Errorf("failed to close temp file: %w", err)
 	}
 
-	if err := os.Rename(extractedBinary, bin.Name()); err != nil {
-		return "", fmt.Errorf("error renaming release asset file: %w", err)
+	if err := os.Rename(oldpath, tmpBin.Name()); err != nil {
+		return "", fmt.Errorf("failed to rename release asset file: %w", err)
 	}
 
-	return bin.Name(), nil
+	return tmpBin.Name(), nil
 }
-
-// GetAssetID returns the asset ID.
-func (g GitHub) GetAssetID(assets []*github.ReleaseAsset) (id int64, err error) {
-	if g.releaseAsset == "" {
-		return id, fmt.Errorf("no release asset specified")
-	}
-	for _, asset := range assets {
-		if asset.GetName() == g.releaseAsset {
-			return asset.GetID(), nil
-		}
-	}
-	return id, fmt.Errorf("no asset found for your OS (%s) and architecture (%s)", runtime.GOOS, runtime.GOARCH)
-}
-
-// GetReleaseID returns the release ID.
-func (g GitHub) GetReleaseID(ctx context.Context, version semver.Version) (id int64, err error) {
-	var (
-		page        int
-		versionStr  = version.String()
-		vVersionStr = "v" + versionStr
-	)
-	for {
-		releases, resp, err := g.client.ListReleases(ctx, g.org, g.repo, &github.ListOptions{
-			Page:    page,
-			PerPage: 100,
-		})
-		if err != nil {
-			return id, err
-		}
-		for _, release := range releases {
-			if name := release.GetName(); name == versionStr || name == vVersionStr {
-				return release.GetID(), nil
-			}
-		}
-		if resp.NextPage == 0 {
-			break
-		}
-		page = resp.NextPage
-	}
-	return id, fmt.Errorf("no matching release found")
-}
-
-// LatestVersion calls the GitHub API to return the latest release as a semver.
-func (g GitHub) LatestVersion(ctx context.Context) (semver.Version, error) {
-	release, _, err := g.client.GetLatestRelease(ctx, g.org, g.repo)
-	if err != nil {
-		return semver.Version{}, err
-	}
-	return semver.Parse(strings.TrimPrefix(release.GetName(), "v"))
-}
-
-// SetAsset allows configuring the release asset format.
-//
-// NOTE: This existed because the CLI project was originally using a different
-// release asset name format to the Viceroy project. Although the two projects
-// are now aligned we've kept this feature in case there are any changes
-// between the two projects in the future, or if we have to call out to more
-// external binaries from within the CLI.
-func (g *GitHub) SetAsset(name string) {
-	g.releaseAsset = name
-}
-
-// RepoClient describes the GitHub client behaviours we need.
-type RepoClient interface {
-	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
-	GetRelease(ctx context.Context, owner, repo string, id int64) (*github.RepositoryRelease, *github.Response, error)
-	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
-	ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
-}
-
-// Versioner describes a source of CLI release artifacts.
-type Versioner interface {
-	Binary() string
-	BinaryName() string
-	Download(context.Context, semver.Version) (filename string, err error)
-	LatestVersion(context.Context) (semver.Version, error)
-	SetAsset(name string)
-}
-
-// DefaultAssetFormat represents the standard GitHub release asset name format.
-//
-// Interpolation placeholders:
-// - binary name
-// - semantic version
-// - os
-// - arch
-// - archive file extension (e.g. ".tar.gz" or ".zip")
-const DefaultAssetFormat = "%s_v%s_%s-%s%s"

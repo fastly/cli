@@ -1,36 +1,32 @@
 package update
 
 import (
-	"context"
 	"fmt"
 	"io"
-	"runtime"
 	"strings"
 
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/github"
-	fstruntime "github.com/fastly/cli/pkg/runtime"
 )
 
 // Check if the CLI can be updated.
-func Check(ctx context.Context, currentVersion string, cliVersioner github.Versioner) (current, latest semver.Version, shouldUpdate bool) {
+func Check(currentVersion string, av github.AssetVersioner) (current, latest semver.Version, shouldUpdate bool) {
+	// nosemgrep (invalid-usage-of-modified-variable)
 	current, err := semver.Parse(strings.TrimPrefix(currentVersion, "v"))
 	if err != nil {
 		return current, latest, false
 	}
 
-	latest, err = cliVersioner.LatestVersion(ctx)
+	s, err := av.Version()
 	if err != nil {
 		return current, latest, false
 	}
 
-	// TODO: change goreleaser to produce .tar.gz for CLI on Windows
-	archiveFormat := ".tar.gz"
-	if fstruntime.Windows {
-		archiveFormat = ".zip"
+	// nosemgrep (invalid-usage-of-modified-variable)
+	latest, err = semver.Parse(s)
+	if err != nil {
+		return current, latest, false
 	}
-	asset := fmt.Sprintf(github.DefaultAssetFormat, cliVersioner.BinaryName(), latest, runtime.GOOS, runtime.GOARCH, archiveFormat)
-	cliVersioner.SetAsset(asset)
 
 	return current, latest, latest.GT(current)
 }
@@ -52,14 +48,13 @@ type checkResult struct {
 //	f := CheckAsync(...)
 //	defer f()
 func CheckAsync(
-	ctx context.Context,
 	currentVersion string,
-	cliVersioner github.Versioner,
+	av github.AssetVersioner,
 	quietMode bool,
 ) (printResults func(io.Writer)) {
 	results := make(chan checkResult, 1)
 	go func() {
-		current, latest, shouldUpdate := Check(ctx, currentVersion, cliVersioner)
+		current, latest, shouldUpdate := Check(currentVersion, av)
 		results <- checkResult{current, latest, shouldUpdate}
 	}()
 

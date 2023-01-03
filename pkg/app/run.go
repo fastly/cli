@@ -1,12 +1,10 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/update"
@@ -23,24 +21,11 @@ import (
 	"github.com/fastly/kingpin"
 )
 
-// Versioners represents all supported versioner types.
-type Versioners struct {
-	CLI     github.Versioner
-	Viceroy github.Versioner
-}
-
-// RunOpts represent arguments to Run()
-type RunOpts struct {
-	APIClient  APIClientFactory
-	Args       []string
-	ConfigFile config.File
-	ConfigPath string
-	Env        config.Environment
-	ErrLog     fsterr.LogInterface
-	HTTPClient api.HTTPClient
-	Stdin      io.Reader
-	Stdout     io.Writer
-	Versioners Versioners
+// FastlyAPIClient is a ClientFactory that returns a real Fastly API client
+// using the provided token and endpoint.
+func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
+	client, err := fastly.NewClientForEndpoint(token, endpoint)
+	return client, err
 }
 
 // Run constructs the application including all of the subcommands, parses the
@@ -175,12 +160,16 @@ func Run(opts RunOpts) error {
 		}
 	}
 
+	// NOTE: We return error immediately so there's no issue assigning to global.
+	// nosemgrep
 	globals.APIClient, err = opts.APIClient(token, endpoint)
 	if err != nil {
 		globals.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly API client: %w", err)
 	}
 
+	// NOTE: We return error immediately so there's no issue assigning to global.
+	// nosemgrep
 	globals.RTSClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
 	if err != nil {
 		globals.ErrLog.Add(err)
@@ -188,10 +177,7 @@ func Run(opts RunOpts) error {
 	}
 
 	if opts.Versioners.CLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel() // push cancel on the defer stack first...
 		f := update.CheckAsync(
-			ctx,
 			revision.AppVersion,
 			opts.Versioners.CLI,
 			globals.Flag.Quiet,
@@ -202,6 +188,20 @@ func Run(opts RunOpts) error {
 	return command.Exec(opts.Stdin, opts.Stdout)
 }
 
+// RunOpts represent arguments to Run()
+type RunOpts struct {
+	APIClient  APIClientFactory
+	Args       []string
+	ConfigFile config.File
+	ConfigPath string
+	Env        config.Environment
+	ErrLog     fsterr.LogInterface
+	HTTPClient api.HTTPClient
+	Stdin      io.Reader
+	Stdout     io.Writer
+	Versioners Versioners
+}
+
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)
 // from a user-provided API token. It exists as a type in order to parameterize
 // the Run helper with it: in the real CLI, we can use NewClient from the Fastly
@@ -209,11 +209,10 @@ func Run(opts RunOpts) error {
 // interface via MockClient.
 type APIClientFactory func(token, endpoint string) (api.Interface, error)
 
-// FastlyAPIClient is a ClientFactory that returns a real Fastly API client
-// using the provided token and endpoint.
-func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
-	client, err := fastly.NewClientForEndpoint(token, endpoint)
-	return client, err
+// Versioners represents all supported versioner types.
+type Versioners struct {
+	CLI     github.AssetVersioner
+	Viceroy github.AssetVersioner
 }
 
 // displayTokenSource prints the token source.

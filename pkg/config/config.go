@@ -191,9 +191,12 @@ type CLI struct {
 
 // Viceroy represents viceroy specific configuration.
 type Viceroy struct {
-	LastChecked   string `toml:"last_checked"`
+	// LastChecked is when the version of Viceroy was last checked.
+	LastChecked string `toml:"last_checked"`
+	// LatestVersion is the latest Viceroy version at the time it is set.
 	LatestVersion string `toml:"latest_version"`
-	TTL           string `toml:"ttl"`
+	// TTL is how long the CLI waits before considering the version stale.
+	TTL string `toml:"ttl"`
 }
 
 // Language represents C@E language specific configuration.

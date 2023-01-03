@@ -11,8 +11,11 @@ import (
 
 // RemediationError wraps a normal error with a suggested remediation.
 type RemediationError struct {
-	Prefix      string
-	Inner       error
+	// Prefix is a custom message displayed without modification.
+	Prefix string
+	// Inner is the root error.
+	Inner error
+	// Remediation provides more context and helpful references.
 	Remediation string
 }
 
