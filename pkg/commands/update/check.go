@@ -11,6 +11,7 @@ import (
 
 // Check if the CLI can be updated.
 func Check(currentVersion string, av github.AssetVersioner) (current, latest semver.Version, shouldUpdate bool) {
+	// nosemgrep (invalid-usage-of-modified-variable)
 	current, err := semver.Parse(strings.TrimPrefix(currentVersion, "v"))
 	if err != nil {
 		return current, latest, false
@@ -21,6 +22,7 @@ func Check(currentVersion string, av github.AssetVersioner) (current, latest sem
 		return current, latest, false
 	}
 
+	// nosemgrep (invalid-usage-of-modified-variable)
 	latest, err = semver.Parse(s)
 	if err != nil {
 		return current, latest, false
