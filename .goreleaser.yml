@@ -37,20 +37,14 @@ builds:
     hooks:
       post:
         - cmd: "scripts/documentation.sh {{ .Path }}"
+# https://goreleaser.com/customization/archive/
+# NOTE:Default `format` is tar.gz
 archives:
-  - id: nix
-    builds: [macos, linux]
-    <<: &archive_defaults
-      name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-      files:
-        - none*
+  - builds: [macos, linux, windows]
+    name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    files:
+      - none* # https://goreleaser.com/customization/archive/#packaging-only-the-binaries
     wrap_in_directory: false
-    format: tar.gz
-  - id: windows
-    builds: [windows]
-    <<: *archive_defaults
-    wrap_in_directory: false
-    format: zip
 aurs:
   -
     homepage: "https://github.com/fastly/cli"
