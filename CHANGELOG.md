@@ -1,5 +1,21 @@
 # Changelog
 
+## [v4.6.1](https://github.com/fastly/cli/releases/tag/v4.6.1) (2023-01-05)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v4.6.0...v4.6.1)
+
+**Bug fixes:**
+
+* fix(pkg/commands/vcl/snippet): set default dynamic value [#751](https://github.com/fastly/cli/pull/751)
+
+**Dependencies:** 
+
+* Bump github.com/mattn/go-isatty from 0.0.16 to 0.0.17 [#748](https://github.com/fastly/cli/pull/748)
+
+**Enhancements:**
+
+* build(makefile): add goreleaser target for testing builds locally [#750](https://github.com/fastly/cli/pull/750)
+
 ## [v4.6.0](https://github.com/fastly/cli/releases/tag/v4.6.0) (2023-01-03)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.5.0...v4.6.0)
