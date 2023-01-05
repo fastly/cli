@@ -111,6 +111,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateSnippetInput {
 	input := fastly.CreateSnippetInput{
+		Dynamic:        fastly.Int(0),
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
 	}
