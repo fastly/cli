@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -82,6 +84,13 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.skipBuild && c.watch {
 		return fsterr.ErrIncompatibleServeFlags
+	}
+
+	if runtime.GOARCH == "386" {
+		return fsterr.RemediationError{
+			Inner:       errors.New("this command doesn't support the '386' architecture"),
+			Remediation: "Although the Fastly CLI supports '386', the `compute serve` command requires https://github.com/fastly/Viceroy which does not.",
+		}
 	}
 
 	if !c.skipBuild {
