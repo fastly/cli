@@ -1,5 +1,18 @@
 # Changelog
 
+## [v4.6.2](https://github.com/fastly/cli/releases/tag/v4.6.2) (2023-01-12)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v4.6.1...v4.6.2)
+
+**Bug fixes:**
+
+* fix(pkg/commands/compute/serve): prevent 386 arch users executing command [#753](https://github.com/fastly/cli/pull/753)
+* build(goreleaser): fix Windows archive generation to include zips [#756](https://github.com/fastly/cli/pull/756)
+
+**Dependencies:**
+
+* Bump golang.org/x/term from 0.3.0 to 0.4.0 [#754](https://github.com/fastly/cli/pull/754)
+
 ## [v4.6.1](https://github.com/fastly/cli/releases/tag/v4.6.1) (2023-01-05)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.6.0...v4.6.1)
