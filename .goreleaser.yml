@@ -47,11 +47,16 @@ archives:
         - none*
     wrap_in_directory: false
     format: tar.gz
-  - id: windows
+  - id: windows-tar
     builds: [windows]
     <<: *archive_defaults
     wrap_in_directory: false
     format: tar.gz
+  - id: windows-zip
+    builds: [windows]
+    <<: *archive_defaults
+    wrap_in_directory: false
+    format: zip
 aurs:
   -
     homepage: "https://github.com/fastly/cli"
