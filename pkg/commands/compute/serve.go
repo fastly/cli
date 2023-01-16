@@ -77,7 +77,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
-	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute)").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
+	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute). Defaults to current directory.").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
 
 	return &c
 }
