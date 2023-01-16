@@ -80,7 +80,7 @@ var ErrNoID = RemediationError{
 // ErrReadingManifest means there was a problem reading the package manifest.
 var ErrReadingManifest = RemediationError{
 	Inner:       fmt.Errorf("error reading package manifest"),
-	Remediation: ComputeInitRemediation,
+	Remediation: "Ensure the Fastly CLI is being run within a directory containing a fastly.toml file. " + ComputeInitRemediation,
 }
 
 // ErrParsingManifest means there was a problem unmarshalling the package manifest.
