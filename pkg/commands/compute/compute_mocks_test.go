@@ -49,6 +49,17 @@ func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.Dictio
 	}, nil
 }
 
+func createObjectStoreOK(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error) {
+	return &fastly.ObjectStore{
+		ID:   "example-store",
+		Name: i.Name,
+	}, nil
+}
+
+func createObjectStoreItemOK(i *fastly.InsertObjectStoreKeyInput) error {
+	return nil
+}
+
 func getPackageOk(i *fastly.GetPackageInput) (*fastly.Package, error) {
 	return &fastly.Package{ServiceID: i.ServiceID, ServiceVersion: i.ServiceVersion}, nil
 }

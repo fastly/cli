@@ -125,7 +125,7 @@ func (d *ObjectStores) Create() error {
 
 		if len(objectStore.Items) > 0 {
 			for _, item := range objectStore.Items {
-				d.Progress.Step(fmt.Sprintf("Creating object store key/value '%s'...", item.Key))
+				d.Progress.Step(fmt.Sprintf("Creating object store key '%s'...", item.Key))
 
 				err := d.APIClient.InsertObjectStoreKey(&fastly.InsertObjectStoreKeyInput{
 					ID:    dict.ID,
@@ -134,7 +134,7 @@ func (d *ObjectStores) Create() error {
 				})
 				if err != nil {
 					d.Progress.Fail()
-					return fmt.Errorf("error creating object store key/value: %w", err)
+					return fmt.Errorf("error creating object store key: %w", err)
 				}
 			}
 		}
