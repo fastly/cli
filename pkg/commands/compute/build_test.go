@@ -77,8 +77,9 @@ func TestBuildRust(t *testing.T) {
 			language = "rust"`,
 			cargoManifest: `
 			[package]
-			name = "test"`,
-			wantError: "failed to find SDK 'fastly' in the 'Cargo.toml' manifest",
+      name = "test"
+			version = "1.0.0"`,
+			wantError: "required dependency missing",
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
