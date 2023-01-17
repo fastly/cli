@@ -218,9 +218,10 @@ type Scripts struct {
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
-	Backends     map[string]*SetupBackend    `toml:"backends,omitempty"`
-	Dictionaries map[string]*SetupDictionary `toml:"dictionaries,omitempty"`
-	Loggers      map[string]*SetupLogger     `toml:"log_endpoints,omitempty"`
+	Backends     map[string]*SetupBackend     `toml:"backends,omitempty"`
+	Dictionaries map[string]*SetupDictionary  `toml:"dictionaries,omitempty"`
+	Loggers      map[string]*SetupLogger      `toml:"log_endpoints,omitempty"`
+	ObjectStores map[string]*SetupObjectStore `toml:"object_stores,omitempty"`
 }
 
 // SetupBackend represents a '[setup.backends.<T>]' instance.
@@ -245,6 +246,18 @@ type SetupDictionaryItems struct {
 // SetupLogger represents a '[setup.log_endpoints.<T>]' instance.
 type SetupLogger struct {
 	Provider string `toml:"provider,omitempty"`
+}
+
+// SetupObjectStore represents a '[setup.object_stores.<T>]' instance.
+type SetupObjectStore struct {
+	Items       map[string]SetupObjectStoreItems `toml:"items,omitempty"`
+	Description string                           `toml:"description,omitempty"`
+}
+
+// SetupObjectStoreItems represents a '[setup.object_stores.<T>.items]' instance.
+type SetupObjectStoreItems struct {
+	Value       string `toml:"value,omitempty"`
+	Description string `toml:"description,omitempty"`
 }
 
 // LocalServer represents a list of mocked Viceroy resources.
