@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
@@ -157,10 +156,7 @@ type JsDependency struct {
 // NOTE: npm returns JSON that has an `invalid` field.
 // This means we know when searching for the manifest has failed.
 type JsPackage struct {
-	Dependencies    map[string]JsDependency `json:"dependencies"`
-	DevDependencies map[string]JsDependency `json:"devDependencies"`
-	Scripts         map[string]string       `json:"scripts"`
-	Invalid         bool                    `json:"invalid"`
+	Dependencies map[string]JsDependency `json:"dependencies"`
 }
 
 // validateJsSDK marshals the JS manifest into JSON to check if the dependency
@@ -174,7 +170,7 @@ func validateJsSDK(sdk string, manifestCommandOutput []byte, notifier chan strin
 	var p JsPackage
 
 	err := json.Unmarshal(manifestCommandOutput, &p)
-	if err != nil || p.Invalid {
+	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to unmarshal package.json: %w", err),
 			Remediation: fmt.Sprintf("Ensure your package.json is valid and contains the '%s' dependency.", sdk),
@@ -182,8 +178,8 @@ func validateJsSDK(sdk string, manifestCommandOutput []byte, notifier chan strin
 	}
 
 	var needsWebpack bool
-	for k, v := range p.Scripts {
-		if k == "prebuild" && strings.Contains(v, "webpack") {
+	for k := range p.Dependencies {
+		if k == "webpack" {
 			needsWebpack = true
 			break
 		}
@@ -198,11 +194,6 @@ func validateJsSDK(sdk string, manifestCommandOutput []byte, notifier chan strin
 	}()
 
 	for k := range p.Dependencies {
-		if k == sdk {
-			return nil
-		}
-	}
-	for k := range p.DevDependencies {
 		if k == sdk {
 			return nil
 		}
