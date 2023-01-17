@@ -172,6 +172,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		backends     *setup.Backends
 		dictionaries *setup.Dictionaries
 		loggers      *setup.Loggers
+		objectStores *setup.ObjectStores
 	)
 
 	if newService {
@@ -200,6 +201,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		loggers = &setup.Loggers{
 			Setup:  c.Manifest.File.Setup.Loggers,
 			Stdout: out,
+		}
+
+		objectStores = &setup.ObjectStores{
+			APIClient:      apiClient,
+			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
+			NonInteractive: c.Globals.Flag.NonInteractive,
+			Setup:          c.Manifest.File.Setup.ObjectStores,
+			Stdin:          in,
+			Stdout:         out,
 		}
 	}
 
@@ -242,6 +252,14 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// significantly between providers.
 			_ = loggers.Configure()
 		}
+
+		if objectStores.Predefined() {
+			err = objectStores.Configure()
+			if err != nil {
+				errLogService(errLog, err, serviceID, serviceVersion.Number)
+				return fmt.Errorf("error configuring service object stores: %w", err)
+			}
+		}
 	}
 
 	text.Break(out)
@@ -279,10 +297,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if newService {
 		// NOTE: We can't pass a text.Progress instance to setup.Backends or
-		// setup.Dictionaries at the point of constructing the setup objects,
+		// setup.Dictionaries (etc) at the point of constructing the setup objects,
 		// as the text.Progress instance prevents other stdout from being read.
 		backends.Progress = progress
 		dictionaries.Progress = progress
+		objectStores.Progress = progress
 
 		if err := backends.Create(); err != nil {
 			errLog.AddWithContext(err, map[string]any{
@@ -296,6 +315,17 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 
 		if err := dictionaries.Create(); err != nil {
+			errLog.AddWithContext(err, map[string]any{
+				"Accept defaults": c.Globals.Flag.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flag.AutoYes,
+				"Non-interactive": c.Globals.Flag.NonInteractive,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
+			return err
+		}
+
+		if err := objectStores.Create(); err != nil {
 			errLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flag.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flag.AutoYes,
