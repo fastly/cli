@@ -1266,6 +1266,188 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
+		// NOTE: The following test validates [setup] only works for a new service.
+		{
+			name: "success with setup.object_stores configuration and existing service",
+			args: args("compute deploy --service-id 123 --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				CreateBackendFn:     createBackendOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.object_stores.store_one]
+			description = "My first object store"
+			[setup.object_stores.store_one.items.foo]
+			value = "my default value for foo"
+			description = "a good description about foo"
+			[setup.object_stores.store_one.items.bar]
+			value = "my default value for bar"
+			description = "a good description about bar"
+			`,
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 123, version 4)",
+			},
+			dontWantOutput: []string{
+				"Configuring object store 'store_one'",
+				"Create an object store key called 'foo'",
+				"Create an object store key called 'bar'",
+				"Creating object store 'store_one'...",
+				"Creating object store key 'foo'...",
+				"Creating object store key 'bar'...",
+			},
+		},
+		{
+			name: "success with setup.object_stores configuration and no existing service",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:      activateVersionOk,
+				CreateBackendFn:        createBackendOK,
+				CreateObjectStoreFn:    createObjectStoreOK,
+				InsertObjectStoreKeyFn: createObjectStoreItemOK,
+				CreateDomainFn:         createDomainOK,
+				CreateServiceFn:        createServiceOK,
+				GetPackageFn:           getPackageOk,
+				GetServiceFn:           getServiceOK,
+				GetServiceDetailsFn:    getServiceDetailsWasm,
+				ListDomainsFn:          listDomainsOk,
+				ListVersionsFn:         testutil.ListVersions,
+				UpdatePackageFn:        updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.object_stores.store_one]
+			description = "My first object store"
+			[setup.object_stores.store_one.items.foo]
+			value = "my default value for foo"
+			description = "a good description about foo"
+			[setup.object_stores.store_one.items.bar]
+			value = "my default value for bar"
+			description = "a good description about bar"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Configuring object store 'store_one'",
+				"Create an object store key called 'foo'",
+				"Create an object store key called 'bar'",
+				"Creating object store 'store_one'...",
+				"Creating object store key 'foo'...",
+				"Creating object store key 'bar'...",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with setup.object_stores configuration and no existing service and --non-interactive",
+			args: args("compute deploy --non-interactive --token 123"),
+			api: mock.API{
+				ActivateVersionFn:      activateVersionOk,
+				CreateBackendFn:        createBackendOK,
+				CreateObjectStoreFn:    createObjectStoreOK,
+				InsertObjectStoreKeyFn: createObjectStoreItemOK,
+				CreateDomainFn:         createDomainOK,
+				CreateServiceFn:        createServiceOK,
+				GetPackageFn:           getPackageOk,
+				GetServiceFn:           getServiceOK,
+				GetServiceDetailsFn:    getServiceDetailsWasm,
+				ListDomainsFn:          listDomainsOk,
+				ListVersionsFn:         testutil.ListVersions,
+				UpdatePackageFn:        updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.object_stores.store_one]
+			description = "My first object store"
+			[setup.object_stores.store_one.items.foo]
+			value = "my default value for foo"
+			description = "a good description about foo"
+			[setup.object_stores.store_one.items.bar]
+			value = "my default value for bar"
+			description = "a good description about bar"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Creating object store 'store_one'...",
+				"Creating object store key 'foo'...",
+				"Creating object store key 'bar'...",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with setup.object_stores configuration and no existing service and no predefined values",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:      activateVersionOk,
+				CreateBackendFn:        createBackendOK,
+				CreateObjectStoreFn:    createObjectStoreOK,
+				InsertObjectStoreKeyFn: createObjectStoreItemOK,
+				CreateDomainFn:         createDomainOK,
+				CreateServiceFn:        createServiceOK,
+				GetPackageFn:           getPackageOk,
+				GetServiceFn:           getServiceOK,
+				GetServiceDetailsFn:    getServiceDetailsWasm,
+				ListDomainsFn:          listDomainsOk,
+				ListVersionsFn:         testutil.ListVersions,
+				UpdatePackageFn:        updatePackageOk,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.object_stores.store_one]
+			[setup.object_stores.store_one.items.foo]
+			[setup.object_stores.store_one.items.bar]
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Configuring object store 'store_one'",
+				"Create an object store key called 'foo'",
+				"Create an object store key called 'bar'",
+				"Creating object store 'store_one'...",
+				"Creating object store key 'foo'...",
+				"Creating object store key 'bar'...",
+				"Uploading package...",
+				"Activating version...",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			// The following are predefined values for the `description` and `value`
+			// fields from the prior setup.dictionaries tests that we expect to not
+			// be present in the stdout/stderr as the [setup/dictionaries]
+			// configuration does not define them.
+			dontWantOutput: []string{
+				"My first object store",
+				"my default value for foo",
+				"my default value for bar",
+			},
+		},
 	}
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
