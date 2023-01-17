@@ -480,7 +480,7 @@ func validatePackage(
 
 	hashSum, err = getHashSum(contents)
 	if err != nil {
-		return pkgPath, hashSum, err
+		return pkgPath, "", err
 	}
 
 	return pkgPath, hashSum, nil
