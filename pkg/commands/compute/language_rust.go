@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -52,10 +53,14 @@ const RustDefaultBuildCommand = "cargo build --bin %s --release --target wasm32-
 // RustManifest is the manifest file for defining project configuration.
 const RustManifest = "Cargo.toml"
 
+// RustManifestCommand is the toolchain command to validate the manifest exists,
+// and also enables parsing of the project's dependencies.
+const RustManifestCommand = "cargo metadata --format-version 1 --quiet"
+
 // RustManifestRemediation is a error remediation message for a missing manifest.
 const RustManifestRemediation = "cargo new $NAME --bin"
 
-// RustPackageName is the expected binary crate/package name to be built.
+// RustPackageName is the expected binary create/package name to be built.
 const RustPackageName = "fastly-compute-project"
 
 // RustSDK is the required Compute@Edge SDK.
@@ -77,7 +82,7 @@ const RustToolchainURL = "https://doc.rust-lang.org/stable/cargo/"
 
 // RustToolchainVersionCommand is the shell command for returning the Rust
 // version.
-const RustToolchainVersionCommand = "cargo version"
+const RustToolchainVersionCommand = "cargo version --quiet"
 
 // NewRust constructs a new Rust toolchain.
 func NewRust(
@@ -90,7 +95,7 @@ func NewRust(
 ) *Rust {
 	RustConstraints["toolchain"] = cfg.ToolchainConstraint
 
-	return &Rust{
+	r := &Rust{
 		Shell:     Shell{},
 		config:    cfg,
 		errlog:    errlog,
@@ -108,6 +113,7 @@ func NewRust(
 			ErrLog:                        errlog,
 			FastlyManifestFile:            fastlyManifest,
 			Manifest:                      RustManifest,
+			ManifestCommand:               RustManifestCommand,
 			ManifestRemediation:           RustManifestRemediation,
 			Output:                        out,
 			PatchedManifestNotifier:       ch,
@@ -121,6 +127,10 @@ func NewRust(
 			ToolchainURL:                  RustToolchainURL,
 		},
 	}
+
+	r.validator.ToolchainPostHook = r.ToolchainPostHook
+
+	return r
 }
 
 // Rust implements a Toolchain for the Rust language.
@@ -134,6 +144,8 @@ type Rust struct {
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
+	// projectRoot is the root directory where the Cargo.toml is located.
+	projectRoot string
 	// timeout is the build execution threshold.
 	timeout int
 	// validator is an abstraction to validate required resources are installed.
@@ -146,18 +158,48 @@ func (r Rust) Initialize(_ io.Writer) error {
 	return nil
 }
 
-// Verify ensures the user's environment has all the required resources/tools.
-func (r *Rust) Verify(_ io.Writer) error {
-	// NOTE: Validate whether the --bin flag matches the Cargo.toml package name.
-	// If it doesn't match, update the default build script to match.
+// ToolchainPostHook validates whether the --bin flag matches the Cargo.toml
+// package name. If it doesn't match, update the default build script to match.
+func (r *Rust) ToolchainPostHook() error {
+	s := "cargo locate-project --quiet"
+	args := strings.Split(s, " ")
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as we control this command.
+	// #nosec
+	// nosemgrep
+	cmd := exec.Command(args[0], args[1:]...)
+
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		if len(stdoutStderr) > 0 {
+			err = fmt.Errorf("%w: %s", err, strings.TrimSpace(string(stdoutStderr)))
+		}
+		return fmt.Errorf("failed to execute command '%s': %w", s, err)
+	}
+
+	var cp *CargoLocateProject
+	err = json.Unmarshal(stdoutStderr, &cp)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal manifest project root metadata: %w", err)
+	}
+
+	r.projectRoot = cp.Root
+
 	var m CargoManifest
-	if err := m.Read(RustManifest); err != nil {
+	if err := m.Read(cp.Root); err != nil {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
+
 	if m.Package.Name != RustPackageName {
 		r.validator.DefaultBuildCommand = fmt.Sprintf(RustDefaultBuildCommand, m.Package.Name)
 	}
 
+	return nil
+}
+
+// Verify ensures the user's environment has all the required resources/tools.
+func (r *Rust) Verify(_ io.Writer) error {
 	return r.validator.Validate()
 }
 
@@ -191,7 +233,7 @@ func (r *Rust) ProcessLocation() error {
 		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
 	var m CargoManifest
-	if err := m.Read(RustManifest); err != nil {
+	if err := m.Read(r.projectRoot); err != nil {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
 	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", m.Package.Name))
@@ -205,12 +247,20 @@ func (r *Rust) ProcessLocation() error {
 	return nil
 }
 
+// CargoLocateProject represents the metadata for where to find the project's
+// Cargo.toml manifest file.
+type CargoLocateProject struct {
+	Root string `json:"root"`
+}
+
 // rustupToolchain returns the active rustup toolchain and falls back to stable
 // if there was an error.
 func rustupToolchain() string {
 	stable := "stable"
 	cmd := []string{"rustup", "show", "active-toolchain"}
-	c := exec.Command(cmd[0], cmd[1:]...) // #nosec G204
+	// #nosec G204
+	// nosemgrep
+	c := exec.Command(cmd[0], cmd[1:]...)
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
 		return stable
@@ -308,21 +358,31 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 
 // validateRustSDK marshals the Rust manifest into toml to check if the
 // dependency has been defined in the Cargo.toml manifest.
-func validateRustSDK(name string, bs []byte, _ chan string) error {
-	e := fmt.Errorf(SDKErrMessageFormat, name, RustManifest)
+func validateRustSDK(sdk string, manifestCommandOutput []byte, _ chan string) error {
+	var cm *CargoMetadata
 
-	tree, err := toml.LoadBytes(bs)
+	err := json.Unmarshal(manifestCommandOutput, &cm)
 	if err != nil {
-		return e
+		return fmt.Errorf("failed to unmarshal manifest metadata: %w", err)
 	}
 
-	if v, ok := tree.GetArray("dependencies").(*toml.Tree); ok {
-		if _, ok := v.Get("fastly").(*toml.Tree); ok {
-			return nil
-		} else if dependency, ok := v.Get("fastly").(string); ok && dependency != "" {
+	remediation := fmt.Sprintf("Ensure your %s is valid and contains the '%s' dependency.", RustManifest, sdk)
+
+	if len(cm.Package) < 1 {
+		return fsterr.RemediationError{
+			Inner:       errors.New("no dependencies declared"),
+			Remediation: remediation,
+		}
+	}
+
+	for _, cp := range cm.Package {
+		if cp.Name == sdk {
 			return nil
 		}
 	}
 
-	return e
+	return fsterr.RemediationError{
+		Inner:       errors.New("required dependency missing"),
+		Remediation: remediation,
+	}
 }
