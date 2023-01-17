@@ -392,7 +392,7 @@ func (f *File) AutoMigrateVersion(data []byte, path string) ([]byte, error) {
 
 		data, err = tree.Marshal()
 		if err != nil {
-			return data, fmt.Errorf("error marshalling modified manifest_version fastly.toml: %w", err)
+			return nil, fmt.Errorf("error marshalling modified manifest_version fastly.toml: %w", err)
 		}
 
 		// NOTE: The scenario will end up triggering two calls to toml.Unmarshal().
