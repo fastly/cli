@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
@@ -47,6 +46,10 @@ const JsInstaller = "npm install"
 // JsManifest is the manifest file for defining project configuration.
 const JsManifest = "package.json"
 
+// JsManifestCommand is the toolchain command to validate the manifest exists,
+// and also enables parsing of the project's dependencies.
+const JsManifestCommand = "npm list --json --depth 0"
+
 // JsManifestRemediation is a error remediation message for a missing manifest.
 const JsManifestRemediation = "npm init"
 
@@ -77,24 +80,26 @@ func NewJavaScript(
 		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
 		validator: ToolchainValidator{
-			Compilation:             JsCompilation,
-			CompilationIntegrated:   true,
-			CompilationSkipVersion:  true,
-			CompilationURL:          JsCompilationURL,
-			DefaultBuildCommand:     JsDefaultBuildCommand,
-			ErrLog:                  errlog,
-			FastlyManifestFile:      fastlyManifest,
-			Installer:               JsInstaller,
-			Manifest:                JsManifest,
-			ManifestRemediation:     JsManifestRemediation,
-			Output:                  out,
-			PatchedManifestNotifier: ch,
-			SDK:                     JsSDK,
-			SDKCustomValidator:      validateJsSDK,
-			Toolchain:               JsToolchain,
-			ToolchainLanguage:       "JavaScript",
-			ToolchainSkipVersion:    true,
-			ToolchainURL:            JsToolchainURL,
+			Compilation:              JsCompilation,
+			CompilationIntegrated:    true,
+			CompilationSkipVersion:   true,
+			CompilationURL:           JsCompilationURL,
+			DefaultBuildCommand:      JsDefaultBuildCommand,
+			ErrLog:                   errlog,
+			FastlyManifestFile:       fastlyManifest,
+			Installer:                JsInstaller,
+			Manifest:                 JsManifest,
+			ManifestCommand:          JsManifestCommand,
+			ManifestCommandSkipError: true,
+			ManifestRemediation:      JsManifestRemediation,
+			Output:                   out,
+			PatchedManifestNotifier:  ch,
+			SDK:                      JsSDK,
+			SDKCustomValidator:       validateJsSDK,
+			Toolchain:                JsToolchain,
+			ToolchainLanguage:        "JavaScript",
+			ToolchainSkipVersion:     true,
+			ToolchainURL:             JsToolchainURL,
 		},
 	}
 }
@@ -140,11 +145,18 @@ func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, c
 	}, out, progress, verbose, nil, callback)
 }
 
+// JsDependency represents the project's SDK and version.
+type JsDependency struct {
+	Version  string `json:"version"`
+	Resolved string `json:"resolved"`
+}
+
 // JsPackage represents a package.json manifest.
+//
+// NOTE: npm returns JSON that has an `invalid` field.
+// This means we know when searching for the manifest has failed.
 type JsPackage struct {
-	Dependencies    map[string]string `json:"dependencies"`
-	DevDependencies map[string]string `json:"devDependencies"`
-	Scripts         map[string]string `json:"scripts"`
+	Dependencies map[string]JsDependency `json:"dependencies"`
 }
 
 // validateJsSDK marshals the JS manifest into JSON to check if the dependency
@@ -152,22 +164,22 @@ type JsPackage struct {
 //
 // NOTE: This function also causes a side-effect of modifying the default build
 // script based on the user's project context (e.g does it require webpack).
-func validateJsSDK(name string, bs []byte, notifier chan string) error {
-	e := fmt.Errorf(SDKErrMessageFormat, name, JsManifest)
+func validateJsSDK(sdk string, manifestCommandOutput []byte, notifier chan string) error {
+	e := fmt.Errorf(SDKErrMessageFormat, sdk, JsManifest)
 
 	var p JsPackage
 
-	err := json.Unmarshal(bs, &p)
+	err := json.Unmarshal(manifestCommandOutput, &p)
 	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to unmarshal package.json: %w", err),
-			Remediation: fmt.Sprintf("Ensure your package.json is valid and contains the '%s' dependency.", name),
+			Remediation: fmt.Sprintf("Ensure your package.json is valid and contains the '%s' dependency.", sdk),
 		}
 	}
 
 	var needsWebpack bool
-	for k, v := range p.Scripts {
-		if k == "prebuild" && strings.Contains(v, "webpack") {
+	for k := range p.Dependencies {
+		if k == "webpack" {
 			needsWebpack = true
 			break
 		}
@@ -182,12 +194,7 @@ func validateJsSDK(name string, bs []byte, notifier chan string) error {
 	}()
 
 	for k := range p.Dependencies {
-		if k == name {
-			return nil
-		}
-	}
-	for k := range p.DevDependencies {
-		if k == name {
+		if k == sdk {
 			return nil
 		}
 	}

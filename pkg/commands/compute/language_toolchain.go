@@ -14,7 +14,6 @@ import (
 	"github.com/Masterminds/semver/v3"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
-	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
@@ -90,6 +89,10 @@ type ToolchainValidator struct {
 	// DefaultBuildCommandNotifier allows the language to change the default build
 	// script based on the user's project requirements (e.g. was webpack needed).
 	//
+	// NOTE: This exists, for example, so that JavaScript and AssemblyScript could
+	// check for the webpack dependency and consequently modify the user's default
+	// build script.
+	//
 	// WARNING: This is an unbuffered channel and should only receive one message.
 	// We should only be sending a message to it once from the SDKCustomValidator.
 	DefaultBuildCommandNotifier chan string
@@ -111,6 +114,22 @@ type ToolchainValidator struct {
 	// configuration (e.g. package.json, Cargo.toml, go.mod).
 	Manifest string
 
+	// ManifestCommand is a language specific shell command using the language
+	// specific toolchain to both enable parsing of the project dependencies as
+	// well as confirming if the manifest itself exists.
+	ManifestCommand string
+
+	// ManifestCommandSkipError allows a language to skip handling an error. This
+	// will result in the stdout output to be returned for parsing.
+	//
+	// NOTE: This exists because JavaScript's npm toolchain will still produce
+	// valid JSON that can be parsed to be sure the user has specified the
+	// required SDK. It will error though at the stage we call the ManifestCommand
+	// because `npm install` hasn't yet been called (that happens after we
+	// validate there is a package.json) and so there will be missing
+	// sub-dependencies (which is why npm errors, to tell you to `npm install`).
+	ManifestCommandSkipError bool
+
 	// ManifestRemediation is a language specific error remediation.
 	ManifestRemediation string
 
@@ -130,7 +149,7 @@ type ToolchainValidator struct {
 
 	// SDKCustomValidator allows a supported language to define their own method
 	// for how to validate if their manifest contains the required SDK dependency.
-	SDKCustomValidator func(name string, bs []byte, notifier chan string) error
+	SDKCustomValidator func(sdk string, manifestCommandOutput []byte, notifier chan string) error
 
 	// Toolchain is a language specific executable responsible for managing
 	// dependencies (e.g. npm, cargo, go).
@@ -143,6 +162,13 @@ type ToolchainValidator struct {
 	// ToolchainLanguage is the language of the Compute@Edge project.
 	// This is used for displaying debug information.
 	ToolchainLanguage string
+
+	// ToolchainPostHook enables a language to execute code after the relevant
+	// toolchain validation step has completed.
+	//
+	// NOTE: This exists, for example, so Rust could validate its --bin flag
+	// matched the Cargo.toml package name.
+	ToolchainPostHook func() error
 
 	// ToolchainSkipVersion is a language specific indicator that the
 	// toolchain does not need to have its version checked against a constraint
@@ -168,10 +194,12 @@ func (tv *ToolchainValidator) Validate() error {
 	if err := tv.toolchain(); err != nil {
 		return err
 	}
-	if err := tv.manifestFile(); err != nil {
-		return err
+	if tv.ToolchainPostHook != nil {
+		if err := tv.ToolchainPostHook(); err != nil {
+			return err
+		}
 	}
-	if err := tv.sdk(); err != nil {
+	if err := tv.manifestFile(); err != nil {
 		return err
 	}
 	if err := tv.installDependencies(); err != nil {
@@ -213,7 +241,8 @@ func (tv ToolchainValidator) toolchainVersion() error {
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
 	// Disabling as we trust the source of the variable.
-	/* #nosec */
+	// #nosec
+	// nosemgrep
 	cmd := exec.Command(args[0], args[1:]...)
 	stdoutStderr, err := cmd.CombinedOutput()
 	output := string(stdoutStderr)
@@ -276,67 +305,32 @@ func (tv ToolchainValidator) toolchainVersion() error {
 func (tv ToolchainValidator) manifestFile() error {
 	fmt.Fprintf(tv.Output, "\nChecking if manifest '%s' exists...\n", tv.Manifest)
 
-	m, err := filepath.Abs(tv.Manifest)
-	if err != nil {
-		tv.ErrLog.Add(err)
-		return fmt.Errorf("failed to construct path to '%s': %w", tv.Manifest, err)
-	}
+	msg := "The language toolchain is unable to validate %s. If there are any errors building this project, check you have the appropriate manifest available and configured with the expected language SDK."
 
-	if !filesystem.FileExists(m) {
-		msg := fmt.Sprintf(fsterr.FormatTemplate, text.Bold(tv.ManifestRemediation))
-		remediation := fmt.Sprintf("%s\n\nThen execute:\n\n\t$ fastly compute build", msg)
-		err := fsterr.RemediationError{
-			Inner:       fmt.Errorf("%s not found", tv.Manifest),
-			Remediation: remediation,
-		}
-		tv.ErrLog.Add(err)
-		return err
-	}
-
-	fmt.Fprintf(tv.Output, "Found '%s' at %s\n", tv.Manifest, m)
-
-	return nil
-}
-
-// sdk validates the relevant Compute@Edge SDK is defined in the language
-// specific manifest.
-func (tv ToolchainValidator) sdk() error {
-	fmt.Fprintf(tv.Output, "\nChecking if '%s' is defined in '%s'...\n", tv.SDK, tv.Manifest)
-
-	m, err := filepath.Abs(tv.Manifest)
-	if err != nil {
-		tv.ErrLog.Add(err)
-		return fmt.Errorf("failed to construct path to '%s': %w", tv.Manifest, err)
-	}
-
-	// gosec flagged this:
-	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
-	// Disabling as we trust the source of the variable.
-	/* #nosec */
-	bs, err := os.ReadFile(m)
-	if err != nil {
-		err = fmt.Errorf("failed to read file '%s': %w", m, err)
-		tv.ErrLog.Add(err)
-		return err
-	}
-
-	success := fmt.Sprintf("Found '%s' in '%s'\n", tv.SDK, tv.Manifest)
-
-	if tv.SDKCustomValidator != nil {
-		if err := tv.SDKCustomValidator(tv.SDK, bs, tv.DefaultBuildCommandNotifier); err != nil {
-			return err
-		}
-		fmt.Fprint(tv.Output, success)
+	// NOTE: We expect each language to have a toolchain command to validate with.
+	// But if that's not possible, we'll skip this validation step and inform the
+	// user of what is required.
+	if tv.ManifestCommand == "" {
+		text.Info(tv.Output, fmt.Sprintf(msg, "the existence of a %s"), tv.Manifest)
 		return nil
 	}
 
-	if !bytes.Contains(bs, []byte(tv.SDK)) {
-		err = fmt.Errorf(SDKErrMessageFormat, tv.SDK, m)
-		tv.ErrLog.Add(err)
+	args := strings.Split(tv.ManifestCommand, " ")
+
+	output, err := execManifestCommand(args, tv.ErrLog, tv.ManifestCommand, tv.ManifestCommandSkipError)
+	if err != nil {
 		return err
 	}
 
-	fmt.Fprint(tv.Output, success)
+	if tv.SDKCustomValidator != nil {
+		if err := tv.SDKCustomValidator(tv.SDK, output, tv.DefaultBuildCommandNotifier); err != nil {
+			return err
+		}
+		fmt.Fprintf(tv.Output, "Found '%s' in '%s'\n", tv.SDK, tv.Manifest)
+		return nil
+	}
+
+	text.Info(tv.Output, fmt.Sprintf(msg, "the required language SDK '%s' is installed"), tv.SDK)
 	return nil
 }
 
@@ -415,7 +409,8 @@ func (tv ToolchainValidator) compilation() error {
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
 	// Disabling as we trust the source of the variable.
-	/* #nosec */
+	// #nosec
+	// nosemgrep
 	cmd := exec.Command(args[0], args[1:]...)
 	stdoutStderr, err := cmd.CombinedOutput()
 	output := string(stdoutStderr)
@@ -429,9 +424,18 @@ func (tv ToolchainValidator) compilation() error {
 
 	match := tv.CompilationTargetPattern.FindStringSubmatch(output)
 	if len(match) < 2 { // We expect a pattern with one capture group.
+		remediation := tv.visitURLRemediation(tv.Compilation, tv.CompilationURL)
+		if tv.CompilationCommandRemediation != "" {
+			remediation = tv.commandRemediation(tv.Compilation, tv.CompilationURL, tv.CompilationCommandRemediation)
+		}
+
 		err := fmt.Errorf("failed to find '%s' with the pattern '%s'", tv.Compilation, tv.CompilationTargetPattern)
 		tv.ErrLog.Add(err)
-		return err
+
+		return fsterr.RemediationError{
+			Inner:       err,
+			Remediation: remediation,
+		}
 	}
 
 	if tv.CompilationIntegrated {
@@ -588,12 +592,36 @@ func getJsToolchainBinPath(bin string) (string, error) {
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as the variables come from trusted sources:
 	// The CLI parser enforces supported values via EnumVar.
-	/* #nosec */
+	// #nosec
+	// nosemgrep
 	path, err := exec.Command(bin, "bin").Output()
 	if err != nil {
 		return "", err
 	}
 	return strings.TrimSpace(string(path)), nil
+}
+
+// execManifestCommand opens a sub shell to execute the language toolchain
+// command responsible for producing dependency metadata.
+func execManifestCommand(args []string, errLog fsterr.LogInterface, manifestCommand string, skipError bool) (output []byte, err error) {
+	var out bytes.Buffer
+
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as we control this command.
+	// #nosec
+	// nosemgrep
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdout = &out
+
+	err = cmd.Run()
+
+	if err != nil && !skipError {
+		errLog.Add(err)
+		return out.Bytes(), fmt.Errorf("failed to execute command '%s': %w", manifestCommand, err)
+	}
+
+	return out.Bytes(), nil
 }
 
 // execCommand opens a sub shell to execute the language build script.
