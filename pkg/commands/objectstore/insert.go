@@ -23,11 +23,11 @@ func NewInsertKeyCommand(parent cmd.Registerer, globals *config.Data, data manif
 	c.Globals = globals
 	c.manifest = data
 	c.CmdClause = parent.Command("insert", "Insert key/value pair into a Fastly object store")
-	c.CmdClause.Flag("id", "Name of Object Store").Short('n').Required().StringVar(&c.Input.ID)
 	// FIXME: This should be `--key` with a short `-k` flag.
 	c.CmdClause.Flag("k", "Key to insert").Required().StringVar(&c.Input.Key)
 	// FIXME: This should be `--value`.
 	c.CmdClause.Flag("v", "Value to insert").Required().StringVar(&c.Input.Value)
+	c.CmdClause.Flag("id", "ID of Object Store").Short('n').Required().StringVar(&c.Input.ID)
 
 	return &c
 }
