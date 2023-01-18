@@ -99,6 +99,7 @@ func TestServeFlagDivergence(t *testing.T) {
 		"file",
 		"skip-build",
 		"watch",
+		"watch-dir",
 	}
 
 	iter = serveFlags.MapRange()

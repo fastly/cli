@@ -52,6 +52,7 @@ type ServeCommand struct {
 	file      string
 	skipBuild bool
 	watch     bool
+	watchDir  cmd.OptionalString
 }
 
 // NewServeCommand returns a usable command registered under the parent.
@@ -76,6 +77,7 @@ func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCo
 	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
+	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute). Defaults to current directory.").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
 
 	return &c
 }
@@ -111,7 +113,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress.Done()
 
 	for {
-		err = local(bin, c.file, c.addr, c.env.Value, c.debug, c.watch, c.Globals.Verbose(), out, c.Globals.ErrLog)
+		err = local(bin, c.file, c.addr, c.env.Value, c.debug, c.watch, c.watchDir, c.Globals.Verbose(), out, c.Globals.ErrLog)
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
 				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
@@ -400,7 +402,7 @@ func setBinPerms(bin string) error {
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin, file, addr, env string, debug, watch, verbose bool, out io.Writer, errLog fsterr.LogInterface) error {
+func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.OptionalString, verbose bool, out io.Writer, errLog fsterr.LogInterface) error {
 	if env != "" {
 		env = "." + env
 	}
@@ -436,7 +438,7 @@ func local(bin, file, addr, env string, debug, watch, verbose bool, out io.Write
 
 	restart := make(chan bool)
 	if watch {
-		go watchFiles(verbose, s, out, restart)
+		go watchFiles(watchDir, verbose, s, out, restart)
 	}
 
 	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
@@ -482,8 +484,8 @@ func local(bin, file, addr, env string, debug, watch, verbose bool, out io.Write
 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
-func watchFiles(verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
-	gi := gitIgnore()
+func watchFiles(watchDir cmd.OptionalString, verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+	gi := gitIgnore(watchDir)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -563,8 +565,13 @@ func watchFiles(verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<
 		}
 	}()
 
+	root := "."
+	if watchDir.WasSet {
+		root = watchDir.Value
+	}
+
 	// Walk all directories and files starting from the project's root directory.
-	err = filepath.WalkDir(".", func(path string, entry fs.DirEntry, err error) error {
+	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return fmt.Errorf("error configuring watching for file changes: %w", err)
 		}
@@ -587,7 +594,7 @@ func watchFiles(verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<
 		log.Fatal(err)
 	}
 
-	text.Info(out, "Watching ./**/* for changes.")
+	text.Info(out, "Watching files for changes (using --watch-dir=%s). To see what files are being watched, pass the --verbose flag. To ignore certain files, configure either .ignore, .gitignore or the global git ignore (uses .ignore and .gitignore from --watch-dir).", root)
 	text.Break(out)
 	<-done
 }
@@ -601,7 +608,7 @@ func watchFiles(verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<
 // - core.excludesfile (global)
 //
 // NOTE: We also ignore the .git directory.
-func gitIgnore() *ignore.GitIgnore {
+func gitIgnore(watchDir cmd.OptionalString) *ignore.GitIgnore {
 	var (
 		globalIgnore string
 		patterns     []string
@@ -611,7 +618,18 @@ func gitIgnore() *ignore.GitIgnore {
 		globalIgnore = filesystem.ResolveAbs(f)
 	}
 
-	for _, file := range []string{".ignore", ".gitignore", globalIgnore} {
+	root := ""
+	if watchDir.WasSet {
+		root = watchDir.Value
+		if !strings.HasPrefix(root, "/") {
+			root = root + "/"
+		}
+	}
+
+	localIgnore := root + ".ignore"
+	localGitIgnore := root + ".gitignore"
+
+	for _, file := range []string{localIgnore, localGitIgnore, globalIgnore} {
 		patterns = append(patterns, readIgnoreFile(file)...)
 	}
 
@@ -640,10 +658,16 @@ func readIgnoreFile(path string) (lines []string) {
 }
 
 func watchFile(path string, watcher *fsnotify.Watcher, verbose bool, out io.Writer) {
-	err := watcher.Add(path)
+	absolute, err := filepath.Abs(path)
+	if err != nil && verbose {
+		text.Warning(out, "Unable to convert '%s' to an absolute path", path)
+		return
+	}
+
+	err = watcher.Add(absolute)
 	if err != nil {
-		text.Output(out, "%s: %s", text.BoldRed("failed to watch"), path)
+		text.Output(out, "%s: %s", text.BoldRed("failed to watch"), absolute)
 	} else if verbose {
-		text.Output(out, "%s: %s", text.BoldYellow("watching"), path)
+		text.Output(out, "%s: %s", text.BoldYellow("watching"), absolute)
 	}
 }
