@@ -1,5 +1,32 @@
 # Changelog
 
+## [v5.0.0](https://github.com/fastly/cli/releases/tag/v5.0.0) (2023-01-19)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v4.6.2...v5.0.0)
+
+**Breaking:**
+
+The `objectstore` command was incorrectly configured to have a long flag using 
+a single character (e.g. `--k` and `--v`). These were corrected to `--key` and
+`--value` (and a short flag variant for `-k` was added as well).
+
+* feat(objectstore): add --json support to keys/list subcommands [#762](https://github.com/fastly/cli/pull/762)
+* feat(objectstore/get): implement --json flag for getting key value [#763](https://github.com/fastly/cli/pull/763)
+
+**Enhancements:**
+
+* feat(compute/deploy): add Object Store to manifest [setup] [#764](https://github.com/fastly/cli/pull/764)
+* feat(compute/build): support locating language manifests outside project directory [#765](https://github.com/fastly/cli/pull/765)
+* feat(compute/serve): implement --watch-dir flag [#758](https://github.com/fastly/cli/pull/758)
+
+**Bug fixes:**
+
+* fix(setup): object_store needs to be linked to service [#767](https://github.com/fastly/cli/pull/767)
+
+**Dependencies:**
+
+* Bump github.com/getsentry/sentry-go from 0.16.0 to 0.17.0 [#759](https://github.com/fastly/cli/pull/759)
+
 ## [v4.6.2](https://github.com/fastly/cli/releases/tag/v4.6.2) (2023-01-12)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.6.1...v4.6.2)
