@@ -334,6 +334,8 @@ type Interface interface {
 	ListObjectStoreKeys(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error)
 	GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error)
 	InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error
+
+	CreateResource(i *fastly.CreateResourceInput) (*fastly.Resource, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

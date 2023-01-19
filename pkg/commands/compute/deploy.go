@@ -207,6 +207,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			APIClient:      apiClient,
 			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
 			NonInteractive: c.Globals.Flag.NonInteractive,
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion.Number,
 			Setup:          c.Manifest.File.Setup.ObjectStores,
 			Stdin:          in,
 			Stdout:         out,

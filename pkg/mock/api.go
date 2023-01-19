@@ -325,6 +325,8 @@ type API struct {
 	ListObjectStoreKeysFn  func(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error)
 	GetObjectStoreKeyFn    func(i *fastly.GetObjectStoreKeyInput) (string, error)
 	InsertObjectStoreKeyFn func(i *fastly.InsertObjectStoreKeyInput) error
+
+	CreateResourceFn func(i *fastly.CreateResourceInput) (*fastly.Resource, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1645,4 +1647,9 @@ func (m API) GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error)
 // InsertObjectStoreKey implements Interface.
 func (m API) InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error {
 	return m.InsertObjectStoreKeyFn(i)
+}
+
+// CreateResourceFn implements Interface.
+func (m API) CreateResource(i *fastly.CreateResourceInput) (*fastly.Resource, error) {
+	return m.CreateResourceFn(i)
 }

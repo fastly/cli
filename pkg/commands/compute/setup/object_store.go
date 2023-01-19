@@ -21,6 +21,8 @@ type ObjectStores struct {
 	AcceptDefaults bool
 	NonInteractive bool
 	Progress       text.Progress
+	ServiceID      string
+	ServiceVersion int
 	Setup          map[string]*manifest.SetupObjectStore
 	Stdin          io.Reader
 	Stdout         io.Writer
@@ -135,6 +137,18 @@ func (d *ObjectStores) Create() error {
 					return fmt.Errorf("error creating object store key: %w", err)
 				}
 			}
+		}
+
+		// IMPORTANT: We need to link the object store to the C@E Service.
+		_, err = d.APIClient.CreateResource(&fastly.CreateResourceInput{
+			ServiceID:      d.ServiceID,
+			ServiceVersion: d.ServiceVersion,
+			Name:           fastly.String(store.Name),
+			ResourceID:     fastly.String(store.ID),
+		})
+		if err != nil {
+			d.Progress.Fail()
+			return fmt.Errorf("error creating resource link between the service '%s' and the object store '%s': %w", d.ServiceID, store.Name, err)
 		}
 	}
 

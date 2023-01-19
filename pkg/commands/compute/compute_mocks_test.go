@@ -60,6 +60,10 @@ func createObjectStoreItemOK(i *fastly.InsertObjectStoreKeyInput) error {
 	return nil
 }
 
+func createResourceOK(i *fastly.CreateResourceInput) (*fastly.Resource, error) {
+	return nil, nil
+}
+
 func getPackageOk(i *fastly.GetPackageInput) (*fastly.Package, error) {
 	return &fastly.Package{ServiceID: i.ServiceID, ServiceVersion: i.ServiceVersion}, nil
 }
