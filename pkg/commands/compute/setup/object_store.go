@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// ObjectStores represents the service state related to dictionaries defined
+// ObjectStores represents the service state related to object stores defined
 // within the fastly.toml [setup] configuration.
 //
 // NOTE: It implements the setup.Interface interface.
@@ -31,8 +31,6 @@ type ObjectStores struct {
 
 // ObjectStore represents the configuration parameters for creating an
 // object store via the API client.
-//
-// NOTE: WriteOnly (i.e. private) dictionaries not supported.
 type ObjectStore struct {
 	Name  string
 	Items []ObjectStoreItem
@@ -115,7 +113,7 @@ func (d *ObjectStores) Create() error {
 	for _, objectStore := range d.required {
 		d.Progress.Step(fmt.Sprintf("Creating object store '%s'...", objectStore.Name))
 
-		dict, err := d.APIClient.CreateObjectStore(&fastly.CreateObjectStoreInput{
+		store, err := d.APIClient.CreateObjectStore(&fastly.CreateObjectStoreInput{
 			Name: objectStore.Name,
 		})
 		if err != nil {
@@ -128,7 +126,7 @@ func (d *ObjectStores) Create() error {
 				d.Progress.Step(fmt.Sprintf("Creating object store key '%s'...", item.Key))
 
 				err := d.APIClient.InsertObjectStoreKey(&fastly.InsertObjectStoreKeyInput{
-					ID:    dict.ID,
+					ID:    store.ID,
 					Key:   item.Key,
 					Value: item.Value,
 				})
