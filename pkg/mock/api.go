@@ -1698,7 +1698,7 @@ func (m API) ListSecrets(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 	return m.ListSecretsFn(i)
 }
 
-// CreateResourceFn implements Interface.
+// CreateResource implements Interface.
 func (m API) CreateResource(i *fastly.CreateResourceInput) (*fastly.Resource, error) {
 	return m.CreateResourceFn(i)
 }
