@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// ObjectStores represents the service state related to dictionaries defined
+// ObjectStores represents the service state related to object stores defined
 // within the fastly.toml [setup] configuration.
 //
 // NOTE: It implements the setup.Interface interface.
@@ -21,6 +21,8 @@ type ObjectStores struct {
 	AcceptDefaults bool
 	NonInteractive bool
 	Progress       text.Progress
+	ServiceID      string
+	ServiceVersion int
 	Setup          map[string]*manifest.SetupObjectStore
 	Stdin          io.Reader
 	Stdout         io.Writer
@@ -31,8 +33,6 @@ type ObjectStores struct {
 
 // ObjectStore represents the configuration parameters for creating an
 // object store via the API client.
-//
-// NOTE: WriteOnly (i.e. private) dictionaries not supported.
 type ObjectStore struct {
 	Name  string
 	Items []ObjectStoreItem
@@ -115,7 +115,7 @@ func (d *ObjectStores) Create() error {
 	for _, objectStore := range d.required {
 		d.Progress.Step(fmt.Sprintf("Creating object store '%s'...", objectStore.Name))
 
-		dict, err := d.APIClient.CreateObjectStore(&fastly.CreateObjectStoreInput{
+		store, err := d.APIClient.CreateObjectStore(&fastly.CreateObjectStoreInput{
 			Name: objectStore.Name,
 		})
 		if err != nil {
@@ -128,7 +128,7 @@ func (d *ObjectStores) Create() error {
 				d.Progress.Step(fmt.Sprintf("Creating object store key '%s'...", item.Key))
 
 				err := d.APIClient.InsertObjectStoreKey(&fastly.InsertObjectStoreKeyInput{
-					ID:    dict.ID,
+					ID:    store.ID,
 					Key:   item.Key,
 					Value: item.Value,
 				})
@@ -137,6 +137,20 @@ func (d *ObjectStores) Create() error {
 					return fmt.Errorf("error creating object store key: %w", err)
 				}
 			}
+		}
+
+		d.Progress.Step(fmt.Sprintf("Creating resource link between service and object store '%s'...", objectStore.Name))
+
+		// IMPORTANT: We need to link the object store to the C@E Service.
+		_, err = d.APIClient.CreateResource(&fastly.CreateResourceInput{
+			ServiceID:      d.ServiceID,
+			ServiceVersion: d.ServiceVersion,
+			Name:           fastly.String(store.Name),
+			ResourceID:     fastly.String(store.ID),
+		})
+		if err != nil {
+			d.Progress.Fail()
+			return fmt.Errorf("error creating resource link between the service '%s' and the object store '%s': %w", d.ServiceID, store.Name, err)
 		}
 	}
 
