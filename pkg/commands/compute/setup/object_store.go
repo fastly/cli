@@ -139,6 +139,8 @@ func (d *ObjectStores) Create() error {
 			}
 		}
 
+		d.Progress.Step(fmt.Sprintf("Creating resource link between service and object store '%s'...", objectStore.Name))
+
 		// IMPORTANT: We need to link the object store to the C@E Service.
 		_, err = d.APIClient.CreateResource(&fastly.CreateResourceInput{
 			ServiceID:      d.ServiceID,
