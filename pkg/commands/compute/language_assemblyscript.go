@@ -22,7 +22,7 @@ const AsCompilationURL = "https://www.npmjs.com/package/assemblyscript"
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
-const AsDefaultBuildCommand = "$(npm bin)/asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
+const AsDefaultBuildCommand = "npm exec asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
 
 // AsSDK is the required Compute@Edge SDK.
 // https://www.npmjs.com/package/@fastly/as-compute
