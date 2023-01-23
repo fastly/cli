@@ -14,10 +14,18 @@
     "url": "https://github.com/fastly/compute-starter-kit-assemblyscript-default/issues"
   },
   "homepage": "https://github.com/fastly/compute-starter-kit-assemblyscript-default#readme",
+  "engines": {
+    "node": "^16"
+  },
   "devDependencies": {
-    "assemblyscript": "^0.14.11"
+    "assemblyscript": "^0.19.18"
   },
   "dependencies": {
-    "@fastly/as-compute": "^0.1.1"
+    "@fastly/as-compute": "^0.5.0"
+  },
+  "scripts": {
+    "asbuild:untouched": "asc assembly/index.ts --target debug",
+    "asbuild:optimized": "asc assembly/index.ts --target release",
+    "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized"
   }
 }

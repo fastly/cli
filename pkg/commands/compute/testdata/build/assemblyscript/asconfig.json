@@ -1,0 +1,17 @@
+{
+  "targets": {
+    "debug": {
+      "binaryFile": "bin/untouched.wasm",
+      "textFile": "bin/untouched.wat",
+      "sourceMap": true,
+      "debug": true
+    },
+    "release": {
+      "binaryFile": "bin/main.wasm",
+      "textFile": "bin/main.wat",
+      "sourceMap": true,
+      "optimize": true
+    }
+  },
+  "options": {}
+}

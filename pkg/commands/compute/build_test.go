@@ -227,6 +227,18 @@ func TestBuildAssemblyScript(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT or TEST_COMPUTE_BUILD to run this test")
 	}
 
+	// IMPORTANT: Avoid a hard to debug error where multiple test runs affect this global variable.
+	//
+	// Each test case re-runs `compute.NewJavaScript()` but on the first run we
+	// interpolate a value into the global variable `compute.JsInstaller` and
+	// subsequent test runs will attempt to re-interpolate a value, causing the
+	// string to actually contain `npm install%!(EXTRA string=npm)`.
+	//
+	// To avoid this issue, within each test case, we reset the global variable.
+	//
+	// TODO: Fix this situation by removing the need for a mutable global.
+	originalSprintValue := compute.JsInstaller
+
 	for _, testcase := range []struct {
 		name                 string
 		args                 []string
@@ -261,14 +273,14 @@ func TestBuildAssemblyScript(t *testing.T) {
 		},
 		{
 			name: "successful build",
-			args: args("compute build"),
+			args: args("compute build --verbose"),
 			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
 			language = "assemblyscript"
 
       [scripts]
-      build = "%s"`, compute.AsDefaultBuildCommand),
+      build = "%s"`, fmt.Sprintf(compute.AsDefaultBuildCommand, "npm")),
 			wantOutputContains: "Built package",
 			skipWindows:        true,
 		},
@@ -277,6 +289,10 @@ func TestBuildAssemblyScript(t *testing.T) {
 			if fstruntime.Windows && testcase.skipWindows {
 				t.Skip()
 			}
+
+			defer func() {
+				compute.JsInstaller = originalSprintValue
+			}()
 
 			// We're going to chdir to a build environment,
 			// so save the PWD to return to, afterwards.
@@ -290,7 +306,9 @@ func TestBuildAssemblyScript(t *testing.T) {
 				T: t,
 				Copy: []testutil.FileIO{
 					{Src: filepath.Join("testdata", "build", "assemblyscript", "package.json"), Dst: "package.json"},
+					{Src: filepath.Join("testdata", "build", "assemblyscript", "asconfig.json"), Dst: "asconfig.json"},
 					{Src: filepath.Join("testdata", "build", "assemblyscript", "assembly", "index.ts"), Dst: filepath.Join("assembly", "index.ts")},
+					{Src: filepath.Join("testdata", "build", "assemblyscript", "assembly", "tsconfig.json"), Dst: filepath.Join("assembly", "tsconfig.json")},
 				},
 				Write: []testutil.FileIO{
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
@@ -353,6 +371,18 @@ func TestBuildJavaScript(t *testing.T) {
 	}
 	defer os.Chdir(pwd)
 
+	// IMPORTANT: Avoid a hard to debug error where multiple test runs affect this global variable.
+	//
+	// Each test case re-runs `compute.NewJavaScript()` but on the first run we
+	// interpolate a value into the global variable `compute.JsInstaller` and
+	// subsequent test runs will attempt to re-interpolate a value, causing the
+	// string to actually contain `npm install%!(EXTRA string=npm)`.
+	//
+	// To avoid this issue, within each test case, we reset the global variable.
+	//
+	// TODO: Fix this situation by removing the need for a mutable global.
+	originalSprintValue := compute.JsInstaller
+
 	for _, testcase := range []struct {
 		name                 string
 		args                 []string
@@ -386,7 +416,7 @@ func TestBuildJavaScript(t *testing.T) {
 			language = "javascript"
 
       [scripts]
-      build = "%s"`, compute.JsDefaultBuildCommandForWebpack),
+      build = "%s"`, fmt.Sprintf(compute.JsDefaultBuildCommandForWebpack, "npm", "npm")),
 			sourceOverride: `D"F;
 			'GREGERgregeg '
 			ERG`,
@@ -394,14 +424,14 @@ func TestBuildJavaScript(t *testing.T) {
 		},
 		{
 			name: "successful build",
-			args: args("compute build"),
+			args: args("compute build --verbose"),
 			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
 			language = "javascript"
 
       [scripts]
-      build = "%s"`, compute.JsDefaultBuildCommand),
+      build = "%s"`, fmt.Sprintf(compute.JsDefaultBuildCommand, "npm")),
 			wantOutputContains: "Built package",
 			skipWindows:        true,
 		},
@@ -411,10 +441,21 @@ func TestBuildJavaScript(t *testing.T) {
 				t.Skip()
 			}
 
+			defer func() {
+				compute.JsInstaller = originalSprintValue
+			}()
+
 			if testcase.fastlyManifest != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
+				manifestFile := filepath.Join(rootdir, manifest.Filename)
+				if err := os.WriteFile(manifestFile, []byte(testcase.fastlyManifest), 0o777); err != nil {
 					t.Fatal(err)
 				}
+				defer func() {
+					// IMPORTANT: We need to remove the manifest file before each test case.
+					if err := os.Remove(manifestFile); err != nil {
+						t.Fatal(err)
+					}
+				}()
 			}
 
 			// We want to ensure the original `index.js` is put back in case of a test

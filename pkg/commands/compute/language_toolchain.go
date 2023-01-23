@@ -110,25 +110,33 @@ type ToolchainValidator struct {
 	// defined within the language manifest (e.g. go mod download, npm install).
 	Installer string
 
+	// InstallerPreHook is a language specific command to execute before installing
+	// dependencies from the language manifest.
+	//
+	// NOTE: This exists because of yarn install neededing a special pre-step.
+	InstallerPreHook string
+
 	// Manifest is a language specific manifest file for defining project
 	// configuration (e.g. package.json, Cargo.toml, go.mod).
 	Manifest string
 
-	// ManifestCommand is a language specific shell command using the language
-	// specific toolchain to both enable parsing of the project dependencies as
-	// well as confirming if the manifest itself exists.
-	ManifestCommand string
+	// ManifestExist is a language specific shell command using the language
+	// specific toolchain for confirming if the manifest itself exists.
+	ManifestExist string
 
-	// ManifestCommandSkipError allows a language to skip handling an error. This
-	// will result in the stdout output to be returned for parsing.
+	// ManifestExistSkipError allows a language to skip handling an error.
 	//
-	// NOTE: This exists because JavaScript's npm toolchain will still produce
-	// valid JSON that can be parsed to be sure the user has specified the
-	// required SDK. It will error though at the stage we call the ManifestCommand
-	// because `npm install` hasn't yet been called (that happens after we
-	// validate there is a package.json) and so there will be missing
-	// sub-dependencies (which is why npm errors, to tell you to `npm install`).
-	ManifestCommandSkipError bool
+	// NOTE: This exists because of JavaScript's npm toolchain command.
+	// To clarify: the ManifestExist command that is defined for the NPM package
+	// manager can report an error even if there is a package.json because its
+	// primary purpose is to report metadata about the project. The fact it
+	// reports an error if a package.json doesn't exist is a lucky side-effect
+	// that we take advantage of.
+	ManifestExistSkipError bool
+
+	// ManifestMetaData is a language specific shell command using the language
+	// specific toolchain for parsing the project dependencies.
+	ManifestMetaData string
 
 	// ManifestRemediation is a language specific error remediation.
 	ManifestRemediation string
@@ -200,9 +208,6 @@ func (tv *ToolchainValidator) Validate() error {
 		}
 	}
 	if err := tv.manifestFile(); err != nil {
-		return err
-	}
-	if err := tv.installDependencies(); err != nil {
 		return err
 	}
 	if err := tv.compilation(); err != nil {
@@ -301,7 +306,7 @@ func (tv ToolchainValidator) toolchainVersion() error {
 	return nil
 }
 
-// manifestFile validates the language manifestFile can be found.
+// manifestFile validates the language manifest file can be found.
 func (tv ToolchainValidator) manifestFile() error {
 	fmt.Fprintf(tv.Output, "\nChecking if manifest '%s' exists...\n", tv.Manifest)
 
@@ -310,14 +315,32 @@ func (tv ToolchainValidator) manifestFile() error {
 	// NOTE: We expect each language to have a toolchain command to validate with.
 	// But if that's not possible, we'll skip this validation step and inform the
 	// user of what is required.
-	if tv.ManifestCommand == "" {
-		text.Info(tv.Output, fmt.Sprintf(msg, "the existence of a %s"), tv.Manifest)
+	if tv.ManifestExist == "" {
+		text.Warning(tv.Output, fmt.Sprintf(msg, "the existence of a %s"), tv.Manifest)
 		return nil
 	}
 
-	args := strings.Split(tv.ManifestCommand, " ")
+	args := strings.Split(tv.ManifestExist, " ")
 
-	output, err := execManifestCommand(args, tv.ErrLog, tv.ManifestCommand, tv.ManifestCommandSkipError)
+	// Identify if the language manifest file exists.
+	_, err := execManifestCommand(args, tv.ErrLog, tv.ManifestExist, tv.ManifestExistSkipError)
+	if err != nil {
+		return err
+	}
+
+	// Acquire dependency metadata from the language manifest file.
+	if tv.ManifestMetaData == "" {
+		text.Warning(tv.Output, fmt.Sprintf(msg, "the dependency chain in %s"), tv.Manifest)
+		return nil
+	}
+
+	// IMPORTANT: We should install dependencies before trying to validate them.
+	if err := tv.installDependencies(); err != nil {
+		return err
+	}
+
+	args = strings.Split(tv.ManifestMetaData, " ")
+	output, err := execManifestCommand(args, tv.ErrLog, tv.ManifestMetaData, tv.ManifestExistSkipError)
 	if err != nil {
 		return err
 	}
@@ -337,6 +360,20 @@ func (tv ToolchainValidator) manifestFile() error {
 // installDependencies will download the language dependencies if a command is
 // provided (e.g. `npm install`, `go mod download` etc).
 func (tv ToolchainValidator) installDependencies() error {
+	if tv.InstallerPreHook != "" {
+		fmt.Fprintf(tv.Output, "\nRunning installer prehook step...\n")
+		installer := strings.Split(tv.InstallerPreHook, " ")
+		cmd := fstexec.Streaming{
+			Command: installer[0],
+			Args:    installer[1:],
+			Env:     os.Environ(),
+			Output:  tv.Output,
+		}
+		if err := cmd.Exec(); err != nil {
+			return err
+		}
+	}
+
 	if tv.Installer != "" {
 		fmt.Fprintf(tv.Output, "\nInstalling package dependencies...\n")
 		installer := strings.Split(tv.Installer, " ")
@@ -586,24 +623,10 @@ func (tv ToolchainValidator) commandRemediation(resource, resourceURL, resourceC
   Visit %s for more information.`, resource, resourceCommand, text.Bold(resourceURL))
 }
 
-// getJsToolchainBinPath returns the path to where NPM installs binaries.
-func getJsToolchainBinPath(bin string) (string, error) {
-	// gosec flagged this:
-	// G204 (CWE-78): Subprocess launched with variable
-	// Disabling as the variables come from trusted sources:
-	// The CLI parser enforces supported values via EnumVar.
-	// #nosec
-	// nosemgrep
-	path, err := exec.Command(bin, "bin").Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(path)), nil
-}
-
-// execManifestCommand opens a sub shell to execute the language toolchain
-// command responsible for producing dependency metadata.
-func execManifestCommand(args []string, errLog fsterr.LogInterface, manifestCommand string, skipError bool) (output []byte, err error) {
+// execManifestCommand is used for two separate sub shell requirements. The
+// first is to execute a command that validates the existence of the required
+// language manifest, and the other is a command for producing dependency data.
+func execManifestCommand(args []string, errLog fsterr.LogInterface, command string, skipError bool) (output []byte, err error) {
 	var out bytes.Buffer
 
 	// gosec flagged this:
@@ -618,14 +641,14 @@ func execManifestCommand(args []string, errLog fsterr.LogInterface, manifestComm
 
 	if err != nil && !skipError {
 		errLog.Add(err)
-		return out.Bytes(), fmt.Errorf("failed to execute command '%s': %w", manifestCommand, err)
+		return out.Bytes(), fmt.Errorf("failed to execute command '%s': %w", command, err)
 	}
 
 	return out.Bytes(), nil
 }
 
-// execCommand opens a sub shell to execute the language build script.
-func execCommand(cmd string, args []string, out, progress io.Writer, verbose bool, timeout int, errlog fsterr.LogInterface) error {
+// execBuildCommand opens a sub shell to execute the language build script.
+func execBuildCommand(cmd string, args []string, out, progress io.Writer, verbose bool, timeout int, errlog fsterr.LogInterface) error {
 	s := fstexec.Streaming{
 		Command:  cmd,
 		Args:     args,
@@ -667,7 +690,7 @@ func build(
 ) error {
 	cmd, args := l.buildFn(l.buildScript)
 
-	err := execCommand(cmd, args, out, progress, verbose, l.timeout, l.errlog)
+	err := execBuildCommand(cmd, args, out, progress, verbose, l.timeout, l.errlog)
 	if err != nil {
 		return err
 	}
@@ -687,7 +710,7 @@ func build(
 	if l.postBuild != "" {
 		if err = postBuildCallback(); err == nil {
 			cmd, args := l.buildFn(l.postBuild)
-			err := execCommand(cmd, args, out, progress, verbose, l.timeout, l.errlog)
+			err := execBuildCommand(cmd, args, out, progress, verbose, l.timeout, l.errlog)
 			if err != nil {
 				return err
 			}

@@ -189,10 +189,11 @@ type File struct {
 	Authors         []string    `toml:"authors"`
 	Description     string      `toml:"description"`
 	Language        string      `toml:"language"`
-	Profile         string      `toml:"profile,omitempty"`
 	LocalServer     LocalServer `toml:"local_server,omitempty"`
 	ManifestVersion Version     `toml:"manifest_version"`
 	Name            string      `toml:"name"`
+	PackageManager  string      `toml:"package_manager,omitempty"`
+	Profile         string      `toml:"profile,omitempty"`
 	Scripts         Scripts     `toml:"scripts,omitempty"`
 	ServiceID       string      `toml:"service_id"`
 	Setup           Setup       `toml:"setup,omitempty"`

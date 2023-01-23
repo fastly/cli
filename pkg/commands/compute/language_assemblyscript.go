@@ -3,7 +3,6 @@ package compute
 import (
 	"fmt"
 	"io"
-	"path/filepath"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
@@ -17,19 +16,19 @@ const AsCompilation = "asc"
 // AsCompilationURL is the official assemblyscript package URL.
 const AsCompilationURL = "https://www.npmjs.com/package/assemblyscript"
 
-// AsDefaultBuildCommand is a build command compiled into the CLI binary so it
-// can be used as a fallback for customer's who have an existing C@E project and
-// are simply upgrading their CLI version and might not be familiar with the
-// changes in the 4.0.0 release with regards to how build logic has moved to the
-// fastly.toml manifest.
-const AsDefaultBuildCommand = "npm exec asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
-
 // AsSDK is the required Compute@Edge SDK.
 // https://www.npmjs.com/package/@fastly/as-compute
 const AsSDK = "@fastly/as-compute"
 
 // AsSourceDirectory represents the source code directory.
 const AsSourceDirectory = "assembly"
+
+// AsDefaultBuildCommand is a build command compiled into the CLI binary so it
+// can be used as a fallback for customer's who have an existing C@E project and
+// are simply upgrading their CLI version and might not be familiar with the
+// changes in the 4.0.0 release with regards to how build logic has moved to the
+// fastly.toml manifest.
+var AsDefaultBuildCommand = "%s exec -- asc assembly/index.ts --target release"
 
 // NewAssemblyScript constructs a new AssemblyScript toolchain.
 func NewAssemblyScript(
@@ -39,25 +38,31 @@ func NewAssemblyScript(
 	out io.Writer,
 	ch chan string,
 ) *AssemblyScript {
-	return &AssemblyScript{
+	packageManager := "npm"
+	asSkipErr := true                       // Refer to NOTE under ManifestCommandSkipError
+	asManifestMetaData := JsManifestCommand // npm only needs JsManifestCommand (yarn needs a separate command)
+
+	if fastlyManifest.PackageManager == "yarn" {
+		JsCompilationCommandRemediation = "yarn add --dev %s"
+		JsManifestCommand = "yarn workspaces list"
+		asManifestMetaData = "yarn info --json"
+		asSkipErr = false // we're unsetting as yarn doesn't need it, though npm does
+		JsToolchain = fastlyManifest.PackageManager
+		JsToolchainURL = "https://yarnpkg.com/"
+		packageManager = fastlyManifest.PackageManager
+	}
+
+	// Dynamically insert the package manager name.
+	AsDefaultBuildCommand = fmt.Sprintf(AsDefaultBuildCommand, packageManager)
+	JsInstaller = fmt.Sprintf(JsInstaller, packageManager)
+
+	a := &AssemblyScript{
 		JavaScript: JavaScript{
 			errlog:  errlog,
 			timeout: timeout,
 			validator: ToolchainValidator{
-				Compilation: AsCompilation,
-				CompilationDirectPath: func() (string, error) {
-					p, err := getJsToolchainBinPath(JsToolchain)
-					if err != nil {
-						errlog.Add(err)
-						remediation := "npm install --global npm@latest"
-						return "", fsterr.RemediationError{
-							Inner:       fmt.Errorf("could not determine %s bin path", JsToolchain),
-							Remediation: fmt.Sprintf(fsterr.FormatTemplate, text.Bold(remediation)),
-						}
-					}
-
-					return filepath.Join(p, AsCompilation), nil
-				},
+				Compilation:                   AsCompilation,
+				CompilationIntegrated:         true,
 				CompilationCommandRemediation: fmt.Sprintf(JsCompilationCommandRemediation, AsSDK),
 				CompilationSkipVersion:        true,
 				CompilationURL:                AsCompilationURL,
@@ -66,12 +71,14 @@ func NewAssemblyScript(
 				FastlyManifestFile:            fastlyManifest,
 				Installer:                     JsInstaller,
 				Manifest:                      JsManifest,
-				ManifestCommand:               JsManifestCommand,
+				ManifestExist:                 JsManifestCommand,
+				ManifestExistSkipError:        asSkipErr,
+				ManifestMetaData:              asManifestMetaData,
 				ManifestRemediation:           JsManifestRemediation,
 				Output:                        out,
 				PatchedManifestNotifier:       ch,
 				SDK:                           AsSDK,
-				SDKCustomValidator:            validateJsSDK,
+				SDKCustomValidator:            validateJsSDK(packageManager, AsDefaultBuildCommand, ""),
 				Toolchain:                     JsToolchain,
 				ToolchainLanguage:             "AssemblyScript",
 				ToolchainSkipVersion:          true,
@@ -81,6 +88,8 @@ func NewAssemblyScript(
 		errlog:    errlog,
 		postBuild: fastlyManifest.Scripts.PostBuild,
 	}
+
+	return a
 }
 
 // AssemblyScript implements a Toolchain for the AssemblyScript language.
