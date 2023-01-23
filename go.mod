@@ -9,7 +9,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
 	github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible
-	github.com/fatih/color v1.13.0
+	github.com/fatih/color v1.14.0
 	github.com/frankban/quicktest v1.13.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/getsentry/sentry-go v0.17.0
