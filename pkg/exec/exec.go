@@ -88,25 +88,22 @@ func (s *Streaming) Exec() error {
 	// Pipe the child process stdout and stderr to our own output writer.
 	var stdoutBuf, stderrBuf threadsafe.Buffer
 
-	// NOTE: Historically this Exec() function would use a text.Progress as an
-	// io.Writer so that the command output could be constrained to a single
-	// line. But now we have commands such as `compute serve` that want the full
-	// output to be displayed so the user can see things like compilation errors.
+	// NOTE: Historically Exec() would use a text.Progress as an io.Writer
+	// This was so that the command output could be constrained to a single line.
+	// But now we have commands such as `compute serve` that want the full output
+	// to be displayed so the user can see things like compilation errors and we
+	// can't use a text.Progress for that.
 	//
 	// The Streaming type now has both s.Out and s.Progress fields.
 	//
 	// We presume s.Output to always be set and s.Progress to sometimes be set.
 	//
 	// With that in mind, we default to setting `output` to be s.Output and will
-	// override it to be s.Progress if it has been set. We'll then have to
-	// override it back to s.Output if the user themselves have appended the
-	// --verbose flag.
-	output := s.Output
-	if s.Progress != nil {
-		output = s.Progress
-	}
-	if s.Verbose {
-		output = s.Output
+	// override it to be s.Progress if it has been set but not if the user has
+	// appended the --verbose flag.
+	output := threadsafe.NewWriter(s.Output)
+	if s.Progress != nil && !s.Verbose {
+		output = threadsafe.NewWriter(s.Progress)
 	}
 
 	cmd.Stdout = io.MultiWriter(output, &stdoutBuf)
