@@ -16,12 +16,22 @@ import (
 // language code into a Wasm binary.
 const JsCompilation = "js-compute-runtime"
 
+// JsCompilationURL is the official Fastly C@E JS runtime package URL.
+const JsCompilationURL = "https://www.npmjs.com/package/@fastly/js-compute"
+
+// JsManifest is the manifest file for defining project configuration.
+const JsManifest = "package.json"
+
+// JsSDK is the required Compute@Edge SDK.
+// https://www.npmjs.com/package/@fastly/js-compute
+const JsSDK = "@fastly/js-compute"
+
+// JsSourceDirectory represents the source code directory.                                               │                                                           │
+const JsSourceDirectory = "src"
+
 // JsCompilationCommandRemediation is the command to execute to fix the missing
 // compilation target.
 var JsCompilationCommandRemediation = "npm install --save-dev %s"
-
-// JsCompilationURL is the official Fastly C@E JS runtime package URL.
-const JsCompilationURL = "https://www.npmjs.com/package/@fastly/js-compute"
 
 // JsDefaultBuildCommand is a build command compiled into the CLI binary so it
 // can be used as a fallback for customer's who have an existing C@E project and
@@ -45,22 +55,12 @@ var JsDefaultBuildCommandForWebpack = "%s exec webpack && %s exec js-compute-run
 // the Js language manifest.
 var JsInstaller = "%s install"
 
-// JsManifest is the manifest file for defining project configuration.
-const JsManifest = "package.json"
-
 // JsManifestCommand is the toolchain command to validate the manifest exists,
 // and also enables parsing of the project's dependencies.
 var JsManifestCommand = "npm list --json --depth 0"
 
 // JsManifestRemediation is a error remediation message for a missing manifest.
 var JsManifestRemediation = "%s init"
-
-// JsSDK is the required Compute@Edge SDK.
-// https://www.npmjs.com/package/@fastly/js-compute
-const JsSDK = "@fastly/js-compute"
-
-// JsSourceDirectory represents the source code directory.                                               │                                                           │
-const JsSourceDirectory = "src"
 
 // JsToolchain is the executable responsible for managing dependencies.
 var JsToolchain = "npm"
