@@ -84,12 +84,12 @@ func NewJavaScript(
 	if fastlyManifest.PackageManager == "yarn" {
 		JsCompilationCommandRemediation = "yarn add --dev %s"
 		JsManifestCommand = "yarn workspaces list"
-		jsManifestMetaData = "yarn info --json"
-		jsSkipErr = false // we're unsetting as yarn doesn't need it, though npm does
 		JsToolchain = fastlyManifest.PackageManager
 		JsToolchainURL = "https://yarnpkg.com/"
-		packageManager = fastlyManifest.PackageManager
 		installerPreHook = "yarn config set nodeLinker node-modules"
+		jsManifestMetaData = "yarn info --json"
+		jsSkipErr = false // we're unsetting as yarn doesn't need it, though npm does
+		packageManager = fastlyManifest.PackageManager
 	}
 
 	// Dynamically insert the package manager name.
