@@ -227,18 +227,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT or TEST_COMPUTE_BUILD to run this test")
 	}
 
-	// IMPORTANT: Avoid a hard to debug error where multiple test runs affect this global variable.
-	//
-	// Each test case re-runs `compute.NewJavaScript()` but on the first run we
-	// interpolate a value into the global variable `compute.JsInstaller` and
-	// subsequent test runs will attempt to re-interpolate a value, causing the
-	// string to actually contain `npm install%!(EXTRA string=npm)`.
-	//
-	// To avoid this issue, within each test case, we reset the global variable.
-	//
-	// TODO: Fix this situation by removing the need for a mutable global.
-	originalSprintValue := compute.JsInstaller
-
 	for _, testcase := range []struct {
 		name                 string
 		args                 []string
@@ -289,10 +277,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 			if fstruntime.Windows && testcase.skipWindows {
 				t.Skip()
 			}
-
-			defer func() {
-				compute.JsInstaller = originalSprintValue
-			}()
 
 			// We're going to chdir to a build environment,
 			// so save the PWD to return to, afterwards.
@@ -371,18 +355,6 @@ func TestBuildJavaScript(t *testing.T) {
 	}
 	defer os.Chdir(pwd)
 
-	// IMPORTANT: Avoid a hard to debug error where multiple test runs affect this global variable.
-	//
-	// Each test case re-runs `compute.NewJavaScript()` but on the first run we
-	// interpolate a value into the global variable `compute.JsInstaller` and
-	// subsequent test runs will attempt to re-interpolate a value, causing the
-	// string to actually contain `npm install%!(EXTRA string=npm)`.
-	//
-	// To avoid this issue, within each test case, we reset the global variable.
-	//
-	// TODO: Fix this situation by removing the need for a mutable global.
-	originalSprintValue := compute.JsInstaller
-
 	for _, testcase := range []struct {
 		name                 string
 		args                 []string
@@ -440,10 +412,6 @@ func TestBuildJavaScript(t *testing.T) {
 			if fstruntime.Windows && testcase.skipWindows {
 				t.Skip()
 			}
-
-			defer func() {
-				compute.JsInstaller = originalSprintValue
-			}()
 
 			if testcase.fastlyManifest != "" {
 				manifestFile := filepath.Join(rootdir, manifest.Filename)

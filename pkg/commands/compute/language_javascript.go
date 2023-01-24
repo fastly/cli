@@ -31,14 +31,14 @@ const JsSourceDirectory = "src"
 
 // JsCompilationCommandRemediation is the command to execute to fix the missing
 // compilation target.
-var JsCompilationCommandRemediation = "npm install --save-dev %s"
+const JsCompilationCommandRemediation = "npm install --save-dev %s"
 
 // JsDefaultBuildCommand is a build command compiled into the CLI binary so it
 // can be used as a fallback for customer's who have an existing C@E project and
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
-var JsDefaultBuildCommand = "%s exec js-compute-runtime ./src/index.js ./bin/main.wasm"
+const JsDefaultBuildCommand = "%s exec js-compute-runtime ./src/index.js ./bin/main.wasm"
 
 // JsDefaultBuildCommandForWebpack is a build command compiled into the CLI
 // binary so it can be used as a fallback for customer's who have an existing
@@ -49,21 +49,21 @@ var JsDefaultBuildCommand = "%s exec js-compute-runtime ./src/index.js ./bin/mai
 // NOTE: For this variation of the build script to be added to the user's
 // fastly.toml will require a successful check for the npm task:
 // `prebuild: webpack` in the user's package.json manifest.
-var JsDefaultBuildCommandForWebpack = "%s exec webpack && %s exec js-compute-runtime ./bin/index.js ./bin/main.wasm"
+const JsDefaultBuildCommandForWebpack = "%s exec webpack && %s exec js-compute-runtime ./bin/index.js ./bin/main.wasm"
 
 // JsInstaller is the command used to install the dependencies defined within
 // the Js language manifest.
-var JsInstaller = "%s install"
+const JsInstaller = "%s install"
 
 // JsManifestCommand is the toolchain command to validate the manifest exists,
 // and also enables parsing of the project's dependencies.
-var JsManifestCommand = "npm list --json --depth 0"
+const JsManifestCommand = "npm list --json --depth 0"
 
 // JsManifestRemediation is a error remediation message for a missing manifest.
-var JsManifestRemediation = "%s init"
+const JsManifestRemediation = "%s init"
 
 // JsToolchain is the executable responsible for managing dependencies.
-var JsToolchain = "npm"
+const JsToolchain = "npm"
 
 // JsToolchainURL is the official JS website URL.
 var JsToolchainURL = "https://nodejs.org/"
@@ -76,27 +76,31 @@ func NewJavaScript(
 	out io.Writer,
 	ch chan string,
 ) *JavaScript {
-	packageManager := "npm"
-	jsSkipErr := true                       // Refer to NOTE under ManifestCommandSkipError
-	jsManifestMetaData := JsManifestCommand // npm only needs JsManifestCommand (yarn needs a separate command)
 	installerPreHook := ""
+	jsCompilationCommandRemediation := JsCompilationCommandRemediation
+	jsManifestCommand := JsManifestCommand
+	jsManifestMetaData := JsManifestCommand // npm only needs JsManifestCommand (yarn needs a separate command)
+	jsToolchain := JsToolchain
+	jsToolchainURL := JsToolchainURL
+	jsSkipErr := true // Refer to NOTE under ManifestCommandSkipError
+	packageManager := "npm"
 
 	if fastlyManifest.PackageManager == "yarn" {
-		JsCompilationCommandRemediation = "yarn add --dev %s"
-		JsManifestCommand = "yarn workspaces list"
-		JsToolchain = fastlyManifest.PackageManager
-		JsToolchainURL = "https://yarnpkg.com/"
 		installerPreHook = "yarn config set nodeLinker node-modules"
+		jsCompilationCommandRemediation = "yarn add --dev %s"
+		jsManifestCommand = "yarn workspaces list"
 		jsManifestMetaData = "yarn info --json"
 		jsSkipErr = false // we're unsetting as yarn doesn't need it, though npm does
+		jsToolchain = fastlyManifest.PackageManager
+		jsToolchainURL = "https://yarnpkg.com/"
 		packageManager = fastlyManifest.PackageManager
 	}
 
 	// Dynamically insert the package manager name.
-	JsDefaultBuildCommand = fmt.Sprintf(JsDefaultBuildCommand, packageManager)
-	JsDefaultBuildCommandForWebpack = fmt.Sprintf(JsDefaultBuildCommandForWebpack, packageManager, packageManager)
-	JsInstaller = fmt.Sprintf(JsInstaller, packageManager)
-	JsManifestRemediation = fmt.Sprintf(JsManifestRemediation, packageManager)
+	jsDefaultBuildCommand := fmt.Sprintf(JsDefaultBuildCommand, packageManager)
+	jsDefaultBuildCommandForWebpack := fmt.Sprintf(JsDefaultBuildCommandForWebpack, packageManager, packageManager)
+	jsInstaller := fmt.Sprintf(JsInstaller, packageManager)
+	jsManifestRemediation := fmt.Sprintf(JsManifestRemediation, packageManager)
 
 	return &JavaScript{
 		Shell:     Shell{},
@@ -105,28 +109,28 @@ func NewJavaScript(
 		timeout:   timeout,
 		validator: ToolchainValidator{
 			Compilation:                   JsCompilation,
+			CompilationCommandRemediation: fmt.Sprintf(jsCompilationCommandRemediation, JsSDK),
 			CompilationIntegrated:         true,
-			CompilationCommandRemediation: fmt.Sprintf(JsCompilationCommandRemediation, JsSDK),
 			CompilationSkipVersion:        true,
 			CompilationURL:                JsCompilationURL,
-			DefaultBuildCommand:           JsDefaultBuildCommand,
+			DefaultBuildCommand:           jsDefaultBuildCommand,
 			ErrLog:                        errlog,
 			FastlyManifestFile:            fastlyManifest,
-			Installer:                     JsInstaller,
+			Installer:                     jsInstaller,
 			InstallerPreHook:              installerPreHook,
 			Manifest:                      JsManifest,
-			ManifestExist:                 JsManifestCommand,
+			ManifestExist:                 jsManifestCommand,
 			ManifestExistSkipError:        jsSkipErr,
 			ManifestMetaData:              jsManifestMetaData,
-			ManifestRemediation:           JsManifestRemediation,
+			ManifestRemediation:           jsManifestRemediation,
 			Output:                        out,
 			PatchedManifestNotifier:       ch,
 			SDK:                           JsSDK,
-			SDKCustomValidator:            validateJsSDK(packageManager, JsDefaultBuildCommand, JsDefaultBuildCommandForWebpack),
-			Toolchain:                     JsToolchain,
+			SDKCustomValidator:            validateJsSDK(packageManager, jsDefaultBuildCommand, jsDefaultBuildCommandForWebpack),
+			Toolchain:                     jsToolchain,
 			ToolchainLanguage:             "JavaScript",
 			ToolchainSkipVersion:          true,
-			ToolchainURL:                  JsToolchainURL,
+			ToolchainURL:                  jsToolchainURL,
 		},
 	}
 }

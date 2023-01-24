@@ -13,11 +13,33 @@ import (
 // language code into a Wasm binary.
 const AsCompilation = "asc"
 
+// AsCompilationCommandRemediation is the command to execute to fix the missing
+// compilation target.
+const AsCompilationCommandRemediation = "npm install --save-dev %s"
+
 // AsCompilationURL is the official assemblyscript package URL.
 const AsCompilationURL = "https://www.npmjs.com/package/assemblyscript"
 
+// AsDefaultBuildCommand is a build command compiled into the CLI binary so it
+// can be used as a fallback for customer's who have an existing C@E project and
+// are simply upgrading their CLI version and might not be familiar with the
+// changes in the 4.0.0 release with regards to how build logic has moved to the
+// fastly.toml manifest.
+const AsDefaultBuildCommand = "%s exec -- asc assembly/index.ts --target release"
+
+// AsInstaller is the command used to install the dependencies defined within
+// the Js language manifest.
+const AsInstaller = "%s install"
+
 // AsManifest is the manifest file for defining project configuration.
 const AsManifest = "package.json"
+
+// AsManifestCommand is the toolchain command to validate the manifest exists,
+// and also enables parsing of the project's dependencies.
+const AsManifestCommand = "npm list --json --depth 0"
+
+// AsManifestRemediation is a error remediation message for a missing manifest.
+const AsManifestRemediation = "%s init"
 
 // AsSDK is the required Compute@Edge SDK.
 // https://www.npmjs.com/package/@fastly/as-compute
@@ -26,33 +48,11 @@ const AsSDK = "@fastly/as-compute"
 // AsSourceDirectory represents the source code directory.
 const AsSourceDirectory = "assembly"
 
-// AsCompilationCommandRemediation is the command to execute to fix the missing
-// compilation target.
-var AsCompilationCommandRemediation = "npm install --save-dev %s"
-
-// AsDefaultBuildCommand is a build command compiled into the CLI binary so it
-// can be used as a fallback for customer's who have an existing C@E project and
-// are simply upgrading their CLI version and might not be familiar with the
-// changes in the 4.0.0 release with regards to how build logic has moved to the
-// fastly.toml manifest.
-var AsDefaultBuildCommand = "%s exec -- asc assembly/index.ts --target release"
-
-// AsInstaller is the command used to install the dependencies defined within
-// the Js language manifest.
-var AsInstaller = "%s install"
-
-// AsManifestCommand is the toolchain command to validate the manifest exists,
-// and also enables parsing of the project's dependencies.
-var AsManifestCommand = "npm list --json --depth 0"
-
-// AsManifestRemediation is a error remediation message for a missing manifest.
-var AsManifestRemediation = "%s init"
-
 // AsToolchain is the executable responsible for managing dependencies.
-var AsToolchain = "npm"
+const AsToolchain = "npm"
 
 // AsToolchainURL is the official JS website URL.
-var AsToolchainURL = "https://nodejs.org/"
+const AsToolchainURL = "https://nodejs.org/"
 
 // NewAssemblyScript constructs a new AssemblyScript toolchain.
 func NewAssemblyScript(
@@ -62,24 +62,30 @@ func NewAssemblyScript(
 	out io.Writer,
 	ch chan string,
 ) *AssemblyScript {
-	packageManager := "npm"
-	asSkipErr := true                       // Refer to NOTE under ManifestCommandSkipError
+	installerPreHook := ""
+	asCompilationCommandRemediation := AsCompilationCommandRemediation
+	asManifestCommand := AsManifestCommand
 	asManifestMetaData := AsManifestCommand // npm only needs AsManifestCommand (yarn needs a separate command)
+	asSkipErr := true                       // Refer to NOTE under ManifestCommandSkipError
+	asToolchain := AsToolchain
+	asToolchainURL := AsToolchainURL
+	packageManager := "npm"
 
 	if fastlyManifest.PackageManager == "yarn" {
-		AsCompilationCommandRemediation = "yarn add --dev %s"
-		AsManifestCommand = "yarn workspaces list"
-		AsToolchain = fastlyManifest.PackageManager
-		AsToolchainURL = "https://yarnpkg.com/"
+		asCompilationCommandRemediation = "yarn add --dev %s"
+		asManifestCommand = "yarn workspaces list"
+		asToolchain = fastlyManifest.PackageManager
+		asToolchainURL = "https://yarnpkg.com/"
 		asManifestMetaData = "yarn info --json"
 		asSkipErr = false // we're unsetting as yarn doesn't need it, though npm does
+		installerPreHook = "yarn config set nodeLinker node-modules"
 		packageManager = fastlyManifest.PackageManager
 	}
 
 	// Dynamically insert the package manager name.
-	AsDefaultBuildCommand = fmt.Sprintf(AsDefaultBuildCommand, packageManager)
-	AsInstaller = fmt.Sprintf(AsInstaller, packageManager)
-	AsManifestRemediation = fmt.Sprintf(AsManifestRemediation, packageManager)
+	asDefaultBuildCommand := fmt.Sprintf(AsDefaultBuildCommand, packageManager)
+	asInstaller := fmt.Sprintf(AsInstaller, packageManager)
+	asManifestRemediation := fmt.Sprintf(AsManifestRemediation, packageManager)
 
 	a := &AssemblyScript{
 		JavaScript: JavaScript{
@@ -87,27 +93,28 @@ func NewAssemblyScript(
 			timeout: timeout,
 			validator: ToolchainValidator{
 				Compilation:                   AsCompilation,
+				CompilationCommandRemediation: fmt.Sprintf(asCompilationCommandRemediation, AsSDK),
 				CompilationIntegrated:         true,
-				CompilationCommandRemediation: fmt.Sprintf(AsCompilationCommandRemediation, AsSDK),
 				CompilationSkipVersion:        true,
 				CompilationURL:                AsCompilationURL,
-				DefaultBuildCommand:           AsDefaultBuildCommand,
+				DefaultBuildCommand:           asDefaultBuildCommand,
 				ErrLog:                        errlog,
 				FastlyManifestFile:            fastlyManifest,
-				Installer:                     AsInstaller,
+				Installer:                     asInstaller,
 				Manifest:                      AsManifest,
-				ManifestExist:                 AsManifestCommand,
+				ManifestExist:                 asManifestCommand,
 				ManifestExistSkipError:        asSkipErr,
 				ManifestMetaData:              asManifestMetaData,
-				ManifestRemediation:           AsManifestRemediation,
+				ManifestRemediation:           asManifestRemediation,
 				Output:                        out,
 				PatchedManifestNotifier:       ch,
 				SDK:                           AsSDK,
-				SDKCustomValidator:            validateJsSDK(packageManager, AsDefaultBuildCommand, ""),
-				Toolchain:                     AsToolchain,
+				SDKCustomValidator:            validateJsSDK(packageManager, asDefaultBuildCommand, ""),
+				Toolchain:                     asToolchain,
 				ToolchainLanguage:             "AssemblyScript",
 				ToolchainSkipVersion:          true,
-				ToolchainURL:                  AsToolchainURL,
+				ToolchainURL:                  asToolchainURL,
+				InstallerPreHook:              installerPreHook,
 			},
 		},
 		errlog:    errlog,
