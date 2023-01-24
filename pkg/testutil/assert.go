@@ -69,7 +69,7 @@ func AssertErrorContains(t *testing.T, err error, target string) {
 	case err == nil && target != "":
 		t.Fatalf("want %q, have no error", target)
 	case err != nil && target == "":
-		t.Fatalf("want no error, have %v", err)
+		t.Fatalf("want no error, have %q", err)
 	case err != nil && target != "":
 		if want, have := target, err.Error(); !strings.Contains(have, want) {
 			t.Fatalf("want %q, have %q", want, have)

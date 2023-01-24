@@ -45,6 +45,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
+	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/service"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
@@ -312,6 +313,16 @@ func defineCommands(
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, globals)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
 	purgeCmdRoot := purge.NewRootCommand(app, globals, data)
+	secretstoreCmdRoot := secretstore.NewStoreRootCommand(app, globals)
+	secretstoreCreateStore := secretstore.NewCreateStoreCommand(secretstoreCmdRoot.CmdClause, globals, data)
+	secretstoreGetStore := secretstore.NewDescribeStoreCommand(secretstoreCmdRoot.CmdClause, globals, data)
+	secretstoreDeleteStore := secretstore.NewDeleteStoreCommand(secretstoreCmdRoot.CmdClause, globals, data)
+	secretstoreListStores := secretstore.NewListStoresCommand(secretstoreCmdRoot.CmdClause, globals, data)
+	secretstoreSecretCmdRoot := secretstore.NewSecretRootCommand(app, globals)
+	secretstoreCreateSecret := secretstore.NewCreateSecretCommand(secretstoreSecretCmdRoot.CmdClause, globals, data)
+	secretstoreGetSecret := secretstore.NewDescribeSecretCommand(secretstoreSecretCmdRoot.CmdClause, globals, data)
+	secretstoreDeleteSecret := secretstore.NewDeleteSecretCommand(secretstoreSecretCmdRoot.CmdClause, globals, data)
+	secretstoreListSecrets := secretstore.NewListSecretsCommand(secretstoreSecretCmdRoot.CmdClause, globals, data)
 	serviceCmdRoot := service.NewRootCommand(app, globals)
 	serviceCreate := service.NewCreateCommand(serviceCmdRoot.CmdClause, globals)
 	serviceDelete := service.NewDeleteCommand(serviceCmdRoot.CmdClause, globals, data)
@@ -630,6 +641,14 @@ func defineCommands(
 		profileToken,
 		profileUpdate,
 		purgeCmdRoot,
+		secretstoreCreateStore,
+		secretstoreGetStore,
+		secretstoreDeleteStore,
+		secretstoreListStores,
+		secretstoreCreateSecret,
+		secretstoreGetSecret,
+		secretstoreDeleteSecret,
+		secretstoreListSecrets,
 		serviceCmdRoot,
 		serviceCreate,
 		serviceDelete,

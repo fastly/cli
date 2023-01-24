@@ -61,7 +61,7 @@ type BoolFlagOpts struct {
 
 // RegisterFlagBool defines a boolean flag.
 //
-// TODO: Use generics support in go 1.18 to remove the need for two functions.
+// TODO: Use generics support in go 1.18 to remove the need for multiple functions.
 func (b Base) RegisterFlagBool(opts BoolFlagOpts) {
 	clause := b.CmdClause.Flag(opts.Name, opts.Description)
 	if opts.Short > 0 {
@@ -74,6 +74,35 @@ func (b Base) RegisterFlagBool(opts BoolFlagOpts) {
 		clause = clause.Action(opts.Action)
 	}
 	clause.BoolVar(opts.Dst)
+}
+
+// IntFlagOpts enables easy configuration of a flag.
+type IntFlagOpts struct {
+	Action      kingpin.Action
+	Default     int
+	Description string
+	Dst         *int
+	Name        string
+	Required    bool
+	Short       rune
+}
+
+// RegisterFlagInt defines an integer flag.
+func (b Base) RegisterFlagInt(opts IntFlagOpts) {
+	clause := b.CmdClause.Flag(opts.Name, opts.Description)
+	if opts.Short > 0 {
+		clause = clause.Short(opts.Short)
+	}
+	if opts.Required {
+		clause = clause.Required()
+	}
+	if opts.Action != nil {
+		clause = clause.Action(opts.Action)
+	}
+	if opts.Default != 0 {
+		clause = clause.Default(strconv.Itoa(opts.Default))
+	}
+	clause.IntVar(opts.Dst)
 }
 
 // OptionalServiceVersion represents a Fastly service version.

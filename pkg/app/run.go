@@ -131,7 +131,7 @@ func Run(opts RunOpts) error {
 		return err
 	}
 
-	// If we are using the token from config file, check the files permissions
+	// If we are using the token from config file, check the file's permissions
 	// to assert if they are not too open or have been altered outside of the
 	// application and warn if so.
 	segs := strings.Split(name, " ")
