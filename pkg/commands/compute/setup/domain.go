@@ -18,8 +18,7 @@ const defaultTopLevelDomain = "edgecompute.app"
 
 var domainNameRegEx = regexp.MustCompile(`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`)
 
-// Domains represents the service state related to domains defined within the
-// fastly.toml [setup] configuration.
+// Domains represents the service state related to domains.
 //
 // NOTE: It implements the setup.Interface interface.
 type Domains struct {
@@ -74,15 +73,12 @@ func (d *Domains) Configure() error {
 	}
 
 	if domain == "" {
-		d.required = append(d.required, Domain{
-			Name: defaultDomain,
-		})
-		return nil
+		domain = defaultDomain
 	}
-
 	d.required = append(d.required, Domain{
 		Name: domain,
 	})
+
 	return nil
 }
 
@@ -131,16 +127,16 @@ func (d *Domains) Predefined() bool {
 // NOTE: It should set an internal `missing` field (boolean) accordingly so that
 // the Missing() method can report the state of the resource.
 func (d *Domains) Validate() error {
-	var err error
-	d.available, err = d.APIClient.ListDomains(&fastly.ListDomainsInput{
+	available, err := d.APIClient.ListDomains(&fastly.ListDomainsInput{
 		ServiceID:      d.ServiceID,
 		ServiceVersion: d.ServiceVersion,
 	})
 	if err != nil {
 		return fmt.Errorf("error fetching service domains: %w", err)
 	}
+	d.available = available
 
-	if len(d.available) < 1 {
+	if len(d.available) == 0 {
 		d.missing = true
 	}
 	return nil
