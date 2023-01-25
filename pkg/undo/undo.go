@@ -57,7 +57,7 @@ func (s *Stack) Len() int {
 
 // RunIfError unwinds the stack if a non-nil error is passed, by serially
 // calling each Fn function state in FIFO order. If any Fn returns an
-// error, it gets logged to the provided writer. Should be deferrerd, such as:
+// error, it gets logged to the provided writer. Should be deferred, such as:
 //
 //	undoStack := undo.NewStack()
 //	defer func() { undoStack.RunIfError(w, err) }()
