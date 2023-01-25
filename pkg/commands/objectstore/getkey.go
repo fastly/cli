@@ -58,7 +58,11 @@ func (c *GetKeyCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	text.PrintObjectStoreKeyValue(out, "", c.Input.Key, value)
+	if c.Globals.Flag.Verbose {
+		text.PrintObjectStoreKeyValue(out, "", c.Input.Key, value)
+		return nil
+	}
 
+	text.Output(out, value)
 	return nil
 }
