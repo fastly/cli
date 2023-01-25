@@ -378,7 +378,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		// The following test validates that the undoStack is executed as expected
-		// e.g. the service is deleted.
+		// e.g. the service is deleted when there is an error during the flow.
 		// This only happens for new service flows.
 		{
 			name: "undo stack is executed",
@@ -399,6 +399,32 @@ func TestDeploy(t *testing.T) {
 				"Cleaning up service",
 				"Removing Service ID from fastly.toml",
 				"Cleanup complete",
+			},
+		},
+		// The following test is the opposite to the above test.
+		// It validates that we don't delete an existing service on-error.
+		{
+			name: "undo stack is not executed for errors with existing services",
+			args: args("compute deploy --service-id 123 --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionError,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				GetPackageFn:        getPackageOk,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			dontWantOutput: []string{
+				"Cleaning up service",
+				"Removing Service ID from fastly.toml",
+				"Cleanup complete",
+			},
+			wantError: "error activating version: test error",
+			wantOutput: []string{
+				"Uploading package...",
+				"Activating version...",
 			},
 		},
 		// The following test validates that if a package contains code that has
@@ -1619,6 +1645,10 @@ func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 			HashSum: "bf634ccf8be5c8417cf562466ece47ea61056ddeb07273a3d861e8ad757ed3577bc182006d04093c301467cadfd2b1805eedebd1e7cfa0404c723680f2dbc01e",
 		},
 	}, nil
+}
+
+func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+	return nil, testutil.Err
 }
 
 func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
