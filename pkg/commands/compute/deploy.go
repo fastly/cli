@@ -125,7 +125,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if err := processSetupCreation(
 		newService, domains, backends, dictionaries, objectStores, progress, c,
-		serviceID, serviceVersion.Number,
+		serviceID, serviceVersion.Number, out,
 	); err != nil {
 		return err
 	}
@@ -893,7 +893,14 @@ func processSetupCreation(
 	c *DeployCommand,
 	serviceID string,
 	serviceVersion int,
+	out io.Writer,
 ) error {
+	// NOTE: We need to output this message immediately to avoid breaking prompt.
+	if newService {
+		text.Info(out, "Processing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
+		text.Break(out)
+	}
+
 	if domains.Missing() {
 		// NOTE: We can't pass a text.Progress instance to setup.Domains at the
 		// point of constructing the domains object, as the text.Progress instance
