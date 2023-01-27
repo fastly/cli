@@ -378,25 +378,51 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		// The following test validates that the undoStack is executed as expected
-		// e.g. the backend and domain resources are deleted.
+		// e.g. the service is deleted when there is an error during the flow.
+		// This only happens for new service flows.
 		{
-			name: "activate error",
+			name: "undo stack is executed",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				CreateServiceFn: createServiceOK,
+				ListDomainsFn:   listDomainsNone,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendError,
+				DeleteServiceFn: deleteServiceOK,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantError: fmt.Sprintf("error configuring the service: %s", testutil.Err.Error()),
+			wantOutput: []string{
+				"Creating domain '",
+				"Cleaning up service",
+				"Removing Service ID from fastly.toml",
+				"Cleanup complete",
+			},
+		},
+		// The following test is the opposite to the above test.
+		// It validates that we don't delete an existing service on-error.
+		{
+			name: "undo stack is not executed for errors with existing services",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionError,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
-				CreateDomainFn:      createDomainOK,
-				DeleteDomainFn:      deleteDomainOK,
 				GetPackageFn:        getPackageOk,
 				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
-				ListDomainsFn:       listDomainsNone,
+				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
-			wantError: fmt.Sprintf("error activating version: %s", testutil.Err.Error()),
+			dontWantOutput: []string{
+				"Cleaning up service",
+				"Removing Service ID from fastly.toml",
+				"Cleanup complete",
+			},
+			wantError: "error activating version: test error",
 			wantOutput: []string{
-				"Creating domain '",
 				"Uploading package...",
 				"Activating version...",
 			},
