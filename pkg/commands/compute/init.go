@@ -232,6 +232,11 @@ func verifyDirectory(flags config.Flag, dir string, skipVerification bool, out i
 		return false, err
 	}
 
+	if strings.Contains(dir, " ") && !flags.AutoYes && !flags.NonInteractive {
+		text.Warning(out, "Your project path contains spaces. In some cases this can result in issues with your installed language toolchain, e.g. `npm`. Consider removing any spaces.")
+		text.Break(out)
+	}
+
 	if len(files) > 0 && !flags.AutoYes && !flags.NonInteractive {
 		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
 		result, err := text.AskYesNo(out, label, in)
