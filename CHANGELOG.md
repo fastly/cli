@@ -1,5 +1,25 @@
 # Changelog
 
+## [v5.1.0](https://github.com/fastly/cli/releases/tag/v5.1.0) (2023-01-27)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v5.0.0...v5.1.0)
+
+**Enhancements:**
+
+* Add Secret Store support [#717](https://github.com/fastly/cli/pull/717)
+* refactor(compute/deploy): reduce size of `Exec()` [#775](https://github.com/fastly/cli/pull/775)
+* refactor(compute/deploy): add messaging to explain `[setup]` [#779](https://github.com/fastly/cli/pull/779)
+
+**Bug fixes:**
+
+* fix(objectstore/get): output value unless verbose/json flag passed [#774](https://github.com/fastly/cli/pull/774)
+* fix(compute/init): add warning for paths with spaces [#778](https://github.com/fastly/cli/pull/778)
+* fix(compute/deploy): clean-up new service creation on-error [#776](https://github.com/fastly/cli/pull/776)
+
+**Dependencies:**
+
+* Bump github.com/fatih/color from 1.13.0 to 1.14.0 [#772](https://github.com/fastly/cli/pull/772)
+
 ## [v5.0.0](https://github.com/fastly/cli/releases/tag/v5.0.0) (2023-01-19)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v4.6.2...v5.0.0)
