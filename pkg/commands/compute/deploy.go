@@ -85,25 +85,12 @@ func NewDeployCommand(parent cmd.Registerer, globals *config.Data, data manifest
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	token, s := c.Globals.Token()
-	if s == config.SourceUndefined {
-		return fsterr.ErrNoToken
-	}
-
-	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
-	if err == nil && c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
-	}
-
-	pkgPath, hashSum, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	fnActivateTrial, source, serviceID, pkgPath, hashSum, err := setupDeploy(c, out)
 	if err != nil {
 		return err
 	}
 
-	endpoint, _ := c.Globals.Endpoint()
-	activateTrial := preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
-
-	newService, serviceID, serviceVersion, cont, err := serviceManagement(serviceID, source, c, in, out, activateTrial)
+	newService, serviceID, serviceVersion, cont, err := serviceManagement(serviceID, source, c, in, out, fnActivateTrial)
 	if err != nil {
 		return err
 	}
@@ -165,6 +152,44 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
+}
+
+// setupDeploy prepares the environment.
+// It will do things like:
+//   - Check if there is an API token missing.
+//   - Acquire the Service ID/Version.
+//   - Validate there is a package to deploy.
+//   - Determine if a trial needs to be activated on the user's account.
+func setupDeploy(c *DeployCommand, out io.Writer) (
+	fnActivateTrial activator,
+	source manifest.Source,
+	serviceID, pkgPath, hashSum string,
+	err error,
+) {
+	defaultActivator := func(customerID string) error { return nil }
+
+	token, s := c.Globals.Token()
+	if s == config.SourceUndefined {
+		return defaultActivator, 0, "", "", "", fsterr.ErrNoToken
+	}
+
+	// IMPORTANT: We don't handle the error when looking up the Service ID.
+	// This is because later in the Exec() flow we might create a 'new' service.
+	// Refer to manageNoServiceIDFlow()
+	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	if err == nil && c.Globals.Verbose() {
+		cmd.DisplayServiceID(serviceID, flag, source, out)
+	}
+
+	pkgPath, hashSum, err = validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	if err != nil {
+		return defaultActivator, source, serviceID, "", "", err
+	}
+
+	endpoint, _ := c.Globals.Endpoint()
+	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
+
+	return fnActivateTrial, source, serviceID, pkgPath, hashSum, err
 }
 
 // validatePackage short-circuits the deploy command if the user hasn't first
@@ -377,11 +402,11 @@ func serviceManagement(
 	c *DeployCommand,
 	in io.Reader,
 	out io.Writer,
-	activateTrial activator,
+	fnActivateTrial activator,
 ) (newService bool, updatedServiceID string, serviceVersion *fastly.Version, cont bool, err error) {
 	if source == manifest.SourceUndefined {
 		newService = true
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.Globals.Flag, in, out, c.Globals.Verbose(), c.Globals.APIClient, c.Package, c.Globals.ErrLog, &c.Manifest.File, activateTrial)
+		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.Globals.Flag, in, out, c.Globals.Verbose(), c.Globals.APIClient, c.Package, c.Globals.ErrLog, &c.Manifest.File, fnActivateTrial)
 		if err != nil {
 			return false, "", nil, false, err
 		}
@@ -408,7 +433,7 @@ func manageNoServiceIDFlow(
 	packageFlag string,
 	errLog fsterr.LogInterface,
 	manifestFile *manifest.File,
-	activateTrial activator,
+	fnActivateTrial activator,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
 	if !globalFlags.AutoYes && !globalFlags.NonInteractive {
 		text.Break(out)
@@ -445,7 +470,7 @@ func manageNoServiceIDFlow(
 	// There is no service and so we'll do a one time creation of the service
 	//
 	// NOTE: we're shadowing the `serviceVersion` and `serviceID` variables.
-	serviceID, serviceVersion, err = createService(serviceName, apiClient, activateTrial, progress, errLog)
+	serviceID, serviceVersion, err = createService(serviceName, apiClient, fnActivateTrial, progress, errLog)
 	if err != nil {
 		progress.Fail()
 		errLog.AddWithContext(err, map[string]any{
@@ -478,7 +503,13 @@ func manageNoServiceIDFlow(
 //
 // NOTE: If the creation of the service fails because the user has not
 // activated a free trial, then we'll trigger the trial for their account.
-func createService(serviceName string, apiClient api.Interface, activateTrial activator, progress text.Progress, errLog fsterr.LogInterface) (serviceID string, serviceVersion *fastly.Version, err error) {
+func createService(
+	serviceName string,
+	apiClient api.Interface,
+	fnActivateTrial activator,
+	progress text.Progress,
+	errLog fsterr.LogInterface,
+) (serviceID string, serviceVersion *fastly.Version, err error) {
 	progress.Step("Creating service...")
 
 	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
@@ -495,7 +526,7 @@ func createService(serviceName string, apiClient api.Interface, activateTrial ac
 				}
 			}
 
-			err = activateTrial(user.CustomerID)
+			err = fnActivateTrial(user.CustomerID)
 			if err != nil {
 				return serviceID, serviceVersion, fsterr.RemediationError{
 					Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account"),
@@ -507,7 +538,7 @@ func createService(serviceName string, apiClient api.Interface, activateTrial ac
 				"Service Name": serviceName,
 				"Customer ID":  user.CustomerID,
 			})
-			return createService(serviceName, apiClient, activateTrial, progress, errLog)
+			return createService(serviceName, apiClient, fnActivateTrial, progress, errLog)
 		}
 
 		errLog.AddWithContext(err, map[string]any{
