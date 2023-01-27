@@ -378,27 +378,27 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		// The following test validates that the undoStack is executed as expected
-		// e.g. the backend and domain resources are deleted.
+		// e.g. the service is deleted.
+		// This only happens for new service flows.
 		{
-			name: "activate error",
-			args: args("compute deploy --service-id 123 --token 123"),
+			name: "undo stack is executed",
+			args: args("compute deploy --token 123"),
 			api: mock.API{
-				ActivateVersionFn:   activateVersionError,
-				CloneVersionFn:      testutil.CloneVersionResult(4),
-				CreateDomainFn:      createDomainOK,
-				DeleteDomainFn:      deleteDomainOK,
-				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
-				GetServiceDetailsFn: getServiceDetailsWasm,
-				ListDomainsFn:       listDomainsNone,
-				ListVersionsFn:      testutil.ListVersions,
-				UpdatePackageFn:     updatePackageOk,
+				CreateServiceFn: createServiceOK,
+				ListDomainsFn:   listDomainsNone,
+				CreateDomainFn:  createDomainOK,
+				CreateBackendFn: createBackendError,
+				DeleteServiceFn: deleteServiceOK,
 			},
-			wantError: fmt.Sprintf("error activating version: %s", testutil.Err.Error()),
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantError: fmt.Sprintf("error configuring the service: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating domain '",
-				"Uploading package...",
-				"Activating version...",
+				"Cleaning up service",
+				"Removing Service ID from fastly.toml",
+				"Cleanup complete",
 			},
 		},
 		// The following test validates that if a package contains code that has
@@ -1619,10 +1619,6 @@ func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 			HashSum: "bf634ccf8be5c8417cf562466ece47ea61056ddeb07273a3d861e8ad757ed3577bc182006d04093c301467cadfd2b1805eedebd1e7cfa0404c723680f2dbc01e",
 		},
 	}, nil
-}
-
-func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
-	return nil, testutil.Err
 }
 
 func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {

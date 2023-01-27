@@ -90,6 +90,16 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	undoStack := undo.NewStack()
+	undoStack.Push(func() error {
+		// We'll only clean-up the service if it's a new service.
+		// SourceUndefined means no --service-id/--service-name flags were provided.
+		if source == manifest.SourceUndefined {
+			return cleanupService(c.Globals.APIClient, serviceID, c.Manifest, out)
+		}
+		return nil
+	})
+
 	newService, serviceID, serviceVersion, cont, err := serviceManagement(serviceID, source, c, in, out, fnActivateTrial)
 	if err != nil {
 		return err
@@ -113,7 +123,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	progress := text.ResetProgress(out, c.Globals.Verbose())
-	undoStack := undo.NewStack() // FIXME: Use undoStack!
 
 	defer func(errLog fsterr.LogInterface, progress text.Progress) {
 		if err != nil {
@@ -377,7 +386,7 @@ func packageSize(path string) (size int64, err error) {
 // unrelated arguments through several nested functions.
 type activator func(customerID string) error
 
-// preconfigureActivateTrial forms a closure around an activator.
+// preconfigureActivateTrial activates a free trial on the customer account.
 func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) activator {
 	return func(customerID string) error {
 		path := fmt.Sprintf(undocumented.EdgeComputeTrial, customerID)
@@ -408,10 +417,10 @@ func serviceManagement(
 		newService = true
 		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.Globals.Flag, in, out, c.Globals.Verbose(), c.Globals.APIClient, c.Package, c.Globals.ErrLog, &c.Manifest.File, fnActivateTrial)
 		if err != nil {
-			return false, "", nil, false, err
+			return newService, "", nil, false, err
 		}
 		if serviceID == "" {
-			return false, "", nil, false, nil // user declined service creation prompt
+			return newService, "", nil, false, nil // user declined service creation prompt
 		}
 	} else {
 		serviceVersion, err = manageExistingServiceFlow(serviceID, c.ServiceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
@@ -548,6 +557,30 @@ func createService(
 	}
 
 	return service.ID, &fastly.Version{Number: 1}, nil
+}
+
+// cleanupService is executed if a new service flow has errors.
+// It deletes the service, which will cause any contained resources to be deleted.
+// It will also strip the Service ID from the fastly.toml manifest file.
+func cleanupService(apiClient api.Interface, serviceID string, m manifest.Data, out io.Writer) error {
+	text.Info(out, "Cleaning up service")
+
+	err := apiClient.DeleteService(&fastly.DeleteServiceInput{
+		ID: serviceID,
+	})
+	if err != nil {
+		return err
+	}
+
+	text.Info(out, "Removing Service ID from fastly.toml")
+
+	err = updateManifestServiceID(&m.File, manifest.Filename, "")
+	if err != nil {
+		return err
+	}
+
+	text.Output(out, "Cleanup complete")
+	return nil
 }
 
 // updateManifestServiceID updates the Service ID in the manifest.
