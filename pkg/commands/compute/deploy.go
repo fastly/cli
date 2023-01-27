@@ -98,7 +98,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	domains, backends, dictionaries, loggers, objectStores, err := processSetupValidation(
+	domains, backends, dictionaries, loggers, objectStores, err := constructSetupObjects(
 		newService, serviceID, serviceVersion.Number, c, in, out,
 	)
 	if err != nil {
@@ -720,7 +720,7 @@ func displayDomain(apiClient api.Interface, serviceID string, serviceVersion int
 	}
 }
 
-func processSetupValidation(
+func constructSetupObjects(
 	newService bool,
 	serviceID string,
 	serviceVersion int,
