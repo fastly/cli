@@ -128,7 +128,7 @@ func NewRust(
 		},
 	}
 
-	r.validator.ToolchainPostHook = r.ToolchainPostHook
+	r.validator.ToolchainPostHook = r.modifyCargoPackageName
 
 	return r
 }
@@ -152,15 +152,12 @@ type Rust struct {
 	validator ToolchainValidator
 }
 
-// Initialize implements the Toolchain interface and initializes a newly cloned
-// package. It is a noop for Rust as the Cargo toolchain handles these steps.
-func (r Rust) Initialize(_ io.Writer) error {
-	return nil
-}
-
-// ToolchainPostHook validates whether the --bin flag matches the Cargo.toml
-// package name. If it doesn't match, update the default build script to match.
-func (r *Rust) ToolchainPostHook() error {
+// modifyCargoPackageName validates whether the --bin flag matches the
+// Cargo.toml package name. If it doesn't match, update the default build script
+// to match.
+//
+// TODO: Should the CLI be doing this if it doesn't handle user env validation?
+func (r *Rust) modifyCargoPackageName() error {
 	s := "cargo locate-project --quiet"
 	args := strings.Split(s, " ")
 	// gosec flagged this:
@@ -198,13 +195,13 @@ func (r *Rust) ToolchainPostHook() error {
 	return nil
 }
 
-// Verify ensures the user's environment has all the required resources/tools.
-func (r *Rust) Verify(_ io.Writer) error {
-	return r.validator.Validate()
-}
-
 // Build compiles the user's source code into a Wasm binary.
 func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+	err := r.modifyCargoPackageName()
+	if err != nil {
+		return err
+	}
+
 	// NOTE: We deliberately reference the validator pointer to the fastly.toml
 	// This is because the manifest.File might be updated when migrating a
 	// pre-existing project to use the CLI v4.0.0 (as prior to this version the
@@ -227,6 +224,7 @@ func (r *Rust) ProcessLocation() error {
 		r.errlog.Add(err)
 		return fmt.Errorf("getting current working directory: %w", err)
 	}
+
 	var metadata CargoMetadata
 	if err := metadata.Read(r.errlog); err != nil {
 		r.errlog.Add(err)
@@ -236,6 +234,7 @@ func (r *Rust) ProcessLocation() error {
 	if err := m.Read(r.projectRoot); err != nil {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
+
 	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", m.Package.Name))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 

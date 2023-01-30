@@ -325,6 +325,9 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 // binDir ensures a ./bin directory exists.
 // The directory is required so a main.wasm can be placed inside it.
 func binDir(c *BuildCommand) error {
+	if c.Globals.Verbose() {
+		text.Info(c.Globals.Output, "Creating ./bin directory (for Wasm binary)")
+	}
 	dir, err := os.Getwd()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

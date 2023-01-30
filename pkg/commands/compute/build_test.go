@@ -747,9 +747,9 @@ func TestCustomPostBuild(t *testing.T) {
 			{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
 			{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
 		},
-		// NOTE: Our only requirement is that there be a bin directory. The custom
-		// build script we're using in the test is not going to use any files in the
-		// directory (the script will just `echo` a message).
+		// NOTE: Our only requirement is that there be a bin directory.
+		// The custom build script we're using in the test is not going to use any
+		// files in the directory (the script will just `echo` a message).
 		Write: []testutil.FileIO{
 			{Src: "mock content", Dst: "bin/testfile"},
 		},
@@ -776,10 +776,8 @@ func TestCustomPostBuild(t *testing.T) {
 		wantOutput           []string
 		wantRemediationError string
 	}{
-		// NOTE: We need a fully functioning environment for the following tests,
-		// otherwise the call to language.Verify() would fail before reaching
-		// language.Build() and we need the build to complete because the
-		// post_build isn't executed until AFTER a build is successful.
+		// NOTE: We need the build to complete successfully.
+		// The post_build isn't executed until AFTER a build is successful.
 		{
 			name: "stop post_build process",
 			args: args("compute build"),
@@ -918,10 +916,6 @@ func TestCustomPostBuild(t *testing.T) {
 
 // TestBuildBinDirectory validates that the bin directory is created before
 // trying to execute the specific build script (e.g. [scripts.build]).
-//
-// If in the future the ./bin directory isn't created by the CLI, then this test
-// will fail to build successfully and we'll get an error indicating the
-// directory is missing.
 func TestBuildBinDirectory(t *testing.T) {
 	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
@@ -963,7 +957,7 @@ func TestBuildBinDirectory(t *testing.T) {
 	}{
 		{
 			name: "successful build",
-			args: args("compute build --skip-verification --verbose"),
+			args: args("compute build --verbose"),
 			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
@@ -971,7 +965,7 @@ func TestBuildBinDirectory(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.GoDefaultBuildCommand),
-			wantOutput: "Built package",
+			wantOutput: "Creating ./bin directory (for Wasm binary)",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -1009,7 +1003,10 @@ func TestBuildBinDirectory(t *testing.T) {
 			opts.ConfigFile.Language.Go.TinyGoConstraint = ">= 0.24.0-0" // NOTE: -0 is to allow prereleases.
 			opts.ConfigFile.Language.Go.ToolchainConstraint = ">= 1.17 < 1.19"
 
-			_ = app.Run(opts)
+			err = app.Run(opts)
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			t.Log(stdout.String())
 

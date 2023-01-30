@@ -652,16 +652,16 @@ type buildOpts struct {
 
 // build compiles the user's source code into a Wasm binary.
 func build(
-	l buildOpts,
+	opts buildOpts,
 	out io.Writer,
 	progress text.Progress,
 	verbose bool,
 	optionalLocationProcess func() error,
 	postBuildCallback func() error,
 ) error {
-	cmd, args := l.buildFn(l.buildScript)
+	cmd, args := opts.buildFn(opts.buildScript)
 
-	err := execCommand(cmd, args, out, progress, verbose, l.timeout, l.errlog)
+	err := execCommand(cmd, args, out, progress, verbose, opts.timeout, opts.errlog)
 	if err != nil {
 		return err
 	}
@@ -678,10 +678,10 @@ func build(
 	// The progress is 'reset' inside the main build controller `build.go`.
 	progress.Done()
 
-	if l.postBuild != "" {
+	if opts.postBuild != "" {
 		if err = postBuildCallback(); err == nil {
-			cmd, args := l.buildFn(l.postBuild)
-			err := execCommand(cmd, args, out, progress, verbose, l.timeout, l.errlog)
+			cmd, args := opts.buildFn(opts.postBuild)
+			err := execCommand(cmd, args, out, progress, verbose, opts.timeout, opts.errlog)
 			if err != nil {
 				return err
 			}
