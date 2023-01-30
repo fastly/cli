@@ -326,19 +326,19 @@ func promptOrReturn(
 	out io.Writer,
 ) (name, description string, authors []string, err error) {
 	name, _ = m.Name()
-	name, err = packageName(flags, name, path, in, out)
+	name, err = promptPackageName(flags, name, path, in, out)
 	if err != nil {
 		return name, description, authors, err
 	}
 
 	description, _ = m.Description()
-	description, err = packageDescription(flags, description, in, out)
+	description, err = promptPackageDescription(flags, description, in, out)
 	if err != nil {
 		return name, description, authors, err
 	}
 
 	authors, _ = m.Authors()
-	authors, err = packageAuthors(flags, authors, email, in, out)
+	authors, err = promptPackageAuthors(flags, authors, email, in, out)
 	if err != nil {
 		return name, description, authors, err
 	}
@@ -346,12 +346,12 @@ func promptOrReturn(
 	return name, description, authors, nil
 }
 
-// packageName prompts the user for a package name unless already defined either
+// promptPackageName prompts the user for a package name unless already defined either
 // via the corresponding CLI flag or the manifest file.
 //
 // It will use a default of the current directory path if no value provided by
 // the user via the prompt.
-func packageName(flags config.Flag, name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
+func promptPackageName(flags config.Flag, name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
 	defaultName := filepath.Base(dirPath)
 
 	if name == "" && (flags.AcceptDefaults || flags.NonInteractive) {
@@ -374,9 +374,9 @@ func packageName(flags config.Flag, name string, dirPath string, in io.Reader, o
 	return name, nil
 }
 
-// packageDescription prompts the user for a package description unless already
+// promptPackageDescription prompts the user for a package description unless already
 // defined either via the corresponding CLI flag or the manifest file.
-func packageDescription(flags config.Flag, desc string, in io.Reader, out io.Writer) (string, error) {
+func promptPackageDescription(flags config.Flag, desc string, in io.Reader, out io.Writer) (string, error) {
 	if desc == "" && (flags.AcceptDefaults || flags.NonInteractive) {
 		return desc, nil
 	}
@@ -393,12 +393,12 @@ func packageDescription(flags config.Flag, desc string, in io.Reader, out io.Wri
 	return desc, nil
 }
 
-// packageAuthors prompts the user for a package name unless already defined
+// promptPackageAuthors prompts the user for a package name unless already defined
 // either via the corresponding CLI flag or the manifest file.
 //
 // It will use a default of the user's email found within the manifest, if set
 // there, otherwise the value will be an empty slice.
-func packageAuthors(flags config.Flag, authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
+func promptPackageAuthors(flags config.Flag, authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
 	defaultValue := []string{manifestEmail}
 	if len(authors) == 0 && (flags.AcceptDefaults || flags.NonInteractive) {
 		return defaultValue, nil
