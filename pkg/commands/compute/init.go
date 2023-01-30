@@ -37,13 +37,12 @@ var (
 type InitCommand struct {
 	cmd.Base
 
-	branch           string
-	dir              string
-	from             string
-	language         string
-	manifest         manifest.Data
-	skipVerification bool
-	tag              string
+	branch   string
+	dir      string
+	from     string
+	language string
+	manifest manifest.Data
+	tag      string
 }
 
 // Languages is a list of supported language options.
@@ -61,7 +60,6 @@ func NewInitCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
-	c.CmdClause.Flag("force", "Skip non-empty directory verification step and force new project creation").BoolVar(&c.skipVerification)
 
 	return &c
 }
@@ -84,7 +82,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
-	cont, err := verifyDirectory(c.Globals.Flag, c.dir, c.skipVerification, out, in)
+	cont, err := verifyDirectory(c.Globals.Flag, c.dir, out, in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -214,11 +212,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // verifyDirectory indicates if the user wants to continue with the execution
 // flow when presented with a prompt that suggests the current directory isn't
 // empty.
-func verifyDirectory(flags config.Flag, dir string, skipVerification bool, out io.Writer, in io.Reader) (bool, error) {
-	if skipVerification {
-		return true, nil
-	}
-
+func verifyDirectory(flags config.Flag, dir string, out io.Writer, in io.Reader) (bool, error) {
 	if dir == "" {
 		dir = "."
 	}

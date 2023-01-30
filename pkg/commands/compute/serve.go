@@ -147,9 +147,6 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	if c.packageName.WasSet {
 		c.build.Flags.PackageName = c.packageName.Value
 	}
-	if c.skipVerification.WasSet {
-		c.build.Flags.SkipVerification = c.skipVerification.Value
-	}
 	if c.timeout.WasSet {
 		c.build.Flags.Timeout = c.timeout.Value
 	}

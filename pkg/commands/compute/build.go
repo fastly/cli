@@ -29,11 +29,10 @@ const CustomPostBuildScriptMessage = "This project has a custom post build scrip
 
 // Flags represents the flags defined for the command.
 type Flags struct {
-	IncludeSrc       bool
-	Lang             string
-	PackageName      string
-	SkipVerification bool
-	Timeout          int
+	IncludeSrc  bool
+	Lang        string
+	PackageName string
+	Timeout     int
 }
 
 // BuildCommand produces a deployable artifact from files on the local disk.
@@ -58,7 +57,6 @@ func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
-	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.Flags.SkipVerification)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
 	return &c
@@ -114,18 +112,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	err = binDir(c)
 	if err != nil {
 		return err
-	}
-
-	if !c.Flags.SkipVerification {
-		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", toolchain))
-
-		err = language.Verify(progress)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Language": language.Name,
-			})
-			return err
-		}
 	}
 
 	// NOTE: We set the progress indicator to Done() so that any output we now
