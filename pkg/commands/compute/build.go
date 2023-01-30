@@ -111,16 +111,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	// NOTE: A ./bin directory is required for the main.wasm to be placed inside.
-	dir, err := os.Getwd()
+	err = binDir(c)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return fmt.Errorf("failed to identify the current working directory: %w", err)
-	}
-	binDir := filepath.Join(dir, "bin")
-	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
-		c.Globals.ErrLog.Add(err)
-		return fmt.Errorf("failed to create bin directory: %w", err)
+		return err
 	}
 
 	if !c.Flags.SkipVerification {
@@ -346,6 +339,22 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 	}
 
 	return language, nil
+}
+
+// binDir ensures a ./bin directory exists.
+// The directory is required so a main.wasm can be placed inside it.
+func binDir(c *BuildCommand) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to identify the current working directory: %w", err)
+	}
+	binDir := filepath.Join(dir, "bin")
+	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to create bin directory: %w", err)
+	}
+	return nil
 }
 
 // promptForBuildContinue ensures the user is happy to continue with the build
