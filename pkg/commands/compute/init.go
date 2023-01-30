@@ -268,7 +268,7 @@ func instantiateProgress(verbose bool, out io.Writer) text.Progress {
 func verifyDestination(path string, progress text.Progress) (dst string, err error) {
 	dst, err = filepath.Abs(path)
 	if err != nil {
-		return dst, err
+		return "", err
 	}
 
 	fi, err := os.Stat(dst)
@@ -328,19 +328,19 @@ func promptOrReturn(
 	name, _ = m.Name()
 	name, err = promptPackageName(flags, name, path, in, out)
 	if err != nil {
-		return name, description, authors, err
+		return "", description, authors, err
 	}
 
 	description, _ = m.Description()
 	description, err = promptPackageDescription(flags, description, in, out)
 	if err != nil {
-		return name, description, authors, err
+		return name, "", authors, err
 	}
 
 	authors, _ = m.Authors()
 	authors, err = promptPackageAuthors(flags, authors, email, in, out)
 	if err != nil {
-		return name, description, authors, err
+		return name, description, []string{}, err
 	}
 
 	return name, description, authors, nil
@@ -754,6 +754,8 @@ func clonePackageFromEndpoint(from string, branch string, tag string, dst string
 	// Disabling as there should be no vulnerability to cloning a remote repo.
 	/* #nosec */
 	c := exec.Command("git", args...)
+
+	// nosemgrep (invalid-usage-of-modified-variable)
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error fetching package template: %w\n\n%s", err, stdoutStderr)
