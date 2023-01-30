@@ -106,73 +106,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// language specific default build command (because one was missing).
 	ch := make(chan string)
 
-	var language *Language
-	switch toolchain {
-	case "assemblyscript":
-		language = NewLanguage(&LanguageOptions{
-			Name:            "assemblyscript",
-			SourceDirectory: AsSourceDirectory,
-			IncludeFiles:    []string{},
-			Toolchain: NewAssemblyScript(
-				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				progress,
-				ch,
-			),
-		})
-	case "go":
-		language = NewLanguage(&LanguageOptions{
-			Name:            "go",
-			SourceDirectory: GoSourceDirectory,
-			IncludeFiles:    []string{},
-			Toolchain: NewGo(
-				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				c.Globals.File.Language.Go,
-				progress,
-				ch,
-			),
-		})
-	case "javascript":
-		language = NewLanguage(&LanguageOptions{
-			Name:            "javascript",
-			SourceDirectory: JsSourceDirectory,
-			IncludeFiles:    []string{},
-			Toolchain: NewJavaScript(
-				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				progress,
-				ch,
-			),
-		})
-	case "rust":
-		language = NewLanguage(&LanguageOptions{
-			Name:            "rust",
-			SourceDirectory: RustSourceDirectory,
-			IncludeFiles:    []string{},
-			Toolchain: NewRust(
-				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				c.Globals.File.Language.Rust,
-				progress,
-				ch,
-			),
-		})
-	case "other":
-		language = NewLanguage(&LanguageOptions{
-			Name: "other",
-			Toolchain: NewOther(
-				c.Manifest.File.Scripts,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-			),
-		})
-	default:
-		return fmt.Errorf("unsupported language %s", toolchain)
+	language, err := language(toolchain, c, progress, ch)
+	if err != nil {
+		return err
 	}
 
 	// NOTE: A ./bin directory is required for the main.wasm to be placed inside.
@@ -336,6 +272,80 @@ func toolchain(c *BuildCommand) (string, error) {
 	}
 
 	return strings.ToLower(strings.TrimSpace(toolchain)), nil
+}
+
+// language returns a pointer to a supported language.
+func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan string) (*Language, error) {
+	var language *Language
+	switch toolchain {
+	case "assemblyscript":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "assemblyscript",
+			SourceDirectory: AsSourceDirectory,
+			IncludeFiles:    []string{},
+			Toolchain: NewAssemblyScript(
+				&c.Manifest.File,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+				progress,
+				ch,
+			),
+		})
+	case "go":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "go",
+			SourceDirectory: GoSourceDirectory,
+			IncludeFiles:    []string{},
+			Toolchain: NewGo(
+				&c.Manifest.File,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+				c.Globals.File.Language.Go,
+				progress,
+				ch,
+			),
+		})
+	case "javascript":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "javascript",
+			SourceDirectory: JsSourceDirectory,
+			IncludeFiles:    []string{},
+			Toolchain: NewJavaScript(
+				&c.Manifest.File,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+				progress,
+				ch,
+			),
+		})
+	case "rust":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "rust",
+			SourceDirectory: RustSourceDirectory,
+			IncludeFiles:    []string{},
+			Toolchain: NewRust(
+				&c.Manifest.File,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+				c.Globals.File.Language.Rust,
+				progress,
+				ch,
+			),
+		})
+	case "other":
+		language = NewLanguage(&LanguageOptions{
+			Name: "other",
+			Toolchain: NewOther(
+				c.Manifest.File.Scripts,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+			),
+		})
+	default:
+		return nil, fmt.Errorf("unsupported language %s", toolchain)
+	}
+
+	return language, nil
 }
 
 // promptForBuildContinue ensures the user is happy to continue with the build
