@@ -97,20 +97,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	// Language from flag takes priority, otherwise infer from manifest and
-	// error if neither are provided. Sanitize by trim and lowercase.
-	var toolchain string
-
-	switch {
-	case c.Flags.Lang != "":
-		toolchain = c.Flags.Lang
-	case c.Manifest.File.Language != "":
-		toolchain = c.Manifest.File.Language
-	default:
-		return fmt.Errorf("language cannot be empty, please provide a language")
+	toolchain, err := toolchain(c)
+	if err != nil {
+		return err
 	}
-
-	toolchain = strings.ToLower(strings.TrimSpace(toolchain))
 
 	// ch is used to identify if the fastly.toml manifest has been patched with a
 	// language specific default build command (because one was missing).
@@ -326,6 +316,26 @@ func packageName(c *BuildCommand) (string, error) {
 	}
 
 	return sanitize.BaseName(name), nil
+}
+
+// toolchain determines the programming language.
+//
+// It prioritises the --language flag over the manifest field.
+// Will error if neither are provided.
+// Lastly, it will normalise with a trim and lowercase.
+func toolchain(c *BuildCommand) (string, error) {
+	var toolchain string
+
+	switch {
+	case c.Flags.Lang != "":
+		toolchain = c.Flags.Lang
+	case c.Manifest.File.Language != "":
+		toolchain = c.Manifest.File.Language
+	default:
+		return "", fmt.Errorf("language cannot be empty, please provide a language")
+	}
+
+	return strings.ToLower(strings.TrimSpace(toolchain)), nil
 }
 
 // promptForBuildContinue ensures the user is happy to continue with the build
