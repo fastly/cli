@@ -92,21 +92,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	var packageName string
-
-	switch {
-	case c.Flags.PackageName != "":
-		packageName = c.Flags.PackageName
-	case c.Manifest.File.Name != "":
-		packageName = c.Manifest.File.Name // use the project name as a fallback
-	default:
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("package name is missing"),
-			Remediation: "Add a name to the fastly.toml 'name' field. Reference: https://developer.fastly.com/reference/compute/fastly-toml/",
-		}
+	packageName, err := packageName(c)
+	if err != nil {
+		return err
 	}
-
-	packageName = sanitize.BaseName(packageName)
 
 	// Language from flag takes priority, otherwise infer from manifest and
 	// error if neither are provided. Sanitize by trim and lowercase.
@@ -317,6 +306,26 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	out = originalOut
 	text.Success(out, "Built package (%s)", dest)
 	return nil
+}
+
+// packageName acquires the package name from either a flag or manifest.
+// Additionally it will sanitize the name.
+func packageName(c *BuildCommand) (string, error) {
+	var name string
+
+	switch {
+	case c.Flags.PackageName != "":
+		name = c.Flags.PackageName
+	case c.Manifest.File.Name != "":
+		name = c.Manifest.File.Name // use the project name as a fallback
+	default:
+		return "", fsterr.RemediationError{
+			Inner:       fmt.Errorf("package name is missing"),
+			Remediation: "Add a name to the fastly.toml 'name' field. Reference: https://developer.fastly.com/reference/compute/fastly-toml/",
+		}
+	}
+
+	return sanitize.BaseName(name), nil
 }
 
 // promptForBuildContinue ensures the user is happy to continue with the build
