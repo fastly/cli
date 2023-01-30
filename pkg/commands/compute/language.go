@@ -49,25 +49,6 @@ func NewLanguages(kits config.StarterKitLanguages) []*Language {
 	}
 }
 
-// Language models a Compute@Edge source language.
-type Language struct {
-	Name            string
-	DisplayName     string
-	StarterKits     []config.StarterKit
-	SourceDirectory string
-
-	Toolchain
-}
-
-// LanguageOptions models configuration options for a Language.
-type LanguageOptions struct {
-	Name            string
-	DisplayName     string
-	StarterKits     []config.StarterKit
-	SourceDirectory string
-	Toolchain       Toolchain
-}
-
 // NewLanguage constructs a new Language from a LangaugeOptions.
 func NewLanguage(options *LanguageOptions) *Language {
 	// Ensure the 'default' starter kit is always first.
@@ -95,6 +76,25 @@ func NewLanguage(options *LanguageOptions) *Language {
 		options.SourceDirectory,
 		options.Toolchain,
 	}
+}
+
+// Language models a Compute@Edge source language.
+type Language struct {
+	Name            string
+	DisplayName     string
+	StarterKits     []config.StarterKit
+	SourceDirectory string
+
+	Toolchain
+}
+
+// LanguageOptions models configuration options for a Language.
+type LanguageOptions struct {
+	Name            string
+	DisplayName     string
+	StarterKits     []config.StarterKit
+	SourceDirectory string
+	Toolchain       Toolchain
 }
 
 // Shell represents a subprocess shell used by `compute` environment where
