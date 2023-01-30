@@ -168,7 +168,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	files := []string{
 		manifest.Filename,
 	}
-	files = append(files, language.IncludeFiles...)
 
 	ignoreFiles, err := GetIgnoredFiles(IgnoreFilePath)
 	if err != nil {
@@ -275,7 +274,6 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
 			SourceDirectory: AsSourceDirectory,
-			IncludeFiles:    []string{},
 			Toolchain: NewAssemblyScript(
 				&c.Manifest.File,
 				c.Globals.ErrLog,
@@ -288,7 +286,6 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 		language = NewLanguage(&LanguageOptions{
 			Name:            "go",
 			SourceDirectory: GoSourceDirectory,
-			IncludeFiles:    []string{},
 			Toolchain: NewGo(
 				&c.Manifest.File,
 				c.Globals.ErrLog,
@@ -302,7 +299,6 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: JsSourceDirectory,
-			IncludeFiles:    []string{},
 			Toolchain: NewJavaScript(
 				&c.Manifest.File,
 				c.Globals.ErrLog,
@@ -315,7 +311,6 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
-			IncludeFiles:    []string{},
 			Toolchain: NewRust(
 				&c.Manifest.File,
 				c.Globals.ErrLog,

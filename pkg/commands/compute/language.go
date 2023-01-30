@@ -87,7 +87,6 @@ type Language struct {
 	DisplayName     string
 	StarterKits     []config.StarterKit
 	SourceDirectory string
-	IncludeFiles    []string
 
 	Toolchain
 }
@@ -98,7 +97,6 @@ type LanguageOptions struct {
 	DisplayName     string
 	StarterKits     []config.StarterKit
 	SourceDirectory string
-	IncludeFiles    []string
 	Toolchain       Toolchain
 }
 
@@ -127,7 +125,6 @@ func NewLanguage(options *LanguageOptions) *Language {
 		options.DisplayName,
 		options.StarterKits,
 		options.SourceDirectory,
-		options.IncludeFiles,
 		options.Toolchain,
 	}
 }
