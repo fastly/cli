@@ -26,12 +26,6 @@ const SDKErrMessageFormat = "failed to find SDK '%s' in the '%s' manifest"
 
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
-	// Initialize handles any non-build related set-up.
-	Initialize(out io.Writer) error
-
-	// Verify ensures the user's environment has all the required resources/tools.
-	Verify(out io.Writer) error
-
 	// Build compiles the user's source code into a Wasm binary.
 	Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error
 }

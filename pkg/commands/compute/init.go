@@ -897,12 +897,6 @@ func initializeLanguage(progress text.Progress, language *Language, languages []
 		}
 	}
 
-	if language.Name != "other" {
-		if err := language.Initialize(progress); err != nil {
-			return nil, err
-		}
-	}
-
 	return language, nil
 }
 
