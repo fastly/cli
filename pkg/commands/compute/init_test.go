@@ -204,7 +204,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with existing package manifest",
-			args: args("compute init --force"), // --force will ignore a directory that isn't empty
+			args: args("compute init --auto-yes"), // --force will ignore a directory that isn't empty
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: skRust,
@@ -224,7 +224,7 @@ func TestInit(t *testing.T) {
 		},
 		{
 			name: "with existing package manifest",
-			args: args("compute init --force"), // --force will ignore a directory that isn't empty
+			args: args("compute init --auto-yes"), // --force will ignore a directory that isn't empty
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					Rust: skRust,
@@ -353,6 +353,9 @@ func TestInit(t *testing.T) {
 			},
 			manifestIncludes: `name = "fastly-temp`,
 		},
+		// NOTE: This test verifies that we don't fetch a remote project.
+		// Whether that be a starter kit or custom project template.
+		// This is because "other" indicates an unsupported platform language.
 		{
 			name:             "with pre-compiled Wasm binary",
 			args:             args("compute init --language other"),

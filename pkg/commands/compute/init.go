@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -37,12 +36,12 @@ var (
 type InitCommand struct {
 	cmd.Base
 
-	branch   string
-	dir      string
-	from     string
-	language string
-	manifest manifest.Data
-	tag      string
+	branch    string
+	dir       string
+	cloneFrom string
+	language  string
+	manifest  manifest.Data
+	tag       string
 }
 
 // Languages is a list of supported language options.
@@ -57,7 +56,7 @@ func NewInitCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
-	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.from)
+	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.cloneFrom)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 
@@ -67,7 +66,7 @@ func NewInitCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 // Exec implements the command interface.
 func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var introContext string
-	if c.from != "" {
+	if c.cloneFrom != "" {
 		introContext = " (using --from to locate package template)"
 	}
 
@@ -76,7 +75,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
 
-	if c.from != "" && c.language == "" {
+	if c.cloneFrom != "" && c.language == "" {
 		text.Warning(out, "When using the --from flag, the project language cannot be inferred. Please either use the --language flag to explicitly set the language or ensure the project's fastly.toml sets a valid language.")
 	}
 
@@ -147,28 +146,43 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	languages := NewLanguages(c.Globals.File.StarterKits)
-	language, err := selectLanguage(c.Globals.Flag, c.from, c.language, languages, mf, in, out)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Language": c.language,
-		})
-		return err
+
+	var language *Language
+
+	if c.language == "" && c.cloneFrom == "" {
+		language, err = promptForLanguage(c.Globals.Flag, languages, in, out)
+		if err != nil {
+			return err
+		}
+	}
+
+	// NOTE: The --language flag is an EnumVar, meaning it's already validated.
+	if c.language != "" {
+		for _, recognisedLanguage := range languages {
+			if strings.EqualFold(c.language, recognisedLanguage.Name) {
+				language = recognisedLanguage
+			}
+		}
 	}
 
 	var from, branch, tag string
 
-	if noProjectFiles(c.from, language, mf) {
+	// If the user doesn't tell us where to clone from, or there is already a
+	// fastly.toml manifest, or the language they selected was "other" (meaning
+	// they're bringing their own project code), then we'll prompt the user to
+	// select a starter kit project.
+	if c.cloneFrom == "" && !mf.Exists() && language.Name != "other" {
 		from, branch, tag, err = promptForStarterKit(c.Globals.Flag, language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"From":           c.from,
+				"From":           c.cloneFrom,
 				"Branch":         c.branch,
 				"Tag":            c.tag,
 				"Manifest Exist": false,
 			})
 			return err
 		}
-		c.from = from
+		c.cloneFrom = from
 	}
 
 	text.Break(out)
@@ -177,15 +191,26 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// whether --verbose was set or not.
 	progress = text.NewProgress(out, c.Globals.Verbose())
 
-	err = fetchPackageTemplate(language, c.from, branch, tag, c.dir, mf, file.Archives, progress, c.Globals.HTTPClient, out, c.Globals.ErrLog)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"From":      from,
-			"Branch":    branch,
-			"Tag":       tag,
-			"Directory": c.dir,
-		})
-		return err
+	// We only want to fetch a remote package if c.cloneFrom has been set.
+	// This can happen in two ways:
+	//
+	// 1. --from flag is set
+	// 2. user selects starter kit when prompted
+	//
+	// We don't fetch if the user has indicated their language of choice is
+	// "other" because this means they intend on handling the compilation of code
+	// that isn't natively supported by the platform.
+	if c.cloneFrom != "" {
+		err = fetchPackageTemplate(c, branch, tag, file.Archives, progress, out)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"From":      from,
+				"Branch":    branch,
+				"Tag":       tag,
+				"Directory": c.dir,
+			})
+			return err
+		}
 	}
 
 	mf, err = updateManifest(mf, progress, c.dir, name, desc, authors, language)
@@ -419,26 +444,6 @@ func promptPackageAuthors(flags config.Flag, authors []string, manifestEmail str
 	return authors, nil
 }
 
-// selectLanguage decides whether to prompt the user for a language if none
-// defined or try and match the --language flag against available languages.
-func selectLanguage(flags config.Flag, from string, langFlag string, ls []*Language, mf manifest.File, in io.Reader, out io.Writer) (*Language, error) {
-	if from != "" && langFlag == "" || mf.Exists() {
-		return nil, nil
-	}
-
-	if langFlag == "" {
-		return promptForLanguage(flags, ls, in, out)
-	}
-
-	for _, language := range ls {
-		if strings.EqualFold(langFlag, language.Name) {
-			return language, nil
-		}
-	}
-
-	return nil, fmt.Errorf("error looking up specified language: '%s' not supported", langFlag)
-}
-
 // promptForLanguage prompts the user for a package language unless already
 // defined either via the corresponding CLI flag or the manifest file.
 func promptForLanguage(flags config.Flag, languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
@@ -490,15 +495,6 @@ func validateLanguageOption(languages []*Language) func(string) error {
 		}
 		return errMsg
 	}
-}
-
-// noProjectFiles indicates if the user needs to be prompted to select a
-// Starter Kit for their chosen language.
-func noProjectFiles(from string, language *Language, mf manifest.File) bool {
-	if from != "" || language == nil || mf.Exists() {
-		return false
-	}
-	return from == "" && language.Name != "other" && !mf.Exists()
 }
 
 // promptForStarterKit prompts the user for a package starter kit.
@@ -559,37 +555,28 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 // from GitHub using the git binary to clone the source or a HTTP request that
 // uses content-negotiation to determine the type of archive format used.
 func fetchPackageTemplate(
-	language *Language,
-	from, branch, tag, dst string,
-	mf manifest.File,
+	c *InitCommand,
+	branch, tag string,
 	archives []file.Archive,
 	progress text.Progress,
-	client api.HTTPClient,
 	out io.Writer,
-	errLog fsterr.LogInterface,
 ) error {
-	// We don't try to fetch a package template if the user is bringing their own
-	// compiled Wasm binary (or if the directory currently already contains a
-	// fastly.toml manifest file).
-	if mf.Exists() || language != nil && language.Name == "other" {
-		return nil
-	}
 	progress.Step("Fetching package template...")
 
 	// If the user has provided a local file path, we'll recursively copy the
-	// directory to dst.
-	fi, err := os.Stat(from)
+	// directory to c.dir.
+	fi, err := os.Stat(c.cloneFrom)
 	if err != nil {
-		errLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 	} else if fi.IsDir() {
-		return cp.Copy(from, dst)
+		return cp.Copy(c.cloneFrom, c.dir)
 	}
 
-	req, err := http.NewRequest("GET", from, nil)
+	req, err := http.NewRequest("GET", c.cloneFrom, nil)
 	if err != nil {
-		errLog.Add(err)
-		if gitRepositoryRegEx.MatchString(from) {
-			return clonePackageFromEndpoint(from, branch, tag, dst)
+		c.Globals.ErrLog.Add(err)
+		if gitRepositoryRegEx.MatchString(c.cloneFrom) {
+			return clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir)
 		}
 		return fmt.Errorf("failed to construct package request URL: %w", err)
 	}
@@ -600,20 +587,20 @@ func fetchPackageTemplate(
 		}
 	}
 
-	res, err := client.Do(req)
+	res, err := c.Globals.HTTPClient.Do(req)
 	if err != nil {
-		errLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("failed to get package: %w", err)
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		err := fmt.Errorf("failed to get package: %s", res.Status)
-		errLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	filename := filepath.Base(from)
+	filename := filepath.Base(c.cloneFrom)
 	ext := filepath.Ext(filename)
 
 	// gosec flagged this:
@@ -623,7 +610,7 @@ func fetchPackageTemplate(
 	/* #nosec */
 	f, err := os.Create(filename)
 	if err != nil {
-		errLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("failed to create local %s archive: %w", filename, err)
 	}
 	defer func() {
@@ -632,7 +619,7 @@ func fetchPackageTemplate(
 		// that is still in scope is also updated to include the extension.
 		err := os.Remove(filename)
 		if err != nil {
-			errLog.Add(err)
+			c.Globals.ErrLog.Add(err)
 			text.Break(out)
 			text.Info(out, "We were unable to clean-up the local %s file (it can be safely removed)", filename)
 		}
@@ -640,7 +627,7 @@ func fetchPackageTemplate(
 
 	_, err = io.Copy(f, res.Body)
 	if err != nil {
-		errLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
 	}
 
@@ -648,7 +635,7 @@ func fetchPackageTemplate(
 	// realised that this caused issues on Windows as it was unable to rename the
 	// file as we still have the descriptor `f` open.
 	if err := f.Close(); err != nil {
-		errLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 	}
 
 	var archive file.Archive
@@ -684,25 +671,25 @@ mimes:
 			filenameWithExt := filename + archive.Extensions()[0]
 			err := os.Rename(filename, filenameWithExt)
 			if err != nil {
-				errLog.Add(err)
+				c.Globals.ErrLog.Add(err)
 				return err
 			}
 			filename = filenameWithExt
 		}
 
-		archive.SetDestination(dst)
+		archive.SetDestination(c.dir)
 		archive.SetFilename(filename)
 
 		err = archive.Extract()
 		if err != nil {
-			errLog.Add(err)
+			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("failed to extract %s archive content: %w", filename, err)
 		}
 
 		return nil
 	}
 
-	return clonePackageFromEndpoint(from, branch, tag, dst)
+	return clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir)
 }
 
 // clonePackageFromEndpoint clones the given repo (from) into a temp directory,
