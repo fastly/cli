@@ -100,11 +100,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	// ch is used to identify if the fastly.toml manifest has been patched with a
-	// language specific default build command (because one was missing).
-	ch := make(chan string)
-
-	language, err := language(toolchain, c, progress, ch)
+	language, err := language(toolchain, c, progress)
 	if err != nil {
 		return err
 	}
@@ -192,20 +188,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Done()
 
-	// When patching fastly.toml with a default build command, in --verbose mode
-	// that information is already printed to the screen, but in standard output
-	// mode we need to ensure it's visible so users know the fastly.toml has been
-	// updated.
-	if !c.Globals.Verbose() {
-		select {
-		case msg := <-ch:
-			text.Info(out, msg)
-		default:
-			// no message, so moving on to prevent deadlock
-		}
-		close(ch)
-	}
-
 	out = originalOut
 	text.Success(out, "Built package (%s)", dest)
 	return nil
@@ -252,7 +234,7 @@ func toolchain(c *BuildCommand) (string, error) {
 }
 
 // language returns a pointer to a supported language.
-func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan string) (*Language, error) {
+func language(toolchain string, c *BuildCommand, progress text.Progress) (*Language, error) {
 	var language *Language
 	switch toolchain {
 	case "assemblyscript":
@@ -264,7 +246,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				progress,
-				ch,
+				c.Globals.Verbose(),
 			),
 		})
 	case "go":

@@ -13,7 +13,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
-	fstruntime "github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/threadsafe"
 )
@@ -421,7 +420,7 @@ func TestBuildJavaScript(t *testing.T) {
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
 		},
 		{
-			name: "successful build --verbose",
+			name: "successful build",
 			args: args("compute build"),
 			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
@@ -499,20 +498,21 @@ func TestBuildJavaScript(t *testing.T) {
 }
 
 func TestBuildAssemblyScript(t *testing.T) {
-	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
-		t.Skip("Set TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT or TEST_COMPUTE_BUILD to run this test")
+		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	for _, testcase := range []struct {
+	args := testutil.Args
+
+	scenarios := []struct {
 		name                 string
 		args                 []string
 		fastlyManifest       string
-		skipWindows          bool
 		wantError            string
 		wantRemediationError string
-		wantOutputContains   string
+		wantOutput           []string
+		npmInstall           bool
 	}{
 		{
 			name:                 "no fastly.toml manifest",
@@ -537,6 +537,34 @@ func TestBuildAssemblyScript(t *testing.T) {
 			language = "foobar"`,
 			wantError: "unsupported language foobar",
 		},
+		// The following test validates that the project compiles successfully even
+		// though the fastly.toml manifest has no build script. There should be a
+		// default build script inserted.
+		{
+			name: "build script inserted dynamically when missing",
+			args: args("compute build --verbose"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+      language = "assemblyscript"`,
+			wantOutput: []string{
+				"No [scripts.build] found in fastly.toml.", // requires --verbose
+				"The following default build command for",
+				"npm exec -- asc",
+			},
+		},
+		{
+			name: "build error",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "assemblyscript"
+
+      [scripts]
+      build = "echo no compilation happening"`,
+			wantRemediationError: compute.DefaultBuildErrorRemediation,
+		},
 		{
 			name: "successful build",
 			args: args("compute build"),
@@ -547,15 +575,13 @@ func TestBuildAssemblyScript(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.AsDefaultBuildCommand),
-			wantOutputContains: "Built package",
-			skipWindows:        true,
+			wantOutput: []string{"Built package"},
+			npmInstall: true,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
-			if fstruntime.Windows && testcase.skipWindows {
-				t.Skip()
-			}
-
 			// We're going to chdir to a build environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
@@ -573,7 +599,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 				Write: []testutil.FileIO{
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 				},
-				Exec: []string{"npm", "install"},
 			})
 			defer os.RemoveAll(rootdir)
 
@@ -585,13 +610,35 @@ func TestBuildAssemblyScript(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
+			// NOTE: We only want to run `npm install` for the success case.
+			if testcase.npmInstall {
+				// gosec flagged this:
+				// G204 (CWE-78): Subprocess launched with variable
+				// Disabling as we control this command.
+				// #nosec
+				// nosemgrep
+				cmd := exec.Command("npm", "install")
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+
+				err = cmd.Run()
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			err = app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
+			t.Log(stdout.String())
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
-			if testcase.wantOutputContains != "" {
-				testutil.AssertStringContains(t, stdout.String(), testcase.wantOutputContains)
+			// NOTE: Some errors we want to assert only the remediation.
+			// e.g. a 'stat' error isn't the same across operating systems/platforms.
+			if testcase.wantError != "" {
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+			}
+			for _, s := range testcase.wantOutput {
+				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 		})
 	}

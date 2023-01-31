@@ -30,8 +30,7 @@ const JsDefaultBuildCommand = "npm exec js-compute-runtime ./src/index.js ./bin/
 // release with regards to how build logic has moved to the fastly.toml manifest.
 //
 // NOTE: For this variation of the build script to be added to the user's
-// fastly.toml will require a successful check for the npm task:
-// `prebuild: webpack` in the user's package.json manifest.
+// fastly.toml will require a successful check for the webpack dependency.
 const JsDefaultBuildCommandForWebpack = "npm exec webpack && npm exec js-compute-runtime ./bin/index.js ./bin/main.wasm"
 
 // JsSourceDirectory represents the source code directory.                                               │                                                           │
@@ -122,6 +121,11 @@ func (j JavaScript) checkForWebpack() (bool, error) {
 	}
 
 	if found {
+		// gosec flagged this:
+		// G304 (CWE-22): Potential file inclusion via variable
+		//
+		// Disabling as the path is determined by our own logic.
+		/* #nosec */
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return false, err
