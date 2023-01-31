@@ -197,21 +197,22 @@ func TestBuildRust(t *testing.T) {
 	}
 }
 
-func TestBuildAssemblyScript(t *testing.T) {
-	args := testutil.Args
-	if os.Getenv("TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
+func TestBuildGo(t *testing.T) {
+	if os.Getenv("TEST_COMPUTE_BUILD_GO") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
-		t.Skip("Set TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT or TEST_COMPUTE_BUILD to run this test")
+		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	for _, testcase := range []struct {
+	args := testutil.Args
+
+	scenarios := []struct {
 		name                 string
 		args                 []string
+		applicationConfig    config.File
 		fastlyManifest       string
-		skipWindows          bool
 		wantError            string
 		wantRemediationError string
-		wantOutputContains   string
+		wantOutput           []string
 	}{
 		{
 			name:                 "no fastly.toml manifest",
@@ -236,25 +237,74 @@ func TestBuildAssemblyScript(t *testing.T) {
 			language = "foobar"`,
 			wantError: "unsupported language foobar",
 		},
+		// The following test validates that the project compiles successfully even
+		// though the fastly.toml manifest has no build script. There should be a
+		// default build script inserted.
+		{
+			name: "build script inserted dynamically when missing",
+			args: args("compute build --verbose"),
+			applicationConfig: config.File{
+				Language: config.Language{
+					Go: config.Go{
+						TinyGoConstraint:    ">= 0.24.0-0",
+						ToolchainConstraint: ">= 1.17",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+      language = "go"`,
+			wantOutput: []string{
+				"No [scripts.build] found in fastly.toml.", // requires --verbose
+				"The following default build command for",
+				"tinygo build",
+			},
+		},
+		{
+			name: "build error",
+			args: args("compute build"),
+			applicationConfig: config.File{
+				Language: config.Language{
+					Go: config.Go{
+						TinyGoConstraint:    ">= 0.24.0-0",
+						ToolchainConstraint: ">= 1.17",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "go"
+
+      [scripts]
+      build = "echo no compilation happening"`,
+			wantRemediationError: compute.DefaultBuildErrorRemediation,
+		},
 		{
 			name: "successful build",
 			args: args("compute build"),
+			applicationConfig: config.File{
+				Language: config.Language{
+					Go: config.Go{
+						TinyGoConstraint:    ">= 0.24.0-0",
+						ToolchainConstraint: ">= 1.17",
+					},
+				},
+			},
 			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
-			language = "assemblyscript"
+			language = "go"
 
       [scripts]
-      build = "%s"`, compute.AsDefaultBuildCommand),
-			wantOutputContains: "Built package",
-			skipWindows:        true,
+      build = "%s"`, compute.GoDefaultBuildCommand),
+			wantOutput: []string{"Built package"},
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
-			if fstruntime.Windows && testcase.skipWindows {
-				t.Skip()
-			}
-
 			// We're going to chdir to a build environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
@@ -266,13 +316,12 @@ func TestBuildAssemblyScript(t *testing.T) {
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Copy: []testutil.FileIO{
-					{Src: filepath.Join("testdata", "build", "assemblyscript", "package.json"), Dst: "package.json"},
-					{Src: filepath.Join("testdata", "build", "assemblyscript", "assembly", "index.ts"), Dst: filepath.Join("assembly", "index.ts")},
+					{Src: filepath.Join("testdata", "build", "go", "go.mod"), Dst: "go.mod"},
+					{Src: filepath.Join("testdata", "build", "go", "main.go"), Dst: "main.go"},
 				},
 				Write: []testutil.FileIO{
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 				},
-				Exec: []string{"npm", "install"},
 			})
 			defer os.RemoveAll(rootdir)
 
@@ -286,11 +335,17 @@ func TestBuildAssemblyScript(t *testing.T) {
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts.ConfigFile = testcase.applicationConfig
 			err = app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
+			t.Log(stdout.String())
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
-			if testcase.wantOutputContains != "" {
-				testutil.AssertStringContains(t, stdout.String(), testcase.wantOutputContains)
+			// NOTE: Some errors we want to assert only the remediation.
+			// e.g. a 'stat' error isn't the same across operating systems/platforms.
+			if testcase.wantError != "" {
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+			}
+			for _, s := range testcase.wantOutput {
+				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 		})
 	}
@@ -429,43 +484,18 @@ func TestBuildJavaScript(t *testing.T) {
 	}
 }
 
-func TestBuildGo(t *testing.T) {
+func TestBuildAssemblyScript(t *testing.T) {
 	args := testutil.Args
-	if os.Getenv("TEST_COMPUTE_BUILD_GO") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
+	if os.Getenv("TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
-		t.Skip("Set TEST_COMPUTE_BUILD_GO or TEST_COMPUTE_BUILD to run this test")
+		t.Skip("Set TEST_COMPUTE_BUILD_ASSEMBLYSCRIPT or TEST_COMPUTE_BUILD to run this test")
 	}
-
-	// We're going to chdir to a build environment,
-	// so save the PWD to return to, afterwards.
-	pwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create test environment
-	rootdir := testutil.NewEnv(testutil.EnvOpts{
-		T: t,
-		Copy: []testutil.FileIO{
-			{Src: filepath.Join("testdata", "build", "go", "go.mod"), Dst: "go.mod"},
-			{Src: filepath.Join("testdata", "build", "go", "main.go"), Dst: "main.go"},
-		},
-	})
-	defer os.RemoveAll(rootdir)
-
-	// Before running the test, chdir into the build environment.
-	// When we're done, chdir back to our original location.
-	// This is so we can reliably copy the testdata/ fixtures.
-	if err := os.Chdir(rootdir); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chdir(pwd)
 
 	for _, testcase := range []struct {
 		name                 string
 		args                 []string
 		fastlyManifest       string
-		sourceOverride       string
+		skipWindows          bool
 		wantError            string
 		wantRemediationError string
 		wantOutputContains   string
@@ -485,19 +515,13 @@ func TestBuildGo(t *testing.T) {
 			wantError: "language cannot be empty, please provide a language",
 		},
 		{
-			name: "syntax error",
-			args: args("compute build --verbose"),
-			fastlyManifest: fmt.Sprintf(`
+			name: "unknown language",
+			args: args("compute build"),
+			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
-			language = "go"
-
-      [scripts]
-      build = "%s"`, compute.GoDefaultBuildCommand),
-			sourceOverride: `D"F;
-			'GREGERgregeg '
-			ERG`,
-			wantError: "error during execution process",
+			language = "foobar"`,
+			wantError: "unsupported language foobar",
 		},
 		{
 			name: "successful build",
@@ -505,52 +529,51 @@ func TestBuildGo(t *testing.T) {
 			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
-			language = "go"
+			language = "assemblyscript"
 
       [scripts]
-      build = "%s"`, compute.GoDefaultBuildCommand),
+      build = "%s"`, compute.AsDefaultBuildCommand),
 			wantOutputContains: "Built package",
+			skipWindows:        true,
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			if testcase.fastlyManifest != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
-					t.Fatal(err)
-				}
+			if fstruntime.Windows && testcase.skipWindows {
+				t.Skip()
 			}
 
-			// We want to ensure the original `main.go` is put back in case of a test
-			// case overriding its content using `sourceOverride`.
-			src := filepath.Join(rootdir, "main.go")
-			b, err := os.ReadFile(src)
+			// We're going to chdir to a build environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer func(src string, b []byte) {
-				err := os.WriteFile(src, b, 0o644)
-				if err != nil {
-					t.Fatal(err)
-				}
-			}(src, b)
 
-			if testcase.sourceOverride != "" {
-				if err := os.WriteFile(src, []byte(testcase.sourceOverride), 0o777); err != nil {
-					t.Fatal(err)
-				}
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "build", "assemblyscript", "package.json"), Dst: "package.json"},
+					{Src: filepath.Join("testdata", "build", "assemblyscript", "assembly", "index.ts"), Dst: filepath.Join("assembly", "index.ts")},
+				},
+				Write: []testutil.FileIO{
+					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
+				},
+				Exec: []string{"npm", "install"},
+			})
+			defer os.RemoveAll(rootdir)
+
+			// Before running the test, chdir into the build environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably copy the testdata/ fixtures.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
 			}
+			defer os.Chdir(pwd)
 
-			var stdout threadsafe.Buffer
+			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-
-			// NOTE: The following constraints should be kept in-sync with
-			// ./pkg/config/config.toml
-			opts.ConfigFile.Language.Go.TinyGoConstraint = ">= 0.24.0-0" // NOTE: -0 is to allow prereleases.
-			opts.ConfigFile.Language.Go.ToolchainConstraint = ">= 1.17"
-
 			err = app.Run(opts)
-
-			t.Log(stdout.String())
-
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
 			if testcase.wantOutputContains != "" {

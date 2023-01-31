@@ -277,7 +277,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 				c.Flags.Timeout,
 				c.Globals.File.Language.Go,
 				progress,
-				ch,
+				c.Globals.Verbose(),
 			),
 		})
 	case "javascript":

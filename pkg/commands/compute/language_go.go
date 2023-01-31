@@ -1,72 +1,32 @@
 package compute
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
+	"os/exec"
 	"regexp"
+	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GoCompilation is a language specific compilation target that converts the
-// language code into a Wasm binary.
-const GoCompilation = "tinygo"
-
-// GoCompilationURL is the official TinyGo website URL.
-const GoCompilationURL = "https://tinygo.org"
-
-// GoCompilationTargetCommand is the shell command for returning the tinygo
-// version.
-const GoCompilationTargetCommand = "tinygo version"
-
-// GoConstraints is the set of supported toolchain and compilation versions.
-//
-// NOTE: Two keys are supported: "toolchain" and "compilation", with the latter
-// being optional as not all language compilation steps are separate tools from
-// the toolchain itself.
-var GoConstraints = make(map[string]string)
-
 // GoDefaultBuildCommand is a build command compiled into the CLI binary so it
 // can be used as a fallback for customer's who have an existing C@E project and
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
+//
+// NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
+// We no longer do that. In 6.x we use the default and just inform the user.
+// This makes the experience less confusing as users didn't expect file changes.
 const GoDefaultBuildCommand = "tinygo build -target=wasi -gc=conservative -o bin/main.wasm ./"
-
-// GoInstaller is the command used to install the dependencies defined within
-// the Go language manifest.
-const GoInstaller = "go mod download"
-
-// GoManifest is the manifest file for defining project configuration.
-const GoManifest = "go.mod"
-
-// GoManifestCommand is the toolchain command to validate the manifest exists,
-// and also enables parsing of the project's dependencies.
-const GoManifestCommand = "go mod edit -json"
-
-// GoManifestRemediation is a error remediation message for a missing manifest.
-const GoManifestRemediation = "go mod init"
-
-// GoSDK is the required Compute@Edge SDK.
-// https://pkg.go.dev/github.com/fastly/compute-sdk-go
-const GoSDK = "github.com/fastly/compute-sdk-go"
 
 // GoSourceDirectory represents the source code directory.                                               │                                                           │
 const GoSourceDirectory = "."
-
-// GoToolchain is the executable responsible for managing dependencies.
-const GoToolchain = "go"
-
-// GoToolchainURL is the official Go website URL.
-const GoToolchainURL = "https://go.dev/"
-
-// GoToolchainVersionCommand is the shell command for returning the go version.
-const GoToolchainVersionCommand = "go version"
 
 // NewGo constructs a new Go toolchain.
 func NewGo(
@@ -75,39 +35,17 @@ func NewGo(
 	timeout int,
 	cfg config.Go,
 	out io.Writer,
-	ch chan string,
+	verbose bool,
 ) *Go {
-	GoConstraints["toolchain"] = cfg.ToolchainConstraint
-	GoConstraints["compilation"] = cfg.TinyGoConstraint
-
 	return &Go{
 		Shell:     Shell{},
+		build:     fastlyManifest.Scripts.Build,
+		config:    cfg,
 		errlog:    errlog,
+		output:    out,
 		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
-		validator: ToolchainValidator{
-			Compilation:              GoCompilation,
-			CompilationTargetCommand: GoCompilationTargetCommand,
-			CompilationTargetPattern: regexp.MustCompile(`tinygo version (?P<version>\d[^\s]+)`),
-			CompilationURL:           GoCompilationURL,
-			Constraints:              GoConstraints,
-			DefaultBuildCommand:      GoDefaultBuildCommand,
-			ErrLog:                   errlog,
-			FastlyManifestFile:       fastlyManifest,
-			Installer:                GoInstaller,
-			Manifest:                 GoManifest,
-			ManifestCommand:          GoManifestCommand,
-			ManifestRemediation:      GoManifestRemediation,
-			Output:                   out,
-			PatchedManifestNotifier:  ch,
-			SDK:                      GoSDK,
-			SDKCustomValidator:       validateGoSDK,
-			Toolchain:                GoToolchain,
-			ToolchainLanguage:        "Go",
-			ToolchainVersionCommand:  GoToolchainVersionCommand,
-			ToolchainVersionPattern:  regexp.MustCompile(`go version go(?P<version>\d[^\s]+)`),
-			ToolchainURL:             GoToolchainURL,
-		},
+		verbose:   verbose,
 	}
 }
 
@@ -120,36 +58,45 @@ func NewGo(
 type Go struct {
 	Shell
 
+	// build is a shell command defined in fastly.toml using [scripts.build].
+	build string
+	// config is the Go specific application configuration.
+	config config.Go
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
+	// output is the users terminal stdout stream
+	output io.Writer
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
 	// timeout is the build execution threshold.
 	timeout int
-	// validator is an abstraction to validate required resources are installed.
-	validator ToolchainValidator
-}
-
-// Initialize handles any non-build related set-up.
-func (g Go) Initialize(_ io.Writer) error {
-	return nil
-}
-
-// Verify ensures the user's environment has all the required resources/tools.
-func (g *Go) Verify(_ io.Writer) error {
-	return g.validator.Validate()
+	// verbose indicates if the user set --verbose
+	verbose bool
 }
 
 // Build compiles the user's source code into a Wasm binary.
 func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	// NOTE: We deliberately reference the validator pointer to the fastly.toml
-	// This is because the manifest.File might be updated when migrating a
-	// pre-existing project to use the CLI v4.0.0 (as prior to this version the
-	// manifest would not require [script.build] to be defined).
-	// As of v4.0.0 if no value is set, then we provide a default.
+	var noBuildScript bool
+	if g.build == "" {
+		g.build = GoDefaultBuildCommand
+		noBuildScript = true
+	}
+
+	if noBuildScript && g.verbose {
+		text.Info(out, "No [scripts.build] found in fastly.toml. The following default build command for Go will be used: `%s`\n", g.build)
+		text.Break(out)
+	}
+
+	g.toolchainConstraint(
+		"go", `go version go(?P<version>\d[^\s]+)`, g.config.ToolchainConstraint,
+	)
+	g.toolchainConstraint(
+		"tinygo", `tinygo version (?P<version>\d[^\s]+)`, g.config.TinyGoConstraint,
+	)
+
 	return build(buildOpts{
-		buildScript: g.validator.FastlyManifestFile.Scripts.Build,
+		buildScript: g.build,
 		buildFn:     g.Shell.Build,
 		errlog:      g.errlog,
 		postBuild:   g.postBuild,
@@ -157,44 +104,51 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 	}, out, progress, verbose, nil, callback)
 }
 
-// GoDependency represents the project's SDK and version.
-type GoDependency struct {
-	Path    string
-	Version string
-}
+// toolchainConstraint warns the user if the required constraint is not met.
+//
+// NOTE: We don't stop the build as their toolchain may compile successfully.
+// The warning is to help a user know something isn't quite right and gives them
+// the opportunity to do something about it if they choose.
+func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
+	versionCommand := fmt.Sprintf("%s version", toolchain)
+	args := strings.Split(versionCommand, " ")
 
-// GoMod represents the project's go.mod manifest.
-type GoMod struct {
-	Require []GoDependency
-}
-
-// validateGoSDK uses the Go toolchain to identify if the required SDK
-// dependency is installed.
-func validateGoSDK(sdk string, manifestCommandOutput []byte, _ chan string) error {
-	var gm GoMod
-
-	err := json.Unmarshal(manifestCommandOutput, &gm)
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+	// Disabling as we trust the source of the variable.
+	// #nosec
+	// nosemgrep
+	cmd := exec.Command(args[0], args[1:]...)
+	stdoutStderr, err := cmd.CombinedOutput()
+	output := string(stdoutStderr)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal manifest metadata: %w", err)
+		return
 	}
 
-	remediation := fmt.Sprintf("Ensure your %s is valid and contains the '%s' dependency.", GoManifest, sdk)
+	versionPattern := regexp.MustCompile(pattern)
+	match := versionPattern.FindStringSubmatch(output)
+	if len(match) < 2 { // We expect a pattern with one capture group.
+		return
+	}
+	version := match[1]
 
-	if len(gm.Require) < 1 {
-		return fsterr.RemediationError{
-			Inner:       errors.New("no dependencies declared"),
-			Remediation: remediation,
-		}
+	v, err := semver.NewVersion(version)
+	if err != nil {
+		return
 	}
 
-	for _, gd := range gm.Require {
-		if gd.Path == sdk {
-			return nil
-		}
+	c, err := semver.NewConstraint(constraint)
+	if err != nil {
+		return
 	}
 
-	return fsterr.RemediationError{
-		Inner:       errors.New("required dependency missing"),
-		Remediation: remediation,
+	if g.verbose {
+		text.Info(g.output, "The Fastly CLI requires a %s version '%s'. ", toolchain, constraint)
+		text.Break(g.output)
+	}
+
+	if !c.Check(v) {
+		text.Warning(g.output, "The %s version '%s' didn't meet the constraint '%s'", toolchain, version, constraint)
+		text.Break(g.output)
 	}
 }
