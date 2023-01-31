@@ -123,7 +123,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	progress = text.ResetProgress(out, c.Globals.Verbose())
-	progress.Step("Running [scripts.build]...")
 
 	postBuildCallback := func() error {
 		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
@@ -303,7 +302,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 				c.Flags.Timeout,
 				c.Globals.File.Language.Rust,
 				progress,
-				ch,
+				c.Globals.Verbose(),
 			),
 		})
 	case "other":

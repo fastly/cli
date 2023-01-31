@@ -1,10 +1,8 @@
 package compute
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
@@ -21,68 +20,25 @@ import (
 	toml "github.com/pelletier/go-toml"
 )
 
-// RustCompilation is a language specific compilation target that converts the
-// language code into a Wasm binary.
-const RustCompilation = "wasm32-wasi"
-
-// RustCompilationURL is the specification URL for the wasm32-wasi target.
-const RustCompilationURL = "https://doc.rust-lang.org/stable/nightly-rustc/rustc_target/spec/wasm32_wasi/index.html"
-
-// RustCompilationCommandRemediation is the command to execute to fix the
-// missing compilation target.
-const RustCompilationCommandRemediation = "rustup target add %s --toolchain $ACTIVE_TOOLCHAIN"
-
-// RustCompilationTargetCommand is the shell command for returning the list of
-// installed compilation targets.
-const RustCompilationTargetCommand = "rustup target list --installed --toolchain %s"
-
-// RustConstraints is the set of supported toolchain and compilation versions.
-//
-// NOTE: Two keys are supported: "toolchain" and "compilation", with the latter
-// being optional as not all language compilation steps are separate tools from
-// the toolchain itself.
-var RustConstraints = make(map[string]string)
-
 // RustDefaultBuildCommand is a build command compiled into the CLI binary so it
 // can be used as a fallback for customer's who have an existing C@E project and
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
+//
+// NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
+// We no longer do that. In 6.x we use the default and just inform the user.
+// This makes the experience less confusing as users didn't expect file changes.
 const RustDefaultBuildCommand = "cargo build --bin %s --release --target wasm32-wasi --color always"
 
 // RustManifest is the manifest file for defining project configuration.
 const RustManifest = "Cargo.toml"
 
-// RustManifestCommand is the toolchain command to validate the manifest exists,
-// and also enables parsing of the project's dependencies.
-const RustManifestCommand = "cargo metadata --format-version 1 --quiet"
-
-// RustManifestRemediation is a error remediation message for a missing manifest.
-const RustManifestRemediation = "cargo new $NAME --bin"
-
-// RustPackageName is the expected binary create/package name to be built.
-const RustPackageName = "fastly-compute-project"
-
-// RustSDK is the required Compute@Edge SDK.
-// https://crates.io/crates/fastly
-const RustSDK = "fastly"
+// RustDefaultPackageName is the expected binary create/package name to be built.
+const RustDefaultPackageName = "fastly-compute-project"
 
 // RustSourceDirectory represents the source code directory.                                               │                                                           │
 const RustSourceDirectory = "src"
-
-// RustToolchain is the executable responsible for managing dependencies.
-const RustToolchain = "cargo"
-
-// RustToolchainCommandRemediation is the command to execute to fix the
-// toolchain.
-const RustToolchainCommandRemediation = "Run `rustup update stable`, or ensure your `rust-toolchain` file specifies a version matching the constraint (e.g. `channel = \"stable\"`)."
-
-// RustToolchainURL is the official Rust website URL.
-const RustToolchainURL = "https://doc.rust-lang.org/stable/cargo/"
-
-// RustToolchainVersionCommand is the shell command for returning the Rust
-// version.
-const RustToolchainVersionCommand = "cargo version --quiet"
 
 // NewRust constructs a new Rust toolchain.
 func NewRust(
@@ -91,56 +47,32 @@ func NewRust(
 	timeout int,
 	cfg config.Rust,
 	out io.Writer,
-	ch chan string,
+	verbose bool,
 ) *Rust {
-	RustConstraints["toolchain"] = cfg.ToolchainConstraint
-
-	r := &Rust{
+	return &Rust{
 		Shell:     Shell{},
+		build:     fastlyManifest.Scripts.Build,
 		config:    cfg,
 		errlog:    errlog,
+		output:    out,
 		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
-		validator: ToolchainValidator{
-			Compilation:                   RustCompilation,
-			CompilationIntegrated:         true,
-			CompilationCommandRemediation: fmt.Sprintf(RustCompilationCommandRemediation, cfg.WasmWasiTarget),
-			CompilationTargetCommand:      fmt.Sprintf(RustCompilationTargetCommand, rustupToolchain()),
-			CompilationTargetPattern:      regexp.MustCompile(fmt.Sprintf(`(?P<version>)%s`, RustCompilation)),
-			CompilationURL:                RustCompilationURL,
-			Constraints:                   RustConstraints,
-			DefaultBuildCommand:           fmt.Sprintf(RustDefaultBuildCommand, RustPackageName),
-			ErrLog:                        errlog,
-			FastlyManifestFile:            fastlyManifest,
-			Manifest:                      RustManifest,
-			ManifestCommand:               RustManifestCommand,
-			ManifestRemediation:           RustManifestRemediation,
-			Output:                        out,
-			PatchedManifestNotifier:       ch,
-			SDK:                           RustSDK,
-			SDKCustomValidator:            validateRustSDK,
-			Toolchain:                     RustToolchain,
-			ToolchainCommandRemediation:   RustToolchainCommandRemediation,
-			ToolchainLanguage:             "Rust",
-			ToolchainVersionCommand:       RustToolchainVersionCommand,
-			ToolchainVersionPattern:       regexp.MustCompile(`cargo (?P<version>\d[^\s]+)`),
-			ToolchainURL:                  RustToolchainURL,
-		},
+		verbose:   verbose,
 	}
-
-	r.validator.ToolchainPostHook = r.modifyCargoPackageName
-
-	return r
 }
 
 // Rust implements a Toolchain for the Rust language.
 type Rust struct {
 	Shell
 
+	// build is a shell command defined in fastly.toml using [scripts.build].
+	build string
 	// config is the Rust specific application configuration.
 	config config.Rust
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
+	// output is the users terminal stdout stream
+	output io.Writer
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
@@ -148,15 +80,44 @@ type Rust struct {
 	projectRoot string
 	// timeout is the build execution threshold.
 	timeout int
-	// validator is an abstraction to validate required resources are installed.
-	validator ToolchainValidator
+	// verbose indicates if the user set --verbose
+	verbose bool
+}
+
+// Build compiles the user's source code into a Wasm binary.
+func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+	var noBuildScript bool
+	if r.build == "" {
+		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName)
+		noBuildScript = true
+	}
+
+	err := r.modifyCargoPackageName()
+	if err != nil {
+		return err
+	}
+
+	if noBuildScript && r.verbose {
+		text.Info(out, "No [scripts.build] found in fastly.toml. The following default build command for Rust will be used: `%s`\n", r.build)
+		text.Break(out)
+	}
+
+	r.toolchainConstraint()
+
+	progress.Step("Running [scripts.build]...")
+
+	return build(buildOpts{
+		buildScript: r.build,
+		buildFn:     r.Shell.Build,
+		errlog:      r.errlog,
+		postBuild:   r.postBuild,
+		timeout:     r.timeout,
+	}, out, progress, verbose, r.ProcessLocation, callback)
 }
 
 // modifyCargoPackageName validates whether the --bin flag matches the
 // Cargo.toml package name. If it doesn't match, update the default build script
 // to match.
-//
-// TODO: Should the CLI be doing this if it doesn't handle user env validation?
 func (r *Rust) modifyCargoPackageName() error {
 	s := "cargo locate-project --quiet"
 	args := strings.Split(s, " ")
@@ -188,32 +149,60 @@ func (r *Rust) modifyCargoPackageName() error {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
 
-	if m.Package.Name != RustPackageName {
-		r.validator.DefaultBuildCommand = fmt.Sprintf(RustDefaultBuildCommand, m.Package.Name)
+	if m.Package.Name != RustDefaultPackageName {
+		r.build = fmt.Sprintf(RustDefaultBuildCommand, m.Package.Name)
 	}
 
 	return nil
 }
 
-// Build compiles the user's source code into a Wasm binary.
-func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	err := r.modifyCargoPackageName()
+// toolchainConstraint warns the user if the required constraint is not met.
+//
+// NOTE: We don't stop the build as their toolchain may compile successfully.
+// The warning is to help a user know something isn't quite right and gives them
+// the opportunity to do something about it if they choose.
+func (r *Rust) toolchainConstraint() {
+	versionCommand := "cargo version --quiet"
+	args := strings.Split(versionCommand, " ")
+
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+	// Disabling as we trust the source of the variable.
+	// #nosec
+	// nosemgrep
+	cmd := exec.Command(args[0], args[1:]...)
+	stdoutStderr, err := cmd.CombinedOutput()
+	output := string(stdoutStderr)
 	if err != nil {
-		return err
+		return
 	}
 
-	// NOTE: We deliberately reference the validator pointer to the fastly.toml
-	// This is because the manifest.File might be updated when migrating a
-	// pre-existing project to use the CLI v4.0.0 (as prior to this version the
-	// manifest would not require [script.build] to be defined).
-	// As of v4.0.0 if no value is set, then we provide a default.
-	return build(buildOpts{
-		buildScript: r.validator.FastlyManifestFile.Scripts.Build,
-		buildFn:     r.Shell.Build,
-		errlog:      r.errlog,
-		postBuild:   r.postBuild,
-		timeout:     r.timeout,
-	}, out, progress, verbose, r.ProcessLocation, callback)
+	versionPattern := regexp.MustCompile(`cargo (?P<version>\d[^\s]+)`)
+	match := versionPattern.FindStringSubmatch(output)
+	if len(match) < 2 { // We expect a pattern with one capture group.
+		return
+	}
+	version := match[1]
+
+	v, err := semver.NewVersion(version)
+	if err != nil {
+		return
+	}
+
+	c, err := semver.NewConstraint(r.config.ToolchainConstraint)
+	if err != nil {
+		return
+	}
+
+	if r.verbose {
+		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'. ", r.config.ToolchainConstraint)
+		text.Break(r.output)
+	}
+
+	if !c.Check(v) {
+		text.Warning(r.output, "The Rust version '%s' didn't meet the constraint '%s'", version, r.config.ToolchainConstraint)
+		text.Break(r.output)
+	}
 }
 
 // ProcessLocation ensures the generated Rust Wasm binary is moved to the
@@ -241,7 +230,7 @@ func (r *Rust) ProcessLocation() error {
 	err = filesystem.CopyFile(src, dst)
 	if err != nil {
 		r.errlog.Add(err)
-		return fmt.Errorf("copying wasm binary: %w", err)
+		return fmt.Errorf("failed to copy wasm binary: %w", err)
 	}
 	return nil
 }
@@ -250,53 +239,6 @@ func (r *Rust) ProcessLocation() error {
 // Cargo.toml manifest file.
 type CargoLocateProject struct {
 	Root string `json:"root"`
-}
-
-// rustupToolchain returns the active rustup toolchain and falls back to stable
-// if there was an error.
-func rustupToolchain() string {
-	stable := "stable"
-	cmd := []string{"rustup", "show", "active-toolchain"}
-	// #nosec G204
-	// nosemgrep
-	c := exec.Command(cmd[0], cmd[1:]...)
-	stdoutStderr, err := c.CombinedOutput()
-	if err != nil {
-		return stable
-	}
-
-	// WARNING: Reading the first line might result in an unexpected error.
-	// This is because rustup might display 'sync' output.
-	// e.g. info: syncing channel updates for 'stable-aarch64-apple-darwin'
-	// The solution is to get the last line of output instead.
-	scanner := bufio.NewScanner(bytes.NewReader(stdoutStderr))
-	line := ""
-	for scanner.Scan() {
-		line = scanner.Text()
-	}
-	err = scanner.Err()
-	if line == "" || err != nil {
-		return stable
-	}
-	line = strings.TrimSpace(line)
-
-	// Example outputs:
-	// stable-x86_64-apple-darwin (default)
-	// 1.54.0-x86_64-apple-darwin (directory override for '/Users/integralist/Code/fastly/cli')
-	parts := strings.Split(line, "-")
-	if len(parts) < 2 {
-		return "stable"
-	}
-
-	return parts[0]
-}
-
-// CargoPackage models the package configuration properties of a Rust Cargo
-// package which we are interested in and is embedded within CargoManifest and
-// CargoLock.
-type CargoPackage struct {
-	Name    string `toml:"name" json:"name"`
-	Version string `toml:"version" json:"version"`
 }
 
 // CargoManifest models the package configuration properties of a Rust Cargo
@@ -321,12 +263,12 @@ func (m *CargoManifest) Read(path string) error {
 	return err
 }
 
-// CargoMetadataPackage models the package structure returned when executing
-// the command `cargo metadata`.
-type CargoMetadataPackage struct {
-	Name         string                 `toml:"name" json:"name"`
-	Version      string                 `toml:"version" json:"version"`
-	Dependencies []CargoMetadataPackage `toml:"dependencies" json:"dependencies"`
+// CargoPackage models the package configuration properties of a Rust Cargo
+// package which we are interested in and is embedded within CargoManifest and
+// CargoLock.
+type CargoPackage struct {
+	Name    string `toml:"name" json:"name"`
+	Version string `toml:"version" json:"version"`
 }
 
 // CargoMetadata models information about the workspace members and resolved
@@ -355,33 +297,10 @@ func (m *CargoMetadata) Read(errlog fsterr.LogInterface) error {
 	return nil
 }
 
-// validateRustSDK marshals the Rust manifest into toml to check if the
-// dependency has been defined in the Cargo.toml manifest.
-func validateRustSDK(sdk string, manifestCommandOutput []byte, _ chan string) error {
-	var cm *CargoMetadata
-
-	err := json.Unmarshal(manifestCommandOutput, &cm)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal manifest metadata: %w", err)
-	}
-
-	remediation := fmt.Sprintf("Ensure your %s is valid and contains the '%s' dependency.", RustManifest, sdk)
-
-	if len(cm.Package) < 1 {
-		return fsterr.RemediationError{
-			Inner:       errors.New("no dependencies declared"),
-			Remediation: remediation,
-		}
-	}
-
-	for _, cp := range cm.Package {
-		if cp.Name == sdk {
-			return nil
-		}
-	}
-
-	return fsterr.RemediationError{
-		Inner:       errors.New("required dependency missing"),
-		Remediation: remediation,
-	}
+// CargoMetadataPackage models the package structure returned when executing
+// the command `cargo metadata`.
+type CargoMetadataPackage struct {
+	Name         string                 `toml:"name" json:"name"`
+	Version      string                 `toml:"version" json:"version"`
+	Dependencies []CargoMetadataPackage `toml:"dependencies" json:"dependencies"`
 }
