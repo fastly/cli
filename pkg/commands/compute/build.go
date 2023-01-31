@@ -289,7 +289,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress, ch chan
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				progress,
-				ch,
+				c.Globals.Verbose(),
 			),
 		})
 	case "rust":

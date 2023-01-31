@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -352,48 +353,21 @@ func TestBuildGo(t *testing.T) {
 }
 
 func TestBuildJavaScript(t *testing.T) {
-	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD_JAVASCRIPT") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
-		t.Skip("Set TEST_COMPUTE_BUILD_JAVASCRIPT or TEST_COMPUTE_BUILD to run this test")
+		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	// We're going to chdir to a build environment,
-	// so save the PWD to return to, afterwards.
-	pwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
+	args := testutil.Args
 
-	// Create test environment
-	rootdir := testutil.NewEnv(testutil.EnvOpts{
-		T: t,
-		Copy: []testutil.FileIO{
-			{Src: filepath.Join("testdata", "build", "javascript", "package.json"), Dst: "package.json"},
-			{Src: filepath.Join("testdata", "build", "javascript", "webpack.config.js"), Dst: "webpack.config.js"},
-			{Src: filepath.Join("testdata", "build", "javascript", "src", "index.js"), Dst: filepath.Join("src", "index.js")},
-		},
-		Exec: []string{"npm", "install"},
-	})
-	defer os.RemoveAll(rootdir)
-
-	// Before running the test, chdir into the build environment.
-	// When we're done, chdir back to our original location.
-	// This is so we can reliably copy the testdata/ fixtures.
-	if err := os.Chdir(rootdir); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chdir(pwd)
-
-	for _, testcase := range []struct {
+	scenarios := []struct {
 		name                 string
 		args                 []string
 		fastlyManifest       string
-		skipWindows          bool
-		sourceOverride       string
 		wantError            string
 		wantRemediationError string
-		wantOutputContains   string
+		wantOutput           []string
+		npmInstall           bool
 	}{
 		{
 			name:                 "no fastly.toml manifest",
@@ -410,22 +384,44 @@ func TestBuildJavaScript(t *testing.T) {
 			wantError: "language cannot be empty, please provide a language",
 		},
 		{
-			name: "compilation error",
+			name: "unknown language",
+			args: args("compute build"),
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "foobar"`,
+			wantError: "unsupported language foobar",
+		},
+		// The following test validates that the project compiles successfully even
+		// though the fastly.toml manifest has no build script. There should be a
+		// default build script inserted.
+		{
+			name: "build script inserted dynamically when missing",
 			args: args("compute build --verbose"),
-			fastlyManifest: fmt.Sprintf(`
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+      language = "javascript"`,
+			wantOutput: []string{
+				"No [scripts.build] found in fastly.toml.", // requires --verbose
+				"The following default build command for",
+				"npm exec webpack", // our testdata package.json references webpack
+			},
+		},
+		{
+			name: "build error",
+			args: args("compute build"),
+			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
 			language = "javascript"
 
       [scripts]
-      build = "%s"`, compute.JsDefaultBuildCommandForWebpack),
-			sourceOverride: `D"F;
-			'GREGERgregeg '
-			ERG`,
-			wantError: "error during execution process",
+      build = "echo no compilation happening"`,
+			wantRemediationError: compute.DefaultBuildErrorRemediation,
 		},
 		{
-			name: "successful build",
+			name: "successful build --verbose",
 			args: args("compute build"),
 			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
@@ -433,52 +429,70 @@ func TestBuildJavaScript(t *testing.T) {
 			language = "javascript"
 
       [scripts]
-      build = "%s"`, compute.JsDefaultBuildCommand),
-			wantOutputContains: "Built package",
-			skipWindows:        true,
+      build = "%s"`, compute.JsDefaultBuildCommandForWebpack),
+			wantOutput: []string{"Built package"},
+			npmInstall: true,
 		},
-	} {
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
-			if fstruntime.Windows && testcase.skipWindows {
-				t.Skip()
-			}
-
-			if testcase.fastlyManifest != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			// We want to ensure the original `index.js` is put back in case of a test
-			// case overriding its content using `sourceOverride`.
-			src := filepath.Join(rootdir, "src", "index.js")
-			b, err := os.ReadFile(src)
+			// We're going to chdir to a build environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer func(src string, b []byte) {
-				err := os.WriteFile(src, b, 0o644)
-				if err != nil {
-					t.Fatal(err)
-				}
-			}(src, b)
 
-			if testcase.sourceOverride != "" {
-				if err := os.WriteFile(src, []byte(testcase.sourceOverride), 0o777); err != nil {
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "build", "javascript", "package.json"), Dst: "package.json"},
+					{Src: filepath.Join("testdata", "build", "javascript", "webpack.config.js"), Dst: "webpack.config.js"},
+					{Src: filepath.Join("testdata", "build", "javascript", "src", "index.js"), Dst: filepath.Join("src", "index.js")},
+				},
+				Write: []testutil.FileIO{
+					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
+				},
+			})
+			defer os.RemoveAll(rootdir)
+
+			// Before running the test, chdir into the build environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably copy the testdata/ fixtures.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(pwd)
+
+			// NOTE: We only want to run `npm install` for the success case.
+			if testcase.npmInstall {
+				// gosec flagged this:
+				// G204 (CWE-78): Subprocess launched with variable
+				// Disabling as we control this command.
+				// #nosec
+				// nosemgrep
+				cmd := exec.Command("npm", "install")
+
+				err = cmd.Run()
+				if err != nil {
 					t.Fatal(err)
 				}
 			}
 
-			var stdout threadsafe.Buffer
+			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			err = app.Run(opts)
-
 			t.Log(stdout.String())
-
-			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
-			if testcase.wantOutputContains != "" {
-				testutil.AssertStringContains(t, stdout.String(), testcase.wantOutputContains)
+			// NOTE: Some errors we want to assert only the remediation.
+			// e.g. a 'stat' error isn't the same across operating systems/platforms.
+			if testcase.wantError != "" {
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+			}
+			for _, s := range testcase.wantOutput {
+				testutil.AssertStringContains(t, stdout.String(), s)
 			}
 		})
 	}

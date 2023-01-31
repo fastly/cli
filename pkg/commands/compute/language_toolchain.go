@@ -595,21 +595,6 @@ func (tv ToolchainValidator) commandRemediation(resource, resourceURL, resourceC
   Visit %s for more information.`, resource, resourceCommand, text.Bold(resourceURL))
 }
 
-// getJsToolchainBinPath returns the path to where NPM installs binaries.
-func getJsToolchainBinPath(bin string) (string, error) {
-	// gosec flagged this:
-	// G204 (CWE-78): Subprocess launched with variable
-	// Disabling as the variables come from trusted sources:
-	// The CLI parser enforces supported values via EnumVar.
-	// #nosec
-	// nosemgrep
-	path, err := exec.Command(bin, "bin").Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(path)), nil
-}
-
 // execManifestCommand opens a sub shell to execute the language toolchain
 // command responsible for producing dependency metadata.
 func execManifestCommand(args []string, errLog fsterr.LogInterface, manifestCommand string, skipError bool) (output []byte, err error) {
