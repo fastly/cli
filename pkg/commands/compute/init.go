@@ -850,11 +850,11 @@ func updateManifest(
 	m.Name = name
 
 	// NOTE: We allow an empty description to be set.
+	m.Description = desc
 	if desc != "" {
 		desc = " to " + desc
 	}
 	fmt.Fprintf(progress, "Setting description in manifest%s...\n", desc)
-	m.Description = desc
 
 	if len(authors) > 0 {
 		fmt.Fprintf(progress, "Setting authors in manifest to %s...\n", strings.Join(authors, ", "))
