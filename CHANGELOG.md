@@ -1,5 +1,17 @@
 # Changelog
 
+## [v5.1.1](https://github.com/fastly/cli/releases/tag/v5.1.1) (2023-02-01)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v5.1.0...v5.1.1)
+
+**Bug fixes:**
+
+* fix(compute/build): AssemblyScript bugs [#786](https://github.com/fastly/cli/pull/786)
+
+**Dependencies:**
+
+* Bump github.com/fatih/color from 1.14.0 to 1.14.1 [#783](https://github.com/fastly/cli/pull/783)
+
 ## [v5.1.0](https://github.com/fastly/cli/releases/tag/v5.1.0) (2023-01-27)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v5.0.0...v5.1.0)
