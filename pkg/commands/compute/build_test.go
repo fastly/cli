@@ -14,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 func TestBuildRust(t *testing.T) {
@@ -62,6 +61,8 @@ func TestBuildRust(t *testing.T) {
 		// though the fastly.toml manifest has no build script. There should be a
 		// default build script inserted and it should use the same name as the
 		// project/package name in the Cargo.toml.
+		//
+		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
 			name: "build script inserted dynamically when missing",
 			args: args("compute build --verbose"),
@@ -117,9 +118,10 @@ func TestBuildRust(t *testing.T) {
       build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
 		},
+		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
 			name: "successful build",
-			args: args("compute build"),
+			args: args("compute build --verbose"),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Rust: config.Rust{
@@ -142,7 +144,10 @@ func TestBuildRust(t *testing.T) {
 
       [scripts]
       build = "%s"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustDefaultPackageName)),
-			wantOutput: []string{"Built package"},
+			wantOutput: []string{
+				"Creating ./bin directory (for Wasm binary)",
+				"Built package",
+			},
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -240,6 +245,8 @@ func TestBuildGo(t *testing.T) {
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
 		// default build script inserted.
+		//
+		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
 			name: "build script inserted dynamically when missing",
 			args: args("compute build --verbose"),
@@ -281,9 +288,10 @@ func TestBuildGo(t *testing.T) {
       build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
 		},
+		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
 			name: "successful build",
-			args: args("compute build"),
+			args: args("compute build --verbose"),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Go: config.Go{
@@ -299,7 +307,10 @@ func TestBuildGo(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.GoDefaultBuildCommand),
-			wantOutput: []string{"Built package"},
+			wantOutput: []string{
+				"Creating ./bin directory (for Wasm binary)",
+				"Built package",
+			},
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -394,6 +405,8 @@ func TestBuildJavaScript(t *testing.T) {
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
 		// default build script inserted.
+		//
+		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
 			name: "build script inserted dynamically when missing",
 			args: args("compute build --verbose"),
@@ -419,9 +432,10 @@ func TestBuildJavaScript(t *testing.T) {
       build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
 		},
+		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
 			name: "successful build",
-			args: args("compute build"),
+			args: args("compute build --verbose"),
 			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
@@ -429,7 +443,10 @@ func TestBuildJavaScript(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.JsDefaultBuildCommandForWebpack),
-			wantOutput: []string{"Built package"},
+			wantOutput: []string{
+				"Creating ./bin directory (for Wasm binary)",
+				"Built package",
+			},
 			npmInstall: true,
 		},
 	}
@@ -540,6 +557,8 @@ func TestBuildAssemblyScript(t *testing.T) {
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
 		// default build script inserted.
+		//
+		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
 			name: "build script inserted dynamically when missing",
 			args: args("compute build --verbose"),
@@ -565,9 +584,10 @@ func TestBuildAssemblyScript(t *testing.T) {
       build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
 		},
+		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
 			name: "successful build",
-			args: args("compute build"),
+			args: args("compute build --verbose"),
 			fastlyManifest: fmt.Sprintf(`
 			manifest_version = 2
 			name = "test"
@@ -575,7 +595,10 @@ func TestBuildAssemblyScript(t *testing.T) {
 
       [scripts]
       build = "%s"`, compute.AsDefaultBuildCommand),
-			wantOutput: []string{"Built package"},
+			wantOutput: []string{
+				"Creating ./bin directory (for Wasm binary)",
+				"Built package",
+			},
 			npmInstall: true,
 		},
 	}
@@ -644,7 +667,8 @@ func TestBuildAssemblyScript(t *testing.T) {
 	}
 }
 
-func TestOtherBuild(t *testing.T) {
+// NOTE: TestBuildOther also validates the post_build settings.
+func TestBuildOther(t *testing.T) {
 	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
@@ -695,9 +719,8 @@ func TestOtherBuild(t *testing.T) {
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
-			language = "other"
 			[scripts]
-			build = "echo custom build"
+			build = "touch ./bin/main.wasm"
       post_build = "echo doing a post build"`,
 			stdin: "N",
 			wantOutput: []string{
@@ -706,53 +729,51 @@ func TestOtherBuild(t *testing.T) {
 				"Stopping the post build process",
 			},
 		},
+		// NOTE: All following tests pass --verbose so we can see post_build output.
 		{
 			name: "allow build process",
-			args: args("compute build --language other"),
+			args: args("compute build --language other --verbose"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
-			language = "other"
 			[scripts]
-			build = "echo custom build"
+			build = "touch ./bin/main.wasm"
       post_build = "echo doing a post build"`,
 			stdin: "Y",
 			wantOutput: []string{
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
-				"Running [scripts.build]",
 				"Built package",
 			},
 		},
 		{
 			name: "language pulled from manifest",
-			args: args("compute build"),
+			args: args("compute build --verbose"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
 			language = "other"
 			[scripts]
-			build = "echo custom build"
+			build = "touch ./bin/main.wasm"
       post_build = "echo doing a post build"`,
 			stdin: "Y",
 			wantOutput: []string{
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
-				"Running [scripts.build]",
 				"Built package",
 			},
 		},
 		{
 			name: "avoid prompt confirmation",
-			args: args("compute build --auto-yes --language other"),
+			args: args("compute build --auto-yes --language other --verbose"),
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
-			language = "other"
 			[scripts]
-			build = "echo custom build"`,
+			build = "touch ./bin/main.wasm"
+      post_build = "echo doing a post build with no confirmation prompt"`,
 			wantOutput: []string{
-				"Running [scripts.build]",
+				"doing a post build with no confirmation prompt",
 				"Built package",
 			},
 			dontWantOutput: []string{
@@ -782,296 +803,6 @@ func TestOtherBuild(t *testing.T) {
 			for _, s := range testcase.dontWantOutput {
 				testutil.AssertStringDoesntContain(t, stdout.String(), s)
 			}
-		})
-	}
-}
-
-func TestCustomPostBuild(t *testing.T) {
-	args := testutil.Args
-	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
-		t.Log("skipping test")
-		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
-	}
-
-	// We're going to chdir to a build environment,
-	// so save the PWD to return to, afterwards.
-	pwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create test environment
-	rootdir := testutil.NewEnv(testutil.EnvOpts{
-		T: t,
-		Copy: []testutil.FileIO{
-			{Src: filepath.Join("testdata", "build", "rust", "Cargo.lock"), Dst: "Cargo.lock"},
-			{Src: filepath.Join("testdata", "build", "rust", "Cargo.toml"), Dst: "Cargo.toml"},
-			{Src: filepath.Join("testdata", "build", "rust", "src", "main.rs"), Dst: filepath.Join("src", "main.rs")},
-		},
-		// NOTE: Our only requirement is that there be a bin directory.
-		// The custom build script we're using in the test is not going to use any
-		// files in the directory (the script will just `echo` a message).
-		Write: []testutil.FileIO{
-			{Src: "mock content", Dst: "bin/testfile"},
-		},
-	})
-	defer os.RemoveAll(rootdir)
-
-	// Before running the test, chdir into the build environment.
-	// When we're done, chdir back to our original location.
-	// This is so we can reliably copy the testdata/ fixtures.
-	if err := os.Chdir(rootdir); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chdir(pwd)
-
-	scenarios := []struct {
-		applicationConfig    config.File
-		args                 []string
-		cargoManifest        string
-		dontWantOutput       []string
-		fastlyManifest       string
-		name                 string
-		stdin                string
-		wantError            string
-		wantOutput           []string
-		wantRemediationError string
-	}{
-		// NOTE: We need the build to complete successfully.
-		// The post_build isn't executed until AFTER a build is successful.
-		{
-			name: "stop post_build process",
-			args: args("compute build"),
-			applicationConfig: config.File{
-				Language: config.Language{
-					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.54.0",
-						WasmWasiTarget:      "wasm32-wasi",
-					},
-				},
-			},
-			fastlyManifest: fmt.Sprintf(`
-			manifest_version = 2
-			name = "test"
-			language = "rust"
-			[scripts]
-      build = "%s"
-			post_build = "echo custom post_build"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustDefaultPackageName)),
-			cargoManifest: `
-			[package]
-			name = "fastly-compute-project"
-			version = "0.1.0"
-
-			[dependencies]
-			fastly = "=0.6.0"`,
-			stdin: "N",
-			wantOutput: []string{
-				compute.CustomPostBuildScriptMessage,
-				"echo custom post_build",
-				"Are you sure you want to continue with the post build step?",
-				"Stopping the post build process",
-			},
-		},
-		{
-			name: "allow post_build process",
-			args: args("compute build"),
-			applicationConfig: config.File{
-				Language: config.Language{
-					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.54.0",
-						WasmWasiTarget:      "wasm32-wasi",
-					},
-				},
-			},
-			fastlyManifest: fmt.Sprintf(`
-			manifest_version = 2
-			name = "test"
-			language = "rust"
-			[scripts]
-      build = "%s"
-			post_build = "echo custom post_build"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustDefaultPackageName)),
-			cargoManifest: `
-			[package]
-			name = "fastly-compute-project"
-			version = "0.1.0"
-
-			[dependencies]
-			fastly = "=0.6.0"`,
-			stdin: "Y",
-			wantOutput: []string{
-				compute.CustomPostBuildScriptMessage,
-				"echo custom post_build",
-				"Are you sure you want to continue with the post build step?",
-				"Running [scripts.build]",
-				"Built package",
-			},
-		},
-		{
-			name: "avoid prompt confirmation",
-			args: args("compute build --auto-yes"),
-			applicationConfig: config.File{
-				Language: config.Language{
-					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.54.0",
-						WasmWasiTarget:      "wasm32-wasi",
-					},
-				},
-			},
-			fastlyManifest: fmt.Sprintf(`
-			manifest_version = 2
-			name = "test"
-			language = "rust"
-			[scripts]
-      build = "%s"
-			post_build = "echo custom post_build"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustDefaultPackageName)),
-			cargoManifest: `
-			[package]
-			name = "fastly-compute-project"
-			version = "0.1.0"
-
-			[dependencies]
-			fastly = "=0.6.0"`,
-			wantOutput: []string{
-				"Running [scripts.build]",
-				"Built package",
-			},
-			dontWantOutput: []string{
-				compute.CustomPostBuildScriptMessage,
-				"Are you sure you want to continue with the post build step?",
-			},
-		},
-	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.name, func(t *testing.T) {
-			if testcase.fastlyManifest != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
-					t.Fatal(err)
-				}
-			}
-			if testcase.cargoManifest != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, "Cargo.toml"), []byte(testcase.cargoManifest), 0o777); err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ConfigFile = testcase.applicationConfig
-			opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
-			err = app.Run(opts)
-
-			t.Log(stdout.String())
-
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
-			for _, s := range testcase.wantOutput {
-				testutil.AssertStringContains(t, stdout.String(), s)
-			}
-			for _, s := range testcase.dontWantOutput {
-				testutil.AssertStringDoesntContain(t, stdout.String(), s)
-			}
-		})
-	}
-}
-
-// TestBuildBinDirectory validates that the bin directory is created before
-// trying to execute the specific build script (e.g. [scripts.build]).
-func TestBuildBinDirectory(t *testing.T) {
-	args := testutil.Args
-	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
-		t.Log("skipping test")
-		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
-	}
-
-	// We're going to chdir to a build environment,
-	// so save the PWD to return to, afterwards.
-	pwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create test environment
-	rootdir := testutil.NewEnv(testutil.EnvOpts{
-		T: t,
-		Copy: []testutil.FileIO{
-			{Src: filepath.Join("testdata", "build", "go", "go.mod"), Dst: "go.mod"},
-			{Src: filepath.Join("testdata", "build", "go", "main.go"), Dst: "main.go"},
-		},
-	})
-	defer os.RemoveAll(rootdir)
-
-	// Before running the test, chdir into the build environment.
-	// When we're done, chdir back to our original location.
-	// This is so we can reliably copy the testdata/ fixtures.
-	if err := os.Chdir(rootdir); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chdir(pwd)
-
-	for _, testcase := range []struct {
-		name           string
-		args           []string
-		fastlyManifest string
-		sourceOverride string
-		wantOutput     string
-	}{
-		{
-			name: "successful build",
-			args: args("compute build --verbose"),
-			fastlyManifest: fmt.Sprintf(`
-			manifest_version = 2
-			name = "test"
-			language = "go"
-
-      [scripts]
-      build = "%s"`, compute.GoDefaultBuildCommand),
-			wantOutput: "Creating ./bin directory (for Wasm binary)",
-		},
-	} {
-		t.Run(testcase.name, func(t *testing.T) {
-			if testcase.fastlyManifest != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			// We want to ensure the original `main.go` is put back in case of a test
-			// case overriding its content using `sourceOverride`.
-			src := filepath.Join(rootdir, "main.go")
-			b, err := os.ReadFile(src)
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer func(src string, b []byte) {
-				err := os.WriteFile(src, b, 0o644)
-				if err != nil {
-					t.Fatal(err)
-				}
-			}(src, b)
-
-			if testcase.sourceOverride != "" {
-				if err := os.WriteFile(src, []byte(testcase.sourceOverride), 0o777); err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-
-			// NOTE: The following constraints should be kept in-sync with
-			// ./pkg/config/config.toml
-			opts.ConfigFile.Language.Go.TinyGoConstraint = ">= 0.24.0-0" // NOTE: -0 is to allow prereleases.
-			opts.ConfigFile.Language.Go.ToolchainConstraint = ">= 1.17 < 1.19"
-
-			err = app.Run(opts)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			t.Log(stdout.String())
-
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
 	}
 }
