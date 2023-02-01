@@ -95,13 +95,21 @@ func (j *JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, 
 		text.Break(out)
 	}
 
-	return build(buildOpts{
-		buildScript: j.build,
-		buildFn:     j.Shell.Build,
-		errlog:      j.errlog,
-		postBuild:   j.postBuild,
-		timeout:     j.timeout,
-	}, out, progress, verbose, nil, callback)
+	progress.Step("Running [scripts.build]...")
+
+	bt := BuildToolchain{
+		buildFn:           j.Shell.Build,
+		buildScript:       j.build,
+		errlog:            j.errlog,
+		postBuild:         j.postBuild,
+		timeout:           j.timeout,
+		out:               out,
+		postBuildCallback: callback,
+		progress:          progress,
+		verbose:           verbose,
+	}
+
+	return bt.Build()
 }
 
 func (j JavaScript) checkForWebpack() (bool, error) {

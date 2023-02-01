@@ -95,13 +95,21 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 		"tinygo", `tinygo version (?P<version>\d[^\s]+)`, g.config.TinyGoConstraint,
 	)
 
-	return build(buildOpts{
-		buildScript: g.build,
-		buildFn:     g.Shell.Build,
-		errlog:      g.errlog,
-		postBuild:   g.postBuild,
-		timeout:     g.timeout,
-	}, out, progress, verbose, nil, callback)
+	progress.Step("Running [scripts.build]...")
+
+	bt := BuildToolchain{
+		buildFn:           g.Shell.Build,
+		buildScript:       g.build,
+		errlog:            g.errlog,
+		postBuild:         g.postBuild,
+		timeout:           g.timeout,
+		out:               out,
+		postBuildCallback: callback,
+		progress:          progress,
+		verbose:           verbose,
+	}
+
+	return bt.Build()
 }
 
 // toolchainConstraint warns the user if the required constraint is not met.

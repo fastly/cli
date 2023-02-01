@@ -106,13 +106,20 @@ func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callba
 
 	progress.Step("Running [scripts.build]...")
 
-	return build(buildOpts{
-		buildScript: r.build,
-		buildFn:     r.Shell.Build,
-		errlog:      r.errlog,
-		postBuild:   r.postBuild,
-		timeout:     r.timeout,
-	}, out, progress, verbose, r.ProcessLocation, callback)
+	bt := BuildToolchain{
+		buildFn:                   r.Shell.Build,
+		buildScript:               r.build,
+		errlog:                    r.errlog,
+		internalPostBuildCallback: r.ProcessLocation,
+		postBuild:                 r.postBuild,
+		timeout:                   r.timeout,
+		out:                       out,
+		postBuildCallback:         callback,
+		progress:                  progress,
+		verbose:                   verbose,
+	}
+
+	return bt.Build()
 }
 
 // modifyCargoPackageName validates whether the --bin flag matches the

@@ -31,30 +31,22 @@ type Toolchain interface {
 	Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error
 }
 
-// buildOpts enables reducing the number of arguments passed to `build()`.
-//
-// NOTE: We're unable to make the build function generic.
-// The generics support in Go1.18 doesn't include accessing struct fields.
-type buildOpts struct {
-	buildScript string
-	buildFn     func(string) (string, []string)
-	errlog      fsterr.LogInterface
-	postBuild   string
-	timeout     int
+// BuildToolchain enables a language toolchain to compile their build script.
+type BuildToolchain struct {
+	buildFn                   func(string) (string, []string)
+	buildScript               string
+	errlog                    fsterr.LogInterface
+	internalPostBuildCallback func() error
+	out                       io.Writer
+	postBuild                 string
+	postBuildCallback         func() error
+	progress                  text.Progress
+	timeout                   int
+	verbose                   bool
 }
 
-// build compiles the user's source code into a Wasm binary.
-func build(
-	opts buildOpts,
-	out io.Writer,
-	progress text.Progress,
-	verbose bool,
-	internalPostBuildCallback func() error,
-	postBuildCallback func() error,
-) error {
-	cmd, args := opts.buildFn(opts.buildScript)
-
-	err := execCommand(cmd, args, out, progress, verbose, opts.timeout, opts.errlog)
+func (bt BuildToolchain) Build() error {
+	err := bt.execCommand(bt.buildScript)
 	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       err,
@@ -66,8 +58,8 @@ func build(
 	// It's not a step that would be configured by a user in their fastly.toml
 	// It enables Rust to move the compiled binary to a different location.
 	// This has to happen BEFORE the postBuild step.
-	if internalPostBuildCallback != nil {
-		err := internalPostBuildCallback()
+	if bt.internalPostBuildCallback != nil {
+		err := bt.internalPostBuildCallback()
 		if err != nil {
 			return fsterr.RemediationError{
 				Inner:       err,
@@ -89,12 +81,11 @@ func build(
 	// NOTE: We set the progress indicator to Done() so that any output we now
 	// print via the post_build callback doesn't get hidden by the progress status.
 	// The progress is 'reset' inside the main build controller `build.go`.
-	progress.Done()
+	bt.progress.Done()
 
-	if opts.postBuild != "" {
-		if err = postBuildCallback(); err == nil {
-			cmd, args := opts.buildFn(opts.postBuild)
-			err := execCommand(cmd, args, out, progress, verbose, opts.timeout, opts.errlog)
+	if bt.postBuild != "" {
+		if err = bt.postBuildCallback(); err == nil {
+			err := bt.execCommand(bt.postBuild)
 			if err != nil {
 				return fsterr.RemediationError{
 					Inner:       err,
@@ -108,27 +99,22 @@ func build(
 }
 
 // execCommand opens a sub shell to execute the language build script.
-func execCommand(
-	cmd string,
-	args []string,
-	out, progress io.Writer,
-	verbose bool,
-	timeout int,
-	errlog fsterr.LogInterface,
-) error {
+func (bt BuildToolchain) execCommand(script string) error {
+	cmd, args := bt.buildFn(script)
+
 	s := fstexec.Streaming{
 		Command:  cmd,
 		Args:     args,
 		Env:      os.Environ(),
-		Output:   out,
-		Progress: progress,
-		Verbose:  verbose,
+		Output:   bt.out,
+		Progress: bt.progress,
+		Verbose:  bt.verbose,
 	}
-	if timeout > 0 {
-		s.Timeout = time.Duration(timeout) * time.Second
+	if bt.timeout > 0 {
+		s.Timeout = time.Duration(bt.timeout) * time.Second
 	}
 	if err := s.Exec(); err != nil {
-		errlog.Add(err)
+		bt.errlog.Add(err)
 		return err
 	}
 	return nil

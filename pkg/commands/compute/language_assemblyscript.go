@@ -93,13 +93,21 @@ func (a *AssemblyScript) Build(out io.Writer, progress text.Progress, verbose bo
 		text.Break(out)
 	}
 
-	return build(buildOpts{
-		buildScript: a.build,
-		buildFn:     a.Shell.Build,
-		errlog:      a.errlog,
-		postBuild:   a.postBuild,
-		timeout:     a.timeout,
-	}, out, progress, verbose, nil, callback)
+	progress.Step("Running [scripts.build]...")
+
+	bt := BuildToolchain{
+		buildFn:           a.Shell.Build,
+		buildScript:       a.build,
+		errlog:            a.errlog,
+		postBuild:         a.postBuild,
+		timeout:           a.timeout,
+		out:               out,
+		postBuildCallback: callback,
+		progress:          progress,
+		verbose:           verbose,
+	}
+
+	return bt.Build()
 }
 
 func (a AssemblyScript) checkForWebpack() (bool, error) {
