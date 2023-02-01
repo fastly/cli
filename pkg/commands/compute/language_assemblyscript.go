@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -22,7 +23,7 @@ const AsCompilationURL = "https://www.npmjs.com/package/assemblyscript"
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
-const AsDefaultBuildCommand = "$(npm bin)/asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
+const AsDefaultBuildCommand = "npm exec -- asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
 
 // AsSDK is the required Compute@Edge SDK.
 // https://www.npmjs.com/package/@fastly/as-compute
@@ -67,11 +68,12 @@ func NewAssemblyScript(
 				Installer:                     JsInstaller,
 				Manifest:                      JsManifest,
 				ManifestCommand:               JsManifestCommand,
+				ManifestCommandSkipError:      true,
 				ManifestRemediation:           JsManifestRemediation,
 				Output:                        out,
 				PatchedManifestNotifier:       ch,
 				SDK:                           AsSDK,
-				SDKCustomValidator:            validateJsSDK,
+				SDKCustomValidator:            validateAsSDK,
 				Toolchain:                     JsToolchain,
 				ToolchainLanguage:             "AssemblyScript",
 				ToolchainSkipVersion:          true,
@@ -115,4 +117,35 @@ func (a AssemblyScript) Build(out io.Writer, progress text.Progress, verbose boo
 		postBuild:   a.postBuild,
 		timeout:     a.timeout,
 	}, out, progress, verbose, nil, callback)
+}
+
+// validateAsSDK marshals the JS manifest into JSON to check if the dependency
+// has been defined in the package.json manifest.
+//
+// NOTE: This function also causes a side-effect of modifying the default build
+// script based on the user's project context.
+func validateAsSDK(sdk string, manifestCommandOutput []byte, notifier chan string) error {
+	e := fmt.Errorf(SDKErrMessageFormat, sdk, JsManifest)
+
+	var p JsPackage
+
+	err := json.Unmarshal(manifestCommandOutput, &p)
+	if err != nil {
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("failed to unmarshal package.json: %w", err),
+			Remediation: fmt.Sprintf("Ensure your package.json is valid and contains the '%s' dependency.", sdk),
+		}
+	}
+
+	go func() {
+		notifier <- AsDefaultBuildCommand
+	}()
+
+	for k := range p.Dependencies {
+		if k == sdk {
+			return nil
+		}
+	}
+
+	return e
 }
