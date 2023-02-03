@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("objectstore", "Manipulate Fastly object stores")
+	c.CmdClause = parent.Command("object-store", "Manipulate Fastly Object Stores")
 	return &c
 }
 
