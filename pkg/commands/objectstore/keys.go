@@ -13,20 +13,20 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// KeysCommand calls the Fastly API to list the keys for a given object store.
-type KeysCommand struct {
+// ListKeysCommand calls the Fastly API to list the keys for a given object store.
+type ListKeysCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
 	Input    fastly.ListObjectStoreKeysInput
 }
 
-// NewKeysCommand returns a usable command registered under the parent.
-func NewKeysCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *KeysCommand {
-	var c KeysCommand
+// NewListKeysCommand returns a usable command registered under the parent.
+func NewListKeysCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListKeysCommand {
+	var c ListKeysCommand
 	c.Globals = globals
 	c.manifest = data
-	c.CmdClause = parent.Command("keys", "List Fastly object store keys")
+	c.CmdClause = parent.Command("list", "List Fastly object store keys")
 
 	// required
 	c.CmdClause.Flag("id", "ID of object store").Required().StringVar(&c.Input.ID)
@@ -42,7 +42,7 @@ func NewKeysCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec invokes the application logic for the command.
-func (c *KeysCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *ListKeysCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}

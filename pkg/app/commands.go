@@ -302,7 +302,7 @@ func defineCommands(
 	objectstoreList := objectstore.NewListCommand(objectstoreCmdRoot.CmdClause, globals, data)
 	objectstoreDelete := objectstore.NewDeleteCommand(objectstoreCmdRoot.CmdClause, globals, data)
 	objectstoreKeysCmdRoot := objectstore.NewKeysRootCommand(app, globals)
-	objectstoreKeys := objectstore.NewKeysCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreListKeys := objectstore.NewListKeysCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
 	objectstoreInsertKey := objectstore.NewInsertKeyCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
 	objectstoreGetKey := objectstore.NewGetKeyCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
 	popCmdRoot := pop.NewRootCommand(app, globals)
@@ -630,7 +630,7 @@ func defineCommands(
 		objectstoreCreate,
 		objectstoreList,
 		objectstoreDelete,
-		objectstoreKeys,
+		objectstoreListKeys,
 		objectstoreInsertKey,
 		objectstoreGetKey,
 		popCmdRoot,
