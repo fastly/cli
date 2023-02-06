@@ -333,6 +333,7 @@ type Interface interface {
 	DeleteObjectStore(i *fastly.DeleteObjectStoreInput) error
 	ListObjectStoreKeys(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error)
 	GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error)
+	DeleteObjectStoreKey(i *fastly.DeleteObjectStoreKeyInput) error
 	InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error
 
 	CreateSecretStore(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error)

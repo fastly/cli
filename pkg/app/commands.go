@@ -305,6 +305,7 @@ func defineCommands(
 	objectstoreListKeys := objectstore.NewListKeysCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
 	objectstoreInsertKey := objectstore.NewInsertKeyCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
 	objectstoreGetKey := objectstore.NewGetKeyCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreDeleteKey := objectstore.NewDeleteKeyCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
 	popCmdRoot := pop.NewRootCommand(app, globals)
 	profileCmdRoot := profile.NewRootCommand(app, globals)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
@@ -633,6 +634,7 @@ func defineCommands(
 		objectstoreListKeys,
 		objectstoreInsertKey,
 		objectstoreGetKey,
+		objectstoreDeleteKey,
 		popCmdRoot,
 		profileCmdRoot,
 		profileCreate,
