@@ -10,22 +10,22 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// InsertCommand calls the Fastly API to insert a key into an object store.
-type InsertCommand struct {
+// CreateCommand calls the Fastly API to insert a key into an object store.
+type CreateCommand struct {
 	cmd.Base
 	manifest manifest.Data
 	Input    fastly.InsertObjectStoreKeyInput
 }
 
-// NewInsertCommand returns a usable command registered under the parent.
-func NewInsertCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *InsertCommand {
-	c := InsertCommand{
+// NewCreateCommand returns a usable command registered under the parent.
+func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
+	c := CreateCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
 		manifest: data,
 	}
-	c.CmdClause = parent.Command("insert", "Insert a key-value pair")
+	c.CmdClause = parent.Command("create", "Insert a key-value pair").Alias("insert")
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 	c.CmdClause.Flag("value", "Value").Required().StringVar(&c.Input.Value)
@@ -33,7 +33,7 @@ func NewInsertCommand(parent cmd.Registerer, globals *config.Data, data manifest
 }
 
 // Exec invokes the application logic for the command.
-func (c *InsertCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	err := c.Globals.APIClient.InsertObjectStoreKey(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
