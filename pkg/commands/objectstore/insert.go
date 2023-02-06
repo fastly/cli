@@ -19,14 +19,16 @@ type InsertKeyCommand struct {
 
 // NewInsertKeyCommand returns a usable command registered under the parent.
 func NewInsertKeyCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *InsertKeyCommand {
-	var c InsertKeyCommand
-	c.Globals = globals
-	c.manifest = data
-	c.CmdClause = parent.Command("insert", "Insert key/value pair into a Fastly object store")
-	c.CmdClause.Flag("id", "ID of Object Store").Short('n').Required().StringVar(&c.Input.ID)
-	c.CmdClause.Flag("key", "Key to insert").Short('k').Required().StringVar(&c.Input.Key)
-	c.CmdClause.Flag("value", "Value to insert").Required().StringVar(&c.Input.Value)
-
+	c := InsertKeyCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+	c.CmdClause = parent.Command("insert", "Insert a key-value pair")
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
+	c.CmdClause.Flag("value", "Value").Required().StringVar(&c.Input.Value)
 	return &c
 }
 

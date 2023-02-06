@@ -25,8 +25,8 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		},
 		manifest: data,
 	}
-	c.CmdClause = parent.Command("delete", "Delete a Fastly object store")
-	c.CmdClause.Flag("id", "ID of object store").Required().StringVar(&c.Input.ID)
+	c.CmdClause = parent.Command("delete", "Delete an object store")
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 	return &c
 }
 
@@ -38,6 +38,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted object store ID:%s", c.Input.ID)
+	text.Success(out, "Deleted object store ID %s", c.Input.ID)
 	return nil
 }

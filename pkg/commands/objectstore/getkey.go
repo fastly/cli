@@ -21,14 +21,15 @@ type GetKeyCommand struct {
 
 // NewGetKeyCommand returns a usable command registered under the parent.
 func NewGetKeyCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *GetKeyCommand {
-	var c GetKeyCommand
-	c.Globals = globals
-	c.manifest = data
-	c.CmdClause = parent.Command("get", "Get Fastly object store key")
-
-	// required
-	c.CmdClause.Flag("id", "ID of object store").Required().StringVar(&c.Input.ID)
-	c.CmdClause.Flag("key", "Key to fetch").Short('k').Required().StringVar(&c.Input.Key)
+	c := GetKeyCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+	c.CmdClause = parent.Command("get", "Get the value associated with a key")
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 
 	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{

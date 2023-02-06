@@ -26,8 +26,8 @@ func NewDeleteKeyCommand(parent cmd.Registerer, globals *config.Data, data manif
 		manifest: data,
 	}
 	c.CmdClause = parent.Command("delete", "Delete a key")
-	c.CmdClause.Flag("key-name", "Key name").Short('n').Required().StringVar(&c.Input.Key)
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 	return &c
 }
 

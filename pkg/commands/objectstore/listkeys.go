@@ -23,13 +23,14 @@ type ListKeysCommand struct {
 
 // NewListKeysCommand returns a usable command registered under the parent.
 func NewListKeysCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListKeysCommand {
-	var c ListKeysCommand
-	c.Globals = globals
-	c.manifest = data
-	c.CmdClause = parent.Command("list", "List Fastly object store keys")
-
-	// required
-	c.CmdClause.Flag("id", "ID of object store").Required().StringVar(&c.Input.ID)
+	c := ListKeysCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+	c.CmdClause = parent.Command("list", "List keys")
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 
 	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
@@ -66,7 +67,13 @@ func (c *ListKeysCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	text.PrintObjectStoreKeys(out, "", o.Data)
+	if c.Globals.Flag.Verbose {
+		text.PrintObjectStoreKeys(out, "", o.Data)
+		return nil
+	}
 
+	for _, k := range o.Data {
+		text.Output(out, k)
+	}
 	return nil
 }

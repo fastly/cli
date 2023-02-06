@@ -29,7 +29,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 		},
 		manifest: data,
 	}
-	c.CmdClause = parent.Command("list", "List Fastly object stores")
+	c.CmdClause = parent.Command("list", "List object stores")
 
 	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
