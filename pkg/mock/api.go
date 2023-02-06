@@ -320,11 +320,13 @@ type API struct {
 	DeleteServiceAuthorizationFn func(i *fastly.DeleteServiceAuthorizationInput) error
 
 	CreateObjectStoreFn    func(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error)
+	GetObjectStoreFn       func(i *fastly.GetObjectStoreInput) (*fastly.ObjectStore, error)
 	ListObjectStoresFn     func(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error)
 	DeleteObjectStoreFn    func(i *fastly.DeleteObjectStoreInput) error
 	ListObjectStoreKeysFn  func(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error)
 	GetObjectStoreKeyFn    func(i *fastly.GetObjectStoreKeyInput) (string, error)
 	InsertObjectStoreKeyFn func(i *fastly.InsertObjectStoreKeyInput) error
+	DeleteObjectStoreKeyFn func(i *fastly.DeleteObjectStoreKeyInput) error
 
 	CreateSecretStoreFn func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error)
 	GetSecretStoreFn    func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error)
@@ -1633,6 +1635,11 @@ func (m API) CreateObjectStore(i *fastly.CreateObjectStoreInput) (*fastly.Object
 	return m.CreateObjectStoreFn(i)
 }
 
+// GetObjectStore implements Interface.
+func (m API) GetObjectStore(i *fastly.GetObjectStoreInput) (*fastly.ObjectStore, error) {
+	return m.GetObjectStoreFn(i)
+}
+
 // ListObjectStores implements Interface.
 func (m API) ListObjectStores(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error) {
 	return m.ListObjectStoresFn(i)
@@ -1656,6 +1663,11 @@ func (m API) GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error)
 // InsertObjectStoreKey implements Interface.
 func (m API) InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error {
 	return m.InsertObjectStoreKeyFn(i)
+}
+
+// DeleteObjectStoreKey implements Interface.
+func (m API) DeleteObjectStoreKey(i *fastly.DeleteObjectStoreKeyInput) error {
+	return m.DeleteObjectStoreKeyFn(i)
 }
 
 // CreateSecretStore implements Interface.
