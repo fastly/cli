@@ -38,6 +38,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created object store %s", d.Name)
+	text.Success(out, "Created object store %s (name %s)", d.ID, d.Name)
 	return nil
 }
