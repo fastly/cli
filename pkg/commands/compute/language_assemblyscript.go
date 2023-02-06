@@ -32,7 +32,7 @@ const AsDefaultBuildCommand = "npm exec -- asc assembly/index.ts --outFile bin/m
 const AsDefaultBuildCommandForWebpack = "npm exec webpack && npm exec -- asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
 
 // AsSourceDirectory represents the source code directory.                                               │                                                           │
-const AsSourceDirectory = "src"
+const AsSourceDirectory = "assembly"
 
 // NewAssemblyScript constructs a new AssemblyScript toolchain.
 func NewAssemblyScript(
