@@ -42,6 +42,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/objectstore"
+	"github.com/fastly/cli/pkg/commands/objectstorekeys"
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
@@ -299,11 +300,14 @@ func defineCommands(
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
 	objectstoreCmdRoot := objectstore.NewRootCommand(app, globals)
 	objectstoreCreate := objectstore.NewCreateCommand(objectstoreCmdRoot.CmdClause, globals, data)
-	objectstoreList := objectstore.NewListCommand(objectstoreCmdRoot.CmdClause, globals, data)
 	objectstoreDelete := objectstore.NewDeleteCommand(objectstoreCmdRoot.CmdClause, globals, data)
-	objectstoreKeys := objectstore.NewKeysCommand(objectstoreCmdRoot.CmdClause, globals, data)
-	objectstoreInsertKey := objectstore.NewInsertKeyCommand(objectstoreCmdRoot.CmdClause, globals, data)
-	objectstoreGetKey := objectstore.NewGetKeyCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreDescribe := objectstore.NewDescribeCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreList := objectstore.NewListCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreKeysCmdRoot := objectstorekeys.NewRootCommand(app, globals)
+	objectstoreCreateKey := objectstorekeys.NewCreateCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreDeleteKey := objectstorekeys.NewDeleteCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreGetKey := objectstorekeys.NewGetCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreListKeys := objectstorekeys.NewListCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
 	popCmdRoot := pop.NewRootCommand(app, globals)
 	profileCmdRoot := profile.NewRootCommand(app, globals)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
@@ -629,9 +633,11 @@ func defineCommands(
 		objectstoreCreate,
 		objectstoreList,
 		objectstoreDelete,
-		objectstoreKeys,
-		objectstoreInsertKey,
+		objectstoreDescribe,
+		objectstoreListKeys,
+		objectstoreCreateKey,
 		objectstoreGetKey,
+		objectstoreDeleteKey,
 		popCmdRoot,
 		profileCmdRoot,
 		profileCreate,

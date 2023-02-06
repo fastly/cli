@@ -13,40 +13,43 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// CreateCommand calls the Fastly API to create an object store.
-type CreateCommand struct {
+// DescribeCommand calls the Fastly API to fetch the value of a key from an object store.
+type DescribeCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
-	Input    fastly.CreateObjectStoreInput
+	Input    fastly.GetObjectStoreInput
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	c := CreateCommand{
+// NewDescribeCommand returns a usable command registered under the parent.
+func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
+	c := DescribeCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
 		manifest: data,
 	}
-	c.CmdClause = parent.Command("create", "Create an object store")
-	c.CmdClause.Flag("name", "Name of Object Store").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause = parent.Command("describe", "Describe an object store").Alias("get")
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
 		Dst:         &c.json,
 		Short:       'j',
 	})
+
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.CreateObjectStore(&c.Input)
+	o, err := c.Globals.APIClient.GetObjectStore(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -65,6 +68,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	text.Success(out, "Created object store %s (name %s)", o.ID, o.Name)
+	text.PrintObjectStore(out, "", o)
 	return nil
 }

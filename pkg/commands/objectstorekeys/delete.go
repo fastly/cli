@@ -1,4 +1,4 @@
-package objectstore
+package objectstorekeys
 
 import (
 	"io"
@@ -14,7 +14,7 @@ import (
 type DeleteCommand struct {
 	cmd.Base
 	manifest manifest.Data
-	Input    fastly.DeleteObjectStoreInput
+	Input    fastly.DeleteObjectStoreKeyInput
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -25,19 +25,20 @@ func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest
 		},
 		manifest: data,
 	}
-	c.CmdClause = parent.Command("delete", "Delete an object store")
+	c.CmdClause = parent.Command("delete", "Delete a key")
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	err := c.Globals.APIClient.DeleteObjectStore(&c.Input)
+	err := c.Globals.APIClient.DeleteObjectStoreKey(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	text.Success(out, "Deleted object store ID %s", c.Input.ID)
+	text.Success(out, "Deleted key %s from store ID %s", c.Input.Key, c.Input.ID)
 	return nil
 }

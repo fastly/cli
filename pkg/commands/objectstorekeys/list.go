@@ -1,4 +1,4 @@
-package objectstore
+package objectstorekeys
 
 import (
 	"encoding/json"
@@ -13,23 +13,24 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// KeysCommand calls the Fastly API to list the keys for a given object store.
-type KeysCommand struct {
+// ListCommand calls the Fastly API to list the keys for a given object store.
+type ListCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
 	Input    fastly.ListObjectStoreKeysInput
 }
 
-// NewKeysCommand returns a usable command registered under the parent.
-func NewKeysCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *KeysCommand {
-	var c KeysCommand
-	c.Globals = globals
-	c.manifest = data
-	c.CmdClause = parent.Command("keys", "List Fastly object store keys")
-
-	// required
-	c.CmdClause.Flag("id", "ID of object store").Required().StringVar(&c.Input.ID)
+// NewListCommand returns a usable command registered under the parent.
+func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
+	c := ListCommand{
+		Base: cmd.Base{
+			Globals: globals,
+		},
+		manifest: data,
+	}
+	c.CmdClause = parent.Command("list", "List keys")
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 
 	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
@@ -42,7 +43,7 @@ func NewKeysCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec invokes the application logic for the command.
-func (c *KeysCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -66,7 +67,13 @@ func (c *KeysCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	text.PrintObjectStoreKeys(out, "", o.Data)
+	if c.Globals.Flag.Verbose {
+		text.PrintObjectStoreKeys(out, "", o.Data)
+		return nil
+	}
 
+	for _, k := range o.Data {
+		text.Output(out, k)
+	}
 	return nil
 }

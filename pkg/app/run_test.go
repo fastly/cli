@@ -70,7 +70,8 @@ healthcheck
 ip-list
 log-tail
 logging
-objectstore
+object-store
+object-store-keys
 pops
 profile
 purge

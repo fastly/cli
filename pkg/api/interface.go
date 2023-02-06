@@ -331,8 +331,10 @@ type Interface interface {
 	CreateObjectStore(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error)
 	ListObjectStores(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error)
 	DeleteObjectStore(i *fastly.DeleteObjectStoreInput) error
+	GetObjectStore(i *fastly.GetObjectStoreInput) (*fastly.ObjectStore, error)
 	ListObjectStoreKeys(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error)
 	GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error)
+	DeleteObjectStoreKey(i *fastly.DeleteObjectStoreKeyInput) error
 	InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error
 
 	CreateSecretStore(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error)
