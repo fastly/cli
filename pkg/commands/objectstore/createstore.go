@@ -10,16 +10,16 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// CreateCommand calls the Fastly API to create an object store.
-type CreateCommand struct {
+// CreateStoreCommand calls the Fastly API to create an object store.
+type CreateStoreCommand struct {
 	cmd.Base
 	manifest manifest.Data
 	Input    fastly.CreateObjectStoreInput
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
-	c := CreateCommand{
+// NewCreateStoreCommand returns a usable command registered under the parent.
+func NewCreateStoreCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateStoreCommand {
+	c := CreateStoreCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
@@ -31,7 +31,7 @@ func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *CreateStoreCommand) Exec(_ io.Reader, out io.Writer) error {
 	d, err := c.Globals.APIClient.CreateObjectStore(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

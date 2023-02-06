@@ -13,17 +13,17 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// ListCommand calls the Fastly API to list the available object stores.
-type ListCommand struct {
+// ListStoreCommand calls the Fastly API to list the available object stores.
+type ListStoreCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
 	Input    fastly.ListObjectStoresInput
 }
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
-	c := ListCommand{
+// NewListStoreCommand returns a usable command registered under the parent.
+func NewListStoreCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListStoreCommand {
+	c := ListStoreCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
@@ -43,7 +43,7 @@ func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.D
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *ListStoreCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
