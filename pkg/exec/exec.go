@@ -74,13 +74,15 @@ func (s *Streaming) Exec() error {
 		// gosec flagged this:
 		// G204 (CWE-78): Subprocess launched with variable
 		// Disabling as the variables come from trusted sources.
-		/* #nosec */
+		// #nosec
+		// nosemgrep
 		cmd = exec.CommandContext(ctx, s.Command, s.Args...)
 	} else {
 		// gosec flagged this:
 		// G204 (CWE-78): Subprocess launched with variable
 		// Disabling as the variables come from trusted sources.
-		/* #nosec */
+		// #nosec
+		// nosemgrep
 		cmd = exec.Command(s.Command, s.Args...)
 	}
 	cmd.Env = append(os.Environ(), s.Env...)

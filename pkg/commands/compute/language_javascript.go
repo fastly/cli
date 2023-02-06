@@ -2,30 +2,25 @@ package compute
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
+	"os"
+	"path/filepath"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// JsCompilation is a language specific compilation target that converts the
-// language code into a Wasm binary.
-const JsCompilation = "js-compute-runtime"
-
-// JsCompilationCommandRemediation is the command to execute to fix the missing
-// compilation target.
-const JsCompilationCommandRemediation = "npm install --save-dev %s"
-
-// JsCompilationURL is the official Fastly C@E JS runtime package URL.
-const JsCompilationURL = "https://www.npmjs.com/package/@fastly/js-compute"
-
 // JsDefaultBuildCommand is a build command compiled into the CLI binary so it
 // can be used as a fallback for customer's who have an existing C@E project and
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
+//
+// NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
+// We no longer do that. In 6.x we use the default and just inform the user.
+// This makes the experience less confusing as users didn't expect file changes.
 const JsDefaultBuildCommand = "npm exec js-compute-runtime ./src/index.js ./bin/main.wasm"
 
 // JsDefaultBuildCommandForWebpack is a build command compiled into the CLI
@@ -35,36 +30,11 @@ const JsDefaultBuildCommand = "npm exec js-compute-runtime ./src/index.js ./bin/
 // release with regards to how build logic has moved to the fastly.toml manifest.
 //
 // NOTE: For this variation of the build script to be added to the user's
-// fastly.toml will require a successful check for the npm task:
-// `prebuild: webpack` in the user's package.json manifest.
+// fastly.toml will require a successful check for the webpack dependency.
 const JsDefaultBuildCommandForWebpack = "npm exec webpack && npm exec js-compute-runtime ./bin/index.js ./bin/main.wasm"
-
-// JsInstaller is the command used to install the dependencies defined within
-// the Js language manifest.
-const JsInstaller = "npm install"
-
-// JsManifest is the manifest file for defining project configuration.
-const JsManifest = "package.json"
-
-// JsManifestCommand is the toolchain command to validate the manifest exists,
-// and also enables parsing of the project's dependencies.
-const JsManifestCommand = "npm list --json --depth 0"
-
-// JsManifestRemediation is a error remediation message for a missing manifest.
-const JsManifestRemediation = "npm init"
-
-// JsSDK is the required Compute@Edge SDK.
-// https://www.npmjs.com/package/@fastly/js-compute
-const JsSDK = "@fastly/js-compute"
 
 // JsSourceDirectory represents the source code directory.                                               │                                                           │
 const JsSourceDirectory = "src"
-
-// JsToolchain is the executable responsible for managing dependencies.
-const JsToolchain = "npm"
-
-// JsToolchainURL is the official JS website URL.
-const JsToolchainURL = "https://nodejs.org/"
 
 // NewJavaScript constructs a new JavaScript toolchain.
 func NewJavaScript(
@@ -72,35 +42,16 @@ func NewJavaScript(
 	errlog fsterr.LogInterface,
 	timeout int,
 	out io.Writer,
-	ch chan string,
+	verbose bool,
 ) *JavaScript {
 	return &JavaScript{
 		Shell:     Shell{},
+		build:     fastlyManifest.Scripts.Build,
 		errlog:    errlog,
+		output:    out,
 		postBuild: fastlyManifest.Scripts.PostBuild,
 		timeout:   timeout,
-		validator: ToolchainValidator{
-			Compilation:              JsCompilation,
-			CompilationIntegrated:    true,
-			CompilationSkipVersion:   true,
-			CompilationURL:           JsCompilationURL,
-			DefaultBuildCommand:      JsDefaultBuildCommand,
-			ErrLog:                   errlog,
-			FastlyManifestFile:       fastlyManifest,
-			Installer:                JsInstaller,
-			Manifest:                 JsManifest,
-			ManifestCommand:          JsManifestCommand,
-			ManifestCommandSkipError: true,
-			ManifestRemediation:      JsManifestRemediation,
-			Output:                   out,
-			PatchedManifestNotifier:  ch,
-			SDK:                      JsSDK,
-			SDKCustomValidator:       validateJsSDK,
-			Toolchain:                JsToolchain,
-			ToolchainLanguage:        "JavaScript",
-			ToolchainSkipVersion:     true,
-			ToolchainURL:             JsToolchainURL,
-		},
+		verbose:   verbose,
 	}
 }
 
@@ -108,96 +59,134 @@ func NewJavaScript(
 type JavaScript struct {
 	Shell
 
+	// build is a shell command defined in fastly.toml using [scripts.build].
+	build string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
+	// output is the users terminal stdout stream
+	output io.Writer
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
 	// timeout is the build execution threshold.
 	timeout int
-	// validator is an abstraction to validate required resources are installed.
-	validator ToolchainValidator
-}
-
-// Initialize handles any non-build related set-up.
-func (j JavaScript) Initialize(_ io.Writer) error {
-	return nil
-}
-
-// Verify ensures the user's environment has all the required resources/tools.
-func (j JavaScript) Verify(_ io.Writer) error {
-	return j.validator.Validate()
+	// verbose indicates if the user set --verbose
+	verbose bool
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (j JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	// NOTE: We deliberately reference the validator pointer to the fastly.toml
-	// This is because the manifest.File might be updated when migrating a
-	// pre-existing project to use the CLI v4.0.0 (as prior to this version the
-	// manifest would not require [script.build] to be defined).
-	// As of v4.0.0 if no value is set, then we provide a default.
-	return build(buildOpts{
-		buildScript: j.validator.FastlyManifestFile.Scripts.Build,
-		buildFn:     j.Shell.Build,
-		errlog:      j.errlog,
-		postBuild:   j.postBuild,
-		timeout:     j.timeout,
-	}, out, progress, verbose, nil, callback)
-}
+func (j *JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+	var noBuildScript bool
+	if j.build == "" {
+		j.build = JsDefaultBuildCommand
+		noBuildScript = true
+	}
 
-// JsDependency represents the project's SDK and version.
-type JsDependency struct {
-	Version  string `json:"version"`
-	Resolved string `json:"resolved"`
-}
-
-// JsPackage represents a package.json manifest.
-//
-// NOTE: npm returns JSON that has an `invalid` field.
-// This means we know when searching for the manifest has failed.
-type JsPackage struct {
-	Dependencies map[string]JsDependency `json:"dependencies"`
-}
-
-// validateJsSDK marshals the JS manifest into JSON to check if the dependency
-// has been defined in the package.json manifest.
-//
-// NOTE: This function also causes a side-effect of modifying the default build
-// script based on the user's project context (e.g does it require webpack).
-func validateJsSDK(sdk string, manifestCommandOutput []byte, notifier chan string) error {
-	e := fmt.Errorf(SDKErrMessageFormat, sdk, JsManifest)
-
-	var p JsPackage
-
-	err := json.Unmarshal(manifestCommandOutput, &p)
+	usesWebpack, err := j.checkForWebpack()
 	if err != nil {
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("failed to unmarshal package.json: %w", err),
-			Remediation: fmt.Sprintf("Ensure your package.json is valid and contains the '%s' dependency.", sdk),
+		return err
+	}
+	if usesWebpack {
+		j.build = JsDefaultBuildCommandForWebpack
+	}
+
+	if noBuildScript && j.verbose {
+		text.Info(out, "No [scripts.build] found in fastly.toml. The following default build command for JavaScript will be used: `%s`\n", j.build)
+		text.Break(out)
+	}
+
+	progress.Step("Running [scripts.build]...")
+
+	bt := BuildToolchain{
+		buildFn:           j.Shell.Build,
+		buildScript:       j.build,
+		errlog:            j.errlog,
+		postBuild:         j.postBuild,
+		timeout:           j.timeout,
+		out:               out,
+		postBuildCallback: callback,
+		progress:          progress,
+		verbose:           verbose,
+	}
+
+	return bt.Build()
+}
+
+func (j JavaScript) checkForWebpack() (bool, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return false, err
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false, err
+	}
+
+	found, path, err := search("package.json", wd, home)
+	if err != nil {
+		return false, err
+	}
+
+	if found {
+		// gosec flagged this:
+		// G304 (CWE-22): Potential file inclusion via variable
+		//
+		// Disabling as the path is determined by our own logic.
+		/* #nosec */
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return false, err
+		}
+
+		var pkg NPMPackage
+
+		err = json.Unmarshal(data, &pkg)
+		if err != nil {
+			return false, err
+		}
+
+		for k := range pkg.DevDependencies {
+			if k == "webpack" {
+				return true, nil
+			}
+		}
+
+		for k := range pkg.Dependencies {
+			if k == "webpack" {
+				return true, nil
+			}
 		}
 	}
 
-	var needsWebpack bool
-	for k := range p.Dependencies {
-		if k == "webpack" {
-			needsWebpack = true
-			break
-		}
+	return false, nil
+}
+
+// search recurses up the directory tree looking for the given file.
+func search(filename, wd, home string) (found bool, path string, err error) {
+	parent := filepath.Dir(wd)
+
+	var noManifest bool
+	path = filepath.Join(wd, filename)
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		noManifest = true
 	}
 
-	go func() {
-		if needsWebpack {
-			notifier <- JsDefaultBuildCommandForWebpack
-		} else {
-			notifier <- JsDefaultBuildCommand
-		}
-	}()
-
-	for k := range p.Dependencies {
-		if k == sdk {
-			return nil
-		}
+	// We've found the manifest.
+	if !noManifest {
+		return true, path, nil
 	}
 
-	return e
+	// NOTE: The first condition catches if we reach the user's 'root' directory.
+	if wd != parent && wd != home {
+		return search(filename, parent, home)
+	}
+
+	return false, "", nil
+}
+
+// NPMPackage represents a package.json manifest and its dependencies.
+type NPMPackage struct {
+	DevDependencies map[string]string `json:"devDependencies"`
+	Dependencies    map[string]string `json:"dependencies"`
 }

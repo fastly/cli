@@ -23,6 +23,7 @@ RELEASE_CHANGELOG.md
 rust-toolchain
 .cargo
 **/node_modules
+pkg/commands/compute/package-lock.json
 
 # Binaries for programs and plugins
 *.exe

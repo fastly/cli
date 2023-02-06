@@ -17,11 +17,10 @@ type PublishCommand struct {
 	deploy   *DeployCommand
 
 	// Build fields
-	includeSrc       cmd.OptionalBool
-	lang             cmd.OptionalString
-	packageName      cmd.OptionalString
-	skipVerification cmd.OptionalBool
-	timeout          cmd.OptionalInt
+	includeSrc  cmd.OptionalBool
+	lang        cmd.OptionalString
+	packageName cmd.OptionalString
+	timeout     cmd.OptionalInt
 
 	// Deploy fields
 	comment        cmd.OptionalString
@@ -64,7 +63,6 @@ func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *Build
 		Dst:         &c.serviceVersion.Value,
 		Action:      c.serviceVersion.Set,
 	})
-	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").Action(c.skipVerification.Set).BoolVar(&c.skipVerification.Value)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 
 	return &c
@@ -87,9 +85,6 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.packageName.WasSet {
 		c.build.Flags.PackageName = c.packageName.Value
-	}
-	if c.skipVerification.WasSet {
-		c.build.Flags.SkipVerification = c.skipVerification.Value
 	}
 	if c.timeout.WasSet {
 		c.build.Flags.Timeout = c.timeout.Value

@@ -2,13 +2,11 @@ package compute
 
 import (
 	"fmt"
-	"io"
 	"runtime"
 	"sort"
 	"strings"
 
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/manifest"
 )
 
 // NewLanguages returns a list of supported programming languages.
@@ -16,7 +14,7 @@ import (
 // NOTE: The 'timeout' value zero is passed into each New<Language> call as it's
 // only useful during the `compute build` phase and is expected to be
 // provided by the user via a flag on the build command.
-func NewLanguages(kits config.StarterKitLanguages, d *config.Data, fastlyManifest manifest.File, out io.Writer) []*Language {
+func NewLanguages(kits config.StarterKitLanguages) []*Language {
 	// WARNING: Do not reorder these options as they affect the rendered output.
 	// They are placed in order of language maturity/importance.
 	//
@@ -28,78 +26,27 @@ func NewLanguages(kits config.StarterKitLanguages, d *config.Data, fastlyManifes
 			Name:        "rust",
 			DisplayName: "Rust",
 			StarterKits: kits.Rust,
-			Toolchain: NewRust(
-				&fastlyManifest,
-				d.ErrLog,
-				0,
-				d.File.Language.Rust,
-				out,
-				nil,
-			),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "javascript",
 			DisplayName: "JavaScript",
 			StarterKits: kits.JavaScript,
-			Toolchain: NewJavaScript(
-				&fastlyManifest,
-				d.ErrLog,
-				0,
-				out,
-				nil,
-			),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "go",
 			DisplayName: "Go",
 			StarterKits: kits.Go,
-			Toolchain: NewGo(
-				&fastlyManifest,
-				d.ErrLog,
-				0,
-				d.File.Language.Go,
-				out,
-				nil,
-			),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "assemblyscript",
 			DisplayName: "AssemblyScript",
 			StarterKits: kits.AssemblyScript,
-			Toolchain: NewAssemblyScript(
-				&fastlyManifest,
-				d.ErrLog,
-				0,
-				out,
-				nil,
-			),
 		}),
 		NewLanguage(&LanguageOptions{
 			Name:        "other",
 			DisplayName: "Other ('bring your own' Wasm binary)",
 		}),
 	}
-}
-
-// Language models a Compute@Edge source language.
-type Language struct {
-	Name            string
-	DisplayName     string
-	StarterKits     []config.StarterKit
-	SourceDirectory string
-	IncludeFiles    []string
-
-	Toolchain
-}
-
-// LanguageOptions models configuration options for a Language.
-type LanguageOptions struct {
-	Name            string
-	DisplayName     string
-	StarterKits     []config.StarterKit
-	SourceDirectory string
-	IncludeFiles    []string
-	Toolchain       Toolchain
 }
 
 // NewLanguage constructs a new Language from a LangaugeOptions.
@@ -127,9 +74,27 @@ func NewLanguage(options *LanguageOptions) *Language {
 		options.DisplayName,
 		options.StarterKits,
 		options.SourceDirectory,
-		options.IncludeFiles,
 		options.Toolchain,
 	}
+}
+
+// Language models a Compute@Edge source language.
+type Language struct {
+	Name            string
+	DisplayName     string
+	StarterKits     []config.StarterKit
+	SourceDirectory string
+
+	Toolchain
+}
+
+// LanguageOptions models configuration options for a Language.
+type LanguageOptions struct {
+	Name            string
+	DisplayName     string
+	StarterKits     []config.StarterKit
+	SourceDirectory string
+	Toolchain       Toolchain
 }
 
 // Shell represents a subprocess shell used by `compute` environment where

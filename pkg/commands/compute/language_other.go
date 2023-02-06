@@ -35,24 +35,22 @@ type Other struct {
 	timeout int
 }
 
-// Initialize is a no-op.
-func (o Other) Initialize(_ io.Writer) error {
-	return nil
-}
-
-// Verify is a no-op.
-func (o Other) Verify(_ io.Writer) error {
-	return nil
-}
-
 // Build implements the Toolchain interface and attempts to compile the package
 // source to a Wasm binary.
 func (o Other) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	return build(buildOpts{
-		buildScript: o.build,
-		buildFn:     o.Shell.Build,
-		errlog:      o.errlog,
-		postBuild:   o.postBuild,
-		timeout:     o.timeout,
-	}, out, progress, verbose, nil, callback)
+	progress.Step("Running [scripts.build]...")
+
+	bt := BuildToolchain{
+		buildFn:           o.Shell.Build,
+		buildScript:       o.build,
+		errlog:            o.errlog,
+		postBuild:         o.postBuild,
+		timeout:           o.timeout,
+		out:               out,
+		postBuildCallback: callback,
+		progress:          progress,
+		verbose:           verbose,
+	}
+
+	return bt.Build()
 }
