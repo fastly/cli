@@ -36,6 +36,8 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.20.x
+    # NOTE: Manage GitHub Actions cache https://github.com/fastly/cli/actions/caches
+    # This is useful if you need to clear the cache when a dependency doesn't update correctly.
     - name: "Restore golang bin cache"
       id: go-bin-cache
       uses: actions/cache@v3
