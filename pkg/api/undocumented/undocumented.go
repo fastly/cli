@@ -63,7 +63,7 @@ func Get(host, path, token string, c api.HTTPClient) (data []byte, err error) {
 		}
 		return data, NewError(err, 0)
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() // #nosec G307
 
 	if res.StatusCode != http.StatusOK {
 		return data, NewError(fmt.Errorf("non-2xx response"), res.StatusCode)

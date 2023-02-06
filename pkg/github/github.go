@@ -92,7 +92,7 @@ func (g *Asset) Download() (bin string, err error) {
 	if res.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("failed to request GitHub release asset: %s", res.Status)
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() // #nosec G307
 
 	tmpDir, err := os.MkdirTemp("", "fastly-download")
 	if err != nil {

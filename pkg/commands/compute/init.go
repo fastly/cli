@@ -592,7 +592,7 @@ func fetchPackageTemplate(
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("failed to get package: %w", err)
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() // #nosec G307
 
 	if res.StatusCode != http.StatusOK {
 		err := fmt.Errorf("failed to get package: %s", res.Status)
