@@ -1,4 +1,4 @@
-package objectstore
+package objectstorekeys
 
 import (
 	"io"
@@ -10,16 +10,16 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// DeleteKeyCommand calls the Fastly API to delete an object store.
-type DeleteKeyCommand struct {
+// DeleteCommand calls the Fastly API to delete an object store.
+type DeleteCommand struct {
 	cmd.Base
 	manifest manifest.Data
 	Input    fastly.DeleteObjectStoreKeyInput
 }
 
-// NewDeleteKeyCommand returns a usable command registered under the parent.
-func NewDeleteKeyCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteKeyCommand {
-	c := DeleteKeyCommand{
+// NewDeleteCommand returns a usable command registered under the parent.
+func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteCommand {
+	c := DeleteCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
@@ -32,7 +32,7 @@ func NewDeleteKeyCommand(parent cmd.Registerer, globals *config.Data, data manif
 }
 
 // Exec invokes the application logic for the command.
-func (c *DeleteKeyCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	err := c.Globals.APIClient.DeleteObjectStoreKey(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

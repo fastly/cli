@@ -1,4 +1,4 @@
-package objectstore
+package objectstorekeys
 
 import (
 	"encoding/json"
@@ -13,23 +13,23 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// DescribeStoreCommand calls the Fastly API to fetch the value of a key from an object store.
-type DescribeStoreCommand struct {
+// ListCommand calls the Fastly API to list the keys for a given object store.
+type ListCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
-	Input    fastly.GetObjectStoreInput
+	Input    fastly.ListObjectStoreKeysInput
 }
 
-// NewDescribeStoreCommand returns a usable command registered under the parent.
-func NewDescribeStoreCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeStoreCommand {
-	c := DescribeStoreCommand{
+// NewListCommand returns a usable command registered under the parent.
+func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
+	c := ListCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
 		manifest: data,
 	}
-	c.CmdClause = parent.Command("describe", "Describe an object store").Alias("get")
+	c.CmdClause = parent.Command("list", "List keys")
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 
 	// optional
@@ -39,17 +39,16 @@ func NewDescribeStoreCommand(parent cmd.Registerer, globals *config.Data, data m
 		Dst:         &c.json,
 		Short:       'j',
 	})
-
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *DescribeStoreCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.GetObjectStore(&c.Input)
+	o, err := c.Globals.APIClient.ListObjectStoreKeys(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -68,6 +67,13 @@ func (c *DescribeStoreCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	text.PrintObjectStore(out, "", o)
+	if c.Globals.Flag.Verbose {
+		text.PrintObjectStoreKeys(out, "", o.Data)
+		return nil
+	}
+
+	for _, k := range o.Data {
+		text.Output(out, k)
+	}
 	return nil
 }

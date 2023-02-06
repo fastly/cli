@@ -42,6 +42,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/objectstore"
+	"github.com/fastly/cli/pkg/commands/objectstorekeys"
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
@@ -298,15 +299,15 @@ func defineCommands(
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, globals, data)
 	objectstoreCmdRoot := objectstore.NewRootCommand(app, globals)
-	objectstoreCreate := objectstore.NewCreateStoreCommand(objectstoreCmdRoot.CmdClause, globals, data)
-	objectstoreDelete := objectstore.NewDeleteStoreCommand(objectstoreCmdRoot.CmdClause, globals, data)
-	objectstoreDescribe := objectstore.NewDescribeStoreCommand(objectstoreCmdRoot.CmdClause, globals, data)
-	objectstoreList := objectstore.NewListStoreCommand(objectstoreCmdRoot.CmdClause, globals, data)
-	objectstoreKeysCmdRoot := objectstore.NewKeysRootCommand(app, globals)
-	objectstoreDeleteKey := objectstore.NewDeleteKeyCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
-	objectstoreGetKey := objectstore.NewGetKeyCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
-	objectstoreInsertKey := objectstore.NewInsertKeyCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
-	objectstoreListKeys := objectstore.NewListKeysCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreCreate := objectstore.NewCreateCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreDelete := objectstore.NewDeleteCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreDescribe := objectstore.NewDescribeCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreList := objectstore.NewListCommand(objectstoreCmdRoot.CmdClause, globals, data)
+	objectstoreKeysCmdRoot := objectstorekeys.NewRootCommand(app, globals)
+	objectstoreDeleteKey := objectstorekeys.NewDeleteCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreGetKey := objectstorekeys.NewGetCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreInsertKey := objectstorekeys.NewInsertCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreListKeys := objectstorekeys.NewListCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
 	popCmdRoot := pop.NewRootCommand(app, globals)
 	profileCmdRoot := profile.NewRootCommand(app, globals)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)

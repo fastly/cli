@@ -1,4 +1,4 @@
-package objectstore
+package objectstorekeys
 
 import (
 	"io"
@@ -10,16 +10,16 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// InsertKeyCommand calls the Fastly API to insert a key into an object store.
-type InsertKeyCommand struct {
+// InsertCommand calls the Fastly API to insert a key into an object store.
+type InsertCommand struct {
 	cmd.Base
 	manifest manifest.Data
 	Input    fastly.InsertObjectStoreKeyInput
 }
 
-// NewInsertKeyCommand returns a usable command registered under the parent.
-func NewInsertKeyCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *InsertKeyCommand {
-	c := InsertKeyCommand{
+// NewInsertCommand returns a usable command registered under the parent.
+func NewInsertCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *InsertCommand {
+	c := InsertCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
@@ -33,7 +33,7 @@ func NewInsertKeyCommand(parent cmd.Registerer, globals *config.Data, data manif
 }
 
 // Exec invokes the application logic for the command.
-func (c *InsertKeyCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *InsertCommand) Exec(_ io.Reader, out io.Writer) error {
 	err := c.Globals.APIClient.InsertObjectStoreKey(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

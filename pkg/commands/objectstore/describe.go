@@ -1,6 +1,8 @@
 package objectstore
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -11,25 +13,24 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// GetKeyCommand calls the Fastly API to fetch the value of a key from an object store.
-type GetKeyCommand struct {
+// DescribeCommand calls the Fastly API to fetch the value of a key from an object store.
+type DescribeCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
-	Input    fastly.GetObjectStoreKeyInput
+	Input    fastly.GetObjectStoreInput
 }
 
-// NewGetKeyCommand returns a usable command registered under the parent.
-func NewGetKeyCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *GetKeyCommand {
-	c := GetKeyCommand{
+// NewDescribeCommand returns a usable command registered under the parent.
+func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
+	c := DescribeCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
 		manifest: data,
 	}
-	c.CmdClause = parent.Command("get", "Get the value associated with a key")
+	c.CmdClause = parent.Command("describe", "Describe an object store").Alias("get")
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
-	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 
 	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
@@ -43,27 +44,30 @@ func NewGetKeyCommand(parent cmd.Registerer, globals *config.Data, data manifest
 }
 
 // Exec invokes the application logic for the command.
-func (c *GetKeyCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	value, err := c.Globals.APIClient.GetObjectStoreKey(&c.Input)
+	o, err := c.Globals.APIClient.GetObjectStore(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	if c.json {
-		text.Output(out, `{"%s": "%s"}`, c.Input.Key, value)
+		data, err := json.Marshal(o)
+		if err != nil {
+			return err
+		}
+		_, err = out.Write(data)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error: unable to write data to stdout: %w", err)
+		}
 		return nil
 	}
 
-	if c.Globals.Flag.Verbose {
-		text.PrintObjectStoreKeyValue(out, "", c.Input.Key, value)
-		return nil
-	}
-
-	text.Output(out, value)
+	text.PrintObjectStore(out, "", o)
 	return nil
 }
