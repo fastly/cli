@@ -15,7 +15,7 @@ jobs:
     - name: "Install Go"
       uses: actions/setup-go@v3
       with:
-        go-version: '1.18.x'
+        go-version: '1.20.x'
     - name: "Set GOHOSTOS and GOHOSTARCH"
       run: echo "GOHOSTOS=$(go env GOHOSTOS)" >> $GITHUB_ENV && echo "GOHOSTARCH=$(go env GOHOSTARCH)" >> $GITHUB_ENV
     - name: "Install Rust"

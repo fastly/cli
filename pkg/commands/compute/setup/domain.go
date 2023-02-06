@@ -3,9 +3,7 @@ package setup
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"regexp"
-	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/fastly/cli/pkg/api"
@@ -57,7 +55,6 @@ func (d *Domains) Configure() error {
 		return nil
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), defaultTopLevelDomain)
 
 	var (
