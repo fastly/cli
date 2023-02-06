@@ -50,7 +50,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error executing API request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() // #nosec G307
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("error from API: %s", resp.Status)

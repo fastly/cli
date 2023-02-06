@@ -59,7 +59,7 @@ all: config dependencies tidy fmt vet staticcheck gosec test build install
 .PHONY: dependencies
 dependencies:
 	$(GO_BIN) install github.com/securego/gosec/v2/cmd/gosec@latest
-	$(GO_BIN) install honnef.co/go/tools/cmd/staticcheck@latest
+	$(GO_BIN) install honnef.co/go/tools/cmd/staticcheck@2023.1
 	$(GO_BIN) install github.com/mgechev/revive@latest
 	$(GO_BIN) install github.com/goreleaser/goreleaser@v1.9.2
 

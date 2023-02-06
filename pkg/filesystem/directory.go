@@ -16,7 +16,7 @@ func FileExists(path string) bool {
 }
 
 // CopyFile copies a file from src to dst. If src and dst files exist, and are
-// the same, then return successfully. Otherise, attempt to copy the file
+// the same, then return successfully. Otherwise, attempt to copy the file
 // contents from src to dst. The file will be created if it does not already
 // exist. If the destination file exists, all it's contents will be replaced by
 // the contents of the source file.

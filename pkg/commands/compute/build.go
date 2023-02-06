@@ -29,11 +29,10 @@ const CustomPostBuildScriptMessage = "This project has a custom post build scrip
 
 // Flags represents the flags defined for the command.
 type Flags struct {
-	IncludeSrc       bool
-	Lang             string
-	PackageName      string
-	SkipVerification bool
-	Timeout          int
+	IncludeSrc  bool
+	Lang        string
+	PackageName string
+	Timeout     int
 }
 
 // BuildCommand produces a deployable artifact from files on the local disk.
@@ -58,7 +57,6 @@ func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
-	c.CmdClause.Flag("skip-verification", "Skip verification steps and force build").BoolVar(&c.Flags.SkipVerification)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
 	return &c
@@ -92,132 +90,24 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	var packageName string
-
-	switch {
-	case c.Flags.PackageName != "":
-		packageName = c.Flags.PackageName
-	case c.Manifest.File.Name != "":
-		packageName = c.Manifest.File.Name // use the project name as a fallback
-	default:
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("package name is missing"),
-			Remediation: "Add a name to the fastly.toml 'name' field. Reference: https://developer.fastly.com/reference/compute/fastly-toml/",
-		}
-	}
-
-	packageName = sanitize.BaseName(packageName)
-
-	// Language from flag takes priority, otherwise infer from manifest and
-	// error if neither are provided. Sanitize by trim and lowercase.
-	var toolchain string
-
-	switch {
-	case c.Flags.Lang != "":
-		toolchain = c.Flags.Lang
-	case c.Manifest.File.Language != "":
-		toolchain = c.Manifest.File.Language
-	default:
-		return fmt.Errorf("language cannot be empty, please provide a language")
-	}
-
-	toolchain = strings.ToLower(strings.TrimSpace(toolchain))
-
-	// ch is used to identify if the fastly.toml manifest has been patched with a
-	// language specific default build command (because one was missing).
-	ch := make(chan string)
-
-	var language *Language
-	switch toolchain {
-	case "assemblyscript":
-		language = NewLanguage(&LanguageOptions{
-			Name:            "assemblyscript",
-			SourceDirectory: AsSourceDirectory,
-			IncludeFiles:    []string{},
-			Toolchain: NewAssemblyScript(
-				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				progress,
-				ch,
-			),
-		})
-	case "go":
-		language = NewLanguage(&LanguageOptions{
-			Name:            "go",
-			SourceDirectory: GoSourceDirectory,
-			IncludeFiles:    []string{},
-			Toolchain: NewGo(
-				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				c.Globals.File.Language.Go,
-				progress,
-				ch,
-			),
-		})
-	case "javascript":
-		language = NewLanguage(&LanguageOptions{
-			Name:            "javascript",
-			SourceDirectory: JsSourceDirectory,
-			IncludeFiles:    []string{},
-			Toolchain: NewJavaScript(
-				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				progress,
-				ch,
-			),
-		})
-	case "rust":
-		language = NewLanguage(&LanguageOptions{
-			Name:            "rust",
-			SourceDirectory: RustSourceDirectory,
-			IncludeFiles:    []string{},
-			Toolchain: NewRust(
-				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				c.Globals.File.Language.Rust,
-				progress,
-				ch,
-			),
-		})
-	case "other":
-		language = NewLanguage(&LanguageOptions{
-			Name: "other",
-			Toolchain: NewOther(
-				c.Manifest.File.Scripts,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-			),
-		})
-	default:
-		return fmt.Errorf("unsupported language %s", toolchain)
-	}
-
-	// NOTE: A ./bin directory is required for the main.wasm to be placed inside.
-	dir, err := os.Getwd()
+	packageName, err := packageName(c)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return fmt.Errorf("failed to identify the current working directory: %w", err)
-	}
-	binDir := filepath.Join(dir, "bin")
-	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
-		c.Globals.ErrLog.Add(err)
-		return fmt.Errorf("failed to create bin directory: %w", err)
+		return err
 	}
 
-	if !c.Flags.SkipVerification {
-		progress.Step(fmt.Sprintf("Verifying local %s toolchain...", toolchain))
+	toolchain, err := toolchain(c)
+	if err != nil {
+		return err
+	}
 
-		err = language.Verify(progress)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Language": language.Name,
-			})
-			return err
-		}
+	language, err := language(toolchain, c, progress)
+	if err != nil {
+		return err
+	}
+
+	err = binDir(c)
+	if err != nil {
+		return err
 	}
 
 	// NOTE: We set the progress indicator to Done() so that any output we now
@@ -229,7 +119,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	progress = text.ResetProgress(out, c.Globals.Verbose())
-	progress.Step("Running [scripts.build]...")
 
 	postBuildCallback := func() error {
 		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
@@ -260,7 +149,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	files := []string{
 		manifest.Filename,
 	}
-	files = append(files, language.IncludeFiles...)
 
 	ignoreFiles, err := GetIgnoredFiles(IgnoreFilePath)
 	if err != nil {
@@ -300,22 +188,137 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	progress.Done()
 
-	// When patching fastly.toml with a default build command, in --verbose mode
-	// that information is already printed to the screen, but in standard output
-	// mode we need to ensure it's visible so users know the fastly.toml has been
-	// updated.
-	if !c.Globals.Verbose() {
-		select {
-		case msg := <-ch:
-			text.Info(out, msg)
-		default:
-			// no message, so moving on to prevent deadlock
-		}
-		close(ch)
-	}
-
 	out = originalOut
 	text.Success(out, "Built package (%s)", dest)
+	return nil
+}
+
+// packageName acquires the package name from either a flag or manifest.
+// Additionally it will sanitize the name.
+func packageName(c *BuildCommand) (string, error) {
+	var name string
+
+	switch {
+	case c.Flags.PackageName != "":
+		name = c.Flags.PackageName
+	case c.Manifest.File.Name != "":
+		name = c.Manifest.File.Name // use the project name as a fallback
+	default:
+		return "", fsterr.RemediationError{
+			Inner:       fmt.Errorf("package name is missing"),
+			Remediation: "Add a name to the fastly.toml 'name' field. Reference: https://developer.fastly.com/reference/compute/fastly-toml/",
+		}
+	}
+
+	return sanitize.BaseName(name), nil
+}
+
+// toolchain determines the programming language.
+//
+// It prioritises the --language flag over the manifest field.
+// Will error if neither are provided.
+// Lastly, it will normalise with a trim and lowercase.
+func toolchain(c *BuildCommand) (string, error) {
+	var toolchain string
+
+	switch {
+	case c.Flags.Lang != "":
+		toolchain = c.Flags.Lang
+	case c.Manifest.File.Language != "":
+		toolchain = c.Manifest.File.Language
+	default:
+		return "", fmt.Errorf("language cannot be empty, please provide a language")
+	}
+
+	return strings.ToLower(strings.TrimSpace(toolchain)), nil
+}
+
+// language returns a pointer to a supported language.
+func language(toolchain string, c *BuildCommand, progress text.Progress) (*Language, error) {
+	var language *Language
+	switch toolchain {
+	case "assemblyscript":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "assemblyscript",
+			SourceDirectory: AsSourceDirectory,
+			Toolchain: NewAssemblyScript(
+				&c.Manifest.File,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+				progress,
+				c.Globals.Verbose(),
+			),
+		})
+	case "go":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "go",
+			SourceDirectory: GoSourceDirectory,
+			Toolchain: NewGo(
+				&c.Manifest.File,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+				c.Globals.File.Language.Go,
+				progress,
+				c.Globals.Verbose(),
+			),
+		})
+	case "javascript":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "javascript",
+			SourceDirectory: JsSourceDirectory,
+			Toolchain: NewJavaScript(
+				&c.Manifest.File,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+				progress,
+				c.Globals.Verbose(),
+			),
+		})
+	case "rust":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "rust",
+			SourceDirectory: RustSourceDirectory,
+			Toolchain: NewRust(
+				&c.Manifest.File,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+				c.Globals.File.Language.Rust,
+				progress,
+				c.Globals.Verbose(),
+			),
+		})
+	case "other":
+		language = NewLanguage(&LanguageOptions{
+			Name: "other",
+			Toolchain: NewOther(
+				c.Manifest.File.Scripts,
+				c.Globals.ErrLog,
+				c.Flags.Timeout,
+			),
+		})
+	default:
+		return nil, fmt.Errorf("unsupported language %s", toolchain)
+	}
+
+	return language, nil
+}
+
+// binDir ensures a ./bin directory exists.
+// The directory is required so a main.wasm can be placed inside it.
+func binDir(c *BuildCommand) error {
+	if c.Globals.Verbose() {
+		text.Info(c.Globals.Output, "Creating ./bin directory (for Wasm binary)")
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to identify the current working directory: %w", err)
+	}
+	binDir := filepath.Join(dir, "bin")
+	if err := filesystem.MakeDirectoryIfNotExists(binDir); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to create bin directory: %w", err)
+	}
 	return nil
 }
 
