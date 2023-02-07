@@ -1,5 +1,54 @@
 # Changelog
 
+## [v6.0.0](https://github.com/fastly/cli/releases/tag/v6.0.0) (2023-02-07)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v5.1.1...v6.0.0)
+
+**Breaking:**
+
+There are three breaking changes in this release.
+
+The first comes from the removal of logic related to user environment 
+validation. This logic existed as an attempt to reduce the number of possible 
+errors when trying to compile a Compute project. The reality was that this 
+validation logic was tightly coupled to specific expectations of the CLI 
+(and of its starter kits) and consequently resulted in errors that were often 
+difficult to understand and debug, as well as restricting users from using their 
+own tools and scripts. By simplifying the logic flow we hope to reduce friction 
+for users who want to switch the tooling used, as well as reduce the general 
+confusion caused for users when there are environment validation errors, while 
+also reducing the maintenance overhead for contributors to the CLI code base.
+This change has meant we no longer need to define a `--skip-validation` flag and 
+that resulted in a breaking interface change.
+
+The second breaking change is to the `objectstore` command. This has now been 
+renamed to `object-store`. Additionally, there is no `keys`, `get` or `insert` 
+commands for manipulating the object-store entries. These operations have been 
+moved to a separate subcommand `object-store-entry` as this keeps the naming and 
+structural convention consistent with ACLs and Edge Dictionaries.
+
+The third breaking change is to Edge Dictionaries, which sees the
+`dictionary-item` subcommand renamed to `dictionary-entry`, again for
+consistency with other similar subcommands.
+
+* Remove user environment validation logic [#785](https://github.com/fastly/cli/pull/785)
+* Rework objectstore subcommand [#792](https://github.com/fastly/cli/pull/792)
+* Rename object store 'keys' to 'entry' for consistency [#795](https://github.com/fastly/cli/pull/795)
+* refactor(dictionaryitem): rename from item to entry [#798](https://github.com/fastly/cli/pull/798)
+
+**Bug fixes:**
+
+* Fix description in the manifest [#788](https://github.com/fastly/cli/pull/788)
+
+**Enhancements:**
+
+* Update `local_server` object and secret store formats [#789](https://github.com/fastly/cli/pull/789)
+
+**Clean-ups:**
+
+* refactor: move global struct and config.Source types into separate packages [#796](https://github.com/fastly/cli/pull/796)
+* refactor(secretstore): divide command files into separate packages [#797](https://github.com/fastly/cli/pull/797)
+
 ## [v5.1.1](https://github.com/fastly/cli/releases/tag/v5.1.1) (2023-02-01)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v5.1.0...v5.1.1)
