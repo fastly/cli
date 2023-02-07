@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -316,4 +317,32 @@ func IsCompletion(args []string) bool {
 		}
 	}
 	return found
+}
+
+// JSONOutput is a helper for adding a `--json` flag and encoding
+// values to JSON. It can be embedded into command structs.
+type JSONOutput struct {
+	Enabled bool // Set via flag.
+}
+
+// JSONFlag creates a flag for enabling JSON output.
+func (j *JSONOutput) JSONFlag() BoolFlagOpts {
+	return BoolFlagOpts{
+		Name:        FlagJSONName,
+		Description: FlagJSONDesc,
+		Dst:         &j.Enabled,
+		Short:       'j',
+	}
+}
+
+// WriteJSON checks whether the enabled flag is set or not. If set,
+// then the given value is written as JSON to out. Otherwise, false is returned.
+func (j *JSONOutput) WriteJSON(out io.Writer, value any) (bool, error) {
+	if !j.Enabled {
+		return false, nil
+	}
+
+	enc := json.NewEncoder(out)
+	enc.SetIndent("", "  ")
+	return true, enc.Encode(value)
 }

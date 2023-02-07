@@ -1,4 +1,4 @@
-package secretstore
+package secretstoreentry
 
 import (
 	"io"
@@ -11,9 +11,9 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// NewListSecretsCommand returns a usable command registered under the parent.
-func NewListSecretsCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListSecretsCommand {
-	c := ListSecretsCommand{
+// NewListCommand returns a usable command registered under the parent.
+func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+	c := ListCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
@@ -23,39 +23,39 @@ func NewListSecretsCommand(parent cmd.Registerer, g *global.Data, m manifest.Dat
 	c.CmdClause = parent.Command("list", "List secrets within a specified store")
 
 	// Required.
-	c.RegisterFlag(storeIDFlag(&c.Input.ID)) // --store-id
+	c.RegisterFlag(cmd.StoreIDFlag(&c.Input.ID)) // --store-id
 
 	// Optional.
-	c.RegisterFlag(cursorFlag(&c.Input.Cursor))  // --cursor
-	c.RegisterFlagBool(c.jsonFlag())             // --json
-	c.RegisterFlagInt(limitFlag(&c.Input.Limit)) // --limit
+	c.RegisterFlag(cmd.CursorFlag(&c.Input.Cursor))  // --cursor
+	c.RegisterFlagBool(c.JSONFlag())                 // --json
+	c.RegisterFlagInt(cmd.LimitFlag(&c.Input.Limit)) // --limit
 
 	return &c
 }
 
-// ListSecretsCommand calls the Fastly API to list appropriate resources.
-type ListSecretsCommand struct {
+// ListCommand calls the Fastly API to list appropriate resources.
+type ListCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	Input    fastly.ListSecretsInput
 	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *ListSecretsCommand) Exec(in io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.jsonOutput.enabled {
+func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	for {
-		o, err := cmd.Globals.APIClient.ListSecrets(&cmd.Input)
+		o, err := c.Globals.APIClient.ListSecrets(&c.Input)
 		if err != nil {
-			cmd.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 
-		if ok, err := cmd.WriteJSON(out, o); ok {
+		if ok, err := c.WriteJSON(out, o); ok {
 			// No pagination prompt w/ JSON output.
 			return err
 		}
@@ -64,13 +64,13 @@ func (cmd *ListSecretsCommand) Exec(in io.Reader, out io.Writer) error {
 
 		if o != nil && o.Meta.NextCursor != "" {
 			// Check if 'out' is interactive before prompting.
-			if !cmd.Globals.Flags.NonInteractive && !cmd.Globals.Flags.AutoYes && text.IsTTY(out) {
+			if !c.Globals.Flags.NonInteractive && !c.Globals.Flags.AutoYes && text.IsTTY(out) {
 				printNext, err := text.AskYesNo(out, "Print next page [yes/no]: ", in)
 				if err != nil {
 					return err
 				}
 				if printNext {
-					cmd.Input.Cursor = o.Meta.NextCursor
+					c.Input.Cursor = o.Meta.NextCursor
 					continue
 				}
 			}

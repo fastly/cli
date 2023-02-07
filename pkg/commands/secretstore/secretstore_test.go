@@ -9,6 +9,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstore"
+	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -53,7 +54,7 @@ func TestCreateStoreCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtSuccess("Created secret store %s (name %s)", storeID, storeName),
+			wantOutput:     fstfmt.Success("Created secret store %s (name %s)", storeID, storeName),
 		},
 		{
 			args: fmt.Sprintf("create --name %s --json", storeName),
@@ -67,7 +68,7 @@ func TestCreateStoreCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtJSON(`{"id": %q, "name": %q, "created_at": %q}`, storeID, storeName, now.Format(time.RFC3339Nano)),
+			wantOutput:     fstfmt.JSON(`{"id": %q, "name": %q, "created_at": %q}`, storeID, storeName, now.Format(time.RFC3339Nano)),
 		},
 	}
 
@@ -151,7 +152,7 @@ func TestGetStoreCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput: encodeJSON(&fastly.SecretStore{
+			wantOutput: fstfmt.EncodeJSON(&fastly.SecretStore{
 				ID:   storeID,
 				Name: storeName,
 			}),
@@ -223,7 +224,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtSuccess("Deleted secret store %s\n", storeID),
+			wantOutput:     fstfmt.Success("Deleted secret store %s\n", storeID),
 		},
 		{
 			args: fmt.Sprintf("delete --store-id %s --json", storeID),
@@ -236,7 +237,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtJSON(`{"id": %q, "deleted": true}`, storeID),
+			wantOutput:     fstfmt.JSON(`{"id": %q, "deleted": true}`, storeID),
 		},
 	}
 
@@ -327,7 +328,7 @@ func TestListStoresCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     encodeJSON(stores),
+			wantOutput:     fstfmt.EncodeJSON(stores),
 		},
 	}
 

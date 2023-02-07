@@ -10,9 +10,9 @@ import (
 // RootNameStore is the base command name for secret store operations.
 const RootNameStore = "secret-store"
 
-// NewStoreRootCommand returns a new command registered in the parent.
-func NewStoreRootCommand(parent cmd.Registerer, g *global.Data) *StoreRootCommand {
-	c := StoreRootCommand{
+// NewRootCommand returns a new command registered in the parent.
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+	c := RootCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
@@ -23,14 +23,14 @@ func NewStoreRootCommand(parent cmd.Registerer, g *global.Data) *StoreRootComman
 	return &c
 }
 
-// StoreRootCommand is the parent command for all 'store' subcommands.
+// RootCommand is the parent command for all 'store' subcommands.
 // It should be installed under the primary root command.
-type StoreRootCommand struct {
+type RootCommand struct {
 	cmd.Base
 	// no flags
 }
 
 // Exec implements the command interface.
-func (c *StoreRootCommand) Exec(_ io.Reader, _ io.Writer) error {
+func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 	panic("unreachable")
 }

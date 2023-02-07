@@ -1,4 +1,4 @@
-package secretstore
+package secretstoreentry
 
 import (
 	"io"
@@ -10,9 +10,9 @@ import (
 // RootNameSecret is the base command name for secret operations.
 const RootNameSecret = "secret-store-entry"
 
-// NewSecretRootCommand returns a new command registered in the parent.
-func NewSecretRootCommand(parent cmd.Registerer, g *global.Data) *SecretRootCommand {
-	c := SecretRootCommand{
+// NewRootCommand returns a new command registered in the parent.
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+	c := RootCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
@@ -23,14 +23,14 @@ func NewSecretRootCommand(parent cmd.Registerer, g *global.Data) *SecretRootComm
 	return &c
 }
 
-// SecretRootCommand is the parent command for all 'secret' subcommands.
+// RootCommand is the parent command for all 'secret' subcommands.
 // It should be installed under the primary root command.
-type SecretRootCommand struct {
+type RootCommand struct {
 	cmd.Base
 	// no flags
 }
 
 // Exec implements the command interface.
-func (c *SecretRootCommand) Exec(_ io.Reader, _ io.Writer) error {
+func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 	panic("unreachable")
 }

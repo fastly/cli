@@ -11,9 +11,9 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// NewListStoresCommand returns a usable command registered under the parent.
-func NewListStoresCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListStoresCommand {
-	c := ListStoresCommand{
+// NewListCommand returns a usable command registered under the parent.
+func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+	c := ListCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
@@ -23,25 +23,25 @@ func NewListStoresCommand(parent cmd.Registerer, g *global.Data, m manifest.Data
 	c.CmdClause = parent.Command("list", "List secret stores")
 
 	// Optional.
-	c.RegisterFlag(cursorFlag(&c.Input.Cursor))  // --cursor
-	c.RegisterFlagBool(c.jsonFlag())             // --json
-	c.RegisterFlagInt(limitFlag(&c.Input.Limit)) // --limit
+	c.RegisterFlag(cmd.CursorFlag(&c.Input.Cursor))  // --cursor
+	c.RegisterFlagBool(c.JSONFlag())                 // --json
+	c.RegisterFlagInt(cmd.LimitFlag(&c.Input.Limit)) // --limit
 
 	return &c
 }
 
-// ListStoresCommand calls the Fastly API to list appropriate resources.
-type ListStoresCommand struct {
+// ListCommand calls the Fastly API to list appropriate resources.
+type ListCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	Input    fastly.ListSecretStoresInput
 	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *ListStoresCommand) Exec(in io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.jsonOutput.enabled {
+func (cmd *ListCommand) Exec(in io.Reader, out io.Writer) error {
+	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

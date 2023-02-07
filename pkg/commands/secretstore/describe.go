@@ -11,9 +11,9 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// NewDescribeStoreCommand returns a usable command registered under the parent.
-func NewDescribeStoreCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeStoreCommand {
-	c := DescribeStoreCommand{
+// NewDescribeCommand returns a usable command registered under the parent.
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+	c := DescribeCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
@@ -23,26 +23,26 @@ func NewDescribeStoreCommand(parent cmd.Registerer, g *global.Data, m manifest.D
 	c.CmdClause = parent.Command("describe", "Retrieve a single secret store").Alias("get")
 
 	// Required.
-	c.RegisterFlag(storeIDFlag(&c.Input.ID)) // --store-id
+	c.RegisterFlag(cmd.StoreIDFlag(&c.Input.ID)) // --store-id
 
 	// Optional.
-	c.RegisterFlagBool(c.jsonFlag()) // --json
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
 
-// DescribeStoreCommand calls the Fastly API to describe an appropriate resource.
-type DescribeStoreCommand struct {
+// DescribeCommand calls the Fastly API to describe an appropriate resource.
+type DescribeCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	Input    fastly.GetSecretStoreInput
 	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *DescribeStoreCommand) Exec(_ io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.jsonOutput.enabled {
+func (cmd *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
+	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

@@ -25,3 +25,32 @@ var (
 
 // PaginationDirection is a list of directions the page results can be displayed.
 var PaginationDirection = []string{"ascend", "descend"}
+
+func CursorFlag(dst *string) StringFlagOpts {
+	return StringFlagOpts{
+		Name:        "cursor",
+		Short:       'c',
+		Description: "Pagination cursor (Use 'next_cursor' value from list output)",
+		Dst:         dst,
+	}
+}
+
+func LimitFlag(dst *int) IntFlagOpts {
+	return IntFlagOpts{
+		Name:        "limit",
+		Short:       'l',
+		Description: "Maximum number of items to list",
+		Default:     50,
+		Dst:         dst,
+	}
+}
+
+func StoreIDFlag(dst *string) StringFlagOpts {
+	return StringFlagOpts{
+		Name:        "store-id",
+		Short:       's',
+		Description: "Store ID",
+		Dst:         dst,
+		Required:    true,
+	}
+}

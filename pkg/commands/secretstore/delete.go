@@ -11,9 +11,9 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// NewDeleteStoreCommand returns a usable command registered under the parent.
-func NewDeleteStoreCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteStoreCommand {
-	c := DeleteStoreCommand{
+// NewDeleteCommand returns a usable command registered under the parent.
+func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+	c := DeleteCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
@@ -23,26 +23,26 @@ func NewDeleteStoreCommand(parent cmd.Registerer, g *global.Data, m manifest.Dat
 	c.CmdClause = parent.Command("delete", "Delete a secret store")
 
 	// Required.
-	c.RegisterFlag(storeIDFlag(&c.Input.ID)) // --store-id
+	c.RegisterFlag(cmd.StoreIDFlag(&c.Input.ID)) // --store-id
 
 	// Optional.
-	c.RegisterFlagBool(c.jsonFlag()) // --json
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
 
-// DeleteStoreCommand calls the Fastly API to delete an appropriate resource.
-type DeleteStoreCommand struct {
+// DeleteCommand calls the Fastly API to delete an appropriate resource.
+type DeleteCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	Input    fastly.DeleteSecretStoreInput
 	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *DeleteStoreCommand) Exec(_ io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.jsonOutput.enabled {
+func (cmd *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
+	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -52,7 +52,7 @@ func (cmd *DeleteStoreCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if cmd.jsonOutput.enabled {
+	if cmd.JSONOutput.Enabled {
 		o := struct {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
