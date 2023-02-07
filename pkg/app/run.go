@@ -13,6 +13,8 @@ import (
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/github"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/revision"
@@ -44,12 +46,12 @@ func Run(opts RunOpts) error {
 	md.File.SetOutput(opts.Stdout)
 	_ = md.File.Read(manifest.Filename)
 
-	// The globals will hold generally-applicable configuration parameters
+	// The g will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
-	globals := config.Data{
+	g := global.Data{
 		Env:        opts.Env,
 		ErrLog:     opts.ErrLog,
-		File:       opts.ConfigFile,
+		Config:     opts.ConfigFile,
 		HTTPClient: opts.HTTPClient,
 		Manifest:   md,
 		Output:     opts.Stdout,
@@ -84,17 +86,17 @@ func Run(opts RunOpts) error {
 	//
 	// NOTE: Short flags CAN be safely reused across commands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
-	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&globals.Flag.AcceptDefaults)
-	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&globals.Flag.AutoYes)
-	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&globals.Flag.Endpoint)
-	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&globals.Flag.NonInteractive)
-	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&globals.Flag.Profile)
-	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&globals.Flag.Quiet)
-	app.Flag("token", tokenHelp).Short('t').StringVar(&globals.Flag.Token)
-	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&globals.Flag.Verbose)
+	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&g.Flags.AcceptDefaults)
+	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&g.Flags.AutoYes)
+	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&g.Flags.Endpoint)
+	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&g.Flags.NonInteractive)
+	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&g.Flags.Profile)
+	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&g.Flags.Quiet)
+	app.Flag("token", tokenHelp).Short('t').StringVar(&g.Flags.Token)
+	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&g.Flags.Verbose)
 
-	commands := defineCommands(app, &globals, md, opts)
-	command, name, err := processCommandInput(opts, app, &globals, commands)
+	commands := defineCommands(app, &g, md, opts)
+	command, name, err := processCommandInput(opts, app, &g, commands)
 	if err != nil {
 		return err
 	}
@@ -111,22 +113,22 @@ func Run(opts RunOpts) error {
 		return nil
 	}
 
-	if globals.Flag.Quiet {
+	if g.Flags.Quiet {
 		md.File.SetQuiet(true)
 	}
 
-	token, source := globals.Token()
+	token, source := g.Token()
 
-	if globals.Verbose() {
+	if g.Verbose() {
 		displayTokenSource(
 			source,
 			opts.Stdout,
 			env.Token,
-			determineProfile(md.File.Profile, globals.Flag.Profile, globals.File.Profiles),
+			determineProfile(md.File.Profile, g.Flags.Profile, g.Config.Profiles),
 		)
 	}
 
-	token, err = profile.Init(token, &md, &globals, opts.Stdin, opts.Stdout)
+	token, err = profile.Init(token, &md, &g, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return err
 	}
@@ -135,10 +137,10 @@ func Run(opts RunOpts) error {
 	// to assert if they are not too open or have been altered outside of the
 	// application and warn if so.
 	segs := strings.Split(name, " ")
-	if source == config.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
+	if source == lookup.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
-				if !globals.Flag.Quiet {
+				if !g.Flags.Quiet {
 					text.Warning(opts.Stdout, "Unprotected configuration file.")
 					fmt.Fprintf(opts.Stdout, "Permissions for '%s' are too open\n", config.FilePath)
 					fmt.Fprintf(opts.Stdout, "It is recommended that your configuration file is NOT accessible by others.\n")
@@ -148,12 +150,12 @@ func Run(opts RunOpts) error {
 		}
 	}
 
-	endpoint, source := globals.Endpoint()
-	if globals.Verbose() {
+	endpoint, source := g.Endpoint()
+	if g.Verbose() {
 		switch source {
-		case config.SourceEnvironment:
+		case lookup.SourceEnvironment:
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via %s): %s\n", env.Endpoint, endpoint)
-		case config.SourceFile:
+		case lookup.SourceFile:
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via config file): %s\n", endpoint)
 		default:
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint: %s\n", endpoint)
@@ -162,17 +164,17 @@ func Run(opts RunOpts) error {
 
 	// NOTE: We return error immediately so there's no issue assigning to global.
 	// nosemgrep
-	globals.APIClient, err = opts.APIClient(token, endpoint)
+	g.APIClient, err = opts.APIClient(token, endpoint)
 	if err != nil {
-		globals.ErrLog.Add(err)
+		g.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly API client: %w", err)
 	}
 
 	// NOTE: We return error immediately so there's no issue assigning to global.
 	// nosemgrep
-	globals.RTSClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
+	g.RTSClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
 	if err != nil {
-		globals.ErrLog.Add(err)
+		g.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
 	}
 
@@ -180,7 +182,7 @@ func Run(opts RunOpts) error {
 		f := update.CheckAsync(
 			revision.AppVersion,
 			opts.Versioners.CLI,
-			globals.Flag.Quiet,
+			g.Flags.Quiet,
 		)
 		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
 	}
@@ -216,13 +218,13 @@ type Versioners struct {
 }
 
 // displayTokenSource prints the token source.
-func displayTokenSource(source config.Source, out io.Writer, token, profileSource string) {
+func displayTokenSource(source lookup.Source, out io.Writer, token, profileSource string) {
 	switch source {
-	case config.SourceFlag:
+	case lookup.SourceFlag:
 		fmt.Fprintf(out, "Fastly API token provided via --token\n")
-	case config.SourceEnvironment:
+	case lookup.SourceEnvironment:
 		fmt.Fprintf(out, "Fastly API token provided via %s\n", token)
-	case config.SourceFile:
+	case lookup.SourceFile:
 		fmt.Fprintf(out, "Fastly API token provided via config file (profile: %s)\n", profileSource)
 	default:
 		fmt.Fprintf(out, "Fastly API token not provided\n")

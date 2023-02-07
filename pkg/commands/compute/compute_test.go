@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/github"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/kingpin"
@@ -20,15 +20,15 @@ import (
 // `compute build` and `compute deploy` commands from which publish is composed.
 func TestPublishFlagDivergence(t *testing.T) {
 	var (
-		cfg  config.Data
+		g    global.Data
 		data manifest.Data
 	)
 	acmd := kingpin.New("foo", "bar")
 
-	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, data)
-	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &cfg, data)
-	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &cfg, bcmd, dcmd, data)
+	rcmd := compute.NewRootCommand(acmd, &g)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g, data)
+	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &g, data)
+	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &g, bcmd, dcmd, data)
 
 	buildFlags := getFlags(bcmd.CmdClause)
 	deployFlags := getFlags(dcmd.CmdClause)
@@ -63,7 +63,7 @@ func TestPublishFlagDivergence(t *testing.T) {
 // `compute build` command as `compute serve` delegates to build.
 func TestServeFlagDivergence(t *testing.T) {
 	var (
-		cfg  config.Data
+		cfg  global.Data
 		data manifest.Data
 	)
 	versioner := github.New(github.Opts{

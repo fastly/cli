@@ -8,36 +8,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
 )
 
-// Source enumerates where a config parameter is taken from.
-type Source uint8
-
 const (
-	// SourceUndefined indicates the parameter isn't provided in any of the
-	// available sources, similar to "not found".
-	SourceUndefined Source = iota
-
-	// SourceFile indicates the parameter came from a config file.
-	SourceFile
-
-	// SourceEnvironment indicates the parameter came from an env var.
-	SourceEnvironment
-
-	// SourceFlag indicates the parameter came from an explicit flag.
-	SourceFlag
-
-	// SourceDefault indicates the parameter came from a program default.
-	SourceDefault
-
 	// DirectoryPermissions is the default directory permissions for the config file directory.
 	DirectoryPermissions = 0o700
 
@@ -61,108 +40,6 @@ var (
 	// compiled CLI binary and so the user must resolve their invalid config.
 	RemediationManualFix = "You'll need to manually fix any invalid configuration syntax."
 )
-
-// Data holds global-ish configuration data from all sources: environment
-// variables, config files, and flags. It has methods to give each parameter to
-// the components that need it, including the place the parameter came from,
-// which is a requirement.
-//
-// If the same parameter is defined in multiple places, it is resolved according
-// to the following priority order: the config file (lowest priority), env vars,
-// and then explicit flags (highest priority).
-//
-// This package and its types are only meant for parameters that are applicable
-// to most/all subcommands (e.g. API token) and are consistent for a given user
-// (e.g. an email address). Otherwise, parameters should be defined in specific
-// command structs, and parsed as flags.
-type Data struct {
-	Env      Environment
-	File     File
-	Flag     Flag
-	Manifest manifest.Data
-	Output   io.Writer
-	Path     string
-
-	// Custom interfaces
-	ErrLog     fsterr.LogInterface
-	APIClient  api.Interface
-	HTTPClient api.HTTPClient
-	RTSClient  api.RealtimeStatsInterface
-}
-
-// Token yields the Fastly API token.
-func (d *Data) Token() (string, Source) {
-	if d.Flag.Token != "" {
-		return d.Flag.Token, SourceFlag
-	}
-
-	if d.Env.Token != "" {
-		return d.Env.Token, SourceEnvironment
-	}
-
-	if d.Manifest.File.Profile != "" {
-		for k, v := range d.File.Profiles {
-			if k == d.Manifest.File.Profile {
-				return v.Token, SourceFile
-			}
-		}
-	}
-
-	if d.Flag.Profile != "" {
-		for k, v := range d.File.Profiles {
-			if k == d.Flag.Profile {
-				return v.Token, SourceFile
-			}
-		}
-	}
-
-	for _, v := range d.File.Profiles {
-		if v.Default {
-			return v.Token, SourceFile
-		}
-	}
-
-	return "", SourceUndefined
-}
-
-// Verbose yields the verbose flag, which can only be set via flags.
-func (d *Data) Verbose() bool {
-	return d.Flag.Verbose
-}
-
-// Endpoint yields the API endpoint.
-func (d *Data) Endpoint() (string, Source) {
-	if d.Flag.Endpoint != "" {
-		return d.Flag.Endpoint, SourceFlag
-	}
-
-	if d.Env.Endpoint != "" {
-		return d.Env.Endpoint, SourceEnvironment
-	}
-
-	if d.File.Fastly.APIEndpoint != DefaultEndpoint && d.File.Fastly.APIEndpoint != "" {
-		return d.File.Fastly.APIEndpoint, SourceFile
-	}
-
-	return DefaultEndpoint, SourceDefault // this method should not fail
-}
-
-// FileName is the name of the application configuration file.
-const FileName = "config.toml"
-
-// FilePath is the location of the fastly CLI application config file.
-var FilePath = func() string {
-	if dir, err := os.UserConfigDir(); err == nil {
-		return filepath.Join(dir, "fastly", FileName)
-	}
-	if dir, err := os.UserHomeDir(); err == nil {
-		return filepath.Join(dir, ".fastly", FileName)
-	}
-	panic("unable to deduce user config dir or user home dir")
-}()
-
-// DefaultEndpoint is the default Fastly API endpoint.
-const DefaultEndpoint = "https://api.fastly.com"
 
 // LegacyUser represents the old toml configuration format.
 //
@@ -523,20 +400,6 @@ func (e *Environment) Read(state map[string]string) {
 	e.Endpoint = state[env.Endpoint]
 }
 
-// Flag represents all of the configuration parameters that can be set with
-// explicit flags. Consumers should bind their flag values to these fields
-// directly.
-type Flag struct {
-	AcceptDefaults bool
-	AutoYes        bool
-	Endpoint       string
-	NonInteractive bool
-	Profile        string
-	Quiet          bool
-	Token          string
-	Verbose        bool
-}
-
 // invalidStaticConfigErr generates an error to alert the user to an issue with
 // the CLI's internal configuration.
 func invalidStaticConfigErr(err error) error {
@@ -545,3 +408,17 @@ func invalidStaticConfigErr(err error) error {
 		Remediation: fsterr.InvalidStaticConfigRemediation,
 	}
 }
+
+// FileName is the name of the application configuration file.
+const FileName = "config.toml"
+
+// FilePath is the location of the fastly CLI application config file.
+var FilePath = func() string {
+	if dir, err := os.UserConfigDir(); err == nil {
+		return filepath.Join(dir, "fastly", FileName)
+	}
+	if dir, err := os.UserHomeDir(); err == nil {
+		return filepath.Join(dir, ".fastly", FileName)
+	}
+	panic("unable to deduce user config dir or user home dir")
+}()

@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/kennygrant/sanitize"
@@ -46,10 +46,10 @@ type BuildCommand struct {
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *BuildCommand {
+func NewBuildCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *BuildCommand {
 	var c BuildCommand
-	c.Globals = globals
-	c.Manifest = data
+	c.Globals = g
+	c.Manifest = m
 	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
@@ -67,7 +67,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// We'll restore this at the end to print a final successful build output.
 	originalOut := out
 
-	if c.Globals.Flag.Quiet {
+	if c.Globals.Flags.Quiet {
 		out = io.Discard
 	}
 	progress := text.NewProgress(out, c.Globals.Verbose())
@@ -121,7 +121,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	progress = text.ResetProgress(out, c.Globals.Verbose())
 
 	postBuildCallback := func() error {
-		if !c.Globals.Flag.AutoYes && !c.Globals.Flag.NonInteractive {
+		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 			err := promptForBuildContinue(CustomPostBuildScriptMessage, c.Manifest.File.Scripts.PostBuild, out, in, c.Globals.Verbose())
 			if err != nil {
 				return err
@@ -130,7 +130,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	if err := language.Build(out, progress, c.Globals.Flag.Verbose, postBuildCallback); err != nil {
+	if err := language.Build(out, progress, c.Globals.Flags.Verbose, postBuildCallback); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Language": language.Name,
 		})
@@ -257,7 +257,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress) (*Langu
 				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
-				c.Globals.File.Language.Go,
+				c.Globals.Config.Language.Go,
 				progress,
 				c.Globals.Verbose(),
 			),
@@ -282,7 +282,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress) (*Langu
 				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
-				c.Globals.File.Language.Rust,
+				c.Globals.Config.Language.Rust,
 				progress,
 				c.Globals.Verbose(),
 			),

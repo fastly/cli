@@ -5,18 +5,19 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "Get a specific user of the Fastly API and web interface").Alias("get")
-	c.Globals = globals
-	c.manifest = data
+	c.Globals = g
+	c.manifest = m
 	c.CmdClause.Flag("current", "Get the logged in user").BoolVar(&c.current)
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
@@ -41,7 +42,7 @@ type DescribeCommand struct {
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
+	if s == lookup.SourceUndefined {
 		return errors.ErrNoToken
 	}
 

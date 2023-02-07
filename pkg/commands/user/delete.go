@@ -4,19 +4,20 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, globals *global.Data, m manifest.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.CmdClause = parent.Command("delete", "Delete a user of the Fastly API and web interface").Alias("remove")
 	c.Globals = globals
-	c.manifest = data
+	c.manifest = m
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").Required().StringVar(&c.id)
 	return &c
 }
@@ -32,7 +33,7 @@ type DeleteCommand struct {
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
+	if s == lookup.SourceUndefined {
 		return errors.ErrNoToken
 	}
 

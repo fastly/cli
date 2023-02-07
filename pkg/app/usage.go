@@ -12,8 +12,8 @@ import (
 	"text/template"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/kingpin"
 )
@@ -208,7 +208,7 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 func processCommandInput(
 	opts RunOpts,
 	app *kingpin.Application,
-	globals *config.Data,
+	g *global.Data,
 	commands []cmd.Command,
 ) (command cmd.Command, cmdName string, err error) {
 	// As the `help` command model gets privately added as a side-effect of
@@ -219,7 +219,7 @@ func processCommandInput(
 	if cmd.ArgsIsHelpJSON(opts.Args) {
 		j, err := UsageJSON(app)
 		if err != nil {
-			globals.ErrLog.Add(err)
+			g.ErrLog.Add(err)
 			return command, cmdName, err
 		}
 		fmt.Fprintf(opts.Stdout, "%s", j)
@@ -227,7 +227,7 @@ func processCommandInput(
 	}
 
 	// Use partial application to generate help output function.
-	help := displayHelp(globals.ErrLog, opts.Args, app, opts.Stdout, io.Discard)
+	help := displayHelp(g.ErrLog, opts.Args, app, opts.Stdout, io.Discard)
 
 	// Handle parse errors and display contextual usage if possible. Due to bugs
 	// and an obsession for lots of output side-effects in the kingpin.Parse
@@ -407,7 +407,7 @@ var metadata []byte
 type commandsMetadata map[string]any
 
 // UsageJSON returns a structured representation of the application usage
-// documentation in JSON format. This is useful for machine consumtion.
+// documentation in JSON format. This is useful for machine consumption.
 func UsageJSON(app *kingpin.Application) (string, error) {
 	var data commandsMetadata
 	err := json.Unmarshal(metadata, &data)

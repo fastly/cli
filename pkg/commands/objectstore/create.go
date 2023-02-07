@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -22,12 +22,12 @@ type CreateCommand struct {
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
 	c := CreateCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Create an object store")
 	c.CmdClause.Flag("name", "Name of Object Store").Short('n').Required().StringVar(&c.Input.Name)

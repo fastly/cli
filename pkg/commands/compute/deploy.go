@@ -17,8 +17,9 @@ import (
 	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute/setup"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/undo"
@@ -51,10 +52,10 @@ type DeployCommand struct {
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
-func NewDeployCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeployCommand {
+func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeployCommand {
 	var c DeployCommand
-	c.Globals = globals
-	c.Manifest = data
+	c.Globals = g
+	c.Manifest = m
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
 
 	// NOTE: when updating these flags, be sure to update the composite command:
@@ -181,7 +182,7 @@ func setupDeploy(c *DeployCommand, out io.Writer) (
 	defaultActivator := func(customerID string) error { return nil }
 
 	token, s := c.Globals.Token()
-	if s == config.SourceUndefined {
+	if s == lookup.SourceUndefined {
 		return defaultActivator, 0, "", "", "", fsterr.ErrNoToken
 	}
 
@@ -418,7 +419,7 @@ func serviceManagement(
 ) (newService bool, updatedServiceID string, serviceVersion *fastly.Version, cont bool, err error) {
 	if source == manifest.SourceUndefined {
 		newService = true
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.Globals.Flag, in, out, c.Globals.Verbose(), c.Globals.APIClient, c.Package, c.Globals.ErrLog, &c.Manifest.File, fnActivateTrial)
+		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.Globals.Flags, in, out, c.Globals.Verbose(), c.Globals.APIClient, c.Package, c.Globals.ErrLog, &c.Manifest.File, fnActivateTrial)
 		if err != nil {
 			return newService, "", nil, false, err
 		}
@@ -437,7 +438,7 @@ func serviceManagement(
 
 // manageNoServiceIDFlow handles creating a new service when no Service ID is found.
 func manageNoServiceIDFlow(
-	globalFlags config.Flag,
+	f global.Flags,
 	in io.Reader,
 	out io.Writer,
 	verbose bool,
@@ -447,7 +448,7 @@ func manageNoServiceIDFlow(
 	manifestFile *manifest.File,
 	fnActivateTrial activator,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
-	if !globalFlags.AutoYes && !globalFlags.NonInteractive {
+	if !f.AutoYes && !f.NonInteractive {
 		text.Break(out)
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
 		text.Break(out)
@@ -468,7 +469,7 @@ func manageNoServiceIDFlow(
 	defaultServiceName := manifestFile.Name
 	var serviceName string
 
-	if !globalFlags.AcceptDefaults && !globalFlags.NonInteractive {
+	if !f.AcceptDefaults && !f.NonInteractive {
 		serviceName, err = text.Input(out, text.BoldYellow(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
 		if err != nil || serviceName == "" {
 			serviceName = defaultServiceName
@@ -788,8 +789,8 @@ func constructSetupObjects(
 
 	domains := &setup.Domains{
 		APIClient:      c.Globals.APIClient,
-		AcceptDefaults: c.Globals.Flag.AcceptDefaults,
-		NonInteractive: c.Globals.Flag.NonInteractive,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
 		PackageDomain:  c.Domain,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
@@ -813,8 +814,8 @@ func constructSetupObjects(
 	if newService {
 		backends = &setup.Backends{
 			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
-			NonInteractive: c.Globals.Flag.NonInteractive,
+			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+			NonInteractive: c.Globals.Flags.NonInteractive,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
 			Setup:          c.Manifest.File.Setup.Backends,
@@ -824,8 +825,8 @@ func constructSetupObjects(
 
 		dictionaries = &setup.Dictionaries{
 			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
-			NonInteractive: c.Globals.Flag.NonInteractive,
+			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+			NonInteractive: c.Globals.Flags.NonInteractive,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
 			Setup:          c.Manifest.File.Setup.Dictionaries,
@@ -840,8 +841,8 @@ func constructSetupObjects(
 
 		objectStores = &setup.ObjectStores{
 			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flag.AcceptDefaults,
-			NonInteractive: c.Globals.Flag.NonInteractive,
+			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+			NonInteractive: c.Globals.Flags.NonInteractive,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
 			Setup:          c.Manifest.File.Setup.ObjectStores,
@@ -945,9 +946,9 @@ func processSetupCreation(
 
 		if err := domains.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flag.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flag.AutoYes,
-				"Non-interactive": c.Globals.Flag.NonInteractive,
+				"Accept defaults": c.Globals.Flags.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flags.AutoYes,
+				"Non-interactive": c.Globals.Flags.NonInteractive,
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion,
 			})
@@ -967,9 +968,9 @@ func processSetupCreation(
 
 		if err := backends.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flag.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flag.AutoYes,
-				"Non-interactive": c.Globals.Flag.NonInteractive,
+				"Accept defaults": c.Globals.Flags.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flags.AutoYes,
+				"Non-interactive": c.Globals.Flags.NonInteractive,
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion,
 			})
@@ -978,9 +979,9 @@ func processSetupCreation(
 
 		if err := dictionaries.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flag.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flag.AutoYes,
-				"Non-interactive": c.Globals.Flag.NonInteractive,
+				"Accept defaults": c.Globals.Flags.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flags.AutoYes,
+				"Non-interactive": c.Globals.Flags.NonInteractive,
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion,
 			})
@@ -989,9 +990,9 @@ func processSetupCreation(
 
 		if err := objectStores.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flag.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flag.AutoYes,
-				"Non-interactive": c.Globals.Flag.NonInteractive,
+				"Accept defaults": c.Globals.Flags.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flags.AutoYes,
+				"Non-interactive": c.Globals.Flags.NonInteractive,
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion,
 			})

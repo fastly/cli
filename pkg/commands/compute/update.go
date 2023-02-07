@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -25,12 +26,12 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
 	c := UpdateCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 	c.CmdClause = parent.Command("update", "Update a package on a Fastly Compute@Edge service version")
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -62,7 +63,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
+	if s == lookup.SourceUndefined {
 		return fsterr.ErrNoToken
 	}
 
@@ -73,7 +74,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flag.Verbose,
+		VerboseMode:        c.Globals.Flags.Verbose,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

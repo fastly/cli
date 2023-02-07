@@ -4,17 +4,17 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 )
 
 // RootNameStore is the base command name for secret store operations.
 const RootNameStore = "secret-store"
 
 // NewStoreRootCommand returns a new command registered in the parent.
-func NewStoreRootCommand(parent cmd.Registerer, globals *config.Data) *StoreRootCommand {
+func NewStoreRootCommand(parent cmd.Registerer, g *global.Data) *StoreRootCommand {
 	c := StoreRootCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
 	}
 

@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/github"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/text"
@@ -24,9 +24,9 @@ type RootCommand struct {
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, configFilePath string, av github.AssetVersioner, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, configFilePath string, av github.AssetVersioner, g *global.Data) *RootCommand {
 	var c RootCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")
 	c.av = av
 	c.configFilePath = configFilePath

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/kennygrant/sanitize"
@@ -16,10 +16,10 @@ import (
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ValidateCommand {
+func NewValidateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ValidateCommand {
 	var c ValidateCommand
-	c.Globals = globals
-	c.manifest = data
+	c.Globals = g
+	c.manifest = m
 	c.CmdClause = parent.Command("validate", "Validate a Compute@Edge package")
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.path)
 	return &c

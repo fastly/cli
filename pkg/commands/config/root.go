@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -15,31 +15,29 @@ import (
 type RootCommand struct {
 	cmd.Base
 
-	filePath string
 	location bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("config", "Display the Fastly CLI configuration")
 	c.CmdClause.Flag("location", "Print the location of the CLI configuration file").Short('l').BoolVar(&c.location)
-	c.filePath = globals.Path
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if c.location {
-		if c.Globals.Flag.Verbose {
+		if c.Globals.Flags.Verbose {
 			text.Break(out)
 		}
-		fmt.Fprintln(out, c.filePath)
+		fmt.Fprintln(out, c.Globals.Path)
 		return nil
 	}
 
-	data, err := os.ReadFile(c.filePath)
+	data, err := os.ReadFile(c.Globals.Path)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

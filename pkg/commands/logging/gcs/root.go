@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -15,9 +15,9 @@ type RootCommand struct {
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("gcs", "Manipulate Fastly service version GCS logging endpoints")
 	return &c
 }

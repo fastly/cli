@@ -6,19 +6,19 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
 	c := DescribeCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Get the uploaded VCL for a particular service and version").Alias("get")
 
@@ -78,7 +78,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flag.Verbose,
+		VerboseMode:        c.Globals.Flags.Verbose,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

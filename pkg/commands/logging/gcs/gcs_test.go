@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/gcs"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -189,19 +190,19 @@ func TestUpdateGCSInput(t *testing.T) {
 func createCommandRequired() *gcs.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &gcs.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -229,19 +230,19 @@ func createCommandRequired() *gcs.CreateCommand {
 func createCommandAll() *gcs.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &gcs.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -284,15 +285,15 @@ func createCommandMissingServiceID() *gcs.CreateCommand {
 func updateCommandNoUpdates() *gcs.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &gcs.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -317,15 +318,15 @@ func updateCommandNoUpdates() *gcs.UpdateCommand {
 func updateCommandAll() *gcs.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &gcs.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{

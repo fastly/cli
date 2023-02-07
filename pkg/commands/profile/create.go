@@ -12,6 +12,8 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -26,9 +28,9 @@ type CreateCommand struct {
 }
 
 // NewCreateCommand returns a new command registered in the parent.
-func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, globals *config.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data) *CreateCommand {
 	var c CreateCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("create", "Create user profile")
 	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default("user").Short('p').StringVar(&c.profile)
 	c.clientFactory = cf
@@ -37,7 +39,7 @@ func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, globals *confi
 
 // Exec implements the command interface.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	if profile.Exist(c.profile, c.Globals.File.Profiles) {
+	if profile.Exist(c.profile, c.Globals.Config.Profiles) {
 		return fmt.Errorf("profile '%s' already exists", c.profile)
 	}
 
@@ -46,7 +48,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// we should prompt the user to see if the new profile they're creating needs
 	// to become the new default.
 	def := true
-	if profileName, _ := profile.Default(c.Globals.File.Profiles); profileName != "" {
+	if profileName, _ := profile.Default(c.Globals.Config.Profiles); profileName != "" {
 		def, err = c.promptForDefault(in, out)
 		if err != nil {
 			return err
@@ -69,9 +71,10 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, out io.Writer) error {
 	var err error
 
-	// If user provides a --token flag, then don't prompt them for input.
+	// If user provides a token (either by flag, environment variable or by
+	// manually editing the CLI configuration file), then don't prompt for input.
 	token, source := c.Globals.Token()
-	if source == config.SourceFile || source == config.SourceUndefined {
+	if source == lookup.SourceUndefined {
 		token, err = promptForToken(in, out, c.Globals.ErrLog)
 		if err != nil {
 			return err
@@ -80,6 +83,8 @@ func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, ou
 		text.Break(out)
 	}
 
+	endpoint, _ := c.Globals.Endpoint()
+
 	progress := text.NewProgress(out, c.Globals.Verbose())
 	defer func() {
 		if err != nil {
@@ -87,8 +92,6 @@ func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, ou
 			progress.Fail() // progress.Done is handled inline
 		}
 	}()
-
-	endpoint, _ := c.Globals.Endpoint()
 
 	user, err := c.validateToken(token, endpoint, progress)
 	if err != nil {
@@ -162,12 +165,12 @@ func (c *CreateCommand) validateToken(token, endpoint string, progress text.Prog
 func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, progress text.Progress) {
 	progress.Step("Persisting configuration...")
 
-	c.Globals.File.Fastly.APIEndpoint = endpoint
+	c.Globals.Config.Fastly.APIEndpoint = endpoint
 
-	if c.Globals.File.Profiles == nil {
-		c.Globals.File.Profiles = make(config.Profiles)
+	if c.Globals.Config.Profiles == nil {
+		c.Globals.Config.Profiles = make(config.Profiles)
 	}
-	c.Globals.File.Profiles[profileName] = &config.Profile{
+	c.Globals.Config.Profiles[profileName] = &config.Profile{
 		Default: def,
 		Email:   email,
 		Token:   token,
@@ -177,8 +180,8 @@ func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint strin
 	// we'll call Set for its side effect of resetting all other profiles to have
 	// their Default field set to false.
 	if def {
-		if p, ok := profile.Set(profileName, c.Globals.File.Profiles); ok {
-			c.Globals.File.Profiles = p
+		if p, ok := profile.Set(profileName, c.Globals.Config.Profiles); ok {
+			c.Globals.Config.Profiles = p
 		}
 	}
 }
@@ -203,7 +206,7 @@ func (c *CreateCommand) persistCfg() error {
 		}
 	}
 
-	if err := c.Globals.File.Write(c.Globals.Path); err != nil {
+	if err := c.Globals.Config.Write(c.Globals.Path); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}

@@ -4,20 +4,20 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewDeleteSecretCommand returns a usable command registered under the parent.
-func NewDeleteSecretCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DeleteSecretCommand {
+func NewDeleteSecretCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteSecretCommand {
 	c := DeleteSecretCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("delete", "Delete a secret")

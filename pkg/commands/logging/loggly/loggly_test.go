@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/loggly"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -172,19 +173,19 @@ func TestUpdateLogglyInput(t *testing.T) {
 func createCommandOK() *loggly.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &loggly.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -214,19 +215,19 @@ func createCommandOK() *loggly.CreateCommand {
 func createCommandRequired() *loggly.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &loggly.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -258,15 +259,15 @@ func createCommandMissingServiceID() *loggly.CreateCommand {
 func updateCommandNoUpdates() *loggly.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &loggly.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -291,15 +292,15 @@ func updateCommandNoUpdates() *loggly.UpdateCommand {
 func updateCommandAll() *loggly.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &loggly.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{

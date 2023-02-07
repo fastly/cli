@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/cloudfiles"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -193,19 +194,19 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 func createCommandRequired() *cloudfiles.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &cloudfiles.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -233,19 +234,19 @@ func createCommandRequired() *cloudfiles.CreateCommand {
 func createCommandAll() *cloudfiles.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &cloudfiles.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -290,15 +291,15 @@ func createCommandMissingServiceID() *cloudfiles.CreateCommand {
 func updateCommandNoUpdate() *cloudfiles.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &cloudfiles.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -323,15 +324,15 @@ func updateCommandNoUpdate() *cloudfiles.UpdateCommand {
 func updateCommandAll() *cloudfiles.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &cloudfiles.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{

@@ -20,6 +20,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/file"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
@@ -48,10 +49,10 @@ type InitCommand struct {
 var Languages = []string{"rust", "javascript", "go", "assemblyscript", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *InitCommand {
+func NewInitCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *InitCommand {
 	var c InitCommand
-	c.Globals = globals
-	c.manifest = data
+	c.Globals = g
+	c.manifest = m
 	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
@@ -81,7 +82,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
-	cont, err := verifyDirectory(c.Globals.Flag, c.dir, out, in)
+	cont, err := verifyDirectory(c.Globals.Flags, c.dir, out, in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -112,7 +113,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	mf := c.manifest.File
-	if c.Globals.Flag.Quiet {
+	if c.Globals.Flags.Quiet {
 		mf.SetQuiet(true)
 	}
 	if c.dir == "" && !mf.Exists() {
@@ -131,12 +132,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// Assign the default profile email if available.
 	email := ""
-	profileName, p := profile.Default(c.Globals.File.Profiles)
+	profileName, p := profile.Default(c.Globals.Config.Profiles)
 	if profileName != "" {
 		email = p.Email
 	}
 
-	name, desc, authors, err := promptOrReturn(c.Globals.Flag, c.manifest, c.dir, email, in, out)
+	name, desc, authors, err := promptOrReturn(c.Globals.Flags, c.manifest, c.dir, email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Description": desc,
@@ -145,12 +146,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	languages := NewLanguages(c.Globals.File.StarterKits)
+	languages := NewLanguages(c.Globals.Config.StarterKits)
 
 	var language *Language
 
 	if c.language == "" && c.cloneFrom == "" {
-		language, err = promptForLanguage(c.Globals.Flag, languages, in, out)
+		language, err = promptForLanguage(c.Globals.Flags, languages, in, out)
 		if err != nil {
 			return err
 		}
@@ -172,7 +173,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// they're bringing their own project code), then we'll prompt the user to
 	// select a starter kit project.
 	if c.cloneFrom == "" && !mf.Exists() && language.Name != "other" {
-		from, branch, tag, err = promptForStarterKit(c.Globals.Flag, language.StarterKits, in, out)
+		from, branch, tag, err = promptForStarterKit(c.Globals.Flags, language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"From":           c.cloneFrom,
@@ -237,7 +238,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // verifyDirectory indicates if the user wants to continue with the execution
 // flow when presented with a prompt that suggests the current directory isn't
 // empty.
-func verifyDirectory(flags config.Flag, dir string, out io.Writer, in io.Reader) (bool, error) {
+func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader) (bool, error) {
 	if dir == "" {
 		dir = "."
 	}
@@ -338,7 +339,7 @@ func verifyDestination(path string, progress text.Progress) (dst string, err err
 // fastly.toml manifest file, otherwise if it already exists then the value is
 // returned as is.
 func promptOrReturn(
-	flags config.Flag,
+	flags global.Flags,
 	m manifest.Data,
 	path, email string,
 	in io.Reader,
@@ -370,7 +371,7 @@ func promptOrReturn(
 //
 // It will use a default of the current directory path if no value provided by
 // the user via the prompt.
-func promptPackageName(flags config.Flag, name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
+func promptPackageName(flags global.Flags, name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
 	defaultName := filepath.Base(dirPath)
 
 	if name == "" && (flags.AcceptDefaults || flags.NonInteractive) {
@@ -395,7 +396,7 @@ func promptPackageName(flags config.Flag, name string, dirPath string, in io.Rea
 
 // promptPackageDescription prompts the user for a package description unless already
 // defined either via the corresponding CLI flag or the manifest file.
-func promptPackageDescription(flags config.Flag, desc string, in io.Reader, out io.Writer) (string, error) {
+func promptPackageDescription(flags global.Flags, desc string, in io.Reader, out io.Writer) (string, error) {
 	if desc == "" && (flags.AcceptDefaults || flags.NonInteractive) {
 		return desc, nil
 	}
@@ -417,7 +418,7 @@ func promptPackageDescription(flags config.Flag, desc string, in io.Reader, out 
 //
 // It will use a default of the user's email found within the manifest, if set
 // there, otherwise the value will be an empty slice.
-func promptPackageAuthors(flags config.Flag, authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
+func promptPackageAuthors(flags global.Flags, authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
 	defaultValue := []string{manifestEmail}
 	if len(authors) == 0 && (flags.AcceptDefaults || flags.NonInteractive) {
 		return defaultValue, nil
@@ -446,7 +447,7 @@ func promptPackageAuthors(flags config.Flag, authors []string, manifestEmail str
 
 // promptForLanguage prompts the user for a package language unless already
 // defined either via the corresponding CLI flag or the manifest file.
-func promptForLanguage(flags config.Flag, languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
+func promptForLanguage(flags global.Flags, languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
 	var (
 		language *Language
 		option   string
@@ -500,7 +501,7 @@ func validateLanguageOption(languages []*Language) func(string) error {
 // promptForStarterKit prompts the user for a package starter kit.
 //
 // It returns the path to the starter kit, and the corresponding branch/tag,
-func promptForStarterKit(flags config.Flag, kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
+func promptForStarterKit(flags global.Flags, kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
 	var option string
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {

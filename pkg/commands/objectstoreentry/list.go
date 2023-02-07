@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -22,12 +22,12 @@ type ListCommand struct {
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
 	c := ListCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List keys")
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
@@ -67,7 +67,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if c.Globals.Flag.Verbose {
+	if c.Globals.Flags.Verbose {
 		text.PrintObjectStoreKeys(out, "", o.Data)
 		return nil
 	}

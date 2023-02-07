@@ -5,19 +5,20 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.CmdClause = parent.Command("update", "Update a user of the Fastly API and web interface")
-	c.Globals = globals
-	c.manifest = data
+	c.Globals = g
+	c.manifest = m
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
 	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").StringVar(&c.login)
 	c.CmdClause.Flag("name", "The real life name of the user").StringVar(&c.name)
@@ -42,7 +43,7 @@ type UpdateCommand struct {
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
+	if s == lookup.SourceUndefined {
 		return errors.ErrNoToken
 	}
 

@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/mholt/archiver/v3"
@@ -23,10 +23,10 @@ type PackCommand struct {
 }
 
 // NewPackCommand returns a usable command registered under the parent.
-func NewPackCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *PackCommand {
+func NewPackCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *PackCommand {
 	var c PackCommand
-	c.Globals = globals
-	c.manifest = data
+	c.Globals = g
+	c.manifest = m
 
 	c.CmdClause = parent.Command("pack", "Package a pre-compiled Wasm binary for a Fastly Compute@Edge service")
 	c.CmdClause.Flag("wasm-binary", "Path to a pre-compiled Wasm binary").Short('w').Required().StringVar(&c.wasmBinary)

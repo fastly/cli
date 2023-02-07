@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/datadog"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -174,19 +175,19 @@ func TestUpdateDatadogInput(t *testing.T) {
 func createCommandOK() *datadog.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &datadog.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -217,19 +218,19 @@ func createCommandOK() *datadog.CreateCommand {
 func createCommandRequired() *datadog.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &datadog.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -261,15 +262,15 @@ func createCommandMissingServiceID() *datadog.CreateCommand {
 func updateCommandNoUpdates() *datadog.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &datadog.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -294,15 +295,15 @@ func updateCommandNoUpdates() *datadog.UpdateCommand {
 func updateCommandAll() *datadog.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &datadog.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{

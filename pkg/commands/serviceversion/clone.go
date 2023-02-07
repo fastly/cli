@@ -4,8 +4,8 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -21,10 +21,10 @@ type CloneCommand struct {
 }
 
 // NewCloneCommand returns a usable command registered under the parent.
-func NewCloneCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *CloneCommand {
+func NewCloneCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CloneCommand {
 	var c CloneCommand
-	c.Globals = globals
-	c.manifest = data
+	c.Globals = g
+	c.manifest = m
 	c.CmdClause = parent.Command("clone", "Clone a Fastly service version")
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
@@ -56,7 +56,7 @@ func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flag.Verbose,
+		VerboseMode:        c.Globals.Flags.Verbose,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

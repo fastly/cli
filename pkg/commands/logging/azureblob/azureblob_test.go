@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/azureblob"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -191,21 +192,21 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 func createCommandRequired() *azureblob.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 	// TODO: make consistent (in all other logging files) with syslog_test which
 	// uses a testcase.api field to assign the mock API to the global client.
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &azureblob.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -233,19 +234,19 @@ func createCommandRequired() *azureblob.CreateCommand {
 func createCommandAll() *azureblob.CreateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
-	globals.APIClient, _ = mock.APIClient(mock.API{
+	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint")
 
 	return &azureblob.CreateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -289,15 +290,15 @@ func createCommandMissingServiceID() *azureblob.CreateCommand {
 func updateCommandNoUpdates() *azureblob.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &azureblob.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{
@@ -322,15 +323,15 @@ func updateCommandNoUpdates() *azureblob.UpdateCommand {
 func updateCommandAll() *azureblob.UpdateCommand {
 	var b bytes.Buffer
 
-	globals := config.Data{
-		File:   config.File{},
+	g := global.Data{
+		Config: config.File{},
 		Env:    config.Environment{},
 		Output: &b,
 	}
 
 	return &azureblob.UpdateCommand{
 		Base: cmd.Base{
-			Globals: &globals,
+			Globals: &g,
 		},
 		Manifest: manifest.Data{
 			Flag: manifest.Flag{

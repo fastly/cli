@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -31,10 +31,10 @@ type PublishCommand struct {
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
-func NewPublishCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, deploy *DeployCommand, data manifest.Data) *PublishCommand {
+func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, deploy *DeployCommand, m manifest.Data) *PublishCommand {
 	var c PublishCommand
-	c.Globals = globals
-	c.manifest = data
+	c.Globals = g
+	c.manifest = m
 	c.build = build
 	c.deploy = deploy
 	c.CmdClause = parent.Command("publish", "Build and deploy a Compute@Edge package to a Fastly service")
