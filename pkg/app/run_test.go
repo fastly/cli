@@ -71,7 +71,7 @@ ip-list
 log-tail
 logging
 object-store
-object-store-keys
+object-store-entry
 pops
 profile
 purge

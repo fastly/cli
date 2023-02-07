@@ -1,4 +1,4 @@
-package objectstorekeys
+package objectstoreentry
 
 import (
 	"io"
@@ -11,23 +11,23 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// GetCommand calls the Fastly API to fetch the value of a key from an object store.
-type GetCommand struct {
+// DescribeCommand calls the Fastly API to fetch the value of a key from an object store.
+type DescribeCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
 	Input    fastly.GetObjectStoreKeyInput
 }
 
-// NewGetCommand returns a usable command registered under the parent.
-func NewGetCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *GetCommand {
-	c := GetCommand{
+// NewDescribeCommand returns a usable command registered under the parent.
+func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
+	c := DescribeCommand{
 		Base: cmd.Base{
 			Globals: globals,
 		},
 		manifest: data,
 	}
-	c.CmdClause = parent.Command("get", "Get the value associated with a key")
+	c.CmdClause = parent.Command("describe", "Get the value associated with a key").Alias("get")
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 
@@ -43,7 +43,7 @@ func NewGetCommand(parent cmd.Registerer, globals *config.Data, data manifest.Da
 }
 
 // Exec invokes the application logic for the command.
-func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}

@@ -1,4 +1,4 @@
-package objectstorekeys
+package objectstoreentry
 
 import (
 	"io"
@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("object-store-keys", "Manipulate Fastly Object Store keys")
+	c.CmdClause = parent.Command("object-store-entry", "Manipulate Fastly Object Store keys")
 	return &c
 }
 
