@@ -47,6 +47,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
 	"github.com/fastly/cli/pkg/commands/secretstore"
+	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
@@ -317,16 +318,16 @@ func defineCommands(
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, g)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g)
 	purgeCmdRoot := purge.NewRootCommand(app, g, m)
-	secretstoreCmdRoot := secretstore.NewStoreRootCommand(app, g)
-	secretstoreCreateStore := secretstore.NewCreateStoreCommand(secretstoreCmdRoot.CmdClause, g, m)
-	secretstoreGetStore := secretstore.NewDescribeStoreCommand(secretstoreCmdRoot.CmdClause, g, m)
-	secretstoreDeleteStore := secretstore.NewDeleteStoreCommand(secretstoreCmdRoot.CmdClause, g, m)
-	secretstoreListStores := secretstore.NewListStoresCommand(secretstoreCmdRoot.CmdClause, g, m)
-	secretstoreSecretCmdRoot := secretstore.NewSecretRootCommand(app, g)
-	secretstoreCreateSecret := secretstore.NewCreateSecretCommand(secretstoreSecretCmdRoot.CmdClause, g, m)
-	secretstoreGetSecret := secretstore.NewDescribeSecretCommand(secretstoreSecretCmdRoot.CmdClause, g, m)
-	secretstoreDeleteSecret := secretstore.NewDeleteSecretCommand(secretstoreSecretCmdRoot.CmdClause, g, m)
-	secretstoreListSecrets := secretstore.NewListSecretsCommand(secretstoreSecretCmdRoot.CmdClause, g, m)
+	secretstoreCmdRoot := secretstore.NewRootCommand(app, g)
+	secretstoreCreate := secretstore.NewCreateCommand(secretstoreCmdRoot.CmdClause, g, m)
+	secretstoreDescribe := secretstore.NewDescribeCommand(secretstoreCmdRoot.CmdClause, g, m)
+	secretstoreDelete := secretstore.NewDeleteCommand(secretstoreCmdRoot.CmdClause, g, m)
+	secretstoreList := secretstore.NewListCommand(secretstoreCmdRoot.CmdClause, g, m)
+	secretstoreentryCmdRoot := secretstoreentry.NewRootCommand(app, g)
+	secretstoreentryCreate := secretstoreentry.NewCreateCommand(secretstoreentryCmdRoot.CmdClause, g, m)
+	secretstoreentryDescribe := secretstoreentry.NewDescribeCommand(secretstoreentryCmdRoot.CmdClause, g, m)
+	secretstoreentryDelete := secretstoreentry.NewDeleteCommand(secretstoreentryCmdRoot.CmdClause, g, m)
+	secretstoreentryList := secretstoreentry.NewListCommand(secretstoreentryCmdRoot.CmdClause, g, m)
 	serviceCmdRoot := service.NewRootCommand(app, g)
 	serviceCreate := service.NewCreateCommand(serviceCmdRoot.CmdClause, g)
 	serviceDelete := service.NewDeleteCommand(serviceCmdRoot.CmdClause, g, m)
@@ -647,14 +648,14 @@ func defineCommands(
 		profileToken,
 		profileUpdate,
 		purgeCmdRoot,
-		secretstoreCreateStore,
-		secretstoreGetStore,
-		secretstoreDeleteStore,
-		secretstoreListStores,
-		secretstoreCreateSecret,
-		secretstoreGetSecret,
-		secretstoreDeleteSecret,
-		secretstoreListSecrets,
+		secretstoreCreate,
+		secretstoreDescribe,
+		secretstoreDelete,
+		secretstoreList,
+		secretstoreentryCreate,
+		secretstoreentryDescribe,
+		secretstoreentryDelete,
+		secretstoreentryList,
 		serviceCmdRoot,
 		serviceCreate,
 		serviceDelete,

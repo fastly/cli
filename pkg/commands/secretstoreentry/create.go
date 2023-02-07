@@ -1,4 +1,4 @@
-package secretstore
+package secretstoreentry
 
 import (
 	"bytes"
@@ -21,9 +21,9 @@ const (
 	maxSecretLen = maxSecretKiB * 1024
 )
 
-// NewCreateSecretCommand returns a usable command registered under the parent.
-func NewCreateSecretCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateSecretCommand {
-	c := CreateSecretCommand{
+// NewCreateCommand returns a usable command registered under the parent.
+func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+	c := CreateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
@@ -34,20 +34,20 @@ func NewCreateSecretCommand(parent cmd.Registerer, g *global.Data, m manifest.Da
 
 	// Required.
 	c.RegisterFlag(secretNameFlag(&c.Input.Name)) // --name
-	c.RegisterFlag(storeIDFlag(&c.Input.ID))      // --store-id
+	c.RegisterFlag(cmd.StoreIDFlag(&c.Input.ID))  // --store-id
 
 	// Optional.
 	c.RegisterFlag(secretFileFlag(&c.secretFile))       // --file
-	c.RegisterFlagBool(c.jsonFlag())                    // --json
+	c.RegisterFlagBool(c.JSONFlag())                    // --json
 	c.RegisterFlagBool(secretStdinFlag(&c.secretSTDIN)) // --stdin
 
 	return &c
 }
 
-// CreateSecretCommand calls the Fastly API to create an appropriate resource.
-type CreateSecretCommand struct {
+// CreateCommand calls the Fastly API to create an appropriate resource.
+type CreateCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	Input       fastly.CreateSecretInput
 	manifest    manifest.Data
@@ -71,17 +71,17 @@ var errMaxSecretLength = fsterr.RemediationError{
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *CreateSecretCommand) Exec(in io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.jsonOutput.enabled {
+func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	if cmd.secretFile != "" && cmd.secretSTDIN {
+	if c.secretFile != "" && c.secretSTDIN {
 		return errMultipleSecretValue
 	}
 
 	// Read secret's value: either from STDIN, a file, or prompt.
 	switch {
-	case cmd.secretSTDIN:
+	case c.secretSTDIN:
 		// Determine if 'in' has data available.
 		if in == nil || text.IsTTY(in) {
 			return errNoSTDINData
@@ -90,11 +90,11 @@ func (cmd *CreateSecretCommand) Exec(in io.Reader, out io.Writer) error {
 		if _, err := buf.ReadFrom(in); err != nil {
 			return err
 		}
-		cmd.Input.Secret = buf.Bytes()
+		c.Input.Secret = buf.Bytes()
 
-	case cmd.secretFile != "":
+	case c.secretFile != "":
 		var err error
-		if cmd.Input.Secret, err = os.ReadFile(cmd.secretFile); err != nil {
+		if c.Input.Secret, err = os.ReadFile(c.secretFile); err != nil {
 			return err
 		}
 
@@ -103,25 +103,25 @@ func (cmd *CreateSecretCommand) Exec(in io.Reader, out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		cmd.Input.Secret = []byte(secret)
+		c.Input.Secret = []byte(secret)
 	}
 
-	if len(cmd.Input.Secret) > maxSecretLen {
+	if len(c.Input.Secret) > maxSecretLen {
 		return errMaxSecretLength
 	}
 
-	o, err := cmd.Globals.APIClient.CreateSecret(&cmd.Input)
+	o, err := c.Globals.APIClient.CreateSecret(&c.Input)
 	if err != nil {
-		cmd.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	// TODO: Use this approach across the code base.
-	if ok, err := cmd.WriteJSON(out, o); ok {
+	if ok, err := c.WriteJSON(out, o); ok {
 		return err
 	}
 
-	text.Success(out, "Created secret %s in store %s (digest %s)", o.Name, cmd.Input.ID, hex.EncodeToString(o.Digest))
+	text.Success(out, "Created secret %s in store %s (digest %s)", o.Name, c.Input.ID, hex.EncodeToString(o.Digest))
 
 	return nil
 }

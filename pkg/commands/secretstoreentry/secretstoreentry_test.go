@@ -1,4 +1,4 @@
-package secretstore_test
+package secretstoreentry_test
 
 import (
 	"bytes"
@@ -11,7 +11,8 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/secretstore"
+	"github.com/fastly/cli/pkg/commands/secretstoreentry"
+	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -77,7 +78,7 @@ func TestCreateSecretCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtSuccess("Created secret %s in store %s (digest %s)", secretName, storeID, hex.EncodeToString([]byte(secretDigest))),
+			wantOutput:     fstfmt.Success("Created secret %s in store %s (digest %s)", secretName, storeID, hex.EncodeToString([]byte(secretDigest))),
 		},
 		// Read from file.
 		{
@@ -94,7 +95,7 @@ func TestCreateSecretCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtSuccess("Created secret %s in store %s (digest %s)", secretName, storeID, hex.EncodeToString([]byte(secretDigest))),
+			wantOutput:     fstfmt.Success("Created secret %s in store %s (digest %s)", secretName, storeID, hex.EncodeToString([]byte(secretDigest))),
 		},
 		{
 			args: fmt.Sprintf("create --store-id %s --name %s --file %s --json", storeID, secretName, secretFile),
@@ -110,7 +111,7 @@ func TestCreateSecretCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput: encodeJSON(&fastly.Secret{
+			wantOutput: fstfmt.EncodeJSON(&fastly.Secret{
 				Name:   secretName,
 				Digest: []byte(secretDigest),
 			}),
@@ -121,7 +122,7 @@ func TestCreateSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstore.RootNameSecret+" "+testcase.args), &stdout)
+			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
 			if testcase.stdin != "" {
 				var stdin bytes.Buffer
 				stdin.WriteString(testcase.stdin)
@@ -219,7 +220,7 @@ func TestGetSecretCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput: encodeJSON(&fastly.Secret{
+			wantOutput: fstfmt.EncodeJSON(&fastly.Secret{
 				Name:   storeName,
 				Digest: []byte(storeDigest),
 			}),
@@ -230,7 +231,7 @@ func TestGetSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstore.RootNameSecret+" "+testcase.args), &stdout)
+			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
 
 			f := testcase.api.GetSecretFn
 			var apiInvoked bool
@@ -297,7 +298,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtSuccess("Deleted secret %s from store %s\n", secretName, storeID),
+			wantOutput:     fstfmt.Success("Deleted secret %s from store %s\n", secretName, storeID),
 		},
 		{
 			args: fmt.Sprintf("delete --store-id %s --name %s --json", storeID, secretName),
@@ -310,7 +311,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtJSON(`{"name": %q, "store_id": %q,  "deleted": true}`, secretName, storeID),
+			wantOutput:     fstfmt.JSON(`{"name": %q, "store_id": %q,  "deleted": true}`, secretName, storeID),
 		},
 	}
 
@@ -318,7 +319,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstore.RootNameSecret+" "+testcase.args), &stdout)
+			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
 
 			f := testcase.api.DeleteSecretFn
 			var apiInvoked bool
@@ -395,7 +396,7 @@ func TestListSecretsCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     encodeJSON(secrets),
+			wantOutput:     fstfmt.EncodeJSON(secrets),
 		},
 	}
 
@@ -403,7 +404,7 @@ func TestListSecretsCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstore.RootNameSecret+" "+testcase.args), &stdout)
+			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
 
 			f := testcase.api.ListSecretsFn
 			var apiInvoked bool

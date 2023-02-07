@@ -11,9 +11,9 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// NewCreateStoreCommand returns a usable command registered under the parent.
-func NewCreateStoreCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateStoreCommand {
-	c := CreateStoreCommand{
+// NewCreateCommand returns a usable command registered under the parent.
+func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+	c := CreateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
@@ -26,23 +26,23 @@ func NewCreateStoreCommand(parent cmd.Registerer, g *global.Data, m manifest.Dat
 	c.RegisterFlag(storeNameFlag(&c.Input.Name)) // --name
 
 	// Optional.
-	c.RegisterFlagBool(c.jsonFlag()) // --json
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
 
-// CreateStoreCommand calls the Fastly API to create an appropriate resource.
-type CreateStoreCommand struct {
+// CreateCommand calls the Fastly API to create an appropriate resource.
+type CreateCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	Input    fastly.CreateSecretStoreInput
 	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *CreateStoreCommand) Exec(_ io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.jsonOutput.enabled {
+func (cmd *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
+	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
