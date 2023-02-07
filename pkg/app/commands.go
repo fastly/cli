@@ -42,7 +42,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/objectstore"
-	"github.com/fastly/cli/pkg/commands/objectstorekeys"
+	"github.com/fastly/cli/pkg/commands/objectstoreentry"
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
@@ -303,11 +303,11 @@ func defineCommands(
 	objectstoreDelete := objectstore.NewDeleteCommand(objectstoreCmdRoot.CmdClause, globals, data)
 	objectstoreDescribe := objectstore.NewDescribeCommand(objectstoreCmdRoot.CmdClause, globals, data)
 	objectstoreList := objectstore.NewListCommand(objectstoreCmdRoot.CmdClause, globals, data)
-	objectstoreKeysCmdRoot := objectstorekeys.NewRootCommand(app, globals)
-	objectstoreCreateKey := objectstorekeys.NewCreateCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
-	objectstoreDeleteKey := objectstorekeys.NewDeleteCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
-	objectstoreGetKey := objectstorekeys.NewGetCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
-	objectstoreListKeys := objectstorekeys.NewListCommand(objectstoreKeysCmdRoot.CmdClause, globals, data)
+	objectstoreentryCmdRoot := objectstoreentry.NewRootCommand(app, globals)
+	objectstoreentryCreate := objectstoreentry.NewCreateCommand(objectstoreentryCmdRoot.CmdClause, globals, data)
+	objectstoreentryDelete := objectstoreentry.NewDeleteCommand(objectstoreentryCmdRoot.CmdClause, globals, data)
+	objectstoreentryDescribe := objectstoreentry.NewDescribeCommand(objectstoreentryCmdRoot.CmdClause, globals, data)
+	objectstoreentryList := objectstoreentry.NewListCommand(objectstoreentryCmdRoot.CmdClause, globals, data)
 	popCmdRoot := pop.NewRootCommand(app, globals)
 	profileCmdRoot := profile.NewRootCommand(app, globals)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), globals)
@@ -631,13 +631,13 @@ func defineCommands(
 		loggingSyslogList,
 		loggingSyslogUpdate,
 		objectstoreCreate,
-		objectstoreList,
 		objectstoreDelete,
 		objectstoreDescribe,
-		objectstoreListKeys,
-		objectstoreCreateKey,
-		objectstoreGetKey,
-		objectstoreDeleteKey,
+		objectstoreList,
+		objectstoreentryCreate,
+		objectstoreentryDelete,
+		objectstoreentryDescribe,
+		objectstoreentryList,
 		popCmdRoot,
 		profileCmdRoot,
 		profileCreate,

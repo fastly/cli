@@ -1,4 +1,4 @@
-package objectstorekeys
+package objectstoreentry
 
 import (
 	"encoding/json"
