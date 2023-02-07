@@ -4,8 +4,8 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -22,10 +22,10 @@ type ActivateCommand struct {
 }
 
 // NewActivateCommand returns a usable command registered under the parent.
-func NewActivateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ActivateCommand {
+func NewActivateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ActivateCommand {
 	var c ActivateCommand
-	c.Globals = globals
-	c.manifest = data
+	c.Globals = g
+	c.manifest = m
 	c.CmdClause = parent.Command("activate", "Activate a Fastly service version")
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
@@ -61,7 +61,7 @@ func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flag.Verbose,
+		VerboseMode:        c.Globals.Flags.Verbose,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

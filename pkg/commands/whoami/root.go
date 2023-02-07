@@ -9,8 +9,9 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/useragent"
 )
 
@@ -21,9 +22,9 @@ type RootCommand struct {
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("whoami", "Get information about the currently authenticated account")
 	return &c
 }
@@ -38,7 +39,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	token, source := c.Globals.Token()
-	if source == config.SourceUndefined {
+	if source == lookup.SourceUndefined {
 		return errors.ErrNoToken
 	}
 

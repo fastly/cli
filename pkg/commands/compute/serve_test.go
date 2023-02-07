@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
@@ -85,13 +86,13 @@ func TestGetViceroy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data := config.Data{
-		File:   file,
+	g := global.Data{
+		Config: file,
 		Path:   configPath,
 		ErrLog: fsterr.MockLog{},
 	}
 
-	_, err = compute.GetViceroy(progress, &out, av, &data)
+	_, err = compute.GetViceroy(progress, &out, av, &g)
 	if err != nil {
 		t.Fatal(err)
 	}

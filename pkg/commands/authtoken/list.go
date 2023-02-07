@@ -7,20 +7,21 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
 	c := ListCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List API tokens")
 
@@ -51,7 +52,7 @@ type ListCommand struct {
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
+	if s == lookup.SourceUndefined {
 		return fsterr.ErrNoToken
 	}
 	if c.Globals.Verbose() && c.json {
@@ -64,7 +65,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	)
 
 	if err = c.customerID.Parse(); err == nil {
-		if !c.customerID.WasSet && !c.Globals.Flag.Quiet {
+		if !c.customerID.WasSet && !c.Globals.Flags.Quiet {
 			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable")
 			text.Break(out)
 		}

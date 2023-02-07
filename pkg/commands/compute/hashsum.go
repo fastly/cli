@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -22,11 +22,11 @@ type HashsumCommand struct {
 }
 
 // NewHashsumCommand returns a usable command registered under the parent.
-func NewHashsumCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, data manifest.Data) *HashsumCommand {
+func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, m manifest.Data) *HashsumCommand {
 	var c HashsumCommand
 	c.buildCmd = build
-	c.Globals = globals
-	c.Manifest = data
+	c.Globals = g
+	c.Manifest = m
 	c.CmdClause = parent.Command("hashsum", "Generate a SHA512 digest from a Compute@Edge package")
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.SkipBuild)

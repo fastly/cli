@@ -7,7 +7,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -23,9 +23,9 @@ type RealtimeCommand struct {
 }
 
 // NewRealtimeCommand is the "stats realtime" subcommand.
-func NewRealtimeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *RealtimeCommand {
+func NewRealtimeCommand(parent cmd.Registerer, g *global.Data, data manifest.Data) *RealtimeCommand {
 	var c RealtimeCommand
-	c.Globals = globals
+	c.Globals = g
 	c.manifest = data
 
 	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")

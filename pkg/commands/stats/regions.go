@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -15,9 +15,9 @@ type RegionsCommand struct {
 }
 
 // NewRegionsCommand returns a new command registered under parent.
-func NewRegionsCommand(parent cmd.Registerer, globals *config.Data) *RegionsCommand {
+func NewRegionsCommand(parent cmd.Registerer, g *global.Data) *RegionsCommand {
 	var c RegionsCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("regions", "List stats regions")
 	return &c
 }

@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -19,9 +19,9 @@ type SwitchCommand struct {
 }
 
 // NewSwitchCommand returns a usable command registered under the parent.
-func NewSwitchCommand(parent cmd.Registerer, globals *config.Data) *SwitchCommand {
+func NewSwitchCommand(parent cmd.Registerer, g *global.Data) *SwitchCommand {
 	var c SwitchCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("switch", "Switch user profile")
 	c.CmdClause.Arg("profile", "Profile to switch to").Short('p').Required().StringVar(&c.profile)
 	return &c
@@ -31,7 +31,7 @@ func NewSwitchCommand(parent cmd.Registerer, globals *config.Data) *SwitchComman
 func (c *SwitchCommand) Exec(_ io.Reader, out io.Writer) error {
 	var ok bool
 
-	p, ok := profile.Set(c.profile, c.Globals.File.Profiles)
+	p, ok := profile.Set(c.profile, c.Globals.Config.Profiles)
 	if !ok {
 		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 		err := errors.New(msg)
@@ -39,9 +39,9 @@ func (c *SwitchCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	c.Globals.File.Profiles = p
+	c.Globals.Config.Profiles = p
 
-	if err := c.Globals.File.Write(c.Globals.Path); err != nil {
+	if err := c.Globals.Config.Write(c.Globals.Path); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}

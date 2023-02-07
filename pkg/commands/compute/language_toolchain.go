@@ -45,6 +45,7 @@ type BuildToolchain struct {
 	verbose                   bool
 }
 
+// Build compiles the user's source code into a Wasm binary.
 func (bt BuildToolchain) Build() error {
 	err := bt.execCommand(bt.buildScript)
 	if err != nil {

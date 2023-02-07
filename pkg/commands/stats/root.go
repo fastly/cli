@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand dispatches all "stats" commands.
@@ -13,9 +13,9 @@ type RootCommand struct {
 }
 
 // NewRootCommand returns a new top level "stats" command.
-func NewRootCommand(parent cmd.Registerer, globals *config.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("stats", "View historical and realtime statistics for a Fastly service")
 	return &c
 }

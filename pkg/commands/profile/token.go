@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -18,9 +18,9 @@ type TokenCommand struct {
 }
 
 // NewTokenCommand returns a new command registered in the parent.
-func NewTokenCommand(parent cmd.Registerer, globals *config.Data) *TokenCommand {
+func NewTokenCommand(parent cmd.Registerer, g *global.Data) *TokenCommand {
 	var c TokenCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("token", "Print access token")
 	c.CmdClause.Flag("name", "Print access token for the named profile").Short('n').StringVar(&c.profile)
 	return &c
@@ -29,7 +29,7 @@ func NewTokenCommand(parent cmd.Registerer, globals *config.Data) *TokenCommand 
 // Exec implements the command interface.
 func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if c.profile == "" {
-		if name, p := profile.Default(c.Globals.File.Profiles); name != "" {
+		if name, p := profile.Default(c.Globals.Config.Profiles); name != "" {
 			text.Output(out, p.Token)
 			return nil
 		}
@@ -39,7 +39,7 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if name, p := profile.Get(c.profile, c.Globals.File.Profiles); name != "" {
+	if name, p := profile.Get(c.profile, c.Globals.Config.Profiles); name != "" {
 		text.Output(out, p.Token)
 		return nil
 	}

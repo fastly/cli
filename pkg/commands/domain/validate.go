@@ -5,18 +5,19 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ValidateCommand {
+func NewValidateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ValidateCommand {
 	var c ValidateCommand
 	c.CmdClause = parent.Command("validate", "Checks the status of a specific domain's DNS record for a Service Version")
-	c.Globals = globals
-	c.manifest = data
+	c.Globals = g
+	c.manifest = m
 
 	// required
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -59,7 +60,7 @@ type ValidateCommand struct {
 // Exec invokes the application logic for the command.
 func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
-	if s == config.SourceUndefined {
+	if s == lookup.SourceUndefined {
 		return errors.ErrNoToken
 	}
 
@@ -70,7 +71,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flag.Verbose,
+		VerboseMode:        c.Globals.Flags.Verbose,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

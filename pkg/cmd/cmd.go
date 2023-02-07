@@ -5,9 +5,9 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -52,7 +52,7 @@ type Globals struct {
 // Base is stuff that should be included in every concrete command.
 type Base struct {
 	CmdClause *kingpin.CmdClause
-	Globals   *config.Data
+	Globals   *global.Data
 }
 
 // Name implements the Command interface, and returns the FullCommand from the

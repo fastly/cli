@@ -18,11 +18,11 @@ import (
 	"github.com/blang/semver"
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/github"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fatih/color"
@@ -55,15 +55,15 @@ type ServeCommand struct {
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, globals *config.Data, build *BuildCommand, av github.AssetVersioner, data manifest.Data) *ServeCommand {
+func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, av github.AssetVersioner, m manifest.Data) *ServeCommand {
 	var c ServeCommand
 
 	c.build = build
 	c.av = av
 
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("serve", "Build and run a Compute@Edge package locally")
-	c.manifest = data
+	c.manifest = m
 
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
 	c.CmdClause.Flag("debug", "Run the server in Debug Adapter mode").Hidden().BoolVar(&c.debug)
@@ -167,7 +167,7 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner, cfg *config.Data) (bin string, err error) {
+func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner, g *global.Data) (bin string, err error) {
 	defer func() {
 		if err != nil {
 			progress.Fail()
@@ -194,13 +194,13 @@ func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner,
 
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
-		cfg.ErrLog.Add(err)
+		g.ErrLog.Add(err)
 
 		// We presume an error means Viceroy needs to be installed.
 		install = true
 	}
 
-	viceroy := cfg.File.Viceroy
+	viceroy := g.Config.Viceroy
 	var latest semver.Version
 
 	// Use latest_version from CLI app config if it's not stale.
@@ -218,7 +218,7 @@ func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner,
 
 		v, err := av.Version()
 		if err != nil {
-			cfg.ErrLog.Add(err)
+			g.ErrLog.Add(err)
 
 			// When we have an error getting the latest version information for Viceroy
 			// and the user doesn't have a pre-existing install of Viceroy, then we're
@@ -243,9 +243,9 @@ func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner,
 
 		// Before attempting to write the config data back to disk we need to
 		// ensure we reassign the modified struct which is a copy (not reference).
-		cfg.File.Viceroy = viceroy
+		g.Config.Viceroy = viceroy
 
-		err = cfg.File.Write(cfg.Path)
+		err = g.Config.Write(g.Path)
 		if err != nil {
 			return bin, err
 		}
@@ -256,21 +256,21 @@ func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner,
 	if install {
 		err := installViceroy(progress, av, bin)
 		if err != nil {
-			cfg.ErrLog.Add(err)
+			g.ErrLog.Add(err)
 			return bin, err
 		}
 	} else if checkUpdate {
 		version := strings.TrimSpace(string(stdoutStderr))
 		err := updateViceroy(progress, version, out, av, latest, bin)
 		if err != nil {
-			cfg.ErrLog.Add(err)
+			g.ErrLog.Add(err)
 			return bin, err
 		}
 	}
 
 	err = setBinPerms(bin)
 	if err != nil {
-		cfg.ErrLog.Add(err)
+		g.ErrLog.Add(err)
 		return bin, err
 	}
 	return bin, nil

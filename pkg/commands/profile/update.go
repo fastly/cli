@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -27,9 +28,9 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, globals *config.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data) *UpdateCommand {
 	var c UpdateCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command("update", "Update user profile")
 	c.CmdClause.Arg("profile", "Profile to update (default 'user')").Default("user").Short('p').StringVar(&c.profile)
 	c.clientFactory = cf
@@ -38,7 +39,7 @@ func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, globals *confi
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	name, p := profile.Get(c.profile, c.Globals.File.Profiles)
+	name, p := profile.Get(c.profile, c.Globals.Config.Profiles)
 	if name == "" {
 		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 		return fsterr.RemediationError{
@@ -101,7 +102,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	var ok bool
 
-	ps, ok := profile.Edit(c.profile, c.Globals.File.Profiles, opts...)
+	ps, ok := profile.Edit(c.profile, c.Globals.Config.Profiles, opts...)
 	if !ok {
 		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 		return fsterr.RemediationError{
@@ -109,9 +110,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 			Remediation: fsterr.ProfileRemediation,
 		}
 	}
-	c.Globals.File.Profiles = ps
+	c.Globals.Config.Profiles = ps
 
-	if err := c.Globals.File.Write(c.Globals.Path); err != nil {
+	if err := c.Globals.Config.Write(c.Globals.Path); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}

@@ -4,20 +4,20 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
 // NewListSecretsCommand returns a usable command registered under the parent.
-func NewListSecretsCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *ListSecretsCommand {
+func NewListSecretsCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListSecretsCommand {
 	c := ListSecretsCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("list", "List secrets within a specified store")
@@ -64,7 +64,7 @@ func (cmd *ListSecretsCommand) Exec(in io.Reader, out io.Writer) error {
 
 		if o != nil && o.Meta.NextCursor != "" {
 			// Check if 'out' is interactive before prompting.
-			if !cmd.Globals.Flag.NonInteractive && !cmd.Globals.Flag.AutoYes && text.IsTTY(out) {
+			if !cmd.Globals.Flags.NonInteractive && !cmd.Globals.Flags.AutoYes && text.IsTTY(out) {
 				printNext, err := text.AskYesNo(out, "Print next page [yes/no]: ", in)
 				if err != nil {
 					return err

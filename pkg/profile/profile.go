@@ -8,6 +8,7 @@ import (
 
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -100,13 +101,13 @@ func Edit(name string, p config.Profiles, opts ...EditOption) (config.Profiles, 
 //
 // NOTE: If the specified profile doesn't exist, then we'll let the user decide
 // if the default profile (if available) is acceptable to use instead.
-func Init(token string, data *manifest.Data, globals *config.Data, in io.Reader, out io.Writer) (string, error) {
+func Init(token string, m *manifest.Data, g *global.Data, in io.Reader, out io.Writer) (string, error) {
 	// First check the fastly.toml manifest 'profile' field.
-	profile := data.File.Profile
+	profile := m.File.Profile
 
 	// Otherwise check the --profile global flag.
 	if profile == "" {
-		profile = globals.Flag.Profile
+		profile = g.Flags.Profile
 	}
 
 	// If the user has specified no profile override, via flag nor manifest, then
@@ -116,14 +117,14 @@ func Init(token string, data *manifest.Data, globals *config.Data, in io.Reader,
 		return token, nil
 	}
 
-	name, p := Get(profile, globals.File.Profiles)
+	name, p := Get(profile, g.Config.Profiles)
 	if name != "" {
 		return p.Token, nil
 	}
 
 	msg := fmt.Sprintf(DoesNotExist, profile)
 
-	name, p = Default(globals.File.Profiles)
+	name, p = Default(g.Config.Profiles)
 	if name == "" {
 		msg = fmt.Sprintf("%s (no account profiles configured)", msg)
 		return token, fsterr.RemediationError{
@@ -140,7 +141,7 @@ func Init(token string, data *manifest.Data, globals *config.Data, in io.Reader,
 
 	msg = fmt.Sprintf("%sThe default profile '%s' (%s) will be used.", msg, name, p.Email)
 
-	if !globals.Flag.AutoYes {
+	if !g.Flags.AutoYes {
 		text.Warning(out, msg)
 
 		label := "\nWould you like to continue? [y/N] "
