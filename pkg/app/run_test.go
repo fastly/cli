@@ -64,7 +64,7 @@ backend
 compute
 config
 dictionary
-dictionary-item
+dictionary-entry
 domain
 healthcheck
 ip-list

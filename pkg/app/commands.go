@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/config"
 	"github.com/fastly/cli/pkg/commands/dictionary"
-	"github.com/fastly/cli/pkg/commands/dictionaryitem"
+	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/healthcheck"
 	"github.com/fastly/cli/pkg/commands/ip"
@@ -119,12 +119,12 @@ func defineCommands(
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, g, m)
 	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, g, m)
 	dictionaryDescribe := dictionary.NewDescribeCommand(dictionaryCmdRoot.CmdClause, g, m)
-	dictionaryItemCmdRoot := dictionaryitem.NewRootCommand(app, g)
-	dictionaryItemCreate := dictionaryitem.NewCreateCommand(dictionaryItemCmdRoot.CmdClause, g, m)
-	dictionaryItemDelete := dictionaryitem.NewDeleteCommand(dictionaryItemCmdRoot.CmdClause, g, m)
-	dictionaryItemDescribe := dictionaryitem.NewDescribeCommand(dictionaryItemCmdRoot.CmdClause, g, m)
-	dictionaryItemList := dictionaryitem.NewListCommand(dictionaryItemCmdRoot.CmdClause, g, m)
-	dictionaryItemUpdate := dictionaryitem.NewUpdateCommand(dictionaryItemCmdRoot.CmdClause, g, m)
+	dictionaryEntryCmdRoot := dictionaryentry.NewRootCommand(app, g)
+	dictionaryEntryCreate := dictionaryentry.NewCreateCommand(dictionaryEntryCmdRoot.CmdClause, g, m)
+	dictionaryEntryDelete := dictionaryentry.NewDeleteCommand(dictionaryEntryCmdRoot.CmdClause, g, m)
+	dictionaryEntryDescribe := dictionaryentry.NewDescribeCommand(dictionaryEntryCmdRoot.CmdClause, g, m)
+	dictionaryEntryList := dictionaryentry.NewListCommand(dictionaryEntryCmdRoot.CmdClause, g, m)
+	dictionaryEntryUpdate := dictionaryentry.NewUpdateCommand(dictionaryEntryCmdRoot.CmdClause, g, m)
 	dictionaryList := dictionary.NewListCommand(dictionaryCmdRoot.CmdClause, g, m)
 	dictionaryUpdate := dictionary.NewUpdateCommand(dictionaryCmdRoot.CmdClause, g, m)
 	domainCmdRoot := domain.NewRootCommand(app, g)
@@ -451,12 +451,12 @@ func defineCommands(
 		dictionaryCreate,
 		dictionaryDelete,
 		dictionaryDescribe,
-		dictionaryItemCmdRoot,
-		dictionaryItemCreate,
-		dictionaryItemDelete,
-		dictionaryItemDescribe,
-		dictionaryItemList,
-		dictionaryItemUpdate,
+		dictionaryEntryCmdRoot,
+		dictionaryEntryCreate,
+		dictionaryEntryDelete,
+		dictionaryEntryDescribe,
+		dictionaryEntryList,
+		dictionaryEntryUpdate,
 		dictionaryList,
 		dictionaryUpdate,
 		domainCmdRoot,
