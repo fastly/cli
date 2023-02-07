@@ -1,4 +1,4 @@
-package dictionaryitem
+package dictionaryentry
 
 import (
 	"encoding/json"

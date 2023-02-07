@@ -1,4 +1,4 @@
-package dictionaryitem
+package dictionaryentry
 
 import (
 	"io"
@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("dictionary-item", "Manipulate Fastly edge dictionary items")
+	c.CmdClause = parent.Command("dictionary-entry", "Manipulate Fastly edge dictionary items")
 	return &c
 }
 
