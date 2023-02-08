@@ -23,12 +23,12 @@ type ListCommand struct {
 }
 
 // NewListCommand returns a usable command registered under the parent
-func NewListCommand(parent cmd.Registerer, globals *global.Data, data manifest.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
 	c := ListCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List all resource links for a Fastly service version")
 

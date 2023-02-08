@@ -23,12 +23,12 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, globals *global.Data, data manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
 	c := UpdateCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 		input: fastly.UpdateResourceInput{
 			// Kingpin requires the following to be initialized.
 			Name: new(string),

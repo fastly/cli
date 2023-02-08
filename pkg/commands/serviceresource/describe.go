@@ -22,12 +22,12 @@ type DescribeCommand struct {
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, globals *global.Data, data manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
 	c := DescribeCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly service resource link").Alias("get")
 

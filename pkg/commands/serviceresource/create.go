@@ -23,12 +23,12 @@ type CreateCommand struct {
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, globals *global.Data, data manifest.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
 	c := CreateCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 		input: fastly.CreateResourceInput{
 			// Kingpin requires the following to be initialized.
 			ResourceID: new(string),

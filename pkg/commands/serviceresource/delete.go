@@ -23,12 +23,12 @@ type DeleteCommand struct {
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, globals *global.Data, data manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
 	c := DeleteCommand{
 		Base: cmd.Base{
-			Globals: globals,
+			Globals: g,
 		},
-		manifest: data,
+		manifest: m,
 	}
 	c.CmdClause = parent.Command("delete", "Delete a resource link for a Fastly service version").Alias("remove")
 

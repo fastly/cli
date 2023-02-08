@@ -17,9 +17,9 @@ type RootCommand struct {
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, globals *global.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
-	c.Globals = globals
+	c.Globals = g
 	c.CmdClause = parent.Command(RootName, "Manipulate Fastly service resource links")
 	return &c
 }
