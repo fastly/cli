@@ -20,7 +20,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, globals *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command(RootName, "Manipulate Fastly service resources")
+	c.CmdClause = parent.Command(RootName, "Manipulate Fastly service resource links")
 	return &c
 }
 

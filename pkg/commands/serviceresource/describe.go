@@ -35,7 +35,7 @@ func NewDescribeCommand(parent cmd.Registerer, globals *global.Data, data manife
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "id",
 		Description: "ID of resource link",
-		Dst:         &c.input.ResourceID,
+		Dst:         &c.input.ID,
 		Required:    true,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -83,7 +83,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	resource, err := c.Globals.APIClient.GetResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"ID":              c.input.ResourceID,
+			"ID":              c.input.ID,
 			"Service ID":      c.input.ServiceID,
 			"Service Version": c.input.ServiceVersion,
 		})

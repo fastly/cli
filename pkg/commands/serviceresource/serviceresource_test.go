@@ -195,8 +195,8 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 					return []*fastly.Version{{Number: 42}}, nil
 				},
 				DeleteResourceFn: func(i *fastly.DeleteResourceInput) error {
-					if got, want := i.ResourceID, "LINKID"; got != want {
-						return fmt.Errorf("ResourceID: got %q, want %q", got, want)
+					if got, want := i.ID, "LINKID"; got != want {
+						return fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := i.ServiceID, "123"; got != want {
 						return fmt.Errorf("ServiceID: got %q, want %q", got, want)
@@ -222,8 +222,8 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 					return &fastly.Version{Number: 43}, nil
 				},
 				DeleteResourceFn: func(i *fastly.DeleteResourceInput) error {
-					if got, want := i.ResourceID, "LINKID"; got != want {
-						return fmt.Errorf("ResourceID: got %q, want %q", got, want)
+					if got, want := i.ID, "LINKID"; got != want {
+						return fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := i.ServiceID, "123"; got != want {
 						return fmt.Errorf("ServiceID: got %q, want %q", got, want)
@@ -297,8 +297,8 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 					return []*fastly.Version{{Number: 42}}, nil
 				},
 				GetResourceFn: func(i *fastly.GetResourceInput) (*fastly.Resource, error) {
-					if got, want := i.ResourceID, "LINKID"; got != want {
-						return nil, fmt.Errorf("ResourceID: got %q, want %q", got, want)
+					if got, want := i.ID, "LINKID"; got != want {
+						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := i.ServiceID, "123"; got != want {
 						return nil, fmt.Errorf("ServiceID: got %q, want %q", got, want)
@@ -508,8 +508,8 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 					return []*fastly.Version{{Number: 42}}, nil
 				},
 				UpdateResourceFn: func(i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
-					if got, want := i.ResourceID, "LINK-ID"; got != want {
-						return nil, fmt.Errorf("ResourceID: got %q, want %q", got, want)
+					if got, want := i.ID, "LINK-ID"; got != want {
+						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := *i.Name, "new-name"; got != want {
 						return nil, fmt.Errorf("Name: got %q, want %q", got, want)
@@ -549,8 +549,8 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 					return &fastly.Version{Number: 43}, nil
 				},
 				UpdateResourceFn: func(i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
-					if got, want := i.ResourceID, "LINK-ID"; got != want {
-						return nil, fmt.Errorf("ResourceID: got %q, want %q", got, want)
+					if got, want := i.ID, "LINK-ID"; got != want {
+						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := *i.Name, "new-name"; got != want {
 						return nil, fmt.Errorf("Name: got %q, want %q", got, want)

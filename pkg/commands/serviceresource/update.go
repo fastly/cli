@@ -40,7 +40,7 @@ func NewUpdateCommand(parent cmd.Registerer, globals *global.Data, data manifest
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "id",
 		Description: "ID of resource link",
-		Dst:         &c.input.ResourceID,
+		Dst:         &c.input.ID,
 		Required:    true,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -103,7 +103,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	resource, err := c.Globals.APIClient.UpdateResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"ID":              c.input.ResourceID,
+			"ID":              c.input.ID,
 			"Service ID":      c.input.ServiceID,
 			"Service Version": c.input.ServiceVersion,
 		})

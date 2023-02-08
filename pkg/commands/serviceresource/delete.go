@@ -36,7 +36,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *global.Data, data manifest
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "id",
 		Description: "ID of resource link",
-		Dst:         &c.input.ResourceID,
+		Dst:         &c.input.ID,
 		Required:    true,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -92,7 +92,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	err = c.Globals.APIClient.DeleteResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"ID":              c.input.ResourceID,
+			"ID":              c.input.ID,
 			"Service ID":      c.input.ServiceID,
 			"Service Version": c.input.ServiceVersion,
 		})
@@ -101,12 +101,12 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if c.jsonOutput.enabled {
 		o := struct {
-			ResourceID     string `json:"id"`
+			ID             string `json:"id"`
 			ServiceID      string `json:"service_id"`
 			ServiceVersion int    `json:"service_version"`
 			Deleted        bool   `json:"deleted"`
 		}{
-			c.input.ResourceID,
+			c.input.ID,
 			c.input.ServiceID,
 			c.input.ServiceVersion,
 			true,
@@ -115,6 +115,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted service resource link %s from service %s version %d", c.input.ResourceID, c.input.ServiceID, c.input.ServiceVersion)
+	text.Success(out, "Deleted service resource link %s from service %s version %d", c.input.ID, c.input.ServiceID, c.input.ServiceVersion)
 	return nil
 }
