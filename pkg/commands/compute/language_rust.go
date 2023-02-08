@@ -146,6 +146,7 @@ func (r *Rust) modifyCargoPackageName() error {
 	var cp *CargoLocateProject
 	err = json.Unmarshal(stdoutStderr, &cp)
 	if err != nil {
+		text.Info(r.output, "Error processing the command output: %s", string(stdoutStderr))
 		return fmt.Errorf("failed to unmarshal manifest project root metadata: %w", err)
 	}
 
