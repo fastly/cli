@@ -128,25 +128,33 @@ func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callba
 func (r *Rust) modifyCargoPackageName() error {
 	s := "cargo locate-project --quiet"
 	args := strings.Split(s, " ")
+
+	var stdout, stderr bytes.Buffer
+
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as we control this command.
 	// #nosec
 	// nosemgrep
 	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 
-	stdoutStderr, err := cmd.CombinedOutput()
+	err := cmd.Run()
 	if err != nil {
-		if len(stdoutStderr) > 0 {
-			err = fmt.Errorf("%w: %s", err, strings.TrimSpace(string(stdoutStderr)))
+		if stderr.Len() > 0 {
+			err = fmt.Errorf("%w: %s", err, stderr.String())
 		}
 		return fmt.Errorf("failed to execute command '%s': %w", s, err)
 	}
 
+	if r.verbose {
+		text.Output(r.output, "Command output for '%s': %s", s, stdout.String())
+	}
+
 	var cp *CargoLocateProject
-	err = json.Unmarshal(stdoutStderr, &cp)
+	err = json.Unmarshal(stdout.Bytes(), &cp)
 	if err != nil {
-		text.Info(r.output, "Error processing the command output: %s", string(stdoutStderr))
 		return fmt.Errorf("failed to unmarshal manifest project root metadata: %w", err)
 	}
 
