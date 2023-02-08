@@ -110,6 +110,38 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errMaxSecretLength
 	}
 
+	ck, err := c.Globals.APIClient.CreateClientKey()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	// TODO(joeshaw): Don't pull the signing key from the API, ship it
+	// with the source.
+	//
+	// We could override that with a flag or envvar, but it's safest to
+	// distribute them separately.
+	sk, err := c.Globals.APIClient.GetSigningKey()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	if !ck.ValidateSignature(sk) {
+		err := fmt.Errorf("unable to validate signature of client key")
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	wrapped, err := ck.Encrypt(c.Input.Secret)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	c.Input.Secret = wrapped
+	c.Input.ClientKey = ck.PublicKey
+
 	o, err := c.Globals.APIClient.CreateSecret(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
