@@ -1,5 +1,13 @@
 # Changelog
 
+## [v6.0.2](https://github.com/fastly/cli/releases/tag/v6.0.2) (2023-02-08)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.1...v6.0.2)
+
+**Bug fixes:**
+
+* fix(compute/build): ensure we only parse stdout from cargo command [#804](https://github.com/fastly/cli/pull/804)
+
 ## [v6.0.1](https://github.com/fastly/cli/releases/tag/v6.0.1) (2023-02-08)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v6.0.0...v6.0.1)
