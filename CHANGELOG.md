@@ -1,5 +1,13 @@
 # Changelog
 
+## [v6.0.1](https://github.com/fastly/cli/releases/tag/v6.0.1) (2023-02-08)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.0...v6.0.1)
+
+**Enhancements:**
+
+* refactor(compute): add command output when there is an error [#801](https://github.com/fastly/cli/pull/801)
+
 ## [v6.0.0](https://github.com/fastly/cli/releases/tag/v6.0.0) (2023-02-07)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v5.1.1...v6.0.0)
