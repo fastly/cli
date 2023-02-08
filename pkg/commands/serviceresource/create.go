@@ -115,6 +115,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created service resource link %s on service %s version %s", resource.ID, resource.ServiceID, resource.ServiceVersion)
+	text.Success(out, "Created service resource link %q (%s) on service %s version %s", resource.Name, resource.ID, resource.ServiceID, resource.ServiceVersion)
 	return nil
 }

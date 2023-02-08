@@ -58,6 +58,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					now := time.Now()
 					return &fastly.Resource{
 						ID:             "rand-id",
+						Name:           "the-name",
 						ResourceID:     "abc",
 						ServiceID:      "123",
 						ServiceVersion: "42",
@@ -67,7 +68,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     "SUCCESS: Created service resource link rand-id on service 123 version 42",
+			wantOutput:     `SUCCESS: Created service resource link "the-name" (rand-id) on service 123 version 42`,
 		},
 		// Success with --name.
 		{
@@ -89,6 +90,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					now := time.Now()
 					return &fastly.Resource{
 						ID:             "rand-id",
+						Name:           "a-name",
 						ResourceID:     "abc",
 						ServiceID:      "123",
 						ServiceVersion: "42",
@@ -98,7 +100,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     "SUCCESS: Created service resource link rand-id on service 123 version 42",
+			wantOutput:     `SUCCESS: Created service resource link "a-name" (rand-id) on service 123 version 42`,
 		},
 		// Success with --autoclone.
 		{
@@ -124,6 +126,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					now := time.Now()
 					return &fastly.Resource{
 						ID:             "rand-id",
+						Name:           "cloned",
 						ResourceID:     "abc",
 						ServiceID:      "123",
 						ServiceVersion: "43", // Cloned version.
@@ -133,7 +136,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     "SUCCESS: Created service resource link rand-id on service 123 version 43",
+			wantOutput:     `SUCCESS: Created service resource link "cloned" (rand-id) on service 123 version 43`,
 		},
 	}
 
