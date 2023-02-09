@@ -3,7 +3,9 @@ package setup
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"regexp"
+	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/fastly/cli/pkg/api"
@@ -55,6 +57,10 @@ func (d *Domains) Configure() error {
 		return nil
 	}
 
+	// IMPORTANT: go1.20 deprecates rand.Seed
+	// The global random number generator (RNG) is now automatically seeded.
+	// If not seeded, the same domain name is repeated on each run.
+	rand.Seed(time.Now().UnixNano())
 	defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), defaultTopLevelDomain)
 
 	var (
