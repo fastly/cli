@@ -71,7 +71,7 @@ func Get(host, path, token string, c api.HTTPClient) (data []byte, err error) {
 
 	data, err = io.ReadAll(res.Body)
 	if err != nil {
-		return data, NewError(err, res.StatusCode)
+		return []byte{}, NewError(err, res.StatusCode)
 	}
 
 	return data, nil

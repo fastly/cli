@@ -341,7 +341,7 @@ func processCommandInput(
 
 	cmdName, err = app.Parse(opts.Args)
 	if err != nil {
-		return command, cmdName, help(vars, err)
+		return command, "", help(vars, err)
 	}
 
 	// Restore output writers
