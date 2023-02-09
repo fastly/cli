@@ -53,7 +53,7 @@ config:
 	@$(CONFIG_SCRIPT)
 
 .PHONY: all
-all: config dependencies tidy fmt vet staticcheck gosec test build install
+all: config dependencies tidy fmt vet staticcheck gosec semgrep test build install
 
 # Update CI tools used by ./.github/workflows/pr_test.yml
 .PHONY: dependencies
@@ -62,6 +62,7 @@ dependencies:
 	$(GO_BIN) install honnef.co/go/tools/cmd/staticcheck@2023.1
 	$(GO_BIN) install github.com/mgechev/revive@latest
 	$(GO_BIN) install github.com/goreleaser/goreleaser@v1.9.2
+	if [[ "$$(uname)" == 'Darwin' ]]; then brew install semgrep; fi
 
 # Clean up Go modules file.
 .PHONY: tidy
@@ -88,6 +89,12 @@ revive:
 .PHONY: gosec
 gosec:
 	gosec -quiet -exclude=G104 ./{cmd,pkg}/...
+
+# Run semgrep checker.
+# NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
+.PHONY: gosec
+semgrep:
+	if command -v semgrep &> /dev/null; then semgrep ci --config auto --exclude-rule go.lang.security.audit.xss.import-text-template.import-text-template; fi
 
 # Run third-party static analysis.
 .PHONY: staticcheck
