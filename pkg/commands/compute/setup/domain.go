@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
@@ -57,11 +59,7 @@ func (d *Domains) Configure() error {
 		return nil
 	}
 
-	// IMPORTANT: go1.20 deprecates rand.Seed
-	// The global random number generator (RNG) is now automatically seeded.
-	// If not seeded, the same domain name is repeated on each run.
-	rand.Seed(time.Now().UnixNano())
-	defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), defaultTopLevelDomain)
+	defaultDomain := generateDomainName()
 
 	var (
 		domain string
@@ -94,6 +92,7 @@ func (d *Domains) Create() error {
 		}
 	}
 
+OUTER:
 	for _, domain := range d.required {
 		d.Progress.Step(fmt.Sprintf("Creating domain '%s'...", domain.Name))
 
@@ -104,6 +103,38 @@ func (d *Domains) Create() error {
 		})
 		if err != nil {
 			d.Progress.Fail()
+
+			if e, ok := err.(*fastly.HTTPError); ok {
+				if e.StatusCode == http.StatusBadRequest {
+					for _, he := range e.Errors {
+						// NOTE: In case the domain is already used by another customer.
+						// We'll give the user one additional chance to correct the domain.
+						if strings.Contains(he.Detail, "by another customer") {
+							var domain string
+							defaultDomain := generateDomainName()
+							if !d.AcceptDefaults && !d.NonInteractive {
+								text.Break(d.Stdout)
+								domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain already taken, please choose another: [%s] ", defaultDomain)), d.Stdin, d.validateDomain)
+								if err != nil {
+									return fmt.Errorf("error reading input %w", err)
+								}
+								text.Break(d.Stdout)
+							}
+							if domain == "" {
+								domain = defaultDomain
+							}
+							if _, err = d.APIClient.CreateDomain(&fastly.CreateDomainInput{
+								ServiceID:      d.ServiceID,
+								ServiceVersion: d.ServiceVersion,
+								Name:           &domain,
+							}); err == nil {
+								continue OUTER
+							}
+						}
+					}
+				}
+			}
+
 			return fmt.Errorf("error creating domain: %w", err)
 		}
 	}
@@ -156,4 +187,12 @@ func (d *Domains) validateDomain(input string) error {
 		return fmt.Errorf("must be valid domain name")
 	}
 	return nil
+}
+
+func generateDomainName() string {
+	// IMPORTANT: go1.20 deprecates rand.Seed
+	// The global random number generator (RNG) is now automatically seeded.
+	// If not seeded, the same domain name is repeated on each run.
+	rand.Seed(time.Now().UnixNano())
+	return fmt.Sprintf("%s.%s", petname.Generate(3, "-"), defaultTopLevelDomain)
 }
