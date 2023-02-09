@@ -92,7 +92,7 @@ gosec:
 
 # Run semgrep checker.
 # NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
-.PHONY: gosec
+.PHONY: semgrep
 semgrep:
 	if command -v semgrep &> /dev/null; then semgrep ci --config auto --exclude-rule go.lang.security.audit.xss.import-text-template.import-text-template; fi
 
