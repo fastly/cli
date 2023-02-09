@@ -792,10 +792,12 @@ func constructSetupObjects(
 		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
 		NonInteractive: c.Globals.Flags.NonInteractive,
 		PackageDomain:  c.Domain,
+		RetryLimit:     5,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
 		Stdin:          in,
 		Stdout:         out,
+		Verbose:        c.Globals.Verbose(),
 	}
 
 	err = domains.Validate()

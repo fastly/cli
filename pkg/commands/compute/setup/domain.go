@@ -30,10 +30,12 @@ type Domains struct {
 	NonInteractive bool
 	PackageDomain  string
 	Progress       text.Progress
+	RetryLimit     int
 	ServiceID      string
 	ServiceVersion int
 	Stdin          io.Reader
 	Stdout         io.Writer
+	Verbose        bool
 
 	// Private
 	available []*fastly.Domain
@@ -92,53 +94,13 @@ func (d *Domains) Create() error {
 		}
 	}
 
-OUTER:
 	for _, domain := range d.required {
-		d.Progress.Step(fmt.Sprintf("Creating domain '%s'...", domain.Name))
-
-		_, err := d.APIClient.CreateDomain(&fastly.CreateDomainInput{
-			ServiceID:      d.ServiceID,
-			ServiceVersion: d.ServiceVersion,
-			Name:           &domain.Name,
-		})
-		if err != nil {
-			d.Progress.Fail()
-
-			if e, ok := err.(*fastly.HTTPError); ok {
-				if e.StatusCode == http.StatusBadRequest {
-					for _, he := range e.Errors {
-						// NOTE: In case the domain is already used by another customer.
-						// We'll give the user one additional chance to correct the domain.
-						if strings.Contains(he.Detail, "by another customer") {
-							var domain string
-							defaultDomain := generateDomainName()
-							if !d.AcceptDefaults && !d.NonInteractive {
-								text.Break(d.Stdout)
-								domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain already taken, please choose another: [%s] ", defaultDomain)), d.Stdin, d.validateDomain)
-								if err != nil {
-									return fmt.Errorf("error reading input %w", err)
-								}
-								text.Break(d.Stdout)
-							}
-							if domain == "" {
-								domain = defaultDomain
-							}
-							if _, err = d.APIClient.CreateDomain(&fastly.CreateDomainInput{
-								ServiceID:      d.ServiceID,
-								ServiceVersion: d.ServiceVersion,
-								Name:           &domain,
-							}); err == nil {
-								continue OUTER
-							}
-						}
-					}
-				}
-			}
-
-			return fmt.Errorf("error creating domain: %w", err)
+		if err := d.createDomain(domain.Name, 1); err != nil {
+			return err
 		}
 	}
 
+	d.Progress.Done()
 	return nil
 }
 
@@ -186,6 +148,56 @@ func (d *Domains) validateDomain(input string) error {
 	if !domainNameRegEx.MatchString(input) {
 		return fmt.Errorf("must be valid domain name")
 	}
+	return nil
+}
+
+func (d *Domains) createDomain(name string, attempt int) error {
+	if attempt > 1 {
+		d.Progress = text.ResetProgress(d.Stdout, d.Verbose)
+	}
+	d.Progress.Step(fmt.Sprintf("Creating domain '%s'...", name))
+
+	_, err := d.APIClient.CreateDomain(&fastly.CreateDomainInput{
+		ServiceID:      d.ServiceID,
+		ServiceVersion: d.ServiceVersion,
+		Name:           &name,
+	})
+	if err != nil {
+		if attempt > d.RetryLimit {
+			return fmt.Errorf("too many attempts")
+		}
+
+		// We have to stop the ticker so we can now prompt the user.
+		d.Progress.Fail()
+
+		if e, ok := err.(*fastly.HTTPError); ok {
+			if e.StatusCode == http.StatusBadRequest {
+				for _, he := range e.Errors {
+					// NOTE: In case the domain is already used by another customer.
+					// We'll give the user one additional chance to correct the domain.
+					if strings.Contains(he.Detail, "by another customer") {
+						var domain string
+						defaultDomain := generateDomainName()
+						if !d.AcceptDefaults && !d.NonInteractive {
+							text.Break(d.Stdout)
+							domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain already taken, please choose another (attempt %d or %d): [%s] ", attempt, d.RetryLimit, defaultDomain)), d.Stdin, d.validateDomain)
+							if err != nil {
+								return fmt.Errorf("error reading input %w", err)
+							}
+							text.Break(d.Stdout)
+						}
+						if domain == "" {
+							domain = defaultDomain
+						}
+						return d.createDomain(domain, attempt+1)
+					}
+				}
+			}
+		}
+
+		return fmt.Errorf("error creating domain: %w", err)
+	}
+
 	return nil
 }
 
