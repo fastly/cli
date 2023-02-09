@@ -154,8 +154,8 @@ func (d *Domains) validateDomain(input string) error {
 func (d *Domains) createDomain(name string, attempt int) error {
 	if attempt > 1 {
 		d.Progress = text.ResetProgress(d.Stdout, d.Verbose)
+		d.Progress.Step(fmt.Sprintf("Creating domain '%s'...", name))
 	}
-	d.Progress.Step(fmt.Sprintf("Creating domain '%s'...", name))
 
 	_, err := d.APIClient.CreateDomain(&fastly.CreateDomainInput{
 		ServiceID:      d.ServiceID,

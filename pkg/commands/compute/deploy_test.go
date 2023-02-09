@@ -346,7 +346,6 @@ func TestDeploy(t *testing.T) {
 			wantError: fmt.Sprintf("error creating domain: %s", testutil.Err.Error()),
 			wantOutput: []string{
 				"Creating service...",
-				"Creating domain '",
 			},
 		},
 		// The following test doesn't provide a Service ID by either a flag nor the
@@ -395,7 +394,6 @@ func TestDeploy(t *testing.T) {
 			},
 			wantError: fmt.Sprintf("error configuring the service: %s", testutil.Err.Error()),
 			wantOutput: []string{
-				"Creating domain '",
 				"Cleaning up service",
 				"Removing Service ID from fastly.toml",
 				"Cleanup complete",
