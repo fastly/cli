@@ -15,7 +15,25 @@ import (
 
 	fstruntime "github.com/fastly/cli/pkg/runtime"
 	"github.com/mattn/go-isatty"
+	"github.com/theckman/yacspin"
 )
+
+func NewSpinner(out io.Writer) (*yacspin.Spinner, error) {
+	spinner, err := yacspin.New(yacspin.Config{
+		CharSet:           yacspin.CharSets[9],
+		Frequency:         100 * time.Millisecond,
+		StopCharacter:     "✓",
+		StopColors:        []string{"fgGreen"},
+		StopFailCharacter: "✗",
+		StopFailColors:    []string{"fgRed"},
+		Suffix:            " ",
+		Writer:            out,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return spinner, nil
+}
 
 // Progress is a producer contract, abstracting over the quiet and verbose
 // Progress types. Consumers may use a Progress value in their code, and assign

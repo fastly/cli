@@ -26,6 +26,7 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
+	"github.com/theckman/yacspin"
 )
 
 const (
@@ -104,7 +105,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	})
 
-	newService, serviceID, serviceVersion, cont, err := serviceManagement(serviceID, source, c, in, out, fnActivateTrial)
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
+
+	newService, serviceID, serviceVersion, cont, err := serviceManagement(serviceID, source, c, in, out, fnActivateTrial, spinner)
 	if err != nil {
 		return err
 	}
@@ -126,25 +132,22 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	progress := text.ResetProgress(out, c.Globals.Verbose())
-
-	defer func(errLog fsterr.LogInterface, progress text.Progress) {
+	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
 			errLog.Add(err)
-			progress.Fail()
 		}
 		undoStack.RunIfError(out, err)
-	}(c.Globals.ErrLog, progress)
+	}(c.Globals.ErrLog)
 
 	if err := processSetupCreation(
-		newService, domains, backends, dictionaries, objectStores, progress, c,
+		newService, domains, backends, dictionaries, objectStores, spinner, c,
 		serviceID, serviceVersion.Number, out,
 	); err != nil {
 		return err
 	}
 
 	cont, err = processPackage(
-		c, hashSum, pkgPath, serviceID, serviceVersion.Number, progress, out,
+		c, hashSum, pkgPath, serviceID, serviceVersion.Number, spinner, out,
 	)
 	if err != nil {
 		return err
@@ -153,11 +156,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	if err := processService(c, serviceID, serviceVersion.Number, progress); err != nil {
+	if err := processService(c, serviceID, serviceVersion.Number, spinner); err != nil {
 		return err
 	}
 
-	progress.Done()
 	text.Break(out)
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
 
@@ -416,10 +418,15 @@ func serviceManagement(
 	in io.Reader,
 	out io.Writer,
 	fnActivateTrial activator,
+	spinner *yacspin.Spinner,
 ) (newService bool, updatedServiceID string, serviceVersion *fastly.Version, cont bool, err error) {
 	if source == manifest.SourceUndefined {
 		newService = true
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(c.Globals.Flags, in, out, c.Globals.Verbose(), c.Globals.APIClient, c.Package, c.Globals.ErrLog, &c.Manifest.File, fnActivateTrial)
+		serviceID, serviceVersion, err = manageNoServiceIDFlow(
+			c.Globals.Flags, in, out,
+			c.Globals.APIClient, c.Package, c.Globals.ErrLog,
+			&c.Manifest.File, fnActivateTrial, spinner,
+		)
 		if err != nil {
 			return newService, "", nil, false, err
 		}
@@ -441,12 +448,12 @@ func manageNoServiceIDFlow(
 	f global.Flags,
 	in io.Reader,
 	out io.Writer,
-	verbose bool,
 	apiClient api.Interface,
 	packageFlag string,
 	errLog fsterr.LogInterface,
 	manifestFile *manifest.File,
 	fnActivateTrial activator,
+	spinner *yacspin.Spinner,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
 	if !f.AutoYes && !f.NonInteractive {
 		text.Break(out)
@@ -478,21 +485,16 @@ func manageNoServiceIDFlow(
 		serviceName = defaultServiceName
 	}
 
-	progress := text.NewProgress(out, verbose)
-
 	// There is no service and so we'll do a one time creation of the service
 	//
 	// NOTE: we're shadowing the `serviceVersion` and `serviceID` variables.
-	serviceID, serviceVersion, err = createService(serviceName, apiClient, fnActivateTrial, progress, errLog)
+	serviceID, serviceVersion, err = createService(serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
 	if err != nil {
-		progress.Fail()
 		errLog.AddWithContext(err, map[string]any{
 			"Service name": serviceName,
 		})
 		return serviceID, serviceVersion, err
 	}
-
-	progress.Done()
 
 	// NOTE: Only attempt to update the manifest if the user has not specified
 	// the --package flag, as this suggests they are not inside a project
@@ -520,10 +522,17 @@ func createService(
 	serviceName string,
 	apiClient api.Interface,
 	fnActivateTrial activator,
-	progress text.Progress,
+	spinner *yacspin.Spinner,
 	errLog fsterr.LogInterface,
+	out io.Writer,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
-	progress.Step("Creating service...")
+	text.Break(out)
+	err = spinner.Start()
+	if err != nil {
+		return "", nil, err
+	}
+	msg := "Creating service..."
+	spinner.Message(msg)
 
 	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
 		Name: &serviceName,
@@ -533,6 +542,12 @@ func createService(
 		if strings.Contains(err.Error(), trialNotActivated) {
 			user, err := apiClient.GetCurrentUser()
 			if err != nil {
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return "", nil, spinErr
+				}
+
 				return serviceID, serviceVersion, fsterr.RemediationError{
 					Inner:       fmt.Errorf("unable to identify user associated with the given token: %w", err),
 					Remediation: "To ensure you have access to the Compute@Edge platform we need your Customer ID. " + fsterr.AuthRemediation,
@@ -541,6 +556,12 @@ func createService(
 
 			err = fnActivateTrial(user.CustomerID)
 			if err != nil {
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return "", nil, spinErr
+				}
+
 				return serviceID, serviceVersion, fsterr.RemediationError{
 					Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account"),
 					Remediation: fsterr.ComputeTrialRemediation,
@@ -551,7 +572,14 @@ func createService(
 				"Service Name": serviceName,
 				"Customer ID":  user.CustomerID,
 			})
-			return createService(serviceName, apiClient, fnActivateTrial, progress, errLog)
+
+			spinner.StopFailMessage(msg)
+			err = spinner.StopFail()
+			if err != nil {
+				return "", nil, err
+			}
+
+			return createService(serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
 		}
 
 		errLog.AddWithContext(err, map[string]any{
@@ -560,6 +588,11 @@ func createService(
 		return serviceID, serviceVersion, fmt.Errorf("error creating service: %w", err)
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return "", nil, err
+	}
 	return service.ID, &fastly.Version{Number: 1}, nil
 }
 
@@ -693,7 +726,7 @@ func checkServiceID(serviceID string, client api.Interface) error {
 
 // pkgCompare compares the local package hashsum against the existing service
 // package version and exits early with message if identical.
-func pkgCompare(client api.Interface, serviceID string, version int, hashSum string, progress text.Progress, out io.Writer) (bool, error) {
+func pkgCompare(client api.Interface, serviceID string, version int, hashSum string, out io.Writer) (bool, error) {
 	p, err := client.GetPackage(&fastly.GetPackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
@@ -701,7 +734,6 @@ func pkgCompare(client api.Interface, serviceID string, version int, hashSum str
 
 	if err == nil {
 		if hashSum == p.Metadata.HashSum {
-			progress.Done()
 			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version)
 			return false, nil
 		}
@@ -727,18 +759,34 @@ func getHashSum(contents map[string]*bytes.Buffer) (hash string, err error) {
 }
 
 // pkgUpload uploads the package to the specified service and version.
-func pkgUpload(progress text.Progress, client api.Interface, serviceID string, version int, path string) error {
-	progress.Step("Uploading package...")
+func pkgUpload(spinner *yacspin.Spinner, client api.Interface, serviceID string, version int, path string) error {
+	err := spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Uploading package..."
+	spinner.Message(msg)
 
-	_, err := client.UpdatePackage(&fastly.UpdatePackageInput{
+	_, err = client.UpdatePackage(&fastly.UpdatePackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
 		PackagePath:    path,
 	})
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("error uploading package: %w", err)
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -928,7 +976,7 @@ func processSetupCreation(
 	backends *setup.Backends,
 	dictionaries *setup.Dictionaries,
 	objectStores *setup.ObjectStores,
-	progress text.Progress,
+	spinner *yacspin.Spinner,
 	c *DeployCommand,
 	serviceID string,
 	serviceVersion int,
@@ -941,10 +989,7 @@ func processSetupCreation(
 	}
 
 	if domains.Missing() {
-		// NOTE: We can't pass a text.Progress instance to setup.Domains at the
-		// point of constructing the domains object, as the text.Progress instance
-		// prevents other stdout from being read.
-		domains.Progress = progress
+		domains.Spinner = spinner
 
 		if err := domains.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -961,12 +1006,9 @@ func processSetupCreation(
 	// IMPORTANT: The pointer refs in this block are not checked for nil.
 	// We presume if we're dealing with newService they have been set.
 	if newService {
-		// NOTE: We can't pass a text.Progress instance to setup.Backends or
-		// setup.Dictionaries (etc) at the point of constructing the setup objects,
-		// as the text.Progress instance prevents other stdout from being read.
-		backends.Progress = progress
-		dictionaries.Progress = progress
-		objectStores.Progress = progress
+		backends.Spinner = spinner
+		dictionaries.Spinner = spinner
+		objectStores.Spinner = spinner
 
 		if err := backends.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -1009,10 +1051,10 @@ func processPackage(
 	c *DeployCommand,
 	hashSum, pkgPath, serviceID string,
 	serviceVersion int,
-	progress text.Progress,
+	spinner *yacspin.Spinner,
 	out io.Writer,
 ) (cont bool, err error) {
-	cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion, hashSum, progress, out)
+	cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion, hashSum, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Package path":    pkgPath,
@@ -1025,7 +1067,7 @@ func processPackage(
 		return false, nil
 	}
 
-	err = pkgUpload(progress, c.Globals.APIClient, serviceID, serviceVersion, pkgPath)
+	err = pkgUpload(spinner, c.Globals.APIClient, serviceID, serviceVersion, pkgPath)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Package path":    pkgPath,
@@ -1038,7 +1080,7 @@ func processPackage(
 	return true, nil
 }
 
-func processService(c *DeployCommand, serviceID string, serviceVersion int, progress text.Progress) error {
+func processService(c *DeployCommand, serviceID string, serviceVersion int, spinner *yacspin.Spinner) error {
 	if c.Comment.WasSet {
 		_, err := c.Globals.APIClient.UpdateVersion(&fastly.UpdateVersionInput{
 			ServiceID:      serviceID,
@@ -1050,13 +1092,24 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, prog
 		}
 	}
 
-	progress.Step("Activating version...")
+	err := spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Activating version..."
+	spinner.Message(msg)
 
-	_, err := c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
+	_, err = c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
 	})
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion,
@@ -1064,5 +1117,10 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, prog
 		return fmt.Errorf("error activating version: %w", err)
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
 	return nil
 }
