@@ -113,11 +113,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// NOTE: We set the progress indicator to Done() so that any output we now
 	// print doesn't get hidden by the progress status.
 	progress.Done()
-
-	if c.Globals.Verbose() {
-		text.Break(out)
-	}
-
 	progress = text.ResetProgress(out, c.Globals.Verbose())
 
 	postBuildCallback := func() error {

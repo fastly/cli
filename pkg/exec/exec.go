@@ -15,6 +15,9 @@ import (
 	"github.com/fastly/cli/pkg/threadsafe"
 )
 
+// divider is used as separator lines around shell output.
+const divider = "--------------------------------------------------------------------------------"
+
 // Streaming models a generic command execution that consumers can use to
 // execute commands and stream their output to an io.Writer. For example
 // compute commands can use this to standardize the flow control for each
@@ -63,7 +66,7 @@ func (s *Streaming) MonitorSignalsAsync() {
 func (s *Streaming) Exec() error {
 	if s.Verbose {
 		text.Break(s.Output)
-		text.Description(s.Output, "Process command", fmt.Sprintf("%s %s", s.Command, strings.Join(s.Args, " ")))
+		text.Description(s.Output, "Executing command", fmt.Sprintf("%s %s", s.Command, strings.Join(s.Args, " ")))
 	}
 
 	// Construct the command with given arguments and environment.
@@ -109,12 +112,18 @@ func (s *Streaming) Exec() error {
 	}
 	if s.Verbose {
 		output = s.Output
+		text.Info(output, "Command output:")
+		text.Output(output, divider)
 	}
 
 	cmd.Stdout = io.MultiWriter(output, &stdoutBuf)
 	cmd.Stderr = io.MultiWriter(output, &stderrBuf)
 
 	if err := cmd.Start(); err != nil {
+		if s.Verbose {
+			text.Break(output)
+			text.Output(output, divider)
+		}
 		return err
 	}
 
@@ -145,9 +154,17 @@ func (s *Streaming) Exec() error {
 			}
 			ctx = fmt.Sprintf(":%s\n\n%s", cmdOutput, err)
 		}
+		if s.Verbose {
+			text.Break(output)
+			text.Output(output, divider)
+		}
 		return fmt.Errorf("error during execution process%s", ctx)
 	}
 
+	if s.Verbose {
+		text.Break(output)
+		text.Output(output, divider)
+	}
 	return nil
 }
 
