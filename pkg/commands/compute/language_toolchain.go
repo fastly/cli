@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -12,18 +13,19 @@ import (
 
 // DefaultBuildErrorRemediation is the message returned to a user when there is
 // a build error.
-const DefaultBuildErrorRemediation = `There was an error building your project.
+var DefaultBuildErrorRemediation = func() string {
+	return fmt.Sprintf(`%s:
 
-Here are some steps you can follow to debug the issue:
-
-- Re-run the fastly subcommand with the --verbose flag to see more information.
+- Re-run the fastly command with the --verbose flag to see more information.
 - Is the required language toolchain (node/npm, rust/cargo etc) installed correctly?
 - Is the required version (if any) of the language toolchain installed/activated?
 - Were the required dependencies (package.json, Cargo.toml etc) installed?
 - Did the build script (see fastly.toml [scripts.build]) produce a ./bin/main.wasm binary file?
 - Was there a configured [scripts.post_build] step that needs to be double-checked?
 
-For more information on fastly.toml configuration settings, refer to https://developer.fastly.com/reference/compute/fastly-toml/`
+For more information on fastly.toml configuration settings, refer to https://developer.fastly.com/reference/compute/fastly-toml/`,
+		text.BoldYellow("Here are some steps you can follow to debug the issue"))
+}()
 
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
@@ -49,10 +51,7 @@ type BuildToolchain struct {
 func (bt BuildToolchain) Build() error {
 	err := bt.execCommand(bt.buildScript)
 	if err != nil {
-		return fsterr.RemediationError{
-			Inner:       err,
-			Remediation: DefaultBuildErrorRemediation,
-		}
+		return bt.handleError(err)
 	}
 
 	// NOTE: internalPostBuildCallback is only used by Rust currently.
@@ -62,10 +61,7 @@ func (bt BuildToolchain) Build() error {
 	if bt.internalPostBuildCallback != nil {
 		err := bt.internalPostBuildCallback()
 		if err != nil {
-			return fsterr.RemediationError{
-				Inner:       err,
-				Remediation: DefaultBuildErrorRemediation,
-			}
+			return bt.handleError(err)
 		}
 	}
 
@@ -73,10 +69,7 @@ func (bt BuildToolchain) Build() error {
 	// This is because for Rust it needs to move the binary first.
 	_, err = os.Stat("./bin/main.wasm")
 	if err != nil {
-		return fsterr.RemediationError{
-			Inner:       err,
-			Remediation: DefaultBuildErrorRemediation,
-		}
+		return bt.handleError(err)
 	}
 
 	// NOTE: We set the progress indicator to Done() so that any output we now
@@ -88,15 +81,26 @@ func (bt BuildToolchain) Build() error {
 		if err = bt.postBuildCallback(); err == nil {
 			err := bt.execCommand(bt.postBuild)
 			if err != nil {
-				return fsterr.RemediationError{
-					Inner:       err,
-					Remediation: DefaultBuildErrorRemediation,
-				}
+				return bt.handleError(err)
 			}
 		}
 	}
 
 	return nil
+}
+
+func (bt BuildToolchain) handleError(err error) error {
+	if !bt.verbose {
+		// We'll use a generic error message if no --verbose flag
+		err = fmt.Errorf("failed to build project")
+	}
+	if bt.verbose {
+		text.Break(bt.out)
+	}
+	return fsterr.RemediationError{
+		Inner:       err,
+		Remediation: DefaultBuildErrorRemediation,
+	}
 }
 
 // execCommand opens a sub shell to execute the language build script.
