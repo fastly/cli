@@ -1,7 +1,6 @@
-package serviceresource
+package resourcelink
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -12,27 +11,33 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// ListCommand calls the Fastly API to list service resource links
-type ListCommand struct {
+// DescribeCommand calls the Fastly API to describe a service resource link.
+type DescribeCommand struct {
 	cmd.Base
 	jsonOutput
 
-	input          fastly.ListResourcesInput
+	input          fastly.GetResourceInput
 	manifest       manifest.Data
 	serviceVersion cmd.OptionalServiceVersion
 }
 
-// NewListCommand returns a usable command registered under the parent
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
-	c := ListCommand{
+// NewDescribeCommand returns a usable command registered under the parent.
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+	c := DescribeCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
 		manifest: m,
 	}
-	c.CmdClause = parent.Command("list", "List all resource links for a Fastly service version")
+	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly service resource link").Alias("get")
 
 	// Required.
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        "id",
+		Description: "ID of resource link",
+		Dst:         &c.input.ID,
+		Required:    true,
+	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Short:       's',
@@ -54,7 +59,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.jsonOutput.enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -75,29 +80,25 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = serviceVersion.Number
 
-	resources, err := c.Globals.APIClient.ListResources(&c.input)
+	resource, err := c.Globals.APIClient.GetResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"ID":              c.input.ID,
 			"Service ID":      c.input.ServiceID,
 			"Service Version": c.input.ServiceVersion,
 		})
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, resources); ok {
+	if ok, err := c.WriteJSON(out, resource); ok {
 		return err
 	}
 
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "Service ID: %s\n", c.input.ServiceID)
+		text.Output(out, "Service ID: %s", resource.ServiceID)
 	}
-	text.Output(out, "Service Version: %d\n", c.input.ServiceVersion)
-
-	for i, resource := range resources {
-		fmt.Fprintf(out, "Resource Link %d/%d\n", i+1, len(resources))
-		text.PrintResource(out, "\t", resource)
-		fmt.Fprintln(out)
-	}
+	text.Output(out, "Service Version: %s", resource.ServiceVersion)
+	text.PrintResource(out, "", resource)
 
 	return nil
 }

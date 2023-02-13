@@ -1,4 +1,4 @@
-package serviceresource
+package resourcelink
 
 import (
 	"io"
@@ -11,43 +11,32 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// UpdateCommand calls the Fastly API to update a dictionary.
-type UpdateCommand struct {
+// DeleteCommand calls the Fastly API to delete service resource links.
+type DeleteCommand struct {
 	cmd.Base
 	jsonOutput
 
 	autoClone      cmd.OptionalAutoClone
-	input          fastly.UpdateResourceInput
+	input          fastly.DeleteResourceInput
 	manifest       manifest.Data
 	serviceVersion cmd.OptionalServiceVersion
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
-	c := UpdateCommand{
+// NewDeleteCommand returns a usable command registered under the parent.
+func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+	c := DeleteCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
 		manifest: m,
-		input: fastly.UpdateResourceInput{
-			// Kingpin requires the following to be initialized.
-			Name: new(string),
-		},
 	}
-	c.CmdClause = parent.Command("update", "Update a resource link for a Fastly service version")
+	c.CmdClause = parent.Command("delete", "Delete a resource link for a Fastly service version").Alias("remove")
 
 	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "id",
 		Description: "ID of resource link",
 		Dst:         &c.input.ID,
-		Required:    true,
-	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        "name",
-		Short:       'n',
-		Description: "Resource name (alias)",
-		Dst:         c.input.Name,
 		Required:    true,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -75,7 +64,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.jsonOutput.enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -100,7 +89,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = serviceVersion.Number
 
-	resource, err := c.Globals.APIClient.UpdateResource(&c.input)
+	err = c.Globals.APIClient.DeleteResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"ID":              c.input.ID,
@@ -110,10 +99,22 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, resource); ok {
+	if c.jsonOutput.enabled {
+		o := struct {
+			ID             string `json:"id"`
+			ServiceID      string `json:"service_id"`
+			ServiceVersion int    `json:"service_version"`
+			Deleted        bool   `json:"deleted"`
+		}{
+			c.input.ID,
+			c.input.ServiceID,
+			c.input.ServiceVersion,
+			true,
+		}
+		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Updated service resource link %s on service %s version %s", resource.ID, resource.ServiceID, resource.ServiceVersion)
+	text.Success(out, "Deleted service resource link %s from service %s version %d", c.input.ID, c.input.ServiceID, c.input.ServiceVersion)
 	return nil
 }

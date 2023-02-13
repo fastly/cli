@@ -75,11 +75,11 @@ object-store-entry
 pops
 profile
 purge
+resource-link
 secret-store
 secret-store-entry
 service
 service-auth
-service-resource
 service-version
 stats
 tls-config

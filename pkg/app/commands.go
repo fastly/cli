@@ -46,11 +46,11 @@ import (
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
+	"github.com/fastly/cli/pkg/commands/resourcelink"
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
-	"github.com/fastly/cli/pkg/commands/serviceresource"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/stats"
@@ -319,6 +319,12 @@ func defineCommands(
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, g)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g)
 	purgeCmdRoot := purge.NewRootCommand(app, g, m)
+	resourcelinkCmdRoot := resourcelink.NewRootCommand(app, g)
+	resourcelinkCreate := resourcelink.NewCreateCommand(resourcelinkCmdRoot.CmdClause, g, m)
+	resourcelinkDelete := resourcelink.NewDeleteCommand(resourcelinkCmdRoot.CmdClause, g, m)
+	resourcelinkDescribe := resourcelink.NewDescribeCommand(resourcelinkCmdRoot.CmdClause, g, m)
+	resourcelinkList := resourcelink.NewListCommand(resourcelinkCmdRoot.CmdClause, g, m)
+	resourcelinkUpdate := resourcelink.NewUpdateCommand(resourcelinkCmdRoot.CmdClause, g, m)
 	secretstoreCmdRoot := secretstore.NewRootCommand(app, g)
 	secretstoreCreate := secretstore.NewCreateCommand(secretstoreCmdRoot.CmdClause, g, m)
 	secretstoreDescribe := secretstore.NewDescribeCommand(secretstoreCmdRoot.CmdClause, g, m)
@@ -342,12 +348,6 @@ func defineCommands(
 	serviceauthDescribe := serviceauth.NewDescribeCommand(serviceauthCmdRoot.CmdClause, g, m)
 	serviceauthList := serviceauth.NewListCommand(serviceauthCmdRoot.CmdClause, g)
 	serviceauthUpdate := serviceauth.NewUpdateCommand(serviceauthCmdRoot.CmdClause, g, m)
-	serviceresourceCmdRoot := serviceresource.NewRootCommand(app, g)
-	serviceresourceCreate := serviceresource.NewCreateCommand(serviceresourceCmdRoot.CmdClause, g, m)
-	serviceresourceDelete := serviceresource.NewDeleteCommand(serviceresourceCmdRoot.CmdClause, g, m)
-	serviceresourceDescribe := serviceresource.NewDescribeCommand(serviceresourceCmdRoot.CmdClause, g, m)
-	serviceresourceList := serviceresource.NewListCommand(serviceresourceCmdRoot.CmdClause, g, m)
-	serviceresourceUpdate := serviceresource.NewUpdateCommand(serviceresourceCmdRoot.CmdClause, g, m)
 	serviceVersionCmdRoot := serviceversion.NewRootCommand(app, g)
 	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionCmdRoot.CmdClause, g, m)
 	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionCmdRoot.CmdClause, g, m)
@@ -655,6 +655,12 @@ func defineCommands(
 		profileToken,
 		profileUpdate,
 		purgeCmdRoot,
+		resourcelinkCmdRoot,
+		resourcelinkCreate,
+		resourcelinkDelete,
+		resourcelinkDescribe,
+		resourcelinkList,
+		resourcelinkUpdate,
 		secretstoreCreate,
 		secretstoreDescribe,
 		secretstoreDelete,
@@ -676,12 +682,6 @@ func defineCommands(
 		serviceauthDescribe,
 		serviceauthList,
 		serviceauthUpdate,
-		serviceresourceCmdRoot,
-		serviceresourceCreate,
-		serviceresourceDelete,
-		serviceresourceDescribe,
-		serviceresourceList,
-		serviceresourceUpdate,
 		serviceVersionActivate,
 		serviceVersionClone,
 		serviceVersionCmdRoot,

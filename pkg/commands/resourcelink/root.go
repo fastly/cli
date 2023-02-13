@@ -1,4 +1,4 @@
-package serviceresource
+package resourcelink
 
 import (
 	"io"
@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 )
 
-const RootName = "service-resource"
+const RootName = "resource-link"
 
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.

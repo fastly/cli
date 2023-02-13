@@ -1,4 +1,4 @@
-package serviceresource
+package resourcelink
 
 import (
 	"encoding/json"

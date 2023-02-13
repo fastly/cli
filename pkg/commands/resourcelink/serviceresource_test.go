@@ -1,4 +1,4 @@
-package serviceresource_test
+package resourcelink_test
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/serviceresource"
+	"github.com/fastly/cli/pkg/commands/resourcelink"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -144,7 +144,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(serviceresource.RootName+" "+testcase.args), &stdout)
+			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
 
 			f := testcase.api.CreateResourceFn
 			var apiInvoked bool
@@ -246,7 +246,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(serviceresource.RootName+" "+testcase.args), &stdout)
+			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
 
 			f := testcase.api.DeleteResourceFn
 			var apiInvoked bool
@@ -340,7 +340,7 @@ Last edited (UTC): 2023-10-15 12:18`,
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(serviceresource.RootName+" "+testcase.args), &stdout)
+			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
 
 			f := testcase.api.GetResourceFn
 			var apiInvoked bool
@@ -452,7 +452,7 @@ Resource Link 3/3
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(serviceresource.RootName+" "+testcase.args), &stdout)
+			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
 
 			f := testcase.api.ListResourcesFn
 			var apiInvoked bool
@@ -587,7 +587,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(serviceresource.RootName+" "+testcase.args), &stdout)
+			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
 
 			f := testcase.api.UpdateResourceFn
 			var apiInvoked bool
