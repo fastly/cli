@@ -7,6 +7,8 @@ import (
 	"github.com/fastly/cli/pkg/global"
 )
 
+// RootName is the name of this package's sub-command in the CLI,
+// e.g. "fastly resource-link".
 const RootName = "resource-link"
 
 // RootCommand is the parent command for all subcommands in this package.
