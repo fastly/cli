@@ -42,7 +42,7 @@ jobs:
         # goreleaser version (NOT goreleaser-action version)
         # update inline with the Makefile
         version: latest
-        args: release --rm-dist
+        args: release --clean
       env:
         AUR_KEY: '${{ github.workspace }}/aur_key'
         GOHOSTOS: ${{ env.GOHOSTOS }}

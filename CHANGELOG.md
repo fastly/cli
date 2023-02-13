@@ -1,5 +1,28 @@
 # Changelog
 
+## [v6.0.3](https://github.com/fastly/cli/releases/tag/v6.0.3) (2023-02-09)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.2...v6.0.3)
+
+**Bug fixes:**
+
+* fix(compute/setup): fix duplicated domains [#808](https://github.com/fastly/cli/pull/808)
+* fix(setup/domain): allow user to correct a domain already in use [#811](https://github.com/fastly/cli/pull/811)
+
+**Enhancements:**
+
+* build(goreleaser): replace deprecated flag [#807](https://github.com/fastly/cli/pull/807)
+* refactor: add type annotations [#809](https://github.com/fastly/cli/pull/809)
+* build(lint): implement semgrep for local validation [#810](https://github.com/fastly/cli/pull/810)
+
+## [v6.0.2](https://github.com/fastly/cli/releases/tag/v6.0.2) (2023-02-08)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.1...v6.0.2)
+
+**Bug fixes:**
+
+* fix(compute/build): ensure we only parse stdout from cargo command [#804](https://github.com/fastly/cli/pull/804)
+
 ## [v6.0.1](https://github.com/fastly/cli/releases/tag/v6.0.1) (2023-02-08)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v6.0.0...v6.0.1)

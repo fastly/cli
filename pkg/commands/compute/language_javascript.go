@@ -78,16 +78,17 @@ type JavaScript struct {
 func (j *JavaScript) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
 	var noBuildScript bool
 	if j.build == "" {
-		j.build = JsDefaultBuildCommand
 		noBuildScript = true
-	}
 
-	usesWebpack, err := j.checkForWebpack()
-	if err != nil {
-		return err
-	}
-	if usesWebpack {
-		j.build = JsDefaultBuildCommandForWebpack
+		j.build = JsDefaultBuildCommand
+
+		usesWebpack, err := j.checkForWebpack()
+		if err != nil {
+			return err
+		}
+		if usesWebpack {
+			j.build = JsDefaultBuildCommandForWebpack
+		}
 	}
 
 	if noBuildScript && j.verbose {
