@@ -35,6 +35,7 @@ require (
 	github.com/otiai10/copy v1.9.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/tcnksm/go-gitconfig v0.1.2
+	github.com/theckman/yacspin v0.13.12
 )
 
 require (
@@ -47,10 +48,12 @@ require (
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/nwaples/rardecode v1.1.2 // indirect
 	github.com/onsi/gomega v1.24.1 // indirect
 	github.com/peterhellberg/link v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.8 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect

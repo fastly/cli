@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/theckman/yacspin"
 )
 
 // Backends represents the service state related to backends defined within the
@@ -23,7 +24,7 @@ type Backends struct {
 	APIClient      api.Interface
 	AcceptDefaults bool
 	NonInteractive bool
-	Progress       text.Progress
+	Spinner        *yacspin.Spinner
 	ServiceID      string
 	ServiceVersion int
 	Setup          map[string]*manifest.SetupBackend
@@ -55,9 +56,9 @@ func (b *Backends) Configure() error {
 
 // Create calls the relevant API to create the service resource(s).
 func (b *Backends) Create() error {
-	if b.Progress == nil {
+	if b.Spinner == nil {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.Backends"),
+			Inner:       fmt.Errorf("internal logic error: no spinner configured for setup.Backends"),
 			Remediation: errors.BugRemediation,
 		}
 	}
@@ -66,8 +67,14 @@ func (b *Backends) Create() error {
 		// Avoids range-loop variable issue (i.e. var is reused across iterations).
 		bk := bk
 
+		msg := fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", bk.Name, bk.Address, bk.Port)
+
 		if !b.isOriginless() {
-			b.Progress.Step(fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", bk.Name, bk.Address, bk.Port))
+			err := b.Spinner.Start()
+			if err != nil {
+				return err
+			}
+			b.Spinner.Message(msg)
 		}
 
 		opts := &fastly.CreateBackendInput{
@@ -90,11 +97,26 @@ func (b *Backends) Create() error {
 
 		_, err := b.APIClient.CreateBackend(opts)
 		if err != nil {
-			b.Progress.Fail()
+			if !b.isOriginless() {
+				b.Spinner.StopFailMessage(msg)
+				err := b.Spinner.StopFail()
+				if err != nil {
+					return err
+				}
+			}
+
 			if b.isOriginless() {
 				return fmt.Errorf("error configuring the service: %w", err)
 			}
 			return fmt.Errorf("error creating backend: %w", err)
+		}
+
+		if !b.isOriginless() {
+			b.Spinner.StopMessage(msg)
+			err = b.Spinner.Stop()
+			if err != nil {
+				return err
+			}
 		}
 	}
 

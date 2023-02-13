@@ -1,7 +1,6 @@
 package compute_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -19,6 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
@@ -229,9 +229,6 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantError: fmt.Sprintf("error creating service: %s", testutil.Err.Error()),
-			wantOutput: []string{
-				"Creating service...",
-			},
 		},
 		// The following test mocks the service creation to fail with a specific
 		// error value that will result in the code trying to activate a free trial
@@ -750,7 +747,6 @@ func TestDeploy(t *testing.T) {
 			port = 443
 			`,
 			wantOutput: []string{
-				"Initializing...",
 				"Creating service...",
 				"Creating backend 'backend_name' (host: developer.fastly.com, port: 443)...",
 				"Creating backend 'other_backend_name' (host: httpbin.org, port: 443)...",
@@ -1508,7 +1504,7 @@ func TestDeploy(t *testing.T) {
 				}()
 			}
 
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
 

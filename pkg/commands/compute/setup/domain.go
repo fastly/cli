@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/theckman/yacspin"
 )
 
 const defaultTopLevelDomain = "edgecompute.app"
@@ -29,7 +30,7 @@ type Domains struct {
 	AcceptDefaults bool
 	NonInteractive bool
 	PackageDomain  string
-	Progress       text.Progress
+	Spinner        *yacspin.Spinner
 	RetryLimit     int
 	ServiceID      string
 	ServiceVersion int
@@ -87,9 +88,9 @@ func (d *Domains) Configure() error {
 
 // Create calls the relevant API to create the service resource(s).
 func (d *Domains) Create() error {
-	if d.Progress == nil {
+	if d.Spinner == nil {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.Domains"),
+			Inner:       fmt.Errorf("internal logic error: no spinner configured for setup.Domains"),
 			Remediation: errors.BugRemediation,
 		}
 	}
@@ -100,7 +101,6 @@ func (d *Domains) Create() error {
 		}
 	}
 
-	d.Progress.Done()
 	return nil
 }
 
@@ -152,12 +152,14 @@ func (d *Domains) validateDomain(input string) error {
 }
 
 func (d *Domains) createDomain(name string, attempt int) error {
-	if attempt > 1 {
-		d.Progress = text.ResetProgress(d.Stdout, d.Verbose)
-		d.Progress.Step(fmt.Sprintf("Creating domain '%s'...", name))
+	err := d.Spinner.Start()
+	if err != nil {
+		return err
 	}
+	msg := fmt.Sprintf("Creating domain '%s'...", name)
+	d.Spinner.Message(msg)
 
-	_, err := d.APIClient.CreateDomain(&fastly.CreateDomainInput{
+	_, err = d.APIClient.CreateDomain(&fastly.CreateDomainInput{
 		ServiceID:      d.ServiceID,
 		ServiceVersion: d.ServiceVersion,
 		Name:           &name,
@@ -168,7 +170,11 @@ func (d *Domains) createDomain(name string, attempt int) error {
 		}
 
 		// We have to stop the ticker so we can now prompt the user.
-		d.Progress.Fail()
+		d.Spinner.StopFailMessage(msg)
+		spinErr := d.Spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 
 		if e, ok := err.(*fastly.HTTPError); ok {
 			if e.StatusCode == http.StatusBadRequest {
@@ -198,6 +204,11 @@ func (d *Domains) createDomain(name string, attempt int) error {
 		return fmt.Errorf("error creating domain: %w", err)
 	}
 
+	d.Spinner.StopMessage(msg)
+	err = d.Spinner.Stop()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
