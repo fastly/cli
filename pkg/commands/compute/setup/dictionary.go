@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/theckman/yacspin"
 )
 
 // Dictionaries represents the service state related to dictionaries defined
@@ -20,7 +21,7 @@ type Dictionaries struct {
 	APIClient      api.Interface
 	AcceptDefaults bool
 	NonInteractive bool
-	Progress       text.Progress
+	Spinner        *yacspin.Spinner
 	ServiceID      string
 	ServiceVersion int
 	Setup          map[string]*manifest.SetupDictionary
@@ -107,7 +108,7 @@ func (d *Dictionaries) Configure() error {
 
 // Create calls the relevant API to create the service resource(s).
 func (d *Dictionaries) Create() error {
-	if d.Progress == nil {
+	if d.Spinner == nil {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.Dictionaries"),
 			Remediation: errors.BugRemediation,
@@ -115,7 +116,12 @@ func (d *Dictionaries) Create() error {
 	}
 
 	for _, dictionary := range d.required {
-		d.Progress.Step(fmt.Sprintf("Creating dictionary '%s'...", dictionary.Name))
+		err := d.Spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg := fmt.Sprintf("Creating dictionary '%s'...", dictionary.Name)
+		d.Spinner.Message(msg)
 
 		dict, err := d.APIClient.CreateDictionary(&fastly.CreateDictionaryInput{
 			ServiceID:      d.ServiceID,
@@ -123,23 +129,48 @@ func (d *Dictionaries) Create() error {
 			Name:           &dictionary.Name,
 		})
 		if err != nil {
-			d.Progress.Fail()
+			d.Spinner.StopFailMessage(msg)
+			err := d.Spinner.StopFail()
+			if err != nil {
+				return err
+			}
 			return fmt.Errorf("error creating dictionary: %w", err)
+		}
+
+		d.Spinner.StopMessage(msg)
+		err = d.Spinner.Stop()
+		if err != nil {
+			return err
 		}
 
 		if len(dictionary.Items) > 0 {
 			for _, item := range dictionary.Items {
-				d.Progress.Step(fmt.Sprintf("Creating dictionary item '%s'...", item.Key))
+				err := d.Spinner.Start()
+				if err != nil {
+					return err
+				}
+				msg := fmt.Sprintf("Creating dictionary item '%s'...", item.Key)
+				d.Spinner.Message(msg)
 
-				_, err := d.APIClient.CreateDictionaryItem(&fastly.CreateDictionaryItemInput{
+				_, err = d.APIClient.CreateDictionaryItem(&fastly.CreateDictionaryItemInput{
 					ServiceID:    d.ServiceID,
 					DictionaryID: dict.ID,
 					ItemKey:      item.Key,
 					ItemValue:    item.Value,
 				})
 				if err != nil {
-					d.Progress.Fail()
+					d.Spinner.StopFailMessage(msg)
+					err := d.Spinner.StopFail()
+					if err != nil {
+						return err
+					}
 					return fmt.Errorf("error creating dictionary item: %w", err)
+				}
+
+				d.Spinner.StopMessage(msg)
+				err = d.Spinner.Stop()
+				if err != nil {
+					return err
 				}
 			}
 		}
