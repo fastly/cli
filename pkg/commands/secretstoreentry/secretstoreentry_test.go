@@ -182,9 +182,9 @@ func TestCreateSecretCommand(t *testing.T) {
 			opts.APIClient = mock.APIClient(testcase.api)
 
 			// Tests generate their own signing keys, which won't match
-			// the hardcoded value.  Loosen the validation checks.
-			os.Setenv("FASTLY_USE_API_SIGNING_KEY", "1")
-			defer os.Unsetenv("FASTLY_USE_API_SIGNING_KEY")
+			// the hardcoded value.  Disable the check against the
+			// hardcoded value.
+			t.Setenv("FASTLY_USE_API_SIGNING_KEY", "1")
 
 			err := app.Run(opts)
 

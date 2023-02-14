@@ -25,7 +25,7 @@ const (
 // The signing key is a public key that is used to sign client keys.
 // It's meant to be a long-lived key and infrequently (if ever) rotated.
 // Hardcoding it in the CLI gives us the benefit of distributing it via
-// a different channel from the client keys its signing.
+// a different channel from the client keys it's signing.
 //
 // When we do rotate it, we will need to update this value and release a
 // new version of the CLI.  However, users can also override this with
