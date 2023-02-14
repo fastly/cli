@@ -26,6 +26,7 @@ var (
 // PaginationDirection is a list of directions the page results can be displayed.
 var PaginationDirection = []string{"ascend", "descend"}
 
+// CursorFlag returns a cursor flag definition.
 func CursorFlag(dst *string) StringFlagOpts {
 	return StringFlagOpts{
 		Name:        "cursor",
@@ -35,6 +36,7 @@ func CursorFlag(dst *string) StringFlagOpts {
 	}
 }
 
+// LimitFlag returns a limit flag definition.
 func LimitFlag(dst *int) IntFlagOpts {
 	return IntFlagOpts{
 		Name:        "limit",
@@ -45,6 +47,7 @@ func LimitFlag(dst *int) IntFlagOpts {
 	}
 }
 
+// StoreIDFlag returns a store-id flag definition.
 func StoreIDFlag(dst *string) StringFlagOpts {
 	return StringFlagOpts{
 		Name:        "store-id",

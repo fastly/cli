@@ -94,6 +94,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	case c.secretFile != "":
 		var err error
+		// nosemgrep: trailofbits.go.questionable-assignment.questionable-assignment
 		if c.Input.Secret, err = os.ReadFile(c.secretFile); err != nil {
 			return err
 		}

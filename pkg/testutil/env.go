@@ -70,7 +70,8 @@ func NewEnv(opts EnvOpts) (rootdir string) {
 		// gosec flagged this:
 		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
 		// Disabling as we trust the source of the variable.
-		/* #nosec */
+		// #nosec
+		// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
 		cmd := exec.Command(opts.Exec[0], opts.Exec[1:]...)
 		cmd.Dir = rootdir
 		if err := cmd.Run(); err != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/theckman/yacspin"
 )
 
 // ObjectStores represents the service state related to object stores defined
@@ -20,7 +21,7 @@ type ObjectStores struct {
 	APIClient      api.Interface
 	AcceptDefaults bool
 	NonInteractive bool
-	Progress       text.Progress
+	Spinner        *yacspin.Spinner
 	ServiceID      string
 	ServiceVersion int
 	Setup          map[string]*manifest.SetupObjectStore
@@ -46,13 +47,13 @@ type ObjectStoreItem struct {
 }
 
 // Configure prompts the user for specific values related to the service resource.
-func (d *ObjectStores) Configure() error {
-	for name, settings := range d.Setup {
-		if !d.AcceptDefaults && !d.NonInteractive {
-			text.Break(d.Stdout)
-			text.Output(d.Stdout, "Configuring object store '%s'", name)
+func (o *ObjectStores) Configure() error {
+	for name, settings := range o.Setup {
+		if !o.AcceptDefaults && !o.NonInteractive {
+			text.Break(o.Stdout)
+			text.Output(o.Stdout, "Configuring object store '%s'", name)
 			if settings.Description != "" {
-				text.Output(d.Stdout, settings.Description)
+				text.Output(o.Stdout, settings.Description)
 			}
 		}
 
@@ -70,15 +71,15 @@ func (d *ObjectStores) Configure() error {
 				err   error
 			)
 
-			if !d.AcceptDefaults && !d.NonInteractive {
-				text.Break(d.Stdout)
-				text.Output(d.Stdout, "Create an object store key called '%s'", key)
+			if !o.AcceptDefaults && !o.NonInteractive {
+				text.Break(o.Stdout)
+				text.Output(o.Stdout, "Create an object store key called '%s'", key)
 				if item.Description != "" {
-					text.Output(d.Stdout, item.Description)
+					text.Output(o.Stdout, item.Description)
 				}
-				text.Break(d.Stdout)
+				text.Break(o.Stdout)
 
-				value, err = text.Input(d.Stdout, prompt, d.Stdin)
+				value, err = text.Input(o.Stdout, prompt, o.Stdin)
 				if err != nil {
 					return fmt.Errorf("error reading prompt input: %w", err)
 				}
@@ -94,7 +95,7 @@ func (d *ObjectStores) Configure() error {
 			})
 		}
 
-		d.required = append(d.required, ObjectStore{
+		o.required = append(o.required, ObjectStore{
 			Name:  name,
 			Items: items,
 		})
@@ -104,53 +105,98 @@ func (d *ObjectStores) Configure() error {
 }
 
 // Create calls the relevant API to create the service resource(s).
-func (d *ObjectStores) Create() error {
-	if d.Progress == nil {
+func (o *ObjectStores) Create() error {
+	if o.Spinner == nil {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.ObjectStores"),
 			Remediation: errors.BugRemediation,
 		}
 	}
 
-	for _, objectStore := range d.required {
-		d.Progress.Step(fmt.Sprintf("Creating object store '%s'...", objectStore.Name))
+	for _, objectStore := range o.required {
+		err := o.Spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg := fmt.Sprintf("Creating object store '%s'...", objectStore.Name)
+		o.Spinner.Message(msg)
 
-		store, err := d.APIClient.CreateObjectStore(&fastly.CreateObjectStoreInput{
+		store, err := o.APIClient.CreateObjectStore(&fastly.CreateObjectStoreInput{
 			Name: objectStore.Name,
 		})
 		if err != nil {
-			d.Progress.Fail()
+			o.Spinner.StopFailMessage(msg)
+			err := o.Spinner.StopFail()
+			if err != nil {
+				return err
+			}
 			return fmt.Errorf("error creating object store: %w", err)
+		}
+
+		o.Spinner.StopMessage(msg)
+		err = o.Spinner.Stop()
+		if err != nil {
+			return err
 		}
 
 		if len(objectStore.Items) > 0 {
 			for _, item := range objectStore.Items {
-				d.Progress.Step(fmt.Sprintf("Creating object store key '%s'...", item.Key))
+				err := o.Spinner.Start()
+				if err != nil {
+					return err
+				}
+				msg := fmt.Sprintf("Creating object store key '%s'...", item.Key)
+				o.Spinner.Message(msg)
 
-				err := d.APIClient.InsertObjectStoreKey(&fastly.InsertObjectStoreKeyInput{
+				err = o.APIClient.InsertObjectStoreKey(&fastly.InsertObjectStoreKeyInput{
 					ID:    store.ID,
 					Key:   item.Key,
 					Value: item.Value,
 				})
 				if err != nil {
-					d.Progress.Fail()
+					o.Spinner.StopFailMessage(msg)
+					err := o.Spinner.StopFail()
+					if err != nil {
+						return err
+					}
 					return fmt.Errorf("error creating object store key: %w", err)
+				}
+
+				o.Spinner.StopMessage(msg)
+				err = o.Spinner.Stop()
+				if err != nil {
+					return err
 				}
 			}
 		}
 
-		d.Progress.Step(fmt.Sprintf("Creating resource link between service and object store '%s'...", objectStore.Name))
+		err = o.Spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = fmt.Sprintf("Creating resource link between service and object store '%s'...", objectStore.Name)
+		o.Spinner.Message(msg)
 
 		// IMPORTANT: We need to link the object store to the C@E Service.
-		_, err = d.APIClient.CreateResource(&fastly.CreateResourceInput{
-			ServiceID:      d.ServiceID,
-			ServiceVersion: d.ServiceVersion,
+		_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
+			ServiceID:      o.ServiceID,
+			ServiceVersion: o.ServiceVersion,
 			Name:           fastly.String(store.Name),
 			ResourceID:     fastly.String(store.ID),
 		})
 		if err != nil {
-			d.Progress.Fail()
-			return fmt.Errorf("error creating resource link between the service '%s' and the object store '%s': %w", d.ServiceID, store.Name, err)
+			o.Spinner.StopFailMessage(msg)
+			err := o.Spinner.StopFail()
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf("error creating resource link between the service '%s' and the object store '%s': %w", o.ServiceID, store.Name, err)
+		}
+
+		o.Spinner.StopMessage(msg)
+		err = o.Spinner.Stop()
+		if err != nil {
+			return err
 		}
 	}
 
@@ -159,6 +205,6 @@ func (d *ObjectStores) Create() error {
 
 // Predefined indicates if the service resource has been specified within the
 // fastly.toml file using a [setup] configuration block.
-func (d *ObjectStores) Predefined() bool {
-	return len(d.Setup) > 0
+func (o *ObjectStores) Predefined() bool {
+	return len(o.Setup) > 0
 }

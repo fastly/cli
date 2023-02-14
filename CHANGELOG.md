@@ -1,5 +1,59 @@
 # Changelog
 
+## [v6.0.4](https://github.com/fastly/cli/releases/tag/v6.0.4) (2023-02-13)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.3...v6.0.4)
+
+**Bug fixes:**
+
+* fix(compute/build): only use default build script if none defined [#814](https://github.com/fastly/cli/pull/814)
+* fix(compute/deploy): replace spinner implementation [#820](https://github.com/fastly/cli/pull/820)
+
+**Enhancements:**
+
+* fix(compute/build): ensure build output doesn't show unless --verbose is set [#815](https://github.com/fastly/cli/pull/815)
+
+**Documentation:**
+
+* docs: remove --skip-verification [#816](https://github.com/fastly/cli/pull/816)
+
+**Dependencies:**
+
+* build(deps): bump github.com/fastly/go-fastly/v7 from 7.1.0 to 7.2.0 [#819](https://github.com/fastly/cli/pull/819)
+* build(deps): bump github.com/getsentry/sentry-go from 0.17.0 to 0.18.0 [#818](https://github.com/fastly/cli/pull/818)
+* build(deps): bump golang.org/x/term from 0.4.0 to 0.5.0 [#817](https://github.com/fastly/cli/pull/817)
+
+## [v6.0.3](https://github.com/fastly/cli/releases/tag/v6.0.3) (2023-02-09)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.2...v6.0.3)
+
+**Bug fixes:**
+
+* fix(compute/setup): fix duplicated domains [#808](https://github.com/fastly/cli/pull/808)
+* fix(setup/domain): allow user to correct a domain already in use [#811](https://github.com/fastly/cli/pull/811)
+
+**Enhancements:**
+
+* build(goreleaser): replace deprecated flag [#807](https://github.com/fastly/cli/pull/807)
+* refactor: add type annotations [#809](https://github.com/fastly/cli/pull/809)
+* build(lint): implement semgrep for local validation [#810](https://github.com/fastly/cli/pull/810)
+
+## [v6.0.2](https://github.com/fastly/cli/releases/tag/v6.0.2) (2023-02-08)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.1...v6.0.2)
+
+**Bug fixes:**
+
+* fix(compute/build): ensure we only parse stdout from cargo command [#804](https://github.com/fastly/cli/pull/804)
+
+## [v6.0.1](https://github.com/fastly/cli/releases/tag/v6.0.1) (2023-02-08)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.0...v6.0.1)
+
+**Enhancements:**
+
+* refactor(compute): add command output when there is an error [#801](https://github.com/fastly/cli/pull/801)
+
 ## [v6.0.0](https://github.com/fastly/cli/releases/tag/v6.0.0) (2023-02-07)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v5.1.1...v6.0.0)

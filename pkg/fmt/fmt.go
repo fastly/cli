@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// Success is a test helper used to generate output for asserting against.
 func Success(format string, args ...any) string {
 	var b bytes.Buffer
 	text.Success(&b, format, args...)
@@ -15,7 +16,7 @@ func Success(format string, args ...any) string {
 }
 
 // JSON decodes then re-encodes back to JSON, with indentation matching
-// that of jsonOutput.WriteJSON.
+// that of ../cmd/cmd.go's cmd.WriteJSON.
 func JSON(format string, args ...any) string {
 	var r json.RawMessage
 	if err := json.Unmarshal([]byte(fmt.Sprintf(format, args...)), &r); err != nil {
@@ -24,6 +25,7 @@ func JSON(format string, args ...any) string {
 	return EncodeJSON(r)
 }
 
+// EncodeJSON is a test helper that encodes any Go type into JSON.
 func EncodeJSON(value any) string {
 	var b bytes.Buffer
 	enc := json.NewEncoder(&b)

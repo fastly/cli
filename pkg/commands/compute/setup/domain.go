@@ -3,13 +3,18 @@ package setup
 import (
 	"fmt"
 	"io"
+	"math/rand"
+	"net/http"
 	"regexp"
+	"strings"
+	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/theckman/yacspin"
 )
 
 const defaultTopLevelDomain = "edgecompute.app"
@@ -25,11 +30,13 @@ type Domains struct {
 	AcceptDefaults bool
 	NonInteractive bool
 	PackageDomain  string
-	Progress       text.Progress
+	Spinner        *yacspin.Spinner
+	RetryLimit     int
 	ServiceID      string
 	ServiceVersion int
 	Stdin          io.Reader
 	Stdout         io.Writer
+	Verbose        bool
 
 	// Private
 	available []*fastly.Domain
@@ -55,7 +62,7 @@ func (d *Domains) Configure() error {
 		return nil
 	}
 
-	defaultDomain := fmt.Sprintf("%s.%s", petname.Generate(3, "-"), defaultTopLevelDomain)
+	defaultDomain := generateDomainName()
 
 	var (
 		domain string
@@ -81,24 +88,16 @@ func (d *Domains) Configure() error {
 
 // Create calls the relevant API to create the service resource(s).
 func (d *Domains) Create() error {
-	if d.Progress == nil {
+	if d.Spinner == nil {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.Domains"),
+			Inner:       fmt.Errorf("internal logic error: no spinner configured for setup.Domains"),
 			Remediation: errors.BugRemediation,
 		}
 	}
 
 	for _, domain := range d.required {
-		d.Progress.Step(fmt.Sprintf("Creating domain '%s'...", domain.Name))
-
-		_, err := d.APIClient.CreateDomain(&fastly.CreateDomainInput{
-			ServiceID:      d.ServiceID,
-			ServiceVersion: d.ServiceVersion,
-			Name:           &domain.Name,
-		})
-		if err != nil {
-			d.Progress.Fail()
-			return fmt.Errorf("error creating domain: %w", err)
+		if err := d.createDomain(domain.Name, 1); err != nil {
+			return err
 		}
 	}
 
@@ -150,4 +149,73 @@ func (d *Domains) validateDomain(input string) error {
 		return fmt.Errorf("must be valid domain name")
 	}
 	return nil
+}
+
+func (d *Domains) createDomain(name string, attempt int) error {
+	err := d.Spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := fmt.Sprintf("Creating domain '%s'...", name)
+	d.Spinner.Message(msg)
+
+	_, err = d.APIClient.CreateDomain(&fastly.CreateDomainInput{
+		ServiceID:      d.ServiceID,
+		ServiceVersion: d.ServiceVersion,
+		Name:           &name,
+	})
+	if err != nil {
+		if attempt > d.RetryLimit {
+			return fmt.Errorf("too many attempts")
+		}
+
+		// We have to stop the ticker so we can now prompt the user.
+		d.Spinner.StopFailMessage(msg)
+		spinErr := d.Spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
+		if e, ok := err.(*fastly.HTTPError); ok {
+			if e.StatusCode == http.StatusBadRequest {
+				for _, he := range e.Errors {
+					// NOTE: In case the domain is already used by another customer.
+					// We'll give the user one additional chance to correct the domain.
+					if strings.Contains(he.Detail, "by another customer") {
+						var domain string
+						defaultDomain := generateDomainName()
+						if !d.AcceptDefaults && !d.NonInteractive {
+							text.Break(d.Stdout)
+							domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain already taken, please choose another (attempt %d of %d): [%s] ", attempt, d.RetryLimit, defaultDomain)), d.Stdin, d.validateDomain)
+							if err != nil {
+								return fmt.Errorf("error reading input %w", err)
+							}
+							text.Break(d.Stdout)
+						}
+						if domain == "" {
+							domain = defaultDomain
+						}
+						return d.createDomain(domain, attempt+1)
+					}
+				}
+			}
+		}
+
+		return fmt.Errorf("error creating domain: %w", err)
+	}
+
+	d.Spinner.StopMessage(msg)
+	err = d.Spinner.Stop()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func generateDomainName() string {
+	// IMPORTANT: go1.20 deprecates rand.Seed
+	// The global random number generator (RNG) is now automatically seeded.
+	// If not seeded, the same domain name is repeated on each run.
+	rand.Seed(time.Now().UnixNano())
+	return fmt.Sprintf("%s.%s", petname.Generate(3, "-"), defaultTopLevelDomain)
 }

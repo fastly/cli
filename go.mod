@@ -12,7 +12,7 @@ require (
 	github.com/fatih/color v1.14.1
 	github.com/frankban/quicktest v1.13.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0
-	github.com/getsentry/sentry-go v0.17.0
+	github.com/getsentry/sentry-go v0.18.0
 	github.com/google/go-cmp v0.5.9
 	github.com/mattn/go-isatty v0.0.17
 	github.com/mholt/archiver/v3 v3.5.1
@@ -23,8 +23,8 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/term v0.4.0
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
@@ -35,6 +35,7 @@ require (
 	github.com/otiai10/copy v1.9.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/tcnksm/go-gitconfig v0.1.2
+	github.com/theckman/yacspin v0.13.12
 )
 
 require (
@@ -47,10 +48,12 @@ require (
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/nwaples/rardecode v1.1.2 // indirect
 	github.com/onsi/gomega v1.24.1 // indirect
 	github.com/peterhellberg/link v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.8 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
