@@ -14,7 +14,7 @@ import (
 // CreateCommand calls the Fastly API to create a resource link.
 type CreateCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	autoClone      cmd.OptionalAutoClone
 	input          fastly.CreateResourceInput
@@ -64,7 +64,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.RegisterFlagBool(c.jsonFlag()) // --json
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "name",
 		Short:       'n',
@@ -77,7 +77,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.jsonOutput.enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

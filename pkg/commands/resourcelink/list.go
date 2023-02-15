@@ -15,7 +15,7 @@ import (
 // ListCommand calls the Fastly API to list service resource links
 type ListCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	input          fastly.ListResourcesInput
 	manifest       manifest.Data
@@ -48,14 +48,14 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	})
 
 	// Optional.
-	c.RegisterFlagBool(c.jsonFlag()) // --json
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.jsonOutput.enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

@@ -14,7 +14,7 @@ import (
 // UpdateCommand calls the Fastly API to update a dictionary.
 type UpdateCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	autoClone      cmd.OptionalAutoClone
 	input          fastly.UpdateResourceInput
@@ -69,14 +69,14 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.RegisterFlagBool(c.jsonFlag()) // --json
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.jsonOutput.enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

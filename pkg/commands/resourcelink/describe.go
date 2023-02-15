@@ -14,7 +14,7 @@ import (
 // DescribeCommand calls the Fastly API to describe a service resource link.
 type DescribeCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	input          fastly.GetResourceInput
 	manifest       manifest.Data
@@ -53,14 +53,14 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	})
 
 	// Optional.
-	c.RegisterFlagBool(c.jsonFlag()) // --json
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.jsonOutput.enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

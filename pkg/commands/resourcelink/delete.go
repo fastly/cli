@@ -14,7 +14,7 @@ import (
 // DeleteCommand calls the Fastly API to delete service resource links.
 type DeleteCommand struct {
 	cmd.Base
-	jsonOutput
+	cmd.JSONOutput
 
 	autoClone      cmd.OptionalAutoClone
 	input          fastly.DeleteResourceInput
@@ -58,14 +58,14 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	c.RegisterFlagBool(c.jsonFlag()) // --json
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.jsonOutput.enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -99,7 +99,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.jsonOutput.enabled {
+	if c.JSONOutput.Enabled {
 		o := struct {
 			ID             string `json:"id"`
 			ServiceID      string `json:"service_id"`
