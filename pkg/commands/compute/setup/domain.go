@@ -3,11 +3,9 @@ package setup
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"strings"
-	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/fastly/cli/pkg/api"
@@ -165,15 +163,15 @@ func (d *Domains) createDomain(name string, attempt int) error {
 		Name:           &name,
 	})
 	if err != nil {
-		if attempt > d.RetryLimit {
-			return fmt.Errorf("too many attempts")
-		}
-
 		// We have to stop the ticker so we can now prompt the user.
 		d.Spinner.StopFailMessage(msg)
 		spinErr := d.Spinner.StopFail()
 		if spinErr != nil {
 			return spinErr
+		}
+
+		if attempt > d.RetryLimit {
+			return fmt.Errorf("too many attempts")
 		}
 
 		if e, ok := err.(*fastly.HTTPError); ok {
@@ -216,6 +214,7 @@ func generateDomainName() string {
 	// IMPORTANT: go1.20 deprecates rand.Seed
 	// The global random number generator (RNG) is now automatically seeded.
 	// If not seeded, the same domain name is repeated on each run.
-	rand.Seed(time.Now().UnixNano())
+	// If reverting CLI compilation to using <go1.20 then add the following line:
+	// rand.Seed(time.Now().UnixNano())
 	return fmt.Sprintf("%s.%s", petname.Generate(3, "-"), defaultTopLevelDomain)
 }

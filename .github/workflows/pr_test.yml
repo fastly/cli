@@ -35,7 +35,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.19.x
+        go-version: 1.20.x
     # NOTE: Manage GitHub Actions cache https://github.com/fastly/cli/actions/caches
     # This is useful if you need to clear the cache when a dependency doesn't update correctly.
     - name: "Restore golang bin cache"
@@ -82,8 +82,8 @@ jobs:
     needs: config
     strategy:
       matrix:
-        tinygo-version: [0.26.0]
-        go-version: [1.19.x]
+        tinygo-version: [0.27.0]
+        go-version: [1.20.x]
         node-version: [18]
         rust-toolchain: [stable]
         platform: [ubuntu-latest, macos-latest, windows-latest]
