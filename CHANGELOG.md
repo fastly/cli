@@ -1,5 +1,13 @@
 # Changelog
 
+## [v6.0.6](https://github.com/fastly/cli/releases/tag/v6.0.6) (2023-02-15)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.5...v6.0.6)
+
+**Bug fixes:**
+
+* build(goreleaser): build with explicit `CGO_ENABLED=0` [#826](https://github.com/fastly/cli/pull/826)
+
 ## [v6.0.5](https://github.com/fastly/cli/releases/tag/v6.0.5) (2023-02-15)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v6.0.4...v6.0.5)
