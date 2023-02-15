@@ -18,6 +18,7 @@ type DescribeCommand struct {
 
 	input          fastly.GetResourceInput
 	manifest       manifest.Data
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
 
@@ -39,17 +40,24 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 		Required:    true,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Short:       's',
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
-		Required:    true,
-	})
-	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
+	})
+
+	// At least one of the following is required.
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Short:       's',
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.manifest.Flag.ServiceID,
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceName,
+		Action:      c.serviceName.Set,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.serviceName.Value,
 	})
 
 	// Optional.
@@ -64,7 +72,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := cmd.ServiceID(cmd.OptionalServiceNameID{}, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}

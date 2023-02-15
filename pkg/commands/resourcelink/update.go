@@ -19,6 +19,7 @@ type UpdateCommand struct {
 	autoClone      cmd.OptionalAutoClone
 	input          fastly.UpdateResourceInput
 	manifest       manifest.Data
+	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
 
@@ -51,17 +52,24 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 		Required:    true,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Short:       's',
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
-		Required:    true,
-	})
-	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
+	})
+
+	// At least one of the following is required.
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceIDName,
+		Short:       's',
+		Description: cmd.FlagServiceIDDesc,
+		Dst:         &c.manifest.Flag.ServiceID,
+	})
+	c.RegisterFlag(cmd.StringFlagOpts{
+		Name:        cmd.FlagServiceName,
+		Action:      c.serviceName.Set,
+		Description: cmd.FlagServiceDesc,
+		Dst:         &c.serviceName.Value,
 	})
 
 	// Optional.
@@ -85,7 +93,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           c.manifest,
 		Out:                out,
-		ServiceNameFlag:    cmd.OptionalServiceNameID{}, // ServiceID flag is required, no need to lookup service by name.
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})

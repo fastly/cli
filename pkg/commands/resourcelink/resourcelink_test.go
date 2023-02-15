@@ -35,7 +35,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 		},
 		{
 			args:           "create --resource-id abc --version latest",
-			wantError:      "error parsing arguments: required flag --service-id not provided",
+			wantError:      "error reading service: no service ID found",
 			wantAPIInvoked: false,
 		},
 		// Success.
@@ -182,7 +182,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		},
 		{
 			args:           "delete --id LINK-ID --version 123",
-			wantError:      "error parsing arguments: required flag --service-id not provided",
+			wantError:      "error reading service: no service ID found",
 			wantAPIInvoked: false,
 		},
 		{
@@ -284,7 +284,7 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 		},
 		{
 			args:           "describe --id LINK-ID --version 123",
-			wantError:      "error parsing arguments: required flag --service-id not provided",
+			wantError:      "error reading service: no service ID found",
 			wantAPIInvoked: false,
 		},
 		{
@@ -378,7 +378,7 @@ func TestListServiceResourceCommand(t *testing.T) {
 		},
 		{
 			args:           "list --version 123",
-			wantError:      "error parsing arguments: required flag --service-id not provided",
+			wantError:      "error reading service: no service ID found",
 			wantAPIInvoked: false,
 		},
 		// Success.
@@ -490,7 +490,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		},
 		{
 			args:           "update --id LINK-ID --name new-name --version 123",
-			wantError:      "error parsing arguments: required flag --service-id not provided",
+			wantError:      "error reading service: no service ID found",
 			wantAPIInvoked: false,
 		},
 		{
