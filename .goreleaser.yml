@@ -17,18 +17,26 @@ builds:
         - -X "github.com/fastly/cli/pkg/revision.GoHostOS={{ .Env.GOHOSTOS }}"
         - -X "github.com/fastly/cli/pkg/revision.GoHostArch={{ .Env.GOHOSTARCH }}"
         - -X "github.com/fastly/cli/pkg/revision.Environment=release"
+    env:
+      - CGO_ENABLED=0
     id: macos
     goos: [darwin]
     goarch: [amd64, arm64]
   - <<: *build_defaults
+    env:
+      - CGO_ENABLED=0
     id: linux
     goos: [linux]
     goarch: ["386", amd64, arm64]
   - <<: *build_defaults
+    env:
+      - CGO_ENABLED=0
     id: windows
     goos: [windows]
     goarch: ["386", amd64, arm64]
   - <<: *build_defaults
+    env:
+      - CGO_ENABLED=0
     id: generate-usage
     goos: [linux]
     goarch: [amd64]
@@ -45,6 +53,7 @@ archives:
       name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
       files:
         - none*
+      rlcp: true
     wrap_in_directory: false
     format: tar.gz
   - id: windows-tar

@@ -35,12 +35,16 @@ else
 	CONFIG_FILE = pkg/config/config.toml
 endif
 
+# Build executables using goreleaser (useful for local testing purposes).
+#
 # You can pass flags to goreleaser via GORELEASER_ARGS
-# --skip-validate will skip the checks
-# --rm-dist will save you deleting the dist dir
+# --clean will save you deleting the dist dir
 # --single-target will be quicker and only build for your os & architecture
-# e.g.
-# make fastly GORELEASER_ARGS="--skip-validate --rm-dist"
+# --skip-post-hooks which prevents errors such as trying to execute the binary for each OS (e.g. we call scripts/documentation.sh and we can't run Windows exe on a Mac).
+# --skip-validate will skip the checks (e.g. git tag checks which result in a 'dirty git state' error)
+#
+# EXAMPLE:
+# make fastly GORELEASER_ARGS="--clean --skip-post-hooks --skip-validate"
 fastly: dependencies $(GO_FILES)
 	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
 
@@ -61,7 +65,7 @@ dependencies:
 	$(GO_BIN) install github.com/securego/gosec/v2/cmd/gosec@latest
 	$(GO_BIN) install honnef.co/go/tools/cmd/staticcheck@2023.1
 	$(GO_BIN) install github.com/mgechev/revive@latest
-	$(GO_BIN) install github.com/goreleaser/goreleaser@v1.9.2
+	$(GO_BIN) install github.com/goreleaser/goreleaser@latest
 	if [[ "$$(uname)" == 'Darwin' ]]; then brew install semgrep; fi
 
 # Clean up Go modules file.
@@ -112,14 +116,14 @@ test: config
 # e.g. make build GO_ARGS='--ldflags "-s -w"'
 .PHONY: build
 build: config
-	$(GO_BIN) build $(GO_ARGS) ./cmd/fastly
+	CGO_ENABLED=0 $(GO_BIN) build $(GO_ARGS) ./cmd/fastly
 
 # Compile and install program.
 #
 # GO_ARGS allows for passing additional arguments.
 .PHONY: install
 install: config
-	$(GO_BIN) install $(GO_ARGS) ./cmd/fastly
+	CGO_ENABLED=0 $(GO_BIN) install $(GO_ARGS) ./cmd/fastly
 
 # Scaffold a new CLI command from template files.
 .PHONY: scaffold
@@ -130,21 +134,5 @@ scaffold:
 .PHONY: scaffold-category
 scaffold-category:
 	@$(shell pwd)/scripts/scaffold-category.sh $(CLI_CATEGORY) $(CLI_CATEGORY_COMMAND) $(CLI_PACKAGE) $(CLI_COMMAND) $(CLI_API)
-
-goreleaser-bin:
-	go install github.com/goreleaser/goreleaser@latest
-
-# Build executables using goreleaser (useful for local testing purposes).
-#
-# You can pass flags to goreleaser via GORELEASER_ARGS
-# --skip-validate will skip the checks (e.g. git tag checks which result in a 'dirty git state' error)
-# --skip-post-hooks which prevents errors such as trying to execute the binary for each OS (e.g. we call scripts/documentation.sh and we can't run Windows exe on a Mac).
-# --rm-dist will save you deleting the dist dir
-# --single-target will be quicker and only build for your os & architecture
-#
-# EXAMPLE:
-# make goreleaser GORELEASER_ARGS="--skip-validate --skip-post-hooks --rm-dist"
-goreleaser: goreleaser-bin
-	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
 
 .PHONY: clean
