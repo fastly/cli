@@ -35,7 +35,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "id",
-		Description: "ID of resource link",
+		Description: flagIDDescription,
 		Dst:         &c.input.ID,
 		Required:    true,
 	})

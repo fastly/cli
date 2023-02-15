@@ -40,14 +40,14 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "id",
-		Description: "ID of resource link",
+		Description: flagIDDescription,
 		Dst:         &c.input.ID,
 		Required:    true,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "name",
 		Short:       'n',
-		Description: "Resource name (alias)",
+		Description: flagNameDescription,
 		Dst:         c.input.Name,
 		Required:    true,
 	})

@@ -36,7 +36,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "id",
-		Description: "ID of resource link",
+		Description: flagIDDescription,
 		Dst:         &c.input.ID,
 		Required:    true,
 	})

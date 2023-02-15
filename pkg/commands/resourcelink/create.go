@@ -42,7 +42,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "resource-id",
 		Short:       'r',
-		Description: "Resource ID",
+		Description: flagResourceIDDescription,
 		Dst:         c.input.ResourceID,
 		Required:    true,
 	})
@@ -76,7 +76,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "name",
 		Short:       'n',
-		Description: "Resource alias. Defaults to name of resource",
+		Description: flagNameDescription,
 		Dst:         c.input.Name,
 	})
 
