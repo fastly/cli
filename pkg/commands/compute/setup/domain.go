@@ -163,15 +163,15 @@ func (d *Domains) createDomain(name string, attempt int) error {
 		Name:           &name,
 	})
 	if err != nil {
-		if attempt > d.RetryLimit {
-			return fmt.Errorf("too many attempts")
-		}
-
 		// We have to stop the ticker so we can now prompt the user.
 		d.Spinner.StopFailMessage(msg)
 		spinErr := d.Spinner.StopFail()
 		if spinErr != nil {
 			return spinErr
+		}
+
+		if attempt > d.RetryLimit {
+			return fmt.Errorf("too many attempts")
 		}
 
 		if e, ok := err.(*fastly.HTTPError); ok {
