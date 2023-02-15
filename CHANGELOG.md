@@ -1,5 +1,13 @@
 # Changelog
 
+## [v6.0.5](https://github.com/fastly/cli/releases/tag/v6.0.5) (2023-02-15)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.4...v6.0.5)
+
+**Enhancements:**
+
+* fix(dns): migrate to go1.20 [#824](https://github.com/fastly/cli/pull/824)
+
 ## [v6.0.4](https://github.com/fastly/cli/releases/tag/v6.0.4) (2023-02-13)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v6.0.3...v6.0.4)
