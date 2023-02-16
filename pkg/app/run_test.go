@@ -63,6 +63,8 @@ auth-token
 backend
 compute
 config
+config-store
+config-store-entry
 dictionary
 dictionary-entry
 domain
