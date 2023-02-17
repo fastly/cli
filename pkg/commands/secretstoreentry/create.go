@@ -2,6 +2,7 @@ package secretstoreentry
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -20,6 +21,24 @@ const (
 	maxSecretKiB = 64
 	maxSecretLen = maxSecretKiB * 1024
 )
+
+// The signing key is a public key that is used to sign client keys.
+// It's meant to be a long-lived key and infrequently (if ever) rotated.
+// Hardcoding it in the CLI gives us the benefit of distributing it via
+// a different channel from the client keys it's signing.
+//
+// When we do rotate it, we will need to update this value and release a
+// new version of the CLI.  However, users can also override this with
+// the FASTLY_USE_API_SIGNING_KEY environment variable.
+var signingKey []byte = mustDecode("CrO/A92vkxEZjtTW7D/Sr+1EMf/q9BahC0sfLkWa+0k=")
+
+func mustDecode(s string) []byte {
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
@@ -94,7 +113,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	case c.secretFile != "":
 		var err error
-		// nosemgrep: trailofbits.go.questionable-assignment.questionable-assignment
 		if c.Input.Secret, err = os.ReadFile(c.secretFile); err != nil {
 			return err
 		}
@@ -110,6 +128,39 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	if len(c.Input.Secret) > maxSecretLen {
 		return errMaxSecretLength
 	}
+
+	ck, err := c.Globals.APIClient.CreateClientKey()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	sk, err := c.Globals.APIClient.GetSigningKey()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	if !bytes.Equal(sk, signingKey) && os.Getenv("FASTLY_USE_API_SIGNING_KEY") == "" {
+		err := fmt.Errorf("API signing key does not match expected value")
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	if !ck.ValidateSignature(sk) {
+		err := fmt.Errorf("unable to validate signature of client key")
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	wrapped, err := ck.Encrypt(c.Input.Secret)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	c.Input.Secret = wrapped
+	c.Input.ClientKey = ck.PublicKey
 
 	o, err := c.Globals.APIClient.CreateSecret(&c.Input)
 	if err != nil {

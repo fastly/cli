@@ -2,6 +2,8 @@ package secretstoreentry_test
 
 import (
 	"bytes"
+	"crypto/ed25519"
+	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -9,6 +11,7 @@ import (
 	"path"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
@@ -16,6 +19,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v7/fastly"
+	"golang.org/x/crypto/nacl/box"
 )
 
 func TestCreateSecretCommand(t *testing.T) {
@@ -32,6 +36,33 @@ func TestCreateSecretCommand(t *testing.T) {
 		t.Fatal(err)
 	}
 	doesNotExistFile := path.Join(tmpDir, "DOES-NOT-EXIST")
+
+	ckPub, ckPriv, err := box.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	skPub, skPriv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ck := &fastly.ClientKey{
+		PublicKey: ckPub[:],
+		Signature: ed25519.Sign(skPriv, ckPub[:]),
+		ExpiresAt: time.Now().Add(time.Hour),
+	}
+
+	mockCreateClientKey := func() (*fastly.ClientKey, error) { return ck, nil }
+	mockGetSigningKey := func() (ed25519.PublicKey, error) { return skPub, nil }
+
+	decrypt := func(ciphertext []byte) (string, error) {
+		plaintext, ok := box.OpenAnonymous(nil, ciphertext, ckPub, ckPriv)
+		if !ok {
+			return "", errors.New("failed to decrypt")
+		}
+		return string(plaintext), nil
+	}
 
 	scenarios := []struct {
 		args           string
@@ -67,9 +98,13 @@ func TestCreateSecretCommand(t *testing.T) {
 			args:  fmt.Sprintf("create --store-id %s --name %s --stdin", storeID, secretName),
 			stdin: secretValue,
 			api: mock.API{
+				CreateClientKeyFn: mockCreateClientKey,
+				GetSigningKeyFn:   mockGetSigningKey,
 				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
-					if secret := string(i.Secret); secret != secretValue {
-						return nil, fmt.Errorf("invalid secret: %s", secret)
+					if got, err := decrypt(i.Secret); err != nil {
+						return nil, err
+					} else if got != secretValue {
+						return nil, fmt.Errorf("invalid secret: %s", got)
 					}
 					return &fastly.Secret{
 						Name:   i.Name,
@@ -84,9 +119,13 @@ func TestCreateSecretCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("create --store-id %s --name %s --file %s", storeID, secretName, secretFile),
 			api: mock.API{
+				CreateClientKeyFn: mockCreateClientKey,
+				GetSigningKeyFn:   mockGetSigningKey,
 				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
-					if secret := string(i.Secret); secret != secretValue {
-						return nil, fmt.Errorf("invalid secret: %s", secret)
+					if got, err := decrypt(i.Secret); err != nil {
+						return nil, err
+					} else if got != secretValue {
+						return nil, fmt.Errorf("invalid secret: %s", got)
 					}
 					return &fastly.Secret{
 						Name:   i.Name,
@@ -100,9 +139,13 @@ func TestCreateSecretCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("create --store-id %s --name %s --file %s --json", storeID, secretName, secretFile),
 			api: mock.API{
+				CreateClientKeyFn: mockCreateClientKey,
+				GetSigningKeyFn:   mockGetSigningKey,
 				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
-					if secret := string(i.Secret); secret != secretValue {
-						return nil, fmt.Errorf("invalid secret: %s", secret)
+					if got, err := decrypt(i.Secret); err != nil {
+						return nil, err
+					} else if got != secretValue {
+						return nil, fmt.Errorf("invalid secret: %s", got)
 					}
 					return &fastly.Secret{
 						Name:   i.Name,
@@ -137,6 +180,11 @@ func TestCreateSecretCommand(t *testing.T) {
 			}
 
 			opts.APIClient = mock.APIClient(testcase.api)
+
+			// Tests generate their own signing keys, which won't match
+			// the hardcoded value.  Disable the check against the
+			// hardcoded value.
+			t.Setenv("FASTLY_USE_API_SIGNING_KEY", "1")
 
 			err := app.Run(opts)
 
