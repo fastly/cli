@@ -187,8 +187,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.cloneFrom = from
 	}
 
-	text.Break(out)
-
 	// We only want to fetch a remote package if c.cloneFrom has been set.
 	// This can happen in two ways:
 	//
@@ -387,21 +385,29 @@ func promptOrReturn(
 	in io.Reader,
 	out io.Writer,
 ) (name, description string, authors []string, err error) {
-	text.Break(out)
-
 	name, _ = m.Name()
+	description, _ = m.Description()
+	authors, _ = m.Authors()
+
+	if name == "" || description == "" || len(authors) == 0 {
+		text.Break(out)
+	}
+
 	name, err = promptPackageName(flags, name, path, in, out)
 	if err != nil {
 		return "", description, authors, err
 	}
 
-	description, _ = m.Description()
 	description, err = promptPackageDescription(flags, description, in, out)
 	if err != nil {
 		return name, "", authors, err
 	}
 
-	authors, _ = m.Authors()
+	// This catches scenarios where someone runs `compute init` multiple times.
+	if name != "" && len(authors) > 0 {
+		text.Break(out)
+	}
+
 	authors, err = promptPackageAuthors(flags, authors, email, in, out)
 	if err != nil {
 		return name, description, []string{}, err
@@ -462,13 +468,15 @@ func promptPackageDescription(flags global.Flags, desc string, in io.Reader, out
 //
 // It will use a default of the user's email found within the manifest, if set
 // there, otherwise the value will be an empty slice.
+//
+// FIXME: Handle prompting for multiple authors.
 func promptPackageAuthors(flags global.Flags, authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
 	defaultValue := []string{manifestEmail}
 	if len(authors) == 0 && (flags.AcceptDefaults || flags.NonInteractive) {
 		return defaultValue, nil
 	}
 	if len(authors) == 0 {
-		label := "Author: "
+		label := "Author (email): "
 
 		if manifestEmail != "" {
 			label = fmt.Sprintf("%s[%s] ", label, manifestEmail)
@@ -606,6 +614,8 @@ func fetchPackageTemplate(
 	spinner *yacspin.Spinner,
 	out io.Writer,
 ) error {
+	text.Break(out)
+
 	err := spinner.Start()
 	if err != nil {
 		return err
@@ -1011,7 +1021,7 @@ func updateManifest(
 	// NOTE: We allow an empty description to be set.
 	m.Description = desc
 	if desc != "" {
-		desc = " to " + desc
+		desc = " to '" + desc + "'"
 	}
 
 	err = spinner.Start()
@@ -1032,7 +1042,7 @@ func updateManifest(
 		if err != nil {
 			return m, err
 		}
-		msg := fmt.Sprintf("Setting authors in manifest to %s...", strings.Join(authors, ", "))
+		msg := fmt.Sprintf("Setting authors in manifest to '%s'...", strings.Join(authors, ", "))
 		spinner.Message(msg)
 
 		m.Authors = authors
@@ -1049,7 +1059,7 @@ func updateManifest(
 		if err != nil {
 			return m, err
 		}
-		msg := fmt.Sprintf("Setting language in manifest to %s...", language.Name)
+		msg := fmt.Sprintf("Setting language in manifest to '%s'...", language.Name)
 		spinner.Message(msg)
 
 		m.Language = language.Name
