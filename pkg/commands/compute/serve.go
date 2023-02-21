@@ -28,6 +28,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 	ignore "github.com/sabhiram/go-gitignore"
+	"github.com/theckman/yacspin"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -104,15 +105,28 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	progress := text.ResetProgress(out, c.Globals.Verbose())
-
-	bin, err := GetViceroy(progress, out, c.av, c.Globals)
+	spinner, err := text.NewSpinner(out)
 	if err != nil {
 		return err
 	}
 
-	progress.Step("Running local server...")
-	progress.Done()
+	bin, err := GetViceroy(spinner, out, c.av, c.Globals)
+	if err != nil {
+		return err
+	}
+
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Running local server..."
+	spinner.Message(msg)
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
 
 	for {
 		err = local(bin, c.file, c.addr, c.env.Value, c.debug, c.watch, c.watchDir, c.Globals.Verbose(), out, c.Globals.ErrLog)
@@ -182,13 +196,7 @@ func (c *ServeCommand) hasBackendsWithMissingOverrideHost() bool {
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner, g *global.Data) (bin string, err error) {
-	defer func() {
-		if err != nil {
-			progress.Fail()
-		}
-	}()
-
+func GetViceroy(spinner *yacspin.Spinner, out io.Writer, av github.AssetVersioner, g *global.Data) (bin string, err error) {
 	bin = filepath.Join(InstallDir, av.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
@@ -229,7 +237,12 @@ func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner,
 	// The latest_version value 0.0.0 means the property either has not been set
 	// or is now stale and needs to be refreshed.
 	if latest.String() == "0.0.0" {
-		progress.Step("Checking latest Viceroy release...")
+		err := spinner.Start()
+		if err != nil {
+			return bin, err
+		}
+		msg := "Checking latest Viceroy release..."
+		spinner.Message(msg)
 
 		v, err := av.Version()
 		if err != nil {
@@ -239,12 +252,30 @@ func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner,
 			// and the user doesn't have a pre-existing install of Viceroy, then we're
 			// forced to return the error.
 			if install {
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return bin, spinErr
+				}
+
 				return bin, fsterr.RemediationError{
 					Inner:       fmt.Errorf("error fetching latest version: %w", err),
 					Remediation: fsterr.NetworkRemediation,
 				}
 			}
+
+			spinner.StopMessage(msg)
+			err = spinner.Stop()
+			if err != nil {
+				return bin, err
+			}
 			return bin, nil
+		}
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return bin, err
 		}
 
 		// WARNING: This variable MUST shadow the parent scoped variable.
@@ -269,14 +300,14 @@ func GetViceroy(progress text.Progress, out io.Writer, av github.AssetVersioner,
 	}
 
 	if install {
-		err := installViceroy(progress, av, bin)
+		err := installViceroy(spinner, av, bin)
 		if err != nil {
 			g.ErrLog.Add(err)
 			return bin, err
 		}
 	} else if checkUpdate {
 		version := strings.TrimSpace(string(stdoutStderr))
-		err := updateViceroy(progress, version, out, av, latest, bin)
+		err := updateViceroy(spinner, version, out, av, latest, bin)
 		if err != nil {
 			g.ErrLog.Add(err)
 			return bin, err
@@ -308,37 +339,60 @@ var InstallDir = func() string {
 }()
 
 // installViceroy downloads the latest release from GitHub.
-func installViceroy(progress text.Progress, av github.AssetVersioner, bin string) error {
-	progress.Step("Fetching latest Viceroy release...")
+func installViceroy(spinner *yacspin.Spinner, av github.AssetVersioner, bin string) error {
+	err := spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Fetching latest Viceroy release..."
+	spinner.Message(msg)
 
 	tmpBin, err := av.Download()
 	if err != nil {
-		progress.Fail()
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return fmt.Errorf("error downloading latest Viceroy release: %w", err)
 	}
 	defer os.RemoveAll(tmpBin)
 
 	if err := os.Rename(tmpBin, bin); err != nil {
 		if err := filesystem.CopyFile(tmpBin, bin); err != nil {
-			progress.Fail()
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
 			return fmt.Errorf("error moving latest Viceroy binary in place: %w", err)
 		}
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // updateViceroy checks if the currently installed version is out-of-date and
 // downloads the latest release from GitHub.
 func updateViceroy(
-	progress text.Progress,
+	spinner *yacspin.Spinner,
 	version string,
 	out io.Writer,
 	av github.AssetVersioner,
 	latest semver.Version,
 	bin string,
 ) error {
-	progress.Step("Checking installed Viceroy version...")
+	err := spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Checking installed Viceroy version..."
+	spinner.Message(msg)
 
 	viceroyError := fsterr.RemediationError{
 		Inner:       fmt.Errorf("a Viceroy version was not found"),
@@ -349,19 +403,31 @@ func updateViceroy(
 	segs := strings.Split(version, " ")
 
 	if len(segs) < 2 {
-		progress.Fail()
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return viceroyError
 	}
 
 	installedViceroyVersion := segs[1]
 	if installedViceroyVersion == "" {
-		progress.Fail()
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return viceroyError
 	}
 
 	current, err := semver.Parse(installedViceroyVersion)
 	if err != nil {
-		progress.Fail()
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("error reading current version: %w", err),
@@ -376,19 +442,38 @@ func updateViceroy(
 		text.Output(out, "Latest Viceroy version: %s", latest)
 		text.Break(out)
 
-		tmpBin, err := av.Download()
-		progress.Step("Fetching latest Viceroy release...")
+		err := spinner.Start()
 		if err != nil {
-			progress.Fail()
+			return err
+		}
+		msg := "Fetching latest Viceroy release..."
+		spinner.Message(msg)
+
+		tmpBin, err := av.Download()
+		if err != nil {
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
 			return fmt.Errorf("error downloading latest Viceroy release: %w", err)
 		}
 		defer os.RemoveAll(tmpBin)
 
-		progress.Step("Replacing Viceroy binary...")
+		err = spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = "Replacing Viceroy binary..."
+		spinner.Message(msg)
 
 		if err := os.Rename(tmpBin, bin); err != nil {
 			if err := filesystem.CopyFile(tmpBin, bin); err != nil {
-				progress.Fail()
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
+				}
 				return fmt.Errorf("error moving latest Viceroy binary in place: %w", err)
 			}
 		}
@@ -431,6 +516,7 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 	}
 
 	if verbose {
+		text.Break(out)
 		text.Output(out, "Wasm file: %s", file)
 		text.Output(out, "Manifest: %s", manifestPath)
 	}
@@ -441,6 +527,7 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 		Env:      os.Environ(),
 		Output:   out,
 		SignalCh: make(chan os.Signal, 1),
+		Verbose:  true, // force verbose so we can see the local server address
 	}
 	s.MonitorSignals()
 
