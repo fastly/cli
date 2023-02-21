@@ -30,7 +30,7 @@ const (
 // When we do rotate it, we will need to update this value and release a
 // new version of the CLI.  However, users can also override this with
 // the FASTLY_USE_API_SIGNING_KEY environment variable.
-var signingKey []byte = mustDecode("CrO/A92vkxEZjtTW7D/Sr+1EMf/q9BahC0sfLkWa+0k=")
+var signingKey = mustDecode("CrO/A92vkxEZjtTW7D/Sr+1EMf/q9BahC0sfLkWa+0k=")
 
 func mustDecode(s string) []byte {
 	b, err := base64.StdEncoding.DecodeString(s)
