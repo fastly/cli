@@ -34,7 +34,6 @@ require (
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/otiai10/copy v1.9.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
-	github.com/tcnksm/go-gitconfig v0.1.2
 	github.com/theckman/yacspin v0.13.12
 	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be
 )
@@ -51,7 +50,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/nwaples/rardecode v1.1.2 // indirect
-	github.com/onsi/gomega v1.24.1 // indirect
 	github.com/peterhellberg/link v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.8 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
