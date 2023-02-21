@@ -28,7 +28,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/https"
 	"github.com/fastly/cli/pkg/commands/logging/kafka"
 	"github.com/fastly/cli/pkg/commands/logging/kinesis"
-	"github.com/fastly/cli/pkg/commands/logging/logentries"
 	"github.com/fastly/cli/pkg/commands/logging/loggly"
 	"github.com/fastly/cli/pkg/commands/logging/logshuttle"
 	"github.com/fastly/cli/pkg/commands/logging/newrelic"
@@ -227,12 +226,6 @@ func defineCommands(
 	loggingKinesisDescribe := kinesis.NewDescribeCommand(loggingKinesisCmdRoot.CmdClause, g, m)
 	loggingKinesisList := kinesis.NewListCommand(loggingKinesisCmdRoot.CmdClause, g, m)
 	loggingKinesisUpdate := kinesis.NewUpdateCommand(loggingKinesisCmdRoot.CmdClause, g, m)
-	loggingLogentriesCmdRoot := logentries.NewRootCommand(loggingCmdRoot.CmdClause, g)
-	loggingLogentriesCreate := logentries.NewCreateCommand(loggingLogentriesCmdRoot.CmdClause, g, m)
-	loggingLogentriesDelete := logentries.NewDeleteCommand(loggingLogentriesCmdRoot.CmdClause, g, m)
-	loggingLogentriesDescribe := logentries.NewDescribeCommand(loggingLogentriesCmdRoot.CmdClause, g, m)
-	loggingLogentriesList := logentries.NewListCommand(loggingLogentriesCmdRoot.CmdClause, g, m)
-	loggingLogentriesUpdate := logentries.NewUpdateCommand(loggingLogentriesCmdRoot.CmdClause, g, m)
 	loggingLogglyCmdRoot := loggly.NewRootCommand(loggingCmdRoot.CmdClause, g)
 	loggingLogglyCreate := loggly.NewCreateCommand(loggingLogglyCmdRoot.CmdClause, g, m)
 	loggingLogglyDelete := loggly.NewDeleteCommand(loggingLogglyCmdRoot.CmdClause, g, m)
@@ -559,12 +552,6 @@ func defineCommands(
 		loggingKinesisDescribe,
 		loggingKinesisList,
 		loggingKinesisUpdate,
-		loggingLogentriesCmdRoot,
-		loggingLogentriesCreate,
-		loggingLogentriesDelete,
-		loggingLogentriesDescribe,
-		loggingLogentriesList,
-		loggingLogentriesUpdate,
 		loggingLogglyCmdRoot,
 		loggingLogglyCreate,
 		loggingLogglyDelete,
