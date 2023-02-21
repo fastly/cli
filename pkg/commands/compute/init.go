@@ -25,6 +25,7 @@ import (
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	cp "github.com/otiai10/copy"
+	"github.com/theckman/yacspin"
 )
 
 var (
@@ -94,15 +95,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	// NOTE: Will be a NullProgress unless --verbose is set.
-	//
-	// This is because we don't want any progress output until later.
-	progress := instantiateProgress(c.Globals.Verbose(), out)
-
 	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
 			errLog.Add(err)
-			progress.Fail() // progress.Done is handled inline
 		}
 	}(c.Globals.ErrLog)
 
@@ -116,12 +111,18 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.Globals.Flags.Quiet {
 		mf.SetQuiet(true)
 	}
-	if c.dir == "" && !mf.Exists() {
-		fmt.Fprintf(progress, "--directory not specified, using current directory\n\n")
+	if c.dir == "" && !mf.Exists() && c.Globals.Verbose() {
+		text.Info(out, "--directory not specified, using current directory")
+		text.Break(out)
 		c.dir = wd
 	}
 
-	dst, err := verifyDestination(c.dir, progress)
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
+
+	dst, err := verifyDestination(c.dir, spinner, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory": c.dir,
@@ -188,10 +189,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
-	// NOTE: From this point onwards we need a non-null progress regardless of
-	// whether --verbose was set or not.
-	progress = text.NewProgress(out, c.Globals.Verbose())
-
 	// We only want to fetch a remote package if c.cloneFrom has been set.
 	// This can happen in two ways:
 	//
@@ -202,7 +199,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// "other" because this means they intend on handling the compilation of code
 	// that isn't natively supported by the platform.
 	if c.cloneFrom != "" {
-		err = fetchPackageTemplate(c, branch, tag, file.Archives, progress, out)
+		err = fetchPackageTemplate(c, branch, tag, file.Archives, spinner, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"From":      from,
@@ -214,7 +211,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	mf, err = updateManifest(mf, progress, c.dir, name, desc, authors, language)
+	mf, err = updateManifest(mf, spinner, c.dir, name, desc, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory":   c.dir,
@@ -224,13 +221,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	language, err = initializeLanguage(progress, language, languages, mf.Language, wd, c.dir)
+	language, err = initializeLanguage(spinner, language, languages, mf.Language, wd, c.dir)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error initializing package: %w", err)
 	}
 
-	progress.Done()
 	displayOutput(mf.Name, dst, language.Name, out)
 	return nil
 }
@@ -263,21 +259,10 @@ func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader
 		if err != nil {
 			return false, err
 		}
-		if result {
-			text.Break(out)
-		}
 		return result, nil
 	}
 
 	return true, nil
-}
-
-// instantiateProgress returns an instance of a text.Progress bar.
-func instantiateProgress(verbose bool, out io.Writer) text.Progress {
-	if verbose {
-		return text.NewVerboseProgress(out)
-	}
-	return text.NewNullProgress()
 }
 
 // verifyDestination checks the provided path exists and is a directory.
@@ -285,7 +270,7 @@ func instantiateProgress(verbose bool, out io.Writer) text.Progress {
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(path string, progress text.Progress) (dst string, err error) {
+func verifyDestination(path string, spinner *yacspin.Spinner, out io.Writer) (dst string, err error) {
 	dst, err = filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -299,18 +284,55 @@ func verifyDestination(path string, progress text.Progress) (dst string, err err
 		return dst, fmt.Errorf("package destination is not a directory") // specific problem
 	}
 	if err != nil && errors.Is(err, fs.ErrNotExist) { // normal-ish case
-		fmt.Fprintf(progress, "Creating %s...\n", dst)
+		text.Break(out)
+
+		err := spinner.Start()
+		if err != nil {
+			return "", err
+		}
+		msg := fmt.Sprintf("Creating %s...", dst)
+		spinner.Message(msg)
+
 		if err := os.MkdirAll(dst, 0o700); err != nil {
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return "", spinErr
+			}
 			return dst, fmt.Errorf("error creating package destination: %w", err)
 		}
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return "", err
+		}
 	}
+
+	text.Break(out)
+	err = spinner.Start()
+	if err != nil {
+		return "", err
+	}
+	msg := "Validating directory permissions..."
+	spinner.Message(msg)
 
 	tmpname := make([]byte, 16)
 	n, err := rand.Read(tmpname)
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return "", spinErr
+		}
 		return dst, fmt.Errorf("error generating random filename: %w", err)
 	}
 	if n != 16 {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return "", spinErr
+		}
 		return dst, fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
 	}
 
@@ -321,17 +343,37 @@ func verifyDestination(path string, progress text.Progress) (dst string, err err
 	/* #nosec */
 	f, err := os.Create(filepath.Join(dst, fmt.Sprintf("tmp_%x", tmpname)))
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return "", spinErr
+		}
 		return dst, fmt.Errorf("error creating file in package destination: %w", err)
 	}
 
 	if err := f.Close(); err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return "", spinErr
+		}
 		return dst, fmt.Errorf("error closing file in package destination: %w", err)
 	}
 
 	if err := os.Remove(f.Name()); err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return "", spinErr
+		}
 		return dst, fmt.Errorf("error removing file in package destination: %w", err)
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return "", err
+	}
 	return dst, nil
 }
 
@@ -345,6 +387,8 @@ func promptOrReturn(
 	in io.Reader,
 	out io.Writer,
 ) (name, description string, authors []string, err error) {
+	text.Break(out)
+
 	name, _ = m.Name()
 	name, err = promptPackageName(flags, name, path, in, out)
 	if err != nil {
@@ -559,10 +603,15 @@ func fetchPackageTemplate(
 	c *InitCommand,
 	branch, tag string,
 	archives []file.Archive,
-	progress text.Progress,
+	spinner *yacspin.Spinner,
 	out io.Writer,
 ) error {
-	progress.Step("Fetching package template...")
+	err := spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Fetching package template..."
+	spinner.Message(msg)
 
 	// If the user has provided a local file path, we'll recursively copy the
 	// directory to c.dir.
@@ -577,8 +626,15 @@ func fetchPackageTemplate(
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		if gitRepositoryRegEx.MatchString(c.cloneFrom) {
-			return clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir)
+			return clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir, spinner, msg)
 		}
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("failed to construct package request URL: %w", err)
 	}
 
@@ -591,6 +647,13 @@ func fetchPackageTemplate(
 	res, err := c.Globals.HTTPClient.Do(req)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("failed to get package: %w", err)
 	}
 	defer res.Body.Close() // #nosec G307
@@ -598,6 +661,13 @@ func fetchPackageTemplate(
 	if res.StatusCode != http.StatusOK {
 		err := fmt.Errorf("failed to get package: %s", res.Status)
 		c.Globals.ErrLog.Add(err)
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return err
 	}
 
@@ -612,6 +682,13 @@ func fetchPackageTemplate(
 	f, err := os.Create(filename)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("failed to create local %s archive: %w", filename, err)
 	}
 	defer func() {
@@ -629,6 +706,13 @@ func fetchPackageTemplate(
 	_, err = io.Copy(f, res.Body)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
 	}
 
@@ -673,6 +757,13 @@ mimes:
 			err := os.Rename(filename, filenameWithExt)
 			if err != nil {
 				c.Globals.ErrLog.Add(err)
+
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
+				}
+
 				return err
 			}
 			filename = filenameWithExt
@@ -684,20 +775,39 @@ mimes:
 		err = archive.Extract()
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
+
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
+
 			return fmt.Errorf("failed to extract %s archive content: %w", filename, err)
 		}
 
 		return nil
 	}
 
-	return clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir)
+	return clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir, spinner, msg)
 }
 
 // clonePackageFromEndpoint clones the given repo (from) into a temp directory,
 // then copies specific files to the destination directory (path).
-func clonePackageFromEndpoint(from string, branch string, tag string, dst string) error {
+func clonePackageFromEndpoint(
+	from string,
+	branch string,
+	tag string,
+	dst string,
+	spinner *yacspin.Spinner,
+	msg string,
+) error {
 	_, err := exec.LookPath("git")
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("`git` not found in $PATH"),
 			Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
@@ -706,11 +816,21 @@ func clonePackageFromEndpoint(from string, branch string, tag string, dst string
 
 	tempdir, err := tempDir("package-init")
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return fmt.Errorf("error creating temporary path for package template: %w", err)
 	}
 	defer os.RemoveAll(tempdir)
 
 	if branch != "" && tag != "" {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return fmt.Errorf("cannot use both git branch and tag name")
 	}
 
@@ -740,10 +860,20 @@ func clonePackageFromEndpoint(from string, branch string, tag string, dst string
 	// nosemgrep (invalid-usage-of-modified-variable)
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return fmt.Errorf("error fetching package template: %w\n\n%s", err, stdoutStderr)
 	}
 
 	if err := os.RemoveAll(filepath.Join(tempdir, ".git")); err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return fmt.Errorf("error removing git metadata from package template: %w", err)
 	}
 
@@ -775,7 +905,18 @@ func clonePackageFromEndpoint(from string, branch string, tag string, dst string
 	})
 
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return fmt.Errorf("error copying files from package template: %w", err)
+	}
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -802,12 +943,17 @@ func tempDir(prefix string) (abspath string, err error) {
 // NOTE: The language argument might be nil (if the user passes --from flag).
 func updateManifest(
 	m manifest.File,
-	progress text.Progress,
+	spinner *yacspin.Spinner,
 	path, name, desc string,
 	authors []string,
 	language *Language,
 ) (manifest.File, error) {
-	progress.Step("Updating package manifest...")
+	err := spinner.Start()
+	if err != nil {
+		return m, err
+	}
+	msg := "Reading package manifest..."
+	spinner.Message(msg)
 
 	mp := filepath.Join(path, manifest.Filename)
 
@@ -822,48 +968,140 @@ func updateManifest(
 				m.Authors = authors
 				m.Language = language.Name
 				if err := m.Write(mp); err != nil {
+					spinner.StopFailMessage(msg)
+					spinErr := spinner.StopFail()
+					if spinErr != nil {
+						return m, spinErr
+					}
 					return m, fmt.Errorf("error saving package manifest: %w", err)
 				}
 				return m, nil
 			}
 		}
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return m, spinErr
+		}
 		return m, fmt.Errorf("error reading package manifest: %w", err)
 	}
 
-	fmt.Fprintf(progress, "Setting package name in manifest to %q...\n", name)
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return m, err
+	}
+
+	err = spinner.Start()
+	if err != nil {
+		return m, err
+	}
+	msg = fmt.Sprintf("Setting package name in manifest to %q...", name)
+	spinner.Message(msg)
+
 	m.Name = name
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return m, err
+	}
 
 	// NOTE: We allow an empty description to be set.
 	m.Description = desc
 	if desc != "" {
 		desc = " to " + desc
 	}
-	fmt.Fprintf(progress, "Setting description in manifest%s...\n", desc)
+
+	err = spinner.Start()
+	if err != nil {
+		return m, err
+	}
+	msg = fmt.Sprintf("Setting description in manifest%s...", desc)
+	spinner.Message(msg)
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return m, err
+	}
 
 	if len(authors) > 0 {
-		fmt.Fprintf(progress, "Setting authors in manifest to %s...\n", strings.Join(authors, ", "))
+		err := spinner.Start()
+		if err != nil {
+			return m, err
+		}
+		msg := fmt.Sprintf("Setting authors in manifest to %s...", strings.Join(authors, ", "))
+		spinner.Message(msg)
+
 		m.Authors = authors
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return m, err
+		}
 	}
 
 	if language != nil {
-		fmt.Fprintf(progress, "Setting language in manifest to %s...\n", language.Name)
+		err := spinner.Start()
+		if err != nil {
+			return m, err
+		}
+		msg := fmt.Sprintf("Setting language in manifest to %s...", language.Name)
+		spinner.Message(msg)
+
 		m.Language = language.Name
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return m, err
+		}
 	}
 
+	err = spinner.Start()
+	if err != nil {
+		return m, err
+	}
+	msg = "Saving manifest changes..."
+	spinner.Message(msg)
+
 	if err := m.Write(mp); err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return m, spinErr
+		}
 		return m, fmt.Errorf("error saving package manifest: %w", err)
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return m, err
+	}
 	return m, nil
 }
 
 // initializeLanguage for newly cloned package.
-func initializeLanguage(progress text.Progress, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
-	progress.Step("Initializing package...")
+func initializeLanguage(spinner *yacspin.Spinner, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
+	err := spinner.Start()
+	if err != nil {
+		return nil, err
+	}
+	msg := "Initializing package..."
+	spinner.Message(msg)
 
 	if wd != path {
 		err := os.Chdir(path)
 		if err != nil {
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return nil, spinErr
+			}
 			return nil, fmt.Errorf("error changing to your project directory: %w", err)
 		}
 	}
@@ -881,10 +1119,20 @@ func initializeLanguage(progress text.Progress, language *Language, languages []
 			}
 		}
 		if !match {
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return nil, spinErr
+			}
 			return nil, fmt.Errorf("unrecognised package language")
 		}
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return nil, err
+	}
 	return language, nil
 }
 
