@@ -96,18 +96,27 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		packagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
 	}
 
-	progress := text.NewProgress(out, c.Globals.Verbose())
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
+
 	defer func() {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
 				"Service Version": serviceVersion.Number,
 			})
-			progress.Fail() // progress.Done is handled inline
 		}
 	}()
 
-	progress.Step("Uploading package...")
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Uploading package..."
+	spinner.Message(msg)
+
 	_, err = c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
@@ -118,12 +127,24 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("error uploading package: %w", err),
 			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
 		}
 	}
-	progress.Done()
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
 
 	text.Success(out, "Updated package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
