@@ -100,6 +100,11 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
+	if c.Globals.Verbose() && c.hasBackendsWithMissingOverrideHost() {
+		text.Info(out, "One of the project's `local_server.backends` has a backend configured without an `override_host` and in some cases can result in unexpected errors. See https://developer.fastly.com/reference/compute/fastly-toml/#local-server for more details.")
+		text.Break(out)
+	}
+
 	progress := text.ResetProgress(out, c.Globals.Verbose())
 
 	bin, err := GetViceroy(progress, out, c.av, c.Globals)
@@ -157,6 +162,17 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	text.Break(out)
 
 	return nil
+}
+
+// hasBackendsWithMissingOverrideHost indicates if any local_server.backends
+// have a missing `override_host` property.
+func (c *ServeCommand) hasBackendsWithMissingOverrideHost() bool {
+	for _, backend := range c.Globals.Manifest.File.LocalServer.Backends {
+		if backend.OverrideHost == "" {
+			return true
+		}
+	}
+	return false
 }
 
 // GetViceroy returns the path to the installed binary.
