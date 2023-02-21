@@ -141,35 +141,15 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", packageName))
 
+	// NOTE: The minimum package requirement is `fastly.toml` and `main.wasm`.
 	files := []string{
 		manifest.Filename,
+		"bin/main.wasm",
 	}
 
-	ignoreFiles, err := GetIgnoredFiles(IgnoreFilePath)
+	files, err = c.includeSourceCode(files, language.SourceDirectory)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
 		return err
-	}
-
-	binFiles, err := GetNonIgnoredFiles("bin", ignoreFiles)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Ignore files": ignoreFiles,
-		})
-		return err
-	}
-	files = append(files, binFiles...)
-
-	if c.Flags.IncludeSrc {
-		srcFiles, err := GetNonIgnoredFiles(language.SourceDirectory, ignoreFiles)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Source directory": language.SourceDirectory,
-				"Ignore files":     ignoreFiles,
-			})
-			return err
-		}
-		files = append(files, srcFiles...)
 	}
 
 	err = CreatePackageArchive(files, dest)
@@ -186,6 +166,47 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	out = originalOut
 	text.Success(out, "Built package (%s)", dest)
 	return nil
+}
+
+// includeSourceCode calculates what source code files to include in the final
+// package.tar.gz that is uploaded to the Fastly API.
+//
+// TODO: Investigate possible change to --include-source flag.
+// The following implementation presumes source code is stored in a constant
+// location, which might not be true for all users. We should look at whether
+// we should change the --include-source flag to not be a boolean but to
+// accept a 'source code' path instead.
+func (c *BuildCommand) includeSourceCode(files []string, srcDir string) ([]string, error) {
+	empty := make([]string, 0)
+
+	if c.Flags.IncludeSrc {
+		ignoreFiles, err := GetIgnoredFiles(IgnoreFilePath)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return empty, err
+		}
+
+		binFiles, err := GetNonIgnoredFiles("bin", ignoreFiles)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Ignore files": ignoreFiles,
+			})
+			return empty, err
+		}
+		files = append(files, binFiles...)
+
+		srcFiles, err := GetNonIgnoredFiles(srcDir, ignoreFiles)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Source directory": srcDir,
+				"Ignore files":     ignoreFiles,
+			})
+			return empty, err
+		}
+		files = append(files, srcFiles...)
+	}
+
+	return files, nil
 }
 
 // packageName acquires the package name from either a flag or manifest.
