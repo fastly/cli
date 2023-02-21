@@ -35,15 +35,18 @@ func NewPackCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Pac
 }
 
 // Exec implements the command interface.
+//
+// NOTE: The bin/manifest is placed in a 'package' folder within the tar.gz.
 func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
-	progress := text.NewProgress(out, c.Globals.Verbose())
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
 
 	defer func(errLog fsterr.LogInterface) {
 		os.RemoveAll("pkg/package")
-
 		if err != nil {
 			errLog.Add(err)
-			progress.Fail()
 		}
 	}(c.Globals.ErrLog)
 
@@ -74,23 +77,55 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		})
 		return err
 	}
-	progress.Step("Copying wasm binary...")
+
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Copying wasm binary..."
+	spinner.Message(msg)
+
 	if err := filesystem.CopyFile(src, dst); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Path (absolute)":             src,
 			"Wasm destination (absolute)": dst,
 		})
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
 	}
 
 	if !filesystem.FileExists(bin) {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("no wasm binary found"),
 			Remediation: "Run `fastly compute pack --path </path/to/wasm/binary>` to copy your wasm binary to the required location",
 		}
 	}
 
-	progress.Step("Copying manifest...")
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
+
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg = "Copying manifest..."
+	spinner.Message(msg)
+
 	src = manifest.Filename
 	dst = fmt.Sprintf("pkg/package/%s", manifest.Filename)
 	if err := filesystem.CopyFile(src, dst); err != nil {
@@ -98,10 +133,29 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 			"Manifest (destination)": dst,
 			"Manifest (source)":      src,
 		})
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("error copying manifest to '%s': %w", dst, err)
 	}
 
-	progress.Step("Creating .tar.gz file...")
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
+
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg = "Creating package.tar.gz file..."
+	spinner.Message(msg)
+
 	tar := archiver.NewTarGz()
 	tar.OverwriteExisting = true
 	{
@@ -113,10 +167,21 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 				"Tar source":      dir,
 				"Tar destination": dst,
 			})
+
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
+
 			return err
 		}
 	}
 
-	progress.Done()
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
 	return nil
 }
