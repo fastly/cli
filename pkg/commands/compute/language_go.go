@@ -12,6 +12,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/theckman/yacspin"
 )
 
 // GoDefaultBuildCommand is a build command compiled into the CLI binary so it
@@ -76,7 +77,7 @@ type Go struct {
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+func (g *Go) Build(out io.Writer, spinner *yacspin.Spinner, verbose bool, callback func() error) error {
 	var noBuildScript bool
 	if g.build == "" {
 		g.build = GoDefaultBuildCommand
@@ -85,7 +86,6 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 
 	if noBuildScript && g.verbose {
 		text.Info(out, "No [scripts.build] found in fastly.toml. The following default build command for Go will be used: `%s`\n", g.build)
-		text.Break(out)
 	}
 
 	g.toolchainConstraint(
@@ -95,8 +95,6 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 		"tinygo", `tinygo version (?P<version>\d[^\s]+)`, g.config.TinyGoConstraint,
 	)
 
-	progress.Step("Running [scripts.build]...")
-
 	bt := BuildToolchain{
 		buildFn:           g.Shell.Build,
 		buildScript:       g.build,
@@ -105,7 +103,7 @@ func (g *Go) Build(out io.Writer, progress text.Progress, verbose bool, callback
 		timeout:           g.timeout,
 		out:               out,
 		postBuildCallback: callback,
-		progress:          progress,
+		spinner:           spinner,
 		verbose:           verbose,
 	}
 
@@ -152,7 +150,6 @@ func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
 
 	if g.verbose {
 		text.Info(g.output, "The Fastly CLI requires a %s version '%s'. ", toolchain, constraint)
-		text.Break(g.output)
 	}
 
 	if !c.Check(v) {
