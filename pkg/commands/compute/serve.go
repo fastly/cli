@@ -28,7 +28,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 	ignore "github.com/sabhiram/go-gitignore"
-	"github.com/tcnksm/go-gitconfig"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -496,7 +495,7 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
 func watchFiles(watchDir cmd.OptionalString, verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
-	gi := gitIgnore(watchDir)
+	gi := ignoreFiles(watchDir)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -605,29 +604,16 @@ func watchFiles(watchDir cmd.OptionalString, verbose bool, s *fstexec.Streaming,
 		log.Fatal(err)
 	}
 
-	text.Info(out, "Watching files for changes (using --watch-dir=%s). To see what files are being watched, pass the --verbose flag. To ignore certain files, configure either .ignore, .gitignore or the global git ignore (uses .ignore and .gitignore from --watch-dir).", root)
+	text.Info(out, "Watching files for changes (using --watch-dir=%s). To see what files are being watched, pass the --verbose flag. To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).", root)
 	text.Break(out)
 	<-done
 }
 
-// gitIgnore returns the specific ignore rules being respected.
-//
-// NOTE: ignore files will be inherited in the following order:
-//
-// - .ignore (local)
-// - .gitignore (local)
-// - core.excludesfile (global)
+// ignoreFiles returns the specific ignore rules being respected.
 //
 // NOTE: We also ignore the .git directory.
-func gitIgnore(watchDir cmd.OptionalString) *ignore.GitIgnore {
-	var (
-		globalIgnore string
-		patterns     []string
-	)
-
-	if f, err := gitconfig.Global("core.excludesfile"); err == nil {
-		globalIgnore = filesystem.ResolveAbs(f)
-	}
+func ignoreFiles(watchDir cmd.OptionalString) *ignore.GitIgnore {
+	var patterns []string
 
 	root := ""
 	if watchDir.WasSet {
@@ -637,10 +623,10 @@ func gitIgnore(watchDir cmd.OptionalString) *ignore.GitIgnore {
 		}
 	}
 
-	localIgnore := root + ".ignore"
-	localGitIgnore := root + ".gitignore"
+	fastlyIgnore := root + ".fastlyignore"
 
-	for _, file := range []string{localIgnore, localGitIgnore, globalIgnore} {
+	// NOTE: Using a loop to allow for future ignore files to be respected.
+	for _, file := range []string{fastlyIgnore} {
 		patterns = append(patterns, readIgnoreFile(file)...)
 	}
 
