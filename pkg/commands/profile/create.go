@@ -17,6 +17,7 @@ import (
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/theckman/yacspin"
 )
 
 // CreateCommand represents a Kingpin command.
@@ -85,22 +86,27 @@ func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, ou
 
 	endpoint, _ := c.Globals.Endpoint()
 
-	progress := text.NewProgress(out, c.Globals.Verbose())
-	defer func() {
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			progress.Fail() // progress.Done is handled inline
-		}
-	}()
-
-	user, err := c.validateToken(token, endpoint, progress)
+	spinner, err := text.NewSpinner(out)
 	if err != nil {
 		return err
 	}
 
-	c.updateInMemCfg(profileName, user.Login, token, endpoint, def, progress)
+	defer func() {
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+		}
+	}()
 
-	progress.Done()
+	user, err := c.validateToken(token, endpoint, spinner)
+	if err != nil {
+		return err
+	}
+
+	err = c.updateInMemCfg(profileName, user.Login, token, endpoint, def, spinner)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -131,20 +137,39 @@ func validateTokenNotEmpty(s string) error {
 var ErrEmptyToken = errors.New("token cannot be empty")
 
 // validateToken ensures the token can be used to acquire user data.
-func (c *CreateCommand) validateToken(token, endpoint string, progress text.Progress) (*fastly.User, error) {
-	progress.Step("Validating token...")
+func (c *CreateCommand) validateToken(token, endpoint string, spinner *yacspin.Spinner) (*fastly.User, error) {
+	err := spinner.Start()
+	if err != nil {
+		return nil, err
+	}
+	msg := "Validating token..."
+	spinner.Message(msg)
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Endpoint": endpoint,
 		})
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return nil, spinErr
+		}
+
 		return nil, fmt.Errorf("error regenerating Fastly API client: %w", err)
 	}
 
 	t, err := client.GetTokenSelf()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return nil, spinErr
+		}
+
 		return nil, fmt.Errorf("error validating token: %w", err)
 	}
 
@@ -155,15 +180,32 @@ func (c *CreateCommand) validateToken(token, endpoint string, progress text.Prog
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"User ID": t.UserID,
 		})
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return nil, spinErr
+		}
+
 		return nil, fmt.Errorf("error fetching token user: %w", err)
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return nil, err
+	}
 	return user, nil
 }
 
 // updateInMemCfg persists the updated configuration data in-memory.
-func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, progress text.Progress) {
-	progress.Step("Persisting configuration...")
+func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, spinner *yacspin.Spinner) error {
+	err := spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Persisting configuration..."
+	spinner.Message(msg)
 
 	c.Globals.Config.Fastly.APIEndpoint = endpoint
 
@@ -184,6 +226,9 @@ func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint strin
 			c.Globals.Config.Profiles = p
 		}
 	}
+
+	spinner.StopMessage(msg)
+	return spinner.Stop()
 }
 
 func (c *CreateCommand) persistCfg() error {

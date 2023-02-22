@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/theckman/yacspin"
 )
 
 // APIClientFactory allows the profile command to regenerate the global Fastly
@@ -80,19 +81,20 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Break(out)
-	text.Break(out)
 
-	progress := text.NewProgress(out, c.Globals.Verbose())
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
-			progress.Fail() // progress.Done is handled inline
 		}
 	}()
 
 	endpoint, _ := c.Globals.Endpoint()
 
-	u, err := c.validateToken(token, endpoint, progress)
+	u, err := c.validateToken(token, endpoint, spinner)
 	if err != nil {
 		return err
 	}
@@ -117,27 +119,44 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("error saving config file: %w", err)
 	}
 
-	progress.Done()
-
 	text.Success(out, "Profile '%s' updated", c.profile)
 	return nil
 }
 
 // validateToken ensures the token can be used to acquire user data.
-func (c *UpdateCommand) validateToken(token, endpoint string, progress text.Progress) (*fastly.User, error) {
-	progress.Step("Validating token...")
+func (c *UpdateCommand) validateToken(token, endpoint string, spinner *yacspin.Spinner) (*fastly.User, error) {
+	err := spinner.Start()
+	if err != nil {
+		return nil, err
+	}
+	msg := "Validating token..."
+	spinner.Message(msg)
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Endpoint": endpoint,
 		})
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return nil, spinErr
+		}
+
 		return nil, fmt.Errorf("error regenerating Fastly API client: %w", err)
 	}
 
 	t, err := client.GetTokenSelf()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return nil, spinErr
+		}
+
 		return nil, fmt.Errorf("error validating token: %w", err)
 	}
 
@@ -148,8 +167,20 @@ func (c *UpdateCommand) validateToken(token, endpoint string, progress text.Prog
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"User ID": t.UserID,
 		})
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return nil, spinErr
+		}
+
 		return nil, fmt.Errorf("error fetching token user: %w", err)
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return nil, err
+	}
 	return user, nil
 }

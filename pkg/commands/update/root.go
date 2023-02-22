@@ -35,39 +35,83 @@ func NewRootCommand(parent cmd.Registerer, configFilePath string, av github.Asse
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
+
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Updating versioning information..."
+	spinner.Message(msg)
+
 	current, latest, shouldUpdate := Check(revision.AppVersion, c.av)
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
 
 	text.Break(out)
 	text.Output(out, "Current version: %s", current)
 	text.Output(out, "Latest version: %s", latest)
 	text.Break(out)
 
-	progress := text.NewProgress(out, c.Globals.Verbose())
-	progress.Step("Updating versioning information...")
-
-	progress.Step("Checking CLI binary update...")
 	if !shouldUpdate {
 		text.Output(out, "No update required.")
 		return nil
 	}
 
-	progress.Step("Fetching latest release...")
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg = "Fetching latest release..."
+	spinner.Message(msg)
+
 	tmpBin, err := c.av.Download()
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Current CLI version": current,
 			"Latest CLI version":  latest,
 		})
-		progress.Fail()
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("error downloading latest release: %w", err)
 	}
 	defer os.RemoveAll(tmpBin)
 
-	progress.Step("Replacing binary...")
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
+
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg = "Replacing binary..."
+	spinner.Message(msg)
+
 	execPath, err := os.Executable()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
-		progress.Fail()
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("error determining executable path: %w", err)
 	}
 
@@ -76,7 +120,13 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Executable path": execPath,
 		})
-		progress.Fail()
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("error determining absolute target path: %w", err)
 	}
 
@@ -103,13 +153,22 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 				"Executable (source)":      tmpBin,
 				"Executable (destination)": currentPath,
 			})
-			progress.Fail()
+
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
 
 			return fmt.Errorf("error moving latest binary in place: %w", err)
 		}
 	}
 
-	progress.Done()
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
 
 	text.Success(out, "Updated %s to %s.", currentPath, latest)
 	return nil

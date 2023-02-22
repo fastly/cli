@@ -78,7 +78,7 @@ func TestServiceAuthList(t *testing.T) {
 		{
 			args:       args("service-auth list --verbose"),
 			api:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
-			wantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\nAuth ID: 123\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
+			wantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\n\nAuth ID: 123\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
 		},
 	}
 	for testcaseIdx := range scenarios {

@@ -376,6 +376,7 @@ SERVICE  VERSION  NAME             COMMENT
 var listDomainsVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+
 Service ID (via --service-id): 123
 
 Version: 1

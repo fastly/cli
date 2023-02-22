@@ -18,6 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
+	"github.com/theckman/yacspin"
 )
 
 // RustDefaultBuildCommand is a build command compiled into the CLI binary so it
@@ -85,7 +86,7 @@ type Rust struct {
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
+func (r *Rust) Build(out io.Writer, spinner *yacspin.Spinner, verbose bool, callback func() error) error {
 	var noBuildScript bool
 	if r.build == "" {
 		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName)
@@ -99,12 +100,9 @@ func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callba
 
 	if noBuildScript && r.verbose {
 		text.Info(out, "No [scripts.build] found in fastly.toml. The following default build command for Rust will be used: `%s`\n", r.build)
-		text.Break(out)
 	}
 
 	r.toolchainConstraint()
-
-	progress.Step("Running [scripts.build]...")
 
 	bt := BuildToolchain{
 		buildFn:                   r.Shell.Build,
@@ -115,7 +113,7 @@ func (r *Rust) Build(out io.Writer, progress text.Progress, verbose bool, callba
 		timeout:                   r.timeout,
 		out:                       out,
 		postBuildCallback:         callback,
-		progress:                  progress,
+		spinner:                   spinner,
 		verbose:                   verbose,
 	}
 
@@ -149,6 +147,7 @@ func (r *Rust) modifyCargoPackageName() error {
 	}
 
 	if r.verbose {
+		text.Break(r.output)
 		text.Output(r.output, "Command output for '%s': %s", s, stdout.String())
 	}
 
@@ -212,7 +211,6 @@ func (r *Rust) toolchainConstraint() {
 
 	if r.verbose {
 		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'. ", r.config.ToolchainConstraint)
-		text.Break(r.output)
 	}
 
 	if !c.Check(v) {

@@ -9,6 +9,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/theckman/yacspin"
 )
 
 // DefaultBuildErrorRemediation is the message returned to a user when there is
@@ -30,7 +31,7 @@ For more information on fastly.toml configuration settings, refer to https://dev
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
 	// Build compiles the user's source code into a Wasm binary.
-	Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error
+	Build(out io.Writer, spinner *yacspin.Spinner, verbose bool, callback func() error) error
 }
 
 // BuildToolchain enables a language toolchain to compile their build script.
@@ -42,16 +43,45 @@ type BuildToolchain struct {
 	out                       io.Writer
 	postBuild                 string
 	postBuildCallback         func() error
-	progress                  text.Progress
+	spinner                   *yacspin.Spinner
 	timeout                   int
 	verbose                   bool
 }
 
 // Build compiles the user's source code into a Wasm binary.
 func (bt BuildToolchain) Build() error {
-	err := bt.execCommand(bt.buildScript)
+	var (
+		err error
+		msg string
+	)
+
+	if !bt.verbose {
+		err = bt.spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = "Running [scripts.build]..."
+		bt.spinner.Message(msg)
+	}
+
+	err = bt.execCommand(bt.buildScript)
 	if err != nil {
+		if !bt.verbose {
+			bt.spinner.StopFailMessage(msg)
+			spinErr := bt.spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
+		}
 		return bt.handleError(err)
+	}
+
+	if !bt.verbose {
+		bt.spinner.StopMessage(msg)
+		err = bt.spinner.Stop()
+		if err != nil {
+			return err
+		}
 	}
 
 	// NOTE: internalPostBuildCallback is only used by Rust currently.
@@ -72,18 +102,31 @@ func (bt BuildToolchain) Build() error {
 		return bt.handleError(err)
 	}
 
-	// NOTE: We set the progress indicator to Done() so that any output we now
-	// print via the post_build callback doesn't get hidden by the progress status.
-	// The progress is 'reset' inside the main build controller `build.go`.
-	bt.progress.Done()
+	err = bt.spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg = "Running post_build callback..."
+	bt.spinner.Message(msg)
 
 	if bt.postBuild != "" {
 		if err = bt.postBuildCallback(); err == nil {
 			err := bt.execCommand(bt.postBuild)
 			if err != nil {
+				bt.spinner.StopFailMessage(msg)
+				spinErr := bt.spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
+				}
 				return bt.handleError(err)
 			}
 		}
+	}
+
+	bt.spinner.StopMessage(msg)
+	err = bt.spinner.Stop()
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -108,12 +151,11 @@ func (bt BuildToolchain) execCommand(script string) error {
 	cmd, args := bt.buildFn(script)
 
 	s := fstexec.Streaming{
-		Command:  cmd,
-		Args:     args,
-		Env:      os.Environ(),
-		Output:   bt.out,
-		Progress: bt.progress,
-		Verbose:  bt.verbose,
+		Command: cmd,
+		Args:    args,
+		Env:     os.Environ(),
+		Output:  bt.out,
+		Verbose: bt.verbose,
 	}
 	if bt.timeout > 0 {
 		s.Timeout = time.Duration(bt.timeout) * time.Second

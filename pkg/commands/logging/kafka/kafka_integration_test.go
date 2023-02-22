@@ -357,6 +357,7 @@ SERVICE  VERSION  NAME
 var listKafkasVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+
 Service ID (via --service-id): 123
 
 Version: 1
@@ -403,7 +404,7 @@ Version: 1
 		Max batch size: 0
 		SASL authentication method: 
 		SASL authentication username: 
-		SASL authentication password: 
+		SASL authentication password:
 `) + " \n\n"
 
 func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {

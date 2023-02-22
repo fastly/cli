@@ -408,5 +408,6 @@ bar@example.com  bar   superuser  false   current123
 func listVerboseOutput() string {
 	return fmt.Sprintf(`Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
+
 %s%s`, describeUserOutput(), describeCurrentUserOutput())
 }

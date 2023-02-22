@@ -154,11 +154,11 @@ func Run(opts RunOpts) error {
 	if g.Verbose() {
 		switch source {
 		case lookup.SourceEnvironment:
-			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via %s): %s\n", env.Endpoint, endpoint)
+			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via %s): %s\n\n", env.Endpoint, endpoint)
 		case lookup.SourceFile:
-			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via config file): %s\n", endpoint)
+			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via config file): %s\n\n", endpoint)
 		default:
-			fmt.Fprintf(opts.Stdout, "Fastly API endpoint: %s\n", endpoint)
+			fmt.Fprintf(opts.Stdout, "Fastly API endpoint: %s\n\n", endpoint)
 		}
 	}
 

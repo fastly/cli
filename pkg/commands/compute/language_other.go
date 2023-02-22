@@ -5,7 +5,7 @@ import (
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/theckman/yacspin"
 )
 
 // NewOther constructs a new unsupported language instance.
@@ -37,9 +37,7 @@ type Other struct {
 
 // Build implements the Toolchain interface and attempts to compile the package
 // source to a Wasm binary.
-func (o Other) Build(out io.Writer, progress text.Progress, verbose bool, callback func() error) error {
-	progress.Step("Running [scripts.build]...")
-
+func (o Other) Build(out io.Writer, spinner *yacspin.Spinner, verbose bool, callback func() error) error {
 	bt := BuildToolchain{
 		buildFn:           o.Shell.Build,
 		buildScript:       o.build,
@@ -48,9 +46,8 @@ func (o Other) Build(out io.Writer, progress text.Progress, verbose bool, callba
 		timeout:           o.timeout,
 		out:               out,
 		postBuildCallback: callback,
-		progress:          progress,
+		spinner:           spinner,
 		verbose:           verbose,
 	}
-
 	return bt.Build()
 }

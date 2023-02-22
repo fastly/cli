@@ -70,16 +70,24 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.Globals.Flags.Quiet {
 		out = io.Discard
 	}
-	progress := text.NewProgress(out, c.Globals.Verbose())
+
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
 
 	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
 			errLog.Add(err)
-			progress.Fail() // progress.Done is handled inline
 		}
 	}(c.Globals.ErrLog)
 
-	progress.Step("Verifying package manifest...")
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Verifying package manifest..."
+	spinner.Message(msg)
 
 	err = c.Manifest.File.ReadError()
 	if err != nil {
@@ -87,20 +95,69 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			err = fsterr.ErrReadingManifest
 		}
 		c.Globals.ErrLog.Add(err)
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return err
 	}
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
+
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg = "Identifying package name..."
+	spinner.Message(msg)
 
 	packageName, err := packageName(c)
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return err
 	}
 
-	toolchain, err := toolchain(c)
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
 	if err != nil {
 		return err
 	}
 
-	language, err := language(toolchain, c, progress)
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg = "Identifying toolchain..."
+	spinner.Message(msg)
+
+	toolchain, err := toolchain(c)
+	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+		return err
+	}
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
+
+	language, err := language(toolchain, c, out)
 	if err != nil {
 		return err
 	}
@@ -109,11 +166,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-
-	// NOTE: We set the progress indicator to Done() so that any output we now
-	// print doesn't get hidden by the progress status.
-	progress.Done()
-	progress = text.ResetProgress(out, c.Globals.Verbose())
 
 	postBuildCallback := func() error {
 		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
@@ -125,19 +177,19 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	if err := language.Build(out, progress, c.Globals.Flags.Verbose, postBuildCallback); err != nil {
+	if err := language.Build(out, spinner, c.Globals.Flags.Verbose, postBuildCallback); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Language": language.Name,
 		})
 		return err
 	}
 
-	if c.Globals.Verbose() {
-		text.Break(out)
+	err = spinner.Start()
+	if err != nil {
+		return err
 	}
-
-	progress = text.ResetProgress(out, c.Globals.Verbose())
-	progress.Step("Creating package archive...")
+	msg = "Creating package archive..."
+	spinner.Message(msg)
 
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", packageName))
 
@@ -149,6 +201,11 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	files, err = c.includeSourceCode(files, language.SourceDirectory)
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
 		return err
 	}
 
@@ -158,10 +215,21 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			"Files":       files,
 			"Destination": dest,
 		})
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
 		return fmt.Errorf("error creating package archive: %w", err)
 	}
 
-	progress.Done()
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
 
 	out = originalOut
 	text.Success(out, "Built package (%s)", dest)
@@ -250,7 +318,7 @@ func toolchain(c *BuildCommand) (string, error) {
 }
 
 // language returns a pointer to a supported language.
-func language(toolchain string, c *BuildCommand, progress text.Progress) (*Language, error) {
+func language(toolchain string, c *BuildCommand, out io.Writer) (*Language, error) {
 	var language *Language
 	switch toolchain {
 	case "assemblyscript":
@@ -261,7 +329,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress) (*Langu
 				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
-				progress,
+				out,
 				c.Globals.Verbose(),
 			),
 		})
@@ -274,7 +342,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress) (*Langu
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				c.Globals.Config.Language.Go,
-				progress,
+				out,
 				c.Globals.Verbose(),
 			),
 		})
@@ -286,7 +354,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress) (*Langu
 				&c.Manifest.File,
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
-				progress,
+				out,
 				c.Globals.Verbose(),
 			),
 		})
@@ -299,7 +367,7 @@ func language(toolchain string, c *BuildCommand, progress text.Progress) (*Langu
 				c.Globals.ErrLog,
 				c.Flags.Timeout,
 				c.Globals.Config.Language.Rust,
-				progress,
+				out,
 				c.Globals.Verbose(),
 			),
 		})

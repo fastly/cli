@@ -393,6 +393,7 @@ func listTokenOutputVerbose() string {
 	return `Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
 
+
 ID: 123
 Name: Foo
 User ID: 456
@@ -413,7 +414,9 @@ IP: 127.0.0.2
 
 Created at: 2021-06-15 23:00:00 +0000 UTC
 Last used at: 2021-06-15 23:00:00 +0000 UTC
-Expires at: 2021-06-15 23:00:00 +0000 UTC`
+Expires at: 2021-06-15 23:00:00 +0000 UTC
+
+`
 }
 
 func listTokenOutputSummary(env bool) string {

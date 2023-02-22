@@ -28,7 +28,6 @@ type Streaming struct {
 	Env      []string
 	Output   io.Writer
 	Process  *os.Process
-	Progress io.Writer
 	SignalCh chan os.Signal
 	Timeout  time.Duration
 	Verbose  bool
@@ -93,23 +92,9 @@ func (s *Streaming) Exec() error {
 	// Pipe the child process stdout and stderr to our own output writer.
 	var stdoutBuf, stderrBuf threadsafe.Buffer
 
-	// NOTE: Historically this Exec() function would use a text.Progress as an
-	// io.Writer so that the command output could be constrained to a single
-	// line. But now we have commands such as `compute serve` that want the full
-	// output to be displayed so the user can see things like compilation errors.
-	//
-	// The Streaming type now has both s.Out and s.Progress fields.
-	//
-	// We presume s.Output to always be set and s.Progress to sometimes be set.
-	//
-	// With that in mind, we default to setting `output` to be s.Output and will
-	// override it to be s.Progress if it has been set. We'll then have to
-	// override it back to s.Output if the user themselves have appended the
-	// --verbose flag.
-	output := s.Output
-	if s.Progress != nil {
-		output = s.Progress
-	}
+	// We discard the build output unless we're in verbose mode.
+	output := io.Discard
+
 	if s.Verbose {
 		output = s.Output
 		text.Info(output, "Command output:")
@@ -121,8 +106,8 @@ func (s *Streaming) Exec() error {
 
 	if err := cmd.Start(); err != nil {
 		if s.Verbose {
-			text.Break(output)
 			text.Output(output, divider)
+			text.Break(output)
 		}
 		return err
 	}
@@ -155,15 +140,15 @@ func (s *Streaming) Exec() error {
 			ctx = fmt.Sprintf(":%s\n\n%s", cmdOutput, err)
 		}
 		if s.Verbose {
-			text.Break(output)
 			text.Output(output, divider)
+			text.Break(output)
 		}
 		return fmt.Errorf("error during execution process%s", ctx)
 	}
 
 	if s.Verbose {
-		text.Break(output)
 		text.Output(output, divider)
+		text.Break(output)
 	}
 	return nil
 }

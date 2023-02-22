@@ -115,7 +115,7 @@ func (c *ListCommand) constructInput() *fastly.ListCustomTLSCertificatesInput {
 // format.
 func printVerbose(out io.Writer, rs []*fastly.CustomTLSCertificate) {
 	for _, r := range rs {
-		fmt.Fprintf(out, "\nID: %s\n", r.ID)
+		fmt.Fprintf(out, "ID: %s\n", r.ID)
 		fmt.Fprintf(out, "Issued to: %s\n", r.IssuedTo)
 		fmt.Fprintf(out, "Issuer: %s\n", r.Issuer)
 		fmt.Fprintf(out, "Name: %s\n", r.Name)
