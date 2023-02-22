@@ -530,8 +530,8 @@ func createService(
 	if err != nil {
 		return "", nil, err
 	}
-	msg := "Creating service..."
-	spinner.Message(msg)
+	msg := "Creating service"
+	spinner.Message(msg + "...")
 
 	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
 		Name: &serviceName,
@@ -763,8 +763,8 @@ func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, ver
 	if err != nil {
 		return err
 	}
-	msg := "Uploading package..."
-	spinner.Message(msg)
+	msg := "Uploading package"
+	spinner.Message(msg + "...")
 
 	_, err = client.UpdatePackage(&fastly.UpdatePackageInput{
 		ServiceID:      serviceID,
@@ -1095,8 +1095,8 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, spin
 	if err != nil {
 		return err
 	}
-	msg := "Activating version..."
-	spinner.Message(msg)
+	msg := "Activating version"
+	spinner.Message(msg + "...")
 
 	_, err = c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
 		ServiceID:      serviceID,

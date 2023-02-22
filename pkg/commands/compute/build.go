@@ -86,8 +86,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg := "Verifying package manifest..."
-	spinner.Message(msg)
+	msg := "Verifying package manifest"
+	spinner.Message(msg + "...")
 
 	err = c.Manifest.File.ReadError()
 	if err != nil {
@@ -115,8 +115,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg = "Identifying package name..."
-	spinner.Message(msg)
+	msg = "Identifying package name"
+	spinner.Message(msg + "...")
 
 	packageName, err := packageName(c)
 	if err != nil {
@@ -138,8 +138,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg = "Identifying toolchain..."
-	spinner.Message(msg)
+	msg = "Identifying toolchain"
+	spinner.Message(msg + "...")
 
 	toolchain, err := toolchain(c)
 	if err != nil {
@@ -188,8 +188,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg = "Creating package archive..."
-	spinner.Message(msg)
+	msg = "Creating package archive"
+	spinner.Message(msg + "...")
 
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", packageName))
 

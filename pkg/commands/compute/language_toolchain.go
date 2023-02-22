@@ -62,8 +62,8 @@ func (bt BuildToolchain) Build() error {
 	if err != nil {
 		return err
 	}
-	msg = "Running [scripts.build]..."
-	bt.spinner.Message(msg)
+	msg = "Running [scripts.build]"
+	bt.spinner.Message(msg + "...")
 
 	bt.spinner.StopMessage(msg)
 	err = bt.spinner.Stop()
@@ -98,8 +98,8 @@ func (bt BuildToolchain) Build() error {
 	if err != nil {
 		return err
 	}
-	msg = "Running post_build callback..."
-	bt.spinner.Message(msg)
+	msg = "Running post_build callback"
+	bt.spinner.Message(msg + "...")
 
 	bt.spinner.StopMessage(msg)
 	err = bt.spinner.Stop()

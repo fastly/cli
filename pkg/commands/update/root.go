@@ -44,8 +44,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	msg := "Updating versioning information..."
-	spinner.Message(msg)
+	msg := "Updating versioning information"
+	spinner.Message(msg + "...")
 
 	current, latest, shouldUpdate := Check(revision.AppVersion, c.av)
 
@@ -69,8 +69,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	msg = "Fetching latest release..."
-	spinner.Message(msg)
+	msg = "Fetching latest release"
+	spinner.Message(msg + "...")
 
 	tmpBin, err := c.av.Download()
 	if err != nil {
@@ -99,8 +99,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	msg = "Replacing binary..."
-	spinner.Message(msg)
+	msg = "Replacing binary"
+	spinner.Message(msg + "...")
 
 	execPath, err := os.Executable()
 	if err != nil {

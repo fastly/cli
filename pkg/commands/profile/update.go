@@ -128,8 +128,8 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	if err != nil {
 		return nil, err
 	}
-	msg := "Validating token..."
-	spinner.Message(msg)
+	msg := "Validating token"
+	spinner.Message(msg + "...")
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {

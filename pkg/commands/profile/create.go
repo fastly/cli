@@ -141,8 +141,8 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	if err != nil {
 		return nil, err
 	}
-	msg := "Validating token..."
-	spinner.Message(msg)
+	msg := "Validating token"
+	spinner.Message(msg + "...")
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
@@ -203,8 +203,8 @@ func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint strin
 	if err != nil {
 		return err
 	}
-	msg := "Persisting configuration..."
-	spinner.Message(msg)
+	msg := "Persisting configuration"
+	spinner.Message(msg + "...")
 
 	c.Globals.Config.Fastly.APIEndpoint = endpoint
 

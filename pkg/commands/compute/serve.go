@@ -119,8 +119,8 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg := "Running local server..."
-	spinner.Message(msg)
+	msg := "Running local server"
+	spinner.Message(msg + "...")
 
 	spinner.StopMessage(msg)
 	err = spinner.Stop()
@@ -242,8 +242,8 @@ func GetViceroy(spinner text.Spinner, out io.Writer, av github.AssetVersioner, g
 		if err != nil {
 			return bin, err
 		}
-		msg := "Checking latest Viceroy release..."
-		spinner.Message(msg)
+		msg := "Checking latest Viceroy release"
+		spinner.Message(msg + "...")
 
 		v, err := av.Version()
 		if err != nil {
@@ -345,8 +345,8 @@ func installViceroy(spinner text.Spinner, av github.AssetVersioner, bin string) 
 	if err != nil {
 		return err
 	}
-	msg := "Fetching latest Viceroy release..."
-	spinner.Message(msg)
+	msg := "Fetching latest Viceroy release"
+	spinner.Message(msg + "...")
 
 	tmpBin, err := av.Download()
 	if err != nil {
@@ -392,8 +392,8 @@ func updateViceroy(
 	if err != nil {
 		return err
 	}
-	msg := "Checking installed Viceroy version..."
-	spinner.Message(msg)
+	msg := "Checking installed Viceroy version"
+	spinner.Message(msg + "...")
 
 	viceroyError := fsterr.RemediationError{
 		Inner:       fmt.Errorf("a Viceroy version was not found"),
@@ -447,8 +447,8 @@ func updateViceroy(
 		if err != nil {
 			return err
 		}
-		msg := "Fetching latest Viceroy release..."
-		spinner.Message(msg)
+		msg := "Fetching latest Viceroy release"
+		spinner.Message(msg + "...")
 
 		tmpBin, err := av.Download()
 		if err != nil {
@@ -465,8 +465,8 @@ func updateViceroy(
 		if err != nil {
 			return err
 		}
-		msg = "Replacing Viceroy binary..."
-		spinner.Message(msg)
+		msg = "Replacing Viceroy binary"
+		spinner.Message(msg + "...")
 
 		if err := os.Rename(tmpBin, bin); err != nil {
 			if err := filesystem.CopyFile(tmpBin, bin); err != nil {
