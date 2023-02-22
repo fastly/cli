@@ -8,7 +8,6 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/theckman/yacspin"
 )
 
 // AsDefaultBuildCommand is a build command compiled into the CLI binary so it
@@ -74,7 +73,7 @@ type AssemblyScript struct {
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (a *AssemblyScript) Build(out io.Writer, spinner *yacspin.Spinner, verbose bool, callback func() error) error {
+func (a *AssemblyScript) Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error {
 	var noBuildScript bool
 	if a.build == "" {
 		a.build = AsDefaultBuildCommand

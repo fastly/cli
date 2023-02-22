@@ -12,7 +12,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
-	"github.com/theckman/yacspin"
 )
 
 // Backends represents the service state related to backends defined within the
@@ -24,7 +23,7 @@ type Backends struct {
 	APIClient      api.Interface
 	AcceptDefaults bool
 	NonInteractive bool
-	Spinner        *yacspin.Spinner
+	Spinner        text.Spinner
 	ServiceID      string
 	ServiceVersion int
 	Setup          map[string]*manifest.SetupBackend

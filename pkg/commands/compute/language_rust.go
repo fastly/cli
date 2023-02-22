@@ -18,7 +18,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
-	"github.com/theckman/yacspin"
 )
 
 // RustDefaultBuildCommand is a build command compiled into the CLI binary so it
@@ -86,7 +85,7 @@ type Rust struct {
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (r *Rust) Build(out io.Writer, spinner *yacspin.Spinner, verbose bool, callback func() error) error {
+func (r *Rust) Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error {
 	var noBuildScript bool
 	if r.build == "" {
 		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName)

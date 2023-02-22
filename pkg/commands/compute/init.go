@@ -25,7 +25,6 @@ import (
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	cp "github.com/otiai10/copy"
-	"github.com/theckman/yacspin"
 )
 
 var (
@@ -268,7 +267,7 @@ func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(path string, spinner *yacspin.Spinner, out io.Writer) (dst string, err error) {
+func verifyDestination(path string, spinner text.Spinner, out io.Writer) (dst string, err error) {
 	dst, err = filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -611,7 +610,7 @@ func fetchPackageTemplate(
 	c *InitCommand,
 	branch, tag string,
 	archives []file.Archive,
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 	out io.Writer,
 ) error {
 	text.Break(out)
@@ -963,7 +962,7 @@ func tempDir(prefix string) (abspath string, err error) {
 // NOTE: The language argument might be nil (if the user passes --from flag).
 func updateManifest(
 	m manifest.File,
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 	path, name, desc string,
 	authors []string,
 	language *Language,

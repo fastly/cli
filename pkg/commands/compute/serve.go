@@ -29,7 +29,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 	ignore "github.com/sabhiram/go-gitignore"
-	"github.com/theckman/yacspin"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -198,7 +197,7 @@ func (c *ServeCommand) hasBackendsWithMissingOverrideHost() bool {
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func GetViceroy(spinner *yacspin.Spinner, out io.Writer, av github.AssetVersioner, g *global.Data) (bin string, err error) {
+func GetViceroy(spinner text.Spinner, out io.Writer, av github.AssetVersioner, g *global.Data) (bin string, err error) {
 	bin = filepath.Join(InstallDir, av.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
@@ -341,7 +340,7 @@ var InstallDir = func() string {
 }()
 
 // installViceroy downloads the latest release from GitHub.
-func installViceroy(spinner *yacspin.Spinner, av github.AssetVersioner, bin string) error {
+func installViceroy(spinner text.Spinner, av github.AssetVersioner, bin string) error {
 	err := spinner.Start()
 	if err != nil {
 		return err
@@ -382,7 +381,7 @@ func installViceroy(spinner *yacspin.Spinner, av github.AssetVersioner, bin stri
 // updateViceroy checks if the currently installed version is out-of-date and
 // downloads the latest release from GitHub.
 func updateViceroy(
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 	version string,
 	out io.Writer,
 	av github.AssetVersioner,

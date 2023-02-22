@@ -12,7 +12,6 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
-	"github.com/theckman/yacspin"
 )
 
 const defaultTopLevelDomain = "edgecompute.app"
@@ -28,7 +27,7 @@ type Domains struct {
 	AcceptDefaults bool
 	NonInteractive bool
 	PackageDomain  string
-	Spinner        *yacspin.Spinner
+	Spinner        text.Spinner
 	RetryLimit     int
 	ServiceID      string
 	ServiceVersion int

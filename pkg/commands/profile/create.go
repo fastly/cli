@@ -17,7 +17,6 @@ import (
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
-	"github.com/theckman/yacspin"
 )
 
 // CreateCommand represents a Kingpin command.
@@ -137,7 +136,7 @@ func validateTokenNotEmpty(s string) error {
 var ErrEmptyToken = errors.New("token cannot be empty")
 
 // validateToken ensures the token can be used to acquire user data.
-func (c *CreateCommand) validateToken(token, endpoint string, spinner *yacspin.Spinner) (*fastly.User, error) {
+func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinner) (*fastly.User, error) {
 	err := spinner.Start()
 	if err != nil {
 		return nil, err
@@ -199,7 +198,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner *yacspin.S
 }
 
 // updateInMemCfg persists the updated configuration data in-memory.
-func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, spinner *yacspin.Spinner) error {
+func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, spinner text.Spinner) error {
 	err := spinner.Start()
 	if err != nil {
 		return err

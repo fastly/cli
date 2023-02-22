@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
-	"github.com/theckman/yacspin"
 )
 
 // Dictionaries represents the service state related to dictionaries defined
@@ -21,7 +20,7 @@ type Dictionaries struct {
 	APIClient      api.Interface
 	AcceptDefaults bool
 	NonInteractive bool
-	Spinner        *yacspin.Spinner
+	Spinner        text.Spinner
 	ServiceID      string
 	ServiceVersion int
 	Setup          map[string]*manifest.SetupDictionary

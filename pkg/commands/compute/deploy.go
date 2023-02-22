@@ -26,7 +26,6 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
-	"github.com/theckman/yacspin"
 )
 
 const (
@@ -418,7 +417,7 @@ func serviceManagement(
 	in io.Reader,
 	out io.Writer,
 	fnActivateTrial activator,
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 ) (newService bool, updatedServiceID string, serviceVersion *fastly.Version, cont bool, err error) {
 	if source == manifest.SourceUndefined {
 		newService = true
@@ -453,7 +452,7 @@ func manageNoServiceIDFlow(
 	errLog fsterr.LogInterface,
 	manifestFile *manifest.File,
 	fnActivateTrial activator,
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
 	if !f.AutoYes && !f.NonInteractive {
 		text.Break(out)
@@ -522,7 +521,7 @@ func createService(
 	serviceName string,
 	apiClient api.Interface,
 	fnActivateTrial activator,
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 	errLog fsterr.LogInterface,
 	out io.Writer,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
@@ -759,7 +758,7 @@ func getHashSum(contents map[string]*bytes.Buffer) (hash string, err error) {
 }
 
 // pkgUpload uploads the package to the specified service and version.
-func pkgUpload(spinner *yacspin.Spinner, client api.Interface, serviceID string, version int, path string) error {
+func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, version int, path string) error {
 	err := spinner.Start()
 	if err != nil {
 		return err
@@ -976,7 +975,7 @@ func processSetupCreation(
 	backends *setup.Backends,
 	dictionaries *setup.Dictionaries,
 	objectStores *setup.ObjectStores,
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 	c *DeployCommand,
 	serviceID string,
 	serviceVersion int,
@@ -1051,7 +1050,7 @@ func processPackage(
 	c *DeployCommand,
 	hashSum, pkgPath, serviceID string,
 	serviceVersion int,
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 	out io.Writer,
 ) (cont bool, err error) {
 	cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion, hashSum, out)
@@ -1080,7 +1079,7 @@ func processPackage(
 	return true, nil
 }
 
-func processService(c *DeployCommand, serviceID string, serviceVersion int, spinner *yacspin.Spinner) error {
+func processService(c *DeployCommand, serviceID string, serviceVersion int, spinner text.Spinner) error {
 	if c.Comment.WasSet {
 		_, err := c.Globals.APIClient.UpdateVersion(&fastly.UpdateVersionInput{
 			ServiceID:      serviceID,
