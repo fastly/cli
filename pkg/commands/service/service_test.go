@@ -525,6 +525,7 @@ Bar   456  wasm  1               2015-03-14 12:59
 var listServicesVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+
 Service 1/3
 	ID: 123
 	Name: Foo
@@ -671,6 +672,7 @@ Versions: 2
 var describeServiceVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+
 Service ID (via --service-id): 123
 
 ID: 123
@@ -780,6 +782,7 @@ Versions: 2
 var searchServiceVerboseOutput = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+
 ID: 123
 Name: Foo
 Type: wasm

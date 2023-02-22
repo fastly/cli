@@ -465,6 +465,7 @@ var updateDictionaryOutputVerbose = strings.Join(
 	[]string{
 		"Fastly API token not provided",
 		"Fastly API endpoint: https://api.fastly.com",
+		"",
 		"Service ID (via --service-id): 123",
 		"",
 		"Service version 1 is not editable, so it was automatically cloned because --autoclone is",
@@ -508,6 +509,7 @@ Deleted (UTC): 2001-02-03 04:05
 var describeDictionaryOutputVerbose = strings.TrimSpace(`
 Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+
 Service ID (via --service-id): 123
 
 Version: 1

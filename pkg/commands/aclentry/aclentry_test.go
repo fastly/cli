@@ -349,6 +349,7 @@ var listACLEntriesOutputPageTwo = `SERVICE ID  ID   IP         SUBNET  NEGATED
 
 var listACLEntriesOutputVerbose = `Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+
 Service ID (via --service-id): 123
 
 ACL ID: 123
@@ -372,6 +373,7 @@ Comment: bar
 Created at: 2021-06-15 23:00:00 +0000 UTC
 Updated at: 2021-06-15 23:00:00 +0000 UTC
 Deleted at: 2021-06-15 23:00:00 +0000 UTC
+
 `
 
 func TestACLEntryUpdate(t *testing.T) {

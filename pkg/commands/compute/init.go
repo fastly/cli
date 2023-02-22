@@ -629,14 +629,42 @@ func fetchPackageTemplate(
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 	} else if fi.IsDir() {
-		return cp.Copy(c.cloneFrom, c.dir)
+		if err := cp.Copy(c.cloneFrom, c.dir); err != nil {
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
+			return err
+		}
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	req, err := http.NewRequest("GET", c.cloneFrom, nil)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		if gitRepositoryRegEx.MatchString(c.cloneFrom) {
-			return clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir, spinner, msg)
+			if err := clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir); err != nil {
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
+				}
+				return err
+			}
+
+			spinner.StopMessage(msg)
+			err = spinner.Stop()
+			if err != nil {
+				return err
+			}
+			return nil
 		}
 
 		spinner.StopFailMessage(msg)
@@ -795,10 +823,29 @@ mimes:
 			return fmt.Errorf("failed to extract %s archive content: %w", filename, err)
 		}
 
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
-	return clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir, spinner, msg)
+	if err := clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir); err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+		return err
+	}
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // clonePackageFromEndpoint clones the given repo (from) into a temp directory,
@@ -808,16 +855,9 @@ func clonePackageFromEndpoint(
 	branch string,
 	tag string,
 	dst string,
-	spinner *yacspin.Spinner,
-	msg string,
 ) error {
 	_, err := exec.LookPath("git")
 	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("`git` not found in $PATH"),
 			Remediation: fmt.Sprintf("The Fastly CLI requires a local installation of git.  For installation instructions for your operating system see:\n\n\t$ %s", text.Bold("https://git-scm.com/book/en/v2/Getting-Started-Installing-Git")),
@@ -826,21 +866,11 @@ func clonePackageFromEndpoint(
 
 	tempdir, err := tempDir("package-init")
 	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
 		return fmt.Errorf("error creating temporary path for package template: %w", err)
 	}
 	defer os.RemoveAll(tempdir)
 
 	if branch != "" && tag != "" {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
 		return fmt.Errorf("cannot use both git branch and tag name")
 	}
 
@@ -870,20 +900,10 @@ func clonePackageFromEndpoint(
 	// nosemgrep (invalid-usage-of-modified-variable)
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
 		return fmt.Errorf("error fetching package template: %w\n\n%s", err, stdoutStderr)
 	}
 
 	if err := os.RemoveAll(filepath.Join(tempdir, ".git")); err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
 		return fmt.Errorf("error removing git metadata from package template: %w", err)
 	}
 
@@ -915,19 +935,9 @@ func clonePackageFromEndpoint(
 	})
 
 	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
 		return fmt.Errorf("error copying files from package template: %w", err)
 	}
 
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -984,6 +994,11 @@ func updateManifest(
 						return m, spinErr
 					}
 					return m, fmt.Errorf("error saving package manifest: %w", err)
+				}
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return m, spinErr
 				}
 				return m, nil
 			}

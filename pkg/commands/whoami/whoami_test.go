@@ -144,6 +144,7 @@ var basicOutput = "Alice Programmer <alice@example.com>\n"
 var basicOutputVerbose = strings.TrimSpace(`
 Fastly API token provided via --token
 Fastly API endpoint: https://api.fastly.com
+
 Customer ID: abc
 Customer name: Computer Company
 User ID: 123
