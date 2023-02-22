@@ -342,6 +342,10 @@ type API struct {
 	GetSigningKeyFn     func() (ed25519.PublicKey, error)
 
 	CreateResourceFn func(i *fastly.CreateResourceInput) (*fastly.Resource, error)
+	DeleteResourceFn func(i *fastly.DeleteResourceInput) error
+	GetResourceFn    func(i *fastly.GetResourceInput) (*fastly.Resource, error)
+	ListResourcesFn  func(i *fastly.ListResourcesInput) ([]*fastly.Resource, error)
+	UpdateResourceFn func(i *fastly.UpdateResourceInput) (*fastly.Resource, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1727,4 +1731,24 @@ func (m API) GetSigningKey() (ed25519.PublicKey, error) {
 // CreateResource implements Interface.
 func (m API) CreateResource(i *fastly.CreateResourceInput) (*fastly.Resource, error) {
 	return m.CreateResourceFn(i)
+}
+
+// DeleteResource implements Interface.
+func (m API) DeleteResource(i *fastly.DeleteResourceInput) error {
+	return m.DeleteResourceFn(i)
+}
+
+// GetResource implements Interface.
+func (m API) GetResource(i *fastly.GetResourceInput) (*fastly.Resource, error) {
+	return m.GetResourceFn(i)
+}
+
+// ListResources implements Interface.
+func (m API) ListResources(i *fastly.ListResourcesInput) ([]*fastly.Resource, error) {
+	return m.ListResourcesFn(i)
+}
+
+// UpdateResource implements Interface.
+func (m API) UpdateResource(i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
+	return m.UpdateResourceFn(i)
 }

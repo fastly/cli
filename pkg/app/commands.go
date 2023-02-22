@@ -45,6 +45,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
+	"github.com/fastly/cli/pkg/commands/resourcelink"
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
@@ -311,6 +312,12 @@ func defineCommands(
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, g)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g)
 	purgeCmdRoot := purge.NewRootCommand(app, g, m)
+	resourcelinkCmdRoot := resourcelink.NewRootCommand(app, g)
+	resourcelinkCreate := resourcelink.NewCreateCommand(resourcelinkCmdRoot.CmdClause, g, m)
+	resourcelinkDelete := resourcelink.NewDeleteCommand(resourcelinkCmdRoot.CmdClause, g, m)
+	resourcelinkDescribe := resourcelink.NewDescribeCommand(resourcelinkCmdRoot.CmdClause, g, m)
+	resourcelinkList := resourcelink.NewListCommand(resourcelinkCmdRoot.CmdClause, g, m)
+	resourcelinkUpdate := resourcelink.NewUpdateCommand(resourcelinkCmdRoot.CmdClause, g, m)
 	secretstoreCmdRoot := secretstore.NewRootCommand(app, g)
 	secretstoreCreate := secretstore.NewCreateCommand(secretstoreCmdRoot.CmdClause, g, m)
 	secretstoreDescribe := secretstore.NewDescribeCommand(secretstoreCmdRoot.CmdClause, g, m)
@@ -635,6 +642,12 @@ func defineCommands(
 		profileToken,
 		profileUpdate,
 		purgeCmdRoot,
+		resourcelinkCmdRoot,
+		resourcelinkCreate,
+		resourcelinkDelete,
+		resourcelinkDescribe,
+		resourcelinkList,
+		resourcelinkUpdate,
 		secretstoreCreate,
 		secretstoreDescribe,
 		secretstoreDelete,

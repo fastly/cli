@@ -75,6 +75,7 @@ object-store-entry
 pops
 profile
 purge
+resource-link
 secret-store
 secret-store-entry
 service

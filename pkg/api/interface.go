@@ -350,6 +350,10 @@ type Interface interface {
 	GetSigningKey() (ed25519.PublicKey, error)
 
 	CreateResource(i *fastly.CreateResourceInput) (*fastly.Resource, error)
+	DeleteResource(i *fastly.DeleteResourceInput) error
+	GetResource(i *fastly.GetResourceInput) (*fastly.Resource, error)
+	ListResources(i *fastly.ListResourcesInput) ([]*fastly.Resource, error)
+	UpdateResource(i *fastly.UpdateResourceInput) (*fastly.Resource, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
