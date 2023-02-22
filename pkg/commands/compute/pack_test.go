@@ -28,9 +28,9 @@ func TestPack(t *testing.T) {
 			manifest_version = 2
 			name = "mypackagename"`,
 			wantOutput: []string{
-				"Copying wasm binary...",
-				"Copying manifest...",
-				"Creating package.tar.gz file...",
+				"Copying wasm binary",
+				"Copying manifest",
+				"Creating package.tar.gz file",
 			},
 			expectedFiles: [][]string{
 				{"pkg", "package.tar.gz"},

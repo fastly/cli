@@ -77,8 +77,8 @@ func TestCreate(t *testing.T) {
 				},
 				WantOutputs: []string{
 					"Fastly API token:",
-					"Validating token...",
-					"Persisting configuration...",
+					"Validating token",
+					"Persisting configuration",
 					"Profile 'foo' created",
 				},
 			},

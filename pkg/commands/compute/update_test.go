@@ -52,7 +52,7 @@ func TestUpdate(t *testing.T) {
 			},
 			WantError: fmt.Sprintf("error uploading package: %s", testutil.Err.Error()),
 			WantOutputs: []string{
-				"Uploading package...",
+				"Uploading package",
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func TestUpdate(t *testing.T) {
 				UpdatePackageFn: updatePackageOk,
 			},
 			WantOutputs: []string{
-				"Uploading package...",
+				"Uploading package",
 				"Updated package (service 123, version 4)",
 			},
 		},

@@ -71,8 +71,8 @@ func TestInit(t *testing.T) {
 			},
 			stdin: "foobar", // expect the first prompt to be for the package name.
 			wantOutput: []string{
-				"Fetching package template...",
-				"Reading package manifest...",
+				"Fetching package template",
+				"Reading package manifest",
 			},
 			manifestIncludes: `name = "foobar"`,
 		},
@@ -85,8 +85,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			wantOutput: []string{
-				"Fetching package template...",
-				"Reading package manifest...",
+				"Fetching package template",
+				"Reading package manifest",
 			},
 			manifestIncludes: `description = ""`, // expect this to be empty
 		},
@@ -99,8 +99,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			wantOutput: []string{
-				"Fetching package template...",
-				"Reading package manifest...",
+				"Fetching package template",
+				"Reading package manifest",
 			},
 			manifestIncludes: `authors = ["test@example.com"]`,
 		},
@@ -113,8 +113,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			wantOutput: []string{
-				"Fetching package template...",
-				"Reading package manifest...",
+				"Fetching package template",
+				"Reading package manifest",
 			},
 			manifestIncludes: `authors = ["test1@example.com", "test2@example.com"]`,
 		},
@@ -132,8 +132,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			wantOutput: []string{
-				"Fetching package template...",
-				"Reading package manifest...",
+				"Fetching package template",
+				"Reading package manifest",
 				"SUCCESS: Initialized package",
 			},
 		},
@@ -151,8 +151,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			wantOutput: []string{
-				"Fetching package template...",
-				"Reading package manifest...",
+				"Fetching package template",
+				"Reading package manifest",
 				"SUCCESS: Initialized package",
 			},
 		},
@@ -170,8 +170,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			wantOutput: []string{
-				"Fetching package template...",
-				"Reading package manifest...",
+				"Fetching package template",
+				"Reading package manifest",
 				"SUCCESS: Initialized package",
 			},
 		},
@@ -189,8 +189,8 @@ func TestInit(t *testing.T) {
 				},
 			},
 			wantOutput: []string{
-				"Fetching package template...",
-				"Reading package manifest...",
+				"Fetching package template",
+				"Reading package manifest",
 				"SUCCESS: Initialized package",
 			},
 		},
@@ -210,8 +210,8 @@ func TestInit(t *testing.T) {
 			description = "test"
 			authors = ["test@fastly.com"]`,
 			wantOutput: []string{
-				"Reading package manifest...",
-				"Initializing package...",
+				"Reading package manifest",
+				"Initializing package",
 			},
 		},
 		{
@@ -230,9 +230,9 @@ func TestInit(t *testing.T) {
 			description = "test"
 			authors = ["test@fastly.com"]`,
 			wantOutput: []string{
-				"Reading package manifest...",
-				"Saving manifest changes...",
-				"Initializing package...",
+				"Reading package manifest",
+				"Saving manifest changes",
+				"Initializing package",
 			},
 		},
 		{
@@ -253,10 +253,10 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Author (email): Language:",
-				"Fetching package template...",
-				"Reading package manifest...",
-				"Saving manifest changes...",
-				"Initializing package...",
+				"Fetching package template",
+				"Reading package manifest",
+				"Saving manifest changes",
+				"Initializing package",
 			},
 		},
 		{
@@ -286,10 +286,10 @@ func TestInit(t *testing.T) {
 				"SECURITY.md",
 			},
 			wantOutput: []string{
-				"Fetching package template...",
-				"Reading package manifest...",
-				"Saving manifest changes...",
-				"Initializing package...",
+				"Fetching package template",
+				"Reading package manifest",
+				"Saving manifest changes",
+				"Initializing package",
 			},
 		},
 		{
