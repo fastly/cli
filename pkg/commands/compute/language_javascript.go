@@ -10,7 +10,6 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/theckman/yacspin"
 )
 
 // JsDefaultBuildCommand is a build command compiled into the CLI binary so it
@@ -76,7 +75,7 @@ type JavaScript struct {
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (j *JavaScript) Build(out io.Writer, spinner *yacspin.Spinner, verbose bool, callback func() error) error {
+func (j *JavaScript) Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error {
 	var noBuildScript bool
 	if j.build == "" {
 		noBuildScript = true

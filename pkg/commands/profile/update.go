@@ -12,7 +12,6 @@ import (
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
-	"github.com/theckman/yacspin"
 )
 
 // APIClientFactory allows the profile command to regenerate the global Fastly
@@ -124,13 +123,13 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 // validateToken ensures the token can be used to acquire user data.
-func (c *UpdateCommand) validateToken(token, endpoint string, spinner *yacspin.Spinner) (*fastly.User, error) {
+func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinner) (*fastly.User, error) {
 	err := spinner.Start()
 	if err != nil {
 		return nil, err
 	}
-	msg := "Validating token..."
-	spinner.Message(msg)
+	msg := "Validating token"
+	spinner.Message(msg + "...")
 
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {

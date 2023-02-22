@@ -25,7 +25,6 @@ import (
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	cp "github.com/otiai10/copy"
-	"github.com/theckman/yacspin"
 )
 
 var (
@@ -268,7 +267,7 @@ func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(path string, spinner *yacspin.Spinner, out io.Writer) (dst string, err error) {
+func verifyDestination(path string, spinner text.Spinner, out io.Writer) (dst string, err error) {
 	dst, err = filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -288,8 +287,8 @@ func verifyDestination(path string, spinner *yacspin.Spinner, out io.Writer) (ds
 		if err != nil {
 			return "", err
 		}
-		msg := fmt.Sprintf("Creating %s...", dst)
-		spinner.Message(msg)
+		msg := fmt.Sprintf("Creating %s", dst)
+		spinner.Message(msg + "...")
 
 		if err := os.MkdirAll(dst, 0o700); err != nil {
 			spinner.StopFailMessage(msg)
@@ -312,8 +311,8 @@ func verifyDestination(path string, spinner *yacspin.Spinner, out io.Writer) (ds
 	if err != nil {
 		return "", err
 	}
-	msg := "Validating directory permissions..."
-	spinner.Message(msg)
+	msg := "Validating directory permissions"
+	spinner.Message(msg + "...")
 
 	tmpname := make([]byte, 16)
 	n, err := rand.Read(tmpname)
@@ -611,7 +610,7 @@ func fetchPackageTemplate(
 	c *InitCommand,
 	branch, tag string,
 	archives []file.Archive,
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 	out io.Writer,
 ) error {
 	text.Break(out)
@@ -620,8 +619,8 @@ func fetchPackageTemplate(
 	if err != nil {
 		return err
 	}
-	msg := "Fetching package template..."
-	spinner.Message(msg)
+	msg := "Fetching package template"
+	spinner.Message(msg + "...")
 
 	// If the user has provided a local file path, we'll recursively copy the
 	// directory to c.dir.
@@ -963,7 +962,7 @@ func tempDir(prefix string) (abspath string, err error) {
 // NOTE: The language argument might be nil (if the user passes --from flag).
 func updateManifest(
 	m manifest.File,
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 	path, name, desc string,
 	authors []string,
 	language *Language,
@@ -972,8 +971,8 @@ func updateManifest(
 	if err != nil {
 		return m, err
 	}
-	msg := "Reading package manifest..."
-	spinner.Message(msg)
+	msg := "Reading package manifest"
+	spinner.Message(msg + "...")
 
 	mp := filepath.Join(path, manifest.Filename)
 
@@ -1022,8 +1021,8 @@ func updateManifest(
 	if err != nil {
 		return m, err
 	}
-	msg = fmt.Sprintf("Setting package name in manifest to %q...", name)
-	spinner.Message(msg)
+	msg = fmt.Sprintf("Setting package name in manifest to %q", name)
+	spinner.Message(msg + "...")
 
 	m.Name = name
 
@@ -1043,8 +1042,8 @@ func updateManifest(
 	if err != nil {
 		return m, err
 	}
-	msg = fmt.Sprintf("Setting description in manifest%s...", desc)
-	spinner.Message(msg)
+	msg = fmt.Sprintf("Setting description in manifest%s", desc)
+	spinner.Message(msg + "...")
 
 	spinner.StopMessage(msg)
 	err = spinner.Stop()
@@ -1057,8 +1056,8 @@ func updateManifest(
 		if err != nil {
 			return m, err
 		}
-		msg := fmt.Sprintf("Setting authors in manifest to '%s'...", strings.Join(authors, ", "))
-		spinner.Message(msg)
+		msg := fmt.Sprintf("Setting authors in manifest to '%s'", strings.Join(authors, ", "))
+		spinner.Message(msg + "...")
 
 		m.Authors = authors
 
@@ -1074,8 +1073,8 @@ func updateManifest(
 		if err != nil {
 			return m, err
 		}
-		msg := fmt.Sprintf("Setting language in manifest to '%s'...", language.Name)
-		spinner.Message(msg)
+		msg := fmt.Sprintf("Setting language in manifest to '%s'", language.Name)
+		spinner.Message(msg + "...")
 
 		m.Language = language.Name
 
@@ -1090,8 +1089,8 @@ func updateManifest(
 	if err != nil {
 		return m, err
 	}
-	msg = "Saving manifest changes..."
-	spinner.Message(msg)
+	msg = "Saving manifest changes"
+	spinner.Message(msg + "...")
 
 	if err := m.Write(mp); err != nil {
 		spinner.StopFailMessage(msg)
@@ -1111,13 +1110,13 @@ func updateManifest(
 }
 
 // initializeLanguage for newly cloned package.
-func initializeLanguage(spinner *yacspin.Spinner, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
+func initializeLanguage(spinner text.Spinner, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
 	err := spinner.Start()
 	if err != nil {
 		return nil, err
 	}
-	msg := "Initializing package..."
-	spinner.Message(msg)
+	msg := "Initializing package"
+	spinner.Message(msg + "...")
 
 	if wd != path {
 		err := os.Chdir(path)

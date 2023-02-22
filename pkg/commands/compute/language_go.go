@@ -12,7 +12,6 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/theckman/yacspin"
 )
 
 // GoDefaultBuildCommand is a build command compiled into the CLI binary so it
@@ -77,7 +76,7 @@ type Go struct {
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (g *Go) Build(out io.Writer, spinner *yacspin.Spinner, verbose bool, callback func() error) error {
+func (g *Go) Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error {
 	var noBuildScript bool
 	if g.build == "" {
 		g.build = GoDefaultBuildCommand

@@ -29,7 +29,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 	ignore "github.com/sabhiram/go-gitignore"
-	"github.com/theckman/yacspin"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -120,8 +119,8 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg := "Running local server..."
-	spinner.Message(msg)
+	msg := "Running local server"
+	spinner.Message(msg + "...")
 
 	spinner.StopMessage(msg)
 	err = spinner.Stop()
@@ -198,7 +197,7 @@ func (c *ServeCommand) hasBackendsWithMissingOverrideHost() bool {
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func GetViceroy(spinner *yacspin.Spinner, out io.Writer, av github.AssetVersioner, g *global.Data) (bin string, err error) {
+func GetViceroy(spinner text.Spinner, out io.Writer, av github.AssetVersioner, g *global.Data) (bin string, err error) {
 	bin = filepath.Join(InstallDir, av.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
@@ -243,8 +242,8 @@ func GetViceroy(spinner *yacspin.Spinner, out io.Writer, av github.AssetVersione
 		if err != nil {
 			return bin, err
 		}
-		msg := "Checking latest Viceroy release..."
-		spinner.Message(msg)
+		msg := "Checking latest Viceroy release"
+		spinner.Message(msg + "...")
 
 		v, err := av.Version()
 		if err != nil {
@@ -341,13 +340,13 @@ var InstallDir = func() string {
 }()
 
 // installViceroy downloads the latest release from GitHub.
-func installViceroy(spinner *yacspin.Spinner, av github.AssetVersioner, bin string) error {
+func installViceroy(spinner text.Spinner, av github.AssetVersioner, bin string) error {
 	err := spinner.Start()
 	if err != nil {
 		return err
 	}
-	msg := "Fetching latest Viceroy release..."
-	spinner.Message(msg)
+	msg := "Fetching latest Viceroy release"
+	spinner.Message(msg + "...")
 
 	tmpBin, err := av.Download()
 	if err != nil {
@@ -382,7 +381,7 @@ func installViceroy(spinner *yacspin.Spinner, av github.AssetVersioner, bin stri
 // updateViceroy checks if the currently installed version is out-of-date and
 // downloads the latest release from GitHub.
 func updateViceroy(
-	spinner *yacspin.Spinner,
+	spinner text.Spinner,
 	version string,
 	out io.Writer,
 	av github.AssetVersioner,
@@ -393,8 +392,8 @@ func updateViceroy(
 	if err != nil {
 		return err
 	}
-	msg := "Checking installed Viceroy version..."
-	spinner.Message(msg)
+	msg := "Checking installed Viceroy version"
+	spinner.Message(msg + "...")
 
 	viceroyError := fsterr.RemediationError{
 		Inner:       fmt.Errorf("a Viceroy version was not found"),
@@ -448,8 +447,8 @@ func updateViceroy(
 		if err != nil {
 			return err
 		}
-		msg := "Fetching latest Viceroy release..."
-		spinner.Message(msg)
+		msg := "Fetching latest Viceroy release"
+		spinner.Message(msg + "...")
 
 		tmpBin, err := av.Download()
 		if err != nil {
@@ -466,8 +465,8 @@ func updateViceroy(
 		if err != nil {
 			return err
 		}
-		msg = "Replacing Viceroy binary..."
-		spinner.Message(msg)
+		msg = "Replacing Viceroy binary"
+		spinner.Message(msg + "...")
 
 		if err := os.Rename(tmpBin, bin); err != nil {
 			if err := filesystem.CopyFile(tmpBin, bin); err != nil {

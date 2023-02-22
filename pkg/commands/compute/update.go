@@ -114,8 +114,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg := "Uploading package..."
-	spinner.Message(msg)
+	msg := "Uploading package"
+	spinner.Message(msg + "...")
 
 	_, err = c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
 		ServiceID:      serviceID,

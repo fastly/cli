@@ -9,7 +9,6 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/theckman/yacspin"
 )
 
 // DefaultBuildErrorRemediation is the message returned to a user when there is
@@ -31,7 +30,7 @@ For more information on fastly.toml configuration settings, refer to https://dev
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
 	// Build compiles the user's source code into a Wasm binary.
-	Build(out io.Writer, spinner *yacspin.Spinner, verbose bool, callback func() error) error
+	Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error
 }
 
 // BuildToolchain enables a language toolchain to compile their build script.
@@ -43,7 +42,7 @@ type BuildToolchain struct {
 	out                       io.Writer
 	postBuild                 string
 	postBuildCallback         func() error
-	spinner                   *yacspin.Spinner
+	spinner                   text.Spinner
 	timeout                   int
 	verbose                   bool
 }
@@ -63,8 +62,8 @@ func (bt BuildToolchain) Build() error {
 	if err != nil {
 		return err
 	}
-	msg = "Running [scripts.build]..."
-	bt.spinner.Message(msg)
+	msg = "Running [scripts.build]"
+	bt.spinner.Message(msg + "...")
 
 	bt.spinner.StopMessage(msg)
 	err = bt.spinner.Stop()
@@ -99,8 +98,8 @@ func (bt BuildToolchain) Build() error {
 	if err != nil {
 		return err
 	}
-	msg = "Running post_build callback..."
-	bt.spinner.Message(msg)
+	msg = "Running post_build callback"
+	bt.spinner.Message(msg + "...")
 
 	bt.spinner.StopMessage(msg)
 	err = bt.spinner.Stop()

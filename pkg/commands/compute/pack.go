@@ -82,8 +82,8 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg := "Copying wasm binary..."
-	spinner.Message(msg)
+	msg := "Copying wasm binary"
+	spinner.Message(msg + "...")
 
 	if err := filesystem.CopyFile(src, dst); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -123,8 +123,8 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg = "Copying manifest..."
-	spinner.Message(msg)
+	msg = "Copying manifest"
+	spinner.Message(msg + "...")
 
 	src = manifest.Filename
 	dst = fmt.Sprintf("pkg/package/%s", manifest.Filename)
@@ -153,8 +153,8 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg = "Creating package.tar.gz file..."
-	spinner.Message(msg)
+	msg = "Creating package.tar.gz file"
+	spinner.Message(msg + "...")
 
 	tar := archiver.NewTarGz()
 	tar.OverwriteExisting = true
