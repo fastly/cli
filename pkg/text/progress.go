@@ -18,6 +18,7 @@ import (
 	"github.com/theckman/yacspin"
 )
 
+// NewSpinner returns a new instance of a terminal prompt spinner.
 func NewSpinner(out io.Writer) (*yacspin.Spinner, error) {
 	spinner, err := yacspin.New(yacspin.Config{
 		CharSet:           yacspin.CharSets[9],

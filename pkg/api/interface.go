@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/ed25519"
 	"net/http"
 
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -345,6 +346,8 @@ type Interface interface {
 	GetSecret(i *fastly.GetSecretInput) (*fastly.Secret, error)
 	DeleteSecret(i *fastly.DeleteSecretInput) error
 	ListSecrets(i *fastly.ListSecretsInput) (*fastly.Secrets, error)
+	CreateClientKey() (*fastly.ClientKey, error)
+	GetSigningKey() (ed25519.PublicKey, error)
 
 	CreateResource(i *fastly.CreateResourceInput) (*fastly.Resource, error)
 	DeleteResource(i *fastly.DeleteResourceInput) error

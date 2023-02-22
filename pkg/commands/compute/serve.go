@@ -28,7 +28,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 	ignore "github.com/sabhiram/go-gitignore"
-	"github.com/tcnksm/go-gitconfig"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -100,6 +99,11 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
+	if c.Globals.Verbose() && c.hasBackendsWithMissingOverrideHost() {
+		text.Info(out, "One of the project's `local_server.backends` has a backend configured without an `override_host` and in some cases can result in unexpected errors. See https://developer.fastly.com/reference/compute/fastly-toml/#local-server for more details.")
+		text.Break(out)
+	}
+
 	progress := text.ResetProgress(out, c.Globals.Verbose())
 
 	bin, err := GetViceroy(progress, out, c.av, c.Globals)
@@ -157,6 +161,17 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	text.Break(out)
 
 	return nil
+}
+
+// hasBackendsWithMissingOverrideHost indicates if any local_server.backends
+// have a missing `override_host` property.
+func (c *ServeCommand) hasBackendsWithMissingOverrideHost() bool {
+	for _, backend := range c.Globals.Manifest.File.LocalServer.Backends {
+		if backend.OverrideHost == "" {
+			return true
+		}
+	}
+	return false
 }
 
 // GetViceroy returns the path to the installed binary.
@@ -480,7 +495,7 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
 func watchFiles(watchDir cmd.OptionalString, verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
-	gi := gitIgnore(watchDir)
+	gi := ignoreFiles(watchDir)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -589,29 +604,16 @@ func watchFiles(watchDir cmd.OptionalString, verbose bool, s *fstexec.Streaming,
 		log.Fatal(err)
 	}
 
-	text.Info(out, "Watching files for changes (using --watch-dir=%s). To see what files are being watched, pass the --verbose flag. To ignore certain files, configure either .ignore, .gitignore or the global git ignore (uses .ignore and .gitignore from --watch-dir).", root)
+	text.Info(out, "Watching files for changes (using --watch-dir=%s). To see what files are being watched, pass the --verbose flag. To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).", root)
 	text.Break(out)
 	<-done
 }
 
-// gitIgnore returns the specific ignore rules being respected.
-//
-// NOTE: ignore files will be inherited in the following order:
-//
-// - .ignore (local)
-// - .gitignore (local)
-// - core.excludesfile (global)
+// ignoreFiles returns the specific ignore rules being respected.
 //
 // NOTE: We also ignore the .git directory.
-func gitIgnore(watchDir cmd.OptionalString) *ignore.GitIgnore {
-	var (
-		globalIgnore string
-		patterns     []string
-	)
-
-	if f, err := gitconfig.Global("core.excludesfile"); err == nil {
-		globalIgnore = filesystem.ResolveAbs(f)
-	}
+func ignoreFiles(watchDir cmd.OptionalString) *ignore.GitIgnore {
+	var patterns []string
 
 	root := ""
 	if watchDir.WasSet {
@@ -621,10 +623,10 @@ func gitIgnore(watchDir cmd.OptionalString) *ignore.GitIgnore {
 		}
 	}
 
-	localIgnore := root + ".ignore"
-	localGitIgnore := root + ".gitignore"
+	fastlyIgnore := root + ".fastlyignore"
 
-	for _, file := range []string{localIgnore, localGitIgnore, globalIgnore} {
+	// NOTE: Using a loop to allow for future ignore files to be respected.
+	for _, file := range []string{fastlyIgnore} {
 		patterns = append(patterns, readIgnoreFile(file)...)
 	}
 

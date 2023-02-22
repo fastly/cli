@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"crypto/ed25519"
+
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
@@ -336,6 +338,8 @@ type API struct {
 	GetSecretFn         func(i *fastly.GetSecretInput) (*fastly.Secret, error)
 	DeleteSecretFn      func(i *fastly.DeleteSecretInput) error
 	ListSecretsFn       func(i *fastly.ListSecretsInput) (*fastly.Secrets, error)
+	CreateClientKeyFn   func() (*fastly.ClientKey, error)
+	GetSigningKeyFn     func() (ed25519.PublicKey, error)
 
 	CreateResourceFn func(i *fastly.CreateResourceInput) (*fastly.Resource, error)
 	DeleteResourceFn func(i *fastly.DeleteResourceInput) error
@@ -1712,6 +1716,16 @@ func (m API) DeleteSecret(i *fastly.DeleteSecretInput) error {
 // ListSecrets implements Interface.
 func (m API) ListSecrets(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 	return m.ListSecretsFn(i)
+}
+
+// CreateClientKey implements Interface.
+func (m API) CreateClientKey() (*fastly.ClientKey, error) {
+	return m.CreateClientKeyFn()
+}
+
+// GetSigningKey implements Interface.
+func (m API) GetSigningKey() (ed25519.PublicKey, error) {
+	return m.GetSigningKeyFn()
 }
 
 // CreateResource implements Interface.
