@@ -92,23 +92,16 @@ func (s *Streaming) Exec() error {
 	// Pipe the child process stdout and stderr to our own output writer.
 	var stdoutBuf, stderrBuf threadsafe.Buffer
 
-	// We discard the build output unless we're in verbose mode.
-	output := io.Discard
-
-	if s.Verbose {
-		output = s.Output
-		text.Info(output, "Command output:")
-		text.Output(output, divider)
-	}
+	output := s.Output
+	text.Info(output, "Command output:")
+	text.Output(output, divider)
 
 	cmd.Stdout = io.MultiWriter(output, &stdoutBuf)
 	cmd.Stderr = io.MultiWriter(output, &stderrBuf)
 
 	if err := cmd.Start(); err != nil {
-		if s.Verbose {
-			text.Output(output, divider)
-			text.Break(output)
-		}
+		text.Output(output, divider)
+		text.Break(output)
 		return err
 	}
 
@@ -118,38 +111,17 @@ func (s *Streaming) Exec() error {
 	s.Process = cmd.Process
 
 	if err := cmd.Wait(); err != nil {
-		var ctx string
-		if stderrBuf.Len() > 0 {
-			if !s.Verbose {
-				ctx = fmt.Sprintf(":\n\n%s", strings.TrimSpace(stderrBuf.String()))
-			}
-		} else {
-			// NOTE: Viceroy doesn't send errors to stderr but to stdout.
-			//
-			// We want to ensure the compilation errors sent to stdout are displayed
-			// regardless of whether the user has --verbose set.
-			//
-			// If --verbose is set, then all errors will be seen anyway.
-			// If --verbose isn't set, then we use text.Progress to constrain output.
-			//
-			// Meaning: only display stdoutBuf if NOT in verbose mode already.
-			var cmdOutput string
-			if !s.Verbose {
-				cmdOutput = "\n" + text.WrapIndent(stdoutBuf.String(), text.DefaultTextWidth, 5)
-			}
-			ctx = fmt.Sprintf(":%s\n\n%s", cmdOutput, err)
-		}
-		if s.Verbose {
-			text.Output(output, divider)
-			text.Break(output)
-		}
-		return fmt.Errorf("error during execution process%s", ctx)
+		text.Output(output, divider)
+
+		// IMPORTANT: We MUST wrap the original error.
+		// This is because the `compute serve` command requires it for --watch
+		// Specifically we need to check the error message for "killed".
+		// This enables the watching logic to restart the Viceroy binary.
+		return fmt.Errorf("error during execution process (see 'command output' above): %w", err)
 	}
 
-	if s.Verbose {
-		text.Output(output, divider)
-		text.Break(output)
-	}
+	text.Output(output, divider)
+	text.Break(output)
 	return nil
 }
 
