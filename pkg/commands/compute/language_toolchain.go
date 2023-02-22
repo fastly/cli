@@ -55,33 +55,26 @@ func (bt BuildToolchain) Build() error {
 		msg string
 	)
 
-	if !bt.verbose {
-		err = bt.spinner.Start()
-		if err != nil {
-			return err
-		}
-		msg = "Running [scripts.build]..."
-		bt.spinner.Message(msg)
+	if bt.verbose {
+		text.Break(bt.out)
+	}
+
+	err = bt.spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg = "Running [scripts.build]..."
+	bt.spinner.Message(msg)
+
+	bt.spinner.StopMessage(msg)
+	err = bt.spinner.Stop()
+	if err != nil {
+		return err
 	}
 
 	err = bt.execCommand(bt.buildScript)
 	if err != nil {
-		if !bt.verbose {
-			bt.spinner.StopFailMessage(msg)
-			spinErr := bt.spinner.StopFail()
-			if spinErr != nil {
-				return spinErr
-			}
-		}
 		return bt.handleError(err)
-	}
-
-	if !bt.verbose {
-		bt.spinner.StopMessage(msg)
-		err = bt.spinner.Stop()
-		if err != nil {
-			return err
-		}
 	}
 
 	// NOTE: internalPostBuildCallback is only used by Rust currently.
@@ -109,37 +102,26 @@ func (bt BuildToolchain) Build() error {
 	msg = "Running post_build callback..."
 	bt.spinner.Message(msg)
 
-	if bt.postBuild != "" {
-		if err = bt.postBuildCallback(); err == nil {
-			err := bt.execCommand(bt.postBuild)
-			if err != nil {
-				bt.spinner.StopFailMessage(msg)
-				spinErr := bt.spinner.StopFail()
-				if spinErr != nil {
-					return spinErr
-				}
-				return bt.handleError(err)
-			}
-		}
-	}
-
 	bt.spinner.StopMessage(msg)
 	err = bt.spinner.Stop()
 	if err != nil {
 		return err
 	}
 
+	if bt.postBuild != "" {
+		if err = bt.postBuildCallback(); err == nil {
+			err := bt.execCommand(bt.postBuild)
+			if err != nil {
+				return bt.handleError(err)
+			}
+		}
+	}
+
 	return nil
 }
 
 func (bt BuildToolchain) handleError(err error) error {
-	if !bt.verbose {
-		// We'll use a generic error message if no --verbose flag
-		err = fmt.Errorf("failed to build project")
-	}
-	if bt.verbose {
-		text.Break(bt.out)
-	}
+	text.Break(bt.out)
 	return fsterr.RemediationError{
 		Inner:       err,
 		Remediation: DefaultBuildErrorRemediation,

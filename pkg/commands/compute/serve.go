@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -140,6 +141,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 
 			// Before restarting Viceroy we should rebuild.
+			text.Break(out)
 			err = c.Build(in, out)
 			if err != nil {
 				// NOTE: build errors at this point are going to be user related, so we
@@ -527,15 +529,22 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 		Env:      os.Environ(),
 		Output:   out,
 		SignalCh: make(chan os.Signal, 1),
-		Verbose:  true, // force verbose so we can see the local server address
 	}
 	s.MonitorSignals()
 
-	text.Break(out)
-
 	restart := make(chan bool)
 	if watch {
-		go watchFiles(watchDir, verbose, s, out, restart)
+		root := "."
+		if watchDir.WasSet {
+			root = watchDir.Value
+		}
+
+		if verbose {
+			text.Info(out, "Watching files for changes (using --watch-dir=%s). To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).", root)
+		}
+
+		gi := ignoreFiles(watchDir)
+		go watchFiles(root, gi, verbose, s, out, restart)
 	}
 
 	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
@@ -581,9 +590,7 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
-func watchFiles(watchDir cmd.OptionalString, verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
-	gi := ignoreFiles(watchDir)
-
+func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -662,10 +669,7 @@ func watchFiles(watchDir cmd.OptionalString, verbose bool, s *fstexec.Streaming,
 		}
 	}()
 
-	root := "."
-	if watchDir.WasSet {
-		root = watchDir.Value
-	}
+	var buf bytes.Buffer
 
 	// Walk all directories and files starting from the project's root directory.
 	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
@@ -678,12 +682,12 @@ func watchFiles(watchDir cmd.OptionalString, verbose bool, s *fstexec.Streaming,
 		// NOTE: Watching a directory implies watching all files within the root of
 		// the directory. This means we don't need to call Add(path) for each file.
 		if gi == nil && entry.IsDir() {
-			watchFile(path, watcher, verbose, out)
+			watchFile(path, watcher, verbose, &buf)
 		}
 		if gi != nil && !entry.IsDir() && !gi.MatchesPath(path) {
 			// If there is an ignore file, we avoid watching directories and instead
 			// will only add files that don't match the exclusion patterns defined.
-			watchFile(path, watcher, verbose, out)
+			watchFile(path, watcher, verbose, &buf)
 		}
 		return nil
 	})
@@ -691,8 +695,13 @@ func watchFiles(watchDir cmd.OptionalString, verbose bool, s *fstexec.Streaming,
 		log.Fatal(err)
 	}
 
-	text.Info(out, "Watching files for changes (using --watch-dir=%s). To see what files are being watched, pass the --verbose flag. To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).", root)
-	text.Break(out)
+	if verbose {
+		text.Output(out, "%s", text.BoldYellow("Watching..."))
+		text.Break(out)
+		text.Output(out, buf.String())
+		text.Break(out)
+	}
+
 	<-done
 }
 
@@ -750,8 +759,8 @@ func watchFile(path string, watcher *fsnotify.Watcher, verbose bool, out io.Writ
 
 	err = watcher.Add(absolute)
 	if err != nil {
-		text.Output(out, "%s: %s", text.BoldRed("failed to watch"), absolute)
+		text.Output(out, "%s %s", text.BoldRed("✗"), absolute)
 	} else if verbose {
-		text.Output(out, "%s: %s", text.BoldYellow("watching"), absolute)
+		text.Output(out, "%s", absolute)
 	}
 }
