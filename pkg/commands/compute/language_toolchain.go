@@ -115,19 +115,6 @@ func (bt BuildToolchain) Build() error {
 		return bt.handleError(err)
 	}
 
-	err = bt.spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Running post_build callback"
-	bt.spinner.Message(msg + "...")
-
-	bt.spinner.StopMessage(msg)
-	err = bt.spinner.Stop()
-	if err != nil {
-		return err
-	}
-
 	if bt.postBuild != "" {
 		if !bt.autoYes && !bt.nonInteractive {
 			err := bt.promptForBuildContinue(CustomPostBuildScriptMessage, bt.postBuild, bt.out, bt.in, bt.verbose)
@@ -140,7 +127,7 @@ func (bt BuildToolchain) Build() error {
 		if err != nil {
 			return err
 		}
-		msg = "Running post_build callback..."
+		msg = "Running [scripts.post_build]..."
 		bt.spinner.Message(msg)
 
 		cmd, args := bt.buildFn(bt.postBuild)

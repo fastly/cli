@@ -18,7 +18,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
-	"github.com/theckman/yacspin"
 )
 
 // IgnoreFilePath is the filepath name of the Fastly ignore file.
@@ -309,7 +308,7 @@ func toolchain(c *BuildCommand) (string, error) {
 }
 
 // language returns a pointer to a supported language.
-func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, spinner *yacspin.Spinner) (*Language, error) {
+func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, spinner text.Spinner) (*Language, error) {
 	var language *Language
 	switch toolchain {
 	case "assemblyscript":
