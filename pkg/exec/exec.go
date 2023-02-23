@@ -92,8 +92,9 @@ func (s *Streaming) Exec() error {
 	var output io.Writer
 	output = &buf
 
-	// We only display the stored output (even though there is no error) because
-	// some commands want to see the output, such as `compute serve`.
+	// We only display the stored output if there is an error.
+	// But some commands like `compute serve` expect the full output regardless.
+	// So for those scenarios they can force all output.
 	if s.ForceOutput {
 		output = s.Output
 	}
