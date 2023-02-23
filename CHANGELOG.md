@@ -1,5 +1,50 @@
 # Changelog
 
+## [v7.0.0](https://github.com/fastly/cli/releases/tag/v7.0.0) (2023-02-23)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v6.0.6...v7.0.0)
+
+**Breaking:**
+
+There are a couple of small breaking changes to the CLI.
+
+Prior versions of the CLI would consult the following files to ignore specific files while running `compute serve --watch`:
+
+- `.ignore`
+- `.gitignore`
+- The user's global git ignore configuration
+
+We are dropping support for these files and will instead consult `.fastlyignore`, which is already used by `compute build`.
+
+We've removed support for the `logging logentries` subcommand as the third-party logging product has been deprecated.
+
+* fix(compute/serve): replace separate ignore files with `.fastlyignore` [#834](https://github.com/fastly/cli/pull/834)
+* breaking(logging): remove logentries [#835](https://github.com/fastly/cli/pull/835)
+
+**Bug fixes:**
+
+* fix(compute/build): ignore all files except manifest and wasm binary [#836](https://github.com/fastly/cli/pull/836)
+* fix(compute/serve): output rendering [#839](https://github.com/fastly/cli/pull/839)
+* Fix compute build rendered output [#842](https://github.com/fastly/cli/pull/842)
+
+**Enhancements:**
+
+* use secret store client keys when creating secret store entries [#805](https://github.com/fastly/cli/pull/805)
+* fix(compute/serve): check for missing override_host [#832](https://github.com/fastly/cli/pull/832)
+* feat(resource-link): Add Service Resource commands [#800](https://github.com/fastly/cli/pull/800)
+* Replace custom spinner with less buggy third-party package [#838](https://github.com/fastly/cli/pull/838)
+* refactor(spinner): hide `...` after spinner has stopped [#840](https://github.com/fastly/cli/pull/840)
+* fix(compute/serve): make override_host a default behaviour [#843](https://github.com/fastly/cli/pull/843)
+
+**Dependencies:**
+
+* build(deps): bump golang.org/x/net from 0.2.0 to 0.7.0 [#830](https://github.com/fastly/cli/pull/830)
+* build(deps): bump github.com/fastly/go-fastly/v7 from 7.2.0 to 7.3.0 [#831](https://github.com/fastly/cli/pull/831)
+
+**Clean-ups:**
+
+* refactor: linter issues resolved [#833](https://github.com/fastly/cli/pull/833)
+
 ## [v6.0.6](https://github.com/fastly/cli/releases/tag/v6.0.6) (2023-02-15)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v6.0.5...v6.0.6)
