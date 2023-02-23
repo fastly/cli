@@ -727,8 +727,8 @@ func TestBuildOther(t *testing.T) {
 			wantOutput: []string{
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
-				"Stopping the post build process",
 			},
+			wantError: "build process stopped by user",
 		},
 		// NOTE: All following tests pass --verbose so we can see post_build output.
 		{

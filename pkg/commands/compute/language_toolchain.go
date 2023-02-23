@@ -31,21 +31,36 @@ For more information on fastly.toml configuration settings, refer to https://dev
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
 	// Build compiles the user's source code into a Wasm binary.
-	Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error
+	Build() error
 }
 
 // BuildToolchain enables a language toolchain to compile their build script.
 type BuildToolchain struct {
-	buildFn                   func(string) (string, []string)
-	buildScript               string
-	errlog                    fsterr.LogInterface
+	// autoYes is the --auto-yes flag.
+	autoYes bool
+	// buildFn constructs a `sh -c` command from the buildScript.
+	buildFn func(string) (string, []string)
+	// buildScript is the [scripts.build] within the fastly.toml manifest.
+	buildScript string
+	// errlog is an abstraction for recording errors to disk.
+	errlog fsterr.LogInterface
+	// in is the user's terminal stdin stream
+	in io.Reader
+	// internalPostBuildCallback is run after the build but before post build.
 	internalPostBuildCallback func() error
-	out                       io.Writer
-	postBuild                 string
-	postBuildCallback         func() error
-	spinner                   text.Spinner
-	timeout                   int
-	verbose                   bool
+	// nonInteractive is the --non-interactive flag.
+	nonInteractive bool
+	// out is the users terminal stdout stream
+	out io.Writer
+	// postBuild is a custom script executed after the build but before the Wasm
+	// binary is added to the .tar.gz archive.
+	postBuild string
+	// spinner is a terminal progress status indicator.
+	spinner text.Spinner
+	// timeout is the build execution threshold.
+	timeout int
+	// verbose indicates if the user set --verbose
+	verbose bool
 }
 
 // Build compiles the user's source code into a Wasm binary.
@@ -71,6 +86,8 @@ func (bt BuildToolchain) Build() error {
 
 	err = bt.execCommand(cmd, args, msg)
 	if err != nil {
+		// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
+		// They are handled internally by the execCommand.
 		return bt.handleError(err)
 	}
 
@@ -112,6 +129,13 @@ func (bt BuildToolchain) Build() error {
 	}
 
 	if bt.postBuild != "" {
+		if !bt.autoYes && !bt.nonInteractive {
+			err := bt.promptForBuildContinue(CustomPostBuildScriptMessage, bt.postBuild, bt.out, bt.in, bt.verbose)
+			if err != nil {
+				return err
+			}
+		}
+
 		err = bt.spinner.Start()
 		if err != nil {
 			return err
@@ -119,12 +143,12 @@ func (bt BuildToolchain) Build() error {
 		msg = "Running post_build callback..."
 		bt.spinner.Message(msg)
 
-		if err = bt.postBuildCallback(); err == nil {
-			cmd, args := bt.buildFn(bt.postBuild)
-			err := bt.execCommand(cmd, args, msg)
-			if err != nil {
-				return bt.handleError(err)
-			}
+		cmd, args := bt.buildFn(bt.postBuild)
+		err := bt.execCommand(cmd, args, msg)
+		if err != nil {
+			// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
+			// They are handled internally by the execCommand.
+			return bt.handleError(err)
 		}
 
 		bt.spinner.StopMessage(msg)
@@ -169,5 +193,25 @@ func (bt BuildToolchain) execCommand(cmd string, args []string, spinMessage stri
 		bt.errlog.Add(err)
 		return err
 	}
+	return nil
+}
+
+// promptForBuildContinue ensures the user is happy to continue with the build
+// when there is either a custom build or post build in the fastly.toml
+// manifest file.
+func (bt BuildToolchain) promptForBuildContinue(msg, script string, out io.Writer, in io.Reader, verbose bool) error {
+	text.Info(out, "%s:\n", msg)
+	text.Break(out)
+	text.Indent(out, 4, "%s", script)
+
+	label := "\nAre you sure you want to continue with the post build step? [y/N] "
+	answer, err := text.AskYesNo(out, label, in)
+	if err != nil {
+		return err
+	}
+	if !answer {
+		return fsterr.ErrBuildStopped
+	}
+	text.Break(out)
 	return nil
 }
