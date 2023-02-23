@@ -213,7 +213,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Port = fastly.Int(443)
 	}
 
-	if !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {
+	if input.Address != nil && !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {
 		overrideHost, sslSNIHostname, sslCertHostname := SetBackendHostDefaults(*input.Address)
 		input.OverrideHost = &overrideHost
 		input.SSLSNIHostname = &sslSNIHostname

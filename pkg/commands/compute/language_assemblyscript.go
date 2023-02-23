@@ -6,6 +6,7 @@ import (
 	"os"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -37,19 +38,23 @@ const AsSourceDirectory = "assembly"
 // NewAssemblyScript constructs a new AssemblyScript toolchain.
 func NewAssemblyScript(
 	fastlyManifest *manifest.File,
-	errlog fsterr.LogInterface,
-	timeout int,
+	globals *global.Data,
+	flags Flags,
+	in io.Reader,
 	out io.Writer,
-	verbose bool,
+	spinner text.Spinner,
 ) *AssemblyScript {
 	return &AssemblyScript{
-		Shell:     Shell{},
+		Shell: Shell{},
+
 		build:     fastlyManifest.Scripts.Build,
-		errlog:    errlog,
+		errlog:    globals.ErrLog,
+		input:     in,
 		output:    out,
 		postBuild: fastlyManifest.Scripts.PostBuild,
-		timeout:   timeout,
-		verbose:   verbose,
+		spinner:   spinner,
+		timeout:   flags.Timeout,
+		verbose:   globals.Verbose(),
 	}
 }
 
@@ -57,15 +62,23 @@ func NewAssemblyScript(
 type AssemblyScript struct {
 	Shell
 
+	// autoYes is the --auto-yes flag.
+	autoYes bool
 	// build is a shell command defined in fastly.toml using [scripts.build].
 	build string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
+	// input is the user's terminal stdin stream
+	input io.Reader
+	// nonInteractive is the --non-interactive flag.
+	nonInteractive bool
 	// output is the users terminal stdout stream
 	output io.Writer
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
+	// spinner is a terminal progress status indicator.
+	spinner text.Spinner
 	// timeout is the build execution threshold.
 	timeout int
 	// verbose indicates if the user set --verbose
@@ -73,7 +86,7 @@ type AssemblyScript struct {
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (a *AssemblyScript) Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error {
+func (a *AssemblyScript) Build() error {
 	var noBuildScript bool
 	if a.build == "" {
 		a.build = AsDefaultBuildCommand
@@ -89,20 +102,22 @@ func (a *AssemblyScript) Build(out io.Writer, spinner text.Spinner, verbose bool
 	}
 
 	if noBuildScript && a.verbose {
-		text.Info(out, "No [scripts.build] found in fastly.toml. The following default build command for AssemblyScript will be used: `%s`\n", a.build)
-		text.Break(out)
+		text.Info(a.output, "No [scripts.build] found in fastly.toml. The following default build command for AssemblyScript will be used: `%s`\n", a.build)
+		text.Break(a.output)
 	}
 
 	bt := BuildToolchain{
-		buildFn:           a.Shell.Build,
-		buildScript:       a.build,
-		errlog:            a.errlog,
-		postBuild:         a.postBuild,
-		timeout:           a.timeout,
-		out:               out,
-		postBuildCallback: callback,
-		spinner:           spinner,
-		verbose:           verbose,
+		autoYes:        a.autoYes,
+		buildFn:        a.Shell.Build,
+		buildScript:    a.build,
+		errlog:         a.errlog,
+		in:             a.input,
+		nonInteractive: a.nonInteractive,
+		out:            a.output,
+		postBuild:      a.postBuild,
+		spinner:        a.spinner,
+		timeout:        a.timeout,
+		verbose:        a.verbose,
 	}
 
 	return bt.Build()

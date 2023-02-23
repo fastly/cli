@@ -15,6 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	toml "github.com/pelletier/go-toml"
@@ -43,21 +44,26 @@ const RustSourceDirectory = "src"
 // NewRust constructs a new Rust toolchain.
 func NewRust(
 	fastlyManifest *manifest.File,
-	errlog fsterr.LogInterface,
-	timeout int,
-	cfg config.Rust,
+	globals *global.Data,
+	flags Flags,
+	in io.Reader,
 	out io.Writer,
-	verbose bool,
+	spinner text.Spinner,
 ) *Rust {
 	return &Rust{
-		Shell:     Shell{},
-		build:     fastlyManifest.Scripts.Build,
-		config:    cfg,
-		errlog:    errlog,
-		output:    out,
-		postBuild: fastlyManifest.Scripts.PostBuild,
-		timeout:   timeout,
-		verbose:   verbose,
+		Shell: Shell{},
+
+		autoYes:        globals.Flags.AutoYes,
+		build:          fastlyManifest.Scripts.Build,
+		config:         globals.Config.Language.Rust,
+		errlog:         globals.ErrLog,
+		input:          in,
+		nonInteractive: globals.Flags.NonInteractive,
+		output:         out,
+		postBuild:      fastlyManifest.Scripts.PostBuild,
+		spinner:        spinner,
+		timeout:        flags.Timeout,
+		verbose:        globals.Verbose(),
 	}
 }
 
@@ -65,12 +71,18 @@ func NewRust(
 type Rust struct {
 	Shell
 
+	// autoYes is the --auto-yes flag.
+	autoYes bool
 	// build is a shell command defined in fastly.toml using [scripts.build].
 	build string
 	// config is the Rust specific application configuration.
 	config config.Rust
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
+	// input is the user's terminal stdin stream
+	input io.Reader
+	// nonInteractive is the --non-interactive flag.
+	nonInteractive bool
 	// output is the users terminal stdout stream
 	output io.Writer
 	// postBuild is a custom script executed after the build but before the Wasm
@@ -78,6 +90,8 @@ type Rust struct {
 	postBuild string
 	// projectRoot is the root directory where the Cargo.toml is located.
 	projectRoot string
+	// spinner is a terminal progress status indicator.
+	spinner text.Spinner
 	// timeout is the build execution threshold.
 	timeout int
 	// verbose indicates if the user set --verbose
@@ -85,7 +99,7 @@ type Rust struct {
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (r *Rust) Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error {
+func (r *Rust) Build() error {
 	var noBuildScript bool
 	if r.build == "" {
 		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName)
@@ -98,22 +112,24 @@ func (r *Rust) Build(out io.Writer, spinner text.Spinner, verbose bool, callback
 	}
 
 	if noBuildScript && r.verbose {
-		text.Info(out, "No [scripts.build] found in fastly.toml. The following default build command for Rust will be used: `%s`\n", r.build)
+		text.Info(r.output, "No [scripts.build] found in fastly.toml. The following default build command for Rust will be used: `%s`\n", r.build)
 	}
 
 	r.toolchainConstraint()
 
 	bt := BuildToolchain{
+		autoYes:                   r.autoYes,
 		buildFn:                   r.Shell.Build,
 		buildScript:               r.build,
 		errlog:                    r.errlog,
+		in:                        r.input,
 		internalPostBuildCallback: r.ProcessLocation,
+		nonInteractive:            r.nonInteractive,
+		out:                       r.output,
 		postBuild:                 r.postBuild,
+		spinner:                   r.spinner,
 		timeout:                   r.timeout,
-		out:                       out,
-		postBuildCallback:         callback,
-		spinner:                   spinner,
-		verbose:                   verbose,
+		verbose:                   r.verbose,
 	}
 
 	return bt.Build()

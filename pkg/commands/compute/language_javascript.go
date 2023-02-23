@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -39,19 +40,25 @@ const JsSourceDirectory = "src"
 // NewJavaScript constructs a new JavaScript toolchain.
 func NewJavaScript(
 	fastlyManifest *manifest.File,
-	errlog fsterr.LogInterface,
-	timeout int,
+	globals *global.Data,
+	flags Flags,
+	in io.Reader,
 	out io.Writer,
-	verbose bool,
+	spinner text.Spinner,
 ) *JavaScript {
 	return &JavaScript{
-		Shell:     Shell{},
-		build:     fastlyManifest.Scripts.Build,
-		errlog:    errlog,
-		output:    out,
-		postBuild: fastlyManifest.Scripts.PostBuild,
-		timeout:   timeout,
-		verbose:   verbose,
+		Shell: Shell{},
+
+		autoYes:        globals.Flags.AutoYes,
+		build:          fastlyManifest.Scripts.Build,
+		errlog:         globals.ErrLog,
+		input:          in,
+		nonInteractive: globals.Flags.NonInteractive,
+		output:         out,
+		postBuild:      fastlyManifest.Scripts.PostBuild,
+		spinner:        spinner,
+		timeout:        flags.Timeout,
+		verbose:        globals.Verbose(),
 	}
 }
 
@@ -59,15 +66,23 @@ func NewJavaScript(
 type JavaScript struct {
 	Shell
 
+	// autoYes is the --auto-yes flag.
+	autoYes bool
 	// build is a shell command defined in fastly.toml using [scripts.build].
 	build string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
+	// input is the user's terminal stdin stream
+	input io.Reader
+	// nonInteractive is the --non-interactive flag.
+	nonInteractive bool
 	// output is the users terminal stdout stream
 	output io.Writer
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
+	// spinner is a terminal progress status indicator.
+	spinner text.Spinner
 	// timeout is the build execution threshold.
 	timeout int
 	// verbose indicates if the user set --verbose
@@ -75,7 +90,7 @@ type JavaScript struct {
 }
 
 // Build compiles the user's source code into a Wasm binary.
-func (j *JavaScript) Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error {
+func (j *JavaScript) Build() error {
 	var noBuildScript bool
 	if j.build == "" {
 		noBuildScript = true
@@ -92,20 +107,22 @@ func (j *JavaScript) Build(out io.Writer, spinner text.Spinner, verbose bool, ca
 	}
 
 	if noBuildScript && j.verbose {
-		text.Info(out, "No [scripts.build] found in fastly.toml. The following default build command for JavaScript will be used: `%s`\n", j.build)
-		text.Break(out)
+		text.Info(j.output, "No [scripts.build] found in fastly.toml. The following default build command for JavaScript will be used: `%s`\n", j.build)
+		text.Break(j.output)
 	}
 
 	bt := BuildToolchain{
-		buildFn:           j.Shell.Build,
-		buildScript:       j.build,
-		errlog:            j.errlog,
-		postBuild:         j.postBuild,
-		timeout:           j.timeout,
-		out:               out,
-		postBuildCallback: callback,
-		spinner:           spinner,
-		verbose:           verbose,
+		autoYes:        j.autoYes,
+		buildFn:        j.Shell.Build,
+		buildScript:    j.build,
+		errlog:         j.errlog,
+		in:             j.input,
+		nonInteractive: j.nonInteractive,
+		out:            j.output,
+		postBuild:      j.postBuild,
+		spinner:        j.spinner,
+		timeout:        j.timeout,
+		verbose:        j.verbose,
 	}
 
 	return bt.Build()

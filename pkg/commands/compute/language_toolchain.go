@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -30,33 +31,51 @@ For more information on fastly.toml configuration settings, refer to https://dev
 // Toolchain abstracts a Compute@Edge source language toolchain.
 type Toolchain interface {
 	// Build compiles the user's source code into a Wasm binary.
-	Build(out io.Writer, spinner text.Spinner, verbose bool, callback func() error) error
+	Build() error
 }
 
 // BuildToolchain enables a language toolchain to compile their build script.
 type BuildToolchain struct {
-	buildFn                   func(string) (string, []string)
-	buildScript               string
-	errlog                    fsterr.LogInterface
+	// autoYes is the --auto-yes flag.
+	autoYes bool
+	// buildFn constructs a `sh -c` command from the buildScript.
+	buildFn func(string) (string, []string)
+	// buildScript is the [scripts.build] within the fastly.toml manifest.
+	buildScript string
+	// errlog is an abstraction for recording errors to disk.
+	errlog fsterr.LogInterface
+	// in is the user's terminal stdin stream
+	in io.Reader
+	// internalPostBuildCallback is run after the build but before post build.
 	internalPostBuildCallback func() error
-	out                       io.Writer
-	postBuild                 string
-	postBuildCallback         func() error
-	spinner                   text.Spinner
-	timeout                   int
-	verbose                   bool
+	// nonInteractive is the --non-interactive flag.
+	nonInteractive bool
+	// out is the users terminal stdout stream
+	out io.Writer
+	// postBuild is a custom script executed after the build but before the Wasm
+	// binary is added to the .tar.gz archive.
+	postBuild string
+	// spinner is a terminal progress status indicator.
+	spinner text.Spinner
+	// timeout is the build execution threshold.
+	timeout int
+	// verbose indicates if the user set --verbose
+	verbose bool
 }
 
 // Build compiles the user's source code into a Wasm binary.
 func (bt BuildToolchain) Build() error {
+	cmd, args := bt.buildFn(bt.buildScript)
+
+	if bt.verbose {
+		text.Break(bt.out)
+		text.Description(bt.out, "Build script to execute", fmt.Sprintf("%s %s", cmd, strings.Join(args, " ")))
+	}
+
 	var (
 		err error
 		msg string
 	)
-
-	if bt.verbose {
-		text.Break(bt.out)
-	}
 
 	err = bt.spinner.Start()
 	if err != nil {
@@ -65,15 +84,17 @@ func (bt BuildToolchain) Build() error {
 	msg = "Running [scripts.build]"
 	bt.spinner.Message(msg + "...")
 
+	err = bt.execCommand(cmd, args, msg)
+	if err != nil {
+		// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
+		// It is handled internally by fstexec.Streaming.Exec().
+		return bt.handleError(err)
+	}
+
 	bt.spinner.StopMessage(msg)
 	err = bt.spinner.Stop()
 	if err != nil {
 		return err
-	}
-
-	err = bt.execCommand(bt.buildScript)
-	if err != nil {
-		return bt.handleError(err)
 	}
 
 	// NOTE: internalPostBuildCallback is only used by Rust currently.
@@ -94,25 +115,33 @@ func (bt BuildToolchain) Build() error {
 		return bt.handleError(err)
 	}
 
-	err = bt.spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Running post_build callback"
-	bt.spinner.Message(msg + "...")
-
-	bt.spinner.StopMessage(msg)
-	err = bt.spinner.Stop()
-	if err != nil {
-		return err
-	}
-
 	if bt.postBuild != "" {
-		if err = bt.postBuildCallback(); err == nil {
-			err := bt.execCommand(bt.postBuild)
+		if !bt.autoYes && !bt.nonInteractive {
+			err := bt.promptForBuildContinue(CustomPostBuildScriptMessage, bt.postBuild, bt.out, bt.in, bt.verbose)
 			if err != nil {
-				return bt.handleError(err)
+				return err
 			}
+		}
+
+		err = bt.spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = "Running [scripts.post_build]..."
+		bt.spinner.Message(msg)
+
+		cmd, args := bt.buildFn(bt.postBuild)
+		err := bt.execCommand(cmd, args, msg)
+		if err != nil {
+			// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
+			// It is handled internally by fstexec.Streaming.Exec().
+			return bt.handleError(err)
+		}
+
+		bt.spinner.StopMessage(msg)
+		err = bt.spinner.Stop()
+		if err != nil {
+			return err
 		}
 	}
 
@@ -120,7 +149,6 @@ func (bt BuildToolchain) Build() error {
 }
 
 func (bt BuildToolchain) handleError(err error) error {
-	text.Break(bt.out)
 	return fsterr.RemediationError{
 		Inner:       err,
 		Remediation: DefaultBuildErrorRemediation,
@@ -128,15 +156,21 @@ func (bt BuildToolchain) handleError(err error) error {
 }
 
 // execCommand opens a sub shell to execute the language build script.
-func (bt BuildToolchain) execCommand(script string) error {
-	cmd, args := bt.buildFn(script)
-
+//
+// NOTE: We pass the spinner and associated message to handle error cases.
+// This avoids an issue where the spinner is still running when an error occurs.
+// When the error occurs the command output is displayed.
+// This causes the spinner message to be displayed twice with different status.
+// By passing in the spinner and message we can short-circuit the spinner.
+func (bt BuildToolchain) execCommand(cmd string, args []string, spinMessage string) error {
 	s := fstexec.Streaming{
-		Command: cmd,
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  bt.out,
-		Verbose: bt.verbose,
+		Command:        cmd,
+		Args:           args,
+		Env:            os.Environ(),
+		Output:         bt.out,
+		Spinner:        bt.spinner,
+		SpinnerMessage: spinMessage,
+		Verbose:        bt.verbose,
 	}
 	if bt.timeout > 0 {
 		s.Timeout = time.Duration(bt.timeout) * time.Second
@@ -145,5 +179,25 @@ func (bt BuildToolchain) execCommand(script string) error {
 		bt.errlog.Add(err)
 		return err
 	}
+	return nil
+}
+
+// promptForBuildContinue ensures the user is happy to continue with the build
+// when there is either a custom build or post build in the fastly.toml
+// manifest file.
+func (bt BuildToolchain) promptForBuildContinue(msg, script string, out io.Writer, in io.Reader, verbose bool) error {
+	text.Info(out, "%s:\n", msg)
+	text.Break(out)
+	text.Indent(out, 4, "%s", script)
+
+	label := "\nAre you sure you want to continue with the post build step? [y/N] "
+	answer, err := text.AskYesNo(out, label, in)
+	if err != nil {
+		return err
+	}
+	if !answer {
+		return fsterr.ErrBuildStopped
+	}
+	text.Break(out)
 	return nil
 }

@@ -523,11 +523,12 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 	}
 
 	s := &fstexec.Streaming{
-		Args:     args,
-		Command:  bin,
-		Env:      os.Environ(),
-		Output:   out,
-		SignalCh: make(chan os.Signal, 1),
+		Args:        args,
+		Command:     bin,
+		Env:         os.Environ(),
+		ForceOutput: true,
+		Output:      out,
+		SignalCh:    make(chan os.Signal, 1),
 	}
 	s.MonitorSignals()
 
@@ -608,8 +609,8 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 		// temporarily copied/renamed and this can cause the watcher to report an
 		// existing file has been 'created' or 'renamed' when from a user's
 		// perspective the file already exists and was only modified.
-		text.Info(out, "Restarting local server (%s)", modifiedFile)
 		text.Break(out)
+		text.Output(out, "%s Restarting local server (%s)", text.BoldGreen("✓"), modifiedFile)
 
 		// NOTE: We force closing the watcher by pushing true into a done channel.
 		// We do this because if we didn't, then we'd get an error after one

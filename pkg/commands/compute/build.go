@@ -157,7 +157,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	language, err := language(toolchain, c, out)
+	language, err := language(toolchain, c, in, out, spinner)
 	if err != nil {
 		return err
 	}
@@ -167,17 +167,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	postBuildCallback := func() error {
-		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-			err := promptForBuildContinue(CustomPostBuildScriptMessage, c.Manifest.File.Scripts.PostBuild, out, in, c.Globals.Verbose())
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	if err := language.Build(out, spinner, c.Globals.Flags.Verbose, postBuildCallback); err != nil {
+	if err := language.Build(); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Language": language.Name,
 		})
@@ -318,7 +308,7 @@ func toolchain(c *BuildCommand) (string, error) {
 }
 
 // language returns a pointer to a supported language.
-func language(toolchain string, c *BuildCommand, out io.Writer) (*Language, error) {
+func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, spinner text.Spinner) (*Language, error) {
 	var language *Language
 	switch toolchain {
 	case "assemblyscript":
@@ -327,10 +317,11 @@ func language(toolchain string, c *BuildCommand, out io.Writer) (*Language, erro
 			SourceDirectory: AsSourceDirectory,
 			Toolchain: NewAssemblyScript(
 				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
+				c.Globals,
+				c.Flags,
+				in,
 				out,
-				c.Globals.Verbose(),
+				spinner,
 			),
 		})
 	case "go":
@@ -339,11 +330,11 @@ func language(toolchain string, c *BuildCommand, out io.Writer) (*Language, erro
 			SourceDirectory: GoSourceDirectory,
 			Toolchain: NewGo(
 				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				c.Globals.Config.Language.Go,
+				c.Globals,
+				c.Flags,
+				in,
 				out,
-				c.Globals.Verbose(),
+				spinner,
 			),
 		})
 	case "javascript":
@@ -352,10 +343,11 @@ func language(toolchain string, c *BuildCommand, out io.Writer) (*Language, erro
 			SourceDirectory: JsSourceDirectory,
 			Toolchain: NewJavaScript(
 				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
+				c.Globals,
+				c.Flags,
+				in,
 				out,
-				c.Globals.Verbose(),
+				spinner,
 			),
 		})
 	case "rust":
@@ -364,20 +356,23 @@ func language(toolchain string, c *BuildCommand, out io.Writer) (*Language, erro
 			SourceDirectory: RustSourceDirectory,
 			Toolchain: NewRust(
 				&c.Manifest.File,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
-				c.Globals.Config.Language.Rust,
+				c.Globals,
+				c.Flags,
+				in,
 				out,
-				c.Globals.Verbose(),
+				spinner,
 			),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{
 			Name: "other",
 			Toolchain: NewOther(
-				c.Manifest.File.Scripts,
-				c.Globals.ErrLog,
-				c.Flags.Timeout,
+				&c.Manifest.File,
+				c.Globals,
+				c.Flags,
+				in,
+				out,
+				spinner,
 			),
 		})
 	default:
@@ -403,35 +398,6 @@ func binDir(c *BuildCommand) error {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("failed to create bin directory: %w", err)
 	}
-	return nil
-}
-
-// promptForBuildContinue ensures the user is happy to continue with the build
-// when there is either a custom build or post build in the fastly.toml
-// manifest file.
-func promptForBuildContinue(msg, script string, out io.Writer, in io.Reader, verbose bool) error {
-	text.Info(out, "%s:\n", msg)
-	text.Break(out)
-	text.Indent(out, 4, "%s", script)
-
-	var post string
-	if msg == CustomPostBuildScriptMessage {
-		post = "post "
-	}
-
-	label := fmt.Sprintf("\nAre you sure you want to continue with the %sbuild step? [y/N] ", post)
-	answer, err := text.AskYesNo(out, label, in)
-	if err != nil {
-		return err
-	}
-	if !answer {
-		text.Info(out, "Stopping the %sbuild process.", post)
-		if !verbose {
-			text.Break(out)
-		}
-		return fsterr.ErrBuildStopped
-	}
-	text.Break(out)
 	return nil
 }
 

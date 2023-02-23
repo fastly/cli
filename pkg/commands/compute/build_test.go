@@ -727,8 +727,8 @@ func TestBuildOther(t *testing.T) {
 			wantOutput: []string{
 				"echo doing a post build",
 				"Are you sure you want to continue with the post build step?",
-				"Stopping the post build process",
 			},
+			wantError: "build process stopped by user",
 		},
 		// NOTE: All following tests pass --verbose so we can see post_build output.
 		{
@@ -772,14 +772,14 @@ func TestBuildOther(t *testing.T) {
 			name = "test"
 			[scripts]
 			build = "touch ./bin/main.wasm"
-      post_build = "echo doing a post build with no confirmation prompt"`,
+      post_build = "echo doing a post build with no confirmation prompt && exit 1"`, // force an error so post_build is displayed to validate it was run.
 			wantOutput: []string{
 				"doing a post build with no confirmation prompt",
-				"Built package",
 			},
 			dontWantOutput: []string{
 				"Are you sure you want to continue with the build step?",
 			},
+			wantError: "exit status 1", // because we have to trigger an error to see the post_build output
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
