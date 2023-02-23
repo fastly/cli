@@ -7,6 +7,8 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"net"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -100,10 +102,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if c.Globals.Verbose() && c.hasBackendsWithMissingOverrideHost() {
-		text.Info(out, "One of the project's `local_server.backends` has a backend configured without an `override_host` and in some cases can result in unexpected errors. See https://developer.fastly.com/reference/compute/fastly-toml/#local-server for more details.")
-		text.Break(out)
-	}
+	c.setBackendsWithDefaultOverrideHostIfMissing(out)
 
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
@@ -178,15 +177,34 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-// hasBackendsWithMissingOverrideHost indicates if any local_server.backends
-// have a missing `override_host` property.
-func (c *ServeCommand) hasBackendsWithMissingOverrideHost() bool {
-	for _, backend := range c.Globals.Manifest.File.LocalServer.Backends {
+// setBackendsWithDefaultOverrideHostIfMissing sets an override_host for any
+// local_server.backends that is missing that property. The value will only be
+// set if the URL defined uses a hostname (e.g. http://127.0.0.1/ won't) so we
+// can set the override_host to match the hostname.
+func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer) {
+	var missingOverrideHost bool
+
+	for k, backend := range c.Globals.Manifest.File.LocalServer.Backends {
 		if backend.OverrideHost == "" {
-			return true
+			if u, err := url.Parse(backend.URL); err == nil {
+				segs := strings.Split(u.Host, ":") // avoid parsing IP with port
+				if addr := net.ParseIP(segs[0]); addr != nil {
+					// we have an IP
+				} else {
+					if c.Globals.Verbose() {
+						text.Info(out, "[local_server.backends.%s] (%s) is configured without an `override_host`. We will use %s as a default to help avoid any unexpected errors. See https://developer.fastly.com/reference/compute/fastly-toml/#local-server for more details.", k, backend.URL, u.Host)
+					}
+					backend.OverrideHost = u.Host
+					c.Globals.Manifest.File.LocalServer.Backends[k] = backend
+					missingOverrideHost = true
+				}
+			}
 		}
 	}
-	return false
+
+	if missingOverrideHost && c.Globals.Verbose() {
+		text.Break(out)
+	}
 }
 
 // GetViceroy returns the path to the installed binary.
