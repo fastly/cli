@@ -611,7 +611,6 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 		// perspective the file already exists and was only modified.
 		text.Break(out)
 		text.Output(out, "%s Restarting local server (%s)", text.BoldGreen("✓"), modifiedFile)
-		text.Break(out)
 
 		// NOTE: We force closing the watcher by pushing true into a done channel.
 		// We do this because if we didn't, then we'd get an error after one

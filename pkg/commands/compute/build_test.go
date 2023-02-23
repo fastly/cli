@@ -774,8 +774,7 @@ func TestBuildOther(t *testing.T) {
 			build = "touch ./bin/main.wasm"
       post_build = "echo doing a post build with no confirmation prompt && exit 1"`, // force an error so post_build is displayed to validate it was run.
 			wantOutput: []string{
-				"post build with no confirmation prompt",
-				"Built package",
+				"doing a post build with no confirmation prompt",
 			},
 			dontWantOutput: []string{
 				"Are you sure you want to continue with the build step?",

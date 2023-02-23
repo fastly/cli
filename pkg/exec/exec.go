@@ -106,7 +106,6 @@ func (s *Streaming) Exec() error {
 
 	if err := cmd.Start(); err != nil {
 		text.Output(output, divider)
-		text.Break(output)
 		return err
 	}
 
@@ -127,8 +126,7 @@ func (s *Streaming) Exec() error {
 		}
 
 		// Display the buffer stored output as we have an error.
-		text.Break(s.Output)
-		text.Output(s.Output, buf.String())
+		fmt.Fprintf(s.Output, "%s", buf.String())
 
 		// IMPORTANT: We MUST wrap the original error.
 		// This is because the `compute serve` command requires it for --watch

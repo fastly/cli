@@ -87,7 +87,7 @@ func (bt BuildToolchain) Build() error {
 	err = bt.execCommand(cmd, args, msg)
 	if err != nil {
 		// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
-		// They are handled internally by the execCommand.
+		// It is handled internally by fstexec.Streaming.Exec().
 		return bt.handleError(err)
 	}
 
@@ -147,7 +147,7 @@ func (bt BuildToolchain) Build() error {
 		err := bt.execCommand(cmd, args, msg)
 		if err != nil {
 			// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
-			// They are handled internally by the execCommand.
+			// It is handled internally by fstexec.Streaming.Exec().
 			return bt.handleError(err)
 		}
 
@@ -162,7 +162,6 @@ func (bt BuildToolchain) Build() error {
 }
 
 func (bt BuildToolchain) handleError(err error) error {
-	text.Break(bt.out)
 	return fsterr.RemediationError{
 		Inner:       err,
 		Remediation: DefaultBuildErrorRemediation,
