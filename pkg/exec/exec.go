@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -23,14 +22,17 @@ const divider = "---------------------------------------------------------------
 // compute commands can use this to standardize the flow control for each
 // compiler toolchain.
 type Streaming struct {
-	Args     []string
-	Command  string
-	Env      []string
-	Output   io.Writer
-	Process  *os.Process
-	SignalCh chan os.Signal
-	Timeout  time.Duration
-	Verbose  bool
+	Args           []string
+	Command        string
+	Env            []string
+	ForceOutput    bool
+	Output         io.Writer
+	Process        *os.Process
+	SignalCh       chan os.Signal
+	Spinner        text.Spinner
+	SpinnerMessage string
+	Timeout        time.Duration
+	Verbose        bool
 }
 
 // MonitorSignals spawns a goroutine that configures signal handling so that
@@ -63,11 +65,6 @@ func (s *Streaming) MonitorSignalsAsync() {
 // stderr output to the supplied io.Writer, it waits for the command to exit
 // cleanly or returns an error.
 func (s *Streaming) Exec() error {
-	if s.Verbose {
-		text.Break(s.Output)
-		text.Description(s.Output, "Executing command", fmt.Sprintf("%s %s", s.Command, strings.Join(s.Args, " ")))
-	}
-
 	// Construct the command with given arguments and environment.
 	var cmd *exec.Cmd
 	if s.Timeout > 0 {
@@ -89,15 +86,23 @@ func (s *Streaming) Exec() error {
 	}
 	cmd.Env = append(os.Environ(), s.Env...)
 
-	// Pipe the child process stdout and stderr to our own output writer.
-	var stdoutBuf, stderrBuf threadsafe.Buffer
+	// We store all output in a buffer to hide it unless there was an error.
+	var buf threadsafe.Buffer
 
-	output := s.Output
+	var output io.Writer
+	output = &buf
+
+	// We only display the stored output (even though there is no error) because
+	// some commands want to see the output, such as `compute serve`.
+	if s.ForceOutput {
+		output = s.Output
+	}
+
 	text.Info(output, "Command output:")
 	text.Output(output, divider)
 
-	cmd.Stdout = io.MultiWriter(output, &stdoutBuf)
-	cmd.Stderr = io.MultiWriter(output, &stderrBuf)
+	cmd.Stdout = output
+	cmd.Stderr = output
 
 	if err := cmd.Start(); err != nil {
 		text.Output(output, divider)
@@ -113,6 +118,18 @@ func (s *Streaming) Exec() error {
 	if err := cmd.Wait(); err != nil {
 		text.Output(output, divider)
 
+		if s.Spinner != nil {
+			s.Spinner.StopFailMessage(s.SpinnerMessage)
+			spinErr := s.Spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
+		}
+
+		// Display the buffer stored output as we have an error.
+		text.Break(s.Output)
+		text.Output(s.Output, buf.String())
+
 		// IMPORTANT: We MUST wrap the original error.
 		// This is because the `compute serve` command requires it for --watch
 		// Specifically we need to check the error message for "killed".
@@ -121,7 +138,6 @@ func (s *Streaming) Exec() error {
 	}
 
 	text.Output(output, divider)
-	text.Break(output)
 	return nil
 }
 

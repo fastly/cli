@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -49,14 +50,17 @@ type BuildToolchain struct {
 
 // Build compiles the user's source code into a Wasm binary.
 func (bt BuildToolchain) Build() error {
+	cmd, args := bt.buildFn(bt.buildScript)
+
+	if bt.verbose {
+		text.Break(bt.out)
+		text.Description(bt.out, "Build script to execute", fmt.Sprintf("%s %s", cmd, strings.Join(args, " ")))
+	}
+
 	var (
 		err error
 		msg string
 	)
-
-	if bt.verbose {
-		text.Break(bt.out)
-	}
 
 	err = bt.spinner.Start()
 	if err != nil {
@@ -65,15 +69,15 @@ func (bt BuildToolchain) Build() error {
 	msg = "Running [scripts.build]"
 	bt.spinner.Message(msg + "...")
 
+	err = bt.execCommand(cmd, args, msg)
+	if err != nil {
+		return bt.handleError(err)
+	}
+
 	bt.spinner.StopMessage(msg)
 	err = bt.spinner.Stop()
 	if err != nil {
 		return err
-	}
-
-	err = bt.execCommand(bt.buildScript)
-	if err != nil {
-		return bt.handleError(err)
 	}
 
 	// NOTE: internalPostBuildCallback is only used by Rust currently.
@@ -108,11 +112,25 @@ func (bt BuildToolchain) Build() error {
 	}
 
 	if bt.postBuild != "" {
+		err = bt.spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = "Running post_build callback..."
+		bt.spinner.Message(msg)
+
 		if err = bt.postBuildCallback(); err == nil {
-			err := bt.execCommand(bt.postBuild)
+			cmd, args := bt.buildFn(bt.postBuild)
+			err := bt.execCommand(cmd, args, msg)
 			if err != nil {
 				return bt.handleError(err)
 			}
+		}
+
+		bt.spinner.StopMessage(msg)
+		err = bt.spinner.Stop()
+		if err != nil {
+			return err
 		}
 	}
 
@@ -128,15 +146,21 @@ func (bt BuildToolchain) handleError(err error) error {
 }
 
 // execCommand opens a sub shell to execute the language build script.
-func (bt BuildToolchain) execCommand(script string) error {
-	cmd, args := bt.buildFn(script)
-
+//
+// NOTE: We pass the spinner and associated message to handle error cases.
+// This avoids an issue where the spinner is still running when an error occurs.
+// When the error occurs the command output is displayed.
+// This causes the spinner message to be displayed twice with different status.
+// By passing in the spinner and message we can short-circuit the spinner.
+func (bt BuildToolchain) execCommand(cmd string, args []string, spinMessage string) error {
 	s := fstexec.Streaming{
-		Command: cmd,
-		Args:    args,
-		Env:     os.Environ(),
-		Output:  bt.out,
-		Verbose: bt.verbose,
+		Command:        cmd,
+		Args:           args,
+		Env:            os.Environ(),
+		Output:         bt.out,
+		Spinner:        bt.spinner,
+		SpinnerMessage: spinMessage,
+		Verbose:        bt.verbose,
 	}
 	if bt.timeout > 0 {
 		s.Timeout = time.Duration(bt.timeout) * time.Second
