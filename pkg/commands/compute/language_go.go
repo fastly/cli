@@ -131,6 +131,10 @@ func (g *Go) Build() error {
 // The warning is to help a user know something isn't quite right and gives them
 // the opportunity to do something about it if they choose.
 func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
+	if g.verbose {
+		text.Info(g.output, "The Fastly CLI requires a %s version '%s'. ", toolchain, constraint)
+	}
+
 	versionCommand := fmt.Sprintf("%s version", toolchain)
 	args := strings.Split(versionCommand, " ")
 
@@ -161,10 +165,6 @@ func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
 	c, err := semver.NewConstraint(constraint)
 	if err != nil {
 		return
-	}
-
-	if g.verbose {
-		text.Info(g.output, "The Fastly CLI requires a %s version '%s'. ", toolchain, constraint)
 	}
 
 	if !c.Check(v) {

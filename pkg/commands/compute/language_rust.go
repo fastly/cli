@@ -192,6 +192,10 @@ func (r *Rust) modifyCargoPackageName() error {
 // The warning is to help a user know something isn't quite right and gives them
 // the opportunity to do something about it if they choose.
 func (r *Rust) toolchainConstraint() {
+	if r.verbose {
+		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'. ", r.config.ToolchainConstraint)
+	}
+
 	versionCommand := "cargo version --quiet"
 	args := strings.Split(versionCommand, " ")
 
@@ -222,10 +226,6 @@ func (r *Rust) toolchainConstraint() {
 	c, err := semver.NewConstraint(r.config.ToolchainConstraint)
 	if err != nil {
 		return
-	}
-
-	if r.verbose {
-		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'. ", r.config.ToolchainConstraint)
 	}
 
 	if !c.Check(v) {
