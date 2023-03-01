@@ -202,11 +202,7 @@ func (d *Domains) createDomain(name string, attempt int) error {
 	}
 
 	d.Spinner.StopMessage(msg)
-	err = d.Spinner.Stop()
-	if err != nil {
-		return err
-	}
-	return nil
+	return d.Spinner.Stop()
 }
 
 func generateDomainName() string {

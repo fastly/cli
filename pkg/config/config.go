@@ -135,11 +135,7 @@ type StarterKit struct {
 // doesn't already exist.
 func createConfigDir(path string) error {
 	basePath := filepath.Dir(path)
-	err := filesystem.MakeDirectoryIfNotExists(basePath)
-	if err != nil {
-		return err
-	}
-	return nil
+	return filesystem.MakeDirectoryIfNotExists(basePath)
 }
 
 // File represents our application toml configuration.

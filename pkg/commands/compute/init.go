@@ -638,11 +638,7 @@ func fetchPackageTemplate(
 		}
 
 		spinner.StopMessage(msg)
-		err = spinner.Stop()
-		if err != nil {
-			return err
-		}
-		return nil
+		return spinner.Stop()
 	}
 
 	req, err := http.NewRequest("GET", c.cloneFrom, nil)
@@ -659,11 +655,7 @@ func fetchPackageTemplate(
 			}
 
 			spinner.StopMessage(msg)
-			err = spinner.Stop()
-			if err != nil {
-				return err
-			}
-			return nil
+			return spinner.Stop()
 		}
 
 		spinner.StopFailMessage(msg)
@@ -823,11 +815,7 @@ mimes:
 		}
 
 		spinner.StopMessage(msg)
-		err = spinner.Stop()
-		if err != nil {
-			return err
-		}
-		return nil
+		return spinner.Stop()
 	}
 
 	if err := clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir); err != nil {
@@ -840,11 +828,7 @@ mimes:
 	}
 
 	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-	return nil
+	return spinner.Stop()
 }
 
 // clonePackageFromEndpoint clones the given repo (from) into a temp directory,
@@ -1102,11 +1086,7 @@ func updateManifest(
 	}
 
 	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return m, err
-	}
-	return m, nil
+	return m, spinner.Stop()
 }
 
 // initializeLanguage for newly cloned package.

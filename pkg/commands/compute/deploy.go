@@ -782,11 +782,7 @@ func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, ver
 	}
 
 	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-	return nil
+	return spinner.Stop()
 }
 
 // displayDomain displays a domain from those available in the service.
@@ -1117,9 +1113,5 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, spin
 	}
 
 	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-	return nil
+	return spinner.Stop()
 }

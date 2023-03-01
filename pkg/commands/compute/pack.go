@@ -179,9 +179,5 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	}
 
 	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-	return nil
+	return spinner.Stop()
 }
