@@ -454,8 +454,8 @@ var (
 )
 
 var (
-	createDictionaryOutput          = "\nSUCCESS: Created dictionary denylist (service 123 version 4)\n"
-	createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (service 123 version 4)\n"
+	createDictionaryOutput          = "\nSUCCESS: Created dictionary denylist (id 456, service 123, version 4)\n"
+	createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (id 456, service 123, version 4)\n"
 	deleteDictionaryOutput          = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 4)\n"
 	updateDictionaryOutput          = "\nSUCCESS: Updated dictionary oldname (service 123 version 4)\n"
 	updateDictionaryNameOutput      = "\nSUCCESS: Updated dictionary dict-1 (service 123 version 4)\n"
