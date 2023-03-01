@@ -593,21 +593,14 @@ func stripManifestSection(r io.Reader, path string) (*bytes.Buffer, error) {
 	}
 
 	err := os.WriteFile(path, buf.Bytes(), FilePermissions)
-	if err != nil {
-		return buf, err
-	}
-
-	return buf, nil
+	return buf, err
 }
 
 // appendSpecRef appends the fastly.toml specification URL to the manifest.
 func appendSpecRef(w io.Writer) error {
 	s := fmt.Sprintf("# %s\n# %s\n\n", SpecIntro, SpecURL)
 	_, err := io.WriteString(w, s)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // Flag represents all of the manifest parameters that can be set with explicit

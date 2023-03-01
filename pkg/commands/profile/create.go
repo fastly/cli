@@ -101,12 +101,7 @@ func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, ou
 		return err
 	}
 
-	err = c.updateInMemCfg(profileName, user.Login, token, endpoint, def, spinner)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.updateInMemCfg(profileName, user.Login, token, endpoint, def, spinner)
 }
 
 func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {

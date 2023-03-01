@@ -68,10 +68,5 @@ func (c *HashsumCommand) Build(in io.Reader, out io.Writer) error {
 	if !c.Globals.Verbose() {
 		output = io.Discard
 	}
-
-	err := c.buildCmd.Exec(in, output)
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.buildCmd.Exec(in, output)
 }

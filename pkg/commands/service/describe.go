@@ -86,11 +86,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	err = c.print(service, out)
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.print(service, out)
 }
 
 func (c *DescribeCommand) print(s *fastly.ServiceDetail, out io.Writer) error {

@@ -284,11 +284,7 @@ func GetViceroy(spinner text.Spinner, out io.Writer, av github.AssetVersioner, g
 			}
 
 			spinner.StopMessage(msg)
-			err = spinner.Stop()
-			if err != nil {
-				return bin, err
-			}
-			return bin, nil
+			return bin, spinner.Stop()
 		}
 
 		spinner.StopMessage(msg)
@@ -389,11 +385,7 @@ func installViceroy(spinner text.Spinner, av github.AssetVersioner, bin string) 
 	}
 
 	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-	return nil
+	return spinner.Stop()
 }
 
 // updateViceroy checks if the currently installed version is out-of-date and

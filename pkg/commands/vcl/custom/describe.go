@@ -99,11 +99,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	err = c.print(out, v)
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.print(out, v)
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.

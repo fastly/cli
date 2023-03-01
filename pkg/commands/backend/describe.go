@@ -98,11 +98,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	err = c.print(out, backend)
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.print(out, backend)
 }
 
 // print displays the information returned from the API.
