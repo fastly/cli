@@ -111,6 +111,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		writeOnlyOutput = "as write-only "
 	}
 
-	text.Success(out, "Created dictionary %s %s(service %s version %d)", d.Name, writeOnlyOutput, d.ServiceID, d.ServiceVersion)
+	text.Success(out, "Created dictionary %s %s(id %s, service %s, version %d)", d.Name, writeOnlyOutput, d.ID, d.ServiceID, d.ServiceVersion)
 	return nil
 }
