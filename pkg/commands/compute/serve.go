@@ -454,6 +454,12 @@ func updateViceroy(
 		}
 	}
 
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
+
 	if latest.GT(current) {
 		text.Break(out)
 		text.Break(out)
@@ -495,6 +501,12 @@ func updateViceroy(
 				}
 				return fmt.Errorf("error moving latest Viceroy binary in place: %w", err)
 			}
+		}
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return err
 		}
 	}
 
