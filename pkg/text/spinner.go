@@ -9,6 +9,7 @@ import (
 
 // Spinner represents a terminal prompt status indicator.
 type Spinner interface {
+	Status() yacspin.SpinnerStatus
 	Start() error
 	Message(message string)
 	StopFailMessage(message string)
