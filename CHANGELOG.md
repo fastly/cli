@@ -1,5 +1,19 @@
 # Changelog
 
+## [v7.0.1](https://github.com/fastly/cli/releases/tag/v7.0.1) (2023-03-02)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v7.0.0...v7.0.1)
+
+**Bug fixes:**
+
+* fix(compute/build): move log calls before subprocess call [#847](https://github.com/fastly/cli/pull/847)
+* fix(compute/serve): ensure spinner is closed for all logic branches [#849](https://github.com/fastly/cli/pull/849)
+
+**Enhancements:**
+
+* feat(dict/create): display dictionary ID on creation [#848](https://github.com/fastly/cli/pull/848)
+* refactor: clean-up nil error checks [#851](https://github.com/fastly/cli/pull/851)
+
 ## [v7.0.0](https://github.com/fastly/cli/releases/tag/v7.0.0) (2023-02-23)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v6.0.6...v7.0.0)
