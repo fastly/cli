@@ -17,7 +17,7 @@ import (
 const DoesNotExist = "the profile '%s' does not exist"
 
 // NoDefaults describes an output warning message.
-const NoDefaults = "At least one account profile should be set as the 'default'. Run `fastly profile update <NAME>`."
+const NoDefaults = "At least one account profile should be set as the 'default'. Run `fastly profile update <NAME>` and ensure the profile is set to be the default."
 
 // Exist reports whether the given profile exists.
 func Exist(name string, p config.Profiles) bool {
@@ -29,7 +29,7 @@ func Exist(name string, p config.Profiles) bool {
 	return false
 }
 
-// Default returns the default profile.
+// Default returns the default profile (which is the active profile).
 func Default(p config.Profiles) (string, *config.Profile) {
 	for k, v := range p {
 		if v.Default {

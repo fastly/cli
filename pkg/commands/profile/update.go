@@ -32,23 +32,38 @@ func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data
 	var c UpdateCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("update", "Update user profile")
-	c.CmdClause.Arg("profile", "Profile to update (default 'user')").Default("user").Short('p').StringVar(&c.profile)
+	c.CmdClause.Arg("profile", "Profile to update (defaults to the currently active profile)").Short('p').StringVar(&c.profile)
 	c.clientFactory = cf
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	name, p := profile.Get(c.profile, c.Globals.Config.Profiles)
-	if name == "" {
-		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf(msg),
-			Remediation: fsterr.ProfileRemediation,
+	var (
+		name string
+		p    *config.Profile
+	)
+
+	if c.profile == "" {
+		name, p = profile.Default(c.Globals.Config.Profiles)
+		if name == "" {
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("no active profile"),
+				Remediation: profile.NoDefaults,
+			}
+		}
+	} else {
+		name, p = profile.Get(c.profile, c.Globals.Config.Profiles)
+		if name == "" {
+			msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf(msg),
+				Remediation: fsterr.ProfileRemediation,
+			}
 		}
 	}
 
-	text.Info(out, "Profile being updated: '%s'", name)
+	text.Info(out, "Profile being updated: '%s'.", name)
 
 	opts := []profile.EditOption{}
 
@@ -105,9 +120,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	var ok bool
 
-	ps, ok := profile.Edit(c.profile, c.Globals.Config.Profiles, opts...)
+	ps, ok := profile.Edit(name, c.Globals.Config.Profiles, opts...)
 	if !ok {
-		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
+		msg := fmt.Sprintf(profile.DoesNotExist, name)
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf(msg),
 			Remediation: fsterr.ProfileRemediation,
@@ -120,7 +135,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("error saving config file: %w", err)
 	}
 
-	text.Success(out, "Profile '%s' updated", c.profile)
+	text.Success(out, "Profile '%s' updated", name)
 	return nil
 }
 
