@@ -48,6 +48,8 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
+	text.Info(out, "Profile being updated: '%s'", name)
+
 	opts := []profile.EditOption{}
 
 	text.Break(out)
