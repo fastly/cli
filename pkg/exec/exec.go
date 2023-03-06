@@ -118,11 +118,16 @@ func (s *Streaming) Exec() error {
 	if err := cmd.Wait(); err != nil {
 		text.Output(output, divider)
 
-		if s.Spinner != nil {
-			s.Spinner.StopFailMessage(s.SpinnerMessage)
-			spinErr := s.Spinner.StopFail()
-			if spinErr != nil {
-				return spinErr
+		// If we're in verbose mode, the build output is shown.
+		// So in that case we don't want to have a spinner as it'll interweave output.
+		// In non-verbose mode we have a spinner running while the build is happening.
+		if !s.Verbose {
+			if s.Spinner != nil {
+				s.Spinner.StopFailMessage(s.SpinnerMessage)
+				spinErr := s.Spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
+				}
 			}
 		}
 
