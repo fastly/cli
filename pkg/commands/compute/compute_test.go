@@ -98,6 +98,7 @@ func TestServeFlagDivergence(t *testing.T) {
 		"env",
 		"file",
 		"skip-build",
+		"viceroy-path",
 		"watch",
 		"watch-dir",
 	}
