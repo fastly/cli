@@ -47,13 +47,14 @@ type ServeCommand struct {
 	timeout     cmd.OptionalInt
 
 	// Serve fields
-	addr      string
-	debug     bool
-	env       cmd.OptionalString
-	file      string
-	skipBuild bool
-	watch     bool
-	watchDir  cmd.OptionalString
+	addr           string
+	debug          bool
+	env            cmd.OptionalString
+	file           string
+	skipBuild      bool
+	viceroyBinPath string
+	watch          bool
+	watchDir       cmd.OptionalString
 }
 
 // NewServeCommand returns a usable command registered under the parent.
@@ -76,6 +77,7 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
+	c.CmdClause.Flag("viceroy-path", "The path to a user installed version of the Viceroy binary").StringVar(&c.viceroyBinPath)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
 	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute). Defaults to current directory.").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
 
@@ -109,7 +111,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	bin, err := GetViceroy(spinner, out, c.av, c.Globals)
+	bin, err := GetViceroy(spinner, out, c.av, c.Globals, c.viceroyBinPath)
 	if err != nil {
 		return err
 	}
@@ -215,8 +217,42 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func GetViceroy(spinner text.Spinner, out io.Writer, av github.AssetVersioner, g *global.Data) (bin string, err error) {
+func GetViceroy(
+	spinner text.Spinner,
+	out io.Writer,
+	av github.AssetVersioner,
+	g *global.Data,
+	viceroyBinPath string,
+) (bin string, err error) {
+	if viceroyBinPath != "" {
+		if g.Verbose() {
+			text.Info(out, "Using user provided install of Viceroy via --viceroy-path flag: %s", viceroyBinPath)
+			text.Break(out)
+		}
+		return filepath.Abs(viceroyBinPath)
+	}
+
+	// Allows a user to use a version of Viceroy that is installed in the $PATH.
+	if usePath := os.Getenv("FASTLY_VICEROY_USE_PATH"); checkViceroyEnvVar(usePath) {
+		path, err := exec.LookPath("viceroy")
+		if err != nil {
+			return "", fmt.Errorf("failed to lookup viceroy binary in user $PATH (user has set $FASTLY_VICEROY_USE_PATH): %w", err)
+		}
+		if g.Verbose() {
+			text.Info(out, "Using user provided install of Viceroy via $PATH lookup: %s", path)
+			text.Break(out)
+		}
+		return filepath.Abs(path)
+	}
+
 	bin = filepath.Join(InstallDir, av.BinaryName())
+
+	defer func() {
+		if g.Verbose() {
+			text.Info(out, "Using Viceroy from: %s", bin)
+			text.Break(out)
+		}
+	}()
 
 	// NOTE: When checking if Viceroy is installed we don't use
 	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
@@ -335,6 +371,16 @@ func GetViceroy(spinner text.Spinner, out io.Writer, av github.AssetVersioner, g
 		return bin, err
 	}
 	return bin, nil
+}
+
+// checkViceroyEnvVar indicates if the CLI should use a Viceroy binary exposed
+// on the user's $PATH.
+func checkViceroyEnvVar(value string) bool {
+	switch strings.ToUpper(value) {
+	case "1", "TRUE":
+		return true
+	}
+	return false
 }
 
 // InstallDir represents the directory where the Viceroy binary should be

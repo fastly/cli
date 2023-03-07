@@ -95,7 +95,8 @@ func TestGetViceroy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = compute.GetViceroy(spinner, &out, av, &g)
+	viceroyBinPath := "" // --viceroy-path flag for overriding CLI handling the Viceroy checks/downloads.
+	_, err = compute.GetViceroy(spinner, &out, av, &g, viceroyBinPath)
 	if err != nil {
 		t.Fatal(err)
 	}
