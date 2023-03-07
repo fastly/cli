@@ -66,14 +66,14 @@ func (b *Backends) Create() error {
 		// Avoids range-loop variable issue (i.e. var is reused across iterations).
 		bk := bk
 
-		msg := fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)...", bk.Name, bk.Address, bk.Port)
+		msg := fmt.Sprintf("Creating backend '%s' (host: %s, port: %d)", bk.Name, bk.Address, bk.Port)
 
 		if !b.isOriginless() {
 			err := b.Spinner.Start()
 			if err != nil {
 				return err
 			}
-			b.Spinner.Message(msg)
+			b.Spinner.Message(msg + "...")
 		}
 
 		opts := &fastly.CreateBackendInput{

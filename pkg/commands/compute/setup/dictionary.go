@@ -119,8 +119,8 @@ func (d *Dictionaries) Create() error {
 		if err != nil {
 			return err
 		}
-		msg := fmt.Sprintf("Creating dictionary '%s'...", dictionary.Name)
-		d.Spinner.Message(msg)
+		msg := fmt.Sprintf("Creating dictionary '%s'", dictionary.Name)
+		d.Spinner.Message(msg + "...")
 
 		dict, err := d.APIClient.CreateDictionary(&fastly.CreateDictionaryInput{
 			ServiceID:      d.ServiceID,
@@ -148,8 +148,8 @@ func (d *Dictionaries) Create() error {
 				if err != nil {
 					return err
 				}
-				msg := fmt.Sprintf("Creating dictionary item '%s'...", item.Key)
-				d.Spinner.Message(msg)
+				msg := fmt.Sprintf("Creating dictionary item '%s'", item.Key)
+				d.Spinner.Message(msg + "...")
 
 				_, err = d.APIClient.CreateDictionaryItem(&fastly.CreateDictionaryItemInput{
 					ServiceID:    d.ServiceID,

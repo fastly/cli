@@ -153,8 +153,8 @@ func (d *Domains) createDomain(name string, attempt int) error {
 	if err != nil {
 		return err
 	}
-	msg := fmt.Sprintf("Creating domain '%s'...", name)
-	d.Spinner.Message(msg)
+	msg := fmt.Sprintf("Creating domain '%s'", name)
+	d.Spinner.Message(msg + "...")
 
 	_, err = d.APIClient.CreateDomain(&fastly.CreateDomainInput{
 		ServiceID:      d.ServiceID,
