@@ -1170,6 +1170,10 @@ func checkingServiceAvailability(serviceURL string, spinner text.Spinner) error 
 }
 
 func pingServiceURL(serviceURL string) (ok bool, err error) {
+	// gosec flagged this:
+	// G107 (CWE-88): Potential HTTP request made with variable url
+	// Disabling as we trust the source of the variable.
+	// #nosec
 	resp, err := http.Get(serviceURL)
 	if err != nil {
 		return false, err
