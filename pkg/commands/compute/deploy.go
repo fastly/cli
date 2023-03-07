@@ -974,7 +974,7 @@ func processSetupCreation(
 	out io.Writer,
 ) error {
 	// NOTE: We need to output this message immediately to avoid breaking prompt.
-	if newService {
+	if newService && c.Manifest.File.Setup.Defined() {
 		text.Info(out, "Processing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
 		text.Break(out)
 	}
