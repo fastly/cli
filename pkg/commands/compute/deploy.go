@@ -167,7 +167,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	serviceURL := fmt.Sprintf("https://%s", domain)
 
-	if err := checkingServiceAvailability(serviceURL, spinner); err != nil {
+	if err := checkingServiceAvailability(serviceURL, spinner, c.Globals.HTTPClient); err != nil {
 		return err
 	}
 
@@ -1129,7 +1129,7 @@ func getServiceDomain(apiClient api.Interface, serviceID string, serviceVersion 
 
 // checkingServiceAvailability pings the service URL until either there is a 200
 // OK or if the configured timeout is exceeded.
-func checkingServiceAvailability(serviceURL string, spinner text.Spinner) error {
+func checkingServiceAvailability(serviceURL string, spinner text.Spinner, httpClient api.HTTPClient) error {
 	err := spinner.Start()
 	if err != nil {
 		return err
@@ -1152,7 +1152,7 @@ func checkingServiceAvailability(serviceURL string, spinner text.Spinner) error 
 			}
 			return errors.New("service unavailable")
 		case <-ticker.C:
-			ok, err := pingServiceURL(serviceURL)
+			ok, err := pingServiceURL(serviceURL, httpClient)
 			if err != nil {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
@@ -1169,12 +1169,17 @@ func checkingServiceAvailability(serviceURL string, spinner text.Spinner) error 
 	}
 }
 
-func pingServiceURL(serviceURL string) (ok bool, err error) {
+func pingServiceURL(serviceURL string, httpClient api.HTTPClient) (ok bool, err error) {
+	req, err := http.NewRequest("GET", serviceURL, nil)
+	if err != nil {
+		return false, err
+	}
+
 	// gosec flagged this:
 	// G107 (CWE-88): Potential HTTP request made with variable url
 	// Disabling as we trust the source of the variable.
 	// #nosec
-	resp, err := http.Get(serviceURL)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return false, err
 	}

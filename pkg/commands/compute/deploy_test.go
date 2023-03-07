@@ -80,11 +80,16 @@ func TestDeploy(t *testing.T) {
 	originalPackageSizeLimit := compute.PackageSizeLimit
 	args := testutil.Args
 	scenarios := []struct {
-		api                  mock.API
-		args                 []string
-		dontWantOutput       []string
-		httpClientRes        *http.Response
-		httpClientErr        error
+		api            mock.API
+		args           []string
+		dontWantOutput []string
+		// There are two times the HTTPClient is used.
+		// The first is if we need to activate a free trial.
+		// The second is when we ping for service availability.
+		// In this test case the free trial activation isn't used.
+		// So we only define a single HTTP client call for service availability.
+		httpClientRes        []*http.Response
+		httpClientErr        []error
 		manifest             string
 		name                 string
 		noManifest           bool
@@ -124,6 +129,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
@@ -144,6 +159,16 @@ func TestDeploy(t *testing.T) {
 				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -261,12 +286,16 @@ func TestDeploy(t *testing.T) {
 				CreateServiceFn:  createServiceErrorNoTrial,
 				GetCurrentUserFn: getCurrentUser,
 			},
-			httpClientRes: &http.Response{
-				Body:       io.NopCloser(strings.NewReader(testutil.Err.Error())),
-				Status:     http.StatusText(http.StatusBadRequest),
-				StatusCode: http.StatusBadRequest,
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader(testutil.Err.Error())),
+					Status:     http.StatusText(http.StatusBadRequest),
+					StatusCode: http.StatusBadRequest,
+				},
 			},
-			httpClientErr: nil,
+			httpClientErr: []error{
+				nil,
+			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
@@ -285,8 +314,12 @@ func TestDeploy(t *testing.T) {
 				CreateServiceFn:  createServiceErrorNoTrial,
 				GetCurrentUserFn: getCurrentUser,
 			},
-			httpClientRes: nil,
-			httpClientErr: &url.Error{Err: context.DeadlineExceeded},
+			httpClientRes: []*http.Response{
+				nil,
+			},
+			httpClientErr: []error{
+				&url.Error{Err: context.DeadlineExceeded},
+			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
@@ -309,12 +342,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
 			},
-			httpClientRes: &http.Response{
-				Body:       io.NopCloser(strings.NewReader("success")),
-				Status:     http.StatusText(http.StatusOK),
-				StatusCode: http.StatusOK,
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
 			},
-			httpClientErr: nil,
+			httpClientErr: []error{
+				nil,
+			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
@@ -452,6 +489,16 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			wantOutput: []string{
 				"Uploading package",
 				"Activating version",
@@ -473,6 +520,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			wantOutput: []string{
 				"Uploading package",
@@ -500,6 +557,16 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			noManifest: true,
 			wantOutput: []string{
 				"Using fastly.toml within --package archive:",
@@ -524,6 +591,16 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			wantOutput: []string{
 				"Uploading package",
 				"Activating version",
@@ -543,6 +620,16 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			wantOutput: []string{
 				"Uploading package",
 				"Activating version",
@@ -561,6 +648,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			wantOutput: []string{
 				"Uploading package",
@@ -582,6 +679,16 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 				UpdateVersionFn:     updateVersionOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			wantOutput: []string{
 				"Uploading package",
 				"Activating version",
@@ -600,9 +707,20 @@ func TestDeploy(t *testing.T) {
 				CreateBackendFn:   createBackendOK,
 				CreateDomainFn:    createDomainOK,
 				CreateServiceFn:   createServiceOK,
+				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -644,9 +762,20 @@ func TestDeploy(t *testing.T) {
 				CreateBackendFn:   createBackendOK,
 				CreateDomainFn:    createDomainOK,
 				CreateServiceFn:   createServiceOK,
+				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -685,9 +814,20 @@ func TestDeploy(t *testing.T) {
 				CreateBackendFn:   createBackendOK,
 				CreateDomainFn:    createDomainOK,
 				CreateServiceFn:   createServiceOK,
+				DeleteServiceFn:   deleteServiceOK,
 				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -731,6 +871,16 @@ func TestDeploy(t *testing.T) {
 				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -780,6 +930,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			wantOutput: []string{
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
@@ -798,6 +958,16 @@ func TestDeploy(t *testing.T) {
 				GetPackageFn:      getPackageOk,
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			stdin: []string{
 				"Y",      // when prompted to create a new service
@@ -830,10 +1000,20 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			stdin: []string{
-				"Y",      // when prompted to create a new service
-				"foobar", // when prompted for service name
-				"fastly.com",
+				"Y",          // when prompted to create a new service
+				"foobar",     // when prompted for service name
+				"fastly.com", // when prompted for a backend
 				"443",
 				"", // this is so we generate a backend name using a built-in formula
 				"google.com",
@@ -865,6 +1045,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:     listDomainsOk,
 				UpdatePackageFn:   updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			stdin: []string{
 				"Y",      // when prompted to create a new service
 				"foobar", // when prompted for service name
@@ -894,6 +1084,16 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			wantOutput: []string{
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
@@ -920,6 +1120,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -962,6 +1172,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -1007,6 +1227,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -1057,6 +1287,16 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			manifest: `
 			name = "package"
 			manifest_version = 2
@@ -1099,6 +1339,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -1147,6 +1397,16 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			manifest: `
 			name = "package"
 			manifest_version = 2
@@ -1184,6 +1444,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -1223,6 +1493,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -1264,6 +1544,16 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			manifest: `
 			name = "package"
 			manifest_version = 2
@@ -1300,6 +1590,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -1346,6 +1646,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -1394,6 +1704,16 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
 			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 			manifest: `
 			name = "package"
 			manifest_version = 2
@@ -1437,6 +1757,16 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
 			},
 			manifest: `
 			name = "package"
@@ -1555,7 +1885,7 @@ func TestDeploy(t *testing.T) {
 				select {
 				case <-done:
 					// Wait for app.Run() to finish
-				case <-time.After(time.Second):
+				case <-time.After(5 * time.Second):
 					t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
 				}
 			} else {
