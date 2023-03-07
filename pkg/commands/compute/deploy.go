@@ -1169,6 +1169,8 @@ func checkingServiceAvailability(serviceURL string, spinner text.Spinner, httpCl
 	}
 }
 
+// pingServiceURL indicates if the service returned a non-5xx response, which
+// should help signify if the service is generally available.
 func pingServiceURL(serviceURL string, httpClient api.HTTPClient) (ok bool, err error) {
 	req, err := http.NewRequest("GET", serviceURL, nil)
 	if err != nil {
@@ -1183,7 +1185,7 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient) (ok bool, err 
 	if err != nil {
 		return false, err
 	}
-	if resp.StatusCode == http.StatusOK {
+	if resp.StatusCode < http.StatusInternalServerError {
 		return true, nil
 	}
 	return false, nil
