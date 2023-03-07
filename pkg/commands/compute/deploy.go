@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"
@@ -159,10 +160,20 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	domain, err := getServiceDomain(c.Globals.APIClient, serviceID, serviceVersion.Number)
+	if err != nil {
+		return err
+	}
+
+	serviceURL := fmt.Sprintf("https://%s", domain)
+
+	if err := checkingServiceAvailability(serviceURL, spinner); err != nil {
+		return err
+	}
+
 	text.Break(out)
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
-
-	displayDomain(c.Globals.APIClient, serviceID, serviceVersion.Number, out)
+	text.Description(out, "View this service at", serviceURL)
 
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
@@ -785,21 +796,6 @@ func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, ver
 	return spinner.Stop()
 }
 
-// displayDomain displays a domain from those available in the service.
-func displayDomain(apiClient api.Interface, serviceID string, serviceVersion int, out io.Writer) {
-	latestDomains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
-		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion,
-	})
-	if err == nil {
-		name := latestDomains[0].Name
-		if segs := strings.Split(name, "*."); len(segs) > 1 {
-			name = segs[1]
-		}
-		text.Description(out, "View this service at", fmt.Sprintf("https://%s", name))
-	}
-}
-
 func constructSetupObjects(
 	newService bool,
 	serviceID string,
@@ -1114,4 +1110,72 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, spin
 
 	spinner.StopMessage(msg)
 	return spinner.Stop()
+}
+
+func getServiceDomain(apiClient api.Interface, serviceID string, serviceVersion int) (string, error) {
+	latestDomains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+	})
+	if err != nil {
+		return "", err
+	}
+	name := latestDomains[0].Name
+	if segs := strings.Split(name, "*."); len(segs) > 1 {
+		name = segs[1]
+	}
+	return name, nil
+}
+
+// checkingServiceAvailability pings the service URL until either there is a 200
+// OK or if the configured timeout is exceeded.
+func checkingServiceAvailability(serviceURL string, spinner text.Spinner) error {
+	err := spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Checking service availability"
+	spinner.Message(msg + "...")
+
+	timeout := time.After(2 * time.Minute)
+	ticker := time.NewTicker(1 * time.Second)
+	defer func() { ticker.Stop() }()
+
+	// Keep trying until we're timed out, got a result or got an error
+	for {
+		select {
+		case <-timeout:
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
+			return errors.New("service unavailable")
+		case <-ticker.C:
+			ok, err := pingServiceURL(serviceURL)
+			if err != nil {
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
+				}
+				return err
+			} else if ok {
+				spinner.StopMessage(msg)
+				return spinner.Stop()
+			}
+			// Service not available, and no error, so jump back to top of loop
+		}
+	}
+}
+
+func pingServiceURL(serviceURL string) (ok bool, err error) {
+	resp, err := http.Get(serviceURL)
+	if err != nil {
+		return false, err
+	}
+	if resp.StatusCode == http.StatusOK {
+		return true, nil
+	}
+	return false, nil
 }
