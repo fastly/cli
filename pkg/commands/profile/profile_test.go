@@ -630,7 +630,28 @@ func TestToken(t *testing.T) {
 		{
 			TestScenario: testutil.TestScenario{
 				Name:       "validate token is displayed for the specified profile",
-				Args:       args("profile token --name bar"), // we choose a non-default profile
+				Args:       args("profile token bar"), // we choose a non-default profile
+				WantOutput: "456",
+			},
+			ConfigFile: config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default: true,
+						Email:   "foo@example.com",
+						Token:   "123",
+					},
+					"bar": &config.Profile{
+						Default: false,
+						Email:   "bar@example.com",
+						Token:   "456",
+					},
+				},
+			},
+		},
+		{
+			TestScenario: testutil.TestScenario{
+				Name:       "validate token is displayed for the specified profile using global --profile",
+				Args:       args("profile token --profile bar"), // we choose a non-default profile
 				WantOutput: "456",
 			},
 			ConfigFile: config.File{
@@ -651,7 +672,7 @@ func TestToken(t *testing.T) {
 		{
 			TestScenario: testutil.TestScenario{
 				Name:      "validate an unrecognised profile causes an error",
-				Args:      args("profile token --name unknown"),
+				Args:      args("profile token unknown"),
 				WantError: "profile 'unknown' does not exist",
 			},
 		},
