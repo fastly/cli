@@ -224,6 +224,26 @@ type Setup struct {
 	ObjectStores map[string]*SetupObjectStore `toml:"object_stores,omitempty"`
 }
 
+// Defined indicates if there is any [setup] configuration in the manifest.
+func (s Setup) Defined() bool {
+	var defined bool
+
+	if len(s.Backends) > 0 {
+		defined = true
+	}
+	if len(s.Dictionaries) > 0 {
+		defined = true
+	}
+	if len(s.Loggers) > 0 {
+		defined = true
+	}
+	if len(s.ObjectStores) > 0 {
+		defined = true
+	}
+
+	return defined
+}
+
 // SetupBackend represents a '[setup.backends.<T>]' instance.
 type SetupBackend struct {
 	Address     string `toml:"address,omitempty"`

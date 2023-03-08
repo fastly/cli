@@ -15,19 +15,23 @@ func APIClient(a API) func(string, string) (api.Interface, error) {
 }
 
 type mockHTTPClient struct {
-	res *http.Response
-	err error
+	// index keeps track of which response/error to return
+	index int
+	res   []*http.Response
+	err   []error
 }
 
 func (c mockHTTPClient) Do(_ *http.Request) (*http.Response, error) {
-	return c.res, c.err
+	c.index++
+	return c.res[c.index], c.err[c.index]
 }
 
 // HTMLClient returns a mock HTTP Client that returns a stubbed response or
 // error.
-func HTMLClient(res *http.Response, err error) api.HTTPClient {
+func HTMLClient(res []*http.Response, err []error) api.HTTPClient {
 	return mockHTTPClient{
-		res: res,
-		err: err,
+		index: -1,
+		res:   res,
+		err:   err,
 	}
 }

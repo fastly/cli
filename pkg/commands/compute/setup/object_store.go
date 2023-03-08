@@ -117,8 +117,8 @@ func (o *ObjectStores) Create() error {
 		if err != nil {
 			return err
 		}
-		msg := fmt.Sprintf("Creating object store '%s'...", objectStore.Name)
-		o.Spinner.Message(msg)
+		msg := fmt.Sprintf("Creating object store '%s'", objectStore.Name)
+		o.Spinner.Message(msg + "...")
 
 		store, err := o.APIClient.CreateObjectStore(&fastly.CreateObjectStoreInput{
 			Name: objectStore.Name,
