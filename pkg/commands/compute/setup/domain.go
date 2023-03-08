@@ -66,6 +66,7 @@ func (d *Domains) Configure() error {
 		err    error
 	)
 	if !d.AcceptDefaults && !d.NonInteractive {
+		text.Break(d.Stdout)
 		domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain: [%s] ", defaultDomain)), d.Stdin, d.validateDomain)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
@@ -149,6 +150,10 @@ func (d *Domains) validateDomain(input string) error {
 }
 
 func (d *Domains) createDomain(name string, attempt int) error {
+	if !d.AcceptDefaults && !d.NonInteractive {
+		text.Break(d.Stdout)
+	}
+
 	err := d.Spinner.Start()
 	if err != nil {
 		return err

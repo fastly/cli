@@ -127,7 +127,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if err := processSetupConfig(
 		newService, domains, backends, dictionaries, loggers, objectStores,
-		serviceID, serviceVersion.Number, c, out,
+		serviceID, serviceVersion.Number, c,
 	); err != nil {
 		return err
 	}
@@ -167,8 +167,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	serviceURL := fmt.Sprintf("https://%s", domain)
 
-	if err := checkingServiceAvailability(serviceURL, spinner, c.Globals.HTTPClient); err != nil {
+	var status int
+	if status, err = checkingServiceAvailability(serviceURL, spinner, c.Globals.HTTPClient); err != nil {
 		return err
+	}
+
+	if status >= http.StatusBadRequest {
+		text.Info(out, "The service path `/` responded with a non-successful status code (%d). Please check your application code if this is an unexpected status code.", status)
 	}
 
 	text.Break(out)
@@ -520,7 +525,6 @@ func manageNoServiceIDFlow(
 		}
 	}
 
-	text.Break(out)
 	return serviceID, serviceVersion, nil
 }
 
@@ -905,7 +909,6 @@ func processSetupConfig(
 	serviceID string,
 	serviceVersion int,
 	c *DeployCommand,
-	out io.Writer,
 ) (err error) {
 	if domains.Missing() {
 		err = domains.Configure()
@@ -955,8 +958,6 @@ func processSetupConfig(
 			}
 		}
 	}
-
-	text.Break(out)
 
 	return nil
 }
@@ -1129,10 +1130,14 @@ func getServiceDomain(apiClient api.Interface, serviceID string, serviceVersion 
 
 // checkingServiceAvailability pings the service URL until either there is a 200
 // OK or if the configured timeout is exceeded.
-func checkingServiceAvailability(serviceURL string, spinner text.Spinner, httpClient api.HTTPClient) error {
-	err := spinner.Start()
+func checkingServiceAvailability(
+	serviceURL string,
+	spinner text.Spinner,
+	httpClient api.HTTPClient,
+) (status int, err error) {
+	err = spinner.Start()
 	if err != nil {
-		return err
+		return 0, err
 	}
 	msg := "Checking service availability"
 	spinner.Message(msg + "...")
@@ -1141,28 +1146,46 @@ func checkingServiceAvailability(serviceURL string, spinner text.Spinner, httpCl
 	ticker := time.NewTicker(1 * time.Second)
 	defer func() { ticker.Stop() }()
 
+	remediation := "The service has been successfully deployed and activated, but the service 'availability' check %s (last status code response was: %d). If using a custom domain, please be sure to check your DNS settings. Otherwise, your application might be taking longer than expected to deploy across our global range of servers. Please continue to check the service URL and if still unavailable please contact Fastly support."
+
 	// Keep trying until we're timed out, got a result or got an error
 	for {
 		select {
 		case <-timeout:
-			spinner.StopFailMessage(msg)
+			returnedStatus := fmt.Sprintf(" (status: %d)", status)
+			spinner.StopFailMessage(msg + returnedStatus)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return status, spinErr
 			}
-			return errors.New("service unavailable")
+			return status, fsterr.RemediationError{
+				Inner:       errors.New("service unavailable"),
+				Remediation: fmt.Sprintf(remediation, "timed out", status),
+			}
 		case <-ticker.C:
-			ok, err := pingServiceURL(serviceURL, httpClient)
+			var (
+				ok  bool
+				err error
+			)
+			// We overwrite the `status` variable in the parent scope (defined in the
+			// return arguments list) so it can be used as part of both the timeout
+			// and success scenarios.
+			ok, status, err = pingServiceURL(serviceURL, httpClient)
 			if err != nil {
-				spinner.StopFailMessage(msg)
+				returnedStatus := fmt.Sprintf(" (status: %d)", status)
+				spinner.StopFailMessage(msg + returnedStatus)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return spinErr
+					return status, spinErr
 				}
-				return err
+				return status, fsterr.RemediationError{
+					Inner:       err,
+					Remediation: fmt.Sprintf(remediation, "failed", status),
+				}
 			} else if ok {
-				spinner.StopMessage(msg)
-				return spinner.Stop()
+				returnedStatus := fmt.Sprintf(" (status: %d)", status)
+				spinner.StopMessage(msg + returnedStatus)
+				return status, spinner.Stop()
 			}
 			// Service not available, and no error, so jump back to top of loop
 		}
@@ -1171,10 +1194,10 @@ func checkingServiceAvailability(serviceURL string, spinner text.Spinner, httpCl
 
 // pingServiceURL indicates if the service returned a non-5xx response, which
 // should help signify if the service is generally available.
-func pingServiceURL(serviceURL string, httpClient api.HTTPClient) (ok bool, err error) {
+func pingServiceURL(serviceURL string, httpClient api.HTTPClient) (ok bool, status int, err error) {
 	req, err := http.NewRequest("GET", serviceURL, nil)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
 	// gosec flagged this:
@@ -1183,10 +1206,10 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient) (ok bool, err 
 	// #nosec
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 	if resp.StatusCode < http.StatusInternalServerError {
-		return true, nil
+		return true, resp.StatusCode, nil
 	}
-	return false, nil
+	return false, resp.StatusCode, nil
 }
