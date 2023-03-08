@@ -22,11 +22,15 @@ type PublishCommand struct {
 	timeout     cmd.OptionalInt
 
 	// Deploy fields
-	comment        cmd.OptionalString
-	domain         cmd.OptionalString
-	pkg            cmd.OptionalString
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	comment            cmd.OptionalString
+	domain             cmd.OptionalString
+	pkg                cmd.OptionalString
+	serviceName        cmd.OptionalServiceNameID
+	serviceVersion     cmd.OptionalServiceVersion
+	statusCheckCode    int
+	statusCheckOff     bool
+	statusCheckPath    string
+	statusCheckTimeout int
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
@@ -56,6 +60,10 @@ func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
+	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check to the root path").IntVar(&c.statusCheckCode)
+	c.CmdClause.Flag("status-check-off", "Disable the service availability check").BoolVar(&c.statusCheckOff)
+	c.CmdClause.Flag("status-check-path", "Specify the URL path for the service availability check").Default("/").StringVar(&c.statusCheckPath)
+	c.CmdClause.Flag("status-check-timeout", "Set a timeout (in seconds) for the service availability check").Default("120").IntVar(&c.statusCheckTimeout)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -113,6 +121,16 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.deploy.Comment = c.comment
 	}
 	c.deploy.Manifest = c.manifest
+	if c.statusCheckCode > 0 {
+		c.deploy.StatusCheckCode = c.statusCheckCode
+	}
+	if c.statusCheckOff {
+		c.deploy.StatusCheckOff = c.statusCheckOff
+	}
+	if c.statusCheckTimeout > 0 {
+		c.deploy.StatusCheckTimeout = c.statusCheckTimeout
+	}
+	c.deploy.StatusCheckPath = c.statusCheckPath
 
 	err = c.deploy.Exec(in, out)
 	if err != nil {

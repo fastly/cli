@@ -79,12 +79,10 @@ func Run(opts RunOpts) error {
 	// the globalFlags map in pkg/app/usage.go which is used for usage rendering.
 	// You should also update `IsGlobalFlagsOnly` in ../cmd/cmd.go
 	//
-	// NOTE: Global flags, unlike command flags, must be unique. This means BOTH
-	// the long flag and the short flag identifiers must be unique. If you try to
-	// reuse an identifier (long or short), then kingpin will trigger a runtime
-	// panic 🎉
-	//
-	// NOTE: Short flags CAN be safely reused across commands.
+	// NOTE: Global flags (long and short) MUST be unique.
+	// A subcommand can't define a flag that is already global.
+	// Kingpin will otherwise trigger a runtime panic 🎉
+	// Interestingly, short flags can be reused but only across subcommands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
 	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&g.Flags.AcceptDefaults)
 	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&g.Flags.AutoYes)

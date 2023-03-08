@@ -44,12 +44,16 @@ type DeployCommand struct {
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
-	Comment        cmd.OptionalString
-	Domain         string
-	Manifest       manifest.Data
-	Package        string
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	Comment            cmd.OptionalString
+	Domain             string
+	Manifest           manifest.Data
+	Package            string
+	ServiceName        cmd.OptionalServiceNameID
+	ServiceVersion     cmd.OptionalServiceVersion
+	StatusCheckCode    int
+	StatusCheckOff     bool
+	StatusCheckPath    string
+	StatusCheckTimeout int
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -82,6 +86,10 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
+	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check").IntVar(&c.StatusCheckCode)
+	c.CmdClause.Flag("status-check-off", "Disable the service availability check").BoolVar(&c.StatusCheckOff)
+	c.CmdClause.Flag("status-check-path", "Specify the URL path for the service availability check").Default("/").StringVar(&c.StatusCheckPath)
+	c.CmdClause.Flag("status-check-timeout", "Set a timeout (in seconds) for the service availability check").Default("120").IntVar(&c.StatusCheckTimeout)
 	return &c
 }
 
@@ -167,13 +175,29 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	serviceURL := fmt.Sprintf("https://%s", domain)
 
-	var status int
-	if status, err = checkingServiceAvailability(serviceURL, spinner, c.Globals.HTTPClient); err != nil {
-		return err
+	if c.Globals.Verbose() {
+		text.Info(out, "Checking service availability for: %s", serviceURL+c.StatusCheckPath)
 	}
 
-	if status >= http.StatusBadRequest {
-		text.Info(out, "The service path `/` responded with a non-successful status code (%d). Please check your application code if this is an unexpected status code.", status)
+	if !c.StatusCheckOff {
+		var status int
+		if status, err = checkingServiceAvailability(serviceURL+c.StatusCheckPath, spinner, c); err != nil {
+			if re, ok := err.(fsterr.RemediationError); ok {
+				text.Warning(out, re.Remediation)
+			}
+		}
+
+		// Because the service availability can return an error (which we ignore),
+		// then we need to check for the 'no error' scenarios.
+		if err == nil {
+			if c.StatusCheckCode > 0 && status != c.StatusCheckCode {
+				// If the user set a specific status code expectation...
+				text.Warning(out, "The service path `%s` responded with a status code (%d) that didn't match what was expected (%d).", c.StatusCheckPath, status, c.StatusCheckCode)
+			} else if c.StatusCheckCode == 0 && status >= http.StatusBadRequest {
+				// If no status code was specified, and the actual status response was an error...
+				text.Info(out, "The service path `%s` responded with a non-successful status code (%d). Please check your application code if this is an unexpected response.", c.StatusCheckPath, status)
+			}
+		}
 	}
 
 	text.Break(out)
@@ -1133,7 +1157,7 @@ func getServiceDomain(apiClient api.Interface, serviceID string, serviceVersion 
 func checkingServiceAvailability(
 	serviceURL string,
 	spinner text.Spinner,
-	httpClient api.HTTPClient,
+	c *DeployCommand,
 ) (status int, err error) {
 	err = spinner.Start()
 	if err != nil {
@@ -1142,11 +1166,11 @@ func checkingServiceAvailability(
 	msg := "Checking service availability"
 	spinner.Message(msg + "...")
 
-	timeout := time.After(2 * time.Minute)
+	timeout := time.After(time.Duration(c.StatusCheckTimeout) * time.Second)
 	ticker := time.NewTicker(1 * time.Second)
 	defer func() { ticker.Stop() }()
 
-	remediation := "The service has been successfully deployed and activated, but the service 'availability' check %s (last status code response was: %d). If using a custom domain, please be sure to check your DNS settings. Otherwise, your application might be taking longer than expected to deploy across our global range of servers. Please continue to check the service URL and if still unavailable please contact Fastly support."
+	remediation := "The service has been successfully deployed and activated, but our service 'availability' check %s (last status code response was: %d). If using a custom domain, please be sure to check your DNS settings. Otherwise, your application might be taking longer than usual to deploy across our global network. Please continue to check the service URL and if still unavailable please contact Fastly support."
 
 	// Keep trying until we're timed out, got a result or got an error
 	for {
@@ -1159,7 +1183,7 @@ func checkingServiceAvailability(
 				return status, spinErr
 			}
 			return status, fsterr.RemediationError{
-				Inner:       errors.New("service unavailable"),
+				Inner:       errors.New("service not yet available"),
 				Remediation: fmt.Sprintf(remediation, "timed out", status),
 			}
 		case <-ticker.C:
@@ -1170,7 +1194,7 @@ func checkingServiceAvailability(
 			// We overwrite the `status` variable in the parent scope (defined in the
 			// return arguments list) so it can be used as part of both the timeout
 			// and success scenarios.
-			ok, status, err = pingServiceURL(serviceURL, httpClient)
+			ok, status, err = pingServiceURL(serviceURL, c.Globals.HTTPClient)
 			if err != nil {
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
 				spinner.StopFailMessage(msg + returnedStatus)
