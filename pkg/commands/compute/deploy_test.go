@@ -456,7 +456,7 @@ func TestDeploy(t *testing.T) {
 			wantError: "error activating version: test error",
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 			},
 		},
 		// The following test validates that if a package contains code that has
@@ -501,7 +501,7 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"Manage this service at:",
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
@@ -533,7 +533,7 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"Manage this service at:",
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
@@ -571,7 +571,7 @@ func TestDeploy(t *testing.T) {
 			wantOutput: []string{
 				"Using fastly.toml within --package archive:",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"Manage this service at:",
 				"https://manage.fastly.com/configure/services/123",
 				"View this service at:",
@@ -603,7 +603,7 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"Deployed package (service 123, version 3)",
 			},
 		},
@@ -632,7 +632,7 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"Deployed package (service 123, version 4)",
 			},
 		},
@@ -661,7 +661,7 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"Deployed package (service 123, version 4)",
 			},
 		},
@@ -691,7 +691,7 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"Deployed package (service 123, version 4)",
 			},
 		},
@@ -748,7 +748,7 @@ func TestDeploy(t *testing.T) {
 				"Creating backend 'backend_name' (host: developer.fastly.com, port: 443)",
 				"Creating backend 'other_backend_name' (host: httpbin.org, port: 443)",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -799,7 +799,7 @@ func TestDeploy(t *testing.T) {
 				"Creating backend 'foo_backend' (host: developer.fastly.com, port: 80)",
 				"Creating backend 'bar_backend' (host: httpbin.org, port: 80)",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 			dontWantOutput: []string{
@@ -851,7 +851,7 @@ func TestDeploy(t *testing.T) {
 				"Creating backend 'foo_backend' (host: 127.0.0.1, port: 80)",
 				"Creating backend 'bar_backend' (host: 127.0.0.1, port: 80)",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 			dontWantOutput: []string{
@@ -901,7 +901,7 @@ func TestDeploy(t *testing.T) {
 				"Creating backend 'backend_name' (host: developer.fastly.com, port: 443)",
 				"Creating backend 'other_backend_name' (host: httpbin.org, port: 443)",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 			dontWantOutput: []string{
@@ -1151,7 +1151,7 @@ func TestDeploy(t *testing.T) {
 			`,
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
@@ -1199,7 +1199,7 @@ func TestDeploy(t *testing.T) {
 			`,
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
@@ -1266,7 +1266,7 @@ func TestDeploy(t *testing.T) {
 				"Creating dictionary item 'foo'",
 				"Creating dictionary item 'bar'",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -1319,7 +1319,7 @@ func TestDeploy(t *testing.T) {
 				"Creating dictionary item 'foo'",
 				"Creating dictionary item 'bar'",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -1370,7 +1370,7 @@ func TestDeploy(t *testing.T) {
 				"Creating dictionary item 'foo'",
 				"Creating dictionary item 'bar'",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 			// The following are predefined values for the `description` and `value`
@@ -1417,7 +1417,7 @@ func TestDeploy(t *testing.T) {
 			`,
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
@@ -1473,7 +1473,7 @@ func TestDeploy(t *testing.T) {
 				"Refer to the help documentation for each provider (if no provider shown, then select your own):",
 				"fastly logging <provider> create --help",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -1520,7 +1520,7 @@ func TestDeploy(t *testing.T) {
 				"Refer to the help documentation for each provider (if no provider shown, then select your own):",
 				"fastly logging <provider> create --help",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 			dontWantOutput: []string{
@@ -1572,7 +1572,7 @@ func TestDeploy(t *testing.T) {
 				"Refer to the help documentation for each provider (if no provider shown, then select your own):",
 				"fastly logging <provider> create --help",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -1617,7 +1617,7 @@ func TestDeploy(t *testing.T) {
 			`,
 			wantOutput: []string{
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
@@ -1682,7 +1682,7 @@ func TestDeploy(t *testing.T) {
 				"Creating object store key 'foo'",
 				"Creating object store key 'bar'",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -1736,7 +1736,7 @@ func TestDeploy(t *testing.T) {
 				"Creating object store key 'foo'",
 				"Creating object store key 'bar'",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
@@ -1788,7 +1788,7 @@ func TestDeploy(t *testing.T) {
 				"Creating object store key 'foo'",
 				"Creating object store key 'bar'",
 				"Uploading package",
-				"Activating version",
+				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 			// The following are predefined values for the `description` and `value`

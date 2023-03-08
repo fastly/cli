@@ -1112,7 +1112,7 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, spin
 	if err != nil {
 		return err
 	}
-	msg := "Activating version"
+	msg := fmt.Sprintf("Activating service (version %d)", serviceVersion)
 	spinner.Message(msg + "...")
 
 	_, err = c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
@@ -1164,13 +1164,13 @@ func checkingServiceAvailability(
 		return 0, err
 	}
 	msg := "Checking service availability"
-	spinner.Message(msg + "...")
+	spinner.Message(msg + " (app is being deployed across Fastly's global network)...")
 
 	timeout := time.After(time.Duration(c.StatusCheckTimeout) * time.Second)
 	ticker := time.NewTicker(1 * time.Second)
 	defer func() { ticker.Stop() }()
 
-	remediation := "The service has been successfully deployed and activated, but our service 'availability' check %s (last status code response was: %d). If using a custom domain, please be sure to check your DNS settings. Otherwise, your application might be taking longer than usual to deploy across our global network. Please continue to check the service URL and if still unavailable please contact Fastly support."
+	remediation := "The service has been successfully deployed and activated, but the service 'availability' check %s (last status code response was: %d). If using a custom domain, please be sure to check your DNS settings. Otherwise, your application might be taking longer than usual to deploy across our global network. Please continue to check the service URL and if still unavailable please contact Fastly support."
 
 	// Keep trying until we're timed out, got a result or got an error
 	for {
