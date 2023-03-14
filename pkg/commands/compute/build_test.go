@@ -498,7 +498,7 @@ func TestBuildJavaScript(t *testing.T) {
 				}
 			}
 
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			err = app.Run(opts)
 			t.Log(stdout.String())

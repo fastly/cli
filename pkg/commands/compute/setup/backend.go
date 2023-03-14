@@ -172,7 +172,7 @@ func (b *Backends) checkPredefined() error {
 			addr = defaultAddress
 		}
 
-		port := int(80)
+		port := int(443)
 		if settings.Port > 0 {
 			port = settings.Port
 		}
@@ -232,7 +232,7 @@ func (b *Backends) promptForBackend() error {
 			return nil
 		}
 
-		port := int(80)
+		port := int(443)
 		input, err := text.Input(b.Stdout, text.BoldYellow(fmt.Sprintf("Backend port number: [%d] ", port)), b.Stdin)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input: %w", err)
