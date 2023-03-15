@@ -175,10 +175,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	serviceURL := fmt.Sprintf("https://%s", domain)
 
-	if c.Globals.Verbose() {
-		text.Info(out, "Checking service availability for: %s", serviceURL+c.StatusCheckPath)
-	}
-
 	if !c.StatusCheckOff {
 		var status int
 		if status, err = checkingServiceAvailability(serviceURL+c.StatusCheckPath, spinner, c); err != nil {
