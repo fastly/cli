@@ -500,7 +500,6 @@ func updateViceroy(
 
 	if latest.GT(current) {
 		text.Break(out)
-		text.Break(out)
 		text.Output(out, "Current Viceroy version: %s", current)
 		text.Output(out, "Latest Viceroy version: %s", latest)
 		text.Break(out)
