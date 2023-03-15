@@ -500,7 +500,6 @@ func updateViceroy(
 
 	if latest.GT(current) {
 		text.Break(out)
-		text.Break(out)
 		text.Output(out, "Current Viceroy version: %s", current)
 		text.Output(out, "Latest Viceroy version: %s", latest)
 		text.Break(out)
@@ -522,6 +521,12 @@ func updateViceroy(
 			return fmt.Errorf("error downloading latest Viceroy release: %w", err)
 		}
 		defer os.RemoveAll(tmpBin)
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return err
+		}
 
 		err = spinner.Start()
 		if err != nil {
