@@ -215,7 +215,7 @@ func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, e
 
 	_, err = io.Copy(archive, data)
 	if err != nil {
-		return "", fmt.Errorf("failed to download release asset: %w", err)
+		return "", fmt.Errorf("failed to copy the release asset response body: %w", err)
 	}
 
 	if err := archive.Close(); err != nil {

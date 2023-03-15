@@ -63,7 +63,7 @@ func main() {
 	var (
 		args                    = os.Args[1:]
 		clientFactory           = app.FastlyAPIClient
-		httpClient              = &http.Client{Timeout: time.Second * 5}
+		httpClient              = &http.Client{Timeout: time.Second * 15}
 		in            io.Reader = os.Stdin
 		out           io.Writer = sync.NewWriter(color.Output)
 	)
