@@ -149,7 +149,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if err := processSetupCreation(
 		newService, domains, backends, dictionaries, objectStores, spinner, c,
-		serviceID, serviceVersion.Number, out,
+		serviceID, serviceVersion.Number,
 	); err != nil {
 		return err
 	}
@@ -491,10 +491,14 @@ func manageNoServiceIDFlow(
 	spinner text.Spinner,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
 	if !f.AutoYes && !f.NonInteractive {
-		text.Break(out)
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
 		text.Break(out)
 		text.Output(out, "Press ^C at any time to quit.")
+
+		if manifestFile.Setup.Defined() {
+			text.Info(out, "Processing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
+		}
+
 		text.Break(out)
 
 		answer, err := text.AskYesNo(out, text.BoldYellow("Create new service: [y/N] "), in)
@@ -523,7 +527,7 @@ func manageNoServiceIDFlow(
 	// There is no service and so we'll do a one time creation of the service
 	//
 	// NOTE: we're shadowing the `serviceVersion` and `serviceID` variables.
-	serviceID, serviceVersion, err = createService(serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
+	serviceID, serviceVersion, err = createService(f, serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]any{
 			"Service name": serviceName,
@@ -531,18 +535,22 @@ func manageNoServiceIDFlow(
 		return serviceID, serviceVersion, err
 	}
 
-	// NOTE: Only attempt to update the manifest if the user has not specified
-	// the --package flag, as this suggests they are not inside a project
-	// directory and subsequently we're reading the manifest content from within
-	// a given .tar.gz package archive file.
-	if packageFlag == "" {
-		err = updateManifestServiceID(manifestFile, manifest.Filename, serviceID)
-		if err != nil {
-			errLog.AddWithContext(err, map[string]any{
-				"Service ID": serviceID,
-			})
-			return serviceID, serviceVersion, err
-		}
+	err = updateManifestServiceID(manifestFile, manifest.Filename, serviceID)
+
+	// NOTE: Skip error if --package flag is set.
+	//
+	// This is because the use of the --package flag suggests the user is not
+	// within a project directory. If that is the case, then we don't want the
+	// error to be returned because of course there is no manifest to update.
+	//
+	// If the user does happen to be in a project directory and they use the
+	// --package flag, then the above function call to update the manifest will
+	// have succeeded and so there will be no error.
+	if err != nil && packageFlag == "" {
+		errLog.AddWithContext(err, map[string]any{
+			"Service ID": serviceID,
+		})
+		return serviceID, serviceVersion, err
 	}
 
 	return serviceID, serviceVersion, nil
@@ -553,6 +561,7 @@ func manageNoServiceIDFlow(
 // NOTE: If the creation of the service fails because the user has not
 // activated a free trial, then we'll trigger the trial for their account.
 func createService(
+	f global.Flags,
 	serviceName string,
 	apiClient api.Interface,
 	fnActivateTrial activator,
@@ -560,7 +569,10 @@ func createService(
 	errLog fsterr.LogInterface,
 	out io.Writer,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
-	text.Break(out)
+	if !f.AcceptDefaults && !f.NonInteractive {
+		text.Break(out)
+	}
+
 	err = spinner.Start()
 	if err != nil {
 		return "", nil, err
@@ -613,7 +625,7 @@ func createService(
 				return "", nil, err
 			}
 
-			return createService(serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
+			return createService(f, serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
 		}
 
 		errLog.AddWithContext(err, map[string]any{
@@ -992,14 +1004,7 @@ func processSetupCreation(
 	c *DeployCommand,
 	serviceID string,
 	serviceVersion int,
-	out io.Writer,
 ) error {
-	// NOTE: We need to output this message immediately to avoid breaking prompt.
-	if newService && c.Manifest.File.Setup.Defined() {
-		text.Info(out, "Processing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
-		text.Break(out)
-	}
-
 	if domains.Missing() {
 		domains.Spinner = spinner
 
