@@ -523,6 +523,12 @@ func updateViceroy(
 		}
 		defer os.RemoveAll(tmpBin)
 
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return err
+		}
+
 		err = spinner.Start()
 		if err != nil {
 			return err
