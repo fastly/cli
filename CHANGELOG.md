@@ -1,5 +1,19 @@
 # Changelog
 
+## [v8.0.1](https://github.com/fastly/cli/releases/tag/v8.0.1) (2023-03-15)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v8.0.0...v8.0.1)
+
+**Bug fixes:**
+
+* fix(compute/serve): stop spinner before starting another instance [#867](https://github.com/fastly/cli/pull/867)
+* fix(http/client): address confusion with timeout error [#869](https://github.com/fastly/cli/pull/869)
+* fix(http/client): bump timeout to account for poor network conditions [#870](https://github.com/fastly/cli/pull/870)
+
+**Enhancements:**
+
+* refactor(compute/deploy): change default port from 80 to 443 [#866](https://github.com/fastly/cli/pull/866)
+
 ## [v8.0.0](https://github.com/fastly/cli/releases/tag/v8.0.0) (2023-03-08)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v7.0.1...v8.0.0)
