@@ -148,7 +148,7 @@ func (bt BuildToolchain) Build() error {
 
 	if bt.postBuild != "" {
 		if !bt.autoYes && !bt.nonInteractive {
-			err := bt.promptForBuildContinue(CustomPostBuildScriptMessage, bt.postBuild, bt.out, bt.in, bt.verbose)
+			err := bt.promptForBuildContinue(CustomPostBuildScriptMessage, bt.postBuild, bt.out, bt.in)
 			if err != nil {
 				return err
 			}
@@ -219,7 +219,7 @@ func (bt BuildToolchain) execCommand(cmd string, args []string, spinMessage stri
 // promptForBuildContinue ensures the user is happy to continue with the build
 // when there is either a custom build or post build in the fastly.toml
 // manifest file.
-func (bt BuildToolchain) promptForBuildContinue(msg, script string, out io.Writer, in io.Reader, verbose bool) error {
+func (bt BuildToolchain) promptForBuildContinue(msg, script string, out io.Writer, in io.Reader) error {
 	text.Info(out, "%s:\n", msg)
 	text.Break(out)
 	text.Indent(out, 4, "%s", script)
