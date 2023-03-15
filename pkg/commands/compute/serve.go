@@ -190,9 +190,7 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 		if backend.OverrideHost == "" {
 			if u, err := url.Parse(backend.URL); err == nil {
 				segs := strings.Split(u.Host, ":") // avoid parsing IP with port
-				if addr := net.ParseIP(segs[0]); addr != nil {
-					// we have an IP
-				} else {
+				if ip := net.ParseIP(segs[0]); ip == nil {
 					if c.Globals.Verbose() {
 						text.Info(out, "[local_server.backends.%s] (%s) is configured without an `override_host`. We will use %s as a default to help avoid any unexpected errors. See https://developer.fastly.com/reference/compute/fastly-toml/#local-server for more details.", k, backend.URL, u.Host)
 					}
