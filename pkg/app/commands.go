@@ -8,6 +8,8 @@ import (
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/config"
+	"github.com/fastly/cli/pkg/commands/configstore"
+	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
@@ -115,6 +117,19 @@ func defineCommands(
 	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, g, m)
 	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, g, m)
 	configCmdRoot := config.NewRootCommand(app, g)
+	configstoreCmdRoot := configstore.NewRootCommand(app, g)
+	configstoreCreate := configstore.NewCreateCommand(configstoreCmdRoot.CmdClause, g, m)
+	configstoreDelete := configstore.NewDeleteCommand(configstoreCmdRoot.CmdClause, g, m)
+	configstoreDescribe := configstore.NewDescribeCommand(configstoreCmdRoot.CmdClause, g, m)
+	configstoreList := configstore.NewListCommand(configstoreCmdRoot.CmdClause, g, m)
+	configstoreListServices := configstore.NewListServicesCommand(configstoreCmdRoot.CmdClause, g, m)
+	configstoreUpdate := configstore.NewUpdateCommand(configstoreCmdRoot.CmdClause, g, m)
+	configstoreentryCmdRoot := configstoreentry.NewRootCommand(app, g)
+	configstoreentryCreate := configstoreentry.NewCreateCommand(configstoreentryCmdRoot.CmdClause, g, m)
+	configstoreentryDelete := configstoreentry.NewDeleteCommand(configstoreentryCmdRoot.CmdClause, g, m)
+	configstoreentryDescribe := configstoreentry.NewDescribeCommand(configstoreentryCmdRoot.CmdClause, g, m)
+	configstoreentryList := configstoreentry.NewListCommand(configstoreentryCmdRoot.CmdClause, g, m)
+	configstoreentryUpdate := configstoreentry.NewUpdateCommand(configstoreentryCmdRoot.CmdClause, g, m)
 	dictionaryCmdRoot := dictionary.NewRootCommand(app, g)
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, g, m)
 	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, g, m)
@@ -447,6 +462,19 @@ func defineCommands(
 		computeUpdate,
 		computeValidate,
 		configCmdRoot,
+		configstoreCmdRoot,
+		configstoreCreate,
+		configstoreDelete,
+		configstoreDescribe,
+		configstoreList,
+		configstoreListServices,
+		configstoreUpdate,
+		configstoreentryCmdRoot,
+		configstoreentryCreate,
+		configstoreentryDelete,
+		configstoreentryDescribe,
+		configstoreentryList,
+		configstoreentryUpdate,
 		dictionaryCmdRoot,
 		dictionaryCreate,
 		dictionaryDelete,

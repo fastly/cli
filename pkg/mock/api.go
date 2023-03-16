@@ -321,6 +321,20 @@ type API struct {
 	UpdateServiceAuthorizationFn func(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	DeleteServiceAuthorizationFn func(i *fastly.DeleteServiceAuthorizationInput) error
 
+	CreateConfigStoreFn       func(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error)
+	DeleteConfigStoreFn       func(i *fastly.DeleteConfigStoreInput) error
+	GetConfigStoreFn          func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error)
+	GetConfigStoreMetadataFn  func(i *fastly.GetConfigStoreMetadataInput) (*fastly.ConfigStoreMetadata, error)
+	ListConfigStoresFn        func() ([]*fastly.ConfigStore, error)
+	ListConfigStoreServicesFn func(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error)
+	UpdateConfigStoreFn       func(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error)
+
+	CreateConfigStoreItemFn func(i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error)
+	DeleteConfigStoreItemFn func(i *fastly.DeleteConfigStoreItemInput) error
+	GetConfigStoreItemFn    func(i *fastly.GetConfigStoreItemInput) (*fastly.ConfigStoreItem, error)
+	ListConfigStoreItemsFn  func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error)
+	UpdateConfigStoreItemFn func(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error)
+
 	CreateObjectStoreFn    func(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error)
 	GetObjectStoreFn       func(i *fastly.GetObjectStoreInput) (*fastly.ObjectStore, error)
 	ListObjectStoresFn     func(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error)
@@ -1636,6 +1650,66 @@ func (m API) UpdateServiceAuthorization(i *fastly.UpdateServiceAuthorizationInpu
 // DeleteServiceAuthorization implements Interface.
 func (m API) DeleteServiceAuthorization(i *fastly.DeleteServiceAuthorizationInput) error {
 	return m.DeleteServiceAuthorizationFn(i)
+}
+
+// CreateConfigStore implements Interface.
+func (m API) CreateConfigStore(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
+	return m.CreateConfigStoreFn(i)
+}
+
+// DeleteConfigStore implements Interface.
+func (m API) DeleteConfigStore(i *fastly.DeleteConfigStoreInput) error {
+	return m.DeleteConfigStoreFn(i)
+}
+
+// GetConfigStore implements Interface.
+func (m API) GetConfigStore(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
+	return m.GetConfigStoreFn(i)
+}
+
+// GetConfigStoreMetadata implements Interface.
+func (m API) GetConfigStoreMetadata(i *fastly.GetConfigStoreMetadataInput) (*fastly.ConfigStoreMetadata, error) {
+	return m.GetConfigStoreMetadataFn(i)
+}
+
+// ListConfigStores implements Interface.
+func (m API) ListConfigStores() ([]*fastly.ConfigStore, error) {
+	return m.ListConfigStoresFn()
+}
+
+// ListConfigStoreServices implements Interface.
+func (m API) ListConfigStoreServices(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
+	return m.ListConfigStoreServicesFn(i)
+}
+
+// UpdateConfigStore implements Interface.
+func (m API) UpdateConfigStore(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
+	return m.UpdateConfigStoreFn(i)
+}
+
+// CreateConfigStoreItem implements Interface.
+func (m API) CreateConfigStoreItem(i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
+	return m.CreateConfigStoreItemFn(i)
+}
+
+// DeleteConfigStoreItem implements Interface.
+func (m API) DeleteConfigStoreItem(i *fastly.DeleteConfigStoreItemInput) error {
+	return m.DeleteConfigStoreItemFn(i)
+}
+
+// GetConfigStoreItem implements Interface.
+func (m API) GetConfigStoreItem(i *fastly.GetConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
+	return m.GetConfigStoreItemFn(i)
+}
+
+// ListConfigStoreItems implements Interface.
+func (m API) ListConfigStoreItems(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
+	return m.ListConfigStoreItemsFn(i)
+}
+
+// UpdateConfigStoreItem implements Interface.
+func (m API) UpdateConfigStoreItem(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
+	return m.UpdateConfigStoreItemFn(i)
 }
 
 // CreateObjectStore implements Interface.

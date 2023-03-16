@@ -329,6 +329,20 @@ type Interface interface {
 	UpdateServiceAuthorization(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	DeleteServiceAuthorization(i *fastly.DeleteServiceAuthorizationInput) error
 
+	CreateConfigStore(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error)
+	DeleteConfigStore(i *fastly.DeleteConfigStoreInput) error
+	GetConfigStore(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error)
+	GetConfigStoreMetadata(i *fastly.GetConfigStoreMetadataInput) (*fastly.ConfigStoreMetadata, error)
+	ListConfigStores() ([]*fastly.ConfigStore, error)
+	ListConfigStoreServices(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error)
+	UpdateConfigStore(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error)
+
+	CreateConfigStoreItem(i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error)
+	DeleteConfigStoreItem(i *fastly.DeleteConfigStoreItemInput) error
+	GetConfigStoreItem(i *fastly.GetConfigStoreItemInput) (*fastly.ConfigStoreItem, error)
+	ListConfigStoreItems(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error)
+	UpdateConfigStoreItem(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error)
+
 	CreateObjectStore(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error)
 	ListObjectStores(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error)
 	DeleteObjectStore(i *fastly.DeleteObjectStoreInput) error
